@@ -215,3 +215,51 @@ def oneroster_stub(request):
 def lti13_stub(request):
     """Backward-compatible alias."""
     return lti13_readiness(request)
+
+
+def edfi_readiness(request):
+    """Ed-Fi adapter readiness (18.1, 31.2). Adapter and data API implemented."""
+    rl = _interop_rate_limited(request, "edfi")
+    if rl:
+        return rl
+    school = _resolve_school(request)
+    payload = {
+        "service": "edfi",
+        "standard": "Ed-Fi API",
+        "status": "implemented",
+        "implemented": True,
+        "detail": "Ed-Fi mapping and data API: students, studentSchoolAssociations, grades.",
+        "endpoints": {
+            "students": request.build_absolute_uri(reverse("api:interop-edfi-students")),
+            "studentSchoolAssociations": request.build_absolute_uri(reverse("api:interop-edfi-associations")),
+            "grades": request.build_absolute_uri(reverse("api:interop-edfi-grades")),
+        },
+    }
+    if school:
+        payload["school_id"] = school.pk
+        payload["school_slug"] = school.slug
+    return JsonResponse(payload, status=200)
+
+
+def ceds_readiness(request):
+    """CEDS for US reporting readiness (18.2). Mapping and data API implemented."""
+    rl = _interop_rate_limited(request, "ceds")
+    if rl:
+        return rl
+    school = _resolve_school(request)
+    payload = {
+        "service": "ceds",
+        "standard": "CEDS (US)",
+        "status": "implemented",
+        "implemented": True,
+        "detail": "CEDS mapping and data API: K12 students, enrollments, grades.",
+        "endpoints": {
+            "students": request.build_absolute_uri(reverse("api:interop-ceds-students")),
+            "enrollments": request.build_absolute_uri(reverse("api:interop-ceds-enrollments")),
+            "grades": request.build_absolute_uri(reverse("api:interop-ceds-grades")),
+        },
+    }
+    if school:
+        payload["school_id"] = school.pk
+        payload["school_slug"] = school.slug
+    return JsonResponse(payload, status=200)

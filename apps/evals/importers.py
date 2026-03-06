@@ -123,6 +123,8 @@ def apply_import(preview: GradeImportPreview, academic_year):
 
     created = 0
     updated = 0
+    created_ids = []
+    updated_ids = []
 
     for row in preview.rows:
         student = StudentProfile.objects.filter(student_code=row.student_code).first()
@@ -153,9 +155,16 @@ def apply_import(preview: GradeImportPreview, academic_year):
         )
         if was_created:
             created += 1
+            created_ids.append(obj.pk)
         else:
             updated += 1
-    return {"created": created, "updated": updated}
+            updated_ids.append(obj.pk)
+    return {
+        "created": created,
+        "updated": updated,
+        "created_ids": created_ids,
+        "updated_ids": updated_ids,
+    }
 
 # ========== ENHANCED VALIDATION & IMPORT ==========
 
@@ -283,9 +292,65 @@ def apply_import(csv_rows, academic_year=None):
             continue
     
     duration = time.time() - start_time
-    
+
     return {
-        'created': created_count,
-        'updated': updated_count,
-        'duration_seconds': round(duration, 2),
+        "created": created_count,
+        "updated": updated_count,
+        "duration_seconds": round(duration, 2),
+    }
+
+
+def dry_run_grade_import(csv_rows, academic_year=None):
+    """
+    Simulate grade import: same lookups as apply_import but no DB writes.
+    Returns scorecard dict: created, updated, errors (list of row error messages), duration_seconds.
+    """
+    import time
+
+    start_time = time.time()
+    would_create = 0
+    would_update = 0
+    errors = []
+
+    Evaluation = django_apps.get_model("evals", "Evaluation")
+    SubjectAssignment = django_apps.get_model("academics", "SubjectAssignment")
+    Term = django_apps.get_model("academics", "Term")
+    TeacherProfile = django_apps.get_model("people", "TeacherProfile")
+    StudentProfile = django_apps.get_model("people", "StudentProfile")
+    AcademicYear = django_apps.get_model("academics", "AcademicYear")
+
+    if not academic_year:
+        academic_year = AcademicYear.objects.filter(is_active=True).first()
+
+    for idx, row in enumerate(csv_rows, start=1):
+        try:
+            student = StudentProfile.objects.get(student_code=row.get("student_code"))
+            subject_assignment = SubjectAssignment.objects.get(
+                id=row.get("subject_assignment_id"), academic_year=academic_year
+            )
+            term = Term.objects.get(id=row.get("term_id"))
+            teacher_username = (row.get("teacher_username") or "").strip()
+            teacher = None
+            if teacher_username:
+                teacher = TeacherProfile.objects.filter(user__username=teacher_username).first()
+            exists = Evaluation.objects.filter(
+                academic_year=academic_year,
+                term=term,
+                subject_assignment=subject_assignment,
+                student=student,
+            ).exists()
+            if exists:
+                would_update += 1
+            else:
+                would_create += 1
+        except Exception as e:
+            errors.append(f"Row {idx}: {e}")
+
+    duration = time.time() - start_time
+    return {
+        "created": would_create,
+        "updated": would_update,
+        "error_count": len(errors),
+        "errors": errors[:50],
+        "duration_seconds": round(duration, 2),
     }

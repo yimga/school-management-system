@@ -12,6 +12,9 @@ from .views import (
     backend_ops_watch_data,
     import_hub,
     migration_wizard,
+    migration_run_list,
+    migration_legacy_view,
+    legacy_data_cleaner_view,
     backend_entity_import,
     backend_entity_console,
     claim_invite,
@@ -51,6 +54,12 @@ from .views_certification import (
     certification_session_override,
 )
 from .views_mfa import mfa_setup, mfa_verify, dismiss_mfa_banner
+from .views_passkey import (
+    passkey_registration_options,
+    passkey_registration_verify,
+    passkey_authentication_options,
+    passkey_authentication_verify,
+)
 from .views_security import (
     api_security_strength,
     api_security_activity,
@@ -115,6 +124,9 @@ urlpatterns = [
     path("backend/import/", backend_entity_import, name="backend_entity_import"),
     path("backend/import-hub/", import_hub, name="import_hub"),
     path("backend/migration-wizard/", migration_wizard, name="migration_wizard"),
+    path("backend/migration-runs/", migration_run_list, name="migration_run_list"),
+    path("backend/migration-runs/<int:run_id>/legacy/", migration_legacy_view, name="migration_legacy_view"),
+    path("backend/legacy-data-cleaner/", legacy_data_cleaner_view, name="legacy_data_cleaner"),
     path("backend/entities/", backend_entity_console, name="backend_entity_console"),
     path("workflow/", workflow_center, name="workflow_center"),
     path("workflow/approvals/", approval_workflow_hub, name="approval_workflow_hub"),
@@ -134,6 +146,10 @@ urlpatterns = [
     path("mfa/setup/", mfa_setup, name="mfa_setup"),
     path("mfa/dismiss-banner/", dismiss_mfa_banner, name="dismiss_mfa_banner"),
     path("mfa/verify/", mfa_verify, name="mfa_verify"),
+    path("mfa/passkey/registration/options/", passkey_registration_options, name="passkey_registration_options"),
+    path("mfa/passkey/registration/verify/", passkey_registration_verify, name="passkey_registration_verify"),
+    path("mfa/passkey/authentication/options/", passkey_authentication_options, name="passkey_authentication_options"),
+    path("mfa/passkey/authentication/verify/", passkey_authentication_verify, name="passkey_authentication_verify"),
     path("profile/security/strength/", api_security_strength, name="api_security_strength"),
     path("profile/security/activity/", api_security_activity, name="api_security_activity"),
     path("profile/security/export/", api_security_export_log, name="api_security_export_log"),

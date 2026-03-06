@@ -7,6 +7,7 @@ from apps.billing.models import (
     BillingProcessorSyncEvent,
     PlatformLedgerEntry,
     PlatformBillingProcessorConfig,
+    Quote,
     RevenueSharePayout,
     TenantSubscription,
     UsageMeter,
@@ -87,6 +88,13 @@ class PlatformBillingProcessorConfigAdmin(admin.ModelAdmin):
     )
     list_filter = ("is_active", "signature_style", "signature_algorithm")
     search_fields = ("code", "display_name")
+
+
+@admin.register(Quote, site=admin_site)
+class QuoteAdmin(admin.ModelAdmin):
+    list_display = ("id", "school", "plan", "status", "amount", "currency_code", "valid_until", "created_at")
+    list_filter = ("status", "currency_code")
+    search_fields = ("school__name", "plan__name")
 
 
 @admin.register(RevenueSharePayout, site=admin_site)

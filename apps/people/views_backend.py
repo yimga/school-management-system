@@ -1,7 +1,9 @@
 """
 Backend UI Views for People Management
 User-friendly views for /backend interface (separate from Django Admin)
+Section 26.5 UX rules: list search, filters, export.
 """
+import csv
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
@@ -10,6 +12,8 @@ from django.db import transaction
 from django.db.models import Q
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.urls import reverse
+from django.http import HttpResponse
+from django.utils import timezone
 from .models import StudentProfile, TeacherProfile, StudentGuardian
 from .forms_backend import StudentCreateForm, TeacherCreateForm, ClassroomCreateForm
 from apps.academics.models import AcademicYear, Classroom, Department
@@ -218,6 +222,31 @@ def backend_student_list(request):
     status_filter = request.GET.get('status', '').strip()
     if status_filter:
         qs = qs.filter(status=status_filter)
+
+    # 26.5: Export as CSV when format=csv
+    if request.GET.get('format') == 'csv':
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = (
+            f'attachment; filename="students_export_{timezone.now().strftime("%Y%m%d_%H%M%S")}.csv"'
+        )
+        writer = csv.writer(response)
+        writer.writerow([
+            'admission_number', 'first_name', 'last_name', 'student_code', 'status',
+            'academic_year', 'classroom', 'email', 'date_of_birth'
+        ])
+        for s in qs[:10000]:  # cap for safety
+            writer.writerow([
+                getattr(s, 'admission_number', '') or '',
+                getattr(s, 'first_name', '') or '',
+                getattr(s, 'last_name', '') or '',
+                getattr(s, 'student_code', '') or '',
+                getattr(s, 'status', '') or '',
+                getattr(s.academic_year, 'name', '') if getattr(s, 'academic_year', None) else '',
+                getattr(s.classroom, 'name', '') if getattr(s, 'classroom', None) else '',
+                getattr(s, 'email', '') or '',
+                s.date_of_birth.isoformat() if getattr(s, 'date_of_birth', None) else '',
+            ])
+        return response
 
     per_page = min(100, max(10, int(request.GET.get('page_size', 25))))
     paginator = Paginator(qs, per_page)

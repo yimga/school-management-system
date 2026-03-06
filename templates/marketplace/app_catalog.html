@@ -1,0 +1,87 @@
+{% extends "backend_base.html" %}
+{% load static %}
+
+{% block title %}App catalog{% endblock %}
+{% block backend_title %}App catalog{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 control-plane-shell">
+  <section class="cp-hero cp-hero-compact mb-4">
+    <div class="cp-hero-grid">
+      <div>
+        <div class="cp-eyebrow">RunMyCampus Manager</div>
+        <h1 class="cp-hero-title">App catalog</h1>
+        <p class="cp-hero-copy">
+          Install approved marketplace apps for a school. Only installable (approved, not kill-switched) apps are listed.
+        </p>
+      </div>
+      <div class="cp-hero-actions">
+        <a href="{% url 'super:marketplace_governance' %}" class="btn btn-outline-light btn-sm">Governance</a>
+        <a href="{% url 'super:blueprint_marketplace' %}" class="btn btn-outline-light btn-sm">Blueprint marketplace</a>
+        <a href="{% url 'super:dashboard' %}" class="btn btn-outline-light btn-sm">Control plane</a>
+      </div>
+    </div>
+  </section>
+
+  {% if messages %}
+  <div class="mb-3">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="row g-4">
+    <div class="col-12 col-lg-8">
+      <section class="cp-panel">
+        <div class="cp-panel-header">
+          <span class="cp-panel-eyebrow">Installable</span>
+          <h2 class="cp-panel-title">Apps</h2>
+        </div>
+        <div class="cp-list">
+          {% for listing in listings %}
+          <div class="cp-list-row d-flex align-items-start justify-content-between flex-wrap gap-2">
+            <div>
+              <strong>{{ listing.app.name }}</strong>
+              <span class="text-muted small ms-1">({{ listing.app.slug }})</span>
+              <span class="badge bg-{{ listing.app.kind == 'first_party'|yesno:'primary,secondary' }} ms-1">{{ listing.app.get_kind_display }}</span>
+              <span class="small text-muted">v{{ listing.app.version }}</span>
+              {% if listing.app.description %}<p class="small text-muted mb-0 mt-1">{{ listing.app.description|truncatewords:25 }}</p>{% endif %}
+            </div>
+            <form method="post" class="d-flex align-items-center gap-2">
+              {% csrf_token %}
+              <input type="hidden" name="app_id" value="{{ listing.app.pk }}">
+              <select name="school_id" class="form-select form-select-sm" style="width: auto; min-width: 180px;" required>
+                <option value="">Select school…</option>
+                {% for s in schools %}
+                <option value="{{ s.pk }}">{{ s.name }}</option>
+                {% endfor %}
+              </select>
+              <button type="submit" class="btn btn-primary btn-sm">Install</button>
+            </form>
+          </div>
+          {% empty %}
+          <div class="cp-list-row text-muted">No installable apps. Approve listings in Marketplace governance to make apps available here.</div>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+    <div class="col-12 col-lg-4">
+      <div class="cp-panel">
+        <div class="cp-panel-header">
+          <span class="cp-panel-eyebrow">Phase 6</span>
+          <h2 class="cp-panel-title">Install flow</h2>
+        </div>
+        <div class="p-3">
+          <p class="small mb-0">Select an app and a school, then click Install. The install pipeline creates an AppInstallation, runs schema patches if declared in the app manifest, and registers widgets. Only approved, non–kill-switched apps appear.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

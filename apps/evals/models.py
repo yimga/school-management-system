@@ -474,6 +474,15 @@ class Evaluation(models.Model):
         return f"{self.student} | {self.subject_assignment.subject} | {self.term}"
 
 
+def _evaluation_evidence_upload_to(instance, filename):
+    """Tenant-scoped path for EvaluationEvidence.file (Section 25.3). School from evaluation."""
+    ev = getattr(instance, "evaluation", None)
+    school_id = getattr(ev, "school_id", None) if ev else None
+    if school_id is None:
+        return f"tenant_uploads/evals/evidence/{filename}"
+    return f"tenants/{school_id}/evals/evidence/{filename}"
+
+
 class EvaluationEvidence(models.Model):
     class MediaType(models.TextChoices):
         PHOTO = "PHOTO", "Photo"
@@ -483,7 +492,7 @@ class EvaluationEvidence(models.Model):
     evaluation = models.ForeignKey(Evaluation, on_delete=models.CASCADE, related_name="evidence")
     media_type = models.CharField(max_length=20, choices=MediaType.choices, default=MediaType.PHOTO)
     file = models.FileField(
-        upload_to="evaluations/evidence/",
+        upload_to=_evaluation_evidence_upload_to,
         validators=[validate_evidence_file, validate_file_size_20mb],
     )
     caption = models.CharField(max_length=255, blank=True)

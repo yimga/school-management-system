@@ -1,0 +1,31 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+{% block backend_title %}{% trans "Guided onboarding" %}{% endblock %}
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="card shadow-sm">
+    <div class="card-header">{% trans "Guided onboarding" %}</div>
+    <div class="card-body">
+      <p class="text-muted small">Section 11.4: Complete these steps to get your school set up.</p>
+      <ul class="list-group list-group-flush">
+        {% for step in steps %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          {% if step.done %}
+          <span class="text-success">✓ {{ step.label }}</span>
+          {% else %}
+          <span>{{ step.label }}</span>
+          {% endif %}
+          {% if not step.done and step.link %}
+          <a href="{{ step.link }}" class="btn btn-sm btn-primary">{% trans "Do it" %}</a>
+          {% elif step.done %}
+          <span class="badge bg-success">{% trans "Done" %}</span>
+          {% endif %}
+        </li>
+        {% empty %}
+        <li class="list-group-item text-muted">{% trans "No steps configured." %}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

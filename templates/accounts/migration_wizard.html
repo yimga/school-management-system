@@ -102,14 +102,39 @@
   <div class="card shadow-sm">
     <div class="card-body">
       <h2 class="h6 mb-2">Step 3: Run import</h2>
-      <form method="post" id="run-form">
+      <form method="post" id="run-form" class="d-inline-block me-2">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="dry_run">
+        <input type="hidden" name="mapping" id="mapping-input" value="{}">
+        <button type="submit" class="btn btn-outline-primary">Validate only (dry run)</button>
+      </form>
+      <form method="post" id="run-form-commit" class="d-inline-block">
         {% csrf_token %}
         <input type="hidden" name="action" value="run">
-        <input type="hidden" name="mapping" id="mapping-input" value="{}">
+        <input type="hidden" name="mapping" id="mapping-input-commit" value="{}">
         <button type="submit" class="btn btn-success">Run import</button>
       </form>
     </div>
   </div>
+
+  {% if scorecard %}
+  <div class="card shadow-sm border-primary mt-3">
+    <div class="card-header bg-light"><strong>Migration scorecard</strong> (dry run)</div>
+    <div class="card-body">
+      <p class="mb-1">Rows: {{ scorecard.row_count|default:0 }} → Would create: {{ scorecard.created|default:0 }}, would update: {{ scorecard.updated|default:0 }}, errors: {{ scorecard.error_count|default:0 }}. Status: {{ scorecard.status|default:"—" }}</p>
+      {% if scorecard.parity %}
+      <p class="mb-1 small text-muted">Parity: {{ scorecard.parity.total_processed|default:0 }} processed (match: {{ scorecard.parity.match|yesno:"Yes,No" }})</p>
+      {% endif %}
+      {% if scorecard.errors %}
+      <ul class="small mb-0 mt-2 list-unstyled">
+        {% for err in scorecard.errors %}
+        <li class="text-danger">{{ err }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
   {% endif %}
 </div>
 
@@ -117,7 +142,9 @@
 <script>
 (function() {
   var runForm = document.getElementById('run-form');
+  var runFormCommit = document.getElementById('run-form-commit');
   var mappingInput = document.getElementById('mapping-input');
+  var mappingInputCommit = document.getElementById('mapping-input-commit');
   var selects = document.querySelectorAll('.map-select');
   function buildMapping() {
     var m = {};
@@ -126,10 +153,13 @@
       var val = s.value;
       if (header && val) m[header] = val;
     });
-    mappingInput.value = JSON.stringify(m);
+    var json = JSON.stringify(m);
+    if (mappingInput) mappingInput.value = json;
+    if (mappingInputCommit) mappingInputCommit.value = json;
   }
   selects.forEach(function(s) { s.addEventListener('change', buildMapping); });
-  runForm.addEventListener('submit', function() { buildMapping(); });
+  if (runForm) runForm.addEventListener('submit', function() { buildMapping(); });
+  if (runFormCommit) runFormCommit.addEventListener('submit', function() { buildMapping(); });
 })();
 </script>
 {% endif %}

@@ -1,0 +1,26 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+{% block backend_title %}{% trans "Support co-pilot" %}{% endblock %}
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="card shadow-sm">
+    <div class="card-header">{% trans "Support co-pilot" %}</div>
+    <div class="card-body">
+      <p class="text-muted small">Section 11.4: Suggested next actions from interventions, risk alerts, and health.</p>
+      <ul class="list-group list-group-flush">
+        {% for s in suggestions %}
+        <li class="list-group-item d-flex justify-content-between align-items-start">
+          <div>
+            <span class="fw-semibold">{{ s.title }}</span>
+            {% if s.description %}<p class="mb-0 small text-muted">{{ s.description }}</p>{% endif %}
+          </div>
+          {% if s.link %}<a href="{{ s.link }}" class="btn btn-sm btn-outline-primary">{% trans "Open" %}</a>{% endif %}
+        </li>
+        {% empty %}
+        <li class="list-group-item text-muted">{% trans "No suggestions right now." %}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

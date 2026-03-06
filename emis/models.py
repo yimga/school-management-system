@@ -5,6 +5,15 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
+def _emis_export_upload_to(instance, filename):
+    """Tenant-scoped path for EMISExport.file_path (Section 25.3). School from academic_year."""
+    ay = getattr(instance, "academic_year", None)
+    school_id = getattr(ay, "school_id", None) if ay else None
+    if school_id is None:
+        return f"tenant_uploads/emis_exports/{filename}"
+    return f"tenants/{school_id}/emis_exports/{filename}"
+
+
 class EMISExport(models.Model):
     """Model to track EMIS data exports"""
 
@@ -47,7 +56,7 @@ class EMISExport(models.Model):
     export_date = models.DateTimeField(default=timezone.now)
 
     file_path = models.FileField(
-        upload_to='emis_exports/%Y/%m/',
+        upload_to=_emis_export_upload_to,
         null=True,
         blank=True
     )

@@ -16,6 +16,16 @@ class AttendanceLog(models.Model):
 
 # ========== GRADE IMPORT JOB TRACKING ==========
 
+
+def grade_import_job_upload_to(instance, filename):
+    """Tenant-scoped path for GradeImportJob.uploaded_file (Section 25.3). School from academic_year."""
+    ay = getattr(instance, "academic_year", None)
+    school_id = getattr(ay, "school_id", None) if ay else None
+    if school_id is None:
+        return f"tenant_uploads/analytics/grade_imports/{filename}"
+    return f"tenants/{school_id}/analytics/grade_imports/{filename}"
+
+
 class GradeImportJob(models.Model):
     """Tracks a single bulk grade import session."""
     
@@ -46,7 +56,7 @@ class GradeImportJob(models.Model):
         related_name='grade_imports_uploaded'
     )
     uploaded_file = models.FileField(
-        upload_to='grade_imports/%Y/%m/%d/',
+        upload_to=grade_import_job_upload_to,
         null=True,
         blank=True,
         validators=[validate_grade_import_file, validate_file_size_5mb],

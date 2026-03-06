@@ -522,7 +522,11 @@ def recalculate_invoice(invoice: Invoice) -> None:
     invoice.total_amount = total
     invoice.balance_amount = balance
     invoice.status = _invoice_status(total, balance)
-    invoice.save(update_fields=["total_amount", "balance_amount", "status", "updated_at"])
+    try:
+        invoice._recalculating = True
+        invoice.save(update_fields=["total_amount", "balance_amount", "status", "updated_at"])
+    finally:
+        invoice._recalculating = False
     invoice.reconcile_balance()
     post_invoice_to_ledger(invoice)
 

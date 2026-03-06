@@ -2,7 +2,8 @@
 Workflow catalog (Part 2c): WorkflowTemplate and TenantWorkflow.
 
 Pre-built business workflows (e.g. "If absent 3 days → notify counselor") with
-trigger–condition–action. WorkflowConfig in academics remains for wizards.
+trigger–condition–action (Section 5: Trigger → Conditions → Actions → Approvals → Audit).
+Level 1 = locked global default, Level 2 = configurable template, Level 3 = constrained custom.
 """
 from django.db import models
 
@@ -11,11 +12,22 @@ class WorkflowTemplate(models.Model):
     """
     Master workflow definition (public/control schema). Trigger, conditions, actions (JSON).
     Pre-built e.g. "Safety Net", "Fiscal Guardian". TenantWorkflow links a school to a template.
+    Section 5: level 1 = locked, 2 = configurable template, 3 = constrained custom.
     """
+
+    class Level(models.IntegerChoices):
+        LOCKED = 1, "Level 1: Locked global default (safety/legal)"
+        CONFIGURABLE_TEMPLATE = 2, "Level 2: Configurable template (tenant chooses approved variants)"
+        CONSTRAINED_CUSTOM = 3, "Level 3: Constrained custom (tenant customizes within safe boundaries)"
 
     code = models.CharField(max_length=80, unique=True, help_text="Unique code (e.g. safety_net_absent_3d)")
     name = models.CharField(max_length=120)
     description = models.TextField(blank=True)
+    level = models.PositiveSmallIntegerField(
+        choices=Level.choices,
+        default=Level.CONFIGURABLE_TEMPLATE,
+        help_text="Section 5: 1=locked, 2=configurable template, 3=constrained custom.",
+    )
     trigger = models.CharField(
         max_length=80,
         blank=True,
@@ -37,6 +49,16 @@ class WorkflowTemplate(models.Model):
         help_text="List of actions: [{\"type\": \"notify\", \"params\": {...}}].",
     )
     is_active = models.BooleanField(default=True)
+    certified = models.BooleanField(
+        default=False,
+        help_text="Section 5.6: Certified pack — platform-provided, safe to activate.",
+    )
+    version = models.CharField(
+        max_length=32,
+        blank=True,
+        default="1.0",
+        help_text="Declarative version for upgrade-safety and rollback.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -11,6 +11,30 @@ from django.db import models
 _AUTH_USER_MODEL = getattr(settings, "AUTH_USER_MODEL", "accounts.User")
 
 
+def can(school, capability: str) -> bool:
+    """
+    Section 25.1: Entitlement check — return True if tenant has the capability/module enabled.
+    Alias for is_feature_enabled(school, capability). Use for can(tenant, "MODULE_X") semantics.
+    """
+    return is_feature_enabled(school, capability)
+
+
+def limits(school) -> dict:
+    """
+    Section 25.1: Return effective quota limits for the tenant (from TenantQuotaLimit).
+    Returns dict mapping limit_type (e.g. api_calls_per_month) to limit_value.
+    Plan-level limits can be merged by callers if needed.
+    """
+    if school is None:
+        return {}
+    try:
+        from apps.schools.models import TenantQuotaLimit
+        qs = TenantQuotaLimit.objects.filter(school=school, is_active=True)
+        return {q.limit_type: q.limit_value for q in qs}
+    except Exception:
+        return {}
+
+
 def is_feature_enabled(school, code: str) -> bool:
     """
     Return True if the tenant (school) has the feature/module enabled.
@@ -179,6 +203,17 @@ class School(models.Model):
         blank=True,
         related_name="schools",
         help_text="Subscription plan; included_features + addons determine enabled modules.",
+    )
+    # 21.4 Operational identity: default workflow/dashboard/comms/fee pack (slugs or keys from registry)
+    default_workflow_slug = models.CharField(
+        max_length=80,
+        blank=True,
+        help_text="Default workflow preset slug for this school (e.g. from TenantWorkflow registry).",
+    )
+    default_dashboard_slug = models.CharField(
+        max_length=80,
+        blank=True,
+        help_text="Default dashboard preset slug for this school (e.g. from dashboard registry).",
     )
     addons = models.JSONField(
         default=list,

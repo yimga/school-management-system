@@ -13,6 +13,7 @@ from apps.accounts.models import User
 from apps.people.models import StudentProfile, TeacherProfile, StudentGuardian
 from apps.academics.models import AcademicYear
 from apps.siteconfig.models import SiteSettings
+from apps.policies.registry import get_tenant_blueprint
 from .forms import TeacherOnboardingForm, StudentOnboardingForm
 
 
@@ -183,7 +184,8 @@ def student_onboarding_wizard(request: HttpRequest):
         
         # Validate: use merged wizard_data so step 1 required fields are present on steps 2+
         data_to_validate = wizard_data if step >= 2 else request.POST
-        form = StudentOnboardingForm(data=data_to_validate)
+        policy = get_tenant_blueprint(request)
+        form = StudentOnboardingForm(data=data_to_validate, policy=policy)
         
         if step == 1:
             # Step 1: Basic information - validate required fields
@@ -277,7 +279,8 @@ def student_onboarding_wizard(request: HttpRequest):
     
     # Build form with session data (so re-renders after validation errors show data)
     form_data = dict(wizard_data) if wizard_data else {}
-    form = StudentOnboardingForm(data=form_data)
+    policy = get_tenant_blueprint(request)
+    form = StudentOnboardingForm(data=form_data, policy=policy)
     
     # Pre-populate form from session for GET or when re-rendering after POST
     if wizard_data:

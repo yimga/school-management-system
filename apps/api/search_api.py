@@ -150,14 +150,15 @@ class GlobalSearchAPI(View):
         else:
             types_to_search = [search_type]
         
-        # Search each type
+        # Search each type (Section 25.3: tenant-scoped when request.school is set)
+        school = getattr(request, "school", None)
         for search_type_key in types_to_search:
             config = self.SEARCH_CONFIG.get(search_type_key)
             if not config:
                 continue
             
             try:
-                items = self._search_type(config, query, limit, request.user)
+                items = self._search_type(config, query, limit, request.user, school=school)
                 results.extend(items)
             except Exception as e:
                 logger.error(f"Search error for {search_type_key}: {e}")
@@ -168,8 +169,8 @@ class GlobalSearchAPI(View):
             'results': results
         })
     
-    def _search_type(self, config, query, limit, user):
-        """Search a specific resource type"""
+    def _search_type(self, config, query, limit, user, school=None):
+        """Search a specific resource type. Section 25.3: when school is set, all querysets are tenant-scoped."""
         results = []
         
         # Build query
@@ -181,8 +182,11 @@ class GlobalSearchAPI(View):
         if config['model'] == 'StudentProfile':
             from apps.people.models import StudentProfile
             role = getattr(user, "role", None)
+            base = StudentProfile.objects.filter(q_object, is_active=True)
+            if school is not None:
+                base = base.filter(school=school)
             if user.is_staff or user.is_superuser or role in self.ELEVATED_ROLES:
-                items = StudentProfile.objects.filter(q_object, is_active=True)[:limit]
+                items = base[:limit]
             elif role == 'TEACHER':
                 from apps.evals.models import TeacherAssignment
                 teacher = getattr(user, "teacher_profile", None)
@@ -235,7 +239,10 @@ class GlobalSearchAPI(View):
             if not (user.is_staff or user.is_superuser or role in self.ELEVATED_ROLES):
                 return results
 
-            items = TeacherProfile.objects.filter(q_object, user__is_active=True)[:limit]
+            base = TeacherProfile.objects.filter(q_object, user__is_active=True)
+            if school is not None:
+                base = base.filter(school=school)
+            items = base[:limit]
             for item in items:
                 results.append({
                     'id': item.id,
@@ -248,7 +255,10 @@ class GlobalSearchAPI(View):
         
         elif config['model'] == 'Classroom':
             from apps.academics.models import Classroom
-            items = Classroom.objects.filter(q_object)[:limit]
+            base = Classroom.objects.filter(q_object)
+            if school is not None:
+                base = base.filter(school=school)
+            items = base[:limit]
             for item in items:
                 results.append({
                     'id': item.id,
@@ -275,18 +285,18 @@ class GlobalSearchAPI(View):
         elif config['model'] == 'Invoice':
             from apps.finance.models import Invoice
             role = getattr(user, "role", None)
+            base = Invoice.objects.filter(q_object)
+            if school is not None:
+                base = base.filter(school=school)
             if user.is_staff or user.is_superuser or role in self.FINANCE_ROLES:
-                items = Invoice.objects.filter(q_object)[:limit]
+                items = base[:limit]
             elif role == 'PARENT':
                 from apps.people.models import StudentGuardian
                 student_ids = StudentGuardian.objects.filter(
                     guardian_user=user,
                     can_view_finance=True,
                 ).values_list("student_id", flat=True)
-                items = Invoice.objects.filter(
-                    q_object,
-                    student_id__in=student_ids,
-                )[:limit]
+                items = base.filter(student_id__in=student_ids)[:limit]
             elif role == 'STUDENT':
                 try:
                     from apps.people.models import StudentProfile
@@ -296,7 +306,7 @@ class GlobalSearchAPI(View):
                     student_profile = None
                 if not student_profile:
                     return results
-                items = Invoice.objects.filter(q_object, student=student_profile)[:limit]
+                items = base.filter(student=student_profile)[:limit]
             else:
                 return results
 
@@ -316,16 +326,15 @@ class GlobalSearchAPI(View):
 @method_decorator(login_required, name='dispatch')
 class SearchSuggestionsAPI(View):
     """
-    Get search suggestions for autocomplete
-    
-    Returns recently searched queries by user
+    Get search suggestions for autocomplete.
+    Section 25.3: cache key is tenant-scoped so same user in multiple schools has separate history.
     """
     
     def get(self, request):
         from django.core.cache import cache
+        from apps.siteconfig.cache_utils import tenant_cache_key
         
-        # Get from cache or return empty
-        key = f'search_history_{request.user.id}'
+        key = tenant_cache_key(f'search_history_{request.user.id}', request)
         history = cache.get(key, [])
         
         return JsonResponse({

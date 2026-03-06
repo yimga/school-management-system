@@ -150,6 +150,8 @@ urlpatterns = [
     # API schema (RBAC-protected; same as schema UI)
     path('api/schema/', schema_view, name='api-schema'),
     path('api/schema/ui/', api_schema_ui, name='api-schema-ui'),
+    # Part F 16.3: GraphQL gateway
+    path('graphql/', __import__('config.graphql_view', fromlist=['graphql_gateway']).graphql_gateway, name='graphql'),
     
     # Frontend admin dashboard - separate from /admin/ (redirect to canonical URL)
     path('backend/', lambda request: redirect('accounts:backend_dashboard', permanent=False)),

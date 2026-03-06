@@ -6,6 +6,16 @@ from django.core.exceptions import ValidationError
 from django.utils import translation
 
 
+def reportcard_pdf_upload_to(instance, filename):
+    """Tenant-scoped path for ReportCard.pdf_file (Section 25.3, media_tenant_scope.md)."""
+    school_id = getattr(instance, "school_id", None) or (
+        getattr(getattr(instance, "school", None), "pk", None) if getattr(instance, "school", None) else None
+    )
+    if school_id is None:
+        return f"tenant_uploads/reports/reportcards/{filename}"
+    return f"tenants/{school_id}/reports/reportcards/{filename}"
+
+
 class TermPublishStatus(models.Model):
     """
     If classroom is NULL, it means published for the entire school for that term.
@@ -44,7 +54,7 @@ class ReportCard(models.Model):
     student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name="report_cards")
 
     type = models.CharField(max_length=10, choices=Type.choices)
-    pdf_file = models.FileField(upload_to="reportcards/", null=True, blank=True)
+    pdf_file = models.FileField(upload_to=reportcard_pdf_upload_to, null=True, blank=True)
     generated_at = models.DateTimeField(auto_now=True)
     
     # Localization fields

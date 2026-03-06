@@ -21,6 +21,9 @@ Where tenant is set, schema switching, and shared vs tenant tables (RunMyCampus 
 3. **Tenant context (both modes)**
    - `apps.tenancy.middleware.TenantContextMiddleware`: builds `request.tenant_ctx` (TenantContext) from `request.school` or `request.tenant`. Runs after tenant/school resolution. Does **not** read/write DB schema; only attaches context (tenant_id, schema_name, school_id, country, timezone, feature_flags, policy_overrides, host).
 
+4. **Session variables (PostgreSQL)**  
+   `app.current_school_id` (and any `app.*` session vars) are used **only for audit/request context and RLS scoping** — not as a second tenancy model. Tenant identity comes from host resolution and `request.school` / `request.tenant`; session vars must not be used to resolve tenant in application code. See non-negotiable rule 24.10.
+
 ## Schema switching
 
 - **RLS:** No schema switch; connection stays on default schema. `set_config('app.current_school_id', school_id)` (or equivalent) is applied so RLS policies filter by school.

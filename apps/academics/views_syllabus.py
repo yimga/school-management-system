@@ -1,6 +1,6 @@
 """
 Syllabus Builder: teacher hub (course cards), builder, upload, preview, approval queue.
-Uses get_effective_approvers(WORKFLOW_SYLLABUS_APPROVAL) and log_delegation_action for delegate approvals.
+Uses workflow_resolver.get_approval_workflow(school, "syllabus_approval") and log_delegation_action for delegate approvals.
 """
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -208,9 +208,10 @@ def syllabus_preview(request, subject_assignment_id: int):
     syllabus = get_object_or_404(CourseSyllabus, subject_assignment=sa)
     # Allow: owner teacher, or any effective approver (for dean view)
     assignments_qs = _get_teacher_assignments(request.user)
-    from apps.accounts.delegation import can_user_approve_for_workflow, WORKFLOW_SYLLABUS_APPROVAL
+    from apps.siteconfig.workflow_resolver import get_approval_workflow as workflow_get_approval
     is_owner = assignments_qs and assignments_qs.filter(subject_assignment=sa).exists()
-    is_approver = can_user_approve_for_workflow(request.user, WORKFLOW_SYLLABUS_APPROVAL)
+    _wf = workflow_get_approval(getattr(request, "school", None), "syllabus_approval")
+    is_approver = request.user.pk in (_wf.get("approver_ids") or [])
     if not (is_owner or is_approver):
         return HttpResponseForbidden("You cannot view this syllabus.")
     return render(request, "academics/syllabus_preview.html", {
@@ -222,8 +223,9 @@ def syllabus_preview(request, subject_assignment_id: int):
 @login_required
 def syllabus_approval_queue(request):
     """List syllabi pending approval for current user (effective approver: role or delegate)."""
-    from apps.accounts.delegation import get_effective_approvers, WORKFLOW_SYLLABUS_APPROVAL
-    approver_ids = [u.pk for u in get_effective_approvers(WORKFLOW_SYLLABUS_APPROVAL)]
+    from apps.siteconfig.workflow_resolver import get_approval_workflow as workflow_get_approval
+    _wf = workflow_get_approval(getattr(request, "school", None), "syllabus_approval")
+    approver_ids = _wf.get("approver_ids") or []
     if request.user.pk not in approver_ids:
         return HttpResponseForbidden("You are not an approver for syllabi.")
     pending = (
@@ -243,18 +245,15 @@ def syllabus_approval_queue(request):
 @login_required
 def syllabus_approve(request, subject_assignment_id: int):
     """Approve a syllabus (effective approver). Log delegation action if acting as delegate."""
-    from apps.accounts.delegation import (
-        get_effective_approvers,
-        get_active_delegation_for_delegate,
-        log_delegation_action,
-        WORKFLOW_SYLLABUS_APPROVAL,
-    )
+    from apps.accounts.delegation import get_active_delegation_for_delegate, log_delegation_action
+    from apps.siteconfig.workflow_resolver import get_approval_workflow as workflow_get_approval
     sa = get_object_or_404(SubjectAssignment, pk=subject_assignment_id)
     syllabus = get_object_or_404(CourseSyllabus, subject_assignment=sa)
     if syllabus.status != CourseSyllabus.Status.PENDING:
         messages.warning(request, "Syllabus is not pending.")
         return redirect("academics:syllabus_approval_queue")
-    approver_ids = [u.pk for u in get_effective_approvers(WORKFLOW_SYLLABUS_APPROVAL)]
+    _wf = workflow_get_approval(getattr(request, "school", None), "syllabus_approval")
+    approver_ids = _wf.get("approver_ids") or []
     if request.user.pk not in approver_ids:
         return HttpResponseForbidden("You are not an approver for syllabi.")
     if request.method == "POST":
@@ -313,18 +312,15 @@ def syllabus_approve(request, subject_assignment_id: int):
 @login_required
 def syllabus_reject(request, subject_assignment_id: int):
     """Send syllabus back to teacher (Needs revision). Log delegation action if delegate."""
-    from apps.accounts.delegation import (
-        get_effective_approvers,
-        get_active_delegation_for_delegate,
-        log_delegation_action,
-        WORKFLOW_SYLLABUS_APPROVAL,
-    )
+    from apps.accounts.delegation import get_active_delegation_for_delegate, log_delegation_action
+    from apps.siteconfig.workflow_resolver import get_approval_workflow as workflow_get_approval
     sa = get_object_or_404(SubjectAssignment, pk=subject_assignment_id)
     syllabus = get_object_or_404(CourseSyllabus, subject_assignment=sa)
     if syllabus.status != CourseSyllabus.Status.PENDING:
         messages.warning(request, "Syllabus is not pending.")
         return redirect("academics:syllabus_approval_queue")
-    approver_ids = [u.pk for u in get_effective_approvers(WORKFLOW_SYLLABUS_APPROVAL)]
+    _wf = workflow_get_approval(getattr(request, "school", None), "syllabus_approval")
+    approver_ids = _wf.get("approver_ids") or []
     if request.user.pk not in approver_ids:
         return HttpResponseForbidden("You are not an approver for syllabi.")
     if request.method == "POST":

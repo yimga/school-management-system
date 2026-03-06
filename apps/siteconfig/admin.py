@@ -22,6 +22,7 @@ from .models import (
     ReportCardStyleAssignment,
     ReportTemplate,
     SiteSettings,
+    TenantAdmissionNumberPolicy,
     ServiceIntegration,
     ThemePack,
     UserPreference,
@@ -1902,8 +1903,17 @@ class FeatureToggleStateAdmin(ModelAdmin):
     readonly_fields = ("created_at", "updated_at")
 
 
+# Section 22: Tenant admission number policy
+class TenantAdmissionNumberPolicyAdmin(ModelAdmin):
+    list_display = ("school", "strategy", "school_code", "seq_width", "reset_frequency", "is_active")
+    list_filter = ("strategy", "reset_frequency", "is_active")
+    search_fields = ("school__name", "school_code")
+    raw_id_fields = ("school",)
+
+
 # Register all models with custom admin site
 admin_site.register(SiteSettings, SiteSettingsAdmin)
+admin_site.register(TenantAdmissionNumberPolicy, TenantAdmissionNumberPolicyAdmin)
 admin_site.register(ThemePack, ThemePackAdmin)
 admin_site.register(UserPreference, UserPreferenceAdmin)
 admin_site.register(ReportTemplate, ReportTemplateAdmin)

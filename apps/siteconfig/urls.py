@@ -4,6 +4,7 @@ from django.shortcuts import redirect
 from .views import (
     branding_api,
     workflow_clues_api,
+    admission_number_preview_api,
     maintenance_view,
     customizer,
     grading_settings,
@@ -32,13 +33,21 @@ from .views_feature_control import (
     feature_control_api,
     feature_control_weather_cities,
 )
-from .views_dashboard_config import dashboard_configuration_hub, workflow_flow_gallery
+from .views_dashboard_config import (
+    dashboard_configuration_hub,
+    dashboard_hub,
+    workflow_hub,
+    workflow_flow_gallery,
+)
 from .views_workflow_api import (
     workflow_catalog_api,
     workflow_list_api,
     workflow_run_api,
+    workflow_preview_api,
     dashboard_registry_api,
 )
+from apps.marketplace.views import sandbox_embed as marketplace_sandbox_embed
+from apps.customersuccess.views_tenant import support_copilot_view, guided_onboarding_view
 from .dashboard_views import (
     update_theme,
 )
@@ -80,7 +89,9 @@ urlpatterns = [
     path("feature-control/audit/", feature_control_audit_log, name="feature_control_audit"),
     path("feature-control/api/", feature_control_api, name="feature_control_api"),
     path("feature-control/weather-cities/", feature_control_weather_cities, name="feature_control_weather_cities"),
+    path("dashboard-hub/", dashboard_hub, name="dashboard_hub"),
     path("dashboard-configuration/", dashboard_configuration_hub, name="dashboard_configuration_hub"),
+    path("workflow-hub/", workflow_hub, name="workflow_hub"),
     path("workflow-gallery/", workflow_flow_gallery, name="workflow_flow_gallery"),
     path("request-waiver/", request_waiver, name="request_waiver"),
     path("request-custom-requirement/", request_custom_requirement, name="request_custom_requirement"),
@@ -92,10 +103,15 @@ urlpatterns = [
     path("domains/", custom_domain_wizard, name="custom_domain_wizard"),
     path("api/branding/", branding_api, name="branding_api"),
     path("api/workflow-clues/", workflow_clues_api, name="workflow_clues_api"),
+    path("api/admission-number-preview/", admission_number_preview_api, name="admission_number_preview_api"),
     path("api/workflow/catalog/", workflow_catalog_api, name="workflow_catalog_api"),
     path("api/workflow/list/", workflow_list_api, name="workflow_list_api"),
     path("api/workflow/run/", workflow_run_api, name="workflow_run_api"),
+    path("api/workflow/preview/", workflow_preview_api, name="workflow_preview_api"),
     path("api/dashboard-registry/", dashboard_registry_api, name="dashboard_registry_api"),
+    path("app-sandbox/", marketplace_sandbox_embed, name="marketplace_sandbox_embed"),
+    path("support-copilot/", support_copilot_view, name="support_copilot"),
+    path("guided-onboarding/", guided_onboarding_view, name="guided_onboarding"),
     path("impersonation-consent/grant/", grant_impersonation_consent, name="grant_impersonation_consent"),
     path("impersonation-consent/revoke/", revoke_impersonation_consent, name="revoke_impersonation_consent"),
 ]

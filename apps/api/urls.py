@@ -36,13 +36,17 @@ from apps.api.entity_api import (
 from apps.api.digital_id_api import DigitalIDAPI, DigitalIDChildrenAPI
 from apps.finance.api_views import FinancialAnalyticsAPI, InvoiceViewSet, PaymentViewSet
 from apps.api.ministry_placeholders import cartescolaire_placeholder, dgi_placeholder
+from apps.api.government_views import GovernmentAggregatesAPI
+from apps.api.config_diff_views import ConfigDiffAPI
 from apps.schools.api_views import SchoolConfigAPI
 from apps.analytics.benchmark_views import BenchmarkComparisonAPI
 from apps.api.offline_replay_views import OfflineReplayBatchAPI, PrefetchUrlsAPI, QueueMetricsAPI
 from apps.api.sync_delta_api import DeltaSyncAPI
 from apps.api.lead_capture_api import LeadCaptureAPI
 from apps.api.rosetta_views import RosettaStoneConvertAPI, RosettaStoneScalesAPI
-from apps.api.interop_stubs import oneroster_readiness, lti13_readiness
+from apps.api.interop_stubs import oneroster_readiness, lti13_readiness, edfi_readiness, ceds_readiness
+from apps.api.edfi_views import edfi_students, edfi_student_school_associations, edfi_grades
+from apps.api.ceds_views import ceds_students, ceds_enrollments, ceds_grades
 from apps.api.scim_views import (
     scim_service_provider_config,
     scim_users,
@@ -98,6 +102,14 @@ urlpatterns = [
     # Interoperability stubs (OneRoster, LTI 1.3) — implement per official specs
     path('interop/oneroster/', oneroster_readiness, name='interop-oneroster'),
     path('interop/lti13/', lti13_readiness, name='interop-lti13'),
+    path('interop/edfi/students/', edfi_students, name='interop-edfi-students'),
+    path('interop/edfi/studentSchoolAssociations/', edfi_student_school_associations, name='interop-edfi-associations'),
+    path('interop/edfi/grades/', edfi_grades, name='interop-edfi-grades'),
+    path('interop/edfi/', edfi_readiness, name='interop-edfi'),
+    path('interop/ceds/students/', ceds_students, name='interop-ceds-students'),
+    path('interop/ceds/enrollments/', ceds_enrollments, name='interop-ceds-enrollments'),
+    path('interop/ceds/grades/', ceds_grades, name='interop-ceds-grades'),
+    path('interop/ceds/', ceds_readiness, name='interop-ceds'),
     # SCIM 2.0 baseline (tenant-scoped provisioning)
     path('scim/v2/ServiceProviderConfig', scim_service_provider_config, name='scim-service-provider-config'),
     path('scim/v2/Users', scim_users, name='scim-users'),
@@ -129,6 +141,10 @@ urlpatterns = [
     # Phase 9: Ministry / external API placeholders (501 until implemented)
     path('ministry/cartescolaire/', cartescolaire_placeholder, name='ministry-cartescolaire'),
     path('ministry/dgi/', dgi_placeholder, name='ministry-dgi'),
+    # Government / district aggregates (14.5) — permission-gated, no PII
+    path('government/aggregates/', GovernmentAggregatesAPI.as_view(), name='government-aggregates'),
+    # Config diff (29.4) — compare policy between schools or current vs staged
+    path('config-diff/', ConfigDiffAPI.as_view(), name='config-diff'),
     # Offline: batch replay (SW queue) and delta sync (Phase 2)
     path('offline/replay_batch/', OfflineReplayBatchAPI.as_view(), name='offline-replay-batch'),
     path('offline/delta/', DeltaSyncAPI.as_view(), name='offline-delta'),

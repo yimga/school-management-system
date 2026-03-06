@@ -1,0 +1,112 @@
+"""
+Control plane hardening (12.7): permission decorator, rate limit, and audit helpers for /super/.
+Use alongside TenantSuperAdminRequiredMiddleware for defense-in-depth.
+"""
+import logging
+from functools import wraps
+
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseForbidden
+from django.views.decorators.http import require_http_methods
+
+logger = logging.getLogger(__name__)
+
+
+def _user_has_super_access(user):
+    if not getattr(user, "is_authenticated", False):
+        return False
+    if getattr(user, "is_superuser", False):
+        return True
+    return (getattr(user, "role", "") or "").upper() == "SUPERADMIN"
+
+
+def require_super_access(view_func):
+    """
+    Restrict view to authenticated users with is_superuser or role=SUPERADMIN.
+    Use in addition to TenantSuperAdminRequiredMiddleware for defense-in-depth.
+    """
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            from django.contrib.auth.views import redirect_to_login
+            return redirect_to_login(request.get_full_path())
+        if not _user_has_super_access(request.user):
+            return HttpResponseForbidden("Super Admin access required.")
+        return view_func(request, *args, **kwargs)
+    return _wrapped
+
+
+def rate_limit_super(minute_limit=120):
+    """
+    Rate limit /super/ view to minute_limit requests per user per minute (cache-based).
+    Returns 429 Too Many Requests when exceeded.
+    """
+    def decorator(view_func):
+        @wraps(view_func)
+        def _wrapped(request, *args, **kwargs):
+            if not request.user.is_authenticated:
+                return view_func(request, *args, **kwargs)
+            from django.core.cache import cache
+            from django.utils import timezone
+            key = "super_rl:{}:{}".format(
+                request.user.pk,
+                timezone.now().strftime("%Y%m%d%H%M"),
+            )
+            try:
+                count = cache.get(key, 0)
+                if count >= minute_limit:
+                    from django.http import HttpResponse
+                    r = HttpResponse("Too Many Requests", status=429)
+                    r["Retry-After"] = "60"
+                    return r
+                cache.set(key, count + 1, timeout=120)
+            except Exception as e:
+                logger.warning("Super rate limit check failed: %s", e)
+            return view_func(request, *args, **kwargs)
+        return _wrapped
+    return decorator
+
+
+def log_control_plane_action(
+    request,
+    action: str,
+    model_name: str,
+    object_id: str,
+    object_repr: str = "",
+    *,
+    reason: str = "",
+    sensitivity: str = "HIGH",
+    old_values: dict = None,
+    new_values: dict = None,
+    changed_fields: list = None,
+):
+    """
+    Write an audit log entry for a control-plane (super) action.
+    Uses compliance.AuditLog. Call from api_approve_school, api_create_school, switch_to_tenant, sync_repair, etc.
+    """
+    try:
+        from apps.compliance.models_audit import AuditLog
+        AuditLog.objects.create(
+            user=request.user if request.user.is_authenticated else None,
+            ip_address=_get_client_ip(request),
+            user_agent=(request.META.get("HTTP_USER_AGENT") or "")[:500],
+            action=action,
+            model_name=model_name,
+            object_id=str(object_id),
+            object_repr=(object_repr or str(object_id))[:500],
+            sensitivity=sensitivity,
+            old_values=old_values,
+            new_values=new_values,
+            changed_fields=changed_fields,
+            app_label="schools",
+            reason=reason[:255] if reason else "",
+        )
+    except Exception as e:
+        logger.warning("Control plane audit log failed: %s", e)
+
+
+def _get_client_ip(request):
+    xff = request.META.get("HTTP_X_FORWARDED_FOR")
+    if xff:
+        return xff.split(",")[0].strip()
+    return request.META.get("REMOTE_ADDR")

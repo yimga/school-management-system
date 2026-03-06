@@ -71,6 +71,7 @@ MANAGER_HOST_ALLOWED_PREFIXES = (
     "/ready/",
     "/status/",
     "/api/search/",
+    "/api/billing/processors/",
     "/api/health/",
     "/api/observability/incidents/",
     "/static/",
@@ -856,6 +857,38 @@ class TenantSuperAdminRequiredMiddleware(MiddlewareMixin):
                     return None
         from django.http import HttpResponseForbidden
         return HttpResponseForbidden("Super Admin access required.")
+
+
+class SuperAdminRateLimitMiddleware(MiddlewareMixin):
+    """
+    Control plane hardening (12.7): rate limit /super/ to 120 requests per user per minute.
+    Runs after TenantSuperAdminRequiredMiddleware; only applied when path starts with /super/.
+    Returns 429 Too Many Requests with Retry-After: 60 when exceeded.
+    """
+    MINUTE_LIMIT = 120
+
+    def process_request(self, request):
+        if not request.path.startswith("/super/"):
+            return None
+        if not getattr(request, "user", None) or not request.user.is_authenticated:
+            return None
+        from django.core.cache import cache
+        from django.utils import timezone
+        from django.http import HttpResponse
+        key = "super_rl:{}:{}".format(
+            request.user.pk,
+            timezone.now().strftime("%Y%m%d%H%M"),
+        )
+        try:
+            count = cache.get(key, 0)
+            if count >= self.MINUTE_LIMIT:
+                r = HttpResponse("Too Many Requests", status=429)
+                r["Retry-After"] = "60"
+                return r
+            cache.set(key, count + 1, timeout=120)
+        except Exception:
+            pass
+        return None
 
 
 # -----------------------------------------------------------------------------

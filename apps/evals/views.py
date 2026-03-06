@@ -59,7 +59,9 @@ from apps.portal.models import PortalFeatureItem
 from .services import ews_students_needing_attention
 from apps.communication.models import MessageThread
 from apps.communication.views_announcements import _can_create_department_announcement
-from apps.siteconfig.models import resolve_dashboard_widgets, SiteSettings, default_backend_feature_flags
+from apps.siteconfig.models import SiteSettings, default_backend_feature_flags
+from apps.siteconfig.dashboard_resolver import for_role as dashboard_for_role
+from apps.siteconfig.workflow_resolver import get_approval_workflow as workflow_get_approval
 from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata
 from apps.siteconfig.dashboard_views import load_dashboard_layout_settings
 from apps.siteconfig.dashboard_views import _can_customize
@@ -169,12 +171,12 @@ def _update_evaluations_from_entries(entries, students_map, teacher, year, term,
     return updated
 
 
-def _user_can_review_grades(user: User) -> bool:
+def _user_can_review_grades(user: User, school=None) -> bool:
     if not user.is_authenticated:
         return False
     if getattr(user, "is_superuser", False):
         return True
-    roles = grade_approver_roles()
+    roles = grade_approver_roles(school)
     if user.role in roles:
         return True
     return user.roles.filter(code__in=roles).exists()
@@ -471,8 +473,8 @@ def teacher_dashboard(request: HttpRequest):
         if _can_create_department_announcement(request.user):
             hero["actions"].append({"label": "Dept Announcement", "url": reverse("communication:department_announcement_create")})
 
-    preference = getattr(request.user, "preferences", None)
-    display_widgets = resolve_dashboard_widgets(getattr(request.user, "role", None), preference)
+    dash = dashboard_for_role(getattr(request, "school", None), getattr(request.user, "role", None), user=request.user)
+    display_widgets = dash["widget_keys"]
     class_announcements = class_announcements_for_teacher(
         request.user,
         classrooms,
@@ -760,11 +762,7 @@ def teacher_dashboard(request: HttpRequest):
 
     # Teacher dashboard: syllabus status per assignment, workflow counts, proxy/certification badges
     from apps.academics.models import CourseSyllabus
-    from apps.accounts.delegation import (
-        get_active_delegation_for_delegate,
-        get_effective_approvers,
-        WORKFLOW_SYLLABUS_APPROVAL,
-    )
+    from apps.accounts.delegation import get_active_delegation_for_delegate
     from apps.accounts.models import Delegation
 
     sa_ids = [a.subject_assignment_id for a in assignments]
@@ -803,8 +801,8 @@ def teacher_dashboard(request: HttpRequest):
     active_delegations_count = Delegation.objects.filter(
         delegator=request.user, is_active=True
     ).count()
-    syllabus_approvers = get_effective_approvers(WORKFLOW_SYLLABUS_APPROVAL)
-    can_approve_syllabus = request.user.pk in [u.pk for u in syllabus_approvers]
+    syllabus_workflow = workflow_get_approval(getattr(request, "school", None), "syllabus_approval")
+    can_approve_syllabus = request.user.pk in (syllabus_workflow.get("approver_ids") or [])
     acting_delegation = get_active_delegation_for_delegate(request.user)
     if acting_delegation:
         delegator_role = getattr(acting_delegation.delegator, "role", "") or "User"
@@ -1084,9 +1082,16 @@ def teacher_marks_entry(request: HttpRequest):
     required_fields = []
     filled_count = 0
     total_students_count = 0
-    site_settings = SiteSettings.get_solo()
-    flags = {**default_backend_feature_flags(), **(site_settings.backend_feature_flags or {})}
-    grade_approval_enabled = getattr(site_settings, "grade_approval_enabled", False)
+    school = getattr(request, "school", None)
+    if school:
+        from apps.policies.resolver import get_effective_policy
+        policy = get_effective_policy(school)
+        flags = {**default_backend_feature_flags(), **(policy.get("features") or {})}
+        grade_approval_enabled = (policy.get("grade_approval") or {}).get("grade_approval_enabled", False)
+    else:
+        site_settings = SiteSettings.get_solo()
+        flags = {**default_backend_feature_flags(), **(site_settings.backend_feature_flags or {})}
+        grade_approval_enabled = getattr(site_settings, "grade_approval_enabled", False)
     custom_cmd = (site_settings.marksheet_ocr_command or "").strip()
     env_cmd = getattr(settings, "MARKSHEET_OCR_COMMAND", "") or ""
     resolved_cmd = (custom_cmd or env_cmd or "").strip()
@@ -1389,7 +1394,7 @@ def teacher_marks_entry(request: HttpRequest):
         "marksheet_ocr_command": marksheet_ocr_command_display,
         "grade_approval_enabled": grade_approval_enabled,
         "grade_approval_requests": grade_approval_requests,
-        "grade_approval_roles": grade_approver_roles(),
+        "grade_approval_roles": grade_approver_roles(school),
     })
 
 @teacher_portal_required
@@ -2061,7 +2066,8 @@ def grade_import_template_view(request: HttpRequest):
 
 @staff_member_required
 def grade_approval_list(request: HttpRequest):
-    if not _user_can_review_grades(request.user):
+    school = getattr(request, "school", None)
+    if not _user_can_review_grades(request.user, school):
         return HttpResponseForbidden("You are not authorized to review grade approvals.")
 
     status_filter = request.GET.get("status")
@@ -2085,10 +2091,11 @@ def grade_approval_list(request: HttpRequest):
 @staff_member_required
 def grade_approval_detail(request: HttpRequest, request_id):
     approval = get_object_or_404(GradeApprovalRequest, id=request_id)
-    if not _user_can_review_grades(request.user):
+    school = getattr(request, "school", None)
+    if not _user_can_review_grades(request.user, school):
         return HttpResponseForbidden("You are not authorized to review grade approvals.")
 
-    can_finalize = user_can_finalize_submission(request.user)
+    can_finalize = user_can_finalize_submission(request.user, school)
     status_choices = list(GradeApprovalRequest.Status.choices)
     if not can_finalize:
         status_choices = [choice for choice in status_choices if choice[0] not in FINAL_STATUSES]
@@ -2156,7 +2163,9 @@ def grade_approval_detail(request: HttpRequest, request_id):
                     messages.success(request, "Grade approval decision saved.")
                     return redirect("evals:grade_approval_list")
 
-    deadline_note = getattr(SiteSettings.get_solo(), "grade_approval_deadline_note", "")
+    from apps.evals.approval import get_grade_approval_policy
+    ga_policy = get_grade_approval_policy(school)
+    deadline_note = ga_policy.get("grade_approval_deadline_note", "")
     deadline_display = None  # deadline_at removed from GradeApprovalRequest model
     validation_flags = []
     return render(request, "evals/grade_approval_detail.html", {
@@ -2171,7 +2180,7 @@ def grade_approval_detail(request: HttpRequest, request_id):
         "deadline_note": deadline_note,
         "deadline_overdue": approval.is_overdue,
         "validation_flags": validation_flags,
-        "final_roles": grade_post_roles(),
+        "final_roles": grade_post_roles(school),
     })
 
 # ========== COMPLIANCE & ADVANCED IMPORT VIEWS ==========

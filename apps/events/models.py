@@ -22,6 +22,11 @@ class DomainEvent(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     event_type = models.CharField(max_length=128, db_index=True)
+    schema_version = models.CharField(
+        max_length=32,
+        default="1.0",
+        help_text="Event payload schema version for consumers (26.2).",
+    )
     payload = models.JSONField(default=dict, help_text="Event payload (e.g. entity id, type, changes)")
     # Tenant context: for RLS use school_id; for schema-per-tenant use schema_name (or both for routing)
     school_id = models.UUIDField(null=True, blank=True, db_index=True)

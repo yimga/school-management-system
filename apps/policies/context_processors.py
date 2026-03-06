@@ -13,10 +13,21 @@ def tenant_policy_context(request):
         try:
             from apps.policies.resolver import get_effective_policy
             school = getattr(request, "school", None)
-            ctx["global_env"] = get_effective_policy(school, user=getattr(request, "user", None))
+            policy = get_effective_policy(school, user=getattr(request, "user", None))
+            ctx["global_env"] = policy
+            # Section 10: expose policy slices for templates (attendance, communication, compliance)
+            ctx["tenant_attendance_policy"] = policy.get("attendance") or {}
+            ctx["tenant_communication_policy"] = policy.get("communication") or {}
+            ctx["tenant_compliance_policy"] = policy.get("compliance") or {}
         except Exception:
             ctx["global_env"] = {}
+            ctx["tenant_attendance_policy"] = {}
+            ctx["tenant_communication_policy"] = {}
+            ctx["tenant_compliance_policy"] = {}
     else:
         ctx["tenant_ctx"] = None
         ctx["global_env"] = {}
+        ctx["tenant_attendance_policy"] = {}
+        ctx["tenant_communication_policy"] = {}
+        ctx["tenant_compliance_policy"] = {}
     return ctx

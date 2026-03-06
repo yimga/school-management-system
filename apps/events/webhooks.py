@@ -42,6 +42,7 @@ def webhook_envelope_for_event(event) -> dict[str, Any]:
     return {
         "event_id": str(event.id),
         "event_type": str(getattr(event, "event_type", "") or ""),
+        "schema_version": str(getattr(event, "schema_version", "") or "1.0"),
         "school_id": str(getattr(event, "school_id", "") or "") or None,
         "schema_name": getattr(event, "schema_name", None),
         "emitted_at": emitted_at.isoformat() if emitted_at else None,
@@ -162,6 +163,7 @@ def enqueue_webhook_event(
             "school_id": school_id,
             "schema_name": schema_name,
             "status": DomainEvent.Status.PENDING,
+            "schema_version": "1.0",
         },
     )
     if not created and process_immediately:

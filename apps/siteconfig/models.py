@@ -2608,6 +2608,66 @@ class TenantSystem(models.Model):
         return f"{self.school.name} ↔ {self.system.name}"
 
 
+# ============================================================================
+# Section 22: Tenant admission number policy (per-school config)
+# ============================================================================
+
+
+class TenantAdmissionNumberPolicy(models.Model):
+    """
+    Section 22.3: Per-school admission number generation policy.
+    When present, overrides SiteSettings and school.settings["admissions"] for admission number config.
+    """
+    class Strategy(models.TextChoices):
+        FULL = "FULL", "Full (YY+School+Seq+Spec+Class)"
+        YEAR_SEQ = "YEAR_SEQ", "Year + sequence only"
+        SEQ_ONLY = "SEQ_ONLY", "Sequence only"
+        TEMPLATE = "TEMPLATE", "Custom template"
+
+    class ResetFrequency(models.TextChoices):
+        NEVER = "NEVER", "Never (global sequence)"
+        YEARLY = "YEARLY", "Per academic year"
+        TERM = "TERM", "Per term"
+
+    school = models.OneToOneField(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="admission_number_policy",
+    )
+    strategy = models.CharField(
+        max_length=20,
+        choices=Strategy.choices,
+        default=Strategy.FULL,
+    )
+    template = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Placeholders: {year_2digit}, {school_code}, {seq_4digit}, {spec_code}, {class_segment}. Overrides strategy when set.",
+    )
+    pattern = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Regex to validate admission numbers. Leave blank for default.",
+    )
+    school_code = models.CharField(max_length=20, default="GIL")
+    seq_width = models.PositiveSmallIntegerField(default=4, help_text="Padding width for sequence (e.g. 4 → 0001).")
+    reset_frequency = models.CharField(
+        max_length=20,
+        choices=ResetFrequency.choices,
+        default=ResetFrequency.YEARLY,
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Tenant admission number policy"
+        verbose_name_plural = "Tenant admission number policies"
+
+    def __str__(self):
+        return f"{self.school.name}: {self.get_strategy_display()}"
+
+
 class SystemFeature(models.Model):
     """
     Feature key enabled by an education system template.
@@ -4423,6 +4483,52 @@ class BlogPost(models.Model):
 
     def __str__(self):
         return self.title
+
+
+# Section 15.2: Metadata-driven data layer — custom attributes without code/schema migrations
+class DynamicFieldDefinition(models.Model):
+    """Defines a custom field for an entity type (e.g. Student, Invoice). No DB schema change per field."""
+    class DataType(models.TextChoices):
+        TEXT = "TEXT", "Text"
+        NUMBER = "NUMBER", "Number"
+        DATE = "DATE", "Date"
+        BOOLEAN = "BOOLEAN", "Boolean"
+        JSON = "JSON", "JSON"
+
+    school = models.ForeignKey("schools.School", on_delete=models.CASCADE, related_name="dynamic_field_definitions")
+    entity_type = models.CharField(max_length=64, db_index=True)  # e.g. "StudentProfile", "Invoice"
+    field_key = models.CharField(max_length=128, db_index=True)
+    label = models.CharField(max_length=255)
+    data_type = models.CharField(max_length=16, choices=DataType.choices, default=DataType.TEXT)
+    required = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = [["school", "entity_type", "field_key"]]
+        ordering = ["entity_type", "field_key"]
+
+    def __str__(self):
+        return f"{self.entity_type}.{self.field_key}"
+
+
+class DynamicFieldValue(models.Model):
+    """Stores a value for a custom field on a specific entity instance."""
+    school = models.ForeignKey("schools.School", on_delete=models.CASCADE, related_name="dynamic_field_values")
+    entity_type = models.CharField(max_length=64, db_index=True)
+    object_id = models.CharField(max_length=64, db_index=True)  # PK of the entity
+    field_key = models.CharField(max_length=128, db_index=True)
+    value_text = models.TextField(blank=True)
+    value_number = models.DecimalField(max_digits=20, decimal_places=4, null=True, blank=True)
+    value_date = models.DateField(null=True, blank=True)
+    value_json = models.JSONField(null=True, blank=True)
+
+    class Meta:
+        unique_together = [["school", "entity_type", "object_id", "field_key"]]
+        indexes = [models.Index(fields=["school", "entity_type", "object_id"])]
+
+    def __str__(self):
+        return f"{self.entity_type}#{self.object_id}.{self.field_key}"
 
 
 post_save.connect(_refresh_site_settings_cache, sender=SiteSettings)

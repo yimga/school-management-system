@@ -324,6 +324,14 @@ def build_portal_sidebar_items(request, site):
         approval_hub_url = _safe_reverse("accounts:approval_workflow_hub")
         if approval_hub_url:
             items.append({"id": "approval_hub", "label": "Approval Hub", "url": approval_hub_url, "icon": "bi-clipboard-check", "section": "Admin Panel", "badge": None})
+        _school = getattr(request, "school", None)
+        if _school:
+            workflow_hub_url = _safe_reverse("siteconfig:workflow_hub")
+            if workflow_hub_url:
+                items.append({"id": "workflow_hub", "label": "Workflow Hub", "url": workflow_hub_url, "icon": "bi-diagram-3-fill", "section": "Admin Panel", "badge": None})
+            dashboard_hub_url = _safe_reverse("siteconfig:dashboard_hub")
+            if dashboard_hub_url:
+                items.append({"id": "dashboard_hub", "label": "Dashboard Hub", "url": dashboard_hub_url, "icon": "bi-grid-3x3-gap", "section": "Admin Panel", "badge": None})
         import_hub_url = _safe_reverse("accounts:import_hub")
         if import_hub_url:
             items.append({"id": "import_hub", "label": "Import & bulk", "url": import_hub_url, "icon": "bi-upload", "section": "Admin Panel", "badge": None})

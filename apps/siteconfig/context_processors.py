@@ -521,11 +521,11 @@ def region_settings(request):
     default_language = None
     policy = get_effective_policy(school) if school else {}
     try:
-        # Multi-tenant: prefer school's region when request.school is set; grading/language from Policy Registry
+        # Policy-first when school is set: no direct region read for grading/language (Section 24.2).
         if school and school.default_region_id:
             region = school.default_region
-            grading_scale = (policy.get("grading") or {}).get("grading_scale") or getattr(region, "grading_scale", "default")
-            default_language = policy.get("default_language") or getattr(region, "default_language", "en")
+            grading_scale = (policy.get("grading") or {}).get("grading_scale") or "default"
+            default_language = policy.get("default_language") or "en"
         else:
             _session = getattr(request, "session", None)
             region_code = _session.get('region_code', settings.REGION_CODE) if _session else settings.REGION_CODE

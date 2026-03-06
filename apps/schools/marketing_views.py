@@ -287,6 +287,84 @@ MARKETING_PAGE_DEFINITIONS = {
             {"title": "Integrations", "body": "LTI 1.3, OneRoster, webhooks, and custom integrations. See docs for details."},
         ],
     },
+    # Section 11.5: Public website superiority — category clarity, vertical landings, migration-first, trust center, app marketplace
+    "why-switch": {
+        "label": "Why Switch",
+        "seo_title": "Why Switch to RunMyCampus - Migration-first school management",
+        "seo_description": "Migrate from spreadsheets or legacy SIS with minimal risk. Clear timelines, data import, and tenant isolation.",
+        "headline": "Why switch to RunMyCampus.",
+        "subheadline": "Migration-first design: bring your data, keep your workflows, gain one platform for operations.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "Migration-first", "body": "Structured import paths and provisioning so you move data once and run on a single source of truth."},
+            {"title": "No lock-in", "body": "Export and portability options so you stay in control of your school data."},
+            {"title": "Same day readiness", "body": "Templates and blueprints get you live quickly without starting from scratch."},
+        ],
+    },
+    "verticals": {
+        "label": "By School Type",
+        "seo_title": "RunMyCampus by School Type - K12, private, international, district",
+        "seo_description": "Purpose-built for private K12, international schools, and multi-campus districts. ROI and workflows by vertical.",
+        "headline": "Built for your school type.",
+        "subheadline": "Vertical-specific workflows, compliance defaults, and ROI that match how you operate.",
+        "schema_type": "CollectionPage",
+        "segments": [
+            {"title": "Private K12", "body": "Admissions, grading, fee management, and parent communication in one tenant."},
+            {"title": "International schools", "body": "Multi-currency, multi-language, and region-aware compliance out of the box."},
+            {"title": "Districts & networks", "body": "Multi-campus with central oversight and school-level autonomy."},
+        ],
+    },
+    "trust-center": {
+        "label": "Trust Center",
+        "seo_title": "RunMyCampus Trust Center - Security, compliance, and privacy",
+        "seo_description": "Security and compliance trust center: certifications, data handling, auditability, and regional compliance.",
+        "headline": "Security and compliance trust center.",
+        "subheadline": "Transparent security posture, compliance alignment, and audit-ready controls for schools and regulators.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "Security", "body": "Tenant isolation, encryption, access controls, and audit logs as standard."},
+            {"title": "Compliance", "body": "Region-aware defaults and workflows aligned to local education and data regulations."},
+            {"title": "Transparency", "body": "Documented practices, runbooks, and support for audits and due diligence."},
+        ],
+    },
+    "app-marketplace": {
+        "label": "App Marketplace",
+        "seo_title": "RunMyCampus App Marketplace - Extend your campus platform",
+        "seo_description": "Discover apps and blueprints that extend RunMyCampus: integrations, themes, and workflow packs.",
+        "headline": "App marketplace.",
+        "subheadline": "Extend your platform with approved apps, blueprint packs, and integrations—governed and tenant-safe.",
+        "schema_type": "ItemList",
+        "segments": [
+            {"title": "Blueprint packs", "body": "Pre-built policy and workflow bundles for faster setup and best practices."},
+            {"title": "Integrations", "body": "LMS, payments, messaging, and data exchange with versioning and kill switches."},
+            {"title": "Governed rollout", "body": "Review pipeline, permission scopes, and sandbox so only safe extensions reach your tenant."},
+        ],
+    },
+    # Section 11.5: Interactive preview and clean demo
+    "demo": {
+        "label": "Clean demo",
+        "seo_title": "RunMyCampus Demo - Try the platform",
+        "seo_description": "See RunMyCampus in action. Clean, focused demo of school operations—admissions, academics, and reporting.",
+        "headline": "Try RunMyCampus.",
+        "subheadline": "A clean, focused demo of school operations. No sign-up required to explore.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "What you'll see", "body": "Dashboard, student list, grading, and report card preview with sample data. Read-only where applicable."},
+            {"title": "Book a live demo", "body": "Get a guided walkthrough and Q&A. We'll show tenant login, manager command center, and migration flows."},
+        ],
+    },
+    "interactive-preview": {
+        "label": "Interactive preview",
+        "seo_title": "RunMyCampus Interactive Preview - Explore the product",
+        "seo_description": "Interactive product preview: explore the interface with sample data. No account required.",
+        "headline": "Interactive preview.",
+        "subheadline": "Explore the interface with sample data. Links to full demo and sign-up when you're ready.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "Sample experience", "body": "Navigate a simulated school backend: dashboards, lists, and forms with safe sample data."},
+            {"title": "Next step", "body": "Book a live demo or start a trial to get your own tenant and real data migration."},
+        ],
+    },
 }
 
 MARKETING_PAGE_EXTRAS = {
@@ -1210,3 +1288,71 @@ def marketing_sitemap_xml(request):
         chunks.append("  </url>")
     chunks.append("</urlset>")
     return HttpResponse("\n".join(chunks), content_type="application/xml")
+
+
+@require_GET
+def developer_portal(request):
+    """
+    Developer portal (Section 6): API, webhooks, LTI/OneRoster, app lifecycle, SDK.
+    Canonical on developer.runmycampus.com or /developer-portal/ on base.
+    """
+    base = get_canonical_base_domain() or request.get_host().split(":")[0]
+    scheme = "https" if request.is_secure() else "http"
+    # Interop and API schema live under tenant/school URL space; document paths.
+    links = {
+        "api_schema_path": "/api/schema/ui/",
+        "api_schema_note": "Available after login at your school subdomain (e.g. yourschool.runmycampus.com/api/schema/ui/).",
+        "interop_oneroster": request.build_absolute_uri("/api/interop/oneroster/"),
+        "interop_lti13": request.build_absolute_uri("/api/interop/lti13/"),
+        "interop_edfi": request.build_absolute_uri("/api/interop/edfi/"),
+        "interop_ceds": request.build_absolute_uri("/api/interop/ceds/"),
+        "webhooks_doc": f"{scheme}://docs.{base}/webhooks/" if base != "localhost" else request.build_absolute_uri("/docs/webhooks/"),
+        "app_lifecycle_anchor": request.build_absolute_uri(reverse("developer_portal") + "#app-lifecycle"),
+        "sandbox": request.build_absolute_uri(reverse("developer_sandbox")),
+        "sdk_repo": "https://github.com/runmycampus/sdk",
+    }
+    return render(request, "schools/developer_portal.html", {
+        "page_slug": "developer-portal",
+        "headline": "Developer Portal",
+        "subheadline": "APIs, webhooks, LTI, OneRoster, and app extensions.",
+        "links": links,
+    })
+
+
+@require_GET
+def developer_sdk(request):
+    """
+    SDK documentation page (Section 6): auth, base URL, and API reference pointers.
+    """
+    base = get_canonical_base_domain() or request.get_host().split(":")[0]
+    scheme = "https" if request.is_secure() else "http"
+    links = {
+        "portal": request.build_absolute_uri(reverse("developer_portal")),
+        "sandbox": request.build_absolute_uri(reverse("developer_sandbox")),
+        "sdk_repo": "https://github.com/runmycampus/sdk",
+        "api_schema_note": "After login at your school subdomain: /api/schema/ui/ for OpenAPI.",
+        "auth_token": "POST /api/auth/token/ with username/password; use access token in Authorization: Bearer.",
+        "auth_refresh": "POST /api/auth/token/refresh/ with refresh token.",
+        "interop_edfi": "/api/interop/edfi/ (readiness); /api/interop/edfi/students/, .../studentSchoolAssociations/, .../grades/.",
+        "interop_ceds": "/api/interop/ceds/ (readiness); /api/interop/ceds/students/, .../enrollments/, .../grades/.",
+    }
+    return render(request, "schools/developer_sdk.html", {
+        "page_slug": "developer-sdk",
+        "headline": "SDK & API reference",
+        "subheadline": "Authentication, base URL, and API endpoints for RunMyCampus integrations.",
+        "links": links,
+    })
+
+
+@require_GET
+def developer_sandbox(request):
+    """
+    App sandbox (Section 6): iframe container with CSP for third-party app preview.
+    Sandbox attribute restricts script/origin; placeholder content for now.
+    """
+    html = """<!DOCTYPE html><html><head><meta charset="utf-8"><title>Sandbox</title></head>
+<body><p>App sandbox placeholder. Third-party apps run in an iframe with restricted permissions (CSP, sandbox attribute).</p></body></html>"""
+    response = HttpResponse(html, content_type="text/html; charset=utf-8")
+    response["Content-Security-Policy"] = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; frame-ancestors 'self'"
+    response["X-Frame-Options"] = "SAMEORIGIN"
+    return response

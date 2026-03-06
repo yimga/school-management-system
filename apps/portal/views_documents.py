@@ -34,9 +34,11 @@ def document_library_manage(request):
     site = SiteSettings.get_solo()
     
     # Get all documents
-    documents = PortalFeatureItem.objects.filter(
-        feature=PortalFeatureItem.Feature.DOCUMENTS
-    ).select_related("created_by").order_by("-created_at")
+    qs = PortalFeatureItem.objects.filter(feature=PortalFeatureItem.Feature.DOCUMENTS)
+    school = getattr(request, "school", None)
+    if school is not None:
+        qs = qs.filter(school=school)
+    documents = qs.select_related("created_by").order_by("-created_at")
     
     # Filter by document type if requested
     doc_type = request.GET.get("type")
@@ -87,12 +89,15 @@ def document_upload(request, document_id=None):
     Upload or edit a document.
     """
     document = None
+    school = getattr(request, "school", None)
     if document_id:
-        document = get_object_or_404(
-            PortalFeatureItem,
+        qs = PortalFeatureItem.objects.filter(
             id=document_id,
             feature=PortalFeatureItem.Feature.DOCUMENTS
         )
+        if school is not None:
+            qs = qs.filter(school=school)
+        document = get_object_or_404(qs)
         # Check permissions
         if not (request.user.is_superuser or document.created_by == request.user):
             messages.error(request, "You don't have permission to edit this document.")
@@ -105,6 +110,7 @@ def document_upload(request, document_id=None):
         if not document:  # New document
             doc.feature = PortalFeatureItem.Feature.DOCUMENTS
             doc.created_by = request.user
+        doc.school = school  # Section 25.3: tenant scope for upload path
         doc.save()
         
         messages.success(
@@ -129,11 +135,11 @@ def document_delete(request, document_id):
     """
     Delete a document.
     """
-    document = get_object_or_404(
-        PortalFeatureItem,
-        id=document_id,
-        feature=PortalFeatureItem.Feature.DOCUMENTS
-    )
+    school = getattr(request, "school", None)
+    qs = PortalFeatureItem.objects.filter(id=document_id, feature=PortalFeatureItem.Feature.DOCUMENTS)
+    if school is not None:
+        qs = qs.filter(school=school)
+    document = get_object_or_404(qs)
     
     # Check permissions
     if not (request.user.is_superuser or document.created_by == request.user):
@@ -162,9 +168,13 @@ def _is_convertible_to_pdf(document):
 @login_required
 def document_download(request, document_id):
     """
-    Download a document file (with access control).
+    Download a document file (with access control). Section 25.3: tenant-scoped by school when set.
     """
-    document = get_object_or_404(PortalFeatureItem, id=document_id)
+    qs = PortalFeatureItem.objects.filter(id=document_id)
+    school = getattr(request, "school", None)
+    if school is not None:
+        qs = qs.filter(school=school)
+    document = get_object_or_404(qs)
     
     # Check access
     if not document.can_view(request.user):
@@ -186,9 +196,13 @@ def document_download(request, document_id):
 def document_download_pdf(request, document_id):
     """
     Convert document (ODT/DOCX) to PDF and serve. Same access as document_download.
-    Requires LibreOffice headless on the server.
+    Section 25.3: tenant-scoped by school when set.
     """
-    document = get_object_or_404(PortalFeatureItem, id=document_id)
+    qs = PortalFeatureItem.objects.filter(id=document_id)
+    school = getattr(request, "school", None)
+    if school is not None:
+        qs = qs.filter(school=school)
+    document = get_object_or_404(qs)
     if not document.can_view(request.user):
         messages.error(request, "You don't have permission to access this document.")
         return redirect("portal:portal_feature", feature="documents")

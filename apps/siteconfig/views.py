@@ -23,6 +23,7 @@ from django.views.decorators.clickjacking import xframe_options_exempt, xframe_o
 from apps.academics.models import Classroom
 from apps.academics.services import get_active_year_and_term
 from apps.people.models import StudentProfile
+from apps.policies.resolver import get_effective_policy
 from apps.reports.models import ReportCard
 from apps.reports.services import (
     GLOBAL_REPORT_LABELS,
@@ -246,13 +247,27 @@ def customizer(request):
     })
 
 
-GRADING_SCALE_CHOICES = [
-    ("0-20", "Cameroon (0–20)"),
-    ("0-100", "US/UK (0–100)"),
-    ("0-10", "European (0–10)"),
+# Neutral fallback when no region scales (Phase 2: no country names in tenant-facing form)
+GRADING_SCALE_CHOICES_NEUTRAL = [
+    ("0-20", "Numeric 0–20"),
+    ("0-100", "Numeric 0–100"),
+    ("0-10", "Numeric 0–10"),
     ("a-f", "Letter Grade (A–F)"),
     ("gpa", "GPA (0–4.0)"),
 ]
+
+
+def get_grading_scale_choices_for_school(school):
+    """Phase 2: Policy/registry-driven grading choices; no hardcoded country labels in tenant UX."""
+    if school and getattr(school, "default_region_id", None):
+        try:
+            from apps.siteconfig.models import GradingScaleConfig
+            configs = GradingScaleConfig.objects.filter(region_id=school.default_region_id).order_by("scale_type")
+            if configs:
+                return [(c.scale_type, c.display_format or c.scale_type) for c in configs]
+        except Exception:
+            pass
+    return list(GRADING_SCALE_CHOICES_NEUTRAL)
 
 
 @login_required
@@ -267,10 +282,9 @@ def grading_settings(request):
     role = (getattr(request.user, "role", "") or "").upper()
     if role not in ("ADMIN", "LEADERSHIP", "IT_ADMIN", "PRINCIPAL", "VICE_PRINCIPAL") and not (request.user.is_staff or request.user.is_superuser):
         return HttpResponseForbidden("You do not have permission to change school grading settings.")
-    region = school.default_region
-    current_settings = getattr(school, "settings", None) or {}
-    current_grading = current_settings.get("grading_scale") or (getattr(region, "grading_scale", "0-20") if region else "0-20")
-    current_language = current_settings.get("default_language") or (getattr(region, "default_language", "en") if region else "en")
+    policy = get_effective_policy(school)
+    current_grading = (policy.get("grading") or {}).get("grading_scale") or "0-20"
+    current_language = policy.get("default_language") or "en"
     if request.method == "POST":
         new_grading = (request.POST.get("grading_scale") or "").strip() or None
         new_language = (request.POST.get("default_language") or "").strip() or None
@@ -296,12 +310,14 @@ def grading_settings(request):
                     f"Some settings were blocked by policy: {blocked_keys}",
                 )
             return redirect("siteconfig:grading_settings")
+    region = getattr(school, "default_region", None)
+    grading_choices = get_grading_scale_choices_for_school(school)
     return render(request, "siteconfig/grading_settings.html", {
         "school": school,
         "region": region,
         "current_grading": current_grading,
         "current_language": current_language,
-        "grading_choices": GRADING_SCALE_CHOICES,
+        "grading_choices": grading_choices,
         "language_choices": [("en", "English"), ("fr", "Français")],
     })
 
@@ -1456,3 +1472,34 @@ def workflow_clues_api(request):
             {"error": str(e), "suggestions": None},
             status=500,
         )
+
+
+@login_required
+def admission_number_preview_api(request):
+    """
+    Section 22.2: Return sample admission number for current tenant policy (setup preview).
+    GET params (optional): year_2digit, school_code, seq_4digit, spec_code, class_segment.
+    """
+    school = getattr(request, "school", None)
+    if not school:
+        return JsonResponse({"error": "No tenant context"}, status=400)
+    from .identifier_policy_service import get_admissions_policy, preview_admission_number
+    policy = get_admissions_policy(school)
+    from datetime import datetime
+    year_2digit = (request.GET.get("year_2digit") or str(datetime.now().year % 100))[:2].zfill(2)
+    seq_4digit = (request.GET.get("seq_4digit") or "0001")[:4].zfill(4)
+    spec_code = (request.GET.get("spec_code") or "XX")[:10]
+    class_segment = (request.GET.get("class_segment") or "00")[:10]
+    school_code = (request.GET.get("school_code") or policy.get("school_code") or "GIL").upper()
+    preview = preview_admission_number(
+        school,
+        year_2digit=year_2digit,
+        school_code=school_code,
+        seq_4digit=seq_4digit,
+        spec_code=spec_code,
+        class_segment=class_segment,
+    )
+    return JsonResponse(
+        {"preview": preview, "policy": {"strategy": policy.get("admission_number_strategy"), "school_code": policy.get("school_code")}},
+        safe=False,
+    )

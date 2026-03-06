@@ -13,6 +13,11 @@ def get_tenant_blueprint(request) -> Dict[str, Any]:
     return _get_tenant_blueprint(school)
 
 
+def get_policy_for_request(request) -> Dict[str, Any]:
+    """Wrapper that returns policy for the request's tenant. Same as get_tenant_blueprint(request)."""
+    return get_tenant_blueprint(request)
+
+
 def get_resolved_env(tenant, user=None) -> Dict[str, Any]:
     """
     TenantPolicyService.get_resolved_env(tenant, user) equivalent.

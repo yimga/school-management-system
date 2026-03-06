@@ -19,6 +19,23 @@ from .models_audit import (
 )
 
 
+def _audit_log_export_rows(queryset):
+    """Yield dict rows for AuditLog export (CSV/JSON)."""
+    for log in queryset.select_related("user").order_by("timestamp"):
+        yield {
+            "timestamp": log.timestamp.isoformat() if log.timestamp else "",
+            "user": (log.user.username if log.user else ""),
+            "action": log.action,
+            "model_name": log.model_name,
+            "object_id": log.object_id,
+            "object_repr": (log.object_repr or "")[:500],
+            "app_label": log.app_label,
+            "sensitivity": log.sensitivity,
+            "reason": log.reason or "",
+            "ip_address": str(log.ip_address) if log.ip_address else "",
+        }
+
+
 @admin.register(AuditLog)
 class AuditLogAdmin(ModelAdmin):
     list_display = ("timestamp", "user", "action", "model_name", "object_repr", "sensitivity", "ip_address")
@@ -28,6 +45,38 @@ class AuditLogAdmin(ModelAdmin):
     list_per_page = 100
     show_full_result_count = False
     date_hierarchy = "timestamp"
+    actions = ["export_audit_log_csv", "export_audit_log_json"]
+
+    def export_audit_log_csv(self, request, queryset):
+        """Export selected (or filtered) audit logs as CSV for compliance (25.5)."""
+        response = HttpResponse(content_type="text/csv; charset=utf-8")
+        response["Content-Disposition"] = (
+            f'attachment; filename="audit_log_export_{timezone.now().strftime("%Y%m%d_%H%M%S")}.csv"'
+        )
+        writer = csv.writer(response)
+        writer.writerow(
+            ["timestamp", "user", "action", "model_name", "object_id", "object_repr", "app_label", "sensitivity", "reason", "ip_address"]
+        )
+        for row in _audit_log_export_rows(queryset):
+            writer.writerow([row[k] for k in row])
+        self.message_user(request, f"Exported {queryset.count()} audit log(s).")
+        return response
+    export_audit_log_csv.short_description = "Export selected audit logs as CSV"
+
+    def export_audit_log_json(self, request, queryset):
+        """Export selected (or filtered) audit logs as JSON for compliance (25.5)."""
+        import json
+        data = list(_audit_log_export_rows(queryset))
+        response = HttpResponse(
+            json.dumps(data, indent=2, default=str),
+            content_type="application/json; charset=utf-8",
+        )
+        response["Content-Disposition"] = (
+            f'attachment; filename="audit_log_export_{timezone.now().strftime("%Y%m%d_%H%M%S")}.json"'
+        )
+        self.message_user(request, f"Exported {len(data)} audit log(s).")
+        return response
+    export_audit_log_json.short_description = "Export selected audit logs as JSON"
 
     fieldsets = (
         ("Action", {"fields": ("action", "reason")}),

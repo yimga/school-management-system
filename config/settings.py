@@ -133,6 +133,7 @@ INSTALLED_APPS = [
     "apps.communication",
     "apps.requests",
     "apps.observability",  # Observability/monitoring
+    "apps.customersuccess",  # Section 11: Benchmark intelligence, customer success, health
     "apps.api",
     "apps.apicenter",
     "apps.automation",  # Automation and background tasks
@@ -173,6 +174,7 @@ MIDDLEWARE = [
     "apps.accounts.middleware.ModuleAccessMiddleware",
     "apps.accounts.middleware.RequireMFAMiddleware",
     "apps.schools.middleware.TenantSuperAdminRequiredMiddleware",  # Restrict /super/ to SUPERADMIN
+    "apps.schools.middleware.SuperAdminRateLimitMiddleware",  # 12.7: rate limit /super/ (120/min per user)
     "apps.schools.middleware.FeatureGatekeeperMiddleware",  # Phase D: enforce plan feature by path
     "apps.schools.middleware.UsageLimitMiddleware",  # Phase D (optional, on by default): Plan max_students/max_staff; set DISABLE_USAGE_LIMIT_MIDDLEWARE=1 to turn off
 ]
@@ -328,6 +330,11 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Part F 16.4 / 16.6: Global edge and testing matrix (docs/architecture/global_edge_and_testing_matrix.md)
+EDGE_REGION_HEADER = os.getenv("EDGE_REGION_HEADER", "HTTP_X_REGION")
+CDN_BASE_URL = (os.getenv("CDN_BASE_URL") or "").strip() or ""
+TESTING_MATRIX_REGIONS = ["US", "BR", "DE", "JP", "NG", "AE", "CA", "GB"]  # USA, Brazil, Germany, Japan, Nigeria, UAE, Canada, UK
+
 # --- Authentication ---
 LOGIN_URL = "/authentication/login/"
 LOGIN_REDIRECT_URL = "/authentication/redirect/"
@@ -472,6 +479,15 @@ WEBHOOK_CONFIG = {
 
 # --- Observability ---
 OBSERVABILITY_API_KEY = os.getenv("OBSERVABILITY_API_KEY", "")
+
+# --- Policy / Marketplace (Phase 7, 24.12) ---
+# When True, get_effective_policy merges from TenantBlueprint.active_bundle.policy_snapshot when set.
+POLICY_USE_BUNDLES = os.getenv("POLICY_USE_BUNDLES", "0") in ("1", "true", "yes")
+# Per-tenant policy cache TTL in seconds; 0 or unset = no cache.
+POLICY_CACHE_TTL = int(os.getenv("POLICY_CACHE_TTL", "0")) if os.getenv("POLICY_CACHE_TTL") else 0
+# 24.12: Third-party apps may run schema patches only for these Django app labels (tuple). Empty = none.
+_THIRD_PARTY_ALLOWLIST_RAW = (os.getenv("THIRD_PARTY_SCHEMA_PATCH_ALLOWLIST") or "").strip()
+THIRD_PARTY_SCHEMA_PATCH_ALLOWLIST = tuple(s.strip() for s in _THIRD_PARTY_ALLOWLIST_RAW.split(",") if s.strip())
 
 # --- Payment Provider Configuration ---
 # Each provider should have config in PaymentIntegration model:

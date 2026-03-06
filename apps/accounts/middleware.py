@@ -336,8 +336,8 @@ class RequireMFAMiddleware:
         path = (request.path or "").rstrip("/") or "/"
         if any(path.startswith(p) for p in self.BYPASS_PREFIXES) or path in self.BYPASS_PATHS:
             return self.get_response(request)
-        # Allow MFA setup and verify so user can complete setup
-        if "/mfa/setup" in path or "/mfa/verify" in path:
+        # Allow MFA setup, verify, and passkey endpoints so user can complete setup
+        if "/mfa/setup" in path or "/mfa/verify" in path or "/mfa/passkey/" in path:
             return self.get_response(request)
 
         user = getattr(request, "user", None)
@@ -373,6 +373,10 @@ class RequireMFAMiddleware:
             # Ensure only confirmed TOTP devices count as configured MFA
             if not has_device:
                 has_device = TOTPDevice.objects.filter(user=user, confirmed=True).exists()
+            # WebAuthn/Passkey also counts as MFA (25.5, 29.1)
+            if not has_device:
+                from apps.accounts.models import UserPasskey
+                has_device = UserPasskey.objects.filter(user=user).exists()
 
             # If MFA is required OR user has MFA configured, enforce verification
             if must_have_mfa and not has_device:

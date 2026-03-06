@@ -2055,6 +2055,31 @@ def migration_wizard(request):
             }
             return redirect("accounts:migration_wizard")
 
+        if action == "dry_run" and wizard_data:
+            migration_type = wizard_data.get("migration_type")
+            rows = wizard_data.get("rows", [])
+            mapping_json = request.POST.get("mapping")
+            if not rows:
+                messages.error(request, "No data to validate. Upload again.")
+                return redirect("accounts:migration_wizard")
+            mapping = json.loads(mapping_json) if mapping_json else {}
+            transformed = []
+            for row in rows:
+                t = {}
+                for csv_col, target_field in mapping.items():
+                    if target_field and target_field != "__skip__":
+                        t[target_field] = row.get(csv_col, "")
+                transformed.append(t)
+            from apps.accounts.migration_services import run_dry_run
+            school = getattr(request, "school", None)
+            scorecard = run_dry_run(
+                school, migration_type, transformed,
+                user=request.user, create_audit=True,
+                legacy_snapshot=transformed,
+            )
+            request.session["migration_wizard_scorecard"] = scorecard
+            return redirect("accounts:migration_wizard")
+
         if action == "run" and wizard_data:
             migration_type = wizard_data.get("migration_type")
             rows = wizard_data.get("rows", [])
@@ -2064,7 +2089,6 @@ def migration_wizard(request):
                 request.session.pop(session_key, None)
                 return redirect("accounts:migration_wizard")
             mapping = json.loads(mapping_json) if mapping_json else {}
-            # Transform rows: each row dict key = CSV header, value -> map to target field name
             transformed = []
             for row in rows:
                 t = {}
@@ -2072,6 +2096,13 @@ def migration_wizard(request):
                     if target_field and target_field != "__skip__":
                         t[target_field] = row.get(csv_col, "")
                 transformed.append(t)
+            from apps.accounts.migration_services import run_migration_start, run_migration_finish
+            school = getattr(request, "school", None)
+            run = run_migration_start(
+                school, migration_type, len(transformed),
+                user=request.user, legacy_snapshot=transformed,
+            )
+            result = {"created": 0, "updated": 0, "error_count": 0, "errors": []}
             if migration_type == "students":
                 try:
                     from django.test import Client
@@ -2088,24 +2119,57 @@ def migration_wizard(request):
                     except Exception:
                         data = {}
                     if resp.status_code in (200, 201):
-                        messages.success(request, f"Students: created {len(data.get('created', []))}, errors {len(data.get('errors', []))}.")
+                        result["created"] = len(data.get("created", []))
+                        result["errors"] = data.get("errors", [])
+                        result["error_count"] = len(result["errors"])
+                        result["rollback_snapshot"] = {"created_ids": data.get("created", [])}
+                        run_migration_finish(run, result)
+                        p = result.get("parity", {})
+                        messages.success(request, f"Students: created {result['created']}, errors {result['error_count']}. Parity: {p.get('total_processed', 0)} rows processed.")
                     else:
-                        err = data.get("error") or "Student import failed. Check column mapping and required fields (e.g. first_name, last_name)."
-                        messages.error(request, err)
+                        result["error_count"] = len(transformed)
+                        result["error_message"] = data.get("error") or "Student import failed."
+                        result["errors"] = [result["error_message"]]
+                        run_migration_finish(run, result)
+                        messages.error(request, result["error_message"])
                 except Exception as e:
+                    result["error_count"] = len(transformed)
+                    result["error_message"] = str(e)
+                    result["errors"] = [str(e)]
+                    run_migration_finish(run, result)
                     messages.error(request, f"Import failed: {e}. Check your CSV format and mapping.")
             elif migration_type == "grades":
                 from apps.academics.services import get_active_year_and_term
                 active_year, _ = get_active_year_and_term()
                 if not active_year:
+                    result["error_count"] = len(transformed)
+                    result["errors"] = ["No active academic year set."]
+                    run_migration_finish(run, result)
                     messages.error(request, "No active academic year. Set one in Academics.")
                 else:
                     try:
-                        from apps.evals.importers import apply_import
-                        result = apply_import(transformed, active_year)
-                        messages.success(request, f"Grades: created {result.get('created', 0)}, updated {result.get('updated', 0)}.")
+                        from apps.evals.importers import apply_import, preview_import
+                        preview = preview_import(transformed)
+                        apply_result = apply_import(preview, active_year)
+                        result["created"] = apply_result.get("created", 0)
+                        result["updated"] = apply_result.get("updated", 0)
+                        result["duration_seconds"] = apply_result.get("duration_seconds", 0)
+                        result["error_count"] = len(transformed) - result["created"] - result["updated"]
+                        result["rollback_snapshot"] = {
+                            "created_ids": apply_result.get("created_ids", []),
+                            "updated_ids": apply_result.get("updated_ids", []),
+                        }
+                        run_migration_finish(run, result)
+                        p = result.get("parity", {})
+                        messages.success(request, f"Grades: created {result['created']}, updated {result['updated']}, errors {result['error_count']}. Parity: {p.get('total_processed', 0)} rows processed.")
                     except Exception as e:
-                        messages.error(request, f"Grade import failed. Check template headers and data (student codes, subject assignment and term IDs). Details: {e}")
+                        result["error_count"] = len(transformed)
+                        result["error_message"] = str(e)
+                        result["errors"] = [str(e)]
+                        run_migration_finish(run, result)
+                        messages.error(request, f"Grade import failed. Details: {e}")
+            else:
+                run_migration_finish(run, result)
             request.session.pop(session_key, None)
             return redirect("accounts:migration_wizard")
 
@@ -2121,6 +2185,7 @@ def migration_wizard(request):
     preview_matrix = []
     for row in rows:
         preview_matrix.append([str(row.get(h, "")) for h in headers])
+    scorecard = request.session.pop("migration_wizard_scorecard", None)
     return render(request, "accounts/migration_wizard.html", {
         "migration_types": MIGRATION_TYPES,
         "wizard_data": wizard_data,
@@ -2128,6 +2193,72 @@ def migration_wizard(request):
         "target_fields": config.get("target_fields", []),
         "required_fields": config.get("required", []),
         "preview_matrix": preview_matrix,
+        "scorecard": scorecard,
+    })
+
+
+@permission_required("settings.manage")
+@user_passes_test(_is_admin_user)
+@require_http_methods(["GET"])
+def migration_run_list(request):
+    """Section 11.1: List migration runs for this school with links to read-only legacy view."""
+    school = getattr(request, "school", None)
+    if not school:
+        messages.warning(request, "No school context.")
+        return redirect("accounts:backend_dashboard")
+    from apps.automation.models import MigrationRun
+    runs = MigrationRun.objects.filter(school=school).select_related("triggered_by").order_by("-started_at")[:50]
+    return render(request, "accounts/migration_run_list.html", {
+        "runs": runs,
+        "school": school,
+    })
+
+
+@permission_required("settings.manage")
+@user_passes_test(_is_admin_user)
+@require_http_methods(["GET"])
+def migration_legacy_view(request, run_id):
+    """Section 11.1: Read-only legacy view — show uploaded rows snapshot for a migration run."""
+    school = getattr(request, "school", None)
+    if not school:
+        messages.warning(request, "No school context.")
+        return redirect("accounts:backend_dashboard")
+    from apps.automation.models import MigrationRun
+    run = get_object_or_404(MigrationRun, pk=run_id, school=school)
+    raw_rows = (run.legacy_snapshot or {}).get("rows") or []
+    headers = list(raw_rows[0].keys()) if raw_rows else []
+    rows_matrix = [[r.get(h, "") for h in headers] for r in raw_rows]
+    return render(request, "accounts/migration_legacy_view.html", {
+        "run": run,
+        "rows_matrix": rows_matrix,
+        "headers": headers,
+    })
+
+
+@permission_required("settings.manage")
+@user_passes_test(_is_admin_user)
+@require_http_methods(["GET", "POST"])
+def legacy_data_cleaner_view(request):
+    """Section 11.1: Legacy data cleaner — detect and optionally clean legacy/invalid data."""
+    school = getattr(request, "school", None)
+    if not school:
+        messages.warning(request, "No school context.")
+        return redirect("accounts:backend_dashboard")
+    from apps.accounts.legacy_data_cleaner import detect_legacy_issues, clean_legacy_data
+    if request.method == "POST" and request.POST.get("action") == "clean":
+        dry_run = request.POST.get("dry_run") == "1"
+        result = clean_legacy_data(school, dry_run=dry_run)
+        messages.success(request, f"Cleaner run (dry_run={dry_run}). Actions: {len(result.get('actions', []))}.")
+        return render(request, "accounts/legacy_data_cleaner.html", {
+            "school": school,
+            "issues": detect_legacy_issues(school),
+            "clean_result": result,
+        })
+    issues = detect_legacy_issues(school)
+    return render(request, "accounts/legacy_data_cleaner.html", {
+        "school": school,
+        "issues": issues,
+        "clean_result": None,
     })
 
 
@@ -2766,9 +2897,6 @@ def _get_login_page_language(request):
                 from apps.policies.resolver import get_effective_policy
                 policy = get_effective_policy(school)
                 lang = (policy.get("default_language") or "").strip() or None
-                if not lang and getattr(school, "default_region_id", None):
-                    region = school.default_region
-                    lang = (getattr(region, "default_language", None) or "").strip() or None
             except Exception:
                 pass
     else:

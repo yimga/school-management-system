@@ -818,6 +818,16 @@ class Incident(models.Model):
         return f"Incident {self.get_incident_type_display()} – {who} – {self.date}"
 
 
+def _syllabus_upload_to(instance, filename):
+    """Tenant-scoped path for CourseSyllabus.uploaded_file (Section 25.3). School from subject_assignment.academic_year."""
+    sa = getattr(instance, "subject_assignment", None)
+    ay = getattr(sa, "academic_year", None) if sa else None
+    school_id = getattr(ay, "school_id", None) if ay else None
+    if school_id is None:
+        return f"tenant_uploads/academics/syllabi/{filename}"
+    return f"tenants/{school_id}/academics/syllabi/{filename}"
+
+
 class CourseSyllabus(models.Model):
     """
     One syllabus per SubjectAssignment (class + subject + term/year).
@@ -846,7 +856,7 @@ class CourseSyllabus(models.Model):
         help_text="Structured data from the syllabus builder (e.g. CBA sections).",
     )
     uploaded_file = models.FileField(
-        upload_to="syllabi/%Y/%m/",
+        upload_to=_syllabus_upload_to,
         null=True,
         blank=True,
         help_text="Optional uploaded PDF/Word instead of or in addition to builder data.",

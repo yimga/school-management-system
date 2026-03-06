@@ -9,6 +9,52 @@ import os
 from apps.accounts.validators import validate_document_file, validate_file_size_10mb
 
 
+def _portal_upload_to(instance, filename, subpath, school_id):
+    """Build tenant-prefixed path for portal uploads (Section 25.3). school_id from caller."""
+    if school_id is None:
+        return f"tenant_uploads/portal/{subpath}/{filename}"
+    return f"tenants/{school_id}/portal/{subpath}/{filename}"
+
+
+def _lesson_plan_upload_to(instance, filename):
+    school_id = getattr(getattr(instance, "teacher", None), "school_id", None)
+    return _portal_upload_to(instance, filename, "lesson_notes", school_id)
+
+
+def _lesson_plan_attachment_upload_to(instance, filename):
+    lp = getattr(instance, "lesson_plan", None)
+    school_id = getattr(getattr(lp, "teacher", None), "school_id", None) if lp else None
+    return _portal_upload_to(instance, filename, "lesson_notes/resources", school_id)
+
+
+def _training_entry_upload_to(instance, filename):
+    school_id = getattr(getattr(instance, "teacher", None), "school_id", None)
+    return _portal_upload_to(instance, filename, "training", school_id)
+
+
+def _justification_upload_to(instance, filename):
+    school_id = getattr(getattr(instance, "student", None), "school_id", None)
+    return _portal_upload_to(instance, filename, "justifications", school_id)
+
+
+def _photo_upload_token_upload_to(instance, filename):
+    school_id = getattr(getattr(instance, "student", None), "school_id", None) or getattr(
+        getattr(instance, "teacher", None), "school_id", None
+    )
+    return _portal_upload_to(instance, filename, "photo_upload", school_id)
+
+
+def _form_signature_upload_to(instance, filename):
+    school_id = getattr(getattr(instance, "student", None), "school_id", None)
+    return _portal_upload_to(instance, filename, "signed_forms", school_id)
+
+
+def _portal_feature_item_file_upload_to(instance, filename):
+    """Section 25.3: tenant-prefixed path for Document Library (PortalFeatureItem.file)."""
+    school_id = getattr(instance, "school_id", None)
+    return _portal_upload_to(instance, filename, "documents", school_id)
+
+
 class DocumentCategory(models.Model):
     """Configurable folder/category for Document Library (e.g. Essential Student Records, Administrative, Pedagogical)."""
     name = models.CharField(max_length=120)
@@ -53,9 +99,17 @@ class PortalFeatureItem(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     link = models.URLField(blank=True, help_text="External link (if document is hosted elsewhere)")
-    # File upload support
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="portal_feature_items",
+        help_text="Tenant scope for document library (Section 25.3); set from request.school on save.",
+    )
+    # File upload support (Section 25.3: tenant-prefixed when school_id set)
     file = models.FileField(
-        upload_to="portal/documents/%Y/%m/",
+        upload_to=_portal_feature_item_file_upload_to,
         blank=True,
         null=True,
         validators=[validate_document_file, validate_file_size_10mb],
@@ -340,7 +394,7 @@ class FormSignature(models.Model):
     
     # Additional data
     signed_pdf = models.FileField(
-        upload_to="portal/signed_forms/%Y/%m/",
+        upload_to=_form_signature_upload_to,
         blank=True,
         null=True,
         help_text="Final signed PDF document"
@@ -441,7 +495,7 @@ class LessonPlan(models.Model):
     title = models.CharField(max_length=200)
     week_start_date = models.DateField(help_text="Start of the teaching week")
     file = models.FileField(
-        upload_to="portal/lesson_notes/%Y/%m/",
+        upload_to=_lesson_plan_upload_to,
         validators=[validate_document_file, validate_file_size_10mb],
     )
     created_at = models.DateTimeField(auto_now_add=True)
@@ -465,7 +519,7 @@ class LessonPlanAttachment(models.Model):
         related_name="attachments",
     )
     file = models.FileField(
-        upload_to="portal/lesson_notes/resources/%Y/%m/",
+        upload_to=_lesson_plan_attachment_upload_to,
         validators=[validate_document_file, validate_file_size_10mb],
     )
     label = models.CharField(max_length=120, blank=True, help_text="Optional short label (e.g. Worksheet, Slides)")
@@ -570,7 +624,7 @@ class TeacherTrainingEntry(models.Model):
     date = models.DateField()
     description = models.TextField(blank=True)
     document = models.FileField(
-        upload_to="portal/training/%Y/%m/",
+        upload_to=_training_entry_upload_to,
         blank=True,
         null=True,
         validators=[validate_document_file, validate_file_size_10mb],
@@ -602,7 +656,7 @@ class AttendanceJustification(models.Model):
     attendance_date = models.DateField()
     reason = models.TextField(help_text="Reason for absence/lateness")
     document = models.FileField(
-        upload_to="portal/justifications/%Y/%m/",
+        upload_to=_justification_upload_to,
         blank=True,
         null=True,
         validators=[validate_document_file, validate_file_size_10mb],
@@ -629,7 +683,7 @@ class PhotoUploadToken(models.Model):
         PROFILE_UPDATE = "profile_update", "Profile update (existing)"
 
     token = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    photo = models.ImageField(upload_to="portal/photo_upload/%Y/%m/", blank=True, null=True)
+    photo = models.ImageField(upload_to=_photo_upload_token_upload_to, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     purpose = models.CharField(max_length=20, choices=Purpose.choices, default=Purpose.REGISTRATION)
     student = models.ForeignKey(

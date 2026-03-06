@@ -217,6 +217,8 @@ def run_schema_patches_for_installation(installation):
     P3: In schema-per-tenant mode, ensures tenant schema is active before running migrate
     (so patches run in the correct tenant schema whether install is from view or task).
     In RLS mode, runs in the single schema. Optional; failures are logged, not raised.
+    24.12: Third-party apps: schema patches run only if app_label is in
+    THIRD_PARTY_SCHEMA_PATCH_ALLOWLIST (settings). First-party may use any in-repo app label.
     """
     from apps.marketplace.models import AppInstallation, AppAuditLog
 
@@ -232,6 +234,19 @@ def run_schema_patches_for_installation(installation):
     app_label = app_label.strip()
     if not app_label:
         return
+
+    # 24.12: Third-party apps have no direct schema freedom; only allowlisted app labels
+    from django.conf import settings as django_settings
+    from apps.marketplace.models import MarketplaceApp
+    if getattr(app, "kind", None) == MarketplaceApp.AppKind.THIRD_PARTY:
+        allowlist = getattr(django_settings, "THIRD_PARTY_SCHEMA_PATCH_ALLOWLIST", ())
+        if app_label not in (allowlist or []):
+            logger.info(
+                "Schema patch skipped for third-party app %s: app_label %r not in THIRD_PARTY_SCHEMA_PATCH_ALLOWLIST",
+                getattr(app, "slug", app.pk),
+                app_label,
+            )
+            return
 
     def _run_migrate():
         call_command("migrate", app_label, verbosity=1, run_syncdb=False)

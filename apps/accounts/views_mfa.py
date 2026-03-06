@@ -54,8 +54,9 @@ def mfa_setup(request):
     Generates QR code for authenticator apps (Google Authenticator, Authy, etc.)
     """
     next_url = _safe_next_url(request, request.POST.get("next") or request.GET.get("next"), "")
-    # Check if user already has MFA enabled
-    has_mfa = user_has_device(request.user)
+    # Check if user already has MFA enabled (TOTP or passkey)
+    from .models import UserPasskey
+    has_mfa = user_has_device(request.user) or UserPasskey.objects.filter(user=request.user).exists()
     
     backup_tokens = []
     if has_mfa:
@@ -86,6 +87,7 @@ def mfa_setup(request):
             img.save(buffer, format="PNG")
             img_str = base64.b64encode(buffer.getvalue()).decode()
             
+            from .views_passkey import _webauthn_available
             return render(request, "accounts/mfa_setup.html", {
                 "has_mfa": has_mfa,
                 "qr_code": img_str,
@@ -93,6 +95,8 @@ def mfa_setup(request):
                 "device_id": device.id,
                 "backup_tokens": backup_tokens,
                 "next_url": next_url,
+                "use_passkey": _webauthn_available(),
+                "passkeys": [],
             })
         
         elif "verify_token" in request.POST:
@@ -125,10 +129,18 @@ def mfa_setup(request):
             backup_tokens = _generate_backup_tokens(backup_device, count=10)
             messages.success(request, "Backup codes regenerated.")
     
+    from .views_passkey import _webauthn_available
+    from .models import UserPasskey
+    passkeys = list(UserPasskey.objects.filter(user=request.user).values("id", "name", "created_at"))
+    for p in passkeys:
+        if p.get("created_at"):
+            p["created_at"] = p["created_at"].strftime("%Y-%m-%d")
     return render(request, "accounts/mfa_setup.html", {
         "has_mfa": has_mfa,
         "backup_tokens": backup_tokens,
         "next_url": next_url,
+        "use_passkey": _webauthn_available(),
+        "passkeys": passkeys,
     })
 
 
@@ -145,15 +157,13 @@ def mfa_verify(request):
     """
     Verify MFA token during login.
     This view is called after successful password authentication.
+    Accepts TOTP, backup codes, or passkey (when use_passkey and passkeys exist).
     """
-    if not user_has_device(request.user):
-        # No MFA configured, proceed to dashboard
+    from .models import UserPasskey
+    has_totp = TOTPDevice.objects.filter(user=request.user, confirmed=True).exists()
+    has_passkey = UserPasskey.objects.filter(user=request.user).exists()
+    if not has_totp and not has_passkey:
         return redirect("accounts:redirect")
-    try:
-        if not TOTPDevice.objects.filter(user=request.user, confirmed=True).exists():
-            return redirect("accounts:mfa_setup")
-    except Exception:
-        pass
 
     # Capture next URL (GET) for post-verification redirect
     next_url = _safe_next_url(
@@ -210,7 +220,13 @@ def mfa_verify(request):
         
         messages.error(request, "Invalid MFA token. Please try again.")
     
-    return render(request, "accounts/mfa_verify.html", {"next_url": next_url})
+    from .views_passkey import _webauthn_available
+    from .models import UserPasskey
+    has_passkey = UserPasskey.objects.filter(user=request.user).exists()
+    return render(request, "accounts/mfa_verify.html", {
+        "next_url": next_url,
+        "use_passkey": _webauthn_available() and has_passkey,
+    })
 
 
 def mfa_required(view_func):
@@ -239,13 +255,11 @@ def mfa_required(view_func):
         if not request.user.is_authenticated:
             return redirect(settings.LOGIN_URL)
         
-        if user_has_device(request.user):
-            # User has MFA configured
-            if not _session_has_valid_mfa(request):
-                # MFA not verified in this session
-                messages.warning(request, "Please verify your MFA token.")
-                return redirect("accounts:mfa_verify")
-        
+        from .models import UserPasskey
+        has_mfa = user_has_device(request.user) or UserPasskey.objects.filter(user=request.user).exists()
+        if has_mfa and not _session_has_valid_mfa(request):
+            messages.warning(request, "Please verify your MFA token.")
+            return redirect("accounts:mfa_verify")
         return view_func(request, *args, **kwargs)
     
     return wrapper

@@ -35,4 +35,9 @@ python manage.py check --deploy
 - **Django check --deploy:** Resolve warnings (e.g. DEBUG=0, SECURE_* in production).
 - **CSP:** Enable `django-csp` or set Content-Security-Policy headers; use report-only first.
 
-See also: `docs/security-checklist.md`, `SECURITY_IMPLEMENTATION_GUIDE.md`.
+## SAST / DAST (Section 25.5)
+
+- **SAST:** Bandit (Python) and Semgrep (optional) above. Run in CI; fix high/medium findings.
+- **DAST:** Optional dynamic scan (e.g. OWASP ZAP, `zap-cli` against a staging URL). Document in CI or runbooks; not required for every commit.
+
+See also: `docs/security-checklist.md`, `SECURITY_IMPLEMENTATION_GUIDE.md`, `docs/architecture/section_25_observability_sre.md`.

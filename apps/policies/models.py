@@ -4,6 +4,10 @@ Policy Registry v2: versioned, auditable policy storage (optional).
 Resolver (get_effective_policy) currently reads School.settings and School.features.
 When POLICY_USE_BUNDLES is True and a PolicyBundle exists for the school, resolver
 can merge from that snapshot instead (future). These models provide the storage.
+
+Phase 6: BlueprintPack = catalog of installable policy packs (e.g. Cameroon Francophone,
+UAE MoE+IB, UK GCSE/A-Level). Applying a pack creates a PolicyBundle for the school
+and sets TenantBlueprint.active_bundle.
 """
 
 from django.db import models
@@ -52,6 +56,11 @@ class PolicyBundle(models.Model):
     name = models.CharField(max_length=255, blank=True)
     policy_snapshot = models.JSONField(default=dict, help_text="Merged policy dict (terminology, grading, features, etc.).")
     version = models.PositiveIntegerField(default=1)
+    applied_pack_version = models.CharField(
+        max_length=32,
+        blank=True,
+        help_text="When created from a BlueprintPack, store pack.version for update detection.",
+    )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(
@@ -78,6 +87,7 @@ class TenantBlueprint(models.Model):
     """
     Points a school to the active PolicyBundle (optional v2 path).
     When set, get_effective_policy can merge from active_bundle.policy_snapshot.
+    applied_pack tracks which BlueprintPack was last applied for "Update bundle" when pack version increases.
     """
     school = models.OneToOneField(
         "schools.School",
@@ -92,6 +102,14 @@ class TenantBlueprint(models.Model):
         related_name="+",
         help_text="When set and POLICY_USE_BUNDLES=True, resolver uses this bundle.",
     )
+    applied_pack = models.ForeignKey(
+        "BlueprintPack",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="tenant_blueprints",
+        help_text="Blueprint pack last applied; used to offer update when pack version increases.",
+    )
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -100,3 +118,54 @@ class TenantBlueprint(models.Model):
 
     def __str__(self):
         return f"Blueprint for school {self.school_id} bundle={self.active_bundle_id}"
+
+
+class BlueprintPack(models.Model):
+    """
+    Catalog entry for a blueprint pack (Phase 6 marketplace).
+    Packs define policy_snapshot templates (terminology, grading, admissions, etc.)
+    that can be applied to a school; applying creates a PolicyBundle and sets
+    TenantBlueprint.active_bundle.
+    """
+    slug = models.SlugField(max_length=80, unique=True)
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    category = models.CharField(
+        max_length=64,
+        blank=True,
+        db_index=True,
+        help_text="e.g. Cameroon Francophone, UAE MoE+IB, UK GCSE/A-Level, US charter",
+    )
+    policy_snapshot = models.JSONField(
+        default=dict,
+        help_text="Merged policy dict (terminology, grading, features, admissions, etc.).",
+    )
+    version = models.CharField(max_length=32, default="1.0")
+    is_active = models.BooleanField(default=True, db_index=True)
+    country_code = models.CharField(max_length=10, blank=True, db_index=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["category", "name"]
+        verbose_name = "Blueprint pack"
+        verbose_name_plural = "Blueprint packs"
+        indexes = [models.Index(fields=["is_active", "category"])]
+
+    def __str__(self):
+        return f"{self.name} ({self.slug})"
+
+    def get_schools_using_this_pack(self):
+        """Schools that have this pack applied (for "Update bundle" when version increases)."""
+        from apps.schools.models import School
+        return School.objects.filter(tenant_blueprint__applied_pack=self).distinct()
+
+    def get_schools_needing_update(self):
+        """Schools using this pack whose active bundle version is older than this pack's version."""
+        from apps.schools.models import School
+        return School.objects.filter(
+            tenant_blueprint__applied_pack=self,
+        ).exclude(
+            tenant_blueprint__active_bundle__applied_pack_version=self.version,
+        ).distinct()

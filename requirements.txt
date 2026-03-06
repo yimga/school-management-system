@@ -24,6 +24,7 @@ django-unfold==0.76.0
 # Auth & MFA
 django-otp>=1.7.0
 qrcode[pil]>=8.0
+webauthn>=2.0.0
 
 # HTTP & APIs
 requests>=2.31.0

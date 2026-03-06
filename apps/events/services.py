@@ -12,10 +12,11 @@ def emit_event(
     school_id=None,
     schema_name=None,
     idempotency_key=None,
+    schema_version: str = "1.0",
 ):
     """
     Append a domain event to the outbox (same transaction as caller).
-    Call from service layer after the business operation succeeds.
+    Call from service layer after the business operation succeeds (26.2).
     """
     from apps.events.models import DomainEvent
 
@@ -26,4 +27,5 @@ def emit_event(
             school_id=school_id,
             schema_name=schema_name,
             idempotency_key=idempotency_key or None,
+            schema_version=schema_version or "1.0",
         )

@@ -123,3 +123,139 @@ class EducationSystemTypeRegistry(models.Model):
 
     def __str__(self):
         return self.name
+
+
+# ---------- Section 20.6: Additional control-plane registries ----------
+
+
+class TimeZoneRegistry(models.Model):
+    """Section 20.1/20.6: Canonical timezone list for school/region selection."""
+    code = models.CharField(max_length=64, primary_key=True, help_text="IANA timezone identifier (e.g. Africa/Douala).")
+    name = models.CharField(max_length=120)
+    utc_offset = models.CharField(max_length=16, blank=True, help_text="e.g. +01:00")
+    metadata = models.JSONField(default=dict, blank=True)
+    is_active = models.BooleanField(default=True)
+    sort_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["sort_order", "name"]
+        verbose_name = "Time zone registry entry"
+        verbose_name_plural = "Time zone registry"
+
+    def __str__(self):
+        return f"{self.name} ({self.code})"
+
+
+class CurrencyRegistry(models.Model):
+    """Section 20.1/20.6: Canonical currency list for billing and display."""
+    code = models.CharField(max_length=3, primary_key=True, help_text="ISO 4217 alpha-3 (e.g. USD, XAF).")
+    name = models.CharField(max_length=80)
+    symbol = models.CharField(max_length=16, blank=True)
+    decimal_places = models.PositiveSmallIntegerField(default=2)
+    metadata = models.JSONField(default=dict, blank=True)
+    is_active = models.BooleanField(default=True)
+    sort_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["sort_order", "name"]
+        verbose_name = "Currency registry entry"
+        verbose_name_plural = "Currency registry"
+
+    def __str__(self):
+        return f"{self.name} ({self.code})"
+
+
+class LocaleRegistry(models.Model):
+    """Section 20.1/20.6: Locale for number/date formatting and RTL."""
+    code = models.CharField(max_length=24, primary_key=True, help_text="e.g. en_US, fr_CM.")
+    name = models.CharField(max_length=80)
+    date_format = models.CharField(max_length=32, default="%Y-%m-%d", blank=True)
+    time_format = models.CharField(max_length=32, default="%H:%M", blank=True)
+    number_format = models.CharField(max_length=32, blank=True, help_text="Decimal/thousand separators.")
+    first_day_of_week = models.PositiveSmallIntegerField(default=0, help_text="0=Monday, 6=Sunday.")
+    is_rtl = models.BooleanField(default=False)
+    metadata = models.JSONField(default=dict, blank=True)
+    is_active = models.BooleanField(default=True)
+    sort_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["sort_order", "name"]
+        verbose_name = "Locale registry entry"
+        verbose_name_plural = "Locale registry"
+
+    def __str__(self):
+        return f"{self.name} ({self.code})"
+
+
+class CalendarSystemRegistry(models.Model):
+    """Section 20.1/20.6: Academic calendar presets (term count, start month, etc.)."""
+    code = models.CharField(max_length=48, primary_key=True)
+    name = models.CharField(max_length=120)
+    description = models.TextField(blank=True)
+    country_code = models.CharField(max_length=2, blank=True, db_index=True)
+    term_count_per_year = models.PositiveSmallIntegerField(default=3)
+    metadata = models.JSONField(default=dict, blank=True, help_text="e.g. default_start_month, holiday_strategy.")
+    is_active = models.BooleanField(default=True)
+    sort_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["sort_order", "name"]
+        verbose_name = "Calendar system registry entry"
+        verbose_name_plural = "Calendar system registry"
+
+    def __str__(self):
+        return self.name
+
+
+class InstitutionTypeRegistry(models.Model):
+    """Section 20.2/20.4/20.6: Institution types (general, trade, technical, STEM, religious, international, etc.)."""
+    code = models.CharField(max_length=48, primary_key=True)
+    name = models.CharField(max_length=120)
+    description = models.TextField(blank=True)
+    country_labels = models.JSONField(default=dict, blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    is_active = models.BooleanField(default=True)
+    sort_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["sort_order", "name"]
+        verbose_name = "Institution type registry entry"
+        verbose_name_plural = "Institution type registry"
+
+    def __str__(self):
+        return self.name
+
+
+class AcademicTerminologyRegistry(models.Model):
+    """Section 20.2/20.6: Terminology packs (e.g. Principal vs Proviseur, Grade vs Class)."""
+    code = models.CharField(max_length=48, primary_key=True)
+    name = models.CharField(max_length=120)
+    terminology = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Map of term key -> display string (e.g. student_id_label, principal_title).",
+    )
+    country_code = models.CharField(max_length=2, blank=True, db_index=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    is_active = models.BooleanField(default=True)
+    sort_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["sort_order", "name"]
+        verbose_name = "Academic terminology registry entry"
+        verbose_name_plural = "Academic terminology registry"
+
+    def __str__(self):
+        return self.name

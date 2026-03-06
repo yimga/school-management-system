@@ -11,6 +11,16 @@ from apps.academics.models import Classroom, Department
 from apps.accounts.validators import validate_kb_attachment_file, validate_file_size_10mb
 
 
+def contact_request_attachment_upload_to(instance, filename):
+    """Tenant-scoped path for ContactRequestAttachment (Section 25.3)."""
+    school_id = getattr(instance, "school_id", None) or (
+        getattr(getattr(instance, "request", None), "school_id", None) if getattr(instance, "request", None) else None
+    )
+    if school_id is None:
+        return f"tenant_uploads/communication/contact-requests/{filename}"
+    return f"tenants/{school_id}/communication/contact-requests/{filename}"
+
+
 def get_default_expiry():
     """Default expiry date: 30 days from now"""
     return timezone.now() + timedelta(days=30)
@@ -759,7 +769,7 @@ class ContactRequestAttachment(models.Model):
         related_name="contact_request_attachments",
     )
     file = models.FileField(
-        upload_to="communication/contact-requests/%Y/%m/",
+        upload_to=contact_request_attachment_upload_to,
         validators=[validate_kb_attachment_file, validate_file_size_10mb],
     )
     uploaded_by = models.ForeignKey(

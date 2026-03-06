@@ -12,6 +12,38 @@ from apps.accounts.models import User
 from apps.academics.models import AcademicYear, Classroom, Specialty, Department, Term
 
 
+def _people_tenant_upload_to(subpath):
+    """Tenant-prefixed upload_to for models with school_id (Section 25.3). Inline to avoid circular import with siteconfig."""
+    def upload_to(instance, filename):
+        school_id = getattr(instance, "school_id", None) or (
+            getattr(getattr(instance, "school", None), "pk", None) if getattr(instance, "school", None) else None
+        )
+        if school_id is None:
+            return f"tenant_uploads/people/{subpath}/{filename}"
+        return f"tenants/{school_id}/people/{subpath}/{filename}"
+    return upload_to
+
+
+def tenant_upload_to_teacher_profile_photo(instance, filename):
+    """Serializable upload_to for TeacherProfile.profile_photo (Section 25.3)."""
+    return _people_tenant_upload_to("profiles/teachers")(instance, filename)
+
+
+def tenant_upload_to_student_profile_photo(instance, filename):
+    """Serializable upload_to for StudentProfile.profile_photo (Section 25.3)."""
+    return _people_tenant_upload_to("profiles/students")(instance, filename)
+
+
+def _passport_doc_upload_to(instance, filename):
+    """Tenant-scoped path for PassportDocument; uses verified_by_school_id when set (Section 25.3)."""
+    school_id = getattr(instance, "verified_by_school_id", None)
+    now = timezone.now()
+    subpath = f"people/passport_docs/{now:%Y/%m}"
+    if school_id is None:
+        return f"tenant_uploads/{subpath}/{filename}"
+    return f"tenants/{school_id}/{subpath}/{filename}"
+
+
 # -----------------------------------------------------------------------------
 # Information Tagging (zero hardcoding): school-defined categories for students
 # -----------------------------------------------------------------------------
@@ -81,7 +113,11 @@ class TeacherProfile(models.Model):
 
     staff_id = models.CharField(max_length=50, blank=True)
     phone = models.CharField(max_length=50, blank=True)
-    profile_photo = models.ImageField(upload_to="profiles/teachers/", blank=True, null=True)
+    profile_photo = models.ImageField(
+        upload_to=tenant_upload_to_teacher_profile_photo,
+        blank=True,
+        null=True,
+    )
     position_title = models.CharField(max_length=120, blank=True)
     reports_to = models.ForeignKey(
         "self",
@@ -268,7 +304,11 @@ class StudentProfile(models.Model):
     last_name = models.CharField(max_length=80)
     student_code = models.CharField(max_length=50, unique=True, blank=True)
     admission_number = models.CharField(max_length=64, unique=True, blank=True, null=True)
-    profile_photo = models.ImageField(upload_to="profiles/students/", blank=True, null=True)
+    profile_photo = models.ImageField(
+        upload_to=tenant_upload_to_student_profile_photo,
+        blank=True,
+        null=True,
+    )
 
     class Gender(models.TextChoices):
         MALE = "MALE", "Male"
@@ -453,20 +493,39 @@ class StudentProfile(models.Model):
         return "00"
 
     @classmethod
+    def _get_admissions_policy(cls, school=None):
+        """Single read path for admissions config: from policy (school) or SiteSettings fallback."""
+        if school is not None:
+            from apps.policies.resolver import get_effective_policy
+            policy = get_effective_policy(school)
+            adm = policy.get("admissions") or {}
+            if adm:
+                return adm
+        SiteSettings = django_apps.get_model("siteconfig", "SiteSettings")
+        site = SiteSettings.get_solo()
+        return {
+            "school_code": (getattr(site, "school_code", None) or "GIL") or "GIL",
+            "admission_number_template": (getattr(site, "admission_number_template", None) or "") or "",
+            "admission_number_strategy": (getattr(site, "admission_number_strategy", None) or "FULL") or "FULL",
+            "admission_number_mode": getattr(site, "admission_number_mode", "AUTO_OR_MANUAL") or "AUTO_OR_MANUAL",
+            "admission_number_pattern": (getattr(site, "admission_number_pattern", None) or "") or "",
+        }
+
+    @classmethod
     def generate_admission_number(
         cls,
         academic_year: AcademicYear,
         specialty: Specialty,
         classroom: Classroom,
+        school=None,
     ) -> str:
         """
-        Configurable generation (Part 1 / Part 4 item 8): use admission_number_template
-        if set (placeholders: year_2digit, school_code, seq_4digit, spec_code, class_segment),
-        else use admission_number_strategy (FULL, YEAR_SEQ, SEQ_ONLY). Keep pattern for validation.
+        Configurable generation: use policy (get_effective_policy(school)) or SiteSettings fallback.
+        Placeholders: year_2digit, school_code, seq_4digit, spec_code, class_segment.
         """
-        SiteSettings = django_apps.get_model("siteconfig", "SiteSettings")
-        settings = SiteSettings.get_solo()
-        school_code = (settings.school_code or "GIL").upper()
+        school = school or getattr(academic_year, "school", None)
+        admissions = cls._get_admissions_policy(school)
+        school_code = (admissions.get("school_code") or "GIL").upper()
 
         year_str = (academic_year.name or "")[:4]
         yy = year_str[-2:] if year_str and year_str[:4].isdigit() else "00"
@@ -479,7 +538,7 @@ class StudentProfile(models.Model):
         spec_segment = re.sub(r"[^A-Z0-9]", "", spec_segment)
         class_segment = re.sub(r"[^A-Z0-9]", "", class_segment)
 
-        template = (getattr(settings, "admission_number_template", None) or "").strip()
+        template = (admissions.get("admission_number_template") or "").strip()
         if template:
             return template.format(
                 year_2digit=yy,
@@ -489,7 +548,7 @@ class StudentProfile(models.Model):
                 class_segment=class_segment,
             )
 
-        strategy = getattr(settings, "admission_number_strategy", None) or "FULL"
+        strategy = admissions.get("admission_number_strategy") or "FULL"
         if strategy == "YEAR_SEQ":
             return f"{yy}{school_code}{seq_str}"
         if strategy == "SEQ_ONLY":
@@ -498,35 +557,23 @@ class StudentProfile(models.Model):
         return f"{yy}{school_code}{seq_str}{spec_segment}{class_segment}"
 
     def save(self, *args, **kwargs):
-        # Auto-generate admission number when not provided, if enabled in SiteSettings.
-        # Use _id checks to avoid related object descriptor errors when foreign keys
-        # aren't set during tests.
+        # Auto-generate admission number when not provided, from policy (admission_number_mode).
         if getattr(self, "academic_year_id", None) and getattr(self, "specialty_id", None) and getattr(
             self, "classroom_id", None
         ):
-            SiteSettings = django_apps.get_model("siteconfig", "SiteSettings")
-            site_settings = SiteSettings.get_solo()
-            mode = getattr(site_settings, "admission_number_mode", None)
-
-            # Backwards-compatible default: allow auto-generation when admission number is blank.
-            auto_modes = {
-                getattr(SiteSettings.AdmissionNumberMode, "AUTO", "AUTO"),
-                getattr(SiteSettings.AdmissionNumberMode, "AUTO_OR_MANUAL", "AUTO_OR_MANUAL"),
-            }
-            auto_allowed = (mode in auto_modes) or (mode is None)
+            school = getattr(self.academic_year, "school", None) if getattr(self, "academic_year", None) else None
+            admissions = self._get_admissions_policy(school)
+            mode = admissions.get("admission_number_mode") or "AUTO_OR_MANUAL"
+            auto_modes = ("AUTO", "AUTO_OR_MANUAL")
+            auto_allowed = mode in auto_modes
 
             if auto_allowed and not self.admission_number:
                 from apps.academics.models import AcademicYear, Classroom, Specialty
 
-                # Resolve objects for generation
                 year = AcademicYear.objects.get(id=self.academic_year_id)
                 specialty = Specialty.objects.get(id=self.specialty_id)
                 classroom = Classroom.objects.get(id=self.classroom_id)
-                self.admission_number = self.generate_admission_number(
-                    year,
-                    specialty,
-                    classroom,
-                )
+                self.admission_number = self.generate_admission_number(year, specialty, classroom, school=school)
         if not self.student_code:
             self.student_code = self.admission_number or f"TEMP-{uuid.uuid4().hex[:8].upper()}"
         if not self.referral_code:
@@ -534,15 +581,11 @@ class StudentProfile(models.Model):
         super().save(*args, **kwargs)
 
     def clean(self):
-        """
-        Validate admission number format; keep editable but enforce structure.
-        """
+        """Validate admission number format from policy (admission_number_pattern)."""
         if self.admission_number:
-            # Use admission number pattern from SiteSettings when available,
-            # falling back to the built-in YY + SCHOOL + #### + SPEC + CLASS pattern.
-            SiteSettings = django_apps.get_model("siteconfig", "SiteSettings")
-            site_settings = SiteSettings.get_solo()
-            pattern = getattr(site_settings, "admission_number_pattern", "") or ""
+            school = getattr(self.academic_year, "school", None) if getattr(self, "academic_year", None) else None
+            admissions = self._get_admissions_policy(school)
+            pattern = (admissions.get("admission_number_pattern") or "").strip()
             if not pattern:
                 new_style = r"^\d{2}[A-Z0-9]{2,10}\d{4}[A-Z0-9]{2,6}[A-Z0-9]{1,4}$"
                 legacy = r"^\d{2}-[A-Z0-9]{2,10}-\d{4}-[A-Z0-9]{2,6}-[A-Z0-9]{1,4}$"
@@ -551,7 +594,7 @@ class StudentProfile(models.Model):
                 raise ValidationError(
                     {
                         "admission_number": _(
-                            "Admission number must match YY + SCHOOL + #### + SPEC + CLASS (no dashes) or the legacy dashed format."
+                            "Admission number must match the required format (YY + SCHOOL + #### + SPEC + CLASS or legacy dashed)."
                         )
                     }
                 )
@@ -971,7 +1014,7 @@ class PassportDocument(models.Model):
     )
     document_type = models.CharField(max_length=20, choices=DocType.choices, default=DocType.OTHER)
     title = models.CharField(max_length=255, blank=True)
-    file = models.FileField(upload_to="passport_docs/%Y/%m/", blank=True, null=True)
+    file = models.FileField(upload_to=_passport_doc_upload_to, blank=True, null=True)
     file_url = models.URLField(blank=True, help_text=_("External URL if not uploaded."))
     verified_at = models.DateTimeField(null=True, blank=True)
     verified_by_school = models.ForeignKey(

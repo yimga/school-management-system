@@ -1,0 +1,47 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+{% block title %}Student 360 — {{ student.get_full_name }}{% endblock %}
+{% block content %}
+<div class="container-fluid py-3">
+  <h1 class="h4">Student 360 — {{ student.get_full_name }}</h1>
+  <p class="text-muted">{{ student.admission_number|default:"" }} {% if student.classroom %}{{ student.classroom.name }}{% endif %}</p>
+
+  <div class="row">
+    <div class="col-md-4">
+      <div class="card mb-3">
+        <div class="card-header">Summary</div>
+        <div class="card-body">
+          <ul class="list-unstyled mb-0">
+            <li>Academic: {{ summary.academic.evaluations_count|default:0 }} evaluations, {{ summary.academic.enrollments_count|default:0 }} enrollments</li>
+            <li>Finance: {{ summary.finance.invoices_count|default:0 }} invoices, total {{ summary.finance.invoices_total|default:0 }}</li>
+            <li>Timeline events: {{ summary.timeline_events_count|default:0 }}</li>
+            {% if summary.export_pack_available %}
+            <li><a href="{% url 'portal:student_360_export' student.pk %}">Export pack (JSON)</a></li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header">Timeline</div>
+        <div class="card-body">
+          {% if timeline %}
+          <ul class="list-unstyled">
+            {% for e in timeline %}
+            <li class="border-bottom py-2">
+              <span class="text-muted small">{{ e.created_at }}</span>
+              <strong>{{ e.event_type }}</strong>
+              {% if e.payload %}<pre class="small mb-0">{{ e.payload }}</pre>{% endif %}
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <p class="text-muted mb-0">No timeline events yet.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

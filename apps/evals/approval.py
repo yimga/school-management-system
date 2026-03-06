@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from decimal import Decimal, InvalidOperation
-from typing import Iterable, List
+from typing import Iterable, List, Optional
 from datetime import timedelta
 
 from django.db import transaction
@@ -24,12 +24,45 @@ def _normalize_roles(raw_roles: Iterable[str]) -> list[str]:
     return [str(role).upper().strip() for role in (raw_roles or []) if role]
 
 
-def grade_post_roles() -> list[str]:
-    return _normalize_roles(SiteSettings.get_solo().grade_post_roles)
+def get_grade_approval_policy(school=None):
+    """Phase 1: Single read path for grade approval config. Use policy when school is set else SiteSettings."""
+    if school is not None:
+        try:
+            from apps.policies.resolver import get_effective_policy
+            out = get_effective_policy(school)
+            ga = out.get("grade_approval")
+            if isinstance(ga, dict) and ga:
+                return ga
+        except Exception:
+            pass
+    try:
+        site = SiteSettings.get_solo()
+        return {
+            "grade_post_roles": getattr(site, "grade_post_roles", None) or [],
+            "grade_approval_roles": getattr(site, "grade_approval_roles", None) or [],
+            "grade_approval_deadline_days": max(1, getattr(site, "grade_approval_deadline_days", 3) or 3),
+            "grade_approval_deadline_note": (getattr(site, "grade_approval_deadline_note", None) or "").strip(),
+            "grade_approval_auto_validate": getattr(site, "grade_approval_auto_validate", True),
+            "grade_approval_enabled": getattr(site, "grade_approval_enabled", False),
+        }
+    except Exception:
+        return {
+            "grade_post_roles": [],
+            "grade_approval_roles": ["DEAN", "HOD"],
+            "grade_approval_deadline_days": 3,
+            "grade_approval_deadline_note": "",
+            "grade_approval_auto_validate": True,
+            "grade_approval_enabled": False,
+        }
 
 
-def grade_post_users() -> Iterable[User]:
-    roles = grade_post_roles()
+def grade_post_roles(school=None) -> list[str]:
+    policy = get_grade_approval_policy(school)
+    return _normalize_roles(policy.get("grade_post_roles") or [])
+
+
+def grade_post_users(school=None) -> Iterable[User]:
+    roles = grade_post_roles(school)
     if not roles:
         return User.objects.filter(is_superuser=True)
     base_q = Q(role__in=roles) | Q(roles__code__in=roles)
@@ -47,8 +80,8 @@ def user_has_any_role(user: User, roles: list[str]) -> bool:
     return user.roles.filter(code__in=roles).exists()
 
 
-def user_can_finalize_submission(user: User) -> bool:
-    return user_has_any_role(user, grade_post_roles())
+def user_can_finalize_submission(user: User, school=None) -> bool:
+    return user_has_any_role(user, grade_post_roles(school))
 
 
 def _collect_validation_flags(
@@ -166,15 +199,16 @@ def _build_summary(total_students: int, submitted_rows: int) -> dict:
     }
 
 
-def grade_approver_roles() -> list[str]:
-    roles = SiteSettings.get_solo().grade_approval_roles or []
+def grade_approver_roles(school=None) -> list[str]:
+    policy = get_grade_approval_policy(school)
+    roles = policy.get("grade_approval_roles") or []
     if roles:
         return [str(r).upper() for r in roles]
     return ["DEAN", "HOD"]
 
 
-def grade_approver_users() -> Iterable[User]:
-    roles = grade_approver_roles()
+def grade_approver_users(school=None) -> Iterable[User]:
+    roles = grade_approver_roles(school)
     if not roles:
         return User.objects.filter(is_superuser=True)
     base_q = Q(role__in=roles) | Q(roles__code__in=roles)
@@ -195,11 +229,12 @@ def create_grade_approval_request(
         raise ValueError("Cannot request approval for empty submission.")
     serialized = [_serialize_entry(entry) for entry in trimmed]
     summary = _build_summary(total_students=len(entries), submitted_rows=len(trimmed))
-    site_settings = SiteSettings.get_solo()
-    deadline_days = max(1, getattr(site_settings, "grade_approval_deadline_days", 3) or 3)
+    school = getattr(teacher, "school", None) or (getattr(subject_assignment, "classroom", None) and getattr(subject_assignment.classroom, "school", None))
+    policy = get_grade_approval_policy(school)
+    deadline_days = max(1, policy.get("grade_approval_deadline_days", 3))
     deadline_at = timezone.now() + timedelta(days=deadline_days)
     validation_flags = []
-    if getattr(site_settings, "grade_approval_auto_validate", True):
+    if policy.get("grade_approval_auto_validate", True):
         validation_flags = _collect_validation_flags(
             trimmed,
             academic_year=academic_year,

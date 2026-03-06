@@ -59,13 +59,14 @@ from apps.siteconfig.models import (
     Integration,
     SiteSettings,
     default_portal_features,
-    resolve_dashboard_widgets,
     filter_portal_items,
     default_backend_feature_flags,
 )
+from apps.siteconfig.dashboard_resolver import for_role as dashboard_for_role
 from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata
 from apps.siteconfig.dashboard_views import load_dashboard_layout_settings
 from apps.policies.resolver import get_effective_policy
+from apps.policies.registry import get_tenant_blueprint
 from apps.siteconfig.dashboard_views import _can_customize
 from apps.analytics.services import (
     student_improvements,
@@ -381,8 +382,8 @@ def parent_dashboard(request: HttpRequest):
         "next_actions": workflow_next_actions,
     }
     
-    preference = getattr(request.user, "preferences", None)
-    display_widgets = resolve_dashboard_widgets(get_user_role(request.user) or None, preference)
+    dash = dashboard_for_role(getattr(request, "school", None), get_user_role(request.user), user=request.user)
+    display_widgets = dash["widget_keys"]
 
     # Get student IDs for queries
     student_ids = [s.id for s in students] if students else []
@@ -2176,9 +2177,11 @@ def link_child(request: HttpRequest):
     New users should use link_child_wizard for a better experience.
     """
     site = SiteSettings.get_solo()
+    policy = get_tenant_blueprint(request)
     form = LinkChildForm(
         request.POST or None,
         guardian_user=request.user,
+        policy=policy,
         school_code=site.school_code,
     )
 
@@ -2262,9 +2265,11 @@ def link_child_wizard(request: HttpRequest):
         request.session[session_key] = wizard_data
         
         # Validate current step
+        policy = get_tenant_blueprint(request)
         form = LinkChildForm(
             data=request.POST,
             guardian_user=request.user,
+            policy=policy,
             school_code=site.school_code,
         )
         
@@ -2356,9 +2361,11 @@ def link_child_wizard(request: HttpRequest):
     if wizard_data:
         form_data.update(wizard_data)
     
+    policy = get_tenant_blueprint(request)
     form = LinkChildForm(
         data=form_data if request.method == "GET" else None,
         guardian_user=request.user,
+        policy=policy,
         school_code=site.school_code,
     )
     

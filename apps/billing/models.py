@@ -300,3 +300,46 @@ class RevenueSharePayout(models.Model):
 
     def __str__(self):
         return f"{self.payee_name} {self.net_amount}"
+
+
+class Quote(models.Model):
+    """
+    Commercial platform (29.10): quote for plan/contract before subscription.
+    Self-serve trials use School.trial_end_date; this model supports quote-to-contract flow.
+    """
+    class Status(models.TextChoices):
+        DRAFT = "DRAFT", "Draft"
+        SENT = "SENT", "Sent"
+        ACCEPTED = "ACCEPTED", "Accepted"
+        EXPIRED = "EXPIRED", "Expired"
+        DECLINED = "DECLINED", "Declined"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="quotes",
+        null=True,
+        blank=True,
+    )
+    plan = models.ForeignKey(
+        "siteconfig.Plan",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="quotes",
+    )
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.DRAFT, db_index=True)
+    amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
+    currency_code = models.CharField(max_length=3, default="USD")
+    valid_until = models.DateField(null=True, blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Quote"
+        verbose_name_plural = "Quotes"
+
+    def __str__(self):
+        return f"Quote #{self.id} {self.get_status_display()}"

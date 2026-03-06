@@ -12,6 +12,7 @@ from .models import (
     EducationSystemTypeRegistry,
     SubdivisionRegistry,
 )
+from .currency_seed import ensure_currency_registry_seed
 
 
 DEFAULT_EDUCATION_LEVELS = (
@@ -147,6 +148,7 @@ def sync_subdivisions_from_legacy_provinces() -> int:
 
 def ensure_registry_baseline() -> None:
     ensure_country_registry_seed()
+    ensure_currency_registry_seed()  # Part F 16.1: 195 currencies
     ensure_taxonomy_seed()
     sync_subdivisions_from_legacy_provinces()
 

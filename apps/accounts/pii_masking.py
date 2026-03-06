@@ -31,11 +31,24 @@ def mask_date(date_obj) -> str:
     return "**/**/****"
 
 
+def is_shadow_or_impersonation(request) -> bool:
+    """
+    Section 11.4: True when support is shadowing/impersonating a user.
+    In these sessions PII must be masked (do not show full name, DOB, address, etc.).
+    """
+    if not getattr(request, "session", None):
+        return False
+    return bool(request.session.get("impersonation") or request.session.get("shadow_session"))
+
+
 def can_show_pii(request) -> bool:
     """
     True if request session has recent PII re-auth (e.g. within last 5 minutes).
     Set PII_REAUTH_SESSION_KEY to timezone.now().isoformat() after user confirms password.
+    When is_shadow_or_impersonation(request), returns False so PII stays masked.
     """
+    if is_shadow_or_impersonation(request):
+        return False
     from django.utils import timezone
     from datetime import timedelta
     reauth_at = request.session.get(PII_REAUTH_SESSION_KEY)

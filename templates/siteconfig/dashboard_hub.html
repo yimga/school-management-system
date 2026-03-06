@@ -1,0 +1,20 @@
+{% extends "portal_base.html" %}
+{% load static %}
+
+{% block title %}Dashboard Hub{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 professional-page">
+  <div class="card shadow-sm border-0">
+    <div class="card-header bg-light border-bottom py-3 px-4">
+      <h1 class="h5 mb-1 fw-semibold">Dashboard Hub</h1>
+      <p class="text-muted small mb-0">Dashboards are composed by role via the platform resolver. Assign a template per role to control default layout and widgets for <strong>{{ school.name }}</strong>.</p>
+    </div>
+    <div class="card-body p-4">
+      <p class="mb-3">All role-based dashboards (admin, teacher, registrar, etc.) are resolved from a single hub. No duplicated dashboard logic across apps — the shell and widgets use <code>dashboard_resolver.for_role(school, role)</code>.</p>
+      <a href="{{ config_url }}" class="btn btn-primary">Configure dashboards by role</a>
+      <p class="text-muted small mt-3 mb-0">In configuration you can assign a dashboard template to each role. Runtime layout and theme come from the assigned template; user preferences can still override where allowed.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

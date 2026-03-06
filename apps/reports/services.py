@@ -433,12 +433,7 @@ def resolve_report_labels(student: Optional[StudentProfile] = None, school=None)
     if school is None and student is not None:
         school = getattr(student, "school", None)
 
-    if school and getattr(school, "default_region_id", None) == "CMR":
-        labels.update(CAMEROON_REPORT_LABELS)
-    elif str(getattr(settings, "REGION_CODE", "")).strip().upper() == "CMR":
-        # Backward-compatible fallback for single-tenant deployments.
-        labels.update(CAMEROON_REPORT_LABELS)
-
+    # No country/region branching: use profile (region-derived) and policy only (Section 24.2).
     labels.update(_profile_report_labels_for_school(school))
 
     policy = get_effective_policy(school) if school else {}
@@ -541,10 +536,11 @@ def _school_report_metadata() -> dict:
 
 def _region_display_context(school=None) -> dict:
     """
-    Return region-based display settings for report templates (date_format, currency, etc.).
-    Phase C: When school is provided, merge get_tenant_locale(school) so tenant config overrides.
+    Return display settings for report templates (date_format, currency, grading_scale, etc.).
+    When school is set, use policy (get_effective_policy) and tenant locale only; no direct region branching.
     """
     from apps.siteconfig.currency import get_currency_symbol
+    policy = get_effective_policy(school) if school else {}
     try:
         region_code = getattr(settings, "REGION_CODE", "CMR")
         region = RegionConfig.objects.get(code=region_code)
@@ -552,7 +548,7 @@ def _region_display_context(school=None) -> dict:
         region = RegionConfig.get_default()
     cur_code = getattr(region, "default_currency", "XAF")
     date_fmt = getattr(region, "date_format", "DD/MM/YYYY")
-    grading_scale = getattr(region, "grading_scale", "0-20")
+    grading_scale = (policy.get("grading") or {}).get("grading_scale") or getattr(region, "grading_scale", "0-20")
     decimal_sep = getattr(region, "decimal_separator", ".")
     thousands_sep = getattr(region, "thousands_separator", ",")
     report_template_family = None

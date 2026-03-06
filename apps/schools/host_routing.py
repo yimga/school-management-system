@@ -15,8 +15,9 @@ LOCAL_HOSTS = {
     "manager.localhost",
     "api.localhost",
     "docs.localhost",
+    "developer.localhost",
 }
-RESERVED_PUBLIC_SUBDOMAINS = {"www", "admin", "verify", "support", "api", "docs", "manager"}
+RESERVED_PUBLIC_SUBDOMAINS = {"www", "admin", "verify", "support", "api", "docs", "manager", "developer"}
 
 
 def normalize_host(host: str) -> str:
@@ -114,6 +115,8 @@ def public_host_kind(host: str) -> str | None:
             return "api"
         if normalized == f"docs.{base}":
             return "docs"
+        if normalized == f"developer.{base}":
+            return "developer"
     return None
 
 

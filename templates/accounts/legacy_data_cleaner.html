@@ -1,0 +1,45 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+{% block backend_title %}{% trans "Legacy data cleaner" %}{% endblock %}
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+    <h1 class="h4 mb-1 fw-bold">{% trans "Legacy data cleaner" %}</h1>
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:migration_run_list' %}">{% trans "Migration runs" %}</a>
+  </div>
+  <p class="text-muted small">Section 11.1: Detect duplicate admission numbers, missing required fields, and optionally run safe cleanups.</p>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-header">{% trans "Detected issues" %}</div>
+    <div class="card-body">
+      <ul class="mb-0">
+        <li>Duplicate admission numbers: {{ issues.summary.duplicate_count|default:0 }}</li>
+        <li>Missing required: {{ issues.summary.missing_required_count|default:0 }}</li>
+        <li>Orphans (e.g. evals for inactive students): {{ issues.summary.orphan_count|default:0 }}</li>
+      </ul>
+      {% if issues.duplicate_admission_numbers %}
+      <p class="small text-muted mt-2">Sample duplicates: {{ issues.duplicate_admission_numbers|length }} group(s).</p>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if clean_result %}
+  <div class="card shadow-sm mb-4 border-info">
+    <div class="card-header">{% trans "Last clean result" %}</div>
+    <div class="card-body">
+      <p class="small">Dry run: {{ clean_result.dry_run }}. Actions: {{ clean_result.actions|length }}.</p>
+    </div>
+  </div>
+  {% endif %}
+
+  <form method="post" class="mb-4">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="clean">
+    <div class="form-check mb-2">
+      <input class="form-check-input" type="checkbox" name="dry_run" id="dry_run" value="1" checked>
+      <label class="form-check-label" for="dry_run">{% trans "Dry run (report only, no changes)" %}</label>
+    </div>
+    <button type="submit" class="btn btn-primary">{% trans "Run cleaner" %}</button>
+  </form>
+</div>
+{% endblock %}

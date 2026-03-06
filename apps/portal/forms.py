@@ -10,7 +10,7 @@ from apps.academics.models import Term, AcademicYear
 class LinkChildForm(forms.Form):
     admission_number = forms.CharField(
         label=_("Admission number"),
-        help_text=_("Enter the student's admission number (YY + SCHOOL + #### + SPEC + CLASS)."),
+        help_text=_("Enter the student's admission number (format depends on school)."),
     )
     relationship = forms.ChoiceField(
         choices=StudentGuardian.Relationship.choices,
@@ -113,7 +113,12 @@ class LinkChildForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.guardian_user = kwargs.pop("guardian_user", None)
-        school_code = kwargs.pop("school_code", None) or SiteSettings.get_solo().school_code
+        policy = kwargs.pop("policy", None)
+        school_code = kwargs.pop("school_code", None)
+        if not school_code and policy:
+            school_code = (policy.get("admissions") or {}).get("school_code")
+        if not school_code:
+            school_code = getattr(SiteSettings.get_solo(), "school_code", None) or "GIL"
         super().__init__(*args, **kwargs)
         # Populate dynamic term choices from active academic year
         active_year = AcademicYear.objects.filter(is_active=True).first()
@@ -126,6 +131,16 @@ class LinkChildForm(forms.Form):
             self.fields["admission_number"].help_text = _(
                 f"Format: YY + {school_code} + #### + SPEC + CLASS (no dashes)."
             )
+        # Policy-driven label if provided
+        term_label = (policy or {}).get("terminology") or {}
+        if term_label.get("admission_number_label"):
+            self.fields["admission_number"].label = term_label["admission_number_label"]
+        # Section 23.4: policy-driven field visibility, required, picker options
+        try:
+            from apps.policies.form_policy import apply_form_policy
+            apply_form_policy(self, "link_child", policy or {}, school=None)
+        except Exception:
+            pass
         self.fields["referral_code"].help_text = _(
             "Include a referral code if someone shared one with you; this unlocks bonus credits."
         )
@@ -529,11 +544,19 @@ class StudentOnboardingForm(forms.Form):
         try:
             from apps.finance.payment_models import PaymentMethod
         except ImportError:
-            # Fallback if payment_models doesn't exist
             PaymentMethod = None
-        
+
+        policy = kwargs.pop("policy", None) or {}
+        school = kwargs.pop("school", None)
+        self._admissions_policy = (policy.get("admissions") or {}) if isinstance(policy, dict) else {}
+
         super().__init__(*args, **kwargs)
-        
+        # Section 23.4: policy-driven field visibility, required, picker options
+        try:
+            from apps.policies.form_policy import apply_form_policy
+            apply_form_policy(self, "student_onboarding", policy, school=school)
+        except Exception:
+            pass
         # Populate academic year choices
         self.fields["academic_year"].queryset = AcademicYear.objects.filter(is_active=True).order_by("-start_date")
         
@@ -578,26 +601,25 @@ class StudentOnboardingForm(forms.Form):
         admission = self.cleaned_data.get("admission_number", "").strip()
         if admission:
             from apps.people.models import StudentProfile
-            from apps.siteconfig.models import SiteSettings
-            
-            site = SiteSettings.get_solo()
-            mode = getattr(site, "admission_number_mode", "AUTO_OR_MANUAL")
-            
+            import re
+
+            admissions = self._admissions_policy
+            if not admissions:
+                site = SiteSettings.get_solo()
+                admissions = {
+                    "admission_number_mode": getattr(site, "admission_number_mode", "AUTO_OR_MANUAL"),
+                    "admission_number_pattern": (getattr(site, "admission_number_pattern", None) or "") or "",
+                }
+            mode = admissions.get("admission_number_mode", "AUTO_OR_MANUAL")
             if mode == "AUTO":
-                # In AUTO mode, admission number should be empty
                 return ""
-            
-            # Validate pattern if configured
-            pattern = getattr(site, "admission_number_pattern", "")
-            if pattern:
-                import re
-                if not re.match(pattern, admission):
-                    raise forms.ValidationError(_("Admission number does not match the required format."))
-            
-            # Check for duplicates
+
+            pattern = (admissions.get("admission_number_pattern") or "").strip()
+            if pattern and not re.match(pattern, admission):
+                raise forms.ValidationError(_("Admission number does not match the required format."))
+
             if StudentProfile.objects.filter(admission_number__iexact=admission).exists():
                 raise forms.ValidationError(_("This admission number is already in use."))
-        
         return admission
 
 

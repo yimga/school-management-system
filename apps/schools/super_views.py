@@ -1674,9 +1674,24 @@ def api_school_timeline(request, school_id):
 @require_http_methods(["POST"])
 def api_approve_school(request, school_id):
     """Phase H optional: Set school is_approved=True. Super Admin only."""
+    from apps.schools.control_plane import log_control_plane_action
+    from apps.compliance.models_audit import AuditLog
+
     school = get_object_or_404(School, id=school_id)
+    old_approved = school.is_approved
     school.is_approved = True
     school.save(update_fields=["is_approved", "updated_at"])
+    log_control_plane_action(
+        request,
+        AuditLog.Action.APPROVE,
+        "School",
+        str(school.id),
+        object_repr=getattr(school, "name", "") or str(school.id),
+        reason="School approved",
+        sensitivity=AuditLog.Sensitivity.HIGH,
+        old_values={"is_approved": old_approved},
+        new_values={"is_approved": True},
+    )
     return JsonResponse({"ok": True, "school_id": str(school.id), "message": "School approved."})
 
 
@@ -1933,6 +1948,21 @@ def api_create_school(request):
     if selected_system_types:
         school.education_system_types.set(selected_system_types)
     try:
+        from apps.schools.control_plane import log_control_plane_action
+        from apps.compliance.models_audit import AuditLog
+        log_control_plane_action(
+            request,
+            AuditLog.Action.CREATE,
+            "School",
+            str(school.id),
+            object_repr=school.name or str(school.id),
+            reason="School created via super create-school API",
+            sensitivity=AuditLog.Sensitivity.HIGH,
+            new_values={"name": school.name, "slug": school.slug, "subdomain": school.subdomain},
+        )
+    except Exception:
+        pass
+    try:
         from apps.billing.services import ensure_subscription_for_school
 
         ensure_subscription_for_school(school)
@@ -2059,6 +2089,21 @@ def sync_repair(request, school_id):
             else:
                 with transaction.atomic():
                     _sync_repair_force_overwrite_conflict(conflict, request.user)
+                try:
+                    from apps.schools.control_plane import log_control_plane_action
+                    from apps.compliance.models_audit import AuditLog
+                    log_control_plane_action(
+                        request,
+                        AuditLog.Action.UPDATE,
+                        "SyncConflict",
+                        str(conflict.pk),
+                        object_repr=f"SyncConflict #{conflict.pk} ({conflict.entity_type})",
+                        reason="Sync repair force overwrite (client applied)",
+                        sensitivity=AuditLog.Sensitivity.HIGH,
+                        new_values={"status": "RESOLVED_CLIENT", "school_id": str(school_id)},
+                    )
+                except Exception:
+                    pass
                 messages.success(request, f"Conflict #{conflict_id} resolved (client version applied).")
             return redirect("super:sync_repair", school_id=school_id)
 
@@ -2286,6 +2331,20 @@ def switch_to_tenant(request):
         ip_address=_get_client_ip(request),
         user_agent=(request.META.get("HTTP_USER_AGENT") or "")[:500],
     )
+    try:
+        from apps.schools.control_plane import log_control_plane_action
+        from apps.compliance.models_audit import AuditLog
+        log_control_plane_action(
+            request,
+            AuditLog.Action.VIEW,
+            "School",
+            str(school.id),
+            object_repr=school.name or str(school.id),
+            reason="Impersonation switch (control plane)",
+            sensitivity=AuditLog.Sensitivity.CRITICAL,
+        )
+    except Exception:
+        pass
     entry_path = "/authentication/impersonate/"
     next_url = request.POST.get("next", "/").strip() or "/"
     url = build_tenant_backend_url(request, school, path=entry_path)

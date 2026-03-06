@@ -145,6 +145,20 @@ def manager_search_api(request):
             "meta": ["Marketplace"],
         },
         {
+            "title": "Blueprint Marketplace",
+            "description": "Apply policy packs (e.g. Cameroon Francophone, UAE MoE+IB) to a school.",
+            "url": reverse("super:blueprint_marketplace"),
+            "type": "app",
+            "meta": ["Marketplace", "Phase 6"],
+        },
+        {
+            "title": "App Catalog",
+            "description": "Install approved marketplace apps for a school.",
+            "url": reverse("super:app_catalog"),
+            "type": "app",
+            "meta": ["Marketplace", "Phase 6"],
+        },
+        {
             "title": "Platform Incidents",
             "description": "Operator incident console and escalation status.",
             "url": reverse("platform_incidents_console"),

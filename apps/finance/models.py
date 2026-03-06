@@ -16,6 +16,17 @@ from apps.accounts.validators import (
     validate_receipt_file,
     validate_file_size_2mb
 )
+from apps.siteconfig.models import _tenant_upload_to
+
+
+def _invoice_attachment_upload_to(instance, filename):
+    """Tenant-scoped path for Invoice attachments (Section 25.3, media_tenant_scope.md)."""
+    return _tenant_upload_to("finance/invoices")(instance, filename)
+
+
+def _invoice_payment_proof_upload_to(instance, filename):
+    """Tenant-scoped path for Invoice payment proofs (Section 25.3, media_tenant_scope.md)."""
+    return _tenant_upload_to("finance/payment_proofs")(instance, filename)
 
 
 class ComplianceProfile(models.Model):
@@ -359,7 +370,7 @@ class Invoice(models.Model):
         help_text="Required when voiding: reason for voiding this invoice (audited).",
     )
     attachment = models.FileField(
-        upload_to="finance/invoices/",
+        upload_to=_invoice_attachment_upload_to,
         blank=True,
         null=True,
         validators=[validate_document_file, validate_file_size_5mb],
@@ -367,7 +378,7 @@ class Invoice(models.Model):
     )
     # Payment proof fields for bank transfers and mobile money
     payment_proof = models.FileField(
-        upload_to="finance/payment_proofs/",
+        upload_to=_invoice_payment_proof_upload_to,
         blank=True,
         null=True,
         validators=[validate_receipt_file, validate_file_size_2mb],
@@ -443,8 +454,20 @@ class Invoice(models.Model):
     def save(self, *args, **kwargs):
         """
         Validate invoice and ensure a stable payment_code exists.
-        Uses a post-save update for payment_code to avoid recursive validation calls.
+        Part F 25.1: Invoice immutability — once issued/paid, amount and key fields are read-only.
+        Internal recalculation (from line add/delete or payment sync) is allowed via _recalculating.
         """
+        skip_immutability = getattr(self, "_recalculating", False)
+        if not skip_immutability and self.pk and self.status != self.Status.DRAFT:
+            try:
+                existing = type(self).objects.get(pk=self.pk)
+                if existing.total_amount != self.total_amount or existing.invoice_type != self.invoice_type:
+                    from django.core.exceptions import ValidationError
+                    raise ValidationError(
+                        {"total_amount": "Invoice amounts and type are immutable once status is not DRAFT (Part F 25.1)."}
+                    )
+            except type(self).DoesNotExist:
+                pass
         self.full_clean()
         super().save(*args, **kwargs)
         if not self.payment_code:
