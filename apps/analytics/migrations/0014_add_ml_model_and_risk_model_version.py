@@ -3,6 +3,82 @@
 from django.db import migrations, models
 
 
+def ensure_riskfactor_table_and_model_version(apps, schema_editor):
+    """
+    Ensure analytics_riskfactor exists and has model_version column.
+    Deployment can run with 0010 not yet applied on this schema (e.g. shared vs tenant);
+    this makes 0014 idempotent and avoids "relation analytics_riskfactor does not exist".
+    """
+    if schema_editor.connection.vendor != "postgresql":
+        # Non-PostgreSQL (e.g. SQLite tests): add column; table must exist from 0010.
+        schema_editor.execute(
+            "ALTER TABLE analytics_riskfactor ADD COLUMN model_version varchar(80) DEFAULT ''"
+        )
+        return
+    conn = schema_editor.connection
+    with conn.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT EXISTS (
+                SELECT 1 FROM information_schema.tables
+                WHERE table_schema = current_schema() AND table_name = 'analytics_riskfactor'
+            )
+            """
+        )
+        table_exists = cursor.fetchone()[0]
+
+        if table_exists:
+            cursor.execute(
+                """
+                SELECT EXISTS (
+                    SELECT 1 FROM information_schema.columns
+                    WHERE table_schema = current_schema()
+                      AND table_name = 'analytics_riskfactor'
+                      AND column_name = 'model_version'
+                )
+                """
+            )
+            if cursor.fetchone()[0]:
+                return
+            cursor.execute(
+                """
+                ALTER TABLE analytics_riskfactor
+                ADD COLUMN model_version VARCHAR(80) NOT NULL DEFAULT ''
+                """
+            )
+        else:
+            cursor.execute(
+                """
+                CREATE TABLE analytics_riskfactor (
+                    id BIGSERIAL PRIMARY KEY,
+                    score NUMERIC(5,2) NOT NULL,
+                    reason_summary VARCHAR(500) NOT NULL DEFAULT '',
+                    computed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    school_id UUID NOT NULL REFERENCES schools_school(id) ON DELETE CASCADE,
+                    student_id UUID NOT NULL REFERENCES people_studentprofile(id) ON DELETE CASCADE,
+                    model_version VARCHAR(80) NOT NULL DEFAULT ''
+                )
+                """
+            )
+            cursor.execute(
+                """
+                CREATE INDEX analytics_r_school__7bf513_idx
+                ON analytics_riskfactor (school_id, computed_at DESC)
+                """
+            )
+            cursor.execute(
+                """
+                CREATE INDEX analytics_r_school__6bba29_idx
+                ON analytics_riskfactor (school_id, student_id)
+                """
+            )
+
+
+def noop_reverse(apps, schema_editor):
+    """No reversible change for the resilient forward step."""
+    pass
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -10,10 +86,17 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='riskfactor',
-            name='model_version',
-            field=models.CharField(blank=True, help_text='ML model name@version used for this score (Phase 9 registry).', max_length=80),
+        migrations.SeparateDatabaseAndState(
+            state_operations=[
+                migrations.AddField(
+                    model_name='riskfactor',
+                    name='model_version',
+                    field=models.CharField(blank=True, help_text='ML model name@version used for this score (Phase 9 registry).', max_length=80),
+                ),
+            ],
+            database_operations=[
+                migrations.RunPython(ensure_riskfactor_table_and_model_version, noop_reverse),
+            ],
         ),
         migrations.CreateModel(
             name='MLModel',
