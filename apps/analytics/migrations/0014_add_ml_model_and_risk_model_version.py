@@ -55,7 +55,7 @@ def ensure_riskfactor_table_and_model_version(apps, schema_editor):
                     reason_summary VARCHAR(500) NOT NULL DEFAULT '',
                     computed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                     school_id UUID NOT NULL REFERENCES schools_school(id) ON DELETE CASCADE,
-                    student_id UUID NOT NULL REFERENCES people_studentprofile(id) ON DELETE CASCADE,
+                    student_id BIGINT NOT NULL REFERENCES people_studentprofile(id) ON DELETE CASCADE,
                     model_version VARCHAR(80) NOT NULL DEFAULT ''
                 )
                 """
