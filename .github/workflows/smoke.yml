@@ -1,4 +1,4 @@
-# Smoke test: URL resolution only, no database required.
+# Smoke test: pre-deploy gate (check, migrations, smoke URLs, theme matrix, phase checks).
 # Runs on push/PR to main so merges are validated.
 name: Smoke test
 
@@ -25,8 +25,9 @@ jobs:
           pip install -r requirements.txt
 
       - name: Pre-deploy gate (check, migrations, smoke, theme matrix, phase checks)
+        timeout-minutes: 25
         env:
-          # Quiet test DB logging so CI output stays small and gate finishes reliably
+          DEBUG: "0"
           LOG_LEVEL: WARNING
         run: bash scripts/pre_deploy_gate.sh
 
