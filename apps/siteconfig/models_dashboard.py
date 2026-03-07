@@ -154,6 +154,46 @@ class DashboardUserPreference(models.Model):
         self.role_visual_presets = payload
 
 
+SUPER_DASHBOARD_DEFAULT_SECTION_ORDER = [
+    "cp-action-queue",
+    "cp-fleet-health",
+    "cp-global-footprint",
+    "cp-tenant-registry",
+    "cp-readiness",
+]
+
+
+class SuperAdminDashboardPreference(models.Model):
+    """Per-user layout for the super/manager dashboard (Phase 2: DB-backed section order)."""
+
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="super_dashboard_preference",
+    )
+    section_order = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Order of section IDs (e.g. cp-action-queue, cp-fleet-health). Empty = default order.",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Super Admin dashboard preference"
+        verbose_name_plural = "Super Admin dashboard preferences"
+
+    def get_section_order(self):
+        order = self.section_order or []
+        if not order:
+            return list(SUPER_DASHBOARD_DEFAULT_SECTION_ORDER)
+        valid = [s for s in order if s in SUPER_DASHBOARD_DEFAULT_SECTION_ORDER]
+        for s in SUPER_DASHBOARD_DEFAULT_SECTION_ORDER:
+            if s not in valid:
+                valid.append(s)
+        return valid
+
+
 class DashboardWidget(models.Model):
     """Available dashboard widgets (admin-configurable catalog)."""
 

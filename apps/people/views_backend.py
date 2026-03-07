@@ -14,18 +14,38 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.urls import reverse
 from django.http import HttpResponse
 from django.utils import timezone
-from .models import StudentProfile, TeacherProfile, StudentGuardian
+from .models import StudentProfile, TeacherProfile, StudentGuardian, Applicant
 from .forms_backend import StudentCreateForm, TeacherCreateForm, ClassroomCreateForm
 from apps.academics.models import AcademicYear, Classroom, Department
-from apps.siteconfig.models import SiteSettings
+from apps.siteconfig.models import SiteSettings, FormDraft
 
 User = get_user_model()
+
+FORM_DRAFT_KEY_STUDENT_CREATE = "backend_student_create"
+FORM_DRAFT_KEY_APPLICATION_FORM = "application_form"
+
+
+def _student_create_draft_initial(request):
+    """Load draft for backend_student_create; return initial dict and draft meta or (None, None, None)."""
+    school = getattr(request, "school", None)
+    if not school:
+        return None, None, None
+    draft = FormDraft.objects.filter(
+        school=school,
+        user=request.user,
+        form_key=FORM_DRAFT_KEY_STUDENT_CREATE,
+    ).first()
+    if not draft or not draft.data:
+        return None, None, None
+    form = StudentCreateForm()
+    initial = {k: draft.data[k] for k in form.fields if k in draft.data}
+    return initial, draft.updated_at, True
 
 
 @login_required
 @permission_required('people.add_studentprofile', raise_exception=True)
 def backend_student_create(request):
-    """Create student via user-friendly backend UI"""
+    """Create student via user-friendly backend UI. Section 26.5: draft save/load."""
     if request.method == 'POST':
         form = StudentCreateForm(request.POST, request.FILES)
         if form.is_valid():
@@ -35,6 +55,15 @@ def backend_student_create(request):
                     student.created_by = request.user
                     student.is_active = True
                     student.save()
+                    
+                    # Clear draft on successful create (26.5)
+                    school = getattr(request, "school", None)
+                    if school:
+                        FormDraft.objects.filter(
+                            school=school,
+                            user=request.user,
+                            form_key=FORM_DRAFT_KEY_STUDENT_CREATE,
+                        ).delete()
                     
                     # Create parent account if email provided
                     parent_email = form.cleaned_data.get('parent_email')
@@ -107,11 +136,21 @@ def backend_student_create(request):
             except Exception as e:
                 messages.error(request, f"Error creating student: {str(e)}")
     else:
-        form = StudentCreateForm()
+        initial, draft_updated_at, has_draft = _student_create_draft_initial(request)
+        form = StudentCreateForm(initial=initial) if initial else StudentCreateForm()
     
+    if request.method == "POST":
+        has_draft, draft_updated_at = False, None
+    # else: has_draft, draft_updated_at already set above
+    
+    form_draft_url = reverse("siteconfig:form_draft_api", kwargs={"form_key": FORM_DRAFT_KEY_STUDENT_CREATE})
     return render(request, 'people/backend_student_create.html', {
         'form': form,
         'title': 'Create Student',
+        'form_draft_key': FORM_DRAFT_KEY_STUDENT_CREATE,
+        'form_draft_url': form_draft_url,
+        'has_draft': has_draft,
+        'draft_updated_at': draft_updated_at,
     })
 
 
@@ -260,6 +299,7 @@ def backend_student_list(request):
 
     years = AcademicYear.objects.order_by('-start_date')
     classrooms = Classroom.objects.order_by('name')
+    status_choices = list(StudentProfile.Status.choices)  # 26.5: Status filter in list
 
     # Private tags: only ADMIN, IT_ADMIN, LEADERSHIP (or staff) can see is_private tags
     role = (getattr(request.user, 'role', '') or '').upper()
@@ -269,6 +309,7 @@ def backend_student_list(request):
     )
 
     title = 'Alumni' if status_filter == StudentProfile.Status.ALUMNI else 'Students'
+    pagination_extra = _pagination_extra_query(request)
     return render(request, 'people/backend_student_list.html', {
         'students': page_obj.object_list,
         'page_obj': page_obj,
@@ -277,9 +318,10 @@ def backend_student_list(request):
         'selected_year': year_id or '',
         'selected_classroom': classroom_id or '',
         'selected_status': status_filter or '',
+        'status_choices': status_choices,
         'years': years,
         'classrooms': classrooms,
-        'pagination_extra_query': _pagination_extra_query(request),
+        'pagination_extra_query': pagination_extra,
         'page_size': per_page,
         'page_size_options': [20, 50, 100],
         'show_page_size': True,
@@ -290,7 +332,7 @@ def backend_student_list(request):
 @login_required
 @permission_required('people.view_teacherprofile', raise_exception=True)
 def backend_teacher_list(request):
-    """List teachers in user-friendly backend UI with search, filter, and pagination."""
+    """List teachers in user-friendly backend UI with search, filter, export, and pagination (26.5)."""
     qs = TeacherProfile.objects.select_related(
         'user', 'department'
     ).filter(is_active=True).order_by('staff_id')
@@ -306,6 +348,25 @@ def backend_teacher_list(request):
     department_id = request.GET.get('department')
     if department_id:
         qs = qs.filter(department_id=department_id)
+
+    # 26.5: Export as CSV when format=csv
+    if request.GET.get('format') == 'csv':
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = (
+            f'attachment; filename="teachers_export_{timezone.now().strftime("%Y%m%d_%H%M%S")}.csv"'
+        )
+        writer = csv.writer(response)
+        writer.writerow(['staff_id', 'first_name', 'last_name', 'email', 'department'])
+        for t in qs[:10000]:
+            u = t.user
+            writer.writerow([
+                getattr(t, 'staff_id', '') or '',
+                getattr(u, 'first_name', '') or '',
+                getattr(u, 'last_name', '') or '',
+                getattr(u, 'email', '') or '',
+                t.department.name if getattr(t, 'department', None) else '',
+            ])
+        return response
 
     per_page = min(100, max(10, int(request.GET.get('page_size', 25))))
     paginator = Paginator(qs, per_page)
@@ -326,6 +387,168 @@ def backend_teacher_list(request):
         'search': search,
         'selected_department': department_id or '',
         'departments': departments,
+        'pagination_extra_query': _pagination_extra_query(request),
+        'page_size': per_page,
+        'page_size_options': [20, 50, 100],
+        'show_page_size': True,
+    })
+
+
+@login_required
+@permission_required("people.view_studentprofile", raise_exception=True)
+def backend_applicant_list(request):
+    """List applicants (admissions funnel) with search, filter by stage, export CSV (26.5 / applications list)."""
+    school = getattr(request, "school", None)
+    if not school:
+        form_draft_url = reverse("siteconfig:form_draft_api", kwargs={"form_key": FORM_DRAFT_KEY_APPLICATION_FORM})
+        return render(
+            request,
+            "people/backend_applicant_list.html",
+            {
+                "applicants": [],
+                "page_obj": None,
+                "title": "Applicants",
+                "search": "",
+                "selected_stage": "",
+                "stages": [],
+                "pagination_extra_query": "",
+                "form_draft_url": form_draft_url,
+            },
+        )
+    qs = Applicant.objects.filter(school=school).select_related("assigned_recruiter").order_by("-created_at")
+
+    search = (request.GET.get("q") or "").strip()
+    if search:
+        qs = qs.filter(
+            Q(first_name__icontains=search)
+            | Q(last_name__icontains=search)
+            | Q(email__icontains=search)
+            | Q(lead_source__icontains=search)
+        )
+    stage = request.GET.get("stage")
+    if stage and stage in dict(Applicant.Stage.choices):
+        qs = qs.filter(stage=stage)
+
+    if request.GET.get("format") == "csv":
+        response = HttpResponse(content_type="text/csv; charset=utf-8")
+        response["Content-Disposition"] = (
+            f'attachment; filename="applicants_export_{timezone.now().strftime("%Y%m%d_%H%M%S")}.csv"'
+        )
+        w = csv.writer(response)
+        w.writerow(["first_name", "last_name", "email", "stage", "lead_source", "yield_score", "created_at"])
+        for a in qs[:10000]:
+            w.writerow([
+                a.first_name or "",
+                a.last_name or "",
+                a.email or "",
+                a.get_stage_display() if a.stage else "",
+                a.lead_source or "",
+                str(a.yield_score) if a.yield_score is not None else "",
+                a.created_at.strftime("%Y-%m-%d %H:%M") if a.created_at else "",
+            ])
+        return response
+
+    per_page = min(100, max(10, int(request.GET.get("page_size", 25))))
+    paginator = Paginator(qs, per_page)
+    try:
+        page_obj = paginator.get_page(request.GET.get("page", 1))
+    except (PageNotAnInteger, EmptyPage):
+        page_obj = paginator.get_page(1)
+
+    form_draft_url = reverse("siteconfig:form_draft_api", kwargs={"form_key": FORM_DRAFT_KEY_APPLICATION_FORM})
+    return render(
+        request,
+        "people/backend_applicant_list.html",
+        {
+            "applicants": page_obj.object_list,
+            "page_obj": page_obj,
+            "title": "Applicants",
+            "search": search,
+            "selected_stage": stage or "",
+            "stages": Applicant.Stage.choices,
+            "pagination_extra_query": _pagination_extra_query(request),
+            "page_size": per_page,
+            "page_size_options": [20, 50, 100],
+            "show_page_size": True,
+            "form_draft_url": form_draft_url,
+        },
+    )
+
+
+@login_required
+@permission_required('people.view_studentguardian', raise_exception=True)
+def backend_guardian_list(request):
+    """List guardians (parent links) in backend UI with search, filter, export (26.5)."""
+    school = getattr(request, 'school', None)
+    if not school:
+        return render(request, 'people/backend_guardian_list.html', {
+            'guardians': [], 'page_obj': None, 'title': 'Guardians',
+            'search': '', 'selected_classroom': '', 'selected_year': '',
+            'classrooms': [], 'years': [], 'pagination_extra_query': '',
+        })
+    qs = StudentGuardian.objects.filter(
+        student__school=school,
+        guardian_user__isnull=False,
+    ).select_related('guardian_user', 'student', 'student__classroom', 'student__academic_year').order_by('guardian_user__last_name', 'guardian_user__first_name')
+
+    search = (request.GET.get('q') or '').strip()
+    if search:
+        qs = qs.filter(
+            Q(guardian_user__first_name__icontains=search)
+            | Q(guardian_user__last_name__icontains=search)
+            | Q(guardian_user__email__icontains=search)
+            | Q(student__first_name__icontains=search)
+            | Q(student__last_name__icontains=search)
+        )
+    classroom_id = request.GET.get('classroom')
+    if classroom_id:
+        qs = qs.filter(student__classroom_id=classroom_id)
+    year_id = request.GET.get('year')
+    if year_id:
+        qs = qs.filter(student__academic_year_id=year_id)
+
+    if request.GET.get('format') == 'csv':
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = (
+            f'attachment; filename="guardians_export_{timezone.now().strftime("%Y%m%d_%H%M%S")}.csv"'
+        )
+        writer = csv.writer(response)
+        writer.writerow(['guardian_name', 'email', 'student_name', 'classroom', 'academic_year', 'can_view_finance'])
+        for g in qs[:10000]:
+            u = g.guardian_user
+            s = g.student
+            writer.writerow([
+                (getattr(u, 'get_full_name', lambda: '')() or getattr(u, 'email', '') or ''),
+                getattr(u, 'email', '') or '',
+                f'{getattr(s, "first_name", "")} {getattr(s, "last_name", "")}'.strip() or '',
+                s.classroom.name if getattr(s, 'classroom', None) else '',
+                s.academic_year.name if getattr(s, 'academic_year', None) else '',
+                'Yes' if getattr(g, 'can_view_finance', False) else 'No',
+            ])
+        return response
+
+    per_page = min(100, max(10, int(request.GET.get('page_size', 25))))
+    paginator = Paginator(qs, per_page)
+    page_number = request.GET.get('page', 1)
+    try:
+        page_obj = paginator.get_page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.get_page(1)
+    except EmptyPage:
+        page_obj = paginator.get_page(paginator.num_pages)
+
+    classrooms = Classroom.objects.filter(school=school).order_by('name')
+    years = AcademicYear.objects.filter(school=school).order_by('-start_date')
+
+    return render(request, 'people/backend_guardian_list.html', {
+        'guardians': page_obj.object_list,
+        'page_obj': page_obj,
+        'title': 'Guardians',
+        'search': search,
+        'selected_classroom': classroom_id or '',
+        'selected_year': year_id or '',
+        'classrooms': classrooms,
+        'years': years,
         'pagination_extra_query': _pagination_extra_query(request),
         'page_size': per_page,
         'page_size_options': [20, 50, 100],

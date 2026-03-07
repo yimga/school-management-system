@@ -8,7 +8,7 @@
 - **Isolation:** Tenant resolution (host → school/tenant), `request.tenant_ctx`, RLS/schema-per-tenant present. Middleware order and tenancy checks (E001–E003) enforce single mode.
 - **Policy:** Single entry point `get_effective_policy` / `get_tenant_blueprint` / `get_resolved_env` / `get_policy_for_request`; context processor injects `global_env`. No country branching in app code in core paths; some siteconfig/portal still reference school/region for display only.
 - **Security:** SECURE_*, CSRF, SESSION, ALLOWED_HOSTs in settings; RLS migrations conditional; cursor.execute used for RLS/schema/config (migrations, RLS context, health checks) — no arbitrary raw SQL in views.
-- **Gaps / Deferred:** developer host now in host_routing (developer.{base}); full blueprint registry models (Section 20) partial; workflow hub/dashboard hub as platform services not built; migration cloud and app/blueprint marketplace deferred to Phase 5–6.
+- **Gaps / Deferred:** developer host now in host_routing (developer.{base}). Full blueprint registry models (Section 20) partial per blueprint_registry_current_state.md. **Workflow hub and dashboard hub:** built — tenant-facing UI at /siteconfig/workflow-hub/ and /siteconfig/dashboard-hub/; workflow_resolver and dashboard_resolver; phase4_workflow_dashboard_hubs.md. **Migration cloud and marketplaces:** implemented — import studio, field mapping, dry-run, scorecard, parity (phase5_migration_cloud, phase8); blueprint packs + apply, app catalog + install pipeline, schema patch, widgets, audit, governance (phase6, phase8). Rollback (MigrationRun), legacy cleaner/read-only legacy view deferred; tenant Get blueprints at siteconfig:get_blueprints; tenant app billing (ledger on install) done.
 
 ## 1. Raw SQL / schema bypasses
 
@@ -49,7 +49,7 @@
 
 - **Present:** docs/architecture/apps.txt, urls.txt, migrations.txt, tenancy.md, policy_injection.md, request_flow_tenant_resolution.mmd (Mermaid). models.png not generated (optional; can be generated via django-extensions or graph_models).
 - **Present:** TenantPolicyService.get_resolved_env equivalent: `apps.policies.registry.get_resolved_env(tenant, user)`.
-- **Refactor:** Admissions or Gradebook end-to-end refactor and repeatable pattern doc — partial; policy injection and tenancy used; full blueprint-driven refactor is Phase 1–3.
+- **Refactor:** Admissions and Gradebook end-to-end refactor done (Phase 1–2); policy injection and tenancy used; REPEATABLE_REFACTOR_PATTERN.md; policy_injection.md.
 
 ## 9. Developer portal (Section 1 / 7)
 

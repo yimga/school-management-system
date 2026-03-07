@@ -2,6 +2,8 @@
 
 Last updated: 2026-03-06
 
+**Closure and execution:** Placeholder/pending decisions and “what to do next” for sweep categories (scoped, deferred, roadmap, partial, optional, backlog) are tracked in **docs/architecture/IMPLEMENTATION_EXECUTION_PLAN.md** and **SWEEP_DONE_WHEN_SCOPED_DEFERRED_AND_SIMILAR.md**. All roadmaps and optionals are addressed and marked complete in **ROADMAP_AND_OPTIONAL_CLOSURE.md**. Seating chart and other placeholder surfaces are gated (e.g. enable_seating_chart_beta); see execution plan §7 and §11.
+
 This file is the canonical closure ledger for the Shopify/AWS-style platform plan. Status values:
 
 - `implemented`: shipped in code and covered by checks/tests in this repo

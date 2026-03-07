@@ -135,7 +135,7 @@ LTI_RATE_LIMIT_WINDOW = 60 * 15
 LTI_RATE_LIMIT_MAX = 240
 
 
-def _safe_reverse(name: str) -> str:
+def __safe_reverse(name: str) -> str:
     try:
         return reverse(name)
     except NoReverseMatch:
@@ -266,6 +266,11 @@ def global_login_discovery(request):
     GET: show form (email). POST: lookup user/school, redirect to school URL or show "Get Started".
     Rate limited: max DISCOVERY_RATE_LIMIT_MAX POSTs per IP per 15 minutes to reduce email enumeration.
     """
+    try:
+        from apps.schools.funnel_events import record_marketing_funnel_event
+        record_marketing_funnel_event("discovery", request)
+    except Exception:
+        pass
     checklist_cards = _role_onboarding_checklists()
     if request.method == "GET":
         return render(
@@ -345,6 +350,11 @@ def find_school(request):
     - Standard GET: render finder page.
     - HTMX GET (?q=...): return live search result fragment.
     """
+    try:
+        from apps.schools.funnel_events import record_marketing_funnel_event
+        record_marketing_funnel_event("discovery", request)
+    except Exception:
+        pass
     from apps.schools.models import School
 
     query = (request.GET.get("q") or "").strip()

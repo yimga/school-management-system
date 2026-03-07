@@ -94,3 +94,17 @@ class SmokeUrlResolutionTests(SimpleTestCase):
     def test_admin_siteconfig_change_with_pk(self):
         url = reverse("admin:siteconfig_sitesettings_change", args=[1])
         self.assertEqual(url, "/admin/siteconfig/sitesettings/1/change/")
+
+    def test_marketing_blog_detail(self):
+        """Blog post links (e.g. marketing_page.html) resolve on root urlconf."""
+        url = reverse("marketing_blog_detail", kwargs={"slug": "my-post"})
+        self.assertEqual(url, "/blog/my-post/")
+
+    def test_analytics_deadlines(self):
+        self.assertEqual(reverse("analytics:deadlines"), "/analytics/deadlines/")
+
+    def test_marketing_book_demo(self):
+        self.assertEqual(reverse("marketing_book_demo"), "/book-demo/")
+
+    def test_global_login_discovery(self):
+        self.assertEqual(reverse("global_login_discovery"), "/discover/")

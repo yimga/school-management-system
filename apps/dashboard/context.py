@@ -10,7 +10,7 @@ from django.utils import timezone
 from apps.dashboard.action_registry import get_backend_dashboard_actions
 
 
-def _safe_reverse(name: str, fallback: str = "#") -> str:
+def __safe_reverse(name: str, fallback: str = "#") -> str:
     try:
         return reverse(name)
     except NoReverseMatch:

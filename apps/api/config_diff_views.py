@@ -30,7 +30,7 @@ class ConfigDiffAPI(View):
 
         school_id = request.GET.get("school_id")
         compare_school_id = request.GET.get("compare_school_id")
-        from apps.policies.resolver import get_effective_policy
+        from apps.policies.policy_registry import get_effective_policy
         from apps.schools.models import School
 
         def _safe_policy(s):

@@ -13,6 +13,7 @@ from apps.billing.models import (
     PlatformBillingProcessorConfig,
     BillingProcessorSyncEvent,
     PlatformLedgerEntry,
+    Quote,
     RevenueSharePayout,
     TenantSubscription,
     UsageMeter,
@@ -141,10 +142,85 @@ def _json_safe(value):
     return json.loads(json.dumps(value, cls=DjangoJSONEncoder))
 
 
+def convert_quote_to_contract(quote: Quote):
+    """
+    Convert an accepted quote into a live subscription (quote-to-contract flow).
+    Ensures billing account and subscription for the quote's school using quote plan/amount.
+    Idempotent: if quote already ACCEPTED, returns existing subscription.
+    """
+    if quote.status == Quote.Status.ACCEPTED:
+        account, _ = ensure_billing_account_for_school(quote.school)
+        subscription = (
+            TenantSubscription.objects.filter(
+                school=quote.school,
+                billing_account=account,
+                status__in=[
+                    TenantSubscription.Status.TRIALING,
+                    TenantSubscription.Status.ACTIVE,
+                    TenantSubscription.Status.PAST_DUE,
+                    TenantSubscription.Status.SUSPENDED,
+                ],
+            )
+            .order_by("-updated_at")
+            .first()
+        )
+        if subscription:
+            return account, subscription
+    if quote.status not in (Quote.Status.DRAFT, Quote.Status.SENT):
+        raise ValueError(f"Quote must be DRAFT or SENT to convert; current status: {quote.status}")
+    if not quote.school_id:
+        raise ValueError("Quote must have a school to convert to contract")
+    with transaction.atomic():
+        account, _ = ensure_billing_account_for_school(quote.school)
+        period_start = timezone.now()
+        period_end = period_start + timedelta(days=30)
+        subscription = (
+            TenantSubscription.objects.filter(
+                school=quote.school,
+                billing_account=account,
+                status__in=[
+                    TenantSubscription.Status.TRIALING,
+                    TenantSubscription.Status.ACTIVE,
+                    TenantSubscription.Status.PAST_DUE,
+                    TenantSubscription.Status.SUSPENDED,
+                ],
+            )
+            .order_by("-updated_at")
+            .first()
+        )
+        amount = Decimal(str(quote.amount or "0"))
+        if subscription:
+            subscription.plan = quote.plan
+            subscription.base_amount = amount
+            subscription.billed_amount = amount
+            subscription.save(update_fields=["plan_id", "base_amount", "billed_amount", "updated_at"])
+        else:
+            subscription = TenantSubscription.objects.create(
+                billing_account=account,
+                school=quote.school,
+                plan=quote.plan,
+                status=TenantSubscription.Status.ACTIVE,
+                billing_cycle=TenantSubscription.BillingCycle.MONTHLY,
+                starts_at=period_start,
+                current_period_start=period_start,
+                current_period_end=period_end,
+                base_amount=amount,
+                billed_amount=amount,
+                metadata={"source": "quote_to_contract", "quote_id": quote.pk},
+            )
+        # Ensure account currency matches quote if needed
+        if quote.currency_code and account.currency_code != quote.currency_code:
+            account.currency_code = quote.currency_code
+            account.save(update_fields=["currency_code", "updated_at"])
+        quote.status = Quote.Status.ACCEPTED
+        quote.save(update_fields=["status", "updated_at"])
+    return account, subscription
+
+
 def ensure_billing_account_for_school(school):
-    contact_email = ""
-    if isinstance(getattr(school, "settings", None), dict):
-        contact_email = str(school.settings.get("contact_email") or "").strip()
+    from apps.policies.policy_registry import get_effective_policy
+    policy = get_effective_policy(school)
+    contact_email = str((policy.get("contact_email") or "") or "").strip()
     currency_code = "USD"
     default_region = getattr(school, "default_region", None)
     if default_region and getattr(default_region, "default_currency", None):
@@ -171,6 +247,41 @@ def ensure_billing_account_for_school(school):
     if changed_fields:
         account.save(update_fields=changed_fields + ["updated_at"])
     return account, created
+
+
+def record_app_install_for_billing(school, app, installation, *, amount=None):
+    """
+    Record a tenant app install for billing (6.3 / 29.10). Creates a platform ledger entry
+    so the install is visible for invoicing and add-on billing. Call from marketplace
+    install_app after AppInstallation and AppAuditLog are created.
+    amount: optional Decimal; if omitted, 0 (record-only until add-on pricing is configured).
+    """
+    if not school or not app:
+        return None
+    account, _ = ensure_billing_account_for_school(school)
+    amt = amount if amount is not None else Decimal("0.00")
+    app_name = getattr(app, "name", None) or (app.slug if hasattr(app, "slug") else str(app))
+    inst_id = getattr(installation, "id", None) or getattr(installation, "pk", "")
+    ref = f"app_install_{inst_id}"
+    entry = PlatformLedgerEntry.objects.create(
+        billing_account=account,
+        school=school,
+        entry_type=PlatformLedgerEntry.EntryType.CHARGE,
+        status=PlatformLedgerEntry.Status.POSTED,
+        amount=amt,
+        currency_code=account.currency_code,
+        description=f"App install: {app_name}",
+        reference=ref,
+        source="marketplace_app_install",
+        source_ref=str(inst_id),
+        happened_at=timezone.now(),
+        metadata={
+            "app_slug": getattr(app, "slug", None),
+            "installation_id": inst_id,
+            "app_install_billing_record": True,
+        },
+    )
+    return entry
 
 
 def ensure_subscription_for_school(school):

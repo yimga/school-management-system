@@ -38,6 +38,38 @@ from apps.finance.api_views import FinancialAnalyticsAPI, InvoiceViewSet, Paymen
 from apps.api.ministry_placeholders import cartescolaire_placeholder, dgi_placeholder
 from apps.api.government_views import GovernmentAggregatesAPI
 from apps.api.config_diff_views import ConfigDiffAPI
+from apps.api.roadmap_due_today_views import (
+    RegionalTaxConfigAPI,
+    GraphQLStubAPI,
+    EdgeConfigAPI,
+    TestingMatrixAPI,
+    CanaryStatusAPI,
+    RPO_RTOConfigAPI,
+    CMSStubAPI,
+    FeatureFlagsStatusAPI,
+    OnboardingStatusAPI,
+    SupportCopilotStubAPI,
+    TenantMediaStubAPI,
+    GapLedgerStatusAPI,
+)
+from apps.api.roadmap_extended_views import (
+    CommercialSelfServeAPI,
+    QuoteToContractStubAPI,
+    BIAdHocReportStubAPI,
+    MLRegistryStubAPI,
+    ORToolsTimetablingStubAPI,
+    VideoAttendanceSyncStubAPI,
+    DisputePayoutFlowsStubAPI,
+    UKTermPresetStubAPI,
+    NestedTenancyStubAPI,
+    RedisTenantCacheStubAPI,
+    PredictiveEngineStubAPI,
+    AtRiskDashboardStubAPI,
+    ExecutiveDashboardStubAPI,
+    Locale100LangStubAPI,
+    CertificationBadgeExpiryStubAPI,
+    NiceToHaveModulesAPI,
+)
 from apps.schools.api_views import SchoolConfigAPI
 from apps.analytics.benchmark_views import BenchmarkComparisonAPI
 from apps.api.offline_replay_views import OfflineReplayBatchAPI, PrefetchUrlsAPI, QueueMetricsAPI
@@ -150,6 +182,36 @@ urlpatterns = [
     path('offline/delta/', DeltaSyncAPI.as_view(), name='offline-delta'),
     path('offline/prefetch_urls/', PrefetchUrlsAPI.as_view(), name='offline-prefetch-urls'),
     path('offline/queue_metrics/', QueueMetricsAPI.as_view(), name='offline-queue-metrics'),
+    # Roadmap due-today implementations (ROADMAP_DUE_TODAY.md) — 16.x, 17.x, 29.x, 30/31, section_11, TENANT_MEDIA, gap ledger
+    path('roadmap/regional-tax/', RegionalTaxConfigAPI.as_view(), name='roadmap-regional-tax'),
+    path('roadmap/graphql/', GraphQLStubAPI.as_view(), name='roadmap-graphql'),
+    path('roadmap/edge/', EdgeConfigAPI.as_view(), name='roadmap-edge'),
+    path('roadmap/testing-matrix/', TestingMatrixAPI.as_view(), name='roadmap-testing-matrix'),
+    path('roadmap/canary/', CanaryStatusAPI.as_view(), name='roadmap-canary'),
+    path('roadmap/rpo-rto/', RPO_RTOConfigAPI.as_view(), name='roadmap-rpo-rto'),
+    path('roadmap/cms/', CMSStubAPI.as_view(), name='roadmap-cms'),
+    path('roadmap/feature-flags/', FeatureFlagsStatusAPI.as_view(), name='roadmap-feature-flags'),
+    path('roadmap/onboarding/', OnboardingStatusAPI.as_view(), name='roadmap-onboarding'),
+    path('roadmap/support-copilot/', SupportCopilotStubAPI.as_view(), name='roadmap-support-copilot'),
+    path('roadmap/tenant-media/', TenantMediaStubAPI.as_view(), name='roadmap-tenant-media'),
+    path('roadmap/gap-ledger/', GapLedgerStatusAPI.as_view(), name='roadmap-gap-ledger'),
+    # Extended roadmap (REFINEMENT, Phase 9, RUNMYCAMPUS_ROADMAP_TASKS, nice-to-have) — apps/api/roadmap_extended_views.py
+    path('roadmap/commercial-self-serve/', CommercialSelfServeAPI.as_view(), name='roadmap-commercial-self-serve'),
+    path('roadmap/quote-to-contract/', QuoteToContractStubAPI.as_view(), name='roadmap-quote-to-contract'),
+    path('roadmap/bi-ad-hoc/', BIAdHocReportStubAPI.as_view(), name='roadmap-bi-ad-hoc'),
+    path('roadmap/ml-registry/', MLRegistryStubAPI.as_view(), name='roadmap-ml-registry'),
+    path('roadmap/or-tools-timetabling/', ORToolsTimetablingStubAPI.as_view(), name='roadmap-or-tools-timetabling'),
+    path('roadmap/video-attendance-sync/', VideoAttendanceSyncStubAPI.as_view(), name='roadmap-video-attendance-sync'),
+    path('roadmap/dispute-payout/', DisputePayoutFlowsStubAPI.as_view(), name='roadmap-dispute-payout'),
+    path('roadmap/uk-term-preset/', UKTermPresetStubAPI.as_view(), name='roadmap-uk-term-preset'),
+    path('roadmap/nested-tenancy/', NestedTenancyStubAPI.as_view(), name='roadmap-nested-tenancy'),
+    path('roadmap/redis-tenant-cache/', RedisTenantCacheStubAPI.as_view(), name='roadmap-redis-tenant-cache'),
+    path('roadmap/predictive-engine/', PredictiveEngineStubAPI.as_view(), name='roadmap-predictive-engine'),
+    path('roadmap/at-risk-dashboard/', AtRiskDashboardStubAPI.as_view(), name='roadmap-at-risk-dashboard'),
+    path('roadmap/executive-dashboard/', ExecutiveDashboardStubAPI.as_view(), name='roadmap-executive-dashboard'),
+    path('roadmap/locale-100-lang/', Locale100LangStubAPI.as_view(), name='roadmap-locale-100-lang'),
+    path('roadmap/certification-badge-expiry/', CertificationBadgeExpiryStubAPI.as_view(), name='roadmap-certification-badge-expiry'),
+    path('roadmap/nice-to-have-modules/', NiceToHaveModulesAPI.as_view(), name='roadmap-nice-to-have-modules'),
     # ViewSet routes (notifications, devices, etc)
     path('', include(router.urls)),
 ]

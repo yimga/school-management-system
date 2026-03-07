@@ -77,13 +77,15 @@ try:
         backend_teacher_list,
         backend_teacher_create,
         backend_classroom_create,
+        backend_guardian_list,
+        backend_applicant_list,
         alumni_list,
     )
     BACKEND_PEOPLE_AVAILABLE = True
 except ImportError:
     BACKEND_PEOPLE_AVAILABLE = False
     backend_student_list = backend_student_create = alumni_list = None
-    backend_teacher_list = backend_teacher_create = backend_classroom_create = None
+    backend_teacher_list = backend_teacher_create = backend_classroom_create = backend_guardian_list = backend_applicant_list = None
 
 app_name = "accounts"
 
@@ -166,6 +168,8 @@ urlpatterns = [
     path("backend/students/create/", backend_student_create, name="backend_student_create") if BACKEND_PEOPLE_AVAILABLE else None,
     path("backend/teachers/", backend_teacher_list, name="backend_teacher_list") if BACKEND_PEOPLE_AVAILABLE else None,
     path("backend/teachers/create/", backend_teacher_create, name="backend_teacher_create") if BACKEND_PEOPLE_AVAILABLE else None,
+    path("backend/guardians/", backend_guardian_list, name="backend_guardian_list") if BACKEND_PEOPLE_AVAILABLE else None,
+    path("backend/applicants/", backend_applicant_list, name="backend_applicant_list") if BACKEND_PEOPLE_AVAILABLE else None,
     path("backend/classrooms/create/", backend_classroom_create, name="backend_classroom_create") if BACKEND_PEOPLE_AVAILABLE else None,
 ]
 # Filter out None values

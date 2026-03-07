@@ -53,4 +53,21 @@ urlpatterns = [
     path("reports/regulatory-export", views_v1.RegulatoryExportView.as_view(), name="reports-regulatory-export"),
     # Plan II: Attendance bulk PATCH
     path("attendance/bulk-update", views_v1.AttendanceBulkUpdateView.as_view(), name="attendance-bulk-update"),
+    # REFINEMENT commercial: quote-to-contract
+    path("billing/quote/<int:quote_id>/accept", views_v1.BillingQuoteAcceptView.as_view(), name="billing-quote-accept"),
+    # Phase 9: Payment dispute flow
+    path("finance/disputes", views_v1.PaymentDisputeListView.as_view(), name="finance-disputes-list"),
+    path("finance/disputes/create", views_v1.PaymentDisputeCreateView.as_view(), name="finance-disputes-create"),
+    path("finance/disputes/<uuid:id>", views_v1.PaymentDisputeResolveView.as_view(), name="finance-disputes-resolve"),
+    # Phase 9: Ad-hoc report builder
+    path("reports/adhoc", views_v1.AdHocReportListCreateView.as_view(), name="reports-adhoc-list-create"),
+    path("reports/adhoc/<int:id>/run", views_v1.AdHocReportRunView.as_view(), name="reports-adhoc-run"),
+    # Phase 9: Video attendance sync
+    path("video/sessions", views_v1.VideoSessionListCreateView.as_view(), name="video-sessions-list-create"),
+    path("video/sessions/<int:id>/attendance-sync", views_v1.VideoAttendanceSyncView.as_view(), name="video-attendance-sync"),
+    # Nested tenancy: list child schools (campus switcher)
+    path("tenants/children", views_v1.TenantChildrenView.as_view(), name="tenants-children"),
+    # Government/District EMIS: prepare and submit
+    path("reports/emis/prepare", views_v1.EMISPrepareView.as_view(), name="reports-emis-prepare"),
+    path("reports/emis/<int:id>/submit", views_v1.EMISSubmitView.as_view(), name="reports-emis-submit"),
 ]

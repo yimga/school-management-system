@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from typing import Iterable, Optional
+from typing import Any, Dict, Iterable, Optional
 
 from django.conf import settings
 from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
 from django.urls import reverse
-from apps.policies.resolver import get_effective_policy
+from apps.policies.policy_registry import get_effective_policy
 from apps.siteconfig.models import SiteSettings, RegionConfig, EducationSystemProfile
 
 from apps.academics.models import Term
@@ -423,10 +423,16 @@ def _profile_report_labels_for_school(school) -> dict:
     return {str(key): str(value) for key, value in profile_labels.items() if value is not None}
 
 
-def resolve_report_labels(student: Optional[StudentProfile] = None, school=None) -> dict:
+def resolve_report_labels(
+    student: Optional[StudentProfile] = None,
+    school=None,
+    *,
+    policy: Optional[Dict[str, Any]] = None,
+) -> dict:
     """
     Resolve report labels with deterministic precedence:
     global defaults -> region defaults -> profile overrides -> school overrides.
+    When policy is provided (e.g. request.tenant_runtime.policy), use it instead of resolving from school.
     """
     labels = dict(GLOBAL_REPORT_LABELS)
 
@@ -436,7 +442,10 @@ def resolve_report_labels(student: Optional[StudentProfile] = None, school=None)
     # No country/region branching: use profile (region-derived) and policy only (Section 24.2).
     labels.update(_profile_report_labels_for_school(school))
 
-    policy = get_effective_policy(school) if school else {}
+    if policy is None and school is not None:
+        policy = get_effective_policy(school)
+    if policy is None:
+        policy = {}
     custom_labels = policy.get("report_labels")
     if isinstance(custom_labels, dict):
         labels.update({str(key): str(value) for key, value in custom_labels.items() if value is not None})
@@ -534,13 +543,21 @@ def _school_report_metadata() -> dict:
     }
 
 
-def _region_display_context(school=None) -> dict:
+def _region_display_context(
+    school=None,
+    *,
+    policy: Optional[Dict[str, Any]] = None,
+) -> dict:
     """
     Return display settings for report templates (date_format, currency, grading_scale, etc.).
     When school is set, use policy (get_effective_policy) and tenant locale only; no direct region branching.
+    When policy is provided (e.g. request.tenant_runtime.policy), use it instead of resolving from school.
     """
     from apps.siteconfig.currency import get_currency_symbol
-    policy = get_effective_policy(school) if school else {}
+    if policy is None and school is not None:
+        policy = get_effective_policy(school)
+    if policy is None:
+        policy = {}
     try:
         region_code = getattr(settings, "REGION_CODE", "CMR")
         region = RegionConfig.objects.get(code=region_code)

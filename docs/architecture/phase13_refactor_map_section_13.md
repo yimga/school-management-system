@@ -25,7 +25,7 @@ Verification that the refactor map and architecture map pack are produced and pr
 | apps.txt | `docs/architecture/apps.txt` (or equivalent in docs) |
 | urls.txt | `docs/architecture/urls.txt` |
 | migrations.txt | `docs/architecture/migrations.txt` |
-| models.png | Optional; not required for checklist |
+| models.png | Optional by decision; not required for checklist. See RUNMYCAMPUS_CONSOLIDATED_ARCHITECTURE_AND_REFACTOR.md “Deferred and optional items register”. |
 | tenancy.md | `docs/architecture/tenancy.md` |
 | policy_injection.md | `docs/architecture/policy_injection.md` |
 

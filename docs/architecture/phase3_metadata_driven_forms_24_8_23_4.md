@@ -64,6 +64,20 @@ Only listed fields are overridden; others keep platform defaults.
 
 ---
 
+## POLICY_USE_BUNDLES and POLICY_CACHE_TTL
+
+- **POLICY_USE_BUNDLES:** When set (e.g. in .env or settings), `get_effective_policy(school)` merges from `TenantBlueprint.active_bundle.policy_snapshot` when the school has an active bundle. Documented in phase7_deferred_rules_24_12_to_24_15.md and .env.example (# POLICY_USE_BUNDLES=1).
+- **POLICY_CACHE_TTL:** Per-tenant policy cache TTL in seconds; 0 = no cache. Documented in phase7 and .env.example (# POLICY_CACHE_TTL=300). Resolver uses it in apps/policies/resolver.py.
+
+## Remaining forms (add via same pattern)
+
+Key tenant-facing forms already use `apply_form_policy`:
+
+- **link_child** — LinkChildForm (portal)
+- **student_onboarding** — StudentOnboardingForm (portal)
+
+Any other form that should be tenant-configurable: (1) add a default schema in `default_forms_platform()` or document the form name and expected fields, (2) in the form’s `__init__` call `apply_form_policy(self, form_name, policy, school=...)`, (3) allow overrides via `school.settings["forms"][form_name]` or blueprint. No hardcoded form config in views.
+
 ## Checklist
 
 - **24.8:** Form (and future) config is metadata-driven via policy; no form-specific config hardcoded in views.

@@ -1,0 +1,34 @@
+{% load static i18n %}
+<!doctype html>
+<html lang="en" data-theme="dark" data-bs-theme="dark">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}RunMyCampus Manager{% endblock %}</title>
+    <link rel="icon" href="{% if PUBLIC_BRAND_FAVICON_URL %}{{ PUBLIC_BRAND_FAVICON_URL }}{% else %}{% static 'images/runmycampus-icon.png' %}{% endif %}" type="image/png">
+    {% block extrahead %}{% endblock %}
+
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'css/design-system-unified.css' %}">
+    <link rel="stylesheet" href="{% static 'css/theme-visibility-guard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
+    <link rel="stylesheet" href="{% static 'css/platform-responsive-touch.css' %}">
+    <style>
+      :root {
+        --school-primary: #0B0E14;
+        --school-accent: #d4af37;
+        --platform-navy: #0B0E14;
+        --platform-gold: #d4af37;
+      }
+    </style>
+    {% block extrastyle %}{% endblock %}
+  </head>
+  <body class="control-plane-shell">
+    <a href="#cp-main-content" class="skip-link visually-hidden-focusable" aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>
+    {% block content %}{% endblock %}
+    <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    {% block extrajs %}{% endblock %}
+  </body>
+</html>

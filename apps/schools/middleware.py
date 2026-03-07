@@ -939,7 +939,7 @@ class FeatureGatekeeperMiddleware(MiddlewareMixin):
                 continue
             if path == prefix or path.startswith(prefix.rstrip("/") + "/") or path == prefix.rstrip("/"):
                 try:
-                    from apps.policies.resolver import get_effective_policy
+                    from apps.policies.policy_registry import get_effective_policy
                     policy_result = get_effective_policy(
                         school,
                         user=getattr(request, "user", None),

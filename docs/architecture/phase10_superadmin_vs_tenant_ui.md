@@ -4,6 +4,45 @@ Design/system split between superadmin and tenant UI: same codebase, distinct va
 
 ---
 
+## Control plane shell and manager-only experience (implemented)
+
+On **manager.runmycampus.com** the superadmin has a dedicated experience; no tenant UX is shown.
+
+| Component | Implementation |
+|-----------|----------------|
+| **Base shell** | `control_plane_skeleton.html`: minimal HTML, platform favicon, Bootstrap, design-tokens, theme-visibility-guard, manager-control-plane.css, navy/gold :root. No tenant/SITE. |
+| **Layout** | `control_plane_base.html`: extends skeleton. Header: “RunMyCampus Manager” (link to super:dashboard), platform logo, header search, Configuration Engine link, user dropdown (Profile, Preferences, Configuration Engine, Logout). Sidebar column + main column; blocks: `control_plane_sidebar`, `breadcrumbs`, `breadcrumb_actions`, `cp_content`. |
+| **Sidebar** | `partials/control_plane_sidebar.html`: Dashboard, Command Center, Provision tenant, Billing, Support, Marketplace (Governance, Blueprints, App catalog), Customer Success, Migration, Usage, Pulse, Tenant Health, Incidents, Configuration Engine. All super: or top-level URLs. |
+| **Manager login** | `auth/manager_login.html`: “RunMyCampus Manager” / “Control plane sign-in”; single card (username, password). No role selector, no tenant links. “Back to public site” → runmycampus.com. Login view branches on `request.public_host_kind == "manager"` to use this template. |
+| **Branding / context** | Control plane uses platform favicon/logo only (no SITE). Context processor sets `CONTROL_PLANE_SHELL` when `public_host_kind == "manager"` and path starts with `/super/`. |
+| **Header search** | Search input in header wired to manager search API `GET /api/search/?q=...`; debounced fetch; dropdown results (title, description, link). |
+| **Mobile** | Navbar toggler on small screens opens offcanvas `#cpSidebarOffcanvas` with same sidebar nav. |
+| **Error pages** | On manager host, 403/404/500 use `errors/403_control_plane.html`, `errors/404_control_plane.html`, `errors/500_control_plane.html` (extend control_plane_skeleton; navy/gold; no tenant name; “Back to Manager” → super:dashboard). Branch in `config/urls.py` permission_denied, page_not_found, server_error when `request.public_host_kind == "manager"`. |
+
+**Touchpoints:** `templates/control_plane_skeleton.html`, `templates/control_plane_base.html`, `templates/partials/control_plane_sidebar.html`, `templates/auth/manager_login.html`, `apps/accounts/views.py` (login_view), `apps/siteconfig/context_processors.py` (CONTROL_PLANE_SHELL), `config/urls.py` (error handlers), `config/manager_urls.py` (admin/, super/, api/search/, ops/incidents/).
+
+---
+
+## Manager vs tenant: complete separation (verified)
+
+Manager (manager.runmycampus.com) and tenant (school subdomain / custom domain) are **fully separate**; no shared shell, no tenant UX on manager, no super UX on tenant.
+
+| Layer | Manager (superadmin) | Tenant |
+|-------|----------------------|--------|
+| **Host** | `manager.<base_domain>` → `public_host_kind(host) == "manager"` | Subdomain or custom domain → tenant resolution |
+| **URLConf** | `config.manager_urls` (set by UrlConfSwitcherMiddleware) | `config.tenant_urls` |
+| **Routes** | `/`, `/super/*`, `/admin/`, `/api/search/`, `/ops/incidents/`, etc.; `/portal/`, `/finance/`, `/evals/`, etc. are **redirects** to super dashboard/billing, not real tenant app routes | `/portal/*`, `/finance/*`, `/evals/*`, `/backend/`, etc.; **no** `/super/` route |
+| **Base template** | Control plane: `control_plane_skeleton.html` → `control_plane_base.html` | Tenant: `portal_base.html` → `backend_base.html` for backend |
+| **Super templates** | All super views use `control_plane_base` and `cp_content` / `cp_title` (including `super_control_health.html`) | N/A — super views are not mounted on tenant urlconf |
+| **Login** | `auth/manager_login.html` (platform navy/gold, “Control plane sign-in”, no role selector; chosen when `request.public_host_kind == "manager"`) | `auth/login.html` (school-branded, role selector when applicable) |
+| **Post-login** | `accounts:redirect` → `super:dashboard` when on manager host (checked first in redirect_view) | `accounts:redirect` → tenant backend/portal by role and preference |
+| **Errors** | 403/404/500 use `errors/*_control_plane.html` (control_plane_skeleton, “Back to Manager”) when `request.public_host_kind == "manager"` | 403/404/500 use `errors/403.html`, `errors/404.html`, `errors/500.html` (tenant/base branding) |
+| **Context** | No SITE/school in control plane header/sidebar; CONTROL_PLANE_SHELL set for /super/ on manager | Tenant context (school, theme, sidebar) from middleware and context processors |
+
+**Code references:** `apps/schools/host_routing.py` (`public_host_kind`), `apps/schools/middleware.py` (UrlConfSwitcherMiddleware, ReservedPublicHostAccessMiddleware), `config/manager_urls.py`, `config/tenant_urls.py`, `apps/accounts/views.py` (login_view template branch, redirect_view manager branch), `config/urls.py` (error handler template branch).
+
+---
+
 ## 8.1 — Superadmin feels like: command center, observability, ecosystem manager, deployment cockpit, policy control plane
 
 | Aspect | Implementation |
@@ -77,3 +116,22 @@ Design/system split between superadmin and tenant UI: same codebase, distinct va
 | 8.5 | Done | Public premium/demos; teacher task-oriented; parent/student mobile-first. |
 
 **Reference:** phase2_control_tenant_shells.md, phase9_domain_and_routing.md, section_28_data_architecture_and_provisioning.md (28.2 brand vs site).
+
+---
+
+## Verification checklist (control plane shell and manager login)
+
+Use this to verify the manager-only experience is complete and tenant UX does not leak on manager.runmycampus.com.
+
+| # | Check | How to verify |
+|---|--------|----------------|
+| 1 | Manager login copy | On manager host, open login page: title/card say “RunMyCampus Manager” / “Control plane sign-in”; no role selector; “Back to public site” links to runmycampus.com. |
+| 2 | Super dashboard header/sidebar | After login on manager host, open /super/: header shows “RunMyCampus Manager”, platform logo, search, Configuration Engine, user dropdown; sidebar shows Dashboard, Command Center, Provision tenant, Billing, Support, Marketplace, etc. |
+| 3 | Configuration Engine | Header “Configuration Engine” and sidebar entry both go to admin (Django admin). |
+| 4 | Tenant login unchanged | On tenant host (or default host), login page is standard tenant login (auth/login.html); no manager-only copy. |
+| 5 | Manager errors | On manager host, trigger 403/404/500: page uses control-plane styling (navy/gold, control_plane_skeleton), no tenant name; “Back to Manager” goes to super:dashboard. |
+| 6 | Header search | In control plane header, type 2+ characters in search: dropdown shows results from /api/search/; clicking a result navigates to that URL. |
+| 7 | Mobile sidebar | On manager host, narrow viewport: navbar toggler opens offcanvas with same sidebar nav; no desktop-only sidebar visible. |
+| 8 | All super templates on control plane base | Every super view (dashboard, command center, billing, support, create school, migration, pulse, tenant health, usage, sync repair, governance, blueprints, app catalog, customer success, platform incidents) extends control_plane_base and uses cp_content / cp_title. |
+
+**Automated tests:** `apps.schools.tests.test_phase10_control_plane_verification` — manager login template (check 1), non-manager login template (check 4), manager 403/404/500 use control-plane templates (check 5), tenant 403 uses standard template, and manager/tenant urlconf resolution (check 2/3). Run: `python manage.py test apps.schools.tests.test_phase10_control_plane_verification`.

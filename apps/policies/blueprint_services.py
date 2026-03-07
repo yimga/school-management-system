@@ -44,7 +44,7 @@ def apply_blueprint_pack(school, pack, *, applied_by=None):
     Returns the created/updated PolicyBundle.
     """
     from apps.policies.models import BlueprintPack, PolicyBundle, TenantBlueprint
-    from apps.policies.resolver import invalidate_policy_cache
+    from apps.policies.policy_registry import invalidate_policy_cache
 
     if not isinstance(pack, BlueprintPack):
         pack = BlueprintPack.objects.get(slug=pack) if isinstance(pack, str) else BlueprintPack.objects.get(pk=pack)

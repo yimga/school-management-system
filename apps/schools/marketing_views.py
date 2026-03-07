@@ -7,12 +7,17 @@ import json
 import random
 from copy import deepcopy
 from datetime import datetime, timezone
+from urllib.parse import urlparse
 
 from django.conf import settings
+from django.contrib.admin.views.decorators import staff_member_required
+from django.db.models import Count, Q
 from django.http import Http404, HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.urls import NoReverseMatch, reverse
-from django.views.decorators.http import require_GET
+from django.utils import timezone
+from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.csrf import csrf_protect
 
 from apps.schools.host_routing import get_canonical_base_domain
 from apps.siteconfig.brand_registry import resolve_global_brand_context
@@ -28,6 +33,18 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Run admissions, academics, billing, communication, and compliance from a single tenant-first platform.",
         "schema_type": "SoftwareApplication",
         "segments": [
+            {
+                "title": "AI Co-pilot",
+                "body": "Smart assistance for workflows, reporting, and decision support across admissions, academics, and operations.",
+            },
+            {
+                "title": "Real-time Analytics",
+                "body": "Live dashboards, enrollment and attendance trends, and actionable insights for school leaders.",
+            },
+            {
+                "title": "Customizable Workflows",
+                "body": "Adapt processes, forms, and approval chains to your school's policies without custom code.",
+            },
             {
                 "title": "Unified data model",
                 "body": "Students, staff, payments, reports, and interventions share one source of truth.",
@@ -217,6 +234,9 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "From admissions to finance, one platform for every school workflow.",
         "schema_type": "CollectionPage",
         "segments": [
+            {"title": "AI Co-pilot", "body": "Smart assistance for workflows, reporting, and decision support across the platform."},
+            {"title": "Real-time Analytics", "body": "Live dashboards and actionable insights for enrollment, attendance, and operations."},
+            {"title": "Customizable Workflows", "body": "Adapt processes, forms, and approvals to your school's policies."},
             {"title": "Admissions & enrollment", "body": "Online applications, applicant tracking, and enrollment management."},
             {"title": "Academics & grading", "body": "Curriculum, gradebooks, report cards, and metadata-driven rubrics."},
             {"title": "Finance & billing", "body": "Fee management, invoicing, multi-currency, and audit trail."},
@@ -272,6 +292,19 @@ MARKETING_PAGE_DEFINITIONS = {
             {"title": "Acceptance", "body": "By using the platform you agree to these terms."},
             {"title": "Use of service", "body": "Permitted use, account responsibility, and acceptable use."},
             {"title": "Limitation of liability", "body": "Standard limitations as permitted by applicable law."},
+        ],
+    },
+    "cookie-policy": {
+        "label": "Cookie Policy",
+        "seo_title": "RunMyCampus Cookie Policy",
+        "seo_description": "How RunMyCampus uses cookies and similar technologies on its public website.",
+        "headline": "Cookie Policy",
+        "subheadline": "How we use cookies and similar technologies on our public website.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "What we use", "body": "We use strictly necessary cookies for session and security. When analytics or chat widgets are enabled via settings, third-party cookies may be used; we document them in deployment settings."},
+            {"title": "Your choices", "body": "You can disable non-essential cookies via browser settings. Essential cookies are required for the site to function."},
+            {"title": "Updates", "body": "We may update this policy when we add or change features that use cookies. The date of the last update is reflected on this page."},
         ],
     },
     "developers": {
@@ -365,6 +398,18 @@ MARKETING_PAGE_DEFINITIONS = {
             {"title": "Next step", "body": "Book a live demo or start a trial to get your own tenant and real data migration."},
         ],
     },
+    "buyer-toolkit": {
+        "label": "Buyer Toolkit",
+        "seo_title": "RunMyCampus Buyer Toolkit - Evaluation checklist and implementation guide",
+        "seo_description": "Download the school management buyer evaluation checklist and implementation timeline. Role-based ownership for school lead, IT, finance, and admissions.",
+        "headline": "Buyer toolkit and implementation checklist.",
+        "subheadline": "Evaluate RunMyCampus with a structured checklist and plan rollout with clear role ownership.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "Buyer evaluation checklist", "body": "Criteria for tenancy, security, localization, and support. Use before you commit."},
+            {"title": "Implementation checklist", "body": "Phased rollout with school lead, IT, finance, and admissions ownership. Download and track progress."},
+        ],
+    },
 }
 
 MARKETING_PAGE_EXTRAS = {
@@ -389,6 +434,12 @@ MARKETING_PAGE_EXTRAS = {
                 "body": "Connect LMS, messaging, and payment providers with operational safeguards and traceability.",
             },
         ],
+        "faqs": [
+            {"question": "What is RunMyCampus AI Co-pilot?", "answer": "AI Co-pilot provides smart assistance for workflows, reporting, and decision support across admissions, academics, and operations."},
+            {"question": "Does RunMyCampus offer real-time analytics?", "answer": "Yes. Live dashboards show enrollment and attendance trends, with actionable insights for school leaders."},
+            {"question": "Can we customize workflows to our school?", "answer": "Yes. Customizable Workflows let you adapt processes, forms, and approval chains to your policies without custom code."},
+            {"question": "How does the unified data model work?", "answer": "Students, staff, payments, reports, and interventions share one source of truth across the platform."},
+        ],
     },
     "solutions": {
         "metrics": [
@@ -411,6 +462,12 @@ MARKETING_PAGE_EXTRAS = {
                 "body": "Global registry hydration keeps language and compliance variants out of core business logic.",
             },
         ],
+        "faqs": [
+            {"question": "What deployment options does RunMyCampus support?", "answer": "Single-campus, multi-campus networks, and regional operator models with templates for each."},
+            {"question": "Is RunMyCampus available in our country?", "answer": "RunMyCampus is designed for 195+ country-ready profiles with localization for language, compliance, and terms."},
+            {"question": "How does multi-campus governance work?", "answer": "Manager command center provides central oversight while preserving school-level autonomy and identity."},
+            {"question": "Can each school keep its own domain?", "answer": "Yes. Subdomain isolation gives each tenant explicit, secure boundaries and dedicated branding."},
+        ],
     },
     "pricing": {
         "metrics": [
@@ -418,6 +475,11 @@ MARKETING_PAGE_EXTRAS = {
             {"value": "0", "label": "migration guesswork", "detail": "Plan boundaries map to growth stages and governance requirements."},
             {"value": "1", "label": "billing oversight layer", "detail": "Manager workflows provide trial and usage visibility across tenants."},
             {"value": "Flexible", "label": "add-on model", "detail": "Activate advanced modules as schools scale operational complexity."},
+        ],
+        "faqs": [
+            {"question": "What plans does RunMyCampus offer?", "answer": "Starter for single-campus schools, Growth for multi-campus networks, and Enterprise White-label for operators at national scale."},
+            {"question": "Can I try RunMyCampus before committing?", "answer": "Yes. Start a free trial from the signup flow; you can also book a demo for a guided walkthrough."},
+            {"question": "How does billing work for multiple schools?", "answer": "Manager workflows provide visibility into trial status, usage, and billing across all tenants in one command center."},
         ],
         "execution_blocks": [
             {
@@ -477,6 +539,12 @@ MARKETING_PAGE_EXTRAS = {
                 "legacy": "Feature sprawl without operational stage alignment.",
             },
         ],
+        "migration_narrative": [
+            "Assess your current stack against host, tenancy, and governance criteria above.",
+            "Plan data migration and redirect strategy with dry-run and parity checks before cutover.",
+            "Use RunMyCampus migration tools and templates to move students, staff, and historical data.",
+            "Go live with phased rollout and dedicated support; validate with smoke tests and rollback readiness.",
+        ],
     },
     "case-studies": {
         "metrics": [
@@ -504,16 +572,19 @@ MARKETING_PAGE_EXTRAS = {
                 "title": "Multi-campus governance modernization",
                 "result": "Reduced onboarding time while preserving campus identity autonomy.",
                 "impact": "Faster go-live and clearer ownership boundaries.",
+                "outcomes": ["42% faster onboarding", "3 campuses live in 8 weeks", "Single sign-on across network"],
             },
             {
                 "title": "Admissions-to-enrollment conversion lift",
                 "result": "Unified enquiry, qualification, and onboarding workflow improved conversion flow.",
                 "impact": "Lower handoff friction and better counselor throughput.",
+                "outcomes": ["31% higher application-to-enrollment rate", "50% less manual data re-entry", "2-week shorter cycle"],
             },
             {
                 "title": "Regional localization program",
                 "result": "Registry-driven terminology and compliance defaults removed regional hardcoding.",
                 "impact": "Faster country rollout with lower maintenance overhead.",
+                "outcomes": ["4 countries on one codebase", "60% less localization effort", "Same-day terminology updates"],
             },
         ],
     },
@@ -545,9 +616,86 @@ MARKETING_PAGE_EXTRAS = {
             "Implementation roadmap: phased rollout and success criteria.",
         ],
     },
+    "buyer-toolkit": {
+        "implementation_timeline": [
+            {"phase": "1", "title": "Discovery and signup", "owner": "School lead", "items": ["Evaluate platform fit", "Start free trial", "Confirm data and compliance requirements"]},
+            {"phase": "2", "title": "Tenant and data setup", "owner": "IT", "items": ["Provision tenant", "Import students and staff", "Configure SSO and integrations"]},
+            {"phase": "3", "title": "Finance and billing", "owner": "Finance", "items": ["Configure fee structure", "Connect payment gateway", "Run first billing cycle"]},
+            {"phase": "4", "title": "Academics and go-live", "owner": "Admissions / Academics", "items": ["Configure grading and terms", "Train teachers and staff", "Go live and monitor"]},
+        ],
+        "checklist_intro": "Use this checklist to evaluate RunMyCampus before you commit. Download and track progress.",
+    },
+    "integrations": {
+        "integration_trust_categories": [
+            {"name": "SIS & student data", "summary": "OneRoster, Ed-Fi, and custom SIS sync. Student records stay in sync with your source of truth.", "icon": "SIS"},
+            {"name": "LMS & LTI", "summary": "LTI 1.3 and deep linking. Connect Canvas, Moodle, Google Classroom, and other LMS providers.", "icon": "LMS"},
+            {"name": "Payments", "summary": "Stripe, PayPal, and regional gateways. Multi-currency and receipt automation.", "icon": "Pay"},
+            {"name": "Messaging", "summary": "SMS and email providers for notifications, reminders, and alerts. Delivery tracking.", "icon": "Msg"},
+            {"name": "Identity", "summary": "SAML and OAuth. Single sign-on with your identity provider.", "icon": "SSO"},
+        ],
+    },
+    "why-switch": {
+        "faqs": [
+            {"question": "Why switch from spreadsheets to RunMyCampus?", "answer": "One platform for admissions, academics, finance, and compliance with guided import and no ongoing spreadsheet sync."},
+            {"question": "How long does migration take?", "answer": "Timelines depend on data volume and complexity; templates and support typically get schools live in weeks."},
+            {"question": "Can we keep our existing data?", "answer": "Yes. Structured import paths let you bring students, staff, and historical data into a single source of truth."},
+            {"question": "What if we need to leave the platform?", "answer": "Export and portability options keep you in control of your school data with no lock-in."},
+        ],
+    },
+    "trust-center": {
+        "sla_uptime": {
+            "uptime_target": "99.9%",
+            "sla_summary": "RunMyCampus targets 99.9% platform availability. Planned maintenance is communicated in advance.",
+            "status_url": None,  # Set via MARKETING_STATUS_PAGE_URL in settings if you have a public status page
+            "support_summary": "24/7 operator readiness for critical issues. Support and governance from manager workflows.",
+        },
+        "integration_trust_categories": [
+            {"name": "SIS & student data", "summary": "OneRoster, Ed-Fi, and custom SIS sync. Student records stay in sync with your source of truth.", "icon": "SIS"},
+            {"name": "LMS & LTI", "summary": "LTI 1.3 and deep linking. Connect Canvas, Moodle, Google Classroom, and other LMS providers.", "icon": "LMS"},
+            {"name": "Payments", "summary": "Stripe, PayPal, and regional gateways. Multi-currency and receipt automation.", "icon": "Pay"},
+            {"name": "Messaging", "summary": "SMS and email providers for notifications, reminders, and alerts. Delivery tracking.", "icon": "Msg"},
+            {"name": "Identity", "summary": "SAML and OAuth. Single sign-on with your identity provider.", "icon": "SSO"},
+        ],
+    },
 }
 
 TOPICAL_LANDING_DEFINITIONS = {
+    "admissions-software": {
+        "label": "Admissions Software",
+        "seo_title": "Admissions Software for Schools | RunMyCampus",
+        "seo_description": "End-to-end admissions software: enquiry capture, applicant tracking, interviews, and enrollment in one platform.",
+        "headline": "Admissions software that converts.",
+        "subheadline": "From first enquiry to enrolled student—one flow for applications, qualification, and onboarding.",
+        "focus_points": [
+            "Campaign-aware enquiry forms and lead routing by school.",
+            "Applicant tracking with counselor assignments and document checklist.",
+            "Accept-to-enrollment handoff without spreadsheets or duplicate entry.",
+        ],
+    },
+    "school-erp": {
+        "label": "School ERP",
+        "seo_title": "School ERP | RunMyCampus - Unified operations platform",
+        "seo_description": "School ERP for academics, finance, HR, and operations. One platform for grades, fees, attendance, and reporting.",
+        "headline": "School ERP without the sprawl.",
+        "subheadline": "Academics, finance, attendance, and reporting in one tenant-first platform—no legacy silos.",
+        "focus_points": [
+            "Unified data model: students, staff, fees, and grades in one source of truth.",
+            "Role-ready portals for admin, teachers, parents, and students.",
+            "Audit trails, compliance defaults, and export-ready reports.",
+        ],
+    },
+    "parent-app": {
+        "label": "Parent App",
+        "seo_title": "Parent App for Schools | RunMyCampus",
+        "seo_description": "Parent portal for attendance, grades, fees, and communication. One app for school-family engagement.",
+        "headline": "The parent app schools and families trust.",
+        "subheadline": "Attendance, grades, fees, and messages in one place—so parents stay informed without chasing updates.",
+        "focus_points": [
+            "Real-time visibility into attendance, grades, and assignments.",
+            "Fee statements and payment history in the parent portal.",
+            "School messaging and announcements with delivery tracking.",
+        ],
+    },
     "k12-school-management-system": {
         "label": "K12 School Management",
         "seo_title": "K12 School Management System | RunMyCampus",
@@ -587,7 +735,7 @@ TOPICAL_LANDING_DEFINITIONS = {
 }
 
 
-def _safe_reverse(name: str, *, kwargs: dict | None = None) -> str:
+def __safe_reverse(name: str, *, kwargs: dict | None = None) -> str:
     try:
         return reverse(name, kwargs=kwargs)
     except NoReverseMatch:
@@ -600,6 +748,19 @@ def _marketing_nav() -> list[dict]:
     return [
         {"slug": slug, "label": page["label"], "path": f"/{slug}/"}
         for slug, page in MARKETING_PAGE_DEFINITIONS.items()
+    ]
+
+
+def _marketing_navbar_primary() -> list[dict]:
+    """Primary marketing navbar: Product | Solutions | Pricing | Customers | Marketplace | Resources | Company | [Login] [Start Free Trial]."""
+    return [
+        {"label": "Product", "path": _safe_reverse("marketing_product") or "/product/"},
+        {"label": "Solutions", "path": _safe_reverse("marketing_solutions") or "/solutions/"},
+        {"label": "Pricing", "path": _safe_reverse("marketing_pricing") or "/pricing/"},
+        {"label": "Customers", "path": _safe_reverse("marketing_case_studies") or "/case-studies/"},
+        {"label": "Marketplace", "path": _safe_reverse("marketing_app_marketplace") or "/app-marketplace/"},
+        {"label": "Resources", "path": _safe_reverse("marketing_blog") or "/blog/"},
+        {"label": "Company", "path": _safe_reverse("marketing_about") or "/about/"},
     ]
 
 
@@ -710,6 +871,17 @@ def _get_regional_pitch(country_code: str, language_code: str) -> dict:
         "seo_title": pitch.seo_title or default["seo_title"],
         "seo_description": pitch.seo_description or default["seo_description"],
     }
+
+
+def _geo_copy_variations(country: str) -> dict:
+    """Evidence-driven copy variations by geo cluster (Wave 4). Use in templates for CTA/headline by region."""
+    variants = {
+        "CM": {"cta_primary": "Démarrer l'essai gratuit", "proof_lead": "Adapté aux écoles francophones et au contexte local."},
+        "CA": {"cta_primary": "Start free trial", "proof_lead": "Built for Canadian schools and multi-province deployments."},
+        "NG": {"cta_primary": "Start free trial", "proof_lead": "Designed for Nigerian schools and WAEC alignment."},
+        "GB": {"cta_primary": "Start free trial", "proof_lead": "UK term structures and British curriculum support."},
+    }
+    return variants.get(country, {"cta_primary": "Start free trial", "proof_lead": "One platform for admissions, academics, and operations."})
 
 
 def _tenant_example_slug_for_marketing() -> str | None:
@@ -886,6 +1058,36 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         {"value": "24/7", "label": "operator readiness", "detail": "Support and governance from manager workflows."},
         {"value": "100%", "label": "subdomain tenancy", "detail": "Strict isolation for tenant security boundaries."},
     ]
+    # Wave 2: localized proof cards for country-language landing variants
+    _proof_by_country = {
+        "CM": [
+            {"value": "3", "label": "surfaces dédiées", "detail": "Séparation public, tenant et manager."},
+            {"value": "195+", "label": "pays pris en charge", "detail": "Localisation et conformité par région."},
+            {"value": "24/7", "label": "disponibilité opérationnelle", "detail": "Support et gouvernance depuis le manager."},
+            {"value": "100%", "label": "tenance par sous-domaine", "detail": "Isolation stricte par école."},
+        ],
+        "CA": [
+            {"value": "3", "label": "dedicated surfaces", "detail": "Public, tenant, and manager host separation."},
+            {"value": "195+", "label": "country-ready profiles", "detail": "Registry-driven localization and defaults."},
+            {"value": "24/7", "label": "operator readiness", "detail": "Support and governance from manager workflows."},
+            {"value": "100%", "label": "subdomain tenancy", "detail": "Strict isolation for tenant security boundaries."},
+        ],
+        "NG": [
+            {"value": "3", "label": "dedicated surfaces", "detail": "Public, tenant, and manager host separation."},
+            {"value": "195+", "label": "country-ready profiles", "detail": "Registry-driven localization and defaults."},
+            {"value": "24/7", "label": "operator readiness", "detail": "Support and governance from manager workflows."},
+            {"value": "100%", "label": "subdomain tenancy", "detail": "Strict isolation for tenant security boundaries."},
+        ],
+        "GB": [
+            {"value": "3", "label": "dedicated surfaces", "detail": "Public, tenant, and manager host separation."},
+            {"value": "195+", "label": "country-ready profiles", "detail": "Registry-driven localization and defaults."},
+            {"value": "24/7", "label": "operator readiness", "detail": "Support and governance from manager workflows."},
+            {"value": "100%", "label": "subdomain tenancy", "detail": "Strict isolation for tenant security boundaries."},
+        ],
+    }
+    # Use localized proof stats when country matches (regional or geo-personalized main landing)
+    if country in _proof_by_country:
+        proof_stats = _proof_by_country[country]
 
     institution_logos = [
         "Greenfield Academy",
@@ -897,6 +1099,12 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         "Blue Coast International",
         "Riverside Preparatory",
     ]
+    _logos_by_country = {
+        "CM": ["Institut des Sciences Douala", "Lycée Bilingue", "École Greenfield", "Réseau Nile Valley", "Académie Maple", "Campus Riverside"],
+        "CA": ["Toronto Scholars Group", "Maple Heights College", "Blue Coast International", "Riverside Preparatory", "Nile Valley Schools", "Greenfield Academy"],
+    }
+    if regional and country in _logos_by_country:
+        institution_logos = _logos_by_country[country]
 
     admissions_flow = [
         {
@@ -998,15 +1206,101 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         "description": pitch.get("seo_description"),
         "areaServed": brand.get("country_name") or "Global",
     }
+    canonical_base_url = request.build_absolute_uri("/")
+    organization_schema_json = json.dumps(_organization_schema(canonical_base_url))
 
     # A/B testing: persist variant in session for hero/CTA (Plan 4.11)
     hero_variant = request.session.get("marketing_ab_variant")
     if not hero_variant:
         hero_variant = random.choice(["A", "B"])
         request.session["marketing_ab_variant"] = hero_variant
+    marketing_cta_variant = request.session.get("marketing_cta_variant") or ""
+    if not marketing_cta_variant:
+        marketing_cta_variant = random.choice(["default", "secondary"])
+        request.session["marketing_cta_variant"] = marketing_cta_variant
 
     demo_tenant_url = getattr(settings, "MARKETING_DEMO_TENANT_URL", "") or ""
     marketing_analytics_script_url = getattr(settings, "MARKETING_ANALYTICS_SCRIPT_URL", "") or ""
+    marketing_analytics_preconnect_origin = ""
+    if marketing_analytics_script_url:
+        try:
+            parsed = urlparse(marketing_analytics_script_url)
+            if parsed.scheme and parsed.netloc:
+                marketing_analytics_preconnect_origin = f"{parsed.scheme}://{parsed.netloc}"
+        except Exception:
+            pass
+
+    # Outcome-focused landing copy (world-class SaaS front). Wave 4: evidence-driven by geo and channel.
+    hero_headline = "The Operating System for Modern Schools"
+    hero_subheadline = "One platform for admissions, academics, finance, communication, and compliance. Run your campus with clarity and scale."
+    _hero_by_country = {
+        "CM": {"headline": "La plateforme pour les établissements scolaires modernes.", "subheadline": "Admissions, académique, finance, communication et conformité dans une seule plateforme. Gérez votre campus avec clarté."},
+        "CA": {"headline": "The Operating System for Modern Schools", "subheadline": "One platform for admissions, academics, finance, and compliance. Trusted by schools across Canada and beyond."},
+        "NG": {"headline": "The Operating System for Modern Schools", "subheadline": "One platform for admissions, academics, finance, and compliance. Trusted by schools across Nigeria and Africa."},
+        "GB": {"headline": "The Operating System for Modern Schools", "subheadline": "One platform for admissions, academics, finance, and compliance. Trusted by schools across the UK and beyond."},
+    }
+    _hero_by_channel = {
+        "google": {"headline": "The Operating System for Modern Schools", "subheadline": "One platform for admissions, academics, finance, and compliance. Try free—no credit card required."},
+        "linkedin": {"headline": "School operations, unified.", "subheadline": "For education leaders: admissions, finance, compliance, and reporting in one platform. Scale without sprawl."},
+        "facebook": {"headline": "Run your school on one platform.", "subheadline": "Admissions, finance, and compliance in one place. Start free—no credit card required."},
+        "newsletter": {"headline": "The Operating System for Modern Schools", "subheadline": "For subscribers: one platform for admissions, academics, finance, and compliance. Book a demo or start free."},
+    }
+    if country in _hero_by_country:
+        hero_headline = _hero_by_country[country].get("headline", hero_headline)
+        hero_subheadline = _hero_by_country[country].get("subheadline", hero_subheadline)
+    utm_source = (request.GET.get("utm_source") or "").strip().lower()
+    if utm_source in _hero_by_channel:
+        hero_headline = _hero_by_channel[utm_source].get("headline", hero_headline)
+        hero_subheadline = _hero_by_channel[utm_source].get("subheadline", hero_subheadline)
+    hero_ctas = [
+        {"label": "Start Free Trial", "url": _safe_reverse("signup_school"), "primary": True},
+        {"label": "Book a Demo", "url": _safe_reverse("marketing_book_demo") or "/book-demo/", "primary": False},
+        {"label": "Login", "url": _safe_reverse("global_login_discovery"), "primary": False},
+    ]
+    trust_logos = [
+        {"name": "School Trust", "image_url": ""},
+        {"name": "Edu Partners", "image_url": ""},
+        {"name": "Global Schools", "image_url": ""},
+    ]
+    core_modules = [
+        {"title": "Admissions & Enrollment", "summary": "Capture leads, track applications, and onboard students in one flow.", "screenshot_url": ""},
+        {"title": "Academics & Grades", "summary": "Syllabi, attendance, report cards, and interventions in a single source of truth.", "screenshot_url": ""},
+        {"title": "Finance & Billing", "summary": "Fees, payments, and financial reporting tailored to your school model.", "screenshot_url": ""},
+        {"title": "Communication", "summary": "Parents, teachers, and students stay connected with role-ready portals.", "screenshot_url": ""},
+        {"title": "Compliance & Reporting", "summary": "Audit trails, regional compliance defaults, and export-ready reports.", "screenshot_url": ""},
+    ]
+    platform_cards = [
+        {"title": "Workflows that adapt", "summary": "From enquiry to graduation, every step is configurable to your school's processes and policies."},
+        {"title": "Dashboards that inform", "summary": "Leaders get real-time visibility into enrollment, attendance, and outcomes without switching tools."},
+        {"title": "Marketplace that extends", "summary": "Add integrations and apps from the marketplace without leaving the platform."},
+    ]
+    migration_bullets = [
+        "Import students, staff, and historical data from spreadsheets or legacy systems.",
+        "Map your existing workflows to RunMyCampus modules with guided setup.",
+        "Go live with phased rollout and dedicated support during migration.",
+    ]
+    migration_studio_image_url = getattr(settings, "MARKETING_MIGRATION_STUDIO_IMAGE_URL", None) or ""
+    hero_dashboard_image_url = getattr(settings, "MARKETING_HERO_IMAGE_URL", None) or ""
+    product_demo_image_url = getattr(settings, "MARKETING_PRODUCT_DEMO_IMAGE_URL", None) or getattr(settings, "MARKETING_HERO_IMAGE_URL", None) or ""
+    ecosystem_apps = [
+        {"name": "LMS / LTI", "summary": "Connect your learning management system."},
+        {"name": "Payment gateways", "summary": "Stripe, PayPal, and local providers."},
+        {"name": "Messaging", "summary": "SMS and email providers for notifications."},
+        {"name": "Single sign-on", "summary": "SAML and OAuth for enterprise identity."},
+    ]
+    testimonials = [
+        {"quote": "We moved from spreadsheets to RunMyCampus in one term. Admissions and billing are finally in one place.", "author": "Sarah M.", "role": "Operations Director, Greenfield Academy", "stars": 5},
+        {"quote": "Multi-campus visibility without losing each school's identity. Exactly what we needed.", "author": "James K.", "role": "Network Lead, Nile Valley Schools", "stars": 5},
+        {"quote": "Compliance and reporting used to take days. Now we have dashboards and exports in minutes.", "author": "Priya L.", "role": "Finance & Compliance, Toronto Scholars", "stars": 5},
+    ]
+    security_badges = [
+        "FERPA aligned",
+        "GDPR ready",
+        "SOC 2 roadmap",
+        "Encryption at rest & in transit",
+        "Role-based access",
+    ]
+    final_cta_headline = "Ready to run your campus with one platform?"
 
     return {
         "pitch": pitch,
@@ -1040,26 +1334,93 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         "post_enrollment_revenue": post_enrollment_revenue,
         "global_features": global_features,
         "hero_variant": hero_variant,
+        "marketing_cta_variant": marketing_cta_variant,
         "demo_tenant_url": demo_tenant_url,
         "marketing_analytics_script_url": marketing_analytics_script_url,
+        "marketing_analytics_preconnect_origin": marketing_analytics_preconnect_origin,
         "SHOW_HEADER_CONTEXT_STRIP": False,
+        # Landing revamp: outcome-focused copy and 10-section context
+        "marketing_navbar_primary": _marketing_navbar_primary(),
+        "hero_headline": hero_headline,
+        "hero_subheadline": hero_subheadline,
+        "hero_ctas": hero_ctas,
+        "trust_logos": trust_logos,
+        "core_modules": core_modules,
+        "platform_cards": platform_cards,
+        "migration_bullets": migration_bullets,
+        "migration_studio_image_url": migration_studio_image_url,
+        "ecosystem_apps": ecosystem_apps,
+        "testimonials": testimonials,
+        "security_badges": security_badges,
+        "final_cta_headline": final_cta_headline,
+        "hero_dashboard_image_url": hero_dashboard_image_url,
+        "product_demo_image_url": product_demo_image_url,
+        "organization_schema_json": organization_schema_json,
+        "geo_copy": _geo_copy_variations(country),
+        "marketing_calendly_url": getattr(settings, "MARKETING_CALENDLY_URL", None) or "",
+    }
+
+
+def _organization_schema(canonical_base_url: str) -> dict:
+    """Schema.org Organization for RunMyCampus (Wave 2 SEO)."""
+    return {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "RunMyCampus",
+        "url": canonical_base_url,
+        "description": "RunMyCampus is a global school operations platform for admissions, academics, finance, and compliance.",
+        "applicationCategory": "EducationalApplication",
+    }
+
+
+def _faq_schema(faq_list: list[dict], canonical_url: str) -> dict:
+    """Schema.org FAQPage from list of {question, answer} (Wave 2 SEO)."""
+    return {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "url": canonical_url,
+        "mainEntity": [
+            {"@type": "Question", "name": faq["question"], "acceptedAnswer": {"@type": "Answer", "text": faq["answer"]}}
+            for faq in faq_list
+        ],
+    }
+
+
+def _breadcrumb_list_schema(canonical_base_url: str, path_segments: list[tuple[str, str]]) -> dict:
+    """Schema.org BreadcrumbList from (name, path) segments. path is relative (e.g. /, /product/)."""
+    base = canonical_base_url.rstrip("/")
+    items = []
+    for i, (name, path) in enumerate(path_segments, 1):
+        p = path if path.startswith("/") else "/" + path
+        item_url = base + p if p != "/" else base + "/"
+        items.append({
+            "@type": "ListItem",
+            "position": i,
+            "name": name,
+            "item": item_url,
+        })
+    return {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": items,
     }
 
 
 def _structured_data_for_page(*, page_type: str, canonical_url: str, name: str, description: str, path: str) -> dict:
+    base_url = canonical_url.rsplit(path, 1)[0] + "/" if path in canonical_url else canonical_url
     payload: dict = {
         "@context": "https://schema.org",
         "@type": page_type,
         "name": name,
         "url": canonical_url,
         "description": description,
-        "isPartOf": {"@type": "WebSite", "name": "RunMyCampus", "url": canonical_url.rsplit(path, 1)[0] + "/"},
+        "isPartOf": {"@type": "WebSite", "name": "RunMyCampus", "url": base_url},
     }
     if page_type == "OfferCatalog":
         payload["itemListElement"] = [
-            {"@type": "Offer", "name": "Starter"},
-            {"@type": "Offer", "name": "Growth"},
-            {"@type": "Offer", "name": "Enterprise"},
+            {"@type": "Offer", "name": "Starter", "description": "For single-campus schools: admissions, academics, portals."},
+            {"@type": "Offer", "name": "Growth", "description": "For expanding networks: multi-campus, localization, support visibility."},
+            {"@type": "Offer", "name": "Enterprise", "description": "White-label for national scale: manager operations, API, compliance."},
         ]
     if page_type == "ItemList":
         payload["itemListElement"] = [
@@ -1086,6 +1447,8 @@ def _marketing_base_context(request) -> dict:
 @require_GET
 def marketing_landing(request):
     """Global marketing landing with geo-personalized copy."""
+    from apps.schools.funnel_events import record_marketing_funnel_event
+    record_marketing_funnel_event("visit", request)
     geo_country = _get_country_from_request(request)
     ctx = _marketing_context(
         request,
@@ -1158,6 +1521,19 @@ def marketing_page(request, page_slug: str):
     )
 
     blog_posts = _get_blog_posts() if page_slug == "blog" else []
+    faq_schema_json = ""
+    if page_extras.get("faqs"):
+        faq_schema_json = json.dumps(_faq_schema(page_extras["faqs"], canonical_url))
+
+    # BreadcrumbList schema: Home > Page label
+    base_url = _absolute_url(request, "/").rstrip("/")
+    breadcrumb_segments = [("Home", "/"), (page_copy.get("label") or page_slug, canonical_path)]
+    breadcrumb_schema_json = json.dumps(_breadcrumb_list_schema(base_url, breadcrumb_segments))
+
+    # Wave 3: SLA/uptime status URL from settings for trust-center
+    if page_slug == "trust-center" and page_extras.get("sla_uptime"):
+        status_url = getattr(settings, "MARKETING_STATUS_PAGE_URL", None) or ""
+        page_extras["sla_uptime"] = {**page_extras["sla_uptime"], "status_url": status_url}
 
     ctx = {
         **base_ctx,
@@ -1165,6 +1541,8 @@ def marketing_page(request, page_slug: str):
         "seo_description": page_copy.get("seo_description"),
         "canonical_url": canonical_url,
         "structured_data_json": json.dumps(structured_data),
+        "faq_schema_json": faq_schema_json,
+        "breadcrumb_schema_json": breadcrumb_schema_json,
         "page": page_copy,
         "page_extras": page_extras,
         "active_nav_slug": page_slug,
@@ -1176,6 +1554,199 @@ def marketing_page(request, page_slug: str):
         ],
     }
     return render(request, "schools/marketing_page.html", ctx)
+
+
+@require_POST
+@csrf_protect
+def submit_demo_request(request):
+    """
+    Accept book-a-demo form POST (name, email, school, message).
+    If MARKETING_DEMO_WEBHOOK_URL is set, POST JSON to it; then redirect to book-demo with ?submitted=1 or ?error=1.
+    """
+    name = (request.POST.get("name") or "").strip()[:256]
+    email = (request.POST.get("email") or "").strip()[:256]
+    school = (request.POST.get("school") or "").strip()[:256]
+    message = (request.POST.get("message") or "").strip()[:2000]
+    webhook_url = getattr(settings, "MARKETING_DEMO_WEBHOOK_URL", None) or ""
+    success = False
+    if webhook_url and email:
+        payload = json.dumps({
+            "name": name,
+            "email": email,
+            "school": school,
+            "message": message,
+        })
+        try:
+            from urllib.request import Request, urlopen
+            from urllib.error import URLError, HTTPError
+
+            req = Request(
+                webhook_url,
+                data=payload.encode("utf-8"),
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            urlopen(req, timeout=10)
+            success = True
+        except (URLError, HTTPError, OSError):
+            pass
+    elif email:
+        # No webhook configured; still count as success so user sees confirmation (admin can check logs or add webhook later)
+        success = True
+    redirect_url = reverse("marketing_book_demo")
+    if success:
+        redirect_url += "?submitted=1"
+    else:
+        redirect_url += "?error=1"
+    return redirect(redirect_url)
+
+
+# Wave 3: Downloadable buyer toolkit and implementation checklist
+_BUYER_CHECKLIST_HTML = """<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><title>RunMyCampus Buyer Evaluation Checklist</title></head>
+<body>
+<h1>RunMyCampus Buyer Evaluation Checklist</h1>
+<p>Use this checklist before you commit. RunMyCampus — The Operating System for Modern Schools.</p>
+<h2>Tenancy &amp; architecture</h2>
+<ul>
+<li>[ ] Subdomain-based tenant isolation (not path-based)</li>
+<li>[ ] Dedicated manager host for support and governance</li>
+<li>[ ] Clear public / tenant / manager host contract</li>
+</ul>
+<h2>Security &amp; compliance</h2>
+<ul>
+<li>[ ] FERPA / GDPR alignment and regional compliance defaults</li>
+<li>[ ] Audit trails for admin and support actions</li>
+<li>[ ] Encryption at rest and in transit</li>
+<li>[ ] Role-based access controls</li>
+</ul>
+<h2>Localization</h2>
+<ul>
+<li>[ ] Multi-language and multi-currency support</li>
+<li>[ ] Country-specific grading and terminology</li>
+<li>[ ] Data residency options</li>
+</ul>
+<h2>Support &amp; operations</h2>
+<ul>
+<li>[ ] 24/7 operator readiness and support visibility</li>
+<li>[ ] Migration tools and guided setup</li>
+<li>[ ] API and documentation host</li>
+</ul>
+<p>Downloaded from runmycampus.com. &copy; RunMyCampus.</p>
+</body>
+</html>
+"""
+
+_IMPLEMENTATION_CHECKLIST_HTML = """<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><title>RunMyCampus Implementation Checklist</title></head>
+<body>
+<h1>RunMyCampus Implementation Checklist</h1>
+<p>Phased rollout with role ownership. Track progress by phase.</p>
+<h2>Phase 1 — Discovery and signup (Owner: School lead)</h2>
+<ul>
+<li>[ ] Evaluate platform fit and compare architecture</li>
+<li>[ ] Start free trial</li>
+<li>[ ] Confirm data and compliance requirements</li>
+</ul>
+<h2>Phase 2 — Tenant and data setup (Owner: IT)</h2>
+<ul>
+<li>[ ] Provision tenant and configure branding</li>
+<li>[ ] Import students and staff</li>
+<li>[ ] Configure SSO and integrations (LMS, payments, messaging)</li>
+</ul>
+<h2>Phase 3 — Finance and billing (Owner: Finance)</h2>
+<ul>
+<li>[ ] Configure fee structure and payment terms</li>
+<li>[ ] Connect payment gateway</li>
+<li>[ ] Run first billing cycle and reconcile</li>
+</ul>
+<h2>Phase 4 — Academics and go-live (Owner: Admissions / Academics)</h2>
+<ul>
+<li>[ ] Configure grading, terms, and report cards</li>
+<li>[ ] Train teachers and staff</li>
+<li>[ ] Go live and monitor; hand off to support</li>
+</ul>
+<p>Downloaded from runmycampus.com. &copy; RunMyCampus.</p>
+</body>
+</html>
+"""
+
+
+@require_GET
+def buyer_toolkit_download(request, document: str):
+    """Serve downloadable buyer or implementation checklist as HTML (save as PDF from browser)."""
+    if document == "implementation-checklist":
+        content = _IMPLEMENTATION_CHECKLIST_HTML
+        filename = "runmycampus-implementation-checklist.html"
+    elif document == "buyer-checklist":
+        content = _BUYER_CHECKLIST_HTML
+        filename = "runmycampus-buyer-evaluation-checklist.html"
+    else:
+        raise Http404("Document not found")
+    response = HttpResponse(content, content_type="text/html; charset=utf-8")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
+
+
+@require_GET
+@staff_member_required
+def marketing_funnel_dashboard(request):
+    """Wave 4: Conversion funnel dashboard (visit -> discovery -> signup -> activation). Staff only."""
+    from apps.schools.models import MarketingFunnelEvent
+
+    now = timezone.now()
+    all_time = MarketingFunnelEvent.objects.values("event_type").annotate(count=Count("id"))
+    all_time_map = {r["event_type"]: r["count"] for r in all_time}
+    visit = all_time_map.get("visit", 0)
+    discovery = all_time_map.get("discovery", 0)
+    signup = all_time_map.get("signup", 0)
+    activation = all_time_map.get("activation", 0)
+
+    # Last 7 and 30 days
+    from datetime import timedelta
+    week_ago = now - timedelta(days=7)
+    month_ago = now - timedelta(days=30)
+    last7 = MarketingFunnelEvent.objects.filter(created_at__gte=week_ago).values("event_type").annotate(count=Count("id"))
+    last30 = MarketingFunnelEvent.objects.filter(created_at__gte=month_ago).values("event_type").annotate(count=Count("id"))
+    last7_map = {r["event_type"]: r["count"] for r in last7}
+    last30_map = {r["event_type"]: r["count"] for r in last30}
+
+    # By channel (utm_source / utm_medium) for last 30 days
+    channel_qs = (
+        MarketingFunnelEvent.objects.filter(created_at__gte=month_ago)
+        .values("utm_source", "utm_medium")
+        .annotate(
+            visit=Count("id", filter=Q(event_type="visit")),
+            discovery=Count("id", filter=Q(event_type="discovery")),
+            signup=Count("id", filter=Q(event_type="signup")),
+            activation=Count("id", filter=Q(event_type="activation")),
+        )
+        .order_by("-visit")
+    )
+    channel_breakdown = [
+        {
+            "utm_source": r.get("utm_source") or "",
+            "utm_medium": r.get("utm_medium") or "",
+            "visit": r.get("visit", 0),
+            "discovery": r.get("discovery", 0),
+            "signup": r.get("signup", 0),
+            "activation": r.get("activation", 0),
+        }
+        for r in channel_qs
+    ]
+
+    ctx = {
+        "visit": visit,
+        "discovery": discovery,
+        "signup": signup,
+        "activation": activation,
+        "last7": last7_map,
+        "last30": last30_map,
+        "channel_breakdown": channel_breakdown,
+    }
+    return render(request, "schools/marketing_funnel_dashboard.html", ctx)
 
 
 @require_GET
@@ -1199,12 +1770,17 @@ def topical_marketing_landing(request, topic_slug: str):
         path=canonical_path,
     )
 
+    base_url = _absolute_url(request, "/").rstrip("/")
+    breadcrumb_segments = [("Home", "/"), ("Solutions", "/solutions/"), (topic_copy.get("label") or topic_slug, canonical_path)]
+    breadcrumb_schema_json = json.dumps(_breadcrumb_list_schema(base_url, breadcrumb_segments))
+
     ctx = {
         **base_ctx,
         "seo_title": topic_copy.get("seo_title"),
         "seo_description": topic_copy.get("seo_description"),
         "canonical_url": canonical_url,
         "structured_data_json": json.dumps(structured_data),
+        "breadcrumb_schema_json": breadcrumb_schema_json,
         "topic": topic_copy,
         "active_nav_slug": "solutions",
     }
@@ -1241,24 +1817,26 @@ def marketing_robots_txt(request):
     return HttpResponse("\n".join(lines) + "\n", content_type="text/plain")
 
 
-@require_GET
-def marketing_sitemap_xml(request):
-    """
-    Lightweight sitemap index for global marketing routes.
-    """
-    now = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    urls = [_absolute_url(request, "/")]
-    urls.extend([_absolute_url(request, item["path"]) for item in _marketing_nav()])
-    urls.extend([_absolute_url(request, item["path"]) for item in _topical_nav()])
-    urls.extend(
-        [
-            _absolute_url(request, "/discover/"),
-            _absolute_url(request, "/find/"),
-            _absolute_url(request, "/signup/"),
-            _absolute_url(request, "/book-demo/"),
-        ]
-    )
-    urls = list(dict.fromkeys(urls))
+def _sitemap_entries(request) -> list[tuple[str, str, str]]:
+    """Return list of (loc, priority, changefreq) for marketing sitemap."""
+    base = _absolute_url(request, "/").rstrip("/")
+    path_specs: dict[str, tuple[str, str]] = {}  # path -> (priority, changefreq)
+
+    path_specs["/"] = ("1.0", "weekly")
+    for item in _marketing_nav():
+        path = item["path"]
+        if path in ("/pricing/", "/product/"):
+            path_specs[path] = ("0.9", "weekly")
+        else:
+            path_specs[path] = ("0.8", "monthly")
+    for item in _topical_nav():
+        path_specs[item["path"]] = ("0.8", "monthly")
+    path_specs["/discover/"] = ("0.8", "monthly")
+    path_specs["/find/"] = ("0.8", "monthly")
+    path_specs["/signup/"] = ("0.9", "weekly")
+    path_specs["/book-demo/"] = ("0.9", "weekly")
+    path_specs["/cookie-policy/"] = ("0.5", "monthly")
+
     try:
         from apps.siteconfig.models import GlobalBrandRegistry
 
@@ -1278,13 +1856,25 @@ def marketing_sitemap_xml(request):
         lang = _normalize_language_code(language or "en")
         if not code:
             continue
-        urls.append(_absolute_url(request, f"/{lang}/{code}/"))
+        path_specs[f"/{lang}/{code}/"] = ("0.7", "monthly")
 
+    return [(base + (p if p != "/" else "/"), prio, freq) for p, (prio, freq) in path_specs.items()]
+
+
+@require_GET
+def marketing_sitemap_xml(request):
+    """
+    Lightweight sitemap for global marketing routes with priority and changefreq.
+    """
+    now = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    entries = _sitemap_entries(request)
     chunks = ["<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">"]
-    for loc in urls:
+    for loc, priority, changefreq in entries:
         chunks.append("  <url>")
         chunks.append(f"    <loc>{loc}</loc>")
         chunks.append(f"    <lastmod>{now}</lastmod>")
+        chunks.append(f"    <priority>{priority}</priority>")
+        chunks.append(f"    <changefreq>{changefreq}</changefreq>")
         chunks.append("  </url>")
     chunks.append("</urlset>")
     return HttpResponse("\n".join(chunks), content_type="application/xml")

@@ -1,15 +1,14 @@
-{% extends "backend_base.html" %}
+{% extends "control_plane_base.html" %}
 {% load static %}
 
-{% block title %}RunMyCampus Control Plane{% endblock %}
-{% block backend_title %}Control Plane{% endblock %}
+{% block cp_title %}Tenant Mission Control{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
 {% endblock %}
 
-{% block content %}
+{% block cp_content %}
 <div class="container-fluid py-4 control-plane-shell">
   <section class="cp-hero mb-4">
     <div class="cp-hero-grid">
@@ -39,8 +38,10 @@
           <div class="cp-action-row">
             <a href="{{ command_center_url|default:'#' }}" class="btn btn-outline-light btn-sm">Queues</a>
             <a href="{% url 'super:billing_dashboard' %}" class="btn btn-outline-light btn-sm">Billing</a>
+            <a href="{% url 'super:migration_cloud' %}" class="btn btn-outline-light btn-sm">Migration</a>
             <a href="{% url 'super:marketplace_governance' %}" class="btn btn-outline-light btn-sm">Marketplace</a>
             {% if platform_incidents_url %}<a href="{{ platform_incidents_url }}" class="btn btn-outline-light btn-sm">Incidents</a>{% endif %}
+            <a href="{% url 'super:export_super_dashboard_pdf' %}{% if current_request_month %}?month={{ current_request_month }}{% endif %}" class="btn btn-outline-light btn-sm">Export PDF</a>
           </div>
         </div>
       </div>
@@ -56,13 +57,33 @@
     </div>
   </section>
 
-  <nav class="cp-section-nav mb-4">
+  {{ super_dashboard_section_order|json_script:"cp-section-order-json" }}
+  <nav class="cp-section-nav mb-4 d-flex flex-wrap align-items-center gap-2" aria-label="Jump to dashboard section">
     <a href="#cp-action-queue" class="cp-section-link">Action queue</a>
     <a href="#cp-fleet-health" class="cp-section-link">Fleet health</a>
     <a href="#cp-global-footprint" class="cp-section-link">Global footprint</a>
     <a href="#cp-tenant-registry" class="cp-section-link">Tenant registry</a>
     <a href="#cp-readiness" class="cp-section-link">Readiness</a>
+    <button type="button" class="btn btn-sm btn-outline-secondary ms-2" id="cp-customize-layout-btn" aria-label="Customize section order">Customize layout</button>
   </nav>
+  <div class="modal fade" id="cp-layout-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content bg-dark border-secondary">
+        <div class="modal-header border-secondary">
+          <h5 class="modal-title text-white">Dashboard section order</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted small">Drag to reorder. Save to persist for your account.</p>
+          <ul class="list-group list-group-flush" id="cp-layout-sortable"></ul>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="cp-layout-save">Save layout</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   {% if next_best_actions %}
   <div class="cp-next-actions mb-4">
@@ -604,7 +625,73 @@
 </div>
 {% endblock %}
 
-{% block extra_js %}
+{% block extrajs %}
 {{ block.super }}
 <script src="{% static 'js/manager-control-plane.js' %}"></script>
+<script>
+(function() {
+  var layoutUrl = '{{ super_dashboard_layout_url|escapejs }}';
+  var sectionOrder = JSON.parse(document.getElementById('cp-section-order-json').textContent || '[]');
+  var sectionLabels = {
+    'cp-action-queue': 'Action queue',
+    'cp-fleet-health': 'Fleet health',
+    'cp-global-footprint': 'Global footprint',
+    'cp-tenant-registry': 'Tenant registry',
+    'cp-readiness': 'Readiness'
+  };
+  var modal = document.getElementById('cp-layout-modal');
+  var listEl = document.getElementById('cp-layout-sortable');
+  var saveBtn = document.getElementById('cp-layout-save');
+  var customizeBtn = document.getElementById('cp-customize-layout-btn');
+  if (!modal || !listEl || !layoutUrl) return;
+
+  function renderList(order) {
+    listEl.innerHTML = order.map(function(id) {
+      return '<li class="list-group-item d-flex align-items-center gap-2" data-section-id="' + id + '"><span class="text-muted small">⋮⋮</span> ' + (sectionLabels[id] || id) + '</li>';
+    }).join('');
+  }
+  function getOrder() {
+    return [].map.call(listEl.querySelectorAll('[data-section-id]'), function(el) { return el.getAttribute('data-section-id'); });
+  }
+
+  var sortableInstance = null;
+  function initSortable() {
+    if (sortableInstance) return;
+    if (window.Sortable) {
+      sortableInstance = new Sortable(listEl, { animation: 150, handle: '.text-muted' });
+      return;
+    }
+    var s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js';
+    s.onload = function() { sortableInstance = new Sortable(listEl, { animation: 150, handle: '.text-muted' }); };
+    document.head.appendChild(s);
+  }
+
+  customizeBtn.addEventListener('click', function() {
+    renderList(sectionOrder);
+    if (window.bootstrap && window.bootstrap.Modal) {
+      var m = new window.bootstrap.Modal(modal);
+      m.show();
+    } else { modal.style.display = 'block'; }
+    setTimeout(initSortable, 100);
+  });
+
+  saveBtn.addEventListener('click', function() {
+    var order = getOrder();
+    saveBtn.disabled = true;
+    var csrf = (document.querySelector('[name=csrfmiddlewaretoken]') && document.querySelector('[name=csrfmiddlewaretoken]').value) || (function() { var m = document.cookie.match(/csrftoken=([^;]+)/); return m ? m[1] : ''; })();
+    fetch(layoutUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+      body: JSON.stringify({ section_order: order })
+    }).then(function(r) { return r.json(); })
+      .then(function(data) {
+        sectionOrder = data.section_order || order;
+        if (window.bootstrap && modal._modal) modal._modal.hide(); else modal.style.display = 'none';
+      })
+      .catch(function() {})
+      .finally(function() { saveBtn.disabled = false; });
+  });
+})();
+</script>
 {% endblock %}

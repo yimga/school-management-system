@@ -95,6 +95,22 @@ class QuoteAdmin(admin.ModelAdmin):
     list_display = ("id", "school", "plan", "status", "amount", "currency_code", "valid_until", "created_at")
     list_filter = ("status", "currency_code")
     search_fields = ("school__name", "plan__name")
+    actions = ["accept_quote_convert_to_contract"]
+
+    @admin.action(description="Accept quote (convert to contract)")
+    def accept_quote_convert_to_contract(self, request, queryset):
+        from apps.billing.services import convert_quote_to_contract
+        done, errors = 0, []
+        for quote in queryset:
+            try:
+                convert_quote_to_contract(quote)
+                done += 1
+            except Exception as e:
+                errors.append(f"Quote #{quote.id}: {e}")
+        if done:
+            self.message_user(request, f"Converted {done} quote(s) to contract.")
+        if errors:
+            self.message_user(request, "; ".join(errors[:5]) + ("..." if len(errors) > 5 else ""), level=40)
 
 
 @admin.register(RevenueSharePayout, site=admin_site)

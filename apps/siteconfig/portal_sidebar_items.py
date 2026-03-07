@@ -27,12 +27,12 @@ def _dashboard_layout_url(request, user):
         from apps.siteconfig.dashboard_views import _can_customize
         if not _can_customize(user):
             return None
-        return _safe_reverse("accounts:backend_dashboard") + "?customize=1"
+        return __safe_reverse("accounts:backend_dashboard") + "?customize=1"
     except Exception:
-        return _safe_reverse("accounts:backend_dashboard") + "?customize=1"
+        return __safe_reverse("accounts:backend_dashboard") + "?customize=1"
 
 
-def _safe_reverse(url_name, kwargs=None, args=None, default=None):
+def __safe_reverse(url_name, kwargs=None, args=None, default=None):
     try:
         if args is not None:
             return reverse(url_name, args=args)
@@ -288,6 +288,9 @@ def build_portal_sidebar_items(request, site):
             student_list_url = _safe_reverse("admin:people_studentprofile_changelist")
         if student_list_url:
             items.append({"id": "students", "label": "Student Profiles", "url": student_list_url, "icon": "bi-person-lines-fill", "section": "People & Access", "badge": None})
+        guardian_list_url = _safe_reverse("accounts:backend_guardian_list")
+        if guardian_list_url:
+            items.append({"id": "guardians_backend", "label": "Guardians", "url": guardian_list_url, "icon": "bi-people-fill", "section": "People & Access", "badge": None})
         if is_superuser and not in_backend:
             items.append({"id": "guardians", "label": "Student Guardians", "url": _safe_reverse("admin:people_studentguardian_changelist"), "icon": "bi-people-fill", "section": "People & Access", "badge": None})
             items.append({"id": "groups", "label": "Authentication Groups", "url": _safe_reverse("admin:auth_group_changelist"), "icon": "bi-unlock", "section": "People & Access", "badge": None})
@@ -332,6 +335,9 @@ def build_portal_sidebar_items(request, site):
             dashboard_hub_url = _safe_reverse("siteconfig:dashboard_hub")
             if dashboard_hub_url:
                 items.append({"id": "dashboard_hub", "label": "Dashboard Hub", "url": dashboard_hub_url, "icon": "bi-grid-3x3-gap", "section": "Admin Panel", "badge": None})
+            get_blueprints_url = _safe_reverse("siteconfig:get_blueprints")
+            if get_blueprints_url:
+                items.append({"id": "get_blueprints", "label": "Blueprints", "url": get_blueprints_url, "icon": "bi-journal-richtext", "section": "Admin Panel", "badge": None})
         import_hub_url = _safe_reverse("accounts:import_hub")
         if import_hub_url:
             items.append({"id": "import_hub", "label": "Import & bulk", "url": import_hub_url, "icon": "bi-upload", "section": "Admin Panel", "badge": None})

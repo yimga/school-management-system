@@ -169,7 +169,7 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
     # W1-9: When no education_profile_code is set, resolve_profile_for_school uses school.default_region_id
     # (from country_code at create) and returns one approved profile per country via for_school() + ensure_country_profile().
     region = school.default_region
-    from apps.policies.resolver import get_effective_policy
+    from apps.policies.policy_registry import get_effective_policy
     _policy = get_effective_policy(school)
     requested_profile_code = str(_policy.get("education_profile_code") or "").strip()
     profile = resolve_profile_for_school(
@@ -188,6 +188,12 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
         term_count = int(getattr(profile, "term_count_per_year", term_count) or term_count)
         start_month = int(getattr(profile, "academic_year_start_month", start_month) or start_month)
         term_labels = profile.normalized_term_labels()
+    # UK/British term preset at signup (RUNMYCAMPUS_ROADMAP_TASKS); read from policy
+    term_preset = (_policy.get("term_preset") or "").strip()
+    if (term_preset == "UK" or str(school.country_code or "").upper() == "GB"):
+        start_month = 9
+        term_count = 3
+        term_labels = ["Michaelmas", "Lent", "Trinity"]
         profile_config = {
             "education_profile_code": profile.code,
             "grading_scale": profile.grading_scale,
@@ -441,6 +447,11 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
 
         school.is_active = True
         school.save(update_fields=["is_active", "settings", "updated_at"])
+        try:
+            from apps.policies.policy_registry import invalidate_policy_cache
+            invalidate_policy_cache(school)
+        except Exception:
+            pass
         _record_school_event(
             school,
             event_type="COMPLETED",

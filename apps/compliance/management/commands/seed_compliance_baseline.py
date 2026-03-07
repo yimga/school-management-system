@@ -71,6 +71,11 @@ class Command(BaseCommand):
             if changed:
                 school.settings = settings
                 school.save(update_fields=["default_region", "settings", "updated_at"])
+                try:
+                    from apps.policies.policy_registry import invalidate_policy_cache
+                    invalidate_policy_cache(school)
+                except Exception:
+                    pass
                 updated_schools += 1
 
             region_ids.add(region.pk)

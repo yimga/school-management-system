@@ -108,6 +108,9 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
 
+    # GraphQL
+    "graphene_django",
+
     # Project apps
     "apps.accounts.apps.AccountsConfig",
     "apps.customers",
@@ -159,6 +162,7 @@ MIDDLEWARE = [
     "apps.schools.middleware.TenantMiddleware",  # When USE_DJANGO_TENANTS=0: resolve request.school from host
     "apps.schools.middleware.RlsResetOnExceptionMiddleware",  # RESET app.current_school_id on response or exception
     "apps.tenancy.middleware.TenantContextMiddleware",  # Attach request.tenant_ctx (TenantContext)
+    "apps.platform_runtime.middleware.TenantRuntimeMiddleware",  # Attach request.tenant_runtime (TenantRuntime)
     "apps.schools.middleware.TenantFreezeMiddleware",  # Section 8.6: redirect frozen schools to /account-frozen/
     "apps.schools.middleware.SentryTenantTagMiddleware",  # Phase H: tag Sentry with school_id
     "apps.schools.middleware.TenantLastActivityMiddleware",  # Phase H: optional last_activity per tenant
@@ -932,6 +936,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.schools.middleware.TenantSchemaSchoolBridgeMiddleware",
         "apps.schools.middleware.TenantSchoolNotFoundMiddleware",
         "apps.tenancy.middleware.TenantContextMiddleware",  # Attach request.tenant_ctx (TenantContext)
+        "apps.platform_runtime.middleware.TenantRuntimeMiddleware",  # Attach request.tenant_runtime (TenantRuntime)
         "django.middleware.security.SecurityMiddleware",
         "config.middleware.BlockScannerPathsMiddleware",
         "whitenoise.middleware.WhiteNoiseMiddleware",

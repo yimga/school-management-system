@@ -61,6 +61,7 @@ from .models import (
 )
 from .models_dashboard import (
     DashboardUserPreference,
+    SuperAdminDashboardPreference,
     DashboardWidget,
     DashboardLayout,
     DashboardTemplate,
@@ -396,6 +397,7 @@ class SiteSettingsAdmin(ModelAdmin):
             "fields": (
                 "site_name",
                 "tagline",
+                "meta_description",
                 "logo",
                 "logo_opacity",
                 "logo_background_mode",
@@ -2263,6 +2265,15 @@ admin_site.register(GlobalBrandRegistry, GlobalBrandRegistryAdmin)
 
 # Register dashboard preference and widget models for admin configurability
 admin_site.register(DashboardUserPreference, DashboardUserPreferenceAdmin)
+
+
+class SuperAdminDashboardPreferenceAdmin(ModelAdmin):
+    list_display = ("user", "section_order", "updated_at")
+    search_fields = ("user__username",)
+    raw_id_fields = ("user",)
+
+
+admin_site.register(SuperAdminDashboardPreference, SuperAdminDashboardPreferenceAdmin)
 admin_site.register(DashboardWidget, DashboardWidgetAdmin)
 admin_site.register(DashboardLayout, DashboardLayoutAdmin)
 admin_site.register(DashboardTemplate)

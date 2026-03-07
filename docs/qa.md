@@ -13,6 +13,27 @@ Embed QA into every Phase 7 milestone: dashboards, integrations, and automatio
 - Penetration/Interoperability: periodically run static analyzers (`bandit`, `brakeman` equivalent) and ensure APIs respond to expected SMS/WhatsApp payloads; capture logs for every audit run.
 - Accessibility: use `axe-core` or `pa11y` against key templates (`templates/portal/*`, `templates/teacher/*`, `templates/finance/*`) and store the reports in `docs/qa-reports/`.
 
+### Marketing site: Lighthouse & pa11y (public URLs)
+- **Purpose:** Catch performance and a11y regressions on the marketing landing and key pages before deploy.
+- **URLs to test:** `/` (home), `/pricing/`, `/product/`, `/book-demo/`, optionally `/solutions/`, `/why-switch/`.
+- **Lighthouse:** Run in CI or pre_deploy (e.g. `npx lighthouse https://<staging>/ --output=json --output-path=./docs/qa-reports/lighthouse-home.json --chrome-flags="--headless"`). Fail or warn if Performance score &lt; threshold or Accessibility score &lt; 90.
+- **pa11y:** `npx pa11y https://<staging>/` (and other URLs); store results in `docs/qa-reports/` and fail on critical a11y violations. See [MARKETING_PAGE_AUDIT.md](MARKETING_PAGE_AUDIT.md) for WCAG/i18n gap logging.
+- **CI step (optional):** Add a job that starts the app (or uses a staging URL), runs Lighthouse/pa11y on the list above, and uploads artifacts. Runner is environment-specific; document the exact command in this file or in your CI config.
+
+### MFA checklist (full)
+1. **Enable MFA**: Admin → User → MFA setup (or `accounts:mfa_setup`); verify TOTP device registration.
+2. **Login with MFA**: After login, prompt for OTP; verify rejection of invalid OTP.
+3. **Passkey (WebAuthn)**: `apps/accounts/views_passkey.py`; register passkey, login with passkey; fallback to password.
+4. **Bypass**: Superuser/staff can have MFA optional per policy; document in admin QA.
+
+### Pen-test checklist (full)
+1. **Static analysis**: `bandit -r apps/ config/`; fix high/medium; document suppressions.
+2. **Dependency scan**: `pip audit` or `safety check`; update vulnerable deps.
+3. **Auth**: No unauthenticated access to tenant data; verify `login_required` / RBAC on all sensitive views.
+4. **APIs**: SMS/WhatsApp webhooks validate signature; no PII in logs; rate limits on public endpoints.
+5. **OWASP Top 10**: Document mitigation for injection, XSS, broken auth, sensitive data exposure, XML external entities, misconfig, XSS, insecure deserialization, known vulns, logging/monitoring.
+6. **Run**: Quarterly pen-test run; store results in `docs/qa-reports/pen-test-YYYY-MM.md`.
+
 ### Metrics to track
 - Weekly regression pass/fail summary.
 - Outstanding vulnerabilities (OWASP top 10).

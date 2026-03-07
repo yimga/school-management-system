@@ -1,5 +1,6 @@
 """
-Student 360: timeline feed, aggregation summary, and permission-gated export pack (RunMyCampus blueprint B1, 26.1).
+Student 360: timeline feed, aggregation summary, permission-gated export pack,
+and immutable transcript + cross-year archive (Section 15.1).
 """
 from __future__ import annotations
 
@@ -119,3 +120,94 @@ def export_student_pack(
         return export_student_data_portability(school_id, student_id, format=format)
     except Exception:
         return None
+
+
+def build_transcript_snapshot(student, academic_year) -> Optional[Dict[str, Any]]:
+    """
+    Build a JSON-serializable transcript snapshot for one student and academic year.
+    Uses reports.annual_report_context; strips model instances so the result is storable in JSONField.
+    Returns None if reports/evals data is unavailable.
+    """
+    try:
+        from django.apps import apps
+        if not apps.is_installed("reports"):
+            return None
+        from apps.reports.services import annual_report_context
+
+        ctx = annual_report_context(student, academic_year)
+        # Make JSON-serializable: replace Term objects with minimal dicts
+        terms = ctx.get("terms") or []
+        terms_data = [{"id": t.id, "label": getattr(t, "label", str(t)), "name": getattr(t, "name", "")} for t in terms]
+        snapshot = {
+            "academic_year_id": academic_year.id,
+            "academic_year_name": getattr(academic_year, "name", ""),
+            "student_id": student.id,
+            "student_name": getattr(student, "display_name", None) or f"{getattr(student, 'first_name', '')} {getattr(student, 'last_name', '')}".strip() or str(student),
+            "term_rows": ctx.get("term_rows") or [],
+            "terms": terms_data,
+            "annual_average": ctx.get("annual_average"),
+            "class_position": ctx.get("class_position"),
+            "class_size": ctx.get("class_size"),
+            "class_rank_display": ctx.get("class_rank_display"),
+            "specialty_position": ctx.get("specialty_position"),
+            "specialty_size": ctx.get("specialty_size"),
+            "specialty_rank_display": ctx.get("specialty_rank_display"),
+            "school_position": ctx.get("school_position"),
+            "school_size": ctx.get("school_size"),
+            "school_rank_display": ctx.get("school_rank_display"),
+            "promotion_status": ctx.get("promotion_status"),
+            "promotion_average": ctx.get("promotion_average"),
+            "demotion_average": ctx.get("demotion_average"),
+            "teacher_remark": ctx.get("teacher_remark"),
+            "labels": ctx.get("labels"),
+            "metadata": ctx.get("metadata"),
+        }
+        # Optional: format scores for region via TranscriptLocalizer
+        try:
+            from apps.reports.localization import get_transcript_localizer
+            region_code = None
+            if getattr(student, "school", None):
+                region_code = getattr(student.school, "region_code", None) or getattr(student.school, "region", None)
+            loc = get_transcript_localizer(region_code=region_code)
+            snapshot["region"] = loc.region.name if loc.region else "Default"
+            snapshot["language"] = loc.language
+        except Exception:
+            snapshot["region"] = None
+            snapshot["language"] = "en"
+        return snapshot
+    except Exception:
+        return None
+
+
+def create_immutable_transcript(student, academic_year, created_by=None):
+    """
+    Freeze current transcript for this student and academic year into ImmutableTranscript.
+    If a snapshot already exists for (student, academic_year), it is replaced (re-freeze).
+    Returns the ImmutableTranscript instance or None on failure.
+    """
+    try:
+        from .models import ImmutableTranscript
+        snapshot = build_transcript_snapshot(student, academic_year)
+        if not snapshot:
+            return None
+        obj, _ = ImmutableTranscript.objects.update_or_create(
+            student=student,
+            academic_year=academic_year,
+            defaults={"snapshot": snapshot, "created_by": created_by},
+        )
+        return obj
+    except Exception:
+        return None
+
+
+def get_immutable_transcripts_for_student(student):
+    """Return immutable transcripts for a student, newest academic year first (cross-year archive)."""
+    try:
+        from .models import ImmutableTranscript
+        return list(
+            ImmutableTranscript.objects.filter(student=student)
+            .select_related("academic_year", "created_by")
+            .order_by("-academic_year__start_date", "-created_at")
+        )
+    except Exception:
+        return []

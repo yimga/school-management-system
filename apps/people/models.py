@@ -493,10 +493,14 @@ class StudentProfile(models.Model):
         return "00"
 
     @classmethod
-    def _get_admissions_policy(cls, school=None):
-        """Single read path for admissions config: from policy (school) or SiteSettings fallback."""
+    def _get_admissions_policy(cls, school=None, policy=None):
+        """Single read path for admissions config: from policy (request.tenant_runtime.policy or policy_registry) or SiteSettings fallback."""
+        if policy is not None and isinstance(policy, dict):
+            adm = policy.get("admissions") or {}
+            if adm:
+                return adm
         if school is not None:
-            from apps.policies.resolver import get_effective_policy
+            from apps.policies.policy_registry import get_effective_policy
             policy = get_effective_policy(school)
             adm = policy.get("admissions") or {}
             if adm:

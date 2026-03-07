@@ -117,6 +117,10 @@ def dashboard_registry_api(request):
     school = getattr(request, "school", None)
     role = (request.GET.get("role") or getattr(request.user, "role", None) or "").strip() or None
     page = (request.GET.get("page") or "").strip() or None
-    dash = dashboard_for_role(school, role, user=request.user, page=page or "backend", include_registry=True)
+    runtime = getattr(request, "tenant_runtime", None)
+    if runtime is not None and getattr(runtime, "_school", None):
+        dash = runtime.dashboard_for(role=role, user=request.user, page=page or "backend", include_registry=True)
+    else:
+        dash = dashboard_for_role(school, role, user=request.user, page=page or "backend", include_registry=True)
     data = dash.get("registry") or {}
     return JsonResponse(data)

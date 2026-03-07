@@ -50,7 +50,7 @@ def get_education_dna(school=None, region_code: str | None = None) -> dict[str, 
                 pass
         if not code:
             try:
-                from apps.policies.resolver import get_effective_policy
+                from apps.policies.policy_registry import get_effective_policy
                 code = get_effective_policy(school).get("education_dna_preset")
             except Exception:
                 pass

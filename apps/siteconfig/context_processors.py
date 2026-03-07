@@ -12,7 +12,7 @@ from apps.accounts.models import User
 from apps.finance.models import Notification
 from .preview_state import PREVIEW_MODE_SESSION_KEY, ACT_AS_ROLE_SESSION_KEY
 from .portal_sidebar_items import build_portal_sidebar_items
-from apps.policies.resolver import get_effective_policy
+from apps.policies.policy_registry import get_effective_policy
 
 
 def _get_portal_sidebar_items(request, site):
@@ -465,6 +465,8 @@ def site_settings(request):
     public_host_kind = getattr(request, "public_host_kind", None)
     public_brand_mode = (public_host_kind in {"base", "verify", "support", "manager"}) and not school
     ctx["PUBLIC_BRAND_MODE"] = public_brand_mode
+    path = (request.path or "").strip()
+    ctx["CONTROL_PLANE_SHELL"] = public_host_kind == "manager" and path.startswith("/super/")
     ctx["PUBLIC_BRAND_NAME"] = "RunMyCampus"
     ctx["PUBLIC_BRAND_DOMAIN"] = "runmycampus.com"
     ctx["PUBLIC_BRAND_TAGLINE"] = "THE POWERHOUSE OF SCHOOL MANAGEMENT"

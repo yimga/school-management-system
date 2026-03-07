@@ -1155,6 +1155,71 @@ class RefundRequest(models.Model):
         return f"Refund: {self.payment.reference_number or self.payment.id} - {self.amount}"
 
 
+class PaymentDispute(models.Model):
+    """
+    Full dispute flow for payments: raise, review, resolve (refund or no refund).
+    Phase 9: Payments — full dispute, reconciliation, payout automation.
+    """
+    class Status(models.TextChoices):
+        OPEN = "OPEN", "Open"
+        UNDER_REVIEW = "UNDER_REVIEW", "Under review"
+        RESOLVED_REFUND = "RESOLVED_REFUND", "Resolved (refund issued)"
+        RESOLVED_NO_REFUND = "RESOLVED_NO_REFUND", "Resolved (no refund)"
+        CLOSED = "CLOSED", "Closed"
+
+    class Reason(models.TextChoices):
+        DUPLICATE = "DUPLICATE", "Duplicate charge"
+        NOT_RECEIVED = "NOT_RECEIVED", "Service not received"
+        INCORRECT_AMOUNT = "INCORRECT_AMOUNT", "Incorrect amount"
+        FRAUD = "FRAUD", "Suspected fraud"
+        OTHER = "OTHER", "Other"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    payment = models.ForeignKey(
+        Payment,
+        on_delete=models.CASCADE,
+        related_name="disputes",
+    )
+    region = models.ForeignKey(
+        "siteconfig.RegionConfig",
+        on_delete=models.CASCADE,
+        related_name="payment_disputes",
+    )
+    status = models.CharField(
+        max_length=24,
+        choices=Status.choices,
+        default=Status.OPEN,
+        db_index=True,
+    )
+    reason = models.CharField(max_length=24, choices=Reason.choices)
+    description = models.TextField()
+    raised_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="raised_disputes",
+    )
+    resolved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="resolved_disputes",
+    )
+    resolved_at = models.DateTimeField(null=True, blank=True)
+    resolution_notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Payment dispute"
+        verbose_name_plural = "Payment disputes"
+
+    def __str__(self) -> str:
+        return f"Dispute {self.id} — {self.payment} ({self.get_status_display()})"
+
+
 class PaymentReconciliation(models.Model):
     STATUS_CHOICES = [
         ("pending", "Pending"),

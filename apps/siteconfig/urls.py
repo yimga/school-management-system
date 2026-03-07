@@ -38,6 +38,7 @@ from .views_dashboard_config import (
     dashboard_hub,
     workflow_hub,
     workflow_flow_gallery,
+    get_blueprints,
 )
 from .views_workflow_api import (
     workflow_catalog_api,
@@ -57,6 +58,8 @@ from .views_sync_center import sync_center, sync_center_resolve
 from .views_school_theme import school_theme_settings
 from .views_tag_manager import tag_manager, tag_manager_edit
 from .views_impersonation_consent import grant_impersonation_consent, revoke_impersonation_consent
+from .views_form_draft import form_draft_api
+from .views import feedback_roadmap
 from apps.schools.views_domains import custom_domain_wizard
 
 app_name = "siteconfig"
@@ -93,6 +96,7 @@ urlpatterns = [
     path("dashboard-configuration/", dashboard_configuration_hub, name="dashboard_configuration_hub"),
     path("workflow-hub/", workflow_hub, name="workflow_hub"),
     path("workflow-gallery/", workflow_flow_gallery, name="workflow_flow_gallery"),
+    path("get-blueprints/", get_blueprints, name="get_blueprints"),
     path("request-waiver/", request_waiver, name="request_waiver"),
     path("request-custom-requirement/", request_custom_requirement, name="request_custom_requirement"),
     path("sync-center/", sync_center, name="sync_center"),
@@ -109,9 +113,11 @@ urlpatterns = [
     path("api/workflow/run/", workflow_run_api, name="workflow_run_api"),
     path("api/workflow/preview/", workflow_preview_api, name="workflow_preview_api"),
     path("api/dashboard-registry/", dashboard_registry_api, name="dashboard_registry_api"),
+    path("api/form-draft/<str:form_key>/", form_draft_api, name="form_draft_api"),
     path("app-sandbox/", marketplace_sandbox_embed, name="marketplace_sandbox_embed"),
     path("support-copilot/", support_copilot_view, name="support_copilot"),
     path("guided-onboarding/", guided_onboarding_view, name="guided_onboarding"),
     path("impersonation-consent/grant/", grant_impersonation_consent, name="grant_impersonation_consent"),
     path("impersonation-consent/revoke/", revoke_impersonation_consent, name="revoke_impersonation_consent"),
+    path("feedback-roadmap/", feedback_roadmap, name="feedback_roadmap"),
 ]

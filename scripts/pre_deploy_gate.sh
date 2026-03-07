@@ -21,6 +21,9 @@ python manage.py test apps.siteconfig.tests.test_theme_visibility_matrix -v 1
 echo "[pre_deploy_gate] Phase checks (targeted tests)"
 python manage.py test apps.siteconfig.tests.test_admin_ui_smoke apps.api.tests.test_dashboard_api_rbac -v 1
 
+echo "[pre_deploy_gate] Phase 7 core workflow regression (qa.md, automation.md)"
+python manage.py test_core_workflows
+
 echo "[pre_deploy_gate] Multi-tenant coverage checks"
 # Run only tests that are committed on main (omit test_global_catalog, test_tenant_audit if not yet merged)
 python manage.py test \

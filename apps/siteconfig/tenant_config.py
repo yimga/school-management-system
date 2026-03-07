@@ -432,6 +432,11 @@ def sync_tenant_modules_to_school_features(school, *, persist: bool = True) -> d
             current[k] = v
         school.features = current
         school.save(update_fields=["features", "updated_at"])
+        try:
+            from apps.policies.policy_registry import invalidate_policy_cache
+            invalidate_policy_cache(school)
+        except Exception:
+            pass
     return features
 
 
@@ -762,6 +767,11 @@ def persist_compiled_tenant_config(
 
     school.settings = settings
     school.save(update_fields=["settings", "updated_at"])
+    try:
+        from apps.policies.policy_registry import invalidate_policy_cache
+        invalidate_policy_cache(school)
+    except Exception:
+        pass
     return compiled
 
 
@@ -820,6 +830,11 @@ def apply_tenant_settings_overrides(
         settings.update(applied)
         school.settings = settings
         school.save(update_fields=["settings", "updated_at"])
+        try:
+            from apps.policies.policy_registry import invalidate_policy_cache
+            invalidate_policy_cache(school)
+        except Exception:
+            pass
         saved = True
 
     return {

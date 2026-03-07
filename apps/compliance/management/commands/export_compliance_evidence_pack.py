@@ -26,7 +26,7 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 
-from apps.policies.resolver import get_effective_policy
+from apps.policies.policy_registry import get_effective_policy
 
 
 def _write_json(path: Path, payload: Any) -> None:

@@ -49,7 +49,7 @@
 
 - [x] Grading settings use get_grading_scale_choices_for_school(school); no country names in tenant form.
 - [x] No country logic in tenant-facing evals/admissions/reports; control-plane/signup keep country by design.
-- [ ] hardcoding_sweep_phase2.md added; checklist 24.1, 24.2 confirmed (e.g. FINDINGS_REPO_AUDIT.md or a short “hardcoding_sweep” note); checklist 24.1, 24.2 confirmed [x].
+- [x] hardcoding_sweep_phase2.md added; checklist 24.1, 24.2 confirmed (e.g. FINDINGS_REPO_AUDIT.md or a short “hardcoding_sweep” note); checklist 24.1, 24.2 confirmed [x].
 
 **Checklist to update:** Section 24.1, 24.2.
 
@@ -65,9 +65,9 @@
 
 **Done when:**
 
-- [ ] Remaining forms that need policy (e.g. key tenant-facing forms) use `apply_form_policy` / `get_form_schema` (or equivalent); choices from catalog/policy where applicable.
-- [ ] POLICY_USE_BUNDLES, POLICY_CACHE_TTL (and optional env from phase7) documented and used where intended.
-- [ ] Checklist 24.8 marked [x] with a short note; any deferred bits documented in phase7_deferred_rules or similar.
+- [x] Remaining forms that need policy (e.g. key tenant-facing forms) use `apply_form_policy` / `get_form_schema` (or equivalent); choices from catalog/policy where applicable. Key forms: LinkChildForm, StudentOnboardingForm; pattern documented in phase3_metadata_driven_forms_24_8_23_4.md § Remaining forms.
+- [x] POLICY_USE_BUNDLES, POLICY_CACHE_TTL (and optional env from phase7) documented and used where intended. See phase7_deferred_rules_24_12_to_24_15.md and .env.example; resolver uses both in apps/policies/resolver.py.
+- [x] Checklist 24.8 marked [x] with a short note; any deferred bits documented in phase7_deferred_rules or similar.
 
 **Checklist to update:** Section 24.8.
 
@@ -83,9 +83,9 @@
 
 **Done when:**
 
-- [ ] Workflow hub: tenant-facing UI to browse/select/customize workflows (within guardrails); preview/staging; rollback; no duplicated workflow logic across apps (all via workflow_resolver/hub).
-- [ ] Dashboard hub: tenant-facing UI to compose/assign dashboards by role; no duplicated dashboard composition logic across apps (all via dashboard_resolver/hub).
-- [ ] Docs and checklist updated; implementation notes no longer say “full workflow/dashboard hubs deferred”.
+- [x] Workflow hub: tenant-facing UI to browse/select/customize workflows (within guardrails); preview/staging; rollback; no duplicated workflow logic across apps (all via workflow_resolver/hub).
+- [x] Dashboard hub: tenant-facing UI to compose/assign dashboards by role; no duplicated dashboard composition logic across apps (all via dashboard_resolver/hub).
+- [x] Docs and checklist updated; implementation notes no longer say “full workflow/dashboard hubs deferred”.
 
 **Checklist to update:** Section 5, 12, 24.3, 24.4; implementation notes in RUNMYCAMPUS_CONSOLIDATED_ARCHITECTURE_AND_REFACTOR.md.
 
@@ -104,7 +104,7 @@
 - [x] Middleware: tenant resolution, control vs tenant split, FeatureGateMiddleware; TenantContextMiddleware (23.1).
 - [x] Context processor: global_env / tenant_ctx in templates (23.2).
 - [x] Views/ViewSets: get_tenant_blueprint, workflow_resolver, dashboard_resolver (23.3).
-- [ ] Forms/Serializers: policy-driven visibility, required/optional, picker options, validation (23.4).
+- [x] Forms/Serializers: policy-driven visibility, required/optional, picker options, validation (23.4). Key forms (LinkChildForm, StudentOnboardingForm) use apply_form_policy; form_policy and get_form_schema in use; remaining forms documented in phase3_metadata_driven_forms_24_8_23_4.md.
 - [x] Services: policy only; no direct settings (23.5).
 - [x] Templates: global_env, tenant_ctx (23.6).
 - [x] Signals / DRF permissions: audit signals, capability gates (23.7).
@@ -308,7 +308,7 @@
 
 **Done when:**
 
-- [ ] Scope implemented or roadmap documented; checklist Section 15 updated.
+- [x] Scope implemented or roadmap documented; checklist Section 15 updated. See docs/architecture/section_15_scope_implemented_and_roadmap.md (15.1 Student 360 services + roadmap for full UI/transcript; 15.2 DynamicField roadmap; 15.3 global ledger partial + payment plans/double-entry roadmap).
 
 **Checklist to update:** Section 15.
 

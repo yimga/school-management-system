@@ -4,19 +4,22 @@ Used when request.urlconf is set to this module by UrlConfSwitcherMiddleware.
 """
 from django.conf import settings
 from django.conf.urls.static import static
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.urls import include, path
 
 from apps.observability import views as obs_views
 from apps.schools.error_views import school_not_found_public
 from apps.schools.marketing_views import (
     blog_post_detail,
+    buyer_toolkit_download,
     developer_portal,
     developer_sdk,
     developer_sandbox,
+    marketing_funnel_dashboard,
     marketing_landing,
     regional_marketing_landing,
     marketing_page,
+    submit_demo_request,
     topical_marketing_landing,
     marketing_robots_txt,
     marketing_sitemap_xml,
@@ -76,11 +79,16 @@ urlpatterns = [
     path("pricing/", marketing_page, {"page_slug": "pricing"}, name="marketing_pricing"),
     path("compare/", marketing_page, {"page_slug": "compare"}, name="marketing_compare"),
     path("case-studies/", marketing_page, {"page_slug": "case-studies"}, name="marketing_case_studies"),
+    path("customers/", lambda req: redirect("marketing_case_studies", permanent=False), name="marketing_customers"),
     path("security-compliance/", marketing_page, {"page_slug": "security-compliance"}, name="marketing_security_compliance"),
     path("integrations/", marketing_page, {"page_slug": "integrations"}, name="marketing_integrations"),
     path("book-demo/", marketing_page, {"page_slug": "book-demo"}, name="marketing_book_demo"),
+    path("book-demo/submit/", submit_demo_request, name="marketing_book_demo_submit"),
     path("demo/", marketing_page, {"page_slug": "demo"}, name="marketing_demo"),
     path("interactive-preview/", marketing_page, {"page_slug": "interactive-preview"}, name="marketing_interactive_preview"),
+    path("buyer-toolkit/", marketing_page, {"page_slug": "buyer-toolkit"}, name="marketing_buyer_toolkit"),
+    path("buyer-toolkit/download/<str:document>/", buyer_toolkit_download, name="marketing_buyer_toolkit_download"),
+    path("funnel-dashboard/", marketing_funnel_dashboard, name="marketing_funnel_dashboard"),
     path("about/", marketing_page, {"page_slug": "about"}, name="marketing_about"),
     path("features/", marketing_page, {"page_slug": "features"}, name="marketing_features"),
     path("blog/", marketing_page, {"page_slug": "blog"}, name="marketing_blog"),
@@ -96,6 +104,7 @@ urlpatterns = [
     path("contact/", marketing_page, {"page_slug": "contact"}, name="marketing_contact"),
     path("privacy/", marketing_page, {"page_slug": "privacy"}, name="marketing_privacy"),
     path("terms/", marketing_page, {"page_slug": "terms"}, name="marketing_terms"),
+    path("cookie-policy/", marketing_page, {"page_slug": "cookie-policy"}, name="marketing_cookie_policy"),
     path("solutions/<str:topic_slug>/", topical_marketing_landing, name="marketing_topic"),
     path("cm/", regional_marketing_landing, {"country_code": "CM", "language_code": "fr"}, name="marketing_cm"),
     path("ca/", regional_marketing_landing, {"country_code": "CA", "language_code": "en"}, name="marketing_ca"),

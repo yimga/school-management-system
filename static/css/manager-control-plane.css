@@ -613,3 +613,45 @@
     width: 100%;
   }
 }
+
+/* ========== Layout: prevent overflow on all viewports ========== */
+.cp-layout {
+  min-width: 0;
+}
+.cp-main-col {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+.cp-sidebar-col {
+  min-width: 0;
+}
+
+/* ========== Navbar: responsive brand and actions ========== */
+.cp-navbar .navbar-brand {
+  font-size: clamp(0.95rem, 2vw, 1.1rem);
+}
+@media (max-width: 991.98px) {
+  .cp-navbar .container-fluid {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+}
+@media (max-width: 575.98px) {
+  .cp-navbar .navbar-brand span {
+    font-size: 0.9rem;
+  }
+}
+
+/* ========== Search results dropdown: clickable items ========== */
+#cpSearchResults.dropdown-menu .dropdown-item {
+  padding: 0.75rem 1rem;
+  white-space: normal;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+#cpSearchResults.dropdown-menu .dropdown-item:last-child {
+  border-bottom: none;
+}
+#cpSearchResults.dropdown-menu .dropdown-item:hover,
+#cpSearchResults.dropdown-menu .dropdown-item:focus {
+  background-color: rgba(255, 255, 255, 0.1);
+}

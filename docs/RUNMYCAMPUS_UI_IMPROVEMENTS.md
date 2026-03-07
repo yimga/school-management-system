@@ -2,6 +2,8 @@
 
 Backlog of improvements and visual upgrades for the RunMyCampus platform (manager/super-admin) and tenant surfaces, including optional "powerhouse" upgrades.
 
+**Status:** All previously backlog items in this doc are **Done**. Command palette (Ctrl+K), PDF export, and per-user saved layout (DB) are implemented. Use the sections below as design guidance for future polish.
+
 ---
 
 ## 1. Layout & Information Architecture
@@ -94,7 +96,7 @@ Implemented or planned on the super dashboard:
 - **Implementation**: 
   - **Schools list**: Export as CSV (name, slug, subdomain, template/systems, domain, status, provisioning, students, teachers, members, last activity). URL e.g. `GET /super/export/schools.csv?month=YYYY-MM` (month optional for future use).
   - **Revenue by country**: Export as CSV for the selected month (country_code, actual, waived). URL e.g. `GET /super/export/revenue.csv?month=YYYY-MM`.
-  - **Future**: PDF summary report (single page with North Star + financial + operational summary).
+  - **Done**: PDF summary report at `GET /super/export/summary.pdf?month=YYYY-MM` (North Star + financial + operational snapshot).
 
 ---
 
@@ -109,6 +111,6 @@ Implemented or planned on the super dashboard:
 | Empty state CTA (no schools) | Done |
 | Modular sections (localStorage toggles) | Done |
 | Platform navy/gold in backend when PUBLIC_BRAND_MODE | Done |
-| Command palette / global search | Backlog |
-| PDF export | Backlog |
-| Per-user saved layout (DB) | Backlog |
+| Command palette / global search | Done (Ctrl+K in control plane; manager search API returns nav + schools + incidents + subscriptions; empty query shows shortcuts) |
+| PDF export | Done (`/super/export/summary.pdf`; reportlab one-page summary) |
+| Per-user saved layout (DB) | Done (SuperAdminDashboardPreference; GET/POST `/super/api/dashboard-layout/`; section order persisted per user) |

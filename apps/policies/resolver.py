@@ -194,6 +194,8 @@ def get_effective_policy(
             "security_weights_override",
             "security_grace_period_days",
             "provisioning",
+            "contact_email",
+            "term_preset",
         ):
             if key in settings:
                 out[key] = settings[key]

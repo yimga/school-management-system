@@ -42,10 +42,11 @@ Audit of every injection point. Use this table to verify or extend policy/bluepr
 
 | Concern | File / function | Notes |
 |--------|------------------|--------|
-| Policy for request (tenant_policy) | Views pass policy from get_tenant_blueprint(request) or get_effective_policy(school) | portal.views (link_child, onboarding), portal.views_onboarding, evals.views (marksheet, grade approval), siteconfig.views (grading_settings) |
-| workflow_resolver | `apps.siteconfig.workflow_resolver` — for_action(school, action_slug), get_approval_workflow(school, workflow_key) | academics.views_syllabus (get_approval_workflow "syllabus_approval"); evals (grade_approval via approval module) |
-| dashboard_resolver | `apps.siteconfig.dashboard_resolver.for_role(school, role, user=..., include_registry=...)` | portal.views (dashboard_for_role for backend); evals.views (dashboard_for_role for teacher dashboard); siteconfig.views_workflow_api (dashboard_registry_api) |
-| terminology | Via global_env.terminology or policy["terminology"] in views/forms | No separate terminology_resolver; terminology in global_env / policy |
+| **Preferred: request.tenant_runtime** | Single object: `request.tenant_runtime.policy`, `.workflow_for(action_slug)`, `.dashboard_for(role, user=request.user)` | Use when request is available. Set by TenantRuntimeMiddleware after TenantContextMiddleware. One consistent injection path (runtime constitution). |
+| Policy for request (fallback) | Views pass policy from get_tenant_blueprint(request) or get_effective_policy(school) when tenant_runtime not used | portal.views (link_child, onboarding), portal.views_onboarding, evals.views (marksheet, grade approval), siteconfig.views (grading_settings) |
+| workflow_resolver | `apps.siteconfig.workflow_resolver` or `request.tenant_runtime.workflow_for()` / `.get_approval_workflow()` | academics.views_syllabus; evals (grade_approval); TenantRuntime delegates to workflow_resolver |
+| dashboard_resolver | `apps.siteconfig.dashboard_resolver.for_role(...)` or `request.tenant_runtime.dashboard_for(role, user=...)` | portal.views; evals.views; siteconfig.views_workflow_api; TenantRuntime delegates to dashboard_resolver |
+| terminology | Via global_env.terminology or request.tenant_runtime.policy["terminology"] | No separate terminology_resolver; terminology in global_env / policy |
 
 ---
 

@@ -62,8 +62,8 @@ def support_request(request):
         if school:
             try:
                 from apps.siteconfig.models import GlobalSupportTicket
-                from apps.policies.resolver import get_effective_policy
-                policy = get_effective_policy(school)
+                from apps.portal.runtime_helpers import get_policy_for_request
+                policy = get_policy_for_request(request)
                 plan_slug = (policy.get("plan_slug") or "").strip().lower()
                 country_code = (policy.get("country_code") or "")[:2]
                 priority = GlobalSupportTicket.Priority.NORMAL

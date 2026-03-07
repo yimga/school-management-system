@@ -441,6 +441,12 @@ class SiteSettings(models.Model):
     # Branding
     site_name = models.CharField(max_length=120, default="School System")
     tagline = models.CharField(max_length=200, blank=True, default="Knowledge ƒ?› Technology ƒ?› Excellence")
+    meta_description = models.CharField(
+        max_length=320,
+        blank=True,
+        default="",
+        help_text="Optional SEO meta description for pages (used in base/portal_base templates).",
+    )
     logo = models.ImageField(upload_to="branding/", blank=True, null=True)
     logo_opacity = models.FloatField(
         default=0.3,
@@ -1896,6 +1902,45 @@ class UserPreference(models.Model):
 
     def __str__(self) -> str:
         return f"{self.user.username} preferences"
+
+
+class FormDraft(models.Model):
+    """
+    Section 26.5: Save draft for long tenant-facing forms (application, onboarding, etc.).
+    One draft per (school, user, form_key); data is JSON form state; updated_at for expiry.
+    """
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="form_drafts",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="form_drafts",
+    )
+    form_key = models.CharField(
+        max_length=80,
+        db_index=True,
+        help_text="Form identifier, e.g. backend_student_create, application_form.",
+    )
+    data = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Serialized form field values (safe to rehydrate into form).",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "siteconfig"
+        verbose_name = "Form draft"
+        verbose_name_plural = "Form drafts"
+        unique_together = [["school", "user", "form_key"]]
+        ordering = ["-updated_at"]
+
+    def __str__(self) -> str:
+        return f"{self.form_key} ({self.user_id})"
 
 
 REPORT_EXPORT_HANDLERS = {}

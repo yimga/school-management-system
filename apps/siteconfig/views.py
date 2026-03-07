@@ -23,7 +23,7 @@ from django.views.decorators.clickjacking import xframe_options_exempt, xframe_o
 from apps.academics.models import Classroom
 from apps.academics.services import get_active_year_and_term
 from apps.people.models import StudentProfile
-from apps.policies.resolver import get_effective_policy
+from apps.policies.policy_registry import get_effective_policy
 from apps.reports.models import ReportCard
 from apps.reports.services import (
     GLOBAL_REPORT_LABELS,
@@ -349,6 +349,11 @@ def module_market(request):
                 features[code] = False
             school.features = features
             school.save(update_fields=["features", "updated_at"])
+            try:
+                from apps.policies.policy_registry import invalidate_policy_cache
+                invalidate_policy_cache(school)
+            except Exception:
+                pass
             set_toggle_state(
                 f"module.{code}",
                 enabled=bool(features[code]),
@@ -1502,4 +1507,24 @@ def admission_number_preview_api(request):
     return JsonResponse(
         {"preview": preview, "policy": {"strategy": policy.get("admission_number_strategy"), "school_code": policy.get("school_code")}},
         safe=False,
+    )
+
+
+@login_required
+@staff_member_required
+def feedback_roadmap(request):
+    """Product feedback roadmap: Planned / In Development / Released (tagged by region/module)."""
+    from .models import ProductFeedback
+
+    planned = list(ProductFeedback.objects.filter(status=ProductFeedback.Status.PLANNED).order_by("-upvotes", "-created_at")[:50])
+    in_dev = list(ProductFeedback.objects.filter(status=ProductFeedback.Status.IN_DEVELOPMENT).order_by("-upvotes", "-created_at")[:50])
+    released = list(ProductFeedback.objects.filter(status=ProductFeedback.Status.RELEASED).order_by("-updated_at")[:50])
+    return render(
+        request,
+        "siteconfig/feedback_roadmap.html",
+        {
+            "planned": planned,
+            "in_development": in_dev,
+            "released": released,
+        },
     )

@@ -32,4 +32,10 @@ Part 0. Canonical list of tables created in **every new tenant schema**. Onboard
 
 1. Add the model to an app listed in **TENANT_APPS** (config/settings.py when USE_DJANGO_TENANTS).
 2. Run `python manage.py makemigrations <app>`.
-3. Deploy: run `migrate_schemas --shared` then `migrate_schemas --tenant` (or migrate_tenant_schemas_one_by_one). New tenants get the table via onboarding; existing tenants get it when tenant migrations run.
+3. Deploy: run `migrate_schemas --shared` then **`run_tenant_migrations`** (or `migrate_schemas --tenant` / `migrate_tenant_schemas_one_by_one`). New tenants get the table via onboarding; existing tenants get it when tenant migrations run.
+
+## Single entry point: run_tenant_migrations
+
+- **Command:** `python manage.py run_tenant_migrations [--noinput] [--skip-ensure-schemas]`
+- **Behavior:** Runs `ensure_tenant_schemas` (create missing PostgreSQL schemas for all Clients), then `migrate_schemas --tenant` to apply all TENANT_APPS migrations in each schema. Use in deploy or after adding migrations to bring every tenant schema up to date.
+- **Per-tenant failure isolation:** Use `migrate_tenant_schemas_one_by_one` instead if you want to log failures and continue with other tenants; see [MIGRATION_RUNNER_TENANT_SCHEMAS.md](MIGRATION_RUNNER_TENANT_SCHEMAS.md).

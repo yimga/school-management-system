@@ -97,6 +97,14 @@ RunMyCampus ecosystem architecture: the system-design view for Cursor, Codex, an
 4. **Workflow and orchestration layer** — Three levels: locked global default, configurable template, constrained custom. Model: Trigger → Conditions → Actions → Approvals → Audit. Applies to admissions, enrollment, grading, report publishing, fees, overdue, staff onboarding, leave, inventory, transport, parent comms, safeguarding, compliance evidence.
 5. **Ecosystem layer** — App marketplace, webhooks, APIs, LTI, OneRoster, SSO, developer portal, secure app sandbox, extension SDK, app installation lifecycle, app permission model, tenant app billing.
 
+## Runtime constitution (one contract, no split)
+
+The platform has **one runtime constitution**: one tenant runtime object, one blueprint registry, one policy resolver, one consistent injection path. Without it, the platform grows sideways and behavior diverges. Implemented as: **request.tenant_runtime** (TenantRuntime) after TenantContextMiddleware; **TenantBlueprint** + blueprint_services + TenantBlueprintResolver; **get_effective_policy(school)** and PolicyResolver (and related resolvers); injection at middleware, context processor, views, forms, services (Section 23). See `docs/architecture/ARCHITECTURE_OVERLAY_AND_RUNTIME_CONSTITUTION.md` for overlay-to-repo verification.
+
+## Migration cloud (first-class pillar)
+
+The **Migration cloud** is a named platform pillar for onboarding and data growth: import studio, field mapping, dry-run, scorecard, parity checker, rollback (see phase5_migration_cloud.md, phase8_migration_cloud_and_marketplaces.md). Control plane exposes it as a first-class entry (e.g. **Migration** in the superadmin menu) so operators and support can access migration tooling and docs. Tenant-facing migration (per-school import wizard) remains under accounts; superadmin can link to it and to runbooks.
+
 ---
 
 # Part C — Core Architectural Rule
@@ -105,6 +113,25 @@ RunMyCampus ecosystem architecture: the system-design view for Cursor, Codex, an
 
 - **Bad:** `if tenant.country == "CM":` / `elif tenant.country == "FR":` in views, services, or templates.
 - **Good:** `policy = blueprint_service.for_tenant(request.tenant)`; use `policy.academics.grading_strategy`, `policy.attendance.status_strategy`, `policy.admissions.admission_number_strategy`. Apps consume policy; they do not invent policy.
+
+---
+
+# Part C2 — External Dependency Strategy and Platform Sovereignty
+
+**Principle:** Own the core; abstract the edges. Minimise dependence on external vendors for core behaviour; keep internal design API-driven (clear service boundaries, resolvers, events).
+
+- **First-party vs third-party**
+  - **Core logic** (payments, SMS, OCR, AI, messaging, etc.) must live behind **adapters** (provider interfaces). App and workflow code call platform services (e.g. `send_notification`, `charge_payment`, `extract_document_fields`); implementations delegate to configured providers (Stripe, Titan, Azure OCR, OpenAI, etc.). No vendor-specific branching in core domain code.
+  - **Data ownership and fallback:** Tenant and platform data remain first-party; exports, backups, and analytics use internal contracts. When a provider is unavailable, the platform degrades gracefully (queued retries, fallback channel, or clear user-facing message), and no critical path depends on a single vendor without a documented fallback or circuit breaker.
+
+- **Internal API-driven design**
+  - Service boundaries (resolvers, workflow engine, policy registry, dashboard registry) define the internal API. New features extend these contracts rather than bypassing them. Event backbone (when implemented) carries domain events; subscribers and integrations consume events, not DB or vendor APIs directly.
+
+- **Modular monolith + provider abstraction**
+  - Single deployable codebase with clear module boundaries (Admissions, Finance, Evals, Communication, etc.). External integrations (payment gateways, SMS, email, AI, LTI, OneRoster) are implemented as **adapters** behind stable platform interfaces. Swapping or adding a provider is a configuration and adapter change, not a change to core app logic.
+
+- **Documentation and audit**
+  - Document which capabilities depend on which external providers; maintain a provider/contract inventory (payment, messaging, OCR, AI, SSO, etc.) and failure/fallback behaviour. See runbooks and `docs/architecture/` for per-integration notes.
 
 ---
 
@@ -280,7 +307,7 @@ Use this as the acceptance checklist. Every item should be accounted for in desi
 | 12.2 | Phase 2 | Separate control/tenant: manager.../super, tenant shells, public shell | [x] (host_routing + UrlConfSwitcherMiddleware; manager_urls, tenant_urls, public_urls; phase2_control_tenant_shells.md) |
 | 12.3 | Phase 3 | Kill hardcoding: country logic, fixed labels, workflow/finance/grade/attendance/admissions/branding → policy resolution | [x] (policy-only; media tenant-prefix; hardcoding_sweep_phase2.md; 24.1/24.2 verified) |
 | 12.4 | Phase 4 | Workflow hub and dashboard hub as platform services | [x] (workflow_resolver + dashboard_resolver; portal/evals/academics/views_workflow_api migrated; phase4_workflow_dashboard_hubs.md) |
-| 12.5 | Phase 5 | Migration cloud | [x] (MigrationRun model, dry-run in wizard, scorecard + parity; phase5_migration_cloud.md; rollback/legacy view deferred) |
+| 12.5 | Phase 5 | Migration cloud | [x] (MigrationRun model, dry-run, scorecard, parity, rollback_snapshot/trigger_rollback, legacy_data_cleaner, migration_legacy_view; phase5_migration_cloud.md, phase8_migration_cloud_and_marketplaces.md) |
 | 12.6 | Phase 6 | App and blueprint marketplace | [x] (BlueprintPack + apply flow; manager Blueprint marketplace & App catalog UIs; phase6_marketplace.md) |
 | 12.7 | Refactor waves | Tenancy cleanup → Blueprint foundation → Admissions refactor → Gradebook/attendance → Finance/comms → Dashboard/workflow → Marketplace → Control plane hardening | [x] (waves 1–7 verified; refactor_waves_12_7.md; control plane hardening done: require_super_access on all super views, SuperAdminRateLimitMiddleware 120/min, audit log for approve/create/impersonation/sync-repair, control_plane_runbooks.md) |
 
@@ -293,7 +320,7 @@ Use this as the acceptance checklist. Every item should be accounted for in desi
 | Id   | Requirement | Status |
 |------|-------------|--------|
 | 13.1 | Full refactor map: every Django app, key models, model dependencies, routing and tenancy flow, config/policy/workflow/dashboard injection points, hardcoding hotspots, where to refactor first, what stays, what must split | [x] (this doc + FINDINGS_REPO_AUDIT.md; phase11, phase12, phase13_refactor_map_section_13.md) |
-| 13.2 | Architecture map pack: apps.txt, urls.txt, migrations.txt, models.png, tenancy.md, policy_injection.md | [x] (models.png optional; rest present — phase13_refactor_map_section_13.md) |
+| 13.2 | Architecture map pack: apps.txt, urls.txt, migrations.txt, models.png, tenancy.md, policy_injection.md | [x] (models.png optional by decision; rest present — phase13_refactor_map_section_13.md; see Deferred and optional items register) |
 | 13.3 | Repo inventory commands and tenant routing doc | [x] (tenancy.md, phase9_domain_and_routing.md) |
 | 13.4 | Mermaid diagram: request flow + tenant resolution + DB schema | [x] (docs/architecture/request_flow_tenant_resolution.mmd) |
 
@@ -414,7 +441,7 @@ Use this as the acceptance checklist. Every item should be accounted for in desi
 |------|--------|-------------|--------|
 | 23.1 | Middleware | Tenant resolution, control vs tenant split, blueprint hydration, request metadata, security/compliance gates, feature-flag evaluation | [x] |
 | 23.2 | Context processor | Inject resolved global_env / tenant_ctx into templates | [x] |
-| 23.3 | Views/ViewSets | request.tenant_policy, workflow_resolver.for_action, dashboard_resolver.for_role, terminology_resolver.for_request | [x] (tenant_ctx + global_env; workflow_resolver + dashboard_resolver in use; portal/evals/academics/views_workflow_api call hubs) |
+| 23.3 | Views/ViewSets | request.tenant_ctx, request.tenant_runtime (.policy), workflow_resolver.for_action, dashboard_resolver.for_role, terminology from policy | [x] (tenant_ctx + tenant_runtime + global_env; workflow_resolver + dashboard_resolver in use; portal/evals/academics/views_workflow_api call hubs) |
 | 23.4 | Forms/Serializers | Policy-driven field visibility, required/optional, picker options, document requirements, validation rules, default values | [x] (form_policy.apply_form_policy; get_form_schema; choices_key catalog; LinkChildForm + StudentOnboardingForm wired; phase3_metadata_driven_forms_24_8_23_4.md) |
 | 23.5 | Services | Receive tenant context, blueprint, policy snapshot, workflow definition; no direct settings in business code | [x] |
 | 23.6 | Templates | Resolved labels, layout, branding, actions/components | [x] |
@@ -677,6 +704,22 @@ Completion requirement:
 
 ---
 
+# Deferred and optional items register (nothing left behind)
+
+Every optional or deferred sub-item is listed here so nothing is untracked. Main checklist items (6.3, 11.2, 13.2, 29.10) remain [x] for their defined scope; refinements are below.
+
+| Checklist | Item | Type | Decision / next step | Where tracked |
+|-----------|------|------|----------------------|---------------|
+| **13.2** | models.png | Optional | Not required for completion. Architecture map pack is satisfied by apps.txt, urls.txt, migrations.txt, tenancy.md, policy_injection.md. | phase13_refactor_map_section_13.md § 13.2 |
+| **11.2** | Blueprint marketplace — tenant-facing “Get blueprints” | Deferred refinement | Manager UI and apply_blueprint_pack done; tenant backend entry for “Get blueprints” / pack discovery deferred. | REMAINING_PLAN_AUDIT_GAPS.md § 11.2 |
+| **11.2** | Blueprint pack versioning / compatibility matrix (tenant-facing) | Deferred refinement | Pack version and applied_pack_version in place; tenant-facing update/version UI deferred. | phase6_marketplace.md; REMAINING_PLAN_AUDIT_GAPS.md § 11.2 |
+| **6.3** | Tenant app billing (wire app installs to billing) | Deferred refinement | Install pipeline, AppAuditLog, can/limits done; per-school charge for installed app (proration, invoice line) to be wired. | REMAINING_PLAN_AUDIT_GAPS.md § 6.3 |
+| **29.10** | Commercial — tenant app billing wiring | Deferred refinement | Same as 6.3; commercial platform trials/signup/billing done; app-level billing wiring deferred. | REMAINING_PLAN_AUDIT_GAPS.md § 6.3 |
+
+All of the above are either **optional by decision** (13.2 models.png) or **deferred refinements** with a clear next step and a single tracking doc (**REMAINING_PLAN_AUDIT_GAPS.md**). No item is left without a reference.
+
+---
+
 ## Implementation note (2026-03-06)
 
 - Checklist Sections 1, 2, 3, 4, 7, 13, 19, 23, 27 updated per directive pass.
@@ -717,6 +760,8 @@ That document contains: (1) what is already completed; (2) 24 ordered phases (Gr
 
 **After the 24 phases:** Use **`docs/architecture/REFINEMENT_AND_IMPLEMENTATION_ORDER.md`** for implementation and refinement of remaining items. It lists prioritized next steps (migration rollback, audit export, blueprint versioning, event backbone; then configurability, UX, integrations; then roadmap items) with suggested owners and references to observability (request_id/tenant_id logging done), feature flags (policy_injection.md § OpenFeature), and runbooks.
 
+**Strategic and module-level planning:** Use **`docs/architecture/PLATFORM_ROADMAP_5Y_AND_MODULE_ROLLOUT.md`** for the full 5-year platform roadmap and module-by-module rollout order, tied to the current codebase and refactor phases. It maps REFINEMENT and REMAINING_PLAN_AUDIT_GAPS into year-based focus areas and per-module next steps.
+
 ## Implementation note (Phases 1–2 — execution order)
 
 - **Phase 1 (Gradebook/evals policy-only):** Resolver exposes **grade_approval** slice (grade_post_roles, grade_approval_roles, deadline_days, deadline_note, auto_validate, grade_approval_enabled) with SiteSettings backfill. Evals use `get_grade_approval_policy(school)`; `grade_post_roles(school)`, `grade_approver_roles(school)`, `user_can_finalize_submission(user, school)`; create_grade_approval_request uses policy. Views pass request.school; marksheet view uses policy for grade_approval_enabled and features when school set. policy_injection.md and checklist 24.1, 27.3 updated.
@@ -754,6 +799,11 @@ That document contains: (1) what is already completed; (2) 24 ordered phases (Gr
 ## Implementation note (Phase 10 — Superadmin vs tenant UI, Section 8)
 
 - **Section 8 (8.1–8.5)** documented in `docs/architecture/phase10_superadmin_vs_tenant_ui.md`: superadmin (command center, observability, ecosystem, control-plane-shell, dark/ops); tenant (school OS, role-based, school-branded, backend_base, dashboard_resolver); same codebase with distinct shells (public/manager/tenant urlconfs); public/teacher/parent personas. Checklist 8.1–8.5 marked [x].
+- **Control plane shell and manager-only UX:** On manager.runmycampus.com, superadmin uses a dedicated base (`control_plane_skeleton.html`, `control_plane_base.html`) with platform header/sidebar, manager login template (`auth/manager_login.html`), header search wired to `/api/search/`, mobile offcanvas sidebar, and control-plane 403/404/500 pages. No tenant UX on manager host. Verification checklist is in phase10_superadmin_vs_tenant_ui.md (manager login copy, super dashboard header/sidebar, Configuration Engine, tenant login unchanged, manager errors, header search, mobile sidebar, all super templates on control_plane_base).
+
+## Implementation note (Execution map alignment — single runtime constitution)
+
+- **Execution map alignment** is in `docs/architecture/EXECUTION_MAP_ALIGNMENT.md`: single runtime constitution (one TenantRuntime, one blueprint path, one policy path, one injection path); schema-per-tenant = primary, RLS/session = compatibility/transitional only (`TENANCY_MODEL_DECISION.md`); consolidation of School.settings/features/plan/region/toggles via policy/blueprint registries; refactor order (one module, e.g. Gradebook or Admissions, then replicate). **No-break:** existing `get_effective_policy(school)` and `request.tenant_runtime` call sites remain valid; `apps/policies/blueprint_registry.py` and `apps/policies/policy_registry.py` are canonical single entry points (re-export existing resolver/blueprint_services). See also `ARCHITECTURE_OVERLAY_AND_RUNTIME_CONSTITUTION.md` §6.
 
 ## Implementation note (Phases 11–13 — Section 9, 10, 13)
 
@@ -820,6 +870,20 @@ That document contains: (1) what is already completed; (2) 24 ordered phases (Gr
   - **Offline sync engine (16.5):** `apps/sync_engine/services.py` — `get_pending_changes()`, `apply_remote()`.
   - **RPO/RTO (17.5):** `docs/architecture/control_plane_runbooks.md` — Section 10 RPO/RTO and restore testing.
 - **Gap list:** `docs/architecture/PART_F_SUBBULLET_GAPS.md` — all rows marked In Code with file references. Ready for testing and push to main once tests pass.
+
+## Implementation note (2026-03-06 — TenantRuntime, tenancy model, external dependency strategy)
+
+- **Unified TenantRuntime:** Added `apps/platform_runtime/` with `TenantRuntime` (contracts.py), `build_tenant_runtime` (runtime_resolver.py), and `TenantRuntimeMiddleware`. Middleware runs after TenantContextMiddleware and sets `request.tenant_runtime` (identity via tenant_ctx, policy from get_effective_policy(school), workflow_for/dashboard_for delegating to siteconfig resolvers). Registered in both RLS and schema-per-tenant middleware stacks in config/settings.py.
+- **Tenancy model:** Added `docs/architecture/TENANCY_MODEL_DECISION.md` — schema-per-tenant primary, RLS/session secondary; session variables for audit/RLS only; application contract uses request.tenant_ctx and request.tenant_runtime.
+- **External dependency strategy:** Added Part C2 to this document — External Dependency Strategy and Platform Sovereignty (own the core, abstract the edges; first-party vs third-party; internal API-driven design; modular monolith + provider abstraction).
+
+## Implementation note (2026-03-06 — Tier 2 & Tier 3: runtime usage, no-hardcoding, provider audit, migration pillar, gaps)
+
+- **Tier 2 — Finance + tenant_runtime:** Finance gateway registry (`apps/finance/gateways/registry.py`) accepts optional `policy=` on `get_gateway` and `get_platform_fee`; callers in request context should pass `request.tenant_runtime.policy` so the module does not call `get_effective_policy(school)` directly. Backward compatible when `policy` is omitted.
+- **Tier 2 — No-hardcoding enforcement:** Added `scripts/check_no_hardcoding.py` (CI script flagging country/tenant/region hardcoding) and `docs/architecture/no_hardcoding_checklist.md` (PR review checklist).
+- **Tier 3 — Provider abstraction audit:** Added `docs/architecture/provider_abstraction_audit.md` — adapter inventory (payments, platform billing, SMS/email, AI, OCR, storage), audit rules, and gaps to close.
+- **Tier 3 — Migration cloud as named pillar:** Added “Migration cloud (first-class pillar)” under Part B in this document; added super path `super:migration_cloud` (`/super/migration/`), view `super_migration_cloud`, template `super_migration_cloud.html`, and “Migration” button on super dashboard.
+- **Tier 3 — Remaining PLAN_AUDIT gaps:** Added `docs/architecture/REMAINING_PLAN_AUDIT_GAPS.md` — checklist for 6.3 tenant app billing, 1.8 secure app sandbox, 26.5 UX rules, control plane maturity.
 
 ---
 

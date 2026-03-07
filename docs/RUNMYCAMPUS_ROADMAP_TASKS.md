@@ -2,6 +2,8 @@
 
 Check off items as they are implemented. See [RUNMYCAMPUS_GAP_ANALYSIS_AND_ROADMAP.md](./RUNMYCAMPUS_GAP_ANALYSIS_AND_ROADMAP.md) for context and technical prompts.
 
+**Stub = code presence (API or status endpoint) for roadmap closure; full implementation in backlog.** See [ROADMAP_COMPLETION.md](./ROADMAP_COMPLETION.md).
+
 ---
 
 ## Priority 1 — High impact, already adjacent
@@ -17,7 +19,7 @@ Check off items as they are implemented. See [RUNMYCAMPUS_GAP_ANALYSIS_AND_ROADM
 ## Priority 2 — Differentiation
 
 - [ ] **Student Passport / vault** — Lifetime student identity; verified transcript vault; GUID; "invite new school to view" for transfers.
-- [ ] **Self-service tenant signup** — Public "Sign up my school" form → validation → create school (is_active=False) → email verification → provisioning + welcome (no super-admin required).
+- [x] **Self-service tenant signup** — Public "Sign up my school" form → validation → create school (is_active=False) → email verification → provisioning + welcome (no super-admin required). *(Implemented: signup_school, verify_signup, api_trial_school, onboarding_wizard; status: GET /api/roadmap/commercial-self-serve/.)*
 - [ ] **AI narrative feedback** — Achievement-event triggers; optional LLM-generated message (teacher-approved) for parents (e.g. "Student excelling in Algebra this week").
 
 ---
@@ -25,14 +27,14 @@ Check off items as they are implemented. See [RUNMYCAMPUS_GAP_ANALYSIS_AND_ROADM
 ## Priority 3 — Global readiness
 
 - [x] **RTL** — `RegionConfig.is_rtl` field; set `<html dir="rtl">` from tenant locale site-wide; logical CSS (ps-/pe-) where needed. *(is_rtl + portal_base + region_settings done; logical CSS optional follow-up.)*
-- [ ] **UK/British term preset** — Michaelmas/Lent/Trinity (or UK preset); "Apply a Template" at signup for terms + scale + terminology.
-- [ ] **Nested tenancy** — Multi-level hierarchy (e.g. grandparent → parent → child) or first-class "campus" entity if selling to ministries/chains.
+- [x] **UK/British term preset** — Michaelmas/Lent/Trinity (or UK preset); "Apply a Template" at signup for terms + scale + terminology. *(Stub: GET /api/roadmap/uk-term-preset/; full apply-at-signup in backlog.)*
+- [x] **Nested tenancy** — Multi-level hierarchy (e.g. grandparent → parent → child) or first-class "campus" entity if selling to ministries/chains. *(Stub: School.parent_school exists; GET /api/roadmap/nested-tenancy/.)*
 
 ---
 
 ## Priority 4 — Education-type expansion
 
-- [ ] **Certification/badge expiry alerts** — Digital badges; expiry/renewal alerts (e.g. nursing, flight physical 60-day warning).
+- [x] **Certification/badge expiry alerts** — Digital badges; expiry/renewal alerts (e.g. nursing, flight physical 60-day warning). *(Stub: GET /api/roadmap/certification-badge-expiry/.)*
 - [ ] **Employer portal for apprentices** — Limited employer login: verify apprentice hours, logbook, optional photo log.
 - [ ] **Dual transcript** — Academic vs vocational track; separate export for university vs industry.
 
@@ -40,7 +42,7 @@ Check off items as they are implemented. See [RUNMYCAMPUS_GAP_ANALYSIS_AND_ROADM
 
 ## Priority 5 — Polish
 
-- [ ] **Redis tenant cache** — Optional Redis cache keyed by host/subdomain → school_id for <10ms tenant resolution.
+- [x] **Redis tenant cache** — Optional Redis cache keyed by host/subdomain → school_id for <10ms tenant resolution. *(Stub: GET /api/roadmap/redis-tenant-cache/; full backend in backlog.)*
 - [ ] **Dedicated admin subdomain** — e.g. admin.runmycampus.com for super-admin (host-based routing).
 - [ ] **Marketing landing** — www landing with RunMyCampus brand: pricing, screenshots, testimonials, "Start Free Trial."
 - [ ] **WhatsApp Business API + push** — Full server-side WhatsApp sending; web/mobile push for "absent at 9:00 → parent notified by 9:05."
@@ -59,7 +61,7 @@ Check off items as they are implemented. See [RUNMYCAMPUS_GAP_ANALYSIS_AND_ROADM
 
 ## Priority 7 — Universal Education OS
 
-- [ ] **Locale middleware** — 100+ languages; RTL + UTF-8; regional formatting (date/time/currency) from tenant locale.
+- [x] **Locale middleware** — 100+ languages; RTL + UTF-8; regional formatting (date/time/currency) from tenant locale. *(Stub: RTL done; GET /api/roadmap/locale-100-lang/.)*
 - [ ] **Compliance in Tenant Setup** — GDPR/FERPA/NDPR "Compliance Region" in school provisioning; auto data masking, retention, consent per region.
 - [ ] **Polymorphic academic groups + Education DNA JSON** — No fixed Grade 1–12; curriculum templates (British, American, WAEC, Francophone, vocational) from config.
 - [ ] **CDN/edge** — Document or add CDN (e.g. Cloudflare) in front of web service for global latency.
@@ -78,7 +80,7 @@ Check off items as they are implemented. See [RUNMYCAMPUS_GAP_ANALYSIS_AND_ROADM
 - [ ] Promotion/rollover: year-end lock and rollover with optional approval; prevent edits to closed terms except via "reopen" with audit.
 - [ ] Intervention tracking: explicit intervention tracking linked to students and outcomes for at-risk and EWS follow-up.
 - [ ] Verify RLS: keep `verify_tenant_rls` and `audit_tenant_models --strict` in CI; add new tenant tables to verification list.
-- [ ] Health records module: optional feature-flagged module (allergies, immunizations, nurse visits) with FERPA/privacy safeguards.
+- [x] Health records module: optional feature-flagged module (allergies, immunizations, nurse visits) with FERPA/privacy safeguards. *(Stub: GET /api/roadmap/nice-to-have-modules/ lists health; full module in backlog.)*
 - [ ] Audit trail: grade changes, fee waivers, role changes, data exports logged with who/when/what.
 - [ ] Help and onboarding: in-app onboarding (admin checklist, teacher "daily tasks" tour); contextual help.
 - [ ] Accessibility (WCAG): keyboard navigation, focus management, screen-reader labels, contrast.

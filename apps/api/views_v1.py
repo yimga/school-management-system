@@ -218,8 +218,20 @@ class MeSchoolsView(View):
                 "is_primary": m.is_primary,
             })
         current = getattr(request, "school", None)
+        # Nested tenancy: include child schools when current school is a parent (campus switcher)
+        child_schools = []
+        if current and getattr(current, "get_child_schools", None):
+            try:
+                children = current.get_child_schools()
+                child_schools = [
+                    {"school_id": str(s.id), "name": s.name, "slug": getattr(s, "slug", "") or ""}
+                    for s in children[:50]
+                ]
+            except Exception:
+                pass
         return JsonResponse({
             "schools": schools,
+            "child_schools": child_schools,
             "current_school_id": str(current.id) if current else None,
         })
 
@@ -254,6 +266,33 @@ class MeSwitchSchoolView(View):
             "school_id": str(school.id),
             "redirect_url": redirect_url,
         })
+
+
+# ---------------------------------------------------------------------------
+# GET /api/v1/tenants/children  -> nested tenancy: list child schools (campus switcher)
+# ---------------------------------------------------------------------------
+class TenantChildrenView(View):
+    """GET /api/v1/tenants/children - List child schools of current school (parent_school). For campus switcher."""
+
+    def get(self, request):
+        if not getattr(request, "user", None) or not request.user.is_authenticated:
+            return JsonResponse({"error": "Authentication required"}, status=401)
+        school = _get_school_from_request(request)
+        if not school:
+            return JsonResponse({"error": "Tenant context required"}, status=400)
+        from apps.schools.models import School, SchoolMembership
+        # Children: schools whose parent_school is current school
+        children = School.objects.filter(parent_school_id=school.pk, is_active=True).order_by("name").values(
+            "id", "name", "slug", "subdomain"
+        )
+        children_list = [{"id": str(s["id"]), "name": s["name"], "slug": s["slug"], "subdomain": s["subdomain"]} for s in children]
+        # If current school has a parent, include it for switcher
+        parent = None
+        if getattr(school, "parent_school_id", None):
+            p = School.objects.filter(pk=school.parent_school_id).values("id", "name", "slug", "subdomain").first()
+            if p:
+                parent = {"id": str(p["id"]), "name": p["name"], "slug": p["slug"], "subdomain": p["subdomain"]}
+        return JsonResponse({"children": children_list, "parent": parent})
 
 
 # ---------------------------------------------------------------------------
@@ -820,12 +859,17 @@ class SchedulerGenerateView(View):
         if not term_id or not academic_year_id:
             return JsonResponse({"error": "term_id and academic_year_id required"}, status=400)
         try:
-            from apps.academics.scheduling import ScheduleGenerator
             from apps.academics.models import Term, AcademicYear
+            from apps.academics.scheduling_solver import generate_timetable_with_solver
             term = Term.objects.get(pk=term_id, academic_year_id=academic_year_id)
             year = AcademicYear.objects.get(pk=academic_year_id)
-            gen = ScheduleGenerator(academic_year=year, term=term)
-            schedule = gen.generate_schedule(created_by=request.user)
+            use_ortools = data.get("use_ortools", False)
+            schedule = generate_timetable_with_solver(
+                academic_year=year,
+                term=term,
+                created_by=request.user,
+                use_ortools=bool(use_ortools),
+            )
             return JsonResponse({"ok": True, "schedule_id": schedule.id, "status": schedule.status}, status=202)
         except (Term.DoesNotExist, AcademicYear.DoesNotExist) as e:
             return JsonResponse({"error": "Term or academic year not found"}, status=404)
@@ -1335,3 +1379,469 @@ class AttendanceBulkUpdateView(View):
             )
             updated += 1
         return JsonResponse({"ok": True, "updated": updated})
+
+
+# ---------------------------------------------------------------------------
+# POST /api/v1/billing/quote/<id>/accept  -> Quote-to-contract (REFINEMENT commercial)
+# ---------------------------------------------------------------------------
+class BillingQuoteAcceptView(View):
+    """POST /api/v1/billing/quote/<id>/accept - Convert quote to contract (create/update subscription)."""
+
+    def post(self, request, quote_id):
+        if not getattr(request, "user", None) or not request.user.is_authenticated:
+            return JsonResponse({"error": "Authentication required"}, status=401)
+        if not (getattr(request.user, "is_staff", False) or request.user.is_superuser):
+            return JsonResponse({"error": "Staff or superuser required"}, status=403)
+        from apps.billing.models import Quote
+        from apps.billing.services import convert_quote_to_contract
+        quote = get_object_or_404(Quote, pk=quote_id)
+        try:
+            account, subscription = convert_quote_to_contract(quote)
+            return JsonResponse({
+                "ok": True,
+                "quote_id": quote.pk,
+                "status": quote.status,
+                "subscription_id": subscription.pk,
+                "billing_account_id": account.pk,
+            })
+        except ValueError as e:
+            return JsonResponse({"ok": False, "error": str(e)}, status=400)
+
+
+# ---------------------------------------------------------------------------
+# Phase 9: Payment dispute flow — list, create, resolve
+# ---------------------------------------------------------------------------
+class PaymentDisputeListView(View):
+    """GET /api/v1/finance/disputes - List payment disputes for the current school."""
+
+    def get(self, request):
+        if not getattr(request, "user", None) or not request.user.is_authenticated:
+            return JsonResponse({"error": "Authentication required"}, status=401)
+        school = _get_school_from_request(request)
+        if not school:
+            return JsonResponse({"error": "Tenant context required"}, status=400)
+        role = (getattr(request.user, "role", "") or "").upper()
+        allowed = {"BURSAR", "ADMIN", "LEADERSHIP", "PRINCIPAL", "FINANCE_STAFF", "ACCOUNTANT"}
+        if role not in allowed and not request.user.is_staff:
+            return JsonResponse({"error": "Forbidden"}, status=403)
+        from apps.finance.models import PaymentDispute
+        qs = PaymentDispute.objects.filter(payment__school_id=school.pk).select_related(
+            "payment", "region", "raised_by", "resolved_by"
+        ).order_by("-created_at")
+        status_filter = request.GET.get("status")
+        if status_filter:
+            qs = qs.filter(status=status_filter)
+        limit = min(int(request.GET.get("limit", 50) or 50), 200)
+        items = []
+        for d in qs[:limit]:
+            items.append({
+                "id": str(d.id),
+                "payment_id": d.payment_id,
+                "payment_reference": getattr(d.payment, "reference_number", None) or str(d.payment_id),
+                "status": d.status,
+                "reason": d.reason,
+                "description": d.description[:200] + "..." if len(d.description or "") > 200 else (d.description or ""),
+                "raised_by_id": d.raised_by_id,
+                "resolved_by_id": d.resolved_by_id,
+                "resolved_at": d.resolved_at.isoformat() if d.resolved_at else None,
+                "resolution_notes": d.resolution_notes or None,
+                "created_at": d.created_at.isoformat(),
+            })
+        return JsonResponse({"disputes": items, "count": len(items)})
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class PaymentDisputeCreateView(View):
+    """POST /api/v1/finance/disputes - Raise a payment dispute."""
+
+    def post(self, request):
+        if not getattr(request, "user", None) or not request.user.is_authenticated:
+            return JsonResponse({"error": "Authentication required"}, status=401)
+        school = _get_school_from_request(request)
+        if not school:
+            return JsonResponse({"error": "Tenant context required"}, status=400)
+        try:
+            data = json.loads(request.body) if request.body else {}
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON"}, status=400)
+        payment_id = data.get("payment_id")
+        reason = (data.get("reason") or "").strip()
+        description = (data.get("description") or "").strip()
+        if not payment_id or not reason or not description:
+            return JsonResponse({"error": "payment_id, reason, and description required"}, status=400)
+        from apps.finance.models import Payment, PaymentDispute
+        payment = Payment.objects.filter(pk=payment_id, school_id=school.pk).select_related("region", "payment_method").first()
+        if not payment:
+            return JsonResponse({"error": "Payment not found"}, status=404)
+        valid_reasons = [c[0] for c in PaymentDispute.Reason.choices]
+        if reason not in valid_reasons:
+            return JsonResponse({"error": f"reason must be one of: {valid_reasons}"}, status=400)
+        region = payment.region
+        if not region and getattr(payment, "payment_method", None) and getattr(payment.payment_method, "region_id", None):
+            region = payment.payment_method.region
+        if not region:
+            region = getattr(school, "default_region", None)
+        if not region:
+            return JsonResponse({"error": "No region configured for dispute"}, status=400)
+        existing = PaymentDispute.objects.filter(payment=payment, status__in=(PaymentDispute.Status.OPEN, PaymentDispute.Status.UNDER_REVIEW)).exists()
+        if existing:
+            return JsonResponse({"error": "An open dispute already exists for this payment"}, status=400)
+        dispute = PaymentDispute.objects.create(
+            payment=payment,
+            region=region,
+            reason=reason,
+            description=description,
+            raised_by=request.user,
+            status=PaymentDispute.Status.OPEN,
+        )
+        return JsonResponse({
+            "ok": True,
+            "dispute_id": str(dispute.id),
+            "status": dispute.status,
+        }, status=201)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class PaymentDisputeResolveView(View):
+    """PATCH /api/v1/finance/disputes/<uuid:id> - Resolve a dispute (staff/bursar)."""
+
+    def patch(self, request, id):
+        if not getattr(request, "user", None) or not request.user.is_authenticated:
+            return JsonResponse({"error": "Authentication required"}, status=401)
+        school = _get_school_from_request(request)
+        if not school:
+            return JsonResponse({"error": "Tenant context required"}, status=400)
+        role = (getattr(request.user, "role", "") or "").upper()
+        allowed = {"BURSAR", "ADMIN", "LEADERSHIP", "PRINCIPAL", "FINANCE_STAFF", "ACCOUNTANT"}
+        if role not in allowed and not request.user.is_staff:
+            return JsonResponse({"error": "Forbidden"}, status=403)
+        try:
+            data = json.loads(request.body) if request.body else {}
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON"}, status=400)
+        status = (data.get("status") or "").strip()
+        resolution_notes = (data.get("resolution_notes") or "").strip()
+        if not status:
+            return JsonResponse({"error": "status required"}, status=400)
+        from apps.finance.models import PaymentDispute
+        from django.utils import timezone
+        dispute = get_object_or_404(PaymentDispute, id=id, payment__school_id=school.pk)
+        if dispute.status not in (PaymentDispute.Status.OPEN, PaymentDispute.Status.UNDER_REVIEW):
+            return JsonResponse({"error": "Dispute already resolved or closed"}, status=400)
+        resolve_statuses = (PaymentDispute.Status.RESOLVED_REFUND, PaymentDispute.Status.RESOLVED_NO_REFUND, PaymentDispute.Status.CLOSED)
+        if status not in resolve_statuses:
+            return JsonResponse({"error": f"status must be one of: {list(resolve_statuses)}"}, status=400)
+        dispute.status = status
+        dispute.resolution_notes = resolution_notes
+        dispute.resolved_by = request.user
+        dispute.resolved_at = timezone.now()
+        dispute.save(update_fields=["status", "resolution_notes", "resolved_by", "resolved_at", "updated_at"])
+        return JsonResponse({"ok": True, "dispute_id": str(dispute.id), "status": dispute.status})
+
+
+# ---------------------------------------------------------------------------
+# Phase 9: Ad-hoc report builder — list, create, run now
+# ---------------------------------------------------------------------------
+class AdHocReportListCreateView(View):
+    """GET /api/v1/reports/adhoc — list definitions. POST — create definition."""
+
+    def get(self, request):
+        if not getattr(request, "user", None) or not request.user.is_authenticated:
+            return JsonResponse({"error": "Authentication required"}, status=401)
+        school = _get_school_from_request(request)
+        from apps.reports.bi_models import AdHocReportDefinition
+        qs = AdHocReportDefinition.objects.filter(is_active=True)
+        from django.db.models import Q
+        if school:
+            qs = qs.filter(Q(school_id=school.pk) | Q(school__isnull=True))
+        else:
+            qs = qs.filter(school__isnull=True)
+        qs = qs.order_by("-created_at")[:100]
+        items = [
+            {
+                "id": d.id,
+                "name": d.name,
+                "entity_type": d.entity_type,
+                "columns": d.columns,
+                "output_format": d.output_format,
+                "created_at": d.created_at.isoformat(),
+            }
+            for d in qs
+        ]
+        return JsonResponse({"definitions": items})
+
+    def post(self, request):
+        if not getattr(request, "user", None) or not request.user.is_authenticated:
+            return JsonResponse({"error": "Authentication required"}, status=401)
+        school = _get_school_from_request(request)
+        try:
+            data = json.loads(request.body) if request.body else {}
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON"}, status=400)
+        name = (data.get("name") or "").strip()
+        entity_type = data.get("entity_type", "STUDENTS")
+        columns = data.get("columns") or ["id", "first_name", "last_name"]
+        filters = data.get("filters") or {}
+        output_format = data.get("output_format", "CSV")
+        if not name:
+            return JsonResponse({"error": "name required"}, status=400)
+        from apps.reports.bi_models import AdHocReportDefinition
+        obj = AdHocReportDefinition.objects.create(
+            name=name,
+            school=school,
+            entity_type=entity_type,
+            columns=columns,
+            filters=filters,
+            date_from=data.get("date_from") or None,
+            date_to=data.get("date_to") or None,
+            output_format=output_format,
+            created_by=request.user,
+        )
+        return JsonResponse({"ok": True, "id": obj.id, "name": obj.name}, status=201)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class AdHocReportRunView(View):
+    """POST /api/v1/reports/adhoc/<id>/run — run report now; returns CSV download or JSON."""
+
+    def post(self, request, id):
+        if not getattr(request, "user", None) or not request.user.is_authenticated:
+            return JsonResponse({"error": "Authentication required"}, status=401)
+        school = _get_school_from_request(request)
+        from apps.reports.bi_models import AdHocReportDefinition
+        from apps.reports.adhoc_runner import run_adhoc_report
+        from django.http import HttpResponse
+        definition = AdHocReportDefinition.objects.filter(pk=id, is_active=True).first()
+        if not definition:
+            return JsonResponse({"error": "Report not found"}, status=404)
+        if school and definition.school_id and definition.school_id != school.pk:
+            return JsonResponse({"error": "Forbidden"}, status=403)
+        try:
+            data = json.loads(request.body) if request.body else {}
+        except json.JSONDecodeError:
+            data = {}
+        params = data.get("parameters_override") or {}
+        output_format = data.get("output_format") or definition.output_format
+        csv_bytes, json_rows, row_count, err = run_adhoc_report(
+            definition, request.user, parameters_override=params, output_format=output_format
+        )
+        if err:
+            return JsonResponse({"ok": False, "error": err}, status=400)
+        if output_format == "CSV" and csv_bytes:
+            resp = HttpResponse(csv_bytes, content_type="text/csv; charset=utf-8")
+            resp["Content-Disposition"] = f'attachment; filename="{definition.name.replace(" ", "_")}_report.csv"'
+            return resp
+        return JsonResponse({"ok": True, "row_count": row_count, "rows": json_rows})
+
+
+# ---------------------------------------------------------------------------
+# Phase 9: Video attendance sync — create session, list, sync attendance
+# ---------------------------------------------------------------------------
+class VideoSessionListCreateView(View):
+    """GET /api/v1/video/sessions — list. POST — create (Zoom/Meet link)."""
+
+    def get(self, request):
+        if not getattr(request, "user", None) or not request.user.is_authenticated:
+            return JsonResponse({"error": "Authentication required"}, status=401)
+        school = _get_school_from_request(request)
+        if not school:
+            return JsonResponse({"error": "Tenant context required"}, status=400)
+        from apps.communication.video_conferencing import VirtualClassroom
+        from django.db.models import Q
+        qs = VirtualClassroom.objects.filter(
+            Q(classroom__academic_year__school_id=school.pk) | Q(host__school_memberships__school_id=school.pk)
+        ).distinct().order_by("-scheduled_start")[:50]
+        items = [
+            {
+                "id": s.id,
+                "title": s.title,
+                "provider": s.provider,
+                "status": s.status,
+                "meeting_id": s.meeting_id,
+                "join_url": s.join_url,
+                "scheduled_start": s.scheduled_start.isoformat(),
+                "scheduled_end": s.scheduled_end.isoformat(),
+            }
+            for s in qs
+        ]
+        return JsonResponse({"sessions": items})
+
+    def post(self, request):
+        if not getattr(request, "user", None) or not request.user.is_authenticated:
+            return JsonResponse({"error": "Authentication required"}, status=401)
+        school = _get_school_from_request(request)
+        if not school:
+            return JsonResponse({"error": "Tenant context required"}, status=400)
+        try:
+            data = json.loads(request.body) if request.body else {}
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON"}, status=400)
+        title = (data.get("title") or "").strip()
+        scheduled_start = data.get("scheduled_start")
+        scheduled_end = data.get("scheduled_end")
+        provider = data.get("provider", "JITSI")
+        classroom_id = data.get("classroom_id")
+        if not title or not scheduled_start or not scheduled_end:
+            return JsonResponse({"error": "title, scheduled_start, scheduled_end required"}, status=400)
+        from django.utils.dateparse import parse_datetime
+        from apps.communication.video_conferencing import VirtualClassroom, VideoConferenceProvider
+        start = parse_datetime(scheduled_start) if isinstance(scheduled_start, str) else scheduled_start
+        end = parse_datetime(scheduled_end) if isinstance(scheduled_end, str) else scheduled_end
+        if not start or not end:
+            return JsonResponse({"error": "Invalid datetime for scheduled_start/scheduled_end"}, status=400)
+        classroom = None
+        if classroom_id:
+            from apps.academics.models import Classroom
+            classroom = Classroom.objects.filter(pk=classroom_id, academic_year__school_id=school.pk).first()
+        meeting_id = data.get("meeting_id") or f"vc-{request.user.id}-{int(start.timestamp())}"
+        join_url = data.get("join_url") or f"https://meet.example.com/{meeting_id}"
+        session = VirtualClassroom.objects.create(
+            title=title,
+            scheduled_start=start,
+            scheduled_end=end,
+            provider=provider,
+            host=request.user,
+            classroom=classroom,
+            meeting_id=meeting_id,
+            join_url=join_url,
+            status="SCHEDULED",
+        )
+        return JsonResponse({"ok": True, "session_id": session.id, "join_url": session.join_url}, status=201)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class VideoAttendanceSyncView(View):
+    """POST /api/v1/video/sessions/<id>/attendance-sync — sync participants (Zoom/Meet webhook or manual)."""
+
+    def post(self, request, id):
+        if not getattr(request, "user", None) or not request.user.is_authenticated:
+            return JsonResponse({"error": "Authentication required"}, status=401)
+        school = _get_school_from_request(request)
+        if not school:
+            return JsonResponse({"error": "Tenant context required"}, status=400)
+        try:
+            data = json.loads(request.body) if request.body else {}
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON"}, status=400)
+        participants = data.get("participants") or []
+        from apps.communication.video_conferencing import VirtualClassroom, SessionParticipant
+        from django.utils.dateparse import parse_datetime
+        from apps.accounts.models import User
+        session = VirtualClassroom.objects.filter(pk=id).first()
+        if not session:
+            return JsonResponse({"error": "Session not found"}, status=404)
+        session_school_id = None
+        if session.classroom_id:
+            session_school_id = getattr(getattr(session.classroom, "academic_year", None), "school_id", None)
+        if session_school_id is not None and session_school_id != school.pk:
+            return JsonResponse({"error": "Forbidden"}, status=403)
+        synced = 0
+        for p in participants:
+            email = (p.get("email") or "").strip()
+            if not email:
+                continue
+            user = User.objects.filter(email__iexact=email).first()
+            if not user:
+                continue
+            joined_at = p.get("joined_at")
+            left_at = p.get("left_at")
+            if joined_at:
+                joined_at = parse_datetime(joined_at) if isinstance(joined_at, str) else joined_at
+            if left_at:
+                left_at = parse_datetime(left_at) if isinstance(left_at, str) else left_at
+            part, _ = SessionParticipant.objects.get_or_create(
+                session=session,
+                user=user,
+                defaults={"joined_at": joined_at, "left_at": left_at, "is_present": True},
+            )
+            if not _ and (joined_at or left_at):
+                part.joined_at = joined_at or part.joined_at
+                part.left_at = left_at or part.left_at
+                part.is_present = True
+                part.save(update_fields=["joined_at", "left_at", "is_present"])
+            synced += 1
+        return JsonResponse({"ok": True, "synced": synced})
+
+
+# ---------------------------------------------------------------------------
+# Government/District EMIS: prepare and submit
+# ---------------------------------------------------------------------------
+class EMISPrepareView(View):
+    """POST /api/v1/reports/emis/prepare - Prepare EMIS report (create DRAFT/PREPARED, optional preset)."""
+
+    def post(self, request):
+        if not getattr(request, "user", None) or not request.user.is_authenticated:
+            return JsonResponse({"error": "Authentication required"}, status=401)
+        school = _get_school_from_request(request)
+        if not school:
+            return JsonResponse({"error": "Tenant context required"}, status=400)
+        try:
+            data = json.loads(request.body) if request.body else {}
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON"}, status=400)
+        report_type = (data.get("report_type") or "").strip() or "MOE_PRESET"
+        period_label = (data.get("period_label") or "").strip()
+        preset_id = (data.get("preset_id") or "").strip()
+        academic_year_id = data.get("academic_year_id")
+        term_id = data.get("term_id")
+        if not period_label:
+            return JsonResponse({"error": "period_label required"}, status=400)
+        from apps.reports.models import EMISSubmission
+        from apps.reports.services import build_regulatory_export
+        ay, term = None, None
+        if academic_year_id:
+            from apps.academics.models import AcademicYear
+            ay = AcademicYear.objects.filter(pk=academic_year_id).first()
+        if term_id:
+            from apps.academics.models import Term
+            term = Term.objects.filter(pk=term_id).first()
+        if report_type == "MOE_PRESET" and preset_id:
+            result = build_regulatory_export(school, preset_id, academic_year_id=academic_year_id, term_id=term_id)
+            if not result.get("ok"):
+                return JsonResponse(result, status=400)
+        sub, _ = EMISSubmission.objects.update_or_create(
+            school=school,
+            report_type=report_type,
+            period_label=period_label,
+            defaults={
+                "preset_id": preset_id or "",
+                "academic_year": ay,
+                "term": term,
+                "status": EMISSubmission.Status.PREPARED,
+                "notes": data.get("notes", ""),
+            },
+        )
+        return JsonResponse({
+            "ok": True,
+            "submission_id": sub.id,
+            "status": sub.status,
+            "period_label": sub.period_label,
+        }, status=201)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class EMISSubmitView(View):
+    """POST /api/v1/reports/emis/<int:id>/submit - Mark EMIS submission as submitted."""
+
+    def post(self, request, id):
+        if not getattr(request, "user", None) or not request.user.is_authenticated:
+            return JsonResponse({"error": "Authentication required"}, status=401)
+        school = _get_school_from_request(request)
+        if not school:
+            return JsonResponse({"error": "Tenant context required"}, status=400)
+        from apps.reports.models import EMISSubmission
+        from django.utils import timezone
+        sub = get_object_or_404(EMISSubmission, pk=id, school_id=school.pk)
+        if sub.status == EMISSubmission.Status.SUBMITTED:
+            return JsonResponse({"ok": True, "submission_id": sub.id, "status": sub.status})
+        sub.status = EMISSubmission.Status.SUBMITTED
+        sub.submitted_at = timezone.now()
+        sub.submitted_by = request.user
+        try:
+            data = json.loads(request.body) if request.body else {}
+        except json.JSONDecodeError:
+            data = {}
+        sub.external_id = (data.get("external_id") or "")[:120]
+        sub.submission_url = (data.get("submission_url") or "")[:500]
+        sub.save(update_fields=["status", "submitted_at", "submitted_by", "external_id", "submission_url", "updated_at"])
+        return JsonResponse({"ok": True, "submission_id": sub.id, "status": sub.status})

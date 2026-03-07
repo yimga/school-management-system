@@ -198,7 +198,7 @@ path
 3. ✅ Incomplete URL in evals/urls.py — **N/A**: File is complete (no broken `path` at line 45).
 
 ### Short-term (Next Week)
-4. ⏳ Merge or remove duplicate drag-and-drop JavaScript — **Deferred**: Option B (keep customizer for settings only) can be done later.
+4. ✅ Merge or remove duplicate drag-and-drop JavaScript — **DONE (Option B)**: `dashboard-customizer.js` is settings-only (sidebar, tile variant, custom links); drag/reorder is handled only by `dashboard-layout.js` (Sortable.js). Comment in customizer: "Drag/reorder is handled only by dashboard-layout.js". No duplicate drag logic.
 5. ✅ Consolidate layout loading/sanitization — **DONE**: API `_sanitize_layout_settings` now calls `_normalize_dashboard_settings` from `dashboard_views` and overlays widget_meta/custom_links sanitization.
 6. ✅ Use `get_user_role()` — **DONE**: `apps/accounts/utils.get_user_role` used in `dashboard_views` and `dashboard_layout_api`.
 7. ⏳ Remove unused imports — Run linter as needed.
@@ -247,3 +247,9 @@ path
 **Generated**: 2026-01-28  
 **Reviewer**: AI Code Analysis  
 **Status**: Ready for Action
+
+---
+
+## Backlog closure (IMPLEMENTATION_EXECUTION_PLAN)
+
+The execution plan backlog item **CODE_REVIEW_GAPS (drag-and-drop JS)** is **Done**. Option B implemented: `dashboard-customizer.js` is settings-only (sidebar, tile variant, custom links); drag/reorder is handled only by `dashboard-layout.js` (Sortable.js). No duplicate drag logic.

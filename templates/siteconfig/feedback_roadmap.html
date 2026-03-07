@@ -1,0 +1,78 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+{% block backend_title %}{% trans "Feedback roadmap" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold mb-1">{% trans "Product feedback roadmap" %}</h2>
+      <p class="text-muted mb-0">{% trans "Feature requests by status: Planned, In Development, Released (tagged by region/module)." %}</p>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-12 col-lg-4">
+      <div class="card h-100">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">{% trans "Planned" %}</h5>
+        </div>
+        <div class="card-body">
+          {% for item in planned %}
+          <div class="border-bottom pb-2 mb-2">
+            <strong>{{ item.title }}</strong>
+            {% if item.region or item.module %}
+              <span class="badge bg-secondary ms-1">{{ item.region|default:"" }}{% if item.region and item.module %} / {% endif %}{{ item.module|default:"" }}</span>
+            {% endif %}
+            {% if item.upvotes %}<span class="text-muted small">↑ {{ item.upvotes }}</span>{% endif %}
+            {% if item.description %}<p class="small text-muted mb-0 mt-1">{{ item.description|truncatewords:20 }}</p>{% endif %}
+          </div>
+          {% empty %}
+          <p class="text-muted mb-0">{% trans "No items planned." %}</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-4">
+      <div class="card h-100">
+        <div class="card-header bg-info text-white">
+          <h5 class="mb-0">{% trans "In development" %}</h5>
+        </div>
+        <div class="card-body">
+          {% for item in in_development %}
+          <div class="border-bottom pb-2 mb-2">
+            <strong>{{ item.title }}</strong>
+            {% if item.region or item.module %}
+              <span class="badge bg-secondary ms-1">{{ item.region|default:"" }}{% if item.region and item.module %} / {% endif %}{{ item.module|default:"" }}</span>
+            {% endif %}
+            {% if item.description %}<p class="small text-muted mb-0 mt-1">{{ item.description|truncatewords:20 }}</p>{% endif %}
+          </div>
+          {% empty %}
+          <p class="text-muted mb-0">{% trans "No items in development." %}</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-4">
+      <div class="card h-100">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0">{% trans "Released" %}</h5>
+        </div>
+        <div class="card-body">
+          {% for item in released %}
+          <div class="border-bottom pb-2 mb-2">
+            <strong>{{ item.title }}</strong>
+            {% if item.region or item.module %}
+              <span class="badge bg-secondary ms-1">{{ item.region|default:"" }}{% if item.region and item.module %} / {% endif %}{{ item.module|default:"" }}</span>
+            {% endif %}
+            <p class="small text-muted mb-0 mt-1">{% trans "Updated" %} {{ item.updated_at|date:"M j, Y" }}</p>
+          </div>
+          {% empty %}
+          <p class="text-muted mb-0">{% trans "No items released yet." %}</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

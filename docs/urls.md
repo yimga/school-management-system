@@ -11,6 +11,11 @@
 - Use the `SITE` context (via `apps.siteconfig.context_processors.site_settings`) to fill canonical tags in templates such as `templates/base.html` and `templates/portal/feature_page.html`.
 - Add meta keywords in public admissions/info templates focusing on “sixth form admissions [city]”, “school fees portal [city]”, and similar terms.
 
+### Canonical and SEO audit (full)
+- **Canonical URL**: Every public and key tenant page sets `<link rel="canonical" href="{{ request.build_absolute_uri }}">` in `base.html` / `portal_base.html`.
+- **Meta description**: Key pages set `<meta name="description" content="...">` from SITE or view context.
+- **Audit**: Run quarterly; document in `docs/qa-reports/seo-audit-YYYY-MM.md`.
+
 ## Redirect map (legacy paths)
 | Old path | Redirect |
 | --- | --- |

@@ -1,0 +1,58 @@
+"""
+Catalog/admission config audit: test that admission number generation and validation
+use centralized config (SiteSettings or TenantAdmissionNumberPolicy) and assert format.
+"""
+from django.test import TestCase
+
+from apps.siteconfig.identifier_policy_service import (
+    get_admissions_policy,
+    preview_admission_number,
+    validate_admission_number,
+)
+from apps.siteconfig.models import SiteSettings
+
+
+class AdmissionConfigTestCase(TestCase):
+    """Test admission number config resolution and format."""
+
+    def setUp(self):
+        site = SiteSettings.get_solo()
+        site.school_code = "GIL"
+        site.admission_number_strategy = "FULL"
+        site.admission_number_template = ""
+        site.admission_number_pattern = r"^\d{2}[A-Z0-9]{2,10}\d{4}[A-Z0-9]{2,6}[A-Z0-9]{0,4}$"
+        site.save()
+
+    def test_preview_uses_policy(self):
+        """Preview returns format from policy (SiteSettings when school is None)."""
+        out = preview_admission_number(
+            None,
+            year_2digit="26",
+            school_code="GIL",
+            seq_4digit="0001",
+            spec_code="GEN",
+            class_segment="F1",
+        )
+        self.assertEqual(out, "26GIL0001GENF1")
+
+    def test_preview_year_seq_strategy(self):
+        """Preview respects YEAR_SEQ strategy when set."""
+        site = SiteSettings.get_solo()
+        site.admission_number_strategy = "YEAR_SEQ"
+        site.save()
+        out = preview_admission_number(None, year_2digit="26", school_code="GIL", seq_4digit="0001")
+        self.assertEqual(out, "26GIL0001")
+
+    def test_validate_matches_pattern(self):
+        """Validation returns True for value matching policy pattern."""
+        self.assertTrue(validate_admission_number(None, "26GIL0001GENF1"))
+        self.assertFalse(validate_admission_number(None, "invalid"))
+
+    def test_policy_resolution_site_defaults(self):
+        """get_admissions_policy(None) returns SiteSettings-based config."""
+        policy = get_admissions_policy(None)
+        self.assertIn("school_code", policy)
+        self.assertIn("admission_number_strategy", policy)
+        self.assertIn("admission_number_template", policy)
+        self.assertIn("admission_number_pattern", policy)
+        self.assertEqual(policy.get("school_code"), "GIL")

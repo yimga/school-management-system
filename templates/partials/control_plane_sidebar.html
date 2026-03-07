@@ -1,0 +1,53 @@
+{% load i18n %}
+<nav class="cp-sidebar-nav" aria-label="{% trans 'Control plane navigation' %}">
+  <ul class="nav flex-column gap-1">
+    <li class="nav-item">
+      <a class="nav-link text-white d-flex align-items-center" href="{% url 'super:dashboard' %}"><i class="bi bi-speedometer2 me-2"></i>{% trans "Dashboard" %}</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link text-white d-flex align-items-center" href="{% url 'super:command_center' %}"><i class="bi bi-list-check me-2"></i>{% trans "Command Center" %}</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link text-white d-flex align-items-center" href="{% url 'super:create_school_wizard' %}"><i class="bi bi-plus-circle me-2"></i>{% trans "Provision tenant" %}</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link text-white d-flex align-items-center" href="{% url 'super:billing_dashboard' %}"><i class="bi bi-credit-card me-2"></i>{% trans "Billing" %}</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link text-white d-flex align-items-center" href="{% url 'super:support_dashboard' %}"><i class="bi bi-headset me-2"></i>{% trans "Support" %}</a>
+    </li>
+    <li class="nav-item">
+      <span class="nav-link text-uppercase small text-muted opacity-75 mt-2">{% trans "Marketplace" %}</span>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link text-white d-flex align-items-center" href="{% url 'super:marketplace_governance' %}"><i class="bi bi-shield-check me-2"></i>{% trans "Governance" %}</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link text-white d-flex align-items-center" href="{% url 'super:blueprint_marketplace' %}"><i class="bi bi-collection me-2"></i>{% trans "Blueprints" %}</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link text-white d-flex align-items-center" href="{% url 'super:app_catalog' %}"><i class="bi bi-grid-3x3-gap me-2"></i>{% trans "App catalog" %}</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link text-white d-flex align-items-center" href="{% url 'super:customer_success_dashboard' %}"><i class="bi bi-graph-up-arrow me-2"></i>{% trans "Customer Success" %}</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link text-white d-flex align-items-center" href="{% url 'super:migration_cloud' %}"><i class="bi bi-cloud-arrow-up me-2"></i>{% trans "Migration" %}</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link text-white d-flex align-items-center" href="{% url 'super:usage' %}"><i class="bi bi-bar-chart me-2"></i>{% trans "Usage" %}</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link text-white d-flex align-items-center" href="{% url 'super:pulse' %}"><i class="bi bi-activity me-2"></i>{% trans "Pulse" %}</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link text-white d-flex align-items-center" href="{% url 'super:tenant_health' %}"><i class="bi bi-heart-pulse me-2"></i>{% trans "Tenant Health" %}</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link text-white d-flex align-items-center" href="{% url 'platform_incidents_console' %}"><i class="bi bi-exclamation-triangle me-2"></i>{% trans "Incidents" %}</a>
+    </li>
+    <li class="nav-item mt-2 pt-2 border-top border-secondary">
+      <a class="nav-link text-white d-flex align-items-center" href="{% url 'admin:index' %}"><i class="bi bi-gear-wide-connected me-2"></i>{% trans "Configuration Engine" %}</a>
+    </li>
+  </ul>
+</nav>

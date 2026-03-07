@@ -141,6 +141,11 @@ class RiskFactor(models.Model):
         blank=True,
         help_text="AI-generated short summary for 'Why' column.",
     )
+    model_version = models.CharField(
+        max_length=80,
+        blank=True,
+        help_text="ML model name@version used for this score (Phase 9 registry).",
+    )
     computed_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -312,3 +317,59 @@ class StudentSignals(models.Model):
 
     def __str__(self):
         return f"{self.student_id} {self.signal_type}={self.value} @ {self.recorded_at}"
+
+
+# ========== Phase 9: ML registry (versioned models, inference) ==========
+
+
+class MLModel(models.Model):
+    """
+    Registry of deployed ML models: name, version, artifact path or config, input/output schema.
+    Inference layer loads active model and runs prediction (e.g. risk score).
+    """
+    MODEL_TYPES = [
+        ("risk", "Risk scoring"),
+        ("forecast", "Enrollment/forecast"),
+        ("other", "Other"),
+    ]
+
+    name = models.CharField(max_length=120, db_index=True)
+    version = models.CharField(max_length=40, db_index=True)
+    model_type = models.CharField(max_length=20, choices=MODEL_TYPES, default="risk")
+    artifact_path = models.CharField(
+        max_length=500,
+        blank=True,
+        help_text="Path or blob reference to serialized model (e.g. S3 key, file path).",
+    )
+    config = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Config for loading/running (e.g. threshold, feature list).",
+    )
+    input_schema = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Expected input keys/types for inference.",
+    )
+    output_schema = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Output keys (e.g. score, label).",
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Only one active per (name, model_type) should be True.",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        unique_together = [("name", "version")]
+        indexes = [
+            models.Index(fields=["model_type", "is_active"]),
+        ]
+        verbose_name = "ML model"
+        verbose_name_plural = "ML models"
+
+    def __str__(self):
+        return f"{self.name}@{self.version} ({self.model_type})"

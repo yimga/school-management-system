@@ -11,7 +11,7 @@ def tenant_policy_context(request):
     if tenant_ctx is not None:
         ctx["tenant_ctx"] = tenant_ctx
         try:
-            from apps.policies.resolver import get_effective_policy
+            from apps.policies.policy_registry import get_effective_policy
             school = getattr(request, "school", None)
             policy = get_effective_policy(school, user=getattr(request, "user", None))
             ctx["global_env"] = policy

@@ -22,6 +22,7 @@ from .models import (
     BadgeScanEvent,
     EmployerProfile,
     TenantAuditLog,
+    Applicant,
 )
 
 
@@ -645,4 +646,15 @@ class TenantAuditLogAdmin(ModelAdmin):
 
 
 admin_site.register(TenantAuditLog, TenantAuditLogAdmin)
+
+
+class ApplicantAdmin(ModelAdmin):
+    list_display = ("last_name", "first_name", "email", "stage", "lead_source", "school", "created_at")
+    list_filter = ("stage", "school")
+    search_fields = ("first_name", "last_name", "email", "lead_source")
+    raw_id_fields = ("school", "assigned_recruiter")
+    ordering = ["-created_at"]
+
+
+admin_site.register(Applicant, ApplicantAdmin)
 

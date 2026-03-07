@@ -322,6 +322,12 @@ def install_app(school, app, *, installed_by=None, config=None, run_schema_patch
         },
         actor=installed_by,
     )
+    # 6.3 / 29.10: Record app install for billing (ledger line; optional add-on pricing later)
+    try:
+        from apps.billing.services import record_app_install_for_billing
+        record_app_install_for_billing(school, app, installation)
+    except Exception as e:
+        logger.warning("Billing record for app install skipped: %s", e)
     return installation
 
 

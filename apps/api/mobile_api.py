@@ -587,7 +587,7 @@ class OfflineSyncViewSet(viewsets.ModelViewSet):
             )
         school = getattr(request, "school", None)
         if school:
-            from apps.policies.resolver import get_effective_policy
+            from apps.policies.policy_registry import get_effective_policy
             try:
                 offline_ok = get_effective_policy(school, user=getattr(request, "user", None), capability="offline_mode").get("enabled", False)
             except Exception:

@@ -26,7 +26,7 @@ After completing all 24 phases, this doc prioritizes **partial** and **scoped** 
 | **Attendance: statuses, lateness, escalation** | 10.4 | **Done** (policy slice) | policy["attendance"] with statuses, lateness_rules, escalation; resolver + bundle merge; phase12 updated. | — |
 | **Communication: channels, fallback order** | 10.5, 28.8 | **Done** (policy slice) | policy["communication"] with channel_order, fallback_order; resolver + bundle merge; phase12 updated. | — |
 | **UX rules: list search/filters/export, form autosave** | 26.5 | Partial | Audit key lists (students, invoices, etc.) for search, filters, export; add where missing. Form autosave/draft for critical forms. | Frontend / Modules |
-| **Parent mobile-first** | 14.4 | Parent portal exists | Audit parent portal templates for mobile; add viewport, touch targets, responsive layout. | Portal |
+| **Parent mobile-first** | 14.4 | Viewport done | Viewport meta in templates/portal_base.html. Audit touch targets and responsive layout when prioritised (parent_mobile_first_audit_14_4.md). | Portal |
 | **Design tokens doc** | 26.4, 29.8 | **Done** | docs/architecture/design_tokens.md — CSS vars, density, nav, WCAG 2.2 AA. | — |
 
 ---
@@ -46,8 +46,8 @@ After completing all 24 phases, this doc prioritizes **partial** and **scoped** 
 
 | Item | Section | Current state | Next step | Owner |
 |------|---------|---------------|-----------|--------|
-| **Student 360 / timeline / transcript** | 15.1, 26.1 | **Partial** — services exist | apps/student360: get_student_360_summary, get_student_timeline_feed, export_student_pack. Remaining: full 360 UI, immutable transcript, cross-year archive. | Product / Backend |
-| **Metadata-driven data layer (DynamicField)** | 15.2 | Scoped | Design DynamicFieldDefinition, DynamicFieldValue; no schema migrations for custom attributes. | Metadata / Backend |
+| **Student 360 / timeline / transcript** | 15.1, 26.1 | **Done** (UI); transcript roadmap | Full 360 tabbed UI done (student_360_page). Immutable transcript and cross-year archive: design in section_15; implement when product prioritises. | Product / Backend |
+| **Metadata-driven data layer (DynamicField)** | 15.2 | **Done** | apps/metadata: DynamicFieldDefinition, DynamicFieldValue, services, admin. No schema migrations for custom attributes. API/UI extensions per product. | Metadata / Backend |
 | **Global ledger (double-entry, payment plans)** | 15.3 | Finance models exist | Extend finance for double-entry ledger; payment plans and installments. | Finance |
 | **Offline first + sync engine** | 16.5 | Policy offline_mode | Define offline-capable flows (attendance, grade entry); sync engine and conflict resolution. | Backend / Frontend |
 | **Preview/release (staging schema, canary)** | 29.4 | Scoped | Tenant staging/sandbox schema; config diff viewer; canary by tenant/country/plan. | Platform / SRE |

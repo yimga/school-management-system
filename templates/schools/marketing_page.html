@@ -5,6 +5,9 @@
   <meta name="description" content="{{ seo_description|default:'RunMyCampus school management platform.' }}">
   {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
   <script type="application/ld+json">{{ structured_data_json|safe }}</script>
+  {% if organization_schema_json %}<script type="application/ld+json">{{ organization_schema_json|safe }}</script>{% endif %}
+  {% if faq_schema_json %}<script type="application/ld+json">{{ faq_schema_json|safe }}</script>{% endif %}
+  {% if breadcrumb_schema_json %}<script type="application/ld+json">{{ breadcrumb_schema_json|safe }}</script>{% endif %}
 {% endblock %}
 {% block extrastyle %}
   {{ block.super }}
@@ -244,6 +247,14 @@
       border-color: color-mix(in srgb, var(--school-primary) 44%, var(--portal-border));
       box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
     }
+    .timeline-phase { border-left: 3px solid var(--school-primary); padding-left: 1rem; margin-bottom: 1rem; }
+    .timeline-phase .phase-owner { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--portal-text-muted); }
+    .integration-trust-grid { display: grid; grid-template-columns: repeat(1, minmax(0, 1fr)); gap: 0.75rem; }
+    .integration-trust-card { border: 1px solid var(--portal-border); border-radius: 0.95rem; padding: 0.9rem; background: var(--admin-content-bg); }
+    .integration-trust-card h4 { font-size: 1rem; margin-bottom: 0.35rem; }
+    @media (min-width: 768px) { .integration-trust-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (min-width: 992px) { .integration-trust-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    .sla-uptime-block { border: 1px solid var(--portal-border); border-radius: 0.95rem; padding: 1rem; background: color-mix(in srgb, var(--admin-content-bg) 98%, var(--school-primary) 2%); }
     .close-cta {
       border-radius: 1.2rem;
       border: 1px solid var(--portal-border);
@@ -301,6 +312,49 @@
         <span class="trust-pill">{{ item }}</span>
       {% endfor %}
     </div>
+
+    {% if active_nav_slug == 'book-demo' and marketing_calendly_url %}
+      <section class="section-shell" aria-label="{% trans 'Schedule a demo' %}">
+        <h2 class="section-heading">{% trans "Pick a time" %}</h2>
+        <p class="section-lead">{% trans "Choose a slot for a 45-minute guided walkthrough. We'll send a confirmation and calendar invite." %}</p>
+        <div class="calendly-embed-wrapper" style="min-height: 700px;">
+          <iframe src="{{ marketing_calendly_url }}{% if '?' in marketing_calendly_url %}&{% else %}?{% endif %}hide_gdpr_banner=1" width="100%" height="700" frameborder="0" title="{% trans 'Schedule a demo' %}"></iframe>
+        </div>
+        <p class="mt-2 small text-muted">{% trans "Can't find a time? Contact us and we'll arrange a call." %}</p>
+      </section>
+    {% elif active_nav_slug == 'book-demo' %}
+      <section class="section-shell" aria-label="{% trans 'Request a demo' %}">
+        <h2 class="section-heading">{% trans "Request a demo" %}</h2>
+        <p class="section-lead">{% trans "Tell us about your school and we'll get back within 24 hours to schedule a walkthrough." %}</p>
+        {% if request.GET.submitted %}
+          <div class="alert alert-success" role="alert">{% trans "Thanks! We've received your request and will be in touch soon." %}</div>
+        {% elif request.GET.error %}
+          <div class="alert alert-warning" role="alert">{% trans "Something went wrong. Please try again or contact us directly." %}</div>
+        {% endif %}
+        <form method="post" action="{% url 'marketing_book_demo_submit' %}" class="row g-3">
+          {% csrf_token %}
+          <div class="col-md-6">
+            <label for="demo-name" class="form-label">{% trans "Name" %}</label>
+            <input type="text" id="demo-name" name="name" class="form-control" maxlength="256" required>
+          </div>
+          <div class="col-md-6">
+            <label for="demo-email" class="form-label">{% trans "Email" %}</label>
+            <input type="email" id="demo-email" name="email" class="form-control" maxlength="256" required>
+          </div>
+          <div class="col-12">
+            <label for="demo-school" class="form-label">{% trans "School or organization" %}</label>
+            <input type="text" id="demo-school" name="school" class="form-control" maxlength="256">
+          </div>
+          <div class="col-12">
+            <label for="demo-message" class="form-label">{% trans "Message" %}</label>
+            <textarea id="demo-message" name="message" class="form-control" rows="4" maxlength="2000"></textarea>
+          </div>
+          <div class="col-12">
+            <button type="submit" class="btn btn-primary">{% trans "Send request" %}</button>
+          </div>
+        </form>
+      </section>
+    {% endif %}
 
     {% if active_nav_slug == 'blog' and blog_posts %}
       <section class="section-shell">
@@ -362,6 +416,65 @@
       </section>
     {% endif %}
 
+    {% if page_extras.implementation_timeline %}
+      <section class="section-shell">
+        <h2 class="section-heading">{% trans "Implementation timeline with role ownership" %}</h2>
+        <p class="section-lead">{% trans "Phased rollout: school lead, IT, finance, and admissions. Clear ownership at each step." %}</p>
+        {% for phase in page_extras.implementation_timeline %}
+          <div class="timeline-phase">
+            <div class="phase-owner">{% trans "Phase" %} {{ phase.phase }} — {{ phase.owner }}</div>
+            <h3 class="h6 mb-2">{{ phase.title }}</h3>
+            <ul class="agenda-list mb-0">
+              {% for item in phase.items %}
+                <li>{{ item }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endfor %}
+      </section>
+    {% endif %}
+
+    {% if page_extras.implementation_timeline %}
+      <section class="section-shell">
+        <h2 class="section-heading">{% trans "Download checklists" %}</h2>
+        <p class="section-lead">{% if page_extras.checklist_intro %}{{ page_extras.checklist_intro }}{% else %}{% trans "Save and print, or open in browser and use Save as PDF." %}{% endif %}</p>
+        <div class="d-flex flex-wrap gap-2">
+          <a href="{% url 'marketing_buyer_toolkit_download' document='buyer-checklist' %}" class="btn btn-primary">{% trans "Download buyer evaluation checklist (HTML)" %}</a>
+          <a href="{% url 'marketing_buyer_toolkit_download' document='implementation-checklist' %}" class="btn btn-outline-primary">{% trans "Download implementation checklist (HTML)" %}</a>
+        </div>
+      </section>
+    {% endif %}
+
+    {% if page_extras.integration_trust_categories %}
+      <section class="section-shell">
+        <h2 class="section-heading">{% trans "Integration trust by category" %}</h2>
+        <p class="section-lead">{% trans "SIS, LMS, payments, messaging, and identity—governed and tenant-safe." %}</p>
+        <div class="integration-trust-grid">
+          {% for cat in page_extras.integration_trust_categories %}
+            <article class="integration-trust-card">
+              <h4>{{ cat.name }}</h4>
+              <p class="mb-0 text-muted small">{{ cat.summary }}</p>
+            </article>
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
+
+    {% if page_extras.sla_uptime %}
+      <section class="section-shell">
+        <h2 class="section-heading">{% trans "SLA and uptime" %}</h2>
+        <p class="section-lead">{% trans "Platform availability and support commitment." %}</p>
+        <div class="sla-uptime-block">
+          <p class="mb-1"><strong>{% trans "Uptime target" %}:</strong> {{ page_extras.sla_uptime.uptime_target }}</p>
+          <p class="mb-1">{{ page_extras.sla_uptime.sla_summary }}</p>
+          <p class="mb-0">{{ page_extras.sla_uptime.support_summary }}</p>
+          {% if page_extras.sla_uptime.status_url %}
+            <p class="mt-2 mb-0"><a href="{{ page_extras.sla_uptime.status_url }}" target="_blank" rel="noopener">{% trans "View status page" %}</a></p>
+          {% endif %}
+        </div>
+      </section>
+    {% endif %}
+
     {% if page_extras.comparison_rows %}
     <section class="section-shell">
       <h2 class="section-heading">{% trans "Architecture comparison matrix" %}</h2>
@@ -386,6 +499,14 @@
           </tbody>
         </table>
       </div>
+      {% if page_extras.migration_narrative %}
+      <h3 class="h6 mt-3 mb-2">{% trans "Migration path" %}</h3>
+      <ul class="agenda-list mb-0">
+        {% for step in page_extras.migration_narrative %}
+          <li>{{ step }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
     </section>
     {% endif %}
 
@@ -399,6 +520,13 @@
             <h3>{{ case.title }}</h3>
             <p class="mb-0 text-muted">{{ case.result }}</p>
             <div class="case-impact">{{ case.impact }}</div>
+            {% if case.outcomes %}
+            <ul class="mb-0 mt-2 ps-3 small text-muted">
+              {% for outcome in case.outcomes %}
+                <li>{{ outcome }}</li>
+              {% endfor %}
+            </ul>
+            {% endif %}
           </article>
         {% endfor %}
       </div>

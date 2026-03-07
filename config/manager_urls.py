@@ -73,6 +73,8 @@ portal_compat_patterns = [
     path("parent/link-child/", _portal_link_child_redirect, name="link_child"),
     path("teacher/", manager_legacy_surface_redirect, {"surface": "portal"}, name="teacher_dashboard_alias"),
     path("support/request/", manager_legacy_surface_redirect, {"surface": "portal"}, name="support_request"),
+    # Document library and other portal backend routes: resolve for admin sidebar / shared templates; redirect to control plane
+    path("backend/documents/", manager_legacy_surface_redirect, {"surface": "portal"}, name="document_library_manage"),
 ]
 
 kb_compat_patterns = [
@@ -116,70 +118,22 @@ def _subscription_plan_label(subscription: TenantSubscription) -> str:
 def manager_search_api(request):
     query = (request.GET.get("q") or "").strip()
     if len(query) < 2:
-        return JsonResponse({"results": []})
+        query_lower = query.lower()
+        results = []
+        static_catalog = _manager_search_static_catalog()
+        if not query_lower:
+            results = static_catalog[:10]
+        else:
+            for item in static_catalog:
+                haystack = f"{item['title']} {item['description']} {' '.join(item['meta'])}".lower()
+                if query_lower in haystack:
+                    results.append(item)
+        return JsonResponse({"results": results})
 
     query_lower = query.lower()
     results: list[dict[str, object]] = []
 
-    static_catalog = [
-        {
-            "title": "Tenant Mission Control",
-            "description": "Global tenant registry, readiness, and platform posture.",
-            "url": reverse("super:dashboard"),
-            "type": "report",
-            "meta": ["Control plane"],
-        },
-        {
-            "title": "Mission Queues",
-            "description": "Approvals, incidents, provisioning breaches, and operator backlog.",
-            "url": reverse("super:command_center"),
-            "type": "class",
-            "meta": ["Queues"],
-        },
-        {
-            "title": "Platform Billing",
-            "description": "Subscriptions, trials, and revenue exceptions.",
-            "url": reverse("super:billing_dashboard"),
-            "type": "invoice",
-            "meta": ["Billing"],
-        },
-        {
-            "title": "Marketplace Governance",
-            "description": "Publishers, app review queue, kill switches, and revenue-share posture.",
-            "url": reverse("super:marketplace_governance"),
-            "type": "app",
-            "meta": ["Marketplace"],
-        },
-        {
-            "title": "Blueprint Marketplace",
-            "description": "Apply policy packs (e.g. Cameroon Francophone, UAE MoE+IB) to a school.",
-            "url": reverse("super:blueprint_marketplace"),
-            "type": "app",
-            "meta": ["Marketplace", "Phase 6"],
-        },
-        {
-            "title": "App Catalog",
-            "description": "Install approved marketplace apps for a school.",
-            "url": reverse("super:app_catalog"),
-            "type": "app",
-            "meta": ["Marketplace", "Phase 6"],
-        },
-        {
-            "title": "Platform Incidents",
-            "description": "Operator incident console and escalation status.",
-            "url": reverse("platform_incidents_console"),
-            "type": "alert",
-            "meta": ["Observability"],
-        },
-        {
-            "title": "Provision Tenant",
-            "description": "Launch the tenant onboarding wizard.",
-            "url": reverse("super:create_school_wizard"),
-            "type": "student",
-            "meta": ["Provisioning"],
-        },
-    ]
-
+    static_catalog = _manager_search_static_catalog()
     for item in static_catalog:
         haystack = f"{item['title']} {item['description']} {' '.join(item['meta'])}".lower()
         if query_lower in haystack:
@@ -241,6 +195,67 @@ def manager_search_api(request):
         )
 
     return JsonResponse({"results": results[:12]})
+
+
+def _manager_search_static_catalog():
+    return [
+        {
+            "title": "Tenant Mission Control",
+            "description": "Global tenant registry, readiness, and platform posture.",
+            "url": reverse("super:dashboard"),
+            "type": "report",
+            "meta": ["Control plane"],
+        },
+        {
+            "title": "Mission Queues",
+            "description": "Approvals, incidents, provisioning breaches, and operator backlog.",
+            "url": reverse("super:command_center"),
+            "type": "class",
+            "meta": ["Queues"],
+        },
+        {
+            "title": "Platform Billing",
+            "description": "Subscriptions, trials, and revenue exceptions.",
+            "url": reverse("super:billing_dashboard"),
+            "type": "invoice",
+            "meta": ["Billing"],
+        },
+        {
+            "title": "Marketplace Governance",
+            "description": "Publishers, app review queue, kill switches, and revenue-share posture.",
+            "url": reverse("super:marketplace_governance"),
+            "type": "app",
+            "meta": ["Marketplace"],
+        },
+        {
+            "title": "Blueprint Marketplace",
+            "description": "Apply policy packs (e.g. Cameroon Francophone, UAE MoE+IB) to a school.",
+            "url": reverse("super:blueprint_marketplace"),
+            "type": "app",
+            "meta": ["Marketplace", "Phase 6"],
+        },
+        {
+            "title": "App Catalog",
+            "description": "Install approved marketplace apps for a school.",
+            "url": reverse("super:app_catalog"),
+            "type": "app",
+            "meta": ["Marketplace", "Phase 6"],
+        },
+        {
+            "title": "Platform Incidents",
+            "description": "Operator incident console and escalation status.",
+            "url": reverse("platform_incidents_console"),
+            "type": "alert",
+            "meta": ["Observability"],
+        },
+        {
+            "title": "Provision Tenant",
+            "description": "Launch the tenant onboarding wizard.",
+            "url": reverse("super:create_school_wizard"),
+            "type": "student",
+            "meta": ["Provisioning"],
+        },
+    ]
 
 
 urlpatterns = [

@@ -6,6 +6,8 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    {% if request.build_absolute_uri %}<link rel="canonical" href="{{ request.build_absolute_uri }}">{% endif %}
+    {% with desc=meta_description|default:SITE.meta_description|default:"" %}{% if desc %}<meta name="description" content="{{ desc|truncatewords:50 }}">{% endif %}{% endwith %}
     {% load static i18n %}
 
     <script>
@@ -74,6 +76,7 @@
 
     <!-- Bootstrap (self-hosted) -->
     <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-system-unified.css' %}">
     <link rel="stylesheet" href="{% static 'css/toggle-colors.css' %}">
@@ -87,6 +90,7 @@
     <link rel="stylesheet" href="{% static 'css/dashboard-text-visibility.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-everywhere-dark.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-visibility-guard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/platform-responsive-touch.css' %}">
     <script src="{% static 'js/htmx.min.js' %}" defer></script>
 
     <style>
@@ -322,6 +326,7 @@
       If you need to support users with reduced motion or contrast, consider a toggle in user preferences.
     -->
     <div class="app-container">
+    {% block navbar %}
     <nav class="navbar navbar-expand-lg navbar-dark">
       <div class="container d-flex align-items-center base-topbar">
         <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{% url 'home' %}">
@@ -352,6 +357,7 @@
         </div>
       </div>
     </nav>
+    {% endblock %}
 
     {% if SITE and SITE.is_preview %}
       <div class="alert alert-danger text-center text-white m-0 rounded-0 fw-bold">
@@ -404,11 +410,21 @@
 
       {% include "partials/breadcrumbs.html" %}
 
-      {% block content %}{% endblock %}
+      <div class="page-wrap">
+        {% block content %}{% endblock %}
+      </div>
     </main>
 
+    {% block footer %}
     {% if PUBLIC_BRAND_MODE %}
       <footer class="container text-center text-muted small pt-3 pb-5">
+        <p class="mb-1">
+          <a href="{% url 'marketing_privacy' %}">{% trans "Privacy Policy" %}</a>
+          <span class="mx-2">|</span>
+          <a href="{% url 'marketing_terms' %}">{% trans "Terms of Service" %}</a>
+          <span class="mx-2">|</span>
+          <a href="{% url 'marketing_cookie_policy' %}">{% trans "Cookie Policy" %}</a>
+        </p>
         <div class="fw-semibold">{{ PUBLIC_BRAND_NAME }}</div>
         <div>{{ PUBLIC_BRAND_DOMAIN }}</div>
       </footer>
@@ -433,6 +449,7 @@
         {% endif %}
       </footer>
     {% endif %}
+    {% endblock %}
 
     {# AI Copilot - Available on all pages #}
     {% include 'components/ai_copilot.html' %}

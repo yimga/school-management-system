@@ -5,6 +5,7 @@
   <meta name="description" content="{{ seo_description|default:'RunMyCampus topical solution landing.' }}">
   {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
   <script type="application/ld+json">{{ structured_data_json|safe }}</script>
+  {% if breadcrumb_schema_json %}<script type="application/ld+json">{{ breadcrumb_schema_json|safe }}</script>{% endif %}
 {% endblock %}
 {% block content %}
 <section class="container py-4 py-lg-5">

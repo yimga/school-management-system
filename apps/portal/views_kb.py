@@ -27,8 +27,8 @@ def _get_kb_region(request):
     school = getattr(request, "school", None)
     if school:
         try:
-            from apps.policies.resolver import get_effective_policy
-            policy = get_effective_policy(school)
+            from apps.portal.runtime_helpers import get_policy_for_request
+            policy = get_policy_for_request(request)
             country_code = (policy.get("country_code") or "")[:2].upper()
             if not country_code and getattr(school, "compliance_region", None):
                 region = school.compliance_region

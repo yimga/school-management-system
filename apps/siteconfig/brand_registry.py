@@ -91,7 +91,7 @@ def _deep_merge_dict(base: dict[str, Any], overlay: dict[str, Any]) -> dict[str,
 
 
 def _school_label_overrides(school) -> dict[str, Any]:
-    from apps.policies.resolver import get_effective_policy
+    from apps.policies.policy_registry import get_effective_policy
     policy = get_effective_policy(school) if school else {}
     labels = policy.get("labels_map")
     if isinstance(labels, dict):

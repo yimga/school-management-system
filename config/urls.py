@@ -2,6 +2,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.shortcuts import redirect, render
 from django.urls import include, path, reverse
+from django.views.i18n import set_language
 from django.views.decorators.cache import cache_page
 from rest_framework.schemas import get_schema_view
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -19,7 +20,7 @@ from apps.portal.views_ai_copilot import (
     ai_copilot_audit_feed,
 )
 from config.admin import admin_site
-from apps.schools.marketing_views import marketing_landing, regional_marketing_landing, marketing_page, topical_marketing_landing
+from apps.schools.marketing_views import marketing_landing, regional_marketing_landing, marketing_page, topical_marketing_landing, blog_post_detail, buyer_toolkit_download, marketing_funnel_dashboard
 from apps.schools.signup_views import signup_school, verify_signup, api_trial_school, onboarding_wizard
 from apps.schools.section8_views import (
     verify_caddy_domain,
@@ -122,18 +123,21 @@ def permission_denied(request, exception):
         request.user.is_staff and
         not request.user.is_superuser
     )
-    return render(request, 'errors/403.html', {'is_admin_forbidden': is_admin_forbidden}, status=403)
+    template = 'errors/403_control_plane.html' if getattr(request, 'public_host_kind', None) == 'manager' else 'errors/403.html'
+    return render(request, template, {'is_admin_forbidden': is_admin_forbidden}, status=403)
 
 
 def page_not_found(request, exception):
     """Custom 404 page."""
-    return render(request, 'errors/404.html', status=404)
+    template = 'errors/404_control_plane.html' if getattr(request, 'public_host_kind', None) == 'manager' else 'errors/404.html'
+    return render(request, template, status=404)
 
 
 def server_error(request):
     """Custom 500 page. Pass user so base template and includes render when context processors failed."""
     context = {"user": getattr(request, "user", None)}
-    return render(request, "errors/500.html", context, status=500)
+    template = 'errors/500_control_plane.html' if getattr(request, 'public_host_kind', None) == 'manager' else 'errors/500.html'
+    return render(request, template, context, status=500)
 
 
 handler403 = permission_denied
@@ -143,6 +147,9 @@ handler500 = server_error
 urlpatterns = [
     path('', home, name='home'),
     path('offline/', offline_page, name='offline'),
+
+    # Language switcher (Django i18n; POST language then redirect)
+    path('i18n/setlang/', set_language, name='set_language'),
 
     # Admin interfaces - /admin/ only for superuser/staff
     path('admin/', admin_site.urls),
@@ -227,15 +234,21 @@ urlpatterns = [
     path("pricing/", marketing_page, {"page_slug": "pricing"}, name="marketing_pricing"),
     path("compare/", marketing_page, {"page_slug": "compare"}, name="marketing_compare"),
     path("case-studies/", marketing_page, {"page_slug": "case-studies"}, name="marketing_case_studies"),
+    path("customers/", lambda req: redirect("marketing_case_studies", permanent=False), name="marketing_customers"),
     path("security-compliance/", marketing_page, {"page_slug": "security-compliance"}, name="marketing_security_compliance"),
     path("integrations/", marketing_page, {"page_slug": "integrations"}, name="marketing_integrations"),
     path("book-demo/", marketing_page, {"page_slug": "book-demo"}, name="marketing_book_demo"),
+    path("buyer-toolkit/", marketing_page, {"page_slug": "buyer-toolkit"}, name="marketing_buyer_toolkit"),
+    path("buyer-toolkit/download/<str:document>/", buyer_toolkit_download, name="marketing_buyer_toolkit_download"),
+    path("funnel-dashboard/", marketing_funnel_dashboard, name="marketing_funnel_dashboard"),
     path("about/", marketing_page, {"page_slug": "about"}, name="marketing_about"),
     path("features/", marketing_page, {"page_slug": "features"}, name="marketing_features"),
     path("blog/", marketing_page, {"page_slug": "blog"}, name="marketing_blog"),
+    path("blog/<slug:slug>/", blog_post_detail, name="marketing_blog_detail"),
     path("contact/", marketing_page, {"page_slug": "contact"}, name="marketing_contact"),
     path("privacy/", marketing_page, {"page_slug": "privacy"}, name="marketing_privacy"),
     path("terms/", marketing_page, {"page_slug": "terms"}, name="marketing_terms"),
+    path("cookie-policy/", marketing_page, {"page_slug": "cookie-policy"}, name="marketing_cookie_policy"),
     path("solutions/<str:topic_slug>/", topical_marketing_landing, name="marketing_topic"),
     path('cm/', regional_marketing_landing, {"country_code": "CM"}, name='marketing_cm'),
     path('ca/', regional_marketing_landing, {"country_code": "CA"}, name='marketing_ca'),

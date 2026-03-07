@@ -191,6 +191,81 @@ class PromotionRule(models.Model):
     def __str__(self):
         scope = self.classroom.name if self.classroom else "School default"
         return f"{self.academic_year} - {scope}"
+
+
+class EMISSubmission(models.Model):
+    """
+    Government/District EMIS: track report preparation and submission per school/period.
+    Platform 5Y: full ministry reporting and submission flow.
+    """
+    class ReportType(models.TextChoices):
+        ENROLLMENT = "ENROLLMENT", "Enrollment"
+        ATTENDANCE = "ATTENDANCE", "Attendance"
+        FINANCE = "FINANCE", "Finance"
+        STAFF = "STAFF", "Staff"
+        MOE_PRESET = "MOE_PRESET", "MoE preset (regulatory)"
+
+    class Status(models.TextChoices):
+        DRAFT = "DRAFT", "Draft"
+        PREPARED = "PREPARED", "Prepared"
+        SUBMITTED = "SUBMITTED", "Submitted"
+        ACKNOWLEDGED = "ACKNOWLEDGED", "Acknowledged"
+        FAILED = "FAILED", "Failed"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="emis_submissions",
+    )
+    report_type = models.CharField(max_length=32, choices=ReportType.choices, db_index=True)
+    period_label = models.CharField(
+        max_length=80,
+        help_text="e.g. 2024-Q1, 2024/2025 Term 1",
+    )
+    academic_year = models.ForeignKey(
+        AcademicYear,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="emis_submissions",
+    )
+    term = models.ForeignKey(
+        Term,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="emis_submissions",
+    )
+    preset_id = models.CharField(max_length=80, blank=True, help_text="MoE preset id when report_type=MOE_PRESET")
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT, db_index=True)
+    file_path = models.CharField(max_length=500, blank=True, help_text="Generated report file (PDF/CSV)")
+    submission_url = models.URLField(max_length=500, blank=True, help_text="Ministry/district submission URL if applicable")
+    submitted_at = models.DateTimeField(null=True, blank=True)
+    submitted_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="emis_submissions",
+    )
+    external_id = models.CharField(max_length=120, blank=True, help_text="Reference from ministry/district")
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["school", "report_type", "period_label"]),
+            models.Index(fields=["school", "status"]),
+        ]
+        verbose_name = "EMIS submission"
+        verbose_name_plural = "EMIS submissions"
+
+    def __str__(self):
+        return f"{self.school.name} — {self.report_type} {self.period_label} ({self.status})"
+
+
 # ReportDefinition and MaterializedReportCache are defined in `apps.reports.bi_models`.
 # Import them here for backwards compatibility so existing imports continue to work.
 from .bi_models import ReportDefinition, MaterializedReportCache

@@ -1,0 +1,87 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+{# Section 15.1: Cross-year immutable transcript archive — read-only list by academic year. #}
+{% block title %}Transcript archive — {{ student.get_full_name }}{% endblock %}
+{% block content %}
+<div class="container-fluid py-3">
+  <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+    <div>
+      <h1 class="h4 mb-1">Transcript archive — {{ student.get_full_name }}</h1>
+      <p class="text-muted mb-0">Immutable, cross-year transcript snapshots (read-only).</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'portal:student_360_page' student.pk %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Student 360</a>
+      <a href="{% url 'accounts:backend_student_list' %}" class="btn btn-outline-secondary btn-sm">Back to students</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span>Frozen transcripts by academic year</span>
+      <form method="post" action="{% url 'portal:transcript_freeze' student.pk %}" class="d-inline">
+        {% csrf_token %}
+        <input type="hidden" name="academic_year_id" id="freeze_year_id" value="">
+        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#freezeModal"><i class="bi bi-lock me-1"></i>Freeze transcript for year</button>
+      </form>
+    </div>
+    <div class="card-body">
+      {% if archives %}
+      <ul class="list-group list-group-flush">
+        {% for t in archives %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <a href="{% url 'portal:transcript_archive_year' student.pk t.academic_year_id %}">{{ t.academic_year.name }}</a>
+          <span class="text-muted small">Frozen {{ t.created_at|date:"M d, Y" }}{% if t.created_by %} by {{ t.created_by.get_full_name }}{% endif %}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="text-muted mb-0">No frozen transcripts yet. Use “Freeze transcript for year” to create an immutable snapshot for an academic year.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{# Modal: pick academic year then submit freeze #}
+<div class="modal fade" id="freezeModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Freeze transcript</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted small">Create an immutable snapshot of the student’s transcript for the selected academic year. This can be re-run to replace the snapshot for that year.</p>
+        <label for="freeze_year_select" class="form-label">Academic year</label>
+        <select id="freeze_year_select" class="form-select" required>
+          <option value="">— Select year —</option>
+          {% for year in academic_years %}
+          <option value="{{ year.id }}">{{ year.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="freezeSubmit">Freeze</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(function() {
+  var modal = document.getElementById('freezeModal');
+  if (!modal) return;
+  var form = document.querySelector('form[action*="transcript-freeze"]');
+  var yearSelect = document.getElementById('freeze_year_select');
+  var yearHidden = document.getElementById('freeze_year_id');
+  var submitBtn = document.getElementById('freezeSubmit');
+  if (form && yearSelect && yearHidden && submitBtn) {
+    submitBtn.addEventListener('click', function() {
+      var val = yearSelect.value;
+      if (!val) return;
+      yearHidden.value = val;
+      form.submit();
+    });
+  }
+})();
+</script>
+{% endblock %}

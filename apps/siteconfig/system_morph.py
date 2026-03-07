@@ -45,4 +45,9 @@ def hydrate_school_from_profile(school) -> dict[str, Any]:
     if applied:
         school.settings = settings
         school.save(update_fields=["settings", "updated_at"])
+        try:
+            from apps.policies.policy_registry import invalidate_policy_cache
+            invalidate_policy_cache(school)
+        except Exception:
+            pass
     return applied

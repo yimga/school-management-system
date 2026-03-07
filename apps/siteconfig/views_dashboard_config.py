@@ -34,10 +34,17 @@ def dashboard_hub(request):
         messages.warning(request, "No school context. Switch to a school to manage dashboards.")
         return redirect(reverse("accounts:backend_dashboard"))
     config_url = reverse("siteconfig:dashboard_configuration_hub")
+    backend_url = reverse("accounts:backend_dashboard")
+    assignment_count = TenantLayoutAssignment.objects.filter(school=school).count()
     return render(
         request,
         "siteconfig/dashboard_hub.html",
-        {"school": school, "config_url": config_url},
+        {
+            "school": school,
+            "config_url": config_url,
+            "backend_url": backend_url,
+            "assignment_count": assignment_count,
+        },
     )
 
 
@@ -58,6 +65,12 @@ def workflow_hub(request):
         return redirect(reverse("accounts:backend_dashboard"))
     approval_hub_url = reverse("accounts:approval_workflow_hub")
     flow_gallery_url = reverse("siteconfig:workflow_flow_gallery")
+    backend_url = reverse("accounts:backend_dashboard")
+    workflow_center_url = reverse("accounts:workflow_center")
+    try:
+        automation_hub_url = reverse("accounts:automation_hub")
+    except Exception:
+        automation_hub_url = None
     return render(
         request,
         "siteconfig/workflow_hub.html",
@@ -65,6 +78,50 @@ def workflow_hub(request):
             "school": school,
             "approval_hub_url": approval_hub_url,
             "flow_gallery_url": flow_gallery_url,
+            "backend_url": backend_url,
+            "workflow_center_url": workflow_center_url,
+            "automation_hub_url": automation_hub_url,
+        },
+    )
+
+
+@never_cache
+@require_http_methods(["GET"])
+@login_required
+def get_blueprints(request):
+    """
+    Tenant-facing "Get blueprints" entry (11.2). Blueprint packs are applied by platform admin;
+    this page lets tenants discover available packs and request application (or link to manager).
+    """
+    if not getattr(request.user, "is_staff", False):
+        messages.warning(request, "Access restricted to staff.")
+        return redirect(reverse("accounts:backend_dashboard"))
+    school = getattr(request, "school", None)
+    if not school:
+        messages.warning(request, "No school context.")
+        return redirect(reverse("accounts:backend_dashboard"))
+    packs = []
+    applied_pack = None
+    try:
+        from apps.policies.models import BlueprintPack, TenantBlueprint
+        packs = list(BlueprintPack.objects.filter(is_active=True).order_by("category", "name")[:50])
+        tb = TenantBlueprint.objects.filter(school=school).select_related("applied_pack").first()
+        applied_pack = tb.applied_pack if tb else None
+    except Exception:
+        pass
+    try:
+        from apps.schools.tenant_url import build_manager_absolute_url
+        manager_blueprints_url = build_manager_absolute_url(request, "/super/marketplace/blueprints/")
+    except Exception:
+        manager_blueprints_url = None
+    return render(
+        request,
+        "siteconfig/get_blueprints.html",
+        {
+            "school": school,
+            "packs": packs,
+            "applied_pack": applied_pack,
+            "manager_blueprints_url": manager_blueprints_url,
         },
     )
 

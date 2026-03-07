@@ -29,7 +29,7 @@ from apps.siteconfig.models import SiteSettings, default_header_weather_config
 logger = logging.getLogger(__name__)
 
 
-def _safe_reverse(name: str, fallback: str = "#") -> str:
+def __safe_reverse(name: str, fallback: str = "#") -> str:
     try:
         return reverse(name)
     except NoReverseMatch:

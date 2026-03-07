@@ -1,15 +1,14 @@
-{% extends "backend_base.html" %}
+{% extends "control_plane_base.html" %}
 {% load static %}
 
-{% block title %}Blueprint marketplace{% endblock %}
-{% block backend_title %}Blueprint marketplace{% endblock %}
+{% block cp_title %}Blueprint marketplace{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
 {% endblock %}
 
-{% block content %}
+{% block cp_content %}
 <div class="container-fluid py-4 control-plane-shell">
   <section class="cp-hero cp-hero-compact mb-4">
     <div class="cp-hero-grid">

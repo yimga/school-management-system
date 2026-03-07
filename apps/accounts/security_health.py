@@ -128,7 +128,7 @@ class SecurityTaskRegistry:
         if school is None:
             return DEFAULT_WEIGHTS
         try:
-            from apps.policies.resolver import get_effective_policy
+            from apps.policies.policy_registry import get_effective_policy
             policy = get_effective_policy(school)
             w = policy.get("security_weights") or policy.get("security_weights_override")
             if isinstance(w, dict):
@@ -191,7 +191,7 @@ def get_security_grace_period_days(school=None) -> int:
     """Days before new users are subject to wizard redirect (e.g. 7)."""
     try:
         if school:
-            from apps.policies.resolver import get_effective_policy
+            from apps.policies.policy_registry import get_effective_policy
             policy = get_effective_policy(school)
             if "security_grace_period_days" in policy:
                 return int(policy["security_grace_period_days"])

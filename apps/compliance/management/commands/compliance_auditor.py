@@ -21,7 +21,7 @@ from dataclasses import dataclass
 from django.core.management.base import BaseCommand, CommandError
 from django.db import models
 
-from apps.policies.resolver import get_effective_policy
+from apps.policies.policy_registry import get_effective_policy
 
 
 @dataclass(frozen=True)

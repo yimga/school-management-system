@@ -3,6 +3,7 @@ Super Admin views: dashboard (list schools) and Create School wizard.
 Access restricted to SUPERADMIN or is_superuser via TenantSuperAdminRequiredMiddleware.
 """
 import csv
+import json
 from datetime import timedelta
 from io import StringIO
 
@@ -391,6 +392,17 @@ def _month_options(last_n=12):
     return options
 
 
+def _get_super_dashboard_section_order(user):
+    """Return the section order for the super dashboard (per-user, from DB)."""
+    from apps.siteconfig.models_dashboard import SuperAdminDashboardPreference, SUPER_DASHBOARD_DEFAULT_SECTION_ORDER
+    if not user or not user.is_authenticated:
+        return list(SUPER_DASHBOARD_DEFAULT_SECTION_ORDER)
+    pref = SuperAdminDashboardPreference.objects.filter(user=user).first()
+    if not pref:
+        return list(SUPER_DASHBOARD_DEFAULT_SECTION_ORDER)
+    return pref.get_section_order()
+
+
 def super_dashboard(request):
     """List all schools with basic stats. Phase E: Financial Bento. Phase H: Registry link, selected education systems."""
     from django.db.models import Sum
@@ -579,6 +591,154 @@ def export_schools_csv(request):
     resp = HttpResponse(buf.getvalue(), content_type="text/csv; charset=utf-8")
     resp["Content-Disposition"] = 'attachment; filename="schools.csv"'
     return resp
+
+
+def export_super_dashboard_pdf(request):
+    """Export a one-page PDF summary: North Star, financial snapshot, operational snapshot (RUNMYCAMPUS_UI_IMPROVEMENTS)."""
+    from io import BytesIO
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import inch
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+
+    from apps.billing.models import TenantSubscription
+    from apps.observability.models import PlatformIncident
+    from apps.siteconfig.models import RevenueSnapshot
+
+    first_of_month = _parse_month_param(request)
+    total_mrr = total_waived = waiver_percentage = 0
+    revenue_by_country = []
+    try:
+        snapshots = RevenueSnapshot.objects.filter(snapshot_date=first_of_month)
+        agg = snapshots.aggregate(total_actual=Sum("actual_revenue"), total_waived=Sum("waived_amount"))
+        total_mrr = agg["total_actual"] or 0
+        total_waived = agg["total_waived"] or 0
+        total_all = total_mrr + total_waived
+        waiver_percentage = (float(total_waived) / float(total_all) * 100) if total_all else 0
+        revenue_by_country = list(
+            snapshots.values("country_code")
+            .annotate(actual=Sum("actual_revenue"), waived=Sum("waived_amount"))
+            .order_by("-actual", "-waived")[:10]
+        )
+    except Exception:
+        pass
+
+    school_count = School.objects.filter(is_active=True).count()
+    pending_approval_count = School.objects.filter(is_approved=False).count()
+    open_incident_count = PlatformIncident.objects.filter(
+        status__in=[
+            PlatformIncident.Status.OPEN,
+            PlatformIncident.Status.ACKNOWLEDGED,
+            PlatformIncident.Status.MITIGATED,
+        ],
+    ).count()
+    billing_exceptions_count = TenantSubscription.objects.filter(
+        status__in=[TenantSubscription.Status.PAST_DUE, TenantSubscription.Status.SUSPENDED],
+    ).count()
+
+    buf = BytesIO()
+    doc = SimpleDocTemplate(buf, pagesize=A4, rightMargin=inch, leftMargin=inch, topMargin=inch, bottomMargin=inch)
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(name="Title", parent=styles["Title"], fontSize=16, spaceAfter=12)
+    heading_style = ParagraphStyle(name="Heading", parent=styles["Heading2"], fontSize=12, spaceAfter=6)
+    body_style = styles["Normal"]
+
+    flow = []
+    flow.append(Paragraph("RunMyCampus Mission Control — Summary", title_style))
+    flow.append(Paragraph(f"Report date: {timezone.now().strftime('%Y-%m-%d %H:%M')} | Snapshot month: {first_of_month.strftime('%B %Y')}", body_style))
+    flow.append(Spacer(1, 0.25 * inch))
+
+    flow.append(Paragraph("North Star", heading_style))
+    north_star_label = "Total MRR"
+    north_star_value = f"${total_mrr:,.2f}"
+    flow.append(Paragraph(f"<b>{north_star_label}:</b> {north_star_value}", body_style))
+    flow.append(Spacer(1, 0.2 * inch))
+
+    flow.append(Paragraph("Financial snapshot", heading_style))
+    fin_data = [
+        ["Metric", "Value"],
+        ["MRR (actual)", f"${total_mrr:,.2f}"],
+        ["Waived", f"${total_waived:,.2f}"],
+        ["Waiver %", f"{waiver_percentage:.1f}%"],
+    ]
+    fin_table = Table(fin_data, colWidths=[2.5 * inch, 2 * inch])
+    fin_table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1e293b")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("FONTSIZE", (0, 0), (-1, -1), 9),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+    ]))
+    flow.append(fin_table)
+    if revenue_by_country:
+        flow.append(Spacer(1, 0.15 * inch))
+        flow.append(Paragraph("Revenue by country (top 5)", body_style))
+        country_data = [["Country", "Actual", "Waived"]]
+        for row in revenue_by_country[:5]:
+            country_data.append([row["country_code"] or "—", f"${(row.get('actual') or 0):,.2f}", f"${(row.get('waived') or 0):,.2f}"])
+        country_table = Table(country_data, colWidths=[1.5 * inch, 1.5 * inch, 1.5 * inch])
+        country_table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#334155")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("FONTSIZE", (0, 0), (-1, -1), 8),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+        ]))
+        flow.append(country_table)
+    flow.append(Spacer(1, 0.25 * inch))
+
+    flow.append(Paragraph("Operational snapshot", heading_style))
+    ops_data = [
+        ["Metric", "Count"],
+        ["Active tenants", str(school_count)],
+        ["Pending approvals", str(pending_approval_count)],
+        ["Open platform incidents", str(open_incident_count)],
+        ["Billing exceptions (past due / suspended)", str(billing_exceptions_count)],
+    ]
+    ops_table = Table(ops_data, colWidths=[3.5 * inch, 1.5 * inch])
+    ops_table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1e293b")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("FONTSIZE", (0, 0), (-1, -1), 9),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+    ]))
+    flow.append(ops_table)
+
+    doc.build(flow)
+    resp = HttpResponse(buf.getvalue(), content_type="application/pdf")
+    resp["Content-Disposition"] = 'attachment; filename="runmycampus-mission-control-summary.pdf"'
+    return resp
+
+
+@require_http_methods(["GET", "POST", "PUT", "PATCH"])
+def api_super_dashboard_layout(request):
+    """GET: return section_order for current user. POST/PUT/PATCH: save section_order (JSON body)."""
+    from apps.siteconfig.models_dashboard import (
+        SuperAdminDashboardPreference,
+        SUPER_DASHBOARD_DEFAULT_SECTION_ORDER,
+    )
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "Authentication required"}, status=401)
+    if request.method == "GET":
+        order = _get_super_dashboard_section_order(request.user)
+        return JsonResponse({"section_order": order})
+    # POST/PUT/PATCH: save
+    try:
+        body = json.loads(request.body) if request.body else {}
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+    order = body.get("section_order")
+    if not isinstance(order, list):
+        return JsonResponse({"error": "section_order must be a list"}, status=400)
+    valid_ids = set(SUPER_DASHBOARD_DEFAULT_SECTION_ORDER)
+    order = [str(s) for s in order if s in valid_ids]
+    pref, _ = SuperAdminDashboardPreference.objects.get_or_create(
+        user=request.user,
+        defaults={"section_order": order or list(SUPER_DASHBOARD_DEFAULT_SECTION_ORDER)},
+    )
+    pref.section_order = order or list(SUPER_DASHBOARD_DEFAULT_SECTION_ORDER)
+    pref.save(update_fields=["section_order", "updated_at"])
+    return JsonResponse({"section_order": pref.get_section_order()})
 
 
 def super_dashboard_v2(request):
@@ -944,6 +1104,13 @@ def super_dashboard_v2(request):
             "cta": "Audit tenants",
         },
         {
+            "title": "Health hub",
+            "metric": "—",
+            "meta": "Runbooks, SLOs, incidents, tenant health",
+            "url": reverse("super:control_health"),
+            "cta": "Health hub",
+        },
+        {
             "title": "Create school",
             "metric": registry_counts["education_system_types"],
             "meta": "Registry-backed onboarding with branding and control-plane defaults",
@@ -1048,6 +1215,8 @@ def super_dashboard_v2(request):
             "tenant_risk_rows": command_center.get("tenant_churn_risk_rows", [])[:12],
             "stale_support_rows": command_center.get("support_stale_rows", [])[:10],
             "provisioning_breach_rows": command_center.get("provisioning_breach_rows", [])[:10],
+            "super_dashboard_section_order": _get_super_dashboard_section_order(request.user),
+            "super_dashboard_layout_url": reverse("super:api_super_dashboard_layout"),
         },
     )
 
@@ -1115,6 +1284,11 @@ def super_usage(request):
     )
 
 
+def super_migration_cloud(request):
+    """Migration cloud pillar: control-plane entry for migration tooling and docs (phase5/phase8)."""
+    return render(request, "schools/super_migration_cloud.html", {})
+
+
 def super_pulse(request):
     """S13: Global Pulse Map — HTML view for super dashboard link. Same data as API v1 super/pulse."""
     from django.db.models import Sum
@@ -1166,6 +1340,37 @@ def super_tenant_health(request):
         request,
         "schools/super_tenant_health.html",
         {"tenants": schools},
+    )
+
+
+def super_control_health_dashboard(request):
+    """
+    Control plane health hub: single entry for runbooks, SLOs, incidents, tenant health.
+    Linked from super dashboard (north-star: one place for ops health).
+    """
+    from django.conf import settings
+    links = []
+    try:
+        links.append({"label": "Tenant health", "url": reverse("super:tenant_health"), "description": "Per-tenant roster and activity"})
+    except Exception:
+        pass
+    try:
+        url = reverse("platform_incidents_console")
+        links.append({"label": "Incident console", "url": url, "description": "Platform incidents and status"})
+    except Exception:
+        pass
+    try:
+        url = reverse("api_operational_slo_dashboard")
+        links.append({"label": "SLO dashboard (API)", "url": url, "description": "Operational SLO metrics"})
+    except Exception:
+        pass
+    runbooks_url = getattr(settings, "CONTROL_PLANE_RUNBOOKS_URL", None) or ""
+    if runbooks_url:
+        links.append({"label": "Runbooks", "url": runbooks_url, "description": "Operational runbooks and playbooks"})
+    return render(
+        request,
+        "schools/super_control_health.html",
+        {"links": links, "dashboard_url": reverse("super:dashboard")},
     )
 
 

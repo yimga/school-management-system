@@ -37,6 +37,11 @@ class Command(BaseCommand):
                         settings_payload["custom_domain"] = custom_domain_payload
                         school.settings = settings_payload
                         school.save(update_fields=["custom_domain_verified", "settings", "updated_at"])
+                        try:
+                            from apps.policies.policy_registry import invalidate_policy_cache
+                            invalidate_policy_cache(school)
+                        except Exception:
+                            pass
                         SchoolProvisioningEvent.log_event(
                             school=school,
                             event_type=SchoolProvisioningEvent.EventType.DOMAIN_VERIFIED,
@@ -63,6 +68,11 @@ class Command(BaseCommand):
                         settings_payload["custom_domain"] = custom_domain_payload
                         school.settings = settings_payload
                         school.save(update_fields=["custom_domain_verified", "settings", "updated_at"])
+                        try:
+                            from apps.policies.policy_registry import invalidate_policy_cache
+                            invalidate_policy_cache(school)
+                        except Exception:
+                            pass
                         SchoolProvisioningEvent.log_event(
                             school=school,
                             event_type=SchoolProvisioningEvent.EventType.DOMAIN_UNVERIFIED,

@@ -65,7 +65,13 @@ from .views_photo_upload import (
     photo_upload_send_link_page,
 )
 from apps.people.employer_views import employer_confirm_hours, employer_dashboard, employer_student_transcript
-from apps.student360.views import student_360_page, student_360_export
+from apps.student360.views import (
+    student_360_page,
+    student_360_export,
+    transcript_archive,
+    transcript_archive_year,
+    transcript_freeze,
+)
 try:
     from .views_documents import (
         document_library_manage,
@@ -181,9 +187,12 @@ urlpatterns = [
     path("parent/signatures/", signature_pending_list, name="signature_pending_list"),
     path("parent/signatures/sign/<int:signature_id>/", signature_sign, name="signature_sign"),
 
-    # Student 360 (26.1) — full page + export
+    # Student 360 (26.1) — full page + export; Section 15.1 immutable transcript + cross-year archive
     path("student/<int:student_id>/360/", student_360_page, name="student_360_page"),
     path("student/<int:student_id>/360/export/", student_360_export, name="student_360_export"),
+    path("student/<int:student_id>/360/transcript-archive/", transcript_archive, name="transcript_archive"),
+    path("student/<int:student_id>/360/transcript-archive/<int:year_id>/", transcript_archive_year, name="transcript_archive_year"),
+    path("student/<int:student_id>/360/transcript-freeze/", transcript_freeze, name="transcript_freeze"),
     # Employer portal (apprentice hours verification + dual transcript)
     path("employer/", employer_dashboard, name="employer_dashboard"),
     path("employer/<int:placement_id>/confirm/", employer_confirm_hours, name="employer_confirm_hours"),

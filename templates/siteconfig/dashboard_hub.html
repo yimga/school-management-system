@@ -1,20 +1,39 @@
 {% extends "portal_base.html" %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Dashboard Hub{% endblock %}
+{% block title %}{% trans "Dashboard Hub" %}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/hub-premium.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4 professional-page">
-  <div class="card shadow-sm border-0">
-    <div class="card-header bg-light border-bottom py-3 px-4">
-      <h1 class="h5 mb-1 fw-semibold">Dashboard Hub</h1>
-      <p class="text-muted small mb-0">Dashboards are composed by role via the platform resolver. Assign a template per role to control default layout and widgets for <strong>{{ school.name }}</strong>.</p>
-    </div>
-    <div class="card-body p-4">
-      <p class="mb-3">All role-based dashboards (admin, teacher, registrar, etc.) are resolved from a single hub. No duplicated dashboard logic across apps — the shell and widgets use <code>dashboard_resolver.for_role(school, role)</code>.</p>
-      <a href="{{ config_url }}" class="btn btn-primary">Configure dashboards by role</a>
-      <p class="text-muted small mt-3 mb-0">In configuration you can assign a dashboard template to each role. Runtime layout and theme come from the assigned template; user preferences can still override where allowed.</p>
-    </div>
+<div class="container-fluid py-4 hub-page professional-page">
+  {% if backend_url %}
+  <p class="mb-3">
+    <a href="{{ backend_url }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{% trans "Back to backend" %}</a>
+  </p>
+  {% endif %}
+  <header class="hub-hero">
+    <span class="hub-eyebrow">{% trans "Platform hub" %}</span>
+    <h1 class="hub-title">{% trans "Dashboard Hub" %}</h1>
+    <p class="hub-copy">{% blocktrans with school_name=school.name %}Dashboards are composed by role via the platform resolver. Assign a template per role to control default layout and widgets for <strong>{{ school_name }}</strong>.{% endblocktrans %}</p>
+  </header>
+
+  <div class="hub-cards">
+    <article class="hub-action-card">
+      <div class="hub-card-icon"><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i></div>
+      <h2 class="hub-card-title">{% trans "Configure dashboards by role" %}</h2>
+      <p class="hub-card-desc">{% trans "All role-based dashboards (admin, teacher, registrar, etc.) are resolved from a single hub. Assign a dashboard template to each role; runtime layout and theme come from the template; user preferences can still override where allowed." %}</p>
+      <a href="{{ config_url }}" class="btn btn-primary btn-sm">{% trans "Configure dashboards by role" %}</a>
+    </article>
+    <article class="hub-action-card">
+      <div class="hub-card-icon"><i class="bi bi-list-check" aria-hidden="true"></i></div>
+      <h2 class="hub-card-title">{% trans "Current assignments" %}</h2>
+      <p class="hub-card-desc">{% blocktrans count counter=assignment_count %}You have {{ counter }} role assignment.{% plural %}You have {{ counter }} role assignments.{% endblocktrans %} {% trans "View or change template per role in the configuration hub." %}</p>
+      <a href="{{ config_url }}" class="btn btn-outline-primary btn-sm">{% trans "View configuration" %}</a>
+    </article>
   </div>
 </div>
 {% endblock %}

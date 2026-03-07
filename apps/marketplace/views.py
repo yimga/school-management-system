@@ -168,7 +168,7 @@ def blueprint_marketplace(request):
     """
     from apps.policies.blueprint_services import apply_blueprint_pack, preview_blueprint_pack
     from apps.policies.models import BlueprintPack, PolicyBundle, TenantBlueprint
-    from apps.policies.resolver import invalidate_policy_cache
+    from apps.policies.policy_registry import invalidate_policy_cache
     from apps.schools.models import School
 
     packs = list(BlueprintPack.objects.filter(is_active=True).order_by("category", "name"))

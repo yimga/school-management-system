@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from apps.policies.resolver import get_effective_policy
+from apps.policies.policy_registry import get_effective_policy
 
 
 def get_finance_policy(school) -> dict[str, Any]:

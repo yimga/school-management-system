@@ -65,8 +65,7 @@ from apps.siteconfig.models import (
 from apps.siteconfig.dashboard_resolver import for_role as dashboard_for_role
 from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata
 from apps.siteconfig.dashboard_views import load_dashboard_layout_settings
-from apps.policies.resolver import get_effective_policy
-from apps.policies.registry import get_tenant_blueprint
+from .runtime_helpers import get_policy_for_request
 from apps.siteconfig.dashboard_views import _can_customize
 from apps.analytics.services import (
     student_improvements,
@@ -382,7 +381,11 @@ def parent_dashboard(request: HttpRequest):
         "next_actions": workflow_next_actions,
     }
     
-    dash = dashboard_for_role(getattr(request, "school", None), get_user_role(request.user), user=request.user)
+    runtime = getattr(request, "tenant_runtime", None)
+    if runtime is not None and getattr(runtime, "_school", None):
+        dash = runtime.dashboard_for(role=get_user_role(request.user), user=request.user)
+    else:
+        dash = dashboard_for_role(getattr(request, "school", None), get_user_role(request.user), user=request.user)
     display_widgets = dash["widget_keys"]
 
     # Get student IDs for queries
@@ -563,9 +566,8 @@ def parent_dashboard(request: HttpRequest):
     if guardian_students_for_switcher and active_child_id not in [s["id"] for s in guardian_students_for_switcher]:
         set_active_child(request, guardian_students_for_switcher[0]["id"])
         active_child_id = guardian_students_for_switcher[0]["id"]
-    school = getattr(request, "school", None)
-    # RTL from Policy Registry (region + tenant overrides); no direct school.settings read
-    policy = get_effective_policy(school) if school else {}
+    # RTL from Policy Registry (runtime constitution)
+    policy = get_policy_for_request(request)
     is_rtl = bool(policy.get("rtl", False))
 
     return render(request, "parent/dashboard.html", {
@@ -1767,8 +1769,9 @@ def _cahier_enabled(request=None):
     flags = getattr(SiteSettings.get_solo(), "backend_feature_flags", None) or {}
     if not flags.get("enable_cahier_de_texte"):
         return False
-    # Feature gate via Policy Registry (no direct school.has_feature in module)
+    # Feature gate via Policy Registry (runtime constitution)
     if request and getattr(request, "school", None):
+        from apps.policies.policy_registry import get_effective_policy
         result = get_effective_policy(request.school, user=getattr(request, "user", None), capability="cahier_de_texte")
         if not result.get("enabled", False):
             return False
@@ -2177,7 +2180,7 @@ def link_child(request: HttpRequest):
     New users should use link_child_wizard for a better experience.
     """
     site = SiteSettings.get_solo()
-    policy = get_tenant_blueprint(request)
+    policy = get_policy_for_request(request)
     form = LinkChildForm(
         request.POST or None,
         guardian_user=request.user,
@@ -2265,7 +2268,7 @@ def link_child_wizard(request: HttpRequest):
         request.session[session_key] = wizard_data
         
         # Validate current step
-        policy = get_tenant_blueprint(request)
+        policy = get_policy_for_request(request)
         form = LinkChildForm(
             data=request.POST,
             guardian_user=request.user,
@@ -2361,7 +2364,7 @@ def link_child_wizard(request: HttpRequest):
     if wizard_data:
         form_data.update(wizard_data)
     
-    policy = get_tenant_blueprint(request)
+    policy = get_policy_for_request(request)
     form = LinkChildForm(
         data=form_data if request.method == "GET" else None,
         guardian_user=request.user,

@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}{% trans "Control plane sign-in" %} — RunMyCampus Manager{% endblock %}
+
+{% block extrastyle %}
+  <style>
+    body { background: #0B0E14; }
+    .manager-login-landing { min-height: 100vh; padding: 2rem 0 4rem; }
+    .manager-login-hero {
+      border-radius: 0 0 18px 18px;
+      padding: 1.5rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: linear-gradient(135deg, #0B0E14, #1a2332);
+      color: white;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(212, 175, 55, 0.2);
+    }
+    .manager-login-hero .hero-logo {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: rgba(212, 175, 55, 0.2);
+      display: grid; place-items: center; font-size: 1.4rem; font-weight: 700; color: #d4af37;
+    }
+    .manager-login-hero strong { font-size: 1.15rem; }
+    .manager-login-hero small { display: block; color: rgba(255,255,255,0.8); font-size: 0.85rem; margin-top: 0.25rem; }
+    .manager-login-card {
+      border-radius: 18px;
+      border: 1px solid rgba(125, 152, 187, 0.18);
+      background: rgba(8, 16, 30, 0.92);
+      max-width: 420px;
+      margin: 0 auto;
+    }
+    .manager-login-card .form-control {
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.6);
+      border-color: rgba(125, 152, 187, 0.25);
+      color: #e7eefc;
+    }
+    .manager-login-card .form-control::placeholder { color: rgba(231, 238, 252, 0.5); }
+    .manager-login-card .form-label { color: var(--cp-muted, #9fb1cb); }
+    .manager-login-card .btn-primary { background: #d4af37; border-color: #d4af37; color: #0B0E14; }
+    .manager-login-card .btn-primary:hover { background: #e0bc48; border-color: #e0bc48; color: #0B0E14; }
+    .manager-login-footer { margin-top: 1.5rem; text-align: center; }
+    .manager-login-footer a { color: #9fb1cb; text-decoration: none; }
+    .manager-login-footer a:hover { color: #d4af37; }
+  </style>
+{% endblock %}
+
+{% block content %}
+<section class="manager-login-landing" id="manager-login-page">
+  <div class="container">
+    <div class="manager-login-hero">
+      <div class="hero-logo">
+        {% if PUBLIC_BRAND_FAVICON_URL %}
+          <img src="{{ PUBLIC_BRAND_FAVICON_URL }}" alt="" width="32" height="32" style="object-fit: contain;">
+        {% else %}
+          <span>R</span>
+        {% endif %}
+      </div>
+      <div>
+        <strong>RunMyCampus Manager</strong>
+        <small>{% trans "Control plane sign-in" %}</small>
+        <small>{% trans "Sign in with your platform operator account." %}</small>
+      </div>
+    </div>
+
+    <div class="row justify-content-center">
+      <div class="col-md-10 col-lg-6">
+        <div class="card shadow-lg border-0 manager-login-card">
+          <div class="card-body p-4">
+            <h2 class="h5 mb-4 text-white">{% trans "Sign in" %}</h2>
+
+            {% if messages %}
+              {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'danger' }} mb-3">{{ message }}</div>
+              {% endfor %}
+            {% endif %}
+
+            <form method="post" novalidate>
+              {% csrf_token %}
+              {% if request.GET.next %}
+                <input type="hidden" name="next" value="{{ request.GET.next }}">
+              {% elif request.POST.next %}
+                <input type="hidden" name="next" value="{{ request.POST.next }}">
+              {% endif %}
+              <div class="mb-3">
+                <label class="form-label">{% trans "Username" %}</label>
+                <input class="form-control" type="text" name="username" autocomplete="username" value="{{ request.POST.username|default:'' }}" required autofocus>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">{% trans "Password" %}</label>
+                <input class="form-control" type="password" name="password" autocomplete="current-password" required>
+              </div>
+              <button class="btn btn-primary w-100" type="submit">{% trans "Log in" %}</button>
+            </form>
+
+            <div class="manager-login-footer">
+              <a href="https://runmycampus.com" target="_blank" rel="noopener noreferrer">{% trans "Back to public site" %}</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

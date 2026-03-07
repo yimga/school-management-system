@@ -31,7 +31,7 @@ def get_admissions_policy(school) -> Dict[str, Any]:
             }
     except Exception:
         pass
-    from apps.policies.resolver import get_effective_policy
+    from apps.policies.policy_registry import get_effective_policy
     out = get_effective_policy(school)
     return out.get("admissions") or {}
 

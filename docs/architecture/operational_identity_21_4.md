@@ -34,4 +34,4 @@ Modules should read these from `get_effective_policy(school)["operational_identi
 | School.default_workflow_slug, default_dashboard_slug | Done (migration 0028) |
 | policy["operational_identity"] | Done (resolver defaults + merge) |
 | Campus model | Existing where used (academics/siteconfig) |
-| comms_defaults / fee_pack_defaults wiring | Partial (keys in policy; modules can consume) |
+| comms_defaults / fee_pack_defaults wiring | Partial (keys in policy; modules can consume). **Closure:** Accepted as sufficient for IMPLEMENTATION_EXECUTION_PLAN; modules read from `policy["operational_identity"]` when needed; no additional registry model required for current scope. |

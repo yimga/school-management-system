@@ -24,11 +24,16 @@ def _normalize_roles(raw_roles: Iterable[str]) -> list[str]:
     return [str(role).upper().strip() for role in (raw_roles or []) if role]
 
 
-def get_grade_approval_policy(school=None):
-    """Phase 1: Single read path for grade approval config. Use policy when school is set else SiteSettings."""
+def get_grade_approval_policy(school=None, policy=None):
+    """Phase 1: Single read path for grade approval config. Use policy when provided/school set else SiteSettings.
+    Prefer policy from request.tenant_runtime.policy when in request context."""
+    if policy is not None and isinstance(policy, dict):
+        ga = policy.get("grade_approval")
+        if isinstance(ga, dict) and ga:
+            return ga
     if school is not None:
         try:
-            from apps.policies.resolver import get_effective_policy
+            from apps.policies.policy_registry import get_effective_policy
             out = get_effective_policy(school)
             ga = out.get("grade_approval")
             if isinstance(ga, dict) and ga:
@@ -56,13 +61,13 @@ def get_grade_approval_policy(school=None):
         }
 
 
-def grade_post_roles(school=None) -> list[str]:
-    policy = get_grade_approval_policy(school)
+def grade_post_roles(school=None, policy=None) -> list[str]:
+    policy = get_grade_approval_policy(school=school, policy=policy)
     return _normalize_roles(policy.get("grade_post_roles") or [])
 
 
-def grade_post_users(school=None) -> Iterable[User]:
-    roles = grade_post_roles(school)
+def grade_post_users(school=None, policy=None) -> Iterable[User]:
+    roles = grade_post_roles(school=school, policy=policy)
     if not roles:
         return User.objects.filter(is_superuser=True)
     base_q = Q(role__in=roles) | Q(roles__code__in=roles)
@@ -80,8 +85,8 @@ def user_has_any_role(user: User, roles: list[str]) -> bool:
     return user.roles.filter(code__in=roles).exists()
 
 
-def user_can_finalize_submission(user: User, school=None) -> bool:
-    return user_has_any_role(user, grade_post_roles(school))
+def user_can_finalize_submission(user: User, school=None, policy=None) -> bool:
+    return user_has_any_role(user, grade_post_roles(school=school, policy=policy))
 
 
 def _collect_validation_flags(
@@ -199,16 +204,16 @@ def _build_summary(total_students: int, submitted_rows: int) -> dict:
     }
 
 
-def grade_approver_roles(school=None) -> list[str]:
-    policy = get_grade_approval_policy(school)
+def grade_approver_roles(school=None, policy=None) -> list[str]:
+    policy = get_grade_approval_policy(school=school, policy=policy)
     roles = policy.get("grade_approval_roles") or []
     if roles:
         return [str(r).upper() for r in roles]
     return ["DEAN", "HOD"]
 
 
-def grade_approver_users(school=None) -> Iterable[User]:
-    roles = grade_approver_roles(school)
+def grade_approver_users(school=None, policy=None) -> Iterable[User]:
+    roles = grade_approver_roles(school=school, policy=policy)
     if not roles:
         return User.objects.filter(is_superuser=True)
     base_q = Q(role__in=roles) | Q(roles__code__in=roles)
@@ -256,7 +261,11 @@ def create_grade_approval_request(
 
 
 def _notify_grade_approvers(request_obj: GradeApprovalRequest) -> None:
-    approvers = list(grade_approver_users())
+    school = getattr(getattr(request_obj, "teacher", None), "school", None) or (
+        getattr(getattr(request_obj, "subject_assignment", None), "classroom", None)
+        and getattr(getattr(request_obj.subject_assignment, "classroom", None), "school", None)
+    )
+    approvers = list(grade_approver_users(school=school))
     if not approvers:
         return
     service = NotificationService()

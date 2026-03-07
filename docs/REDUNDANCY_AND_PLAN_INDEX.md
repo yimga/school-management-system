@@ -17,7 +17,12 @@ These are **not** duplicates of the single plan; they cover specific areas. For 
 | [CODE_REVIEW_GAPS_REDUNDANCIES.md](CODE_REVIEW_GAPS_REDUNDANCIES.md) | Structural and feature-level code review; TODOs and placeholders. |
 | [GAPS_AND_REDUNDANCY_AUDIT.md](GAPS_AND_REDUNDANCY_AUDIT.md) | Templates, locale, placeholder TODOs. |
 | [GAPS_SECTION8_AND_TAGGING.md](GAPS_SECTION8_AND_TAGGING.md) | Section 8 and information tagging. |
+| [PREMIUM_FRONTEND_AUDIT.md](PREMIUM_FRONTEND_AUDIT.md) | Backlog/deferred status and premium frontend assessment for marketing, superadmin, workflow hub, dashboard manager. |
 | [REPORTS/AUDIT_LOG.md](../REPORTS/AUDIT_LOG.md) | Technical audit (tenant scope, i18n, rate limiting, jobs, audit trail). |
+
+## Premium frontend (selected surfaces)
+
+Use a **premium frontend** for: **marketing**, **superadmin** (manager), **workflow hub**, **dashboard manager** (tenant backend + dashboard hub). Standards: design tokens, clear hierarchy, WCAG AA where applicable. See [PREMIUM_FRONTEND_AUDIT.md](PREMIUM_FRONTEND_AUDIT.md) for assessment, backlog/deferred confirmation, and references to [THEME_COMPONENT_KITS.md](THEME_COMPONENT_KITS.md) and hub shell (`static/css/hub-premium.css`).
 
 ## Redundancy addressed
 

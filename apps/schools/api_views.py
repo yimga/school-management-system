@@ -7,7 +7,7 @@ from rest_framework.permissions import AllowAny
 def _offline_enabled_for_request(request):
     """True if offline is enabled: global switch on and (no school or school has offline_mode via Policy Registry)."""
     from apps.siteconfig.models import SiteSettings
-    from apps.policies.resolver import get_effective_policy
+    from apps.policies.policy_registry import get_effective_policy
     site = SiteSettings.get_solo()
     school = getattr(request, "school", None)
     if not school:
@@ -39,7 +39,7 @@ class SchoolConfigAPI(APIView):
                 "features": {},
                 "offlineEnabled": bool(site.enable_offline_mode),
             })
-        from apps.policies.resolver import get_effective_policy
+        from apps.policies.policy_registry import get_effective_policy
         policy = get_effective_policy(school, user=getattr(request, "user", None))
         features = policy.get("features") or {}
         return Response({

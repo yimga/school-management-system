@@ -44,6 +44,7 @@ def signup_school(request: HttpRequest):
     slug = (request.POST.get("slug") or "").strip() or _slug_from_name(name)
     email = (request.POST.get("email") or "").strip()
     country_code = (request.POST.get("country_code") or "").strip()[:2].upper()
+    term_preset = (request.POST.get("term_preset") or "").strip()  # e.g. "UK" for British terms at signup
 
     errors = []
     if not name:
@@ -78,6 +79,9 @@ def signup_school(request: HttpRequest):
         slug = "school"
     subdomain = slug[:120]
 
+    school_settings = {}
+    if term_preset and term_preset.upper() in ("UK", "GB"):
+        school_settings["term_preset"] = "UK"
     school = School.objects.create(
         name=name,
         slug=slug,
@@ -86,6 +90,7 @@ def signup_school(request: HttpRequest):
         is_approved=True,
         country_code=country_code,
         timezone=getattr(settings, "DEFAULT_SCHOOL_TIMEZONE", "Africa/Douala"),
+        settings=school_settings,
     )
     from datetime import timedelta
     expires_at = timezone.now() + timedelta(days=2)
@@ -94,6 +99,11 @@ def signup_school(request: HttpRequest):
         email=email,
         expires_at=expires_at,
     )
+    try:
+        from apps.schools.funnel_events import record_marketing_funnel_event
+        record_marketing_funnel_event("signup", request)
+    except Exception:
+        pass
 
     base = request.build_absolute_uri("/").rstrip("/")
     verify_url = f"{base}/verify-signup/?token={verification.token}"
@@ -173,6 +183,11 @@ def verify_signup(request: HttpRequest):
     school.save(update_fields=["is_active", "updated_at"])
     verification.verified_at = timezone.now()
     verification.save(update_fields=["verified_at"])
+    try:
+        from apps.schools.funnel_events import record_marketing_funnel_event
+        record_marketing_funnel_event("activation", request)
+    except Exception:
+        pass
 
     try:
         from apps.schools.tasks import provision_school_sync
@@ -253,6 +268,11 @@ def api_trial_school(request: HttpRequest):
         school.settings = (school.settings or {})
         school.settings["country_code"] = country_code
         school.save(update_fields=["settings"])
+        try:
+            from apps.policies.policy_registry import invalidate_policy_cache
+            invalidate_policy_cache(school)
+        except Exception:
+            pass
 
     from apps.schools.tasks import provision_school_task, provision_school_sync
     from apps.schools.models import SchoolProvisioningEvent

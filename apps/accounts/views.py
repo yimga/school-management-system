@@ -1304,7 +1304,7 @@ def backend_dashboard(request):
             return reverse(name, kwargs=kwargs)
         except Exception:
             return default
-    
+
     portal_cfg = getattr(site, "portal_features", {}) or {}
     has_docs = bool(portal_cfg.get("documents"))
 
@@ -2894,7 +2894,7 @@ def _get_login_page_language(request):
             lang = None
         if not lang and school:
             try:
-                from apps.policies.resolver import get_effective_policy
+                from apps.policies.policy_registry import get_effective_policy
                 policy = get_effective_policy(school)
                 lang = (policy.get("default_language") or "").strip() or None
             except Exception:
@@ -3106,7 +3106,8 @@ def login_view(request):
         "LOGIN_SSO_INTEGRATIONS": _get_login_sso_integrations(request),
         "is_manager_host": getattr(request, "public_host_kind", None) == "manager",
     }
-    return render(request, "auth/login.html", context)
+    template = "auth/manager_login.html" if getattr(request, "public_host_kind", None) == "manager" else "auth/login.html"
+    return render(request, template, context)
 
 def logout_view(request):
     logout(request)

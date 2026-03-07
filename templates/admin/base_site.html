@@ -223,7 +223,7 @@
       </span>
       <div class="preview-cue-actions">
         <a href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">Toggle sandbox</a>
-        <a href="/siteconfig/customizer/clear-preview/">Clear preview</a>
+        <a href="{% url 'siteconfig:clear_preview' %}">Clear preview</a>
       </div>
     </div>
   {% elif PREVIEW_TOGGLE_ENABLED %}

@@ -415,3 +415,7 @@ class TimetableGenerator:
                 pass
         
         return schedule
+
+
+# API alias used by views_v1 and api_views
+ScheduleGenerator = TimetableGenerator

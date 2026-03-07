@@ -33,6 +33,7 @@ from .models import (
     JournalLine,
     LedgerAccount,
     Payment,
+    PaymentDispute,
     PaymentProofUpload,
     ReferralReward,
     Scholarship,
@@ -443,6 +444,17 @@ admin_site.register(FeePlan, FeePlanAdmin)
 admin_site.register(FeeInstallment, FeeInstallmentAdmin)
 admin_site.register(Invoice, InvoiceAdmin)
 admin_site.register(Payment, PaymentAdmin)
+
+
+class PaymentDisputeAdmin(ModelAdmin):
+    list_display = ("id", "payment", "status", "reason", "raised_by", "created_at")
+    list_filter = ("status", "reason")
+    search_fields = ("description", "payment__reference_number")
+    raw_id_fields = ("payment", "raised_by", "resolved_by")
+    readonly_fields = ("created_at", "updated_at")
+
+
+admin_site.register(PaymentDispute, PaymentDisputeAdmin)
 admin_site.register(PaymentReminder, PaymentReminderAdmin)
 admin_site.register(PaymentReminderLog, PaymentReminderLogAdmin)
 admin_site.register(Budget, BudgetAdmin)

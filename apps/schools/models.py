@@ -71,11 +71,13 @@ def is_feature_enabled(school, code: str) -> bool:
 
 
 def _has_feature_fallback(school, code: str) -> bool:
-    """Legacy: School.features + resolve_module_enabled."""
+    """Legacy: policy features + resolve_module_enabled (constitution: read from get_effective_policy)."""
     normalized = (code or "").strip().lower()
     if not normalized:
         return False
-    fallback = bool(school.features.get(normalized)) if isinstance(getattr(school, "features", None), dict) else False
+    from apps.policies.policy_registry import get_effective_policy
+    policy = get_effective_policy(school)
+    fallback = bool(policy.get("features", {}).get(normalized))
     try:
         from apps.siteconfig.feature_toggles import resolve_module_enabled
         return resolve_module_enabled(normalized, school=school, fallback=fallback)
@@ -775,3 +777,230 @@ class Bus(models.Model):
 
     def __str__(self):
         return self.identifier
+
+
+# Nice-to-have: Hostel, Canteen, Health, Biometric (full modules)
+class Hostel(models.Model):
+    """Hostel/dormitory (full hostel module)."""
+    school = models.ForeignKey(
+        School,
+        on_delete=models.CASCADE,
+        related_name="hostels",
+    )
+    name = models.CharField(max_length=120)
+    capacity = models.PositiveIntegerField(default=0, help_text="Total bed capacity")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+        unique_together = [("school", "name")]
+
+    def __str__(self):
+        return f"{self.name} ({self.school.name})"
+
+
+class HostelRoom(models.Model):
+    """Room within a hostel."""
+    hostel = models.ForeignKey(Hostel, on_delete=models.CASCADE, related_name="rooms")
+    name = models.CharField(max_length=60)
+    capacity = models.PositiveSmallIntegerField(default=1)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["hostel", "name"]
+        unique_together = [("hostel", "name")]
+
+    def __str__(self):
+        return f"{self.hostel.name} / {self.name}"
+
+
+class CanteenMeal(models.Model):
+    """Canteen meal option (full canteen module)."""
+    school = models.ForeignKey(
+        School,
+        on_delete=models.CASCADE,
+        related_name="canteen_meals",
+    )
+    name = models.CharField(max_length=120)
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+        unique_together = [("school", "name")]
+
+    def __str__(self):
+        return f"{self.name} ({self.school.name})"
+
+
+class HealthRecord(models.Model):
+    """Student health/medical record (full health module)."""
+    school = models.ForeignKey(
+        School,
+        on_delete=models.CASCADE,
+        related_name="health_records",
+    )
+    student = models.ForeignKey(
+        "people.StudentProfile",
+        on_delete=models.CASCADE,
+        related_name="health_records",
+    )
+    record_type = models.CharField(
+        max_length=32,
+        help_text="e.g. allergy, medication, vaccination, visit",
+    )
+    notes = models.TextField(blank=True)
+    recorded_at = models.DateTimeField(auto_now_add=True)
+    recorded_by = models.ForeignKey(
+        _AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="recorded_health_records",
+    )
+    confidential = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["-recorded_at"]
+
+    def __str__(self):
+        return f"{self.student} — {self.record_type}"
+
+
+class BiometricDevice(models.Model):
+    """Biometric/ID device for attendance (full biometric module)."""
+    school = models.ForeignKey(
+        School,
+        on_delete=models.CASCADE,
+        related_name="biometric_devices",
+    )
+    name = models.CharField(max_length=120)
+    location = models.CharField(max_length=255, blank=True)
+    device_id = models.CharField(max_length=64, blank=True, db_index=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return f"{self.name} ({self.school.name})"
+
+
+class BiometricAttendanceLog(models.Model):
+    """Log entry from biometric device (links to attendance when synced)."""
+    device = models.ForeignKey(
+        BiometricDevice,
+        on_delete=models.CASCADE,
+        related_name="attendance_logs",
+    )
+    student = models.ForeignKey(
+        "people.StudentProfile",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="biometric_logs",
+    )
+    user = models.ForeignKey(
+        _AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="biometric_logs",
+    )
+    timestamp = models.DateTimeField(db_index=True)
+    raw_identifier = models.CharField(max_length=120, blank=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-timestamp"]
+
+    def __str__(self):
+        return f"{self.device.name} @ {self.timestamp}"
+
+
+class LibraryItem(models.Model):
+    """Library catalog item (book, resource). Gated by school.features.library."""
+    school = models.ForeignKey(
+        School,
+        on_delete=models.CASCADE,
+        related_name="library_items",
+    )
+    title = models.CharField(max_length=255)
+    author = models.CharField(max_length=255, blank=True)
+    isbn = models.CharField(max_length=32, blank=True, db_index=True)
+    item_type = models.CharField(max_length=32, default="book")  # book, journal, equipment, etc.
+    copies_total = models.PositiveIntegerField(default=1)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["title"]
+        unique_together = [("school", "title", "author")]
+
+    def __str__(self):
+        return f"{self.title}" + (f" — {self.author}" if self.author else "") + f" ({self.school.name})"
+
+
+class LibraryLoan(models.Model):
+    """Library loan (check-out/return)."""
+    school = models.ForeignKey(
+        School,
+        on_delete=models.CASCADE,
+        related_name="library_loans",
+    )
+    item = models.ForeignKey(
+        LibraryItem,
+        on_delete=models.CASCADE,
+        related_name="loans",
+    )
+    borrower = models.ForeignKey(
+        _AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="library_loans",
+    )
+    checked_out_at = models.DateTimeField(auto_now_add=True)
+    due_at = models.DateTimeField()
+    returned_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-checked_out_at"]
+
+    def __str__(self):
+        return f"{self.item.title} → {self.borrower} (due {self.due_at})"
+
+
+class MarketingFunnelEvent(models.Model):
+    """
+    Wave 4: Conversion funnel events for marketing dashboard.
+    visit -> discovery -> signup -> activation.
+    utm_source / utm_medium support funnel breakdown by channel.
+    """
+    EVENT_TYPES = (
+        ("visit", "Visit (landing)"),
+        ("discovery", "Discovery (find school / discover)"),
+        ("signup", "Signup (trial/school signup)"),
+        ("activation", "Activation (onboard complete / first use)"),
+    )
+    event_type = models.CharField(max_length=32, choices=EVENT_TYPES, db_index=True)
+    session_key = models.CharField(max_length=128, blank=True, db_index=True)
+    utm_source = models.CharField(max_length=128, blank=True, db_index=True)
+    utm_medium = models.CharField(max_length=128, blank=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Marketing funnel event"
+        verbose_name_plural = "Marketing funnel events"
+        indexes = [
+            models.Index(fields=["event_type", "created_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.event_type} at {self.created_at}"
