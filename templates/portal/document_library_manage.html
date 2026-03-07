@@ -1,0 +1,244 @@
+{% extends "portal_base.html" %}
+{% load static region_format %}
+
+{% block title %}Document Library Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 mb-1">Document Library</h1>
+      <p class="text-muted mb-0">Manage school documents, forms, and policies</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'portal:document_upload' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i>Upload Document
+      </a>
+      <a href="{% url 'portal:signature_request_create' %}" class="btn btn-outline-primary">
+        <i class="bi bi-pen me-1"></i>Request Signature
+      </a>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <div class="text-muted small">Total Documents</div>
+              <div class="h4 mb-0">{{ stats.total }}</div>
+            </div>
+            <div class="text-primary">
+              <i class="bi bi-file-earmark-text fs-1"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <div class="text-muted small">With Files</div>
+              <div class="h4 mb-0">{{ stats.with_files }}</div>
+            </div>
+            <div class="text-success">
+              <i class="bi bi-cloud-upload fs-1"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <div class="text-muted small">Require Signature</div>
+              <div class="h4 mb-0">{{ stats.requires_signature }}</div>
+            </div>
+            <div class="text-warning">
+              <i class="bi bi-pen fs-1"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <div class="text-muted small">Active</div>
+              <div class="h4 mb-0">{{ stats.active }}</div>
+            </div>
+            <div class="text-info">
+              <i class="bi bi-check-circle fs-1"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <form method="get" class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Document Type</label>
+          <select name="type" class="form-select">
+            <option value="">All Types</option>
+            {% for doc_type, label in document_types %}
+              <option value="{{ doc_type }}" {% if current_type == doc_type %}selected{% endif %}>
+                {{ label }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Search</label>
+          <input type="text" name="q" class="form-control" placeholder="Search documents..." value="{{ search_query }}">
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="bi bi-search me-1"></i>Filter
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Documents Table -->
+  <div class="card shadow-sm">
+    <div class="card-body">
+      {% if documents %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle" aria-label="Document library: title, type, file or link, signature, status, and actions">
+            <thead>
+              <tr>
+                <th scope="col">Title</th>
+                <th scope="col">Type</th>
+                <th scope="col">File/Link</th>
+                <th scope="col">Signature</th>
+                <th scope="col">Status</th>
+                <th scope="col">Created</th>
+                <th scope="col" class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for doc in documents %}
+                <tr>
+                  <td>
+                    <div class="fw-semibold">{{ doc.title }}</div>
+                    {% if doc.description %}
+                      <div class="text-muted small">{{ doc.description|truncatewords:10 }}</div>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <span class="badge bg-secondary">{{ doc.get_document_type_display }}</span>
+                  </td>
+                  <td>
+                    {% if doc.file %}
+                      <span class="badge bg-success">
+                        <i class="bi bi-file-earmark me-1"></i>File ({{ doc.file_size_mb }}MB)
+                      </span>
+                    {% elif doc.link %}
+                      <span class="badge bg-info">
+                        <i class="bi bi-link-45deg me-1"></i>Link
+                      </span>
+                    {% else %}
+                      <span class="text-muted">—</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if doc.requires_signature %}
+                      <span class="badge bg-warning text-dark">
+                        <i class="bi bi-pen me-1"></i>Required
+                      </span>
+                    {% else %}
+                      <span class="text-muted">—</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if doc.is_active %}
+                      <span class="badge bg-success">Active</span>
+                    {% else %}
+                      <span class="badge bg-secondary">Inactive</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <div class="small">{{ doc.created_at|format_date }}</div>
+                    <div class="text-muted small">by {{ doc.created_by.get_full_name|default:doc.created_by.username }}</div>
+                  </td>
+                  <td class="text-end">
+                    <div class="btn-group btn-group-sm">
+                      {% if doc.file %}
+                        <a href="{% url 'portal:document_download' doc.id %}" class="btn btn-outline-primary" title="Download">
+                          <i class="bi bi-download"></i>
+                        </a>
+                        {% if doc.file.name|slice:"-4:"|lower == ".odt" or doc.file.name|slice:"-5:"|lower == ".docx" %}
+                        <a href="{% url 'portal:document_download_pdf' doc.id %}" class="btn btn-outline-danger" title="Download as PDF">
+                          <i class="bi bi-file-earmark-pdf"></i>
+                        </a>
+                        {% endif %}
+                      {% elif doc.link %}
+                        <a href="{{ doc.link }}" target="_blank" class="btn btn-outline-info" title="Open Link">
+                          <i class="bi bi-box-arrow-up-right"></i>
+                        </a>
+                      {% endif %}
+                      <a href="{% url 'portal:document_edit' doc.id %}" class="btn btn-outline-secondary" title="Edit">
+                        <i class="bi bi-pencil"></i>
+                      </a>
+                      <button type="button" class="btn btn-outline-danger" onclick="confirmDelete({{ doc.id }}, '{{ doc.title }}')" title="Delete">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        {% url 'portal:document_upload' as empty_action_url %}
+        {% include "components/dashboard_empty_state.html" with icon="bi-file-earmark-text" title="No documents found" message="Upload school documents, forms, and policies so staff and families can access them." action_url=empty_action_url action_text="Upload your first document" %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Delete Document</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete <strong id="deleteDocTitle"></strong>?</p>
+        <p class="text-danger small">This action cannot be undone.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <form id="deleteForm" method="post" style="display: inline;">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function confirmDelete(docId, docTitle) {
+  document.getElementById('deleteDocTitle').textContent = docTitle;
+  document.getElementById('deleteForm').action = "{% url 'portal:document_delete' 0 %}".replace('0', docId);
+  new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends "backend_base.html" %}
+{% load static %}
+{% block backend_title %}Guardians - Backend{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 class="fw-bold mb-1">Guardians</h2>
+          <p class="text-muted mb-0">Parent and guardian links to students</p>
+        </div>
+        <a href="{% url 'accounts:backend_student_list' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Back to students</a>
+      </div>
+
+      <form method="get" class="card card-body bg-light mb-3" role="search">
+        <div class="row g-2 align-items-end">
+          <div class="col-md-4">
+            <label for="guardian-q" class="form-label small">Search</label>
+            <input type="search" id="guardian-q" name="q" class="form-control form-control-sm" placeholder="Guardian or student name, email..." value="{{ search }}">
+          </div>
+          <div class="col-md-2">
+            <label for="guardian-year" class="form-label small">Year</label>
+            <select id="guardian-year" name="year" class="form-select form-select-sm">
+              <option value="">All years</option>
+              {% for y in years %}
+              <option value="{{ y.id }}" {% if selected_year == y.id|stringformat:"s" %}selected{% endif %}>{{ y.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label for="guardian-classroom" class="form-label small">Classroom</label>
+            <select id="guardian-classroom" name="classroom" class="form-select form-select-sm">
+              <option value="">All classrooms</option>
+              {% for c in classrooms %}
+              <option value="{{ c.id }}" {% if selected_classroom == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-2">
+            <button type="submit" class="btn btn-primary btn-sm w-100">Filter</button>
+          </div>
+          <div class="col-md-2">
+            <a href="?format=csv{% if search %}&amp;q={{ search|urlencode }}{% endif %}{% if selected_classroom %}&amp;classroom={{ selected_classroom }}{% endif %}{% if selected_year %}&amp;year={{ selected_year }}{% endif %}" class="btn btn-outline-secondary btn-sm w-100"><i class="bi bi-download me-1"></i>Export CSV</a>
+          </div>
+        </div>
+      </form>
+
+      <div class="card shadow-sm">
+        <div class="card-body">
+          {% if guardians %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle table-zebra table-sticky-head" aria-label="Guardians">
+              <thead>
+                <tr>
+                  <th scope="col">Guardian</th>
+                  <th scope="col">Email</th>
+                  <th scope="col">Student</th>
+                  <th scope="col">Classroom</th>
+                  <th scope="col">Finance access</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for g in guardians %}
+                <tr>
+                  <td>{{ g.guardian_user.get_full_name|default:g.guardian_user.username }}</td>
+                  <td>{{ g.guardian_user.email|default:"-" }}</td>
+                  <td>{{ g.student.get_full_name|default:g.student.admission_number }}</td>
+                  <td>{{ g.student.classroom.name|default:"-" }}</td>
+                  <td>{% if g.can_view_finance %}<span class="badge bg-success">Yes</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          {% include "components/dashboard_empty_state.html" with icon="bi-people" title="No guardians found" message="Guardian links appear when parents are linked to students." action_url="" action_text="" %}
+          {% endif %}
+          {% if page_obj %}
+          {% include "components/pagination.html" with page_obj=page_obj pagination_extra_query=pagination_extra_query show_page_size=show_page_size page_size=page_size page_size_options=page_size_options %}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

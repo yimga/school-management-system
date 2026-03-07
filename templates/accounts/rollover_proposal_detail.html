@@ -1,0 +1,112 @@
+{% extends "backend_base.html" %}
+{% load static %}
+
+{% block title %}Rollover proposal — {{ proposal.source_year.name }} → {{ proposal.target_year.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="{% url 'accounts:backend_dashboard' %}">Backend</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'accounts:workflow_center' %}">Workflow Center</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'accounts:rollover_year' %}">Year-end rollover</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'accounts:rollover_queue' %}">Rollover queue</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Proposal {{ proposal.id }}</li>
+    </ol>
+  </nav>
+
+  <div class="card shadow-sm mb-3">
+    <div class="card-body">
+      <h2 class="h5 mb-2">{{ proposal.source_year.name }} → {{ proposal.target_year.name }}</h2>
+      <p class="text-muted small mb-0">Status: <span class="badge {% if proposal.status == 'PENDING' %}bg-warning text-dark{% elif proposal.status == 'APPROVED' %}bg-success{% else %}bg-secondary{% endif %}">{{ proposal.get_status_display }}</span></p>
+    </div>
+  </div>
+
+  {% if proposal.status == 'PENDING' %}
+  <form method="post" action="">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="approve">
+    <div class="card shadow-sm mb-3">
+      <div class="card-header">Review and override next class (then click Approve)</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Student</th>
+                <th>Current class</th>
+                <th>Avg</th>
+                <th>Promotion</th>
+                <th>Returns</th>
+                <th>Next class</th>
+                <th>Graduate</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in items %}
+              <tr>
+                <td>{{ item.student.get_full_name|default:item.student.last_name }}</td>
+                <td>{{ item.student.classroom.name|default:"—" }}</td>
+                <td>{{ item.annual_average|default:"—" }}</td>
+                <td><span class="badge {% if item.promotion_status == 'PROMOTED' %}bg-success{% elif item.promotion_status == 'REPEAT' or item.promotion_status == 'DEMOTED' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">{{ item.promotion_status }}</span></td>
+                <td>{% if item.outstanding_returns %}<span class="badge bg-warning text-dark">{{ item.outstanding_returns }}</span>{% else %}0{% endif %}</td>
+                <td>
+                  <select name="classroom_{{ item.id }}" class="form-select form-select-sm" style="min-width:140px;">
+                    {% for c in target_classrooms %}
+                    <option value="{{ c.id }}" {% if item.suggested_next_classroom_id == c.id or item.approved_next_classroom_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+                    {% endfor %}
+                  </select>
+                </td>
+                <td><input type="checkbox" name="graduate_{{ item.id }}" value="on" {% if item.is_graduate %}checked{% endif %} class="form-check-input"></td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="7" class="text-muted">No students in this proposal.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card-footer">
+        <button type="submit" class="btn btn-primary">Approve proposal</button>
+        <a href="{% url 'accounts:rollover_queue' %}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </div>
+  </form>
+  {% endif %}
+
+  {% if proposal.status == 'APPROVED' %}
+  <form method="post" action="">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="apply">
+    <div class="card shadow-sm mb-3">
+      <div class="card-header">Apply rollover</div>
+      <div class="card-body">
+        <p class="mb-2">This will move students to {{ proposal.target_year.name }} and assign the approved next class.</p>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="lock_source" id="lock_source" value="on">
+          <label class="form-check-label" for="lock_source">Lock source year after rollover</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="notify_parents" id="notify_parents" value="on">
+          <label class="form-check-label" for="notify_parents">Notify parents</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="allow_outstanding_returns" id="allow_outstanding_returns" value="on">
+          <label class="form-check-label" for="allow_outstanding_returns">Allow rollover despite outstanding returns</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="carry_forward_arrears" id="carry_forward_arrears" value="on">
+          <label class="form-check-label" for="carry_forward_arrears">Carry forward unpaid fees to next year</label>
+        </div>
+      </div>
+      <div class="card-footer">
+        <button type="submit" class="btn btn-success">Apply rollover</button>
+        <a href="{% url 'accounts:rollover_queue' %}" class="btn btn-outline-secondary">Back to queue</a>
+      </div>
+    </div>
+  </form>
+  {% endif %}
+
+  <a href="{% url 'accounts:rollover_queue' %}" class="btn btn-outline-secondary">Back to queue</a>
+</div>
+{% endblock %}

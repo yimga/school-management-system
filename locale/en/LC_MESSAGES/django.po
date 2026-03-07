@@ -1,0 +1,26 @@
+# World Engine i18n — English (base locale).
+# Run: python manage.py makemessages -l en
+# Then: python manage.py compilemessages
+# Requires: GNU gettext (e.g. gettext-tools on Windows/Linux).
+# LOCALE_PATHS = [BASE_DIR / 'locale'] in settings.
+msgid ""
+msgstr ""
+"Project-Id-Version: RunMyCampus\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-03-01 00:00+0000\n"
+"PO-Revision-Date: 2026-03-01 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: en\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+# apps/siteconfig/views_impersonation_consent.py
+msgid "No school context"
+msgstr "No school context"
+msgid "Consent granted. Support may impersonate until expiry."
+msgstr "Consent granted. Support may impersonate until expiry."
+msgid "Consent revoked."
+msgstr "Consent revoked."

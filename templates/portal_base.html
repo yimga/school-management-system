@@ -1,0 +1,1559 @@
+{% load static i18n %}
+<!doctype html>
+<html lang="{{ LANGUAGE_CODE|default:default_language|default:'en' }}"{% if is_rtl %} dir="rtl"{% endif %}>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {% if request.build_absolute_uri %}<link rel="canonical" href="{{ request.build_absolute_uri }}">{% endif %}
+    {% with desc=meta_description|default:SITE.meta_description|default:"" %}{% if desc %}<meta name="description" content="{{ desc|truncatewords:50 }}">{% endif %}{% endwith %}
+    <script>
+      (function(){var k="runmycampus-theme-preference";var s=localStorage.getItem(k);if(!s&&localStorage.getItem("gilead-theme-preference")){s=localStorage.getItem("gilead-theme-preference");localStorage.setItem(k,s);localStorage.removeItem("gilead-theme-preference");}s=s||"light";var r=(s==="system")?(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):(s==="dark"?"dark":"light");document.documentElement.setAttribute("data-theme",r);document.documentElement.setAttribute("data-bs-theme",r);})();
+    </script>
+    <script>
+      (function () {
+        var path = (window.location.pathname || "").toLowerCase();
+        var page = "";
+        if (path.indexOf("/portal/parent") !== -1 || path.indexOf("/parent/dashboard") !== -1) page = "parent";
+        else if (path.indexOf("/portal/teacher") !== -1 || path.indexOf("/teacher/dashboard") !== -1 || path.indexOf("/portal/teacher-dashboard") !== -1 || path.indexOf("/evals/teacher") !== -1) page = "teacher";
+        else if (path.indexOf("/accounts/backend") !== -1 || path.indexOf("/accounts/backend-dashboard") !== -1 || path.indexOf("/backend-dashboard") !== -1 || path.indexOf("/authentication/backend") !== -1) page = "backend";
+        else if (path === "/finance" || path.indexOf("/finance/") === 0) page = "finance";
+        else if (path === "/payroll" || path.indexOf("/payroll/") === 0) page = "payroll";
+        else if (path === "/analytics" || path.indexOf("/analytics/") === 0) page = "analytics";
+        else if (path.indexOf("/compliance/dashboard") !== -1) page = "compliance";
+        else if (path === "/requests" || path.indexOf("/requests/") === 0) page = "requests";
+        else if (path === "/emis" || path.indexOf("/emis/") === 0) page = "emis";
+        else if (path.indexOf("/evals/compliance") !== -1) page = "evals-compliance";
+        else if (path.indexOf("/accounts/rbac-dashboard") !== -1 || path.indexOf("/accounts/rbac/") !== -1 || path.indexOf("/authentication/rbac/") !== -1) page = "rbac";
+        else if (path.indexOf("/siteconfig/theme-colors") !== -1 || path.indexOf("/theme-colors") !== -1) page = "theme-colors";
+
+        if (!page) return;
+
+        document.documentElement.setAttribute("data-dashboard-page", page);
+
+        var applyBody = function () {
+          if (!document.body) return;
+          if (!document.body.dataset.dashboardPage) {
+            document.body.dataset.dashboardPage = page;
+          }
+          document.body.classList.add("dashboard-page-" + page);
+        };
+
+        applyBody();
+        if (!document.body) {
+          var observer = new MutationObserver(function () {
+            if (document.body) {
+              applyBody();
+              observer.disconnect();
+            }
+          });
+          observer.observe(document.documentElement, { childList: true });
+        }
+        document.addEventListener("DOMContentLoaded", applyBody, { once: true });
+      })();
+    </script>
+    <title>{% block title %}Portal{% endblock %}</title>
+    <link rel="icon" href="{% if SITE_FAVICON_URL %}{{ SITE_FAVICON_URL }}{% else %}{% static 'images/runmycampus-icon.png' %}{% endif %}" type="image/png">
+    <!-- Self-hosted fonts and vendor CSS (no CDN dependency) -->
+    <link rel="stylesheet" href="{% static 'css/vendor/inter.css' %}">
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'css/design-system-unified.css' %}">
+    <link rel="stylesheet" href="{% static 'css/toggle-colors.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bootstrap-theme-bridge.css' %}">
+    <link rel="stylesheet" href="{% static 'css/mobile-tables-forms.css' %}">
+    <link rel="stylesheet" href="{% static 'css/portal_theme.css' %}">
+    <link rel="stylesheet" href="{% static 'css/portal-theme-modes.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard-responsive.css' %}">
+    <link rel="stylesheet" href="{% static 'css/responsive-performance.css' %}">
+    <link rel="stylesheet" href="{% static 'css/ui-alignment-improvements.css' %}">
+    <link rel="stylesheet" href="{% static 'css/portal-layout-professional.css' %}">
+    <link rel="stylesheet" href="{% static 'css/platform-premium-content.css' %}">
+    <link rel="stylesheet" href="{% static 'css/portal-sidebar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/no-watermark.css' %}">
+    <link rel="stylesheet" href="{% static 'css/header-footer-visibility.css' %}">
+    <link rel="stylesheet" href="{% static 'css/topbar-header-polish.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard-high-contrast.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard-text-visibility.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard-crisp-polish.css' %}">
+    <link rel="stylesheet" href="{% static 'css/platform-high-end.css' %}">
+    <link rel="stylesheet" href="{% static 'css/theme-everywhere-dark.css' %}">
+    <link rel="stylesheet" href="{% static 'css/theme-visibility-guard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/platform-responsive-touch.css' %}">
+    {% block extrastyle %}{% endblock %}
+
+    <style>
+      {% block theme_root_variables %}
+      {% with theme=SITE_THEME %}
+      :root {
+        --school-primary: {{ theme.primary_color|default:SITE.primary_color|default:"#0d6efd" }};
+        --school-accent: {{ theme.accent_color|default:SITE.accent_color|default:"#198754" }};
+        --school-success: {{ SITE.success_color|default:"#22c55e" }};
+        --school-warning: {{ SITE.warning_color|default:"#f59e0b" }};
+        --school-danger: {{ SITE.danger_color|default:"#ef4444" }};
+        --portal-bg: {{ theme.background_color|default:"rgba(247,251,255,1)" }};
+        --portal-font: {{ theme.font_family|default:"Inter, system-ui, sans-serif" }};
+        {% if SITE and SITE.header_bg_color %}--header-brand-bg: {{ SITE.header_bg_color }};{% endif %}
+        {% if SITE and SITE.footer_bg_color %}--footer-bg: {{ SITE.footer_bg_color }};{% endif %}
+        {% if SITE_BASE_FONT_SIZE %}--base-font-size: {{ SITE_BASE_FONT_SIZE }}px;{% endif %}
+      }
+      {% endwith %}
+      {% endblock %}
+      {% if SITE_USE_SECONDARY_FONT_HEADINGS and SITE_SECONDARY_FONT %}
+      h1, h2, h3, h4, h5, h6 { font-family: {{ SITE_SECONDARY_FONT }}, var(--portal-font), system-ui, sans-serif; }
+      {% endif %}
+
+      body {
+        font-family: var(--portal-font), system-ui, sans-serif;
+        {% if SITE_BASE_FONT_SIZE %}font-size: var(--base-font-size);{% endif %}
+        background: var(--portal-bg);
+        color: var(--portal-text, #111827);
+        min-height: 100vh;
+      }
+
+      .topbar {
+        background: var(--header-brand-bg);
+      }
+
+      /* Sticky header: compact height, always accessible (80px max) */
+      .topbar-sticky {
+        position: sticky;
+        top: 0;
+        z-index: 1030;
+        min-height: 68px;
+        max-height: none;
+      }
+
+      .brand-logo {
+        height: 34px;
+        width: 34px;
+        border-radius: 10px;
+        object-fit: cover;
+        background: color-mix(in srgb, var(--header-brand-fg, #ffffff) 16%, transparent);
+        padding: 4px;
+      }
+
+      /* Header Elements Styles */
+      .search-bar-wrapper {
+        position: relative;
+      }
+
+      .search-bar-wrapper input::placeholder {
+        color: rgba(255,255,255,0.75);
+      }
+
+      .search-bar-wrapper input {
+        color: #fff !important;
+      }
+
+      .search-bar-wrapper input:focus {
+        background: rgba(255,255,255,0.25) !important;
+        border-color: rgba(255,255,255,0.5) !important;
+        box-shadow: 0 0 0 0.25rem rgba(255,255,255,0.15) !important;
+        outline: 2px solid rgba(255,255,255,0.6);
+        outline-offset: 2px;
+      }
+
+      .header-search-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        margin-top: 4px;
+        max-height: 320px;
+        overflow-y: auto;
+        background: var(--admin-content-surface, var(--portal-card-bg, rgba(15, 23, 42, 0.96)));
+        border-radius: 8px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        border: 1px solid var(--admin-content-border, rgba(148, 163, 184, 0.35));
+        z-index: 1050;
+      }
+      .header-search-dropdown .search-result-item {
+        display: block;
+        padding: 0.5rem 0.75rem;
+        color: var(--admin-content-text, rgba(226, 232, 240, 0.96));
+        text-decoration: none;
+        font-size: 0.9rem;
+        border-bottom: 1px solid color-mix(in srgb, var(--admin-content-border, rgba(148, 163, 184, 0.35)) 75%, transparent);
+        transition: background 0.15s;
+      }
+      .header-search-dropdown .search-result-item:hover,
+      .header-search-dropdown .search-result-item:focus {
+        background: color-mix(in srgb, var(--brand-primary, #3b82f6) 18%, transparent);
+        color: var(--header-brand-fg, #ffffff);
+      }
+      .header-search-dropdown .search-result-item:last-child { border-bottom: none; }
+      .header-search-dropdown .search-result-muted { font-size: 0.8rem; color: color-mix(in srgb, var(--admin-content-text, #cbd5e1) 72%, transparent); }
+      .header-search-dropdown .search-result-empty,
+      .header-search-dropdown .search-result-error { padding: 0.75rem; color: color-mix(in srgb, var(--admin-content-text, #cbd5e1) 72%, transparent); font-size: 0.9rem; }
+
+      .topbar-actions.d-flex {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) minmax(300px, 500px) minmax(0, 1fr);
+        align-items: center !important;
+        column-gap: 0.9rem;
+        row-gap: 0.35rem;
+        width: 100%;
+        min-width: 0;
+      }
+
+      .topbar-weather {
+        grid-column: 1;
+        justify-self: start;
+        width: 100%;
+        min-width: 0;
+        max-width: 680px;
+      }
+
+      .topbar-context-row {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        min-width: 0;
+      }
+
+      .topbar-context-row .topbar-context-strip {
+        flex: 1 1 0;
+        width: auto;
+        min-width: 0;
+        max-width: none;
+      }
+
+      .topbar-offline-status {
+        flex: 0 0 auto;
+        gap: 0.35rem !important;
+        padding: 0.3rem 0.65rem !important;
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        white-space: nowrap;
+      }
+
+      .topbar-offline-status #sms-offline-status-text {
+        font-weight: 600;
+      }
+
+      .topbar-offline-status #sms-offline-status-last-synced {
+        display: none !important;
+      }
+
+      .topbar-offline-status #sms-offline-sync-now-btn {
+        margin-left: 0.22rem !important;
+        font-size: 0.78rem !important;
+      }
+
+      .topbar-search.header-search-container {
+        grid-column: 2;
+        justify-self: center;
+        width: 100%;
+        min-width: 280px;
+        max-width: 500px;
+      }
+
+      /* Full-width contract for module/dashboard surfaces. */
+      body.layout-boxed .container-fluid {
+        max-width: none;
+        margin-left: 0;
+        margin-right: 0;
+      }
+
+      .topbar-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-left: 0;
+        grid-column: 3;
+        justify-self: end;
+        justify-content: flex-end;
+        width: max-content;
+      }
+
+      .topbar-search-kbd {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.68rem;
+        line-height: 1;
+        color: rgba(255, 255, 255, 0.88);
+        border: 1px solid rgba(255, 255, 255, 0.42);
+        background: rgba(15, 23, 42, 0.34);
+        border-radius: 999px;
+        padding: 0.12rem 0.42rem;
+        pointer-events: none;
+        letter-spacing: 0.02em;
+        font-weight: 700;
+      }
+
+      .topbar-search-input {
+        padding-right: 4.8rem !important;
+      }
+
+      /* Overflow safety contract for all module pages (no text/frame bleed). */
+      .portal-main-col,
+      #main-content,
+      #main-content .row > [class*="col-"],
+      #main-content .card,
+      #main-content .card .card-body,
+      #main-content .table-responsive {
+        min-width: 0;
+      }
+      #main-content .card-title,
+      #main-content .table td,
+      #main-content .table th,
+      #main-content .badge,
+      #main-content .btn,
+      #main-content .small,
+      #main-content .text-muted {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
+
+      /* Theme Toggle Button */
+      #themeToggle {
+        transition: transform 0.3s ease, color 0.3s ease;
+      }
+
+      #themeToggle:hover {
+        transform: rotate(20deg);
+        color: #ffc107 !important;
+      }
+
+      /* Admin Dropdown Menu – theme-aware border/shadow */
+      .dropdown-menu {
+        border: 1px solid var(--portal-border-strong, rgba(0,0,0,0.1));
+        box-shadow: var(--portal-shadow-hover, 0 8px 24px rgba(0,0,0,0.15));
+        border-radius: 12px;
+      }
+
+      .dropdown-item {
+        padding: 0.7rem 1rem;
+        transition: all 0.2s ease;
+      }
+
+      .dropdown-item:hover {
+        background-color: var(--portal-nav-pill-bg-hover);
+        color: var(--school-primary);
+      }
+
+      .dropdown-item i {
+        margin-right: 0.5rem;
+        width: 18px;
+        text-align: center;
+      }
+
+      .card {
+        border: 0;
+        border-radius: 18px;
+        box-shadow: var(--portal-shadow);
+        background: rgba(255, 255, 255, 0.95);
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+      }
+
+      .card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--portal-shadow-hover);
+      }
+
+      .widget-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+      }
+
+      .widget-card {
+        border-radius: 16px;
+        padding: 1.3rem;
+        background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.7));
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.05);
+      }
+
+      .communication-link {
+        border-radius: 12px;
+        min-width: 170px;
+        box-shadow: 0 8px 18px rgba(13, 110, 253, 0.12);
+      }
+
+      .widget-title {
+        font-size: 0.85rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--portal-text-muted);
+      }
+
+      .sidebar {
+        border-radius: 18px;
+        {% if SITE and SITE.use_dark_mode %}
+          background: rgba(255,255,255,.06);
+          border: 1px solid rgba(255,255,255,.10);
+        {% else %}
+          background: rgba(255,255,255,.92);
+          border: 1px solid rgba(15,23,42,.08);
+        {% endif %}
+        position: sticky;
+        top: 10px;
+        max-height: calc(100vh - 80px);
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+      
+      /* Custom scrollbar for sidebar */
+      .sidebar::-webkit-scrollbar {
+        width: 6px;
+      }
+      
+      .sidebar::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      
+      .sidebar::-webkit-scrollbar-thumb {
+        background: rgba(15,23,42,0.2);
+        border-radius: 3px;
+      }
+      
+      .sidebar::-webkit-scrollbar-thumb:hover {
+        background: rgba(15,23,42,0.3);
+      }
+
+      /* Resizable sidebar: CSS variable + flex on desktop */
+      :root {
+        --portal-sidebar-width: 280px;
+        --portal-sidebar-min: 200px;
+        --portal-sidebar-max: 420px;
+      }
+      @media (min-width: 992px) {
+        .portal-layout-row {
+          display: flex;
+          flex-wrap: nowrap;
+          gap: 0;
+        }
+        .portal-sidebar-col {
+          flex: 0 0 var(--portal-sidebar-width);
+          width: var(--portal-sidebar-width);
+          min-width: var(--portal-sidebar-min);
+          max-width: var(--portal-sidebar-max);
+          transition: width 0.05s ease-out;
+        }
+        .portal-resize-handle {
+          flex: 0 0 8px;
+          width: 8px;
+          min-width: 8px;
+          cursor: col-resize;
+          background: transparent;
+          align-items: stretch;
+          justify-content: center;
+          position: relative;
+          user-select: none;
+        }
+        .portal-resize-handle::after {
+          content: '';
+          position: absolute;
+          left: 3px;
+          top: 20%;
+          bottom: 20%;
+          width: 2px;
+          border-radius: 1px;
+          background: rgba(15,23,42,0.15);
+          transition: background 0.15s ease;
+        }
+        .portal-resize-handle:hover::after,
+        .portal-resize-handle:active::after {
+          background: var(--school-primary, #0d6efd);
+        }
+        .portal-main-col {
+          flex: 1 1 0;
+          min-width: 0;
+          width: 0;
+        }
+        .portal-layout-row .offcanvas {
+          flex: 0 0 0;
+          width: 0;
+          min-width: 0;
+          overflow: visible;
+        }
+      }
+
+      .nav-pill {
+        border-radius: 14px;
+      }
+
+      .nav-pill.active,
+      .nav-pill:hover {
+        background: var(--portal-nav-pill-bg-hover);
+      }
+
+      .page-wrap {
+        border-radius: 20px;
+        background: var(--portal-bg);
+        padding: 18px;
+        border: 1px solid rgba(15,23,42,.08);
+      }
+
+      /* Mobile-First Responsive Portal Design (breakpoints from design-tokens) */
+      @media (max-width: var(--bp-content-sm-max, 479px)) {
+        .topbar {
+          padding: 0.75rem 1rem;
+        }
+
+        .brand-logo {
+          height: 28px;
+          width: 28px;
+        }
+
+        .search-bar-wrapper input {
+          width: 120px !important;
+          font-size: 0.85rem;
+        }
+
+        .widget-grid {
+          grid-template-columns: 1fr;
+          gap: 0.75rem;
+        }
+
+        .widget-card {
+          padding: 1rem;
+          border-radius: 12px;
+        }
+
+        .widget-title {
+          font-size: 0.8rem;
+        }
+
+        .sidebar {
+          border-radius: 12px;
+          max-height: none;
+          position: relative;
+          top: auto;
+        }
+
+        .page-wrap {
+          padding: 12px;
+          border-radius: 16px;
+        }
+
+        .card {
+          border-radius: 12px;
+          margin-bottom: 1rem;
+        }
+
+        .dropdown-menu {
+          min-width: auto;
+        }
+      }
+
+      @media (max-width: var(--bp-mobile-max, 767px)) {
+        .topbar {
+          padding: 0.75rem 0.75rem;
+        }
+
+        .search-bar-wrapper input {
+          width: 140px !important;
+        }
+
+        .container-fluid {
+          padding-left: 0.75rem;
+          padding-right: 0.75rem;
+        }
+
+        .widget-grid {
+          gap: 0.875rem;
+        }
+
+        .page-wrap {
+          padding: 16px;
+          margin-bottom: 1rem;
+        }
+
+        .card:hover {
+          transform: none;
+        }
+
+        /* Offcanvas sidebar optimization */
+        .offcanvas {
+          width: 100% !important;
+        }
+
+        .offcanvas-header {
+          padding: 1rem;
+        }
+
+        .offcanvas-body {
+          padding: 0.75rem;
+        }
+
+        .topbar-actions.d-flex {
+          display: flex !important;
+          gap: 0.5rem;
+          width: 100%;
+        }
+
+        .topbar-controls {
+          order: 1;
+          flex-basis: 100%;
+          justify-content: flex-end;
+        }
+
+        .topbar-weather,
+        .topbar-context-strip,
+        .topbar-search {
+          order: 2;
+          flex-basis: 100%;
+          max-width: 100%;
+        }
+
+        .topbar-search {
+          order: 3;
+        }
+
+        .topbar-search input {
+          width: 100% !important;
+        }
+
+        .topbar-search-kbd {
+          right: 8px;
+        }
+      }
+
+      @media (max-width: var(--bp-extra-narrow, 575px)) {
+        .topbar-weather,
+        .topbar-context-strip {
+          display: none;
+        }
+
+        .topbar-controls .btn,
+        .topbar-controls .btn-link {
+          padding: 0.2rem 0.4rem;
+        }
+
+        .topbar-search-kbd {
+          display: none;
+        }
+
+        .topbar-search-input {
+          padding-right: 0.75rem !important;
+        }
+      }
+      @media (max-width: 1279px) {
+        .topbar-actions.d-flex {
+          grid-template-columns: minmax(0, 1fr) minmax(240px, 390px) minmax(0, 1fr);
+        }
+
+        .topbar-search.header-search-container {
+          max-width: 390px;
+          min-width: 240px;
+        }
+
+        .topbar-offline-status #sms-offline-sync-now-btn {
+          display: none;
+        }
+      }
+      @media (max-width: 991px) {
+        .topbar-actions.d-flex {
+          display: flex !important;
+          flex-wrap: wrap;
+          width: 100%;
+          gap: 0.5rem;
+        }
+      }
+      @media (max-width: var(--bp-below-wide, 1023px)) {
+        .communication-link {
+          min-width: 140px;
+          font-size: 0.85rem;
+        }
+      }
+
+      @media (min-width: var(--bp-mobile, 768px)) {
+        .widget-grid {
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        }
+
+        .sidebar {
+          position: sticky;
+          top: 10px;
+          border-radius: 18px;
+        }
+      }
+
+      /* Touch device optimizations */
+      @media (hover: none) and (pointer: coarse) {
+        .card:hover {
+          transform: none;
+          box-shadow: 0 8px 22px rgba(0,0,0,.08);
+        }
+
+        .nav-pill {
+          padding: 0.75rem 1rem;
+        }
+
+        .dropdown-item {
+          padding: 0.85rem 1.25rem;
+          min-height: 44px;
+        }
+      }
+
+      /* Landscape mode optimizations */
+      @media (max-height: 500px) {
+        .topbar {
+          padding: 0.5rem 1rem;
+        }
+
+        .sidebar {
+          max-height: calc(100vh - 60px);
+        }
+      }
+
+      .dashboard-hero {
+        border-radius: 18px;
+        padding: 1.75rem;
+        background: linear-gradient(135deg, var(--school-primary), var(--school-accent));
+        color: #fff;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+      }
+
+      .dashboard-hero .hero-title {
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        opacity: 0.85;
+      }
+
+      .dashboard-hero .hero-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+      }
+
+      .dashboard-hero .hero-metric {
+        font-size: 0.9rem;
+        margin-left: auto;
+        text-align: right;
+      }
+
+      .kpi {
+        font-weight: 700;
+        letter-spacing: -0.3px;
+      }
+
+      /* Messages chathead: fixed bottom-right, just above AI copilot (12px gap); above Copilot z-index so never hidden */
+      .portal-chathead {
+        position: fixed;
+        right: max(16px, env(safe-area-inset-right));
+        bottom: calc(16px + 60px + 12px);
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--school-primary), var(--school-accent));
+        color: #fff;
+        box-shadow: 0 4px 14px color-mix(in srgb, var(--school-primary) 46%, transparent);
+        text-decoration: none;
+        font-size: 1.2rem;
+        z-index: 10000;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+      .portal-chathead:hover {
+        color: #fff;
+        transform: scale(1.08);
+        box-shadow: 0 6px 18px color-mix(in srgb, var(--school-primary) 56%, transparent);
+      }
+      .portal-chathead-badge {
+        position: absolute;
+        top: -2px;
+        right: -2px;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        line-height: 18px;
+        text-align: center;
+        background: #dc3545;
+        color: #fff;
+        border-radius: 999px;
+        border: 2px solid #fff;
+      }
+
+      /* Header refinement: keep search centered and prevent topbar control overlap. */
+      #portalHeader .topbar-actions.d-flex {
+        flex: 1 1 auto;
+        min-width: 0;
+        display: grid !important;
+        grid-template-columns: minmax(240px, 1fr) minmax(300px, 460px) auto;
+        align-items: center !important;
+        column-gap: 0.75rem;
+        row-gap: 0.35rem;
+      }
+
+      #portalHeader .topbar-weather {
+        grid-column: 1;
+        justify-self: start;
+        width: 100%;
+        min-width: 0;
+        max-width: min(40vw, 580px);
+      }
+
+      #portalHeader .topbar-context-row {
+        max-width: 100%;
+        min-width: 0;
+      }
+
+      #portalHeader .topbar-search.header-search-container {
+        grid-column: 2;
+        justify-self: center;
+        width: 100%;
+        min-width: 300px;
+        max-width: 460px;
+      }
+
+      #portalHeader .topbar-search-input {
+        padding-right: 4.1rem !important;
+      }
+
+      #portalHeader .topbar-search-kbd {
+        right: 0.55rem;
+        z-index: 2;
+      }
+
+      #portalHeader .topbar-controls {
+        grid-column: 3;
+        justify-self: end;
+        justify-content: flex-end;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        min-width: 0;
+        max-width: 100%;
+        flex-wrap: nowrap;
+      }
+
+      #portalHeader .topbar-controls > * {
+        flex: 0 0 auto;
+      }
+
+      #portalHeader .topbar-lang-btn {
+        max-width: 112px;
+      }
+
+      #portalHeader .topbar-lang-btn > span {
+        display: inline-block;
+        max-width: 68px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        vertical-align: middle;
+      }
+
+      #portalHeader .topbar-username {
+        max-width: 96px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      @media (max-width: 1500px) {
+        #portalHeader .topbar-weather {
+          max-width: min(35vw, 500px);
+        }
+
+        #portalHeader .topbar-username {
+          display: none !important;
+        }
+      }
+
+      @media (max-width: 1320px) {
+        #portalHeader .topbar-actions.d-flex {
+          grid-template-columns: minmax(170px, 1fr) minmax(240px, 380px) auto;
+        }
+
+        #portalHeader .topbar-search.header-search-container {
+          min-width: 240px;
+          max-width: 380px;
+        }
+
+        #portalHeader .topbar-lang-btn > span {
+          display: none;
+        }
+
+        #portalHeader .topbar-lang-btn {
+          padding-inline: 0.5rem;
+        }
+
+        #portalHeader .topbar-offline-status #sms-offline-sync-now-btn {
+          display: none;
+        }
+      }
+
+      @media (max-width: 1100px) {
+        #portalHeader .topbar-actions.d-flex {
+          display: flex !important;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+          width: 100%;
+        }
+
+        #portalHeader .topbar-controls {
+          order: 1;
+          margin-left: auto;
+        }
+
+        #portalHeader .topbar-weather,
+        #portalHeader .topbar-context-strip,
+        #portalHeader .topbar-search {
+          order: 2;
+          flex: 1 1 100%;
+          max-width: 100%;
+        }
+
+        #portalHeader .topbar-search {
+          order: 3;
+        }
+
+        #portalHeader .topbar-search input {
+          width: 100% !important;
+        }
+      }
+
+      @media (max-width: 575px) {
+        #portalHeader .topbar-weather,
+        #portalHeader .topbar-context-strip {
+          display: none !important;
+        }
+
+        #portalHeader .topbar-search-kbd {
+          display: none;
+        }
+
+        #portalHeader .topbar-search-input {
+          padding-right: 0.75rem !important;
+        }
+      }
+    </style>
+    <link rel="stylesheet" href="{% static 'css/dashboard-theme-sync.css' %}">
+    {% if SITE and SITE.custom_css %}
+    <style data-site-custom-css>
+      {{ SITE.custom_css|safe }}
+    </style>
+    {% endif %}
+
+    <!-- PWA Support -->
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <meta name="theme-color" content="{{ SITE_THEME.primary_color|default:'#007bff' }}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="SMS">
+    <link rel="apple-touch-icon" href="{% static 'images/icon-192.png' %}">
+  </head>
+
+  <body class="layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} {% block body_extra_class %}{% endblock %}">
+    <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 skip-link-theme rounded" href="#main-content" aria-label="Skip to main content">Skip to main content</a>
+    {% if SITE and SITE.is_preview %}
+    <div class="alert alert-warning text-center m-0 rounded-0 border-0 d-flex flex-wrap align-items-center justify-content-center gap-2 py-2 px-3" role="status">
+      <span class="fw-semibold">{% trans "You're previewing unsaved Site Settings." %}</span>
+      {% if request.user.is_staff %}
+      <a class="btn btn-sm btn-primary" href="{% url 'admin:siteconfig_sitesettings_change' SITE.pk|default:1 %}">{% trans "Save in Site Settings" %}</a>
+      <a class="btn btn-sm btn-outline-dark" href="{% url 'admin:siteconfig_sitesettings_change' SITE.pk|default:1 %}">{% trans "Back to Site Settings" %}</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:clear_preview' %}?next={{ request.path }}">{% trans "Discard preview" %}</a>
+      {% endif %}
+    </div>
+    {% endif %}
+    <nav id="portalHeader" class="navbar navbar-expand-lg navbar-dark topbar topbar-sticky" role="navigation" aria-label="Main navigation">
+      <div class="container-fluid px-3" id="preview-header-bar" data-preview-label="{% trans 'Header bar (background & colors)' %}">
+        <button class="btn btn-sm btn-outline-light d-lg-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#portalSidebar" aria-controls="portalSidebar" aria-label="Open sidebar menu">
+          <i class="bi bi-list" aria-hidden="true"></i>
+        </button>
+
+        {% if request.public_host_kind == 'manager' %}
+        {% url 'super:dashboard' as backend_url %}
+        {% url 'super:dashboard' as teacher_url %}
+        {% url 'super:dashboard' as parent_url %}
+        {% url 'super:command_center' as teacher_evals_url %}
+        {% url 'super:dashboard' as teacher_alias_url %}
+        {% url 'super:billing_dashboard' as finance_url %}
+        {% url 'super:command_center' as payroll_url %}
+        {% url 'super:command_center' as analytics_url %}
+        {% url 'super:command_center' as compliance_url %}
+        {% url 'super:dashboard' as portal_home_url %}
+        {% url 'manager_help' as help_center_url %}
+        {% else %}
+        {% url 'accounts:backend_dashboard' as backend_url %}
+        {% url 'portal:teacher_dashboard_alias' as teacher_url %}
+        {% url 'portal:parent_dashboard' as parent_url %}
+        {% url 'evals:teacher_dashboard' as teacher_evals_url %}
+        {% url 'portal:teacher_dashboard_alias' as teacher_alias_url %}
+        {% url 'finance:dashboard' as finance_url %}
+        {% url 'payroll:dashboard' as payroll_url %}
+        {% url 'analytics:dashboard' as analytics_url %}
+        {% url 'compliance:dashboard' as compliance_url %}
+        {% url 'accounts:redirect' as portal_home_url %}
+        {% url 'kb:kb_home' as help_center_url %}
+        {% endif %}
+        <div id="preview-header-brand" class="d-inline-flex align-items-center" data-preview-label="{% trans 'Logo & site name' %}">
+        {% if request.user.role == 'ADMIN' or request.user.is_staff %}
+          <a class="navbar-brand d-flex align-items-center gap-2" href="{{ backend_url }}" title="Back to your home dashboard">
+          {% if SITE_LOGO_URL %}
+            <img class="brand-logo" src="{{ SITE_LOGO_URL }}" alt="Logo" width="34" height="34" fetchpriority="high" decoding="async">
+          {% else %}
+            <img class="brand-logo" src="{% static 'images/logo.png' %}" alt="Logo" width="34" height="34" fetchpriority="high" decoding="async">
+          {% endif %}
+          <span class="fw-semibold">{% if SITE and SITE.site_name %}{{ SITE.site_name }}{% else %}School System{% endif %}</span>
+        </a>
+        {% elif request.user.role == 'TEACHER' %}
+          <a class="navbar-brand d-flex align-items-center gap-2" href="{{ teacher_url }}" title="Back to your home dashboard">
+          {% if SITE_LOGO_URL %}
+            <img class="brand-logo" src="{{ SITE_LOGO_URL }}" alt="Logo" width="34" height="34" fetchpriority="high" decoding="async">
+          {% else %}
+            <img class="brand-logo" src="{% static 'images/logo.png' %}" alt="Logo" width="34" height="34" fetchpriority="high" decoding="async">
+          {% endif %}
+          <span class="fw-semibold">{% if SITE and SITE.site_name %}{{ SITE.site_name }}{% else %}School System{% endif %}</span>
+        </a>
+        {% elif request.user.role == 'PARENT' %}
+          <a class="navbar-brand d-flex align-items-center gap-2" href="{{ parent_url }}" title="Back to your home dashboard">
+          {% if SITE_LOGO_URL %}
+            <img class="brand-logo" src="{{ SITE_LOGO_URL }}" alt="Logo" width="34" height="34" fetchpriority="high" decoding="async">
+          {% else %}
+            <img class="brand-logo" src="{% static 'images/logo.png' %}" alt="Logo" width="34" height="34" fetchpriority="high" decoding="async">
+          {% endif %}
+          <span class="fw-semibold">{% if SITE and SITE.site_name %}{{ SITE.site_name }}{% else %}School System{% endif %}</span>
+        </a>
+        {% endif %}
+        </div>
+
+        {% if request.user.is_authenticated %}
+          <a class="btn btn-sm btn-outline-light d-inline-flex align-items-center gap-1 ms-2" href="{{ portal_home_url }}">
+            <i class="bi bi-house"></i>
+            <span class="d-none d-sm-inline">Home</span>
+          </a>
+        {% else %}
+          <a class="btn btn-sm btn-outline-light d-inline-flex align-items-center gap-1 ms-2" href="{% url 'home' %}">
+            <i class="bi bi-house"></i>
+            <span class="d-none d-sm-inline">Home</span>
+          </a>
+        {% endif %}
+
+        <div class="topbar-actions d-flex align-items-center gap-3 text-white ms-auto" id="preview-header-actions" data-preview-label="{% trans 'Search, weather & controls' %}">
+          {% if request.user.is_authenticated %}
+            {% if SHOW_OFFLINE_STATUS_BAR or SHOW_HEADER_CONTEXT_STRIP or SHOW_ROLE_SWITCHER %}
+            <div class="topbar-context-row topbar-weather">
+              {% if SHOW_OFFLINE_STATUS_BAR %}
+              {% include 'components/offline_status_bar.html' %}
+              {% endif %}
+              {% if SHOW_HEADER_CONTEXT_STRIP or SHOW_ROLE_SWITCHER %}
+              <div class="topbar-context-strip d-flex align-items-center gap-2 flex-wrap">
+                {% if SHOW_HEADER_CONTEXT_STRIP %}
+                {% include 'components/header_weather_widget.html' %}
+                {% endif %}
+                {% if SHOW_ROLE_SWITCHER and EFFECTIVE_PORTAL_ROLE %}
+                <span class="badge bg-light text-dark opacity-90 small" aria-label="{% trans 'Current portal view' %}">{% trans 'Viewing as' %}: {{ EFFECTIVE_PORTAL_ROLE }}</span>
+                {% endif %}
+              </div>
+              {% endif %}
+            </div>
+            {% endif %}
+
+            {% if SHOW_HEADER_SEARCH %}
+            <!-- Global Search Bar (Ctrl+K) - searches students, teachers, invoices, etc. -->
+            <div class="topbar-search search-bar-wrapper header-search-container">
+              <input 
+                type="text" 
+                class="form-control form-control-sm topbar-search-input nav-search" 
+                placeholder="Search students, teachers, invoices..."
+                id="headerSearchInput"
+                aria-label="Global search"
+                aria-autocomplete="list"
+                aria-expanded="false"
+                aria-controls="headerSearchResults"
+              />
+              <span class="topbar-search-kbd" aria-hidden="true">Ctrl+K</span>
+              <div id="headerSearchResults" class="header-search-dropdown" role="listbox" aria-label="Search results" style="display: none;"></div>
+            </div>
+            {% endif %}
+
+            <div class="topbar-controls d-flex align-items-center gap-2">
+              {% if available_languages %}
+              {% include "partials/language_switcher.html" %}
+              {% endif %}
+              {% if request.user.is_authenticated %}
+              <a class="btn btn-link text-white p-0 position-relative topbar-icon-btn" href="{% url 'accounts:user_messages' %}" title="Messages" aria-label="Open Messages">
+                <i class="bi bi-chat-dots-fill"></i>
+                {% if messages_unread_count %}
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">{{ messages_unread_count }}</span>
+                {% endif %}
+              </a>
+              {% endif %}
+              {% if SHOW_HEADER_NOTIFICATIONS %}
+              <a class="btn btn-link text-white p-0 position-relative topbar-icon-btn" href="{% url 'accounts:user_notifications' %}" title="Notifications" aria-label="View notifications">
+                <i class="bi bi-bell"></i>
+                {% if NOTIFICATIONS_UNREAD_COUNT %}
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">{{ NOTIFICATIONS_UNREAD_COUNT }}</span>
+                {% endif %}
+              </a>
+              {% endif %}
+              <a class="btn btn-link text-white p-0 topbar-icon-btn" href="{{ help_center_url }}" title="{% trans 'Help & Knowledge Base' %}" aria-label="{% trans 'Help' %}"><i class="bi bi-question-circle" aria-hidden="true"></i></a>
+              {% if SHOW_HEADER_THEME_TOGGLE %}
+              <button 
+                type="button"
+                class="btn btn-link text-white p-0 topbar-icon-btn" 
+                id="themeToggle" 
+                title="Toggle Dark/Light Theme"
+                aria-label="Toggle Dark/Light Theme"
+              >
+                <i class="bi bi-moon-stars" aria-hidden="true"></i>
+              </button>
+              {% endif %}
+
+              {% if SHOW_HEADER_PROFILE_MENU %}
+              <div class="dropdown">
+                <button 
+                  class="btn btn-link text-white p-0 dropdown-toggle topbar-icon-btn" 
+                  type="button" 
+                  id="adminMenuDropdown" 
+                  data-bs-toggle="dropdown" 
+                  aria-expanded="false"
+                  title="Admin Menu"
+                  aria-label="Admin menu"
+                >
+                  <i class="bi bi-gear" aria-hidden="true"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminMenuDropdown">
+                  {% if is_backend_context and request.user.is_superuser %}
+                  <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-gear-wide-connected"></i> {% trans "Configuration Engine" %}</a></li>
+                  {% elif not is_backend_context %}
+                  <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-speedometer2"></i> Django Admin</a></li>
+                  {% endif %}
+                  <li><a class="dropdown-item" href="{% url 'admin:activity_logs' %}"><i class="bi bi-clock-history"></i> Activity Logs</a></li>
+                  <li><a class="dropdown-item" href="{% url 'admin:system_health' %}"><i class="bi bi-heart-pulse"></i> System Health</a></li>
+                </ul>
+              </div>
+
+              <span class="small opacity-75 d-none d-md-inline topbar-username">{{ request.user.username }}</span>
+              <a class="btn btn-sm btn-outline-light d-inline-flex align-items-center gap-1" href="{% url 'accounts:logout' %}">
+                <i class="bi bi-box-arrow-right"></i>
+                <span class="d-none d-sm-inline">Logout</span>
+              </a>
+              {% endif %}
+            </div>
+          {% else %}
+            <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:login' %}">Login</a>
+          {% endif %}
+        </div>
+      </div>
+    </nav>
+
+    <div class="container-fluid px-3 py-2">
+      <div class="row g-3 portal-layout-row">
+        <!-- Sidebar (desktop) - Resizable, collapsible to icon strip -->
+        <div class="portal-sidebar-col col-lg-3 col-xl-2 d-none d-lg-block" id="portal-sidebar-col" data-collapsible="true">
+          <div class="sidebar p-3">
+            {% include "partials/portal_sidebar.html" %}
+          </div>
+        </div>
+        <!-- Resize handle (desktop only; hidden when sidebar collapsed) -->
+        <div class="portal-resize-handle d-none d-lg-flex" aria-label="Resize sidebar" role="separator" title="Drag to resize sidebar"></div>
+
+        <!-- Sidebar (mobile) -->
+        <div class="offcanvas offcanvas-start" tabindex="-1" id="portalSidebar" aria-labelledby="portalSidebarLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="portalSidebarLabel">Menu</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+          {% include "partials/portal_sidebar.html" %}
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="portal-main-col col-lg-9 col-xl-10" id="main-content" role="main">
+        <div class="page-wrap">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+            <div class="mb-0">{% include "partials/breadcrumbs.html" %}</div>
+            <div class="breadcrumb-actions">{% block breadcrumb_actions %}{% endblock %}</div>
+          </div>
+            {% if messages %}
+            <div class="mb-3">
+              <!-- Global Announcements Banner -->
+              {% include 'components/announcement_banner.html' %}
+              
+              {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} mb-2">
+                  {{ message }}
+                  {% if message.tags == 'error' %}
+                    <p class="mb-0 mt-2 small"><a class="alert-link" href="{{ help_center_url }}">{% trans "Learn more in the Help centre" %}</a></p>
+                  {% endif %}
+                </div>
+              {% endfor %}
+              </div>
+            {% endif %}
+
+            {% if dashboard_stats_cards %}
+              <div class="mb-3">
+                <div class="section-title">
+                  <i class="bi bi-graph-up-arrow"></i>
+                  <span>Dashboard Stats</span>
+                </div>
+                <div class="row g-2">
+                  {% for stat in dashboard_stats_cards %}
+                  <div class="col-6 col-xl-3">
+                    <div style="{{ stat.card_style }} border-radius: 10px; padding: 0.75rem;">
+                      <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <span class="dashboard-stat-label" style="font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">{{ stat.label }}</span>
+                        <span style="{{ stat.badge_style }} padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">{{ stat.value }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'js/portal-sidebar.js' %}"></script>
+    
+    <!-- React and TanStack Query (self-hosted, no CDN) -->
+    {% block react_libs %}
+    <script src="{% static 'vendor/react/react.production.min.js' %}"></script>
+    <script src="{% static 'vendor/react/react-dom.production.min.js' %}"></script>
+    <script src="{% static 'vendor/react/react-query.umd.production.min.js' %}"></script>
+    <script src="{% static 'vendor/react/zod.umd.js' %}"></script>
+    <script src="{% static 'js/react-integration.js' %}"></script>
+    <script src="{% static 'js/react-hooks.js' %}"></script>
+    {% endblock %}
+
+    {% block extra_js %}{% endblock %}
+    {% block extrajs %}{% endblock %}
+
+    <script>
+      // Theme Toggle: light / dark / system (persisted in localStorage)
+      document.addEventListener('DOMContentLoaded', function() {
+        const themeToggle = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement;
+        
+        function getSystemTheme() {
+          return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        function resolveTheme(stored) {
+          if (stored === 'system') return getSystemTheme();
+          return stored === 'dark' ? 'dark' : 'light';
+        }
+        function applyTheme(stored) {
+          var resolved = resolveTheme(stored);
+          htmlElement.setAttribute("data-theme", resolved);
+          htmlElement.setAttribute("data-bs-theme", resolved);
+          updateThemeIcon(stored, resolved);
+        }
+        function updateThemeIcon(stored, resolved) {
+          if (!themeToggle) return;
+          var icon = themeToggle.querySelector('i');
+          if (!icon) return;
+          icon.classList.remove('bi-moon-stars', 'bi-sun-fill', 'bi-circle-half');
+          if (stored === 'system') {
+            icon.classList.add('bi-circle-half');
+            themeToggle.setAttribute('title', 'Theme: System (' + resolved + ')');
+          } else if (resolved === 'dark') {
+            icon.classList.add('bi-sun-fill');
+            themeToggle.setAttribute('title', 'Switch to light');
+          } else {
+            icon.classList.add('bi-moon-stars');
+            themeToggle.setAttribute('title', 'Switch to dark');
+          }
+        }
+        function cycleTheme() {
+          var key = 'runmycampus-theme-preference';
+          var stored = localStorage.getItem(key) || 'light';
+          var next = stored === 'light' ? 'dark' : (stored === 'dark' ? 'system' : 'light');
+          localStorage.setItem(key, next);
+          applyTheme(next);
+        }
+        
+        var key = 'runmycampus-theme-preference';
+        var stored = localStorage.getItem(key);
+        if (!stored && localStorage.getItem('gilead-theme-preference')) {
+          stored = localStorage.getItem('gilead-theme-preference');
+          localStorage.setItem(key, stored);
+          localStorage.removeItem('gilead-theme-preference');
+        }
+        applyTheme(stored || 'light');
+        if (themeToggle) themeToggle.addEventListener('click', cycleTheme);
+        
+        if (window.matchMedia) {
+          window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
+            if ((localStorage.getItem('runmycampus-theme-preference') || 'light') === 'system') applyTheme('system');
+          });
+        }
+      });
+
+      // Global Search Bar (Ctrl+K) - fetches /api/search/ and shows results
+      document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('headerSearchInput');
+        const resultsEl = document.getElementById('headerSearchResults');
+        if (!searchInput || !resultsEl) return;
+
+        var searchTimeout;
+        var lastQuery = '';
+
+        function showResults(html) {
+          resultsEl.innerHTML = html;
+          resultsEl.style.display = html ? 'block' : 'none';
+          searchInput.setAttribute('aria-expanded', html ? 'true' : 'false');
+        }
+
+        function hideResults() {
+          setTimeout(function() { showResults(''); }, 150);
+        }
+
+        document.addEventListener('keydown', function(e) {
+          if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            searchInput.focus();
+            searchInput.select();
+          }
+        });
+
+        searchInput.addEventListener('input', function() {
+          var q = (this.value || '').trim();
+          clearTimeout(searchTimeout);
+          if (q.length < 2) {
+            showResults('');
+            return;
+          }
+          searchTimeout = setTimeout(function() {
+            fetch('/api/search/?q=' + encodeURIComponent(q) + '&limit=8', { credentials: 'same-origin' })
+              .then(function(r) {
+                if (!r.ok) throw new Error('Search failed');
+                return r.json();
+              })
+              .then(function(data) {
+                var esc = function(t) { var d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML; };
+                var items = data.results || [];
+                if (items.length === 0) {
+                  showResults('<div class="search-result-empty">No results for "' + esc(q.length > 20 ? q.slice(0,20) + '...' : q) + '"</div>');
+                } else {
+                  showResults(items.map(function(item) {
+                    var title = esc(item.title || item.label || '');
+                    var desc = item.description ? ' <span class="search-result-muted">' + esc(item.description) + '</span>' : '';
+                    var url = (item.url || '#').replace(/"/g, '&quot;');
+                    return '<a class="search-result-item" href="' + url + '" role="option"><i class="bi ' + (item.icon || 'bi-circle') + ' me-2"></i>' + title + desc + '</a>';
+                  }).join(''));
+                }
+              })
+              .catch(function() {
+                showResults('<div class="search-result-error">Search failed. Try again.</div>');
+              });
+          }, 250);
+        });
+
+        searchInput.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape') {
+            showResults('');
+            this.blur();
+          } else if (e.key === 'Enter') {
+            var first = resultsEl.querySelector('.search-result-item');
+            if (first) {
+              first.click();
+              showResults('');
+            }
+          }
+        });
+
+        searchInput.addEventListener('blur', function(e) {
+          var rel = e.relatedTarget;
+          if (rel && resultsEl.contains(rel)) return;
+          hideResults();
+        });
+      });
+
+      // Resizable sidebar: drag handle updates --portal-sidebar-width and persists to localStorage
+      document.addEventListener('DOMContentLoaded', function() {
+        var handle = document.querySelector('.portal-resize-handle');
+        var root = document.documentElement;
+        var MIN = 200;
+        var MAX = 420;
+        var KEY = 'portal-sidebar-width';
+
+        function px(v) { return Math.round(v) + 'px'; }
+        function clamp(v) { return Math.max(MIN, Math.min(MAX, v)); }
+
+        function loadWidth() {
+          var w = parseInt(localStorage.getItem(KEY), 10);
+          if (w && w >= MIN && w <= MAX) root.style.setProperty('--portal-sidebar-width', px(w));
+        }
+        loadWidth();
+
+        // Collapsible sidebar: toggle icon-only strip, persist to localStorage
+        var sidebarCol = document.getElementById('portal-sidebar-col');
+        var collapseKey = 'portal-sidebar-collapsed';
+        var collapseButtons = Array.from(document.querySelectorAll('.portal-sidebar-collapse-toggle, .js-sidebar-toggle'));
+
+        function updateCollapseButtons(collapsed) {
+          collapseButtons.forEach(function(btn) {
+            btn.setAttribute('aria-label', collapsed ? 'Expand sidebar' : 'Collapse sidebar');
+            btn.setAttribute('aria-expanded', String(!collapsed));
+            btn.setAttribute('title', collapsed ? 'Expand sidebar' : 'Collapse sidebar to icons');
+            var icon = btn.querySelector('.bi-layout-sidebar-inset, .bi-layout-sidebar-inset-reverse');
+            if (icon) {
+              icon.classList.toggle('bi-layout-sidebar-inset', !collapsed);
+              icon.classList.toggle('bi-layout-sidebar-inset-reverse', collapsed);
+            }
+            var label = btn.querySelector('[data-sidebar-toggle-label]');
+            if (label) {
+              label.textContent = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
+            }
+          });
+        }
+
+        function setSidebarCollapsed(collapsed) {
+          if (!sidebarCol) return;
+          sidebarCol.classList.toggle('portal-sidebar-collapsed', collapsed);
+          localStorage.setItem(collapseKey, collapsed ? 'true' : 'false');
+          updateCollapseButtons(collapsed);
+        }
+
+        function loadCollapsed() {
+          if (!sidebarCol) return;
+          setSidebarCollapsed(localStorage.getItem(collapseKey) === 'true');
+        }
+        loadCollapsed();
+        collapseButtons.forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            if (!sidebarCol) return;
+            var collapsed = !sidebarCol.classList.contains('portal-sidebar-collapsed');
+            setSidebarCollapsed(collapsed);
+          });
+        });
+
+        if (handle) {
+          handle.addEventListener('mousedown', function(e) {
+            if (e.button !== 0) return;
+            e.preventDefault();
+            var startX = e.clientX;
+            var startW = parseInt(getComputedStyle(root).getPropertyValue('--portal-sidebar-width'), 10) || 280;
+
+            function move(e) {
+              var dx = e.clientX - startX;
+              var newW = clamp(startW + dx);
+              root.style.setProperty('--portal-sidebar-width', px(newW));
+            }
+            function up() {
+              var w = parseInt(getComputedStyle(root).getPropertyValue('--portal-sidebar-width'), 10);
+              localStorage.setItem(KEY, String(w));
+              document.removeEventListener('mousemove', move);
+              document.removeEventListener('mouseup', up);
+              document.body.style.cursor = '';
+              document.body.style.userSelect = '';
+            }
+
+            document.body.style.cursor = 'col-resize';
+            document.body.style.userSelect = 'none';
+            document.addEventListener('mousemove', move);
+            document.addEventListener('mouseup', up);
+          });
+        }
+      });
+    </script>
+
+    <script>
+      window.SMS_OFFLINE_CONFIG = {
+        enabled: {{ OFFLINE_ENABLED_FOR_CURRENT_SCHOOL|yesno:"true,false" }},
+        pwaEnabled: {{ SITE.backend_feature_flags.enable_portal_pwa|default:"1"|yesno:"true,false" }},
+        formQueueEnabled: {{ SITE.backend_feature_flags.enable_offline_form_queue|default:"1"|yesno:"true,false" }},
+        attendanceSyncEnabled: {{ SITE.backend_feature_flags.enable_offline_attendance_sync|default:"1"|yesno:"true,false" }},
+        gradeSyncEnabled: {{ SITE.backend_feature_flags.enable_offline_grade_sync|default:"1"|yesno:"true,false" }},
+        backgroundSyncEnabled: {{ SITE.backend_feature_flags.enable_offline_background_sync|default:"1"|yesno:"true,false" }},
+        requestPersistentStorage: {{ SITE.backend_feature_flags.request_persistent_browser_storage|default:"1"|yesno:"true,false" }},
+        reachabilityUrl: '{% if SITE.backend_feature_flags.reachability_url %}{{ SITE.backend_feature_flags.reachability_url }}{% else %}/health/{% endif %}',
+        hydrate: true,
+        dripWhenWeak: true,
+        reduceActivityLowPower: {% if SITE.backend_feature_flags.reduce_activity_low_power %}true{% else %}false{% endif %},
+        entitySyncEnabled: {% if SITE.backend_feature_flags.offline_entity_sync == False %}false{% else %}true{% endif %},
+        requestsSyncEnabled: {% if SITE.backend_feature_flags.offline_requests_sync == False %}false{% else %}true{% endif %},
+        deltaEndpointUrl: '',
+        hubBaseUrl: '{{ SITE.backend_feature_flags.hub_base_url|default:"" }}',
+        prefetchAtHour: {% if SITE.backend_feature_flags.prefetch_at_hour != None %}{{ SITE.backend_feature_flags.prefetch_at_hour }}{% else %}null{% endif %}
+      };
+    </script>
+
+    {% if SHOW_OFFLINE_STATUS_BAR %}
+    <link rel="stylesheet" href="{% static 'css/reduce-motion-low-power.css' %}">
+    <script src="{% static 'js/vendor/dexie.min.js' %}"></script>
+    <script src="{% static 'js/offline-db.js' %}"></script>
+    <script src="{% static 'js/sync-manager.js' %}"></script>
+    <script src="{% static 'js/low-power.js' %}"></script>
+    <script src="{% static 'js/offline-status-bar.js' %}"></script>
+    <script src="{% static 'js/auto-pilot.js' %}"></script>
+    {% endif %}
+    <!-- PWA Service Worker Registration -->
+    <script>
+      (function() {
+        var cfg = window.SMS_OFFLINE_CONFIG || {};
+        if (!('serviceWorker' in navigator) || !cfg.enabled || !cfg.pwaEnabled) {
+          return;
+        }
+
+        function pushConfigToWorker(registration) {
+          var payload = { type: 'SET_OFFLINE_CONFIG', payload: cfg };
+          if (registration.active) registration.active.postMessage(payload);
+          if (registration.waiting) registration.waiting.postMessage(payload);
+          if (registration.installing) registration.installing.postMessage(payload);
+        }
+
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('{% static "js/service-worker.js" %}')
+            .then(function(registration) {
+              console.log('Service Worker registered successfully:', registration.scope);
+              pushConfigToWorker(registration);
+
+              if (cfg.requestPersistentStorage && navigator.storage && navigator.storage.persist) {
+                navigator.storage.persist().catch(function() {});
+              }
+
+              registration.addEventListener('updatefound', function() {
+                var newWorker = registration.installing;
+                newWorker.addEventListener('statechange', function() {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    if (confirm('A new version is available. Reload to update?')) {
+                      window.location.reload();
+                    }
+                  }
+                });
+              });
+            })
+            .catch(function(error) {
+              console.log('Service Worker registration failed:', error);
+            });
+        });
+      })();
+    </script>
+    
+    {# Floating Back to top - visible after scrolling down #}
+    {% include 'components/back_to_top.html' %}
+
+    {# Messages chathead: staff/teacher only (RBAC); parents use Contact School #}
+    {% if request.user.is_authenticated and request.user.role != 'PARENT' %}
+    <a href="{% url 'accounts:user_messages' %}" class="portal-chathead" aria-label="Open Messages" title="Messages">
+      <i class="bi bi-chat-dots-fill"></i>
+      {% if messages_unread_count %}<span class="portal-chathead-badge">{{ messages_unread_count }}</span>{% endif %}
+    </a>
+    {% endif %}
+
+    {# AI Copilot Assistant - RBAC Compatible #}
+    {% include 'components/ai_copilot.html' %}
+
+    {# Phase 14: Toast notifications for success/error feedback (showToast available app-wide) #}
+    {% include 'components/toast_notifications.html' %}
+
+    {# Main Footer with Accreditation and Support #}
+    {% include 'components/footer.html' %}
+
+    {% if SITE and SITE.is_preview %}
+    <link rel="stylesheet" href="{% static 'css/preview-highlights.css' %}">
+    <script>
+      window.PREVIEW_DEFAULT_LABEL = '{% trans "Your changes affect this area" %}';
+      window.PREVIEW_DISMISS_LABEL = '{% trans "Dismiss highlights" %}';
+    </script>
+    <script src="{% static 'js/preview-highlights.js' %}"></script>
+    {% endif %}
+  </body>
+</html>

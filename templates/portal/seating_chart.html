@@ -1,0 +1,32 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+{% block title %}Seating chart{% endblock %}
+{% block content %}
+  {% include "widgets/dashboard_hero.html" with hero=hero %}
+  <div class="card mb-3">
+    <div class="card-body">
+      <form method="get" action="{% url 'portal:seating_chart' %}" class="row g-2 align-items-end mb-3">
+        <div class="col-auto">
+          <label class="form-label small mb-0">{% trans "Class" %}</label>
+          <select name="classroom" class="form-select">
+            <option value="">-- {% trans "Select class" %} --</option>
+            {% for c in classrooms %}
+              <option value="{{ c.id }}" {% if classroom_id == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-auto">
+          <button type="submit" class="btn btn-primary">{% trans "Load" %}</button>
+        </div>
+      </form>
+      {% if classroom %}
+        <p class="text-muted mb-2">{% trans "Seating chart for" %} {{ classroom.name }}</p>
+        <div class="alert alert-info mb-0">
+          <strong>{% trans "Coming soon" %}</strong> — {% trans "Visual seating layout and drag-to-reorder will be available here. Use Take student attendance for roll call." %}
+        </div>
+      {% else %}
+        <p class="text-muted mb-0">{% trans "Select a class to view its seating chart." %}</p>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

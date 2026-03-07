@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{{ seo_title|default:"RunMyCampus" }}{% endblock %}
+{% block extrahead %}
+  <meta name="description" content="{{ seo_description|default:'RunMyCampus topical solution landing.' }}">
+  {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
+  <script type="application/ld+json">{{ structured_data_json|safe }}</script>
+  {% if breadcrumb_schema_json %}<script type="application/ld+json">{{ breadcrumb_schema_json|safe }}</script>{% endif %}
+{% endblock %}
+{% block content %}
+<section class="container py-4 py-lg-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-9">
+      <p class="text-uppercase small text-muted mb-2">RunMyCampus Solutions</p>
+      <h1 class="display-6 fw-bold mb-3">{{ topic.headline }}</h1>
+      <p class="lead text-muted mb-4">{{ topic.subheadline }}</p>
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+          <h2 class="h5 mb-3">{% trans "Why this solution" %}</h2>
+          <ul class="mb-0">
+            {% for point in topic.focus_points %}
+            <li>{{ point }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'marketing_solutions' %}" class="btn btn-outline-secondary">{% trans "Back to solutions" %}</a>
+        <a href="{% url 'marketing_book_demo' %}" class="btn btn-primary">{% trans "Book demo" %}</a>
+        <a href="{% url 'global_login_discovery' %}" class="btn btn-outline-primary">{% trans "Existing tenant login" %}</a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

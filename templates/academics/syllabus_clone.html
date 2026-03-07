@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}Clone syllabus – {{ source_assignment.subject.name }}{% endblock %}
+
+{% block content %}
+  <div class="container py-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+      <div>
+        <h1 class="h4 mb-1">Clone syllabus</h1>
+        <div class="text-muted small">From {{ source_assignment.classroom.name }} → choose target class (same subject & term)</div>
+      </div>
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'academics:teacher_syllabus_hub' %}">Back to syllabi</a>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-body">
+        {% if target_assignments %}
+          <form method="post" action="">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label for="id_target" class="form-label">Target class</label>
+              <select name="target_assignment" id="id_target" class="form-select">
+                <option value="">-- Select --</option>
+                {% for ta in target_assignments %}
+                  <option value="{{ ta.pk }}">{{ ta.classroom.name }} ({{ ta.term.label }})</option>
+                {% endfor %}
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Clone</button>
+            <a class="btn btn-outline-secondary" href="{% url 'academics:teacher_syllabus_hub' %}">Cancel</a>
+          </form>
+        {% else %}
+          <p class="text-muted mb-0">No other class (same subject and term) without a syllabus found. Create syllabi for other classes first or choose another source.</p>
+          <a class="btn btn-outline-secondary btn-sm mt-2" href="{% url 'academics:teacher_syllabus_hub' %}">Back to syllabi</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endblock %}

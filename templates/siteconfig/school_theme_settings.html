@@ -1,0 +1,32 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+
+{% block title %}Admin theme – {{ school.name }}{% endblock %}
+{% block backend_title %}Admin theme{% endblock %}
+
+{% block content %}
+  <div class="container-fluid py-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h1 class="h4 mb-3">Admin theme</h1>
+        <p class="text-muted">Choose the admin/backend theme for this school. Refresh the page after saving.</p>
+        <form method="post" action="">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label" for="theme_choice">Theme</label>
+            <select class="form-select" id="theme_choice" name="theme_choice">
+              {% for value, label in theme_choices %}
+                <option value="{{ value }}" {% if current_theme == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary">Save</button>
+          <a href="{% url 'siteconfig:user_preferences' %}" class="btn btn-outline-secondary">Back to preferences</a>
+        </form>
+        <p class="mt-3 small text-muted">
+          <a href="{% url 'siteconfig:user_preferences' %}#theme">Theme Gallery</a>: see live preview options in Preferences (when available).
+        </p>
+      </div>
+    </div>
+  </div>
+{% endblock %}

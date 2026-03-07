@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Request subscription waiver" %} - {{ SITE.site_name|default:"Portal" }}{% endblock %}
+
+{% block content %}
+  <div class="container py-4">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        {% for b in breadcrumbs %}
+          <li class="breadcrumb-item {% if b.active %}active{% endif %}">
+            {% if b.url %}<a href="{{ b.url }}">{{ b.label }}</a>{% else %}{{ b.label }}{% endif %}
+          </li>
+        {% endfor %}
+      </ol>
+    </nav>
+    <div class="row justify-content-center">
+      <div class="col-lg-6">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h1 class="h4 mb-3">{% trans "Request subscription waiver" %}</h1>
+            <p class="text-muted small">{% trans "Submit a reason and optional proof (e.g. NGO status). Platform support will review your request." %}</p>
+            <form method="post" action="" enctype="multipart/form-data">
+              {% csrf_token %}
+              {% if form.non_field_errors %}
+                <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+              {% endif %}
+              <div class="mb-3">
+                <label for="id_reason" class="form-label">{{ form.reason.label }}</label>
+                {{ form.reason }}
+                {% if form.reason.errors %}<div class="invalid-feedback d-block">{{ form.reason.errors.0 }}</div>{% endif %}
+              </div>
+              <div class="mb-3">
+                <label for="id_proof_file" class="form-label">{{ form.proof_file.label }}</label>
+                {{ form.proof_file }}
+                {% if form.proof_file.errors %}<div class="invalid-feedback d-block">{{ form.proof_file.errors.0 }}</div>{% endif %}
+              </div>
+              <button type="submit" class="btn btn-primary">{% trans "Submit request" %}</button>
+              <a href="{% url 'accounts:backend_dashboard' %}" class="btn btn-outline-secondary ms-2">{% trans "Cancel" %}</a>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

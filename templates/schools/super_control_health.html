@@ -1,0 +1,40 @@
+{% extends "control_plane_base.html" %}
+{% load static i18n %}
+
+{% block cp_title %}Control Plane Health{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Tenant Mission Control" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Control Plane Health" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block breadcrumb_actions %}
+<a href="{{ dashboard_url }}" class="btn btn-sm btn-outline-light">{% trans "Back to Dashboard" %}</a>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-2">
+  <p class="text-secondary small mb-4">{% trans "Single entry for runbooks, SLOs, incidents, and tenant health. Use these links for operational visibility and response." %}</p>
+  <div class="card shadow-sm border-secondary" style="background: var(--cp-panel-bg, rgba(8,16,30,0.6)); border-color: var(--cp-panel-border) !important;">
+    <div class="card-body p-0">
+      <ul class="list-group list-group-flush" style="background: transparent;">
+        {% for link in links %}
+        <li class="list-group-item d-flex justify-content-between align-items-center border-secondary" style="background: transparent;">
+          <div>
+            <a href="{{ link.url }}" class="fw-semibold text-white">{{ link.label }}</a>
+            {% if link.description %}<span class="text-secondary small d-block">{{ link.description }}</span>{% endif %}
+          </div>
+          <a href="{{ link.url }}" class="btn btn-sm btn-outline-light">{% trans "Open" %}</a>
+        </li>
+        {% empty %}
+        <li class="list-group-item text-secondary border-secondary" style="background: transparent;">{% trans "No health links configured." %}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

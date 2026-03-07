@@ -1,0 +1,191 @@
+import json
+
+from django.test import TestCase
+from django.urls import reverse
+
+from apps.accounts.models import AccessRole, User
+from apps.schools.models import School, SchoolMembership
+from apps.siteconfig.models import ServiceIntegration
+
+
+class ScimViewsTests(TestCase):
+    def setUp(self):
+        self.school = School.objects.create(
+            name="SCIM School",
+            slug="scim-school",
+            subdomain="scim-school",
+            is_active=True,
+        )
+        self.integration = ServiceIntegration.objects.create(
+            school=self.school,
+            service_name="SCIM Directory",
+            service_type=ServiceIntegration.ServiceType.OAUTH,
+            client_secret="token-abc",
+            config={"bearer_token": "token-abc", "default_role": "TEACHER"},
+            is_active=True,
+        )
+        self.other_school = School.objects.create(
+            name="SCIM Other School",
+            slug="scim-other-school",
+            subdomain="scim-other-school",
+            is_active=True,
+        )
+        self.other_integration = ServiceIntegration.objects.create(
+            school=self.other_school,
+            service_name="SCIM Directory Other",
+            service_type=ServiceIntegration.ServiceType.OAUTH,
+            client_secret="token-other",
+            config={"bearer_token": "token-other", "default_role": "TEACHER"},
+            is_active=True,
+        )
+        self.base_user = User.objects.create_user(
+            username="base.user",
+            email="base@example.com",
+            password="x",
+            role=User.Role.TEACHER,
+        )
+        SchoolMembership.objects.create(
+            school=self.school,
+            user=self.base_user,
+            role=User.Role.TEACHER,
+            is_primary=True,
+        )
+        self.role = AccessRole.objects.create(code="scim_teacher", name="SCIM Teacher")
+
+    def _headers(self, token: str = "token-abc"):
+        return {"HTTP_AUTHORIZATION": f"Bearer {token}"}
+
+    def _url(self, name: str, *args):
+        base = reverse(name, args=args)
+        sep = "&" if "?" in base else "?"
+        return f"{base}{sep}school_slug={self.school.slug}"
+
+    def test_service_provider_config_requires_token(self):
+        response = self.client.get(self._url("api:scim-service-provider-config"))
+        self.assertEqual(response.status_code, 403)
+
+    def test_create_user_via_scim(self):
+        payload = {
+            "schemas": ["urn:ietf:params:scim:schemas:core:2.0:User"],
+            "userName": "teacher.scim",
+            "name": {"givenName": "Teacher", "familyName": "Scim"},
+            "emails": [{"value": "teacher.scim@example.com", "primary": True}],
+            "active": True,
+        }
+        response = self.client.post(
+            self._url("api:scim-users"),
+            data=json.dumps(payload),
+            content_type="application/json",
+            **self._headers(),
+        )
+        self.assertEqual(response.status_code, 201)
+        data = response.json()
+        self.assertEqual(data["userName"], "teacher.scim")
+        user = User.objects.get(username="teacher.scim")
+        self.assertTrue(SchoolMembership.objects.filter(school=self.school, user=user).exists())
+
+    def test_list_users_supports_filter(self):
+        response = self.client.get(
+            self._url("api:scim-users") + '&filter=userName eq "base.user"',
+            **self._headers(),
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["schemas"][0], "urn:ietf:params:scim:api:messages:2.0:ListResponse")
+        self.assertEqual(data["totalResults"], 1)
+        self.assertEqual(data["Resources"][0]["userName"], "base.user")
+
+    def test_list_users_pagination_reports_filtered_total_results(self):
+        for idx in range(3):
+            user = User.objects.create_user(
+                username=f"extra.user.{idx}",
+                email=f"extra{idx}@example.com",
+                password="x",
+                role=User.Role.TEACHER,
+            )
+            SchoolMembership.objects.create(
+                school=self.school,
+                user=user,
+                role=User.Role.TEACHER,
+                is_primary=False,
+            )
+        response = self.client.get(
+            self._url("api:scim-users") + "&startIndex=2&count=2",
+            **self._headers(),
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["startIndex"], 2)
+        self.assertEqual(data["itemsPerPage"], 2)
+        self.assertEqual(data["totalResults"], 4)
+        self.assertEqual(len(data["Resources"]), 2)
+
+    def test_list_users_accepts_count_zero_for_metadata_only(self):
+        response = self.client.get(
+            self._url("api:scim-users") + "&count=0",
+            **self._headers(),
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["itemsPerPage"], 0)
+        self.assertGreaterEqual(data["totalResults"], 1)
+        self.assertEqual(data["Resources"], [])
+
+    def test_scim_rejects_cross_tenant_token_usage(self):
+        url = reverse("api:scim-users") + f"?school_slug={self.other_school.slug}"
+        response = self.client.get(url, **self._headers(token="token-abc"))
+        self.assertEqual(response.status_code, 403)
+
+    def test_patch_user_deactivate(self):
+        payload = {
+            "schemas": ["urn:ietf:params:scim:api:messages:2.0:PatchOp"],
+            "Operations": [{"op": "replace", "path": "active", "value": False}],
+        }
+        response = self.client.patch(
+            self._url("api:scim-user-detail", self.base_user.pk),
+            data=json.dumps(payload),
+            content_type="application/json",
+            **self._headers(),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.base_user.refresh_from_db()
+        self.assertFalse(self.base_user.is_active)
+
+    def test_delete_user_deprovisions(self):
+        response = self.client.delete(
+            self._url("api:scim-user-detail", self.base_user.pk),
+            **self._headers(),
+        )
+        self.assertEqual(response.status_code, 204)
+        self.base_user.refresh_from_db()
+        self.assertFalse(self.base_user.is_active)
+
+    def test_group_patch_adds_role_to_user(self):
+        payload = {
+            "schemas": ["urn:ietf:params:scim:api:messages:2.0:PatchOp"],
+            "Operations": [{"op": "add", "path": "members", "value": [{"value": str(self.base_user.pk)}]}],
+        }
+        response = self.client.patch(
+            self._url("api:scim-group-detail", self.role.pk),
+            data=json.dumps(payload),
+            content_type="application/json",
+            **self._headers(),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(self.base_user.roles.filter(pk=self.role.pk).exists())
+
+    def test_scim_endpoints_rate_limit_429_when_exceeded(self):
+        from unittest.mock import patch
+
+        urls = [
+            self._url("api:scim-service-provider-config"),
+            self._url("api:scim-users"),
+            self._url("api:scim-user-detail", self.base_user.pk),
+            self._url("api:scim-groups"),
+            self._url("api:scim-group-detail", self.role.pk),
+        ]
+        with patch("apps.api.scim_views.throttle_ip_request", return_value=(False, 45)):
+            for url in urls:
+                response = self.client.get(url, **self._headers())
+                self.assertEqual(response.status_code, 429, msg=url)
+                self.assertEqual(response["Retry-After"], "45", msg=url)

@@ -1,0 +1,304 @@
+/**
+ * Dashboard & App-Wide Text Visibility – Unfold / High-Contrast
+ * Ensures EVERY text is visible by default (no overlay-only or hover-only critical text).
+ * WCAG AA–aligned contrast; minimal use of opacity for critical content.
+ */
+
+/* ===== 1. Global: .text-muted must meet minimum contrast ===== */
+.text-muted,
+.small.text-muted {
+  /* Light themes: set in blocks below via var(--vis-text-muted, …) */
+  color: var(--vis-text-muted, var(--admin-content-text-muted));
+}
+html[data-bs-theme="light"] .text-muted,
+html[data-bs-theme="light"] .small.text-muted,
+body.portal-backend-light .text-muted,
+body.portal-backend-light .small.text-muted,
+:root:not([data-theme="dark"]) .text-muted,
+:root:not([data-theme="dark"]) .small.text-muted {
+  color: var(--vis-text-muted, var(--admin-content-text-muted)) !important;
+}
+
+html[data-bs-theme="dark"] .text-muted,
+html[data-bs-theme="dark"] .small.text-muted,
+body.portal-backend-dark .text-muted,
+body.portal-backend-dark .small.text-muted,
+[data-theme="dark"] .text-muted,
+[data-theme="dark"] .small.text-muted {
+  color: var(--vis-text-muted, var(--admin-sidebar-text-muted)) !important;
+}
+
+/* Cards: muted text inside cards */
+#dashboard-layout .text-muted,
+#dashboard-layout .small.text-muted,
+.card .text-muted,
+.card .small.text-muted {
+  color: var(--vis-text-muted, var(--admin-content-text-muted));
+}
+body.portal-backend-light #dashboard-layout .text-muted,
+body.portal-backend-light .card .text-muted {
+  color: var(--vis-text-muted, var(--admin-content-text-muted)) !important;
+}
+body.portal-backend-dark #dashboard-layout .text-muted,
+body.portal-backend-dark .card .text-muted {
+  color: var(--vis-text-muted, var(--admin-sidebar-text-muted)) !important;
+}
+
+/* ===== 2. No critical text hidden until hover ===== */
+/* Buttons/links that have only title= should expose label when possible;
+   we don't hide .btn or .nav-link text with opacity in global scope. */
+a[title]:not([aria-label]) .visually-hidden,
+button[title]:not([aria-label]) .visually-hidden {
+  /* Screen-reader-only; prefer visible span for primary actions. */
+  opacity: 1;
+}
+
+/* ===== 3. Admin sidebar: tooltip when shown = high contrast (no white-on-white) ===== */
+.sidebar-tooltip,
+#nav-sidebar .sidebar-tooltip {
+  background: #1e293b !important;
+  color: #f8fafc !important;
+  border: 1px solid #334155;
+  font-weight: 500;
+}
+.sidebar a:hover .sidebar-tooltip,
+#nav-sidebar a:hover .sidebar-tooltip {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Admin sidebar expanded: ensure link text and headings are high contrast */
+#nav-sidebar .admin-sidebar-link,
+#nav-sidebar .admin-sidebar-model-link,
+#nav-sidebar .admin-sidebar-app-title a,
+#nav-sidebar .admin-sidebar-section-title {
+  color: var(--admin-sidebar-text, #f1f5f9);
+}
+#nav-sidebar .admin-sidebar-link:hover,
+#nav-sidebar .admin-sidebar-model-link:hover {
+  color: #ffffff;
+}
+#nav-sidebar .admin-sidebar-heading,
+#nav-sidebar .module h2,
+#nav-sidebar .module caption {
+  color: var(--admin-sidebar-heading, #e2e8f0);
+}
+
+/* Unfold navigation helper: muted line (school name/tagline) = readable ===== */
+.admin-sidebar-brand-link-header .text-xs.truncate,
+.unfold .text-subtle {
+  color: var(--vis-text-muted, var(--admin-sidebar-text-muted)) !important;
+}
+
+/* ===== 4. Portal topbar & sidebar: white text on dark = sufficient contrast ===== */
+.topbar.text-white,
+.topbar .text-white,
+.navbar-dark .navbar-brand {
+  color: #f8fafc !important;
+}
+.topbar .btn-link.text-white:hover {
+  color: #ffffff !important;
+  opacity: 1;
+}
+
+/* Portal sidebar nav text ===== */
+.portal-sidebar-wrapper .nav-link,
+.partial-sidebar .nav-link {
+  color: inherit;
+}
+.portal-sidebar-wrapper .nav-link:hover {
+  opacity: 1;
+}
+
+/* ===== 5. Dashboard: labels and values always visible ===== */
+.dashboard-kpi-label,
+.dashboard-kpi-value,
+#dashboard-layout .card-title,
+#dashboard-layout .card-body h5,
+#dashboard-layout .card-body h6 {
+  opacity: 1 !important;
+}
+
+/* ===== 6. Truncated text: ensure it's still readable (no opacity hacks) ===== */
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Don't hide truncated text with opacity */
+.truncate {
+  opacity: 1;
+}
+
+/* ===== 7. Icon-only buttons: ensure title/aria-label is not the ONLY info ===== */
+/* Chart export: visible label added in template; here ensure button text visible */
+.dashboard-chart-export,
+.btn[title="Download as PNG"] {
+  color: var(--bs-body-color, #0f172a);
+}
+body.portal-backend-dark .dashboard-chart-export,
+body.portal-backend-dark .btn[title="Download as PNG"] {
+  color: #e2e8f0;
+}
+
+/* ===== 8. Meta tags / secondary labels in cards ===== */
+.meta-tag,
+.card .meta-tag {
+  color: inherit;
+}
+body.portal-backend-light .meta-tag {
+  color: var(--vis-text-muted, var(--admin-content-text-muted)) !important;
+}
+body.portal-backend-dark .meta-tag {
+  color: var(--vis-text-muted, var(--admin-sidebar-text-muted)) !important;
+}
+
+/* ===== 9. Copilot / sidebar right: list labels visible ===== */
+#dashboard-layout .backend-copilot-usage li,
+#dashboard-layout .backend-copilot-audit li {
+  color: inherit;
+  opacity: 1;
+}
+
+/* ===== 10. Form labels on dashboards ===== */
+#dashboard-layout .form-label,
+#dashboard-layout label.small {
+  color: inherit !important;
+}
+body.portal-backend-light #dashboard-layout .form-label {
+  color: var(--vis-text, var(--admin-content-text)) !important;
+}
+body.portal-backend-dark #dashboard-layout .form-label {
+  color: var(--vis-text, var(--admin-sidebar-text)) !important;
+}
+
+/* ===== 11. Design token overrides for minimum contrast (no overlay-only text) ===== */
+/* Ensure muted/secondary text is always readable; never rely on hover to see critical info. */
+[data-theme="dark"] {
+  --admin-sidebar-text-muted: var(--vis-text-muted, var(--admin-content-text-muted));
+  --portal-text-muted: var(--vis-text-muted, var(--admin-content-text-muted));
+}
+html[data-bs-theme="dark"] {
+  --admin-sidebar-text-muted: var(--vis-text-muted, var(--admin-content-text-muted));
+  --portal-text-muted: var(--vis-text-muted, var(--admin-content-text-muted));
+}
+body.portal-backend-dark {
+  --portal-text-muted: #94a3b8;
+}
+
+/* Portal sidebar: nav and section labels visible */
+.portal-sidebar-wrapper .sidebar-section-title,
+.portal-sidebar-wrapper .sidebar-stat-label,
+.portal-sidebar-wrapper .sidebar-info p {
+  opacity: 1;
+}
+body.portal-backend-dark .portal-sidebar-wrapper .sidebar-section-title,
+body.portal-backend-dark .portal-sidebar-wrapper .sidebar-stat-label {
+  color: var(--vis-text-muted, var(--admin-sidebar-text-muted)) !important;
+}
+body.portal-backend-light .portal-sidebar-wrapper .sidebar-section-title,
+body.portal-backend-light .portal-sidebar-wrapper .sidebar-stat-label {
+  color: var(--vis-text-muted, var(--admin-content-text-muted)) !important;
+}
+
+/* ===== 12. Admin index / dashboard (Django admin) ===== */
+#content .text-muted,
+#content .dashboard-subtitle,
+#content .theme-toggle-label {
+  color: var(--vis-text-muted, var(--admin-content-text-muted)) !important;
+}
+body.dark #content .text-muted,
+body:not(.light-mode) #content .text-muted,
+#content[data-bs-theme="dark"] .text-muted {
+  color: var(--vis-text-muted, var(--admin-sidebar-text-muted)) !important;
+}
+body.light-mode #content .text-muted,
+body.light-mode #content .dashboard-subtitle,
+body.light-mode #content .theme-toggle-label {
+  color: var(--vis-text-muted, var(--admin-content-text-muted)) !important;
+}
+body:not(.light-mode) #content .dashboard-subtitle,
+body:not(.light-mode) #content .theme-toggle-label {
+  color: var(--vis-text-muted, var(--admin-sidebar-text-muted)) !important;
+}
+
+/* ===== 13. ALL DASHBOARDS: /admin, /backend, /parent, /teacher, finance, analytics, payroll, emis, requests, compliance ===== */
+/* Backend (/backend): uses #dashboard-layout – covered by #dashboard-layout rules above. */
+/* Parent dashboard */
+.parent-dashboard .text-muted,
+.parent-dashboard .small.text-muted,
+[data-dashboard-page="parent"] .text-muted {
+  color: var(--vis-text-muted, var(--admin-content-text-muted)) !important;
+}
+[data-theme="dark"] .parent-dashboard .text-muted,
+body.portal-backend-dark .parent-dashboard .text-muted {
+  color: var(--vis-text-muted, var(--admin-sidebar-text-muted)) !important;
+}
+.parent-dashboard .dashboard-eyebrow,
+.parent-dashboard .dashboard-hero p {
+  color: var(--vis-text-muted, var(--admin-content-text-muted)) !important;
+}
+[data-theme="dark"] .parent-dashboard .dashboard-eyebrow,
+[data-theme="dark"] .parent-dashboard .dashboard-hero p,
+body.portal-backend-dark .parent-dashboard .dashboard-eyebrow,
+body.portal-backend-dark .parent-dashboard .dashboard-hero p {
+  color: var(--vis-text-muted, var(--admin-sidebar-text-muted)) !important;
+}
+
+/* Teacher dashboard */
+.teacher-shell .text-muted,
+.teacher-shell .small.text-muted,
+[data-dashboard-page="teacher"] .text-muted {
+  color: var(--vis-text-muted, var(--admin-content-text-muted)) !important;
+}
+[data-theme="dark"] .teacher-shell .text-muted,
+body.portal-backend-dark .teacher-shell .text-muted {
+  color: var(--vis-text-muted, var(--admin-sidebar-text-muted)) !important;
+}
+
+/* Finance, analytics, payroll, emis, requests (portal_base; body has data-dashboard-page) */
+[data-dashboard-page="finance"] .text-muted,
+[data-dashboard-page="analytics"] .text-muted,
+[data-dashboard-page="payroll"] .text-muted,
+[data-dashboard-page="emis"] .text-muted,
+[data-dashboard-page="requests"] .text-muted {
+  color: var(--vis-text-muted, var(--admin-content-text-muted)) !important;
+}
+body.portal-backend-dark [data-dashboard-page="finance"] .text-muted,
+body.portal-backend-dark [data-dashboard-page="analytics"] .text-muted,
+body.portal-backend-dark [data-dashboard-page="payroll"] .text-muted,
+body.portal-backend-dark [data-dashboard-page="emis"] .text-muted,
+body.portal-backend-dark [data-dashboard-page="requests"] .text-muted {
+  color: var(--vis-text-muted, var(--admin-sidebar-text-muted)) !important;
+}
+
+/* Compliance / evals dashboards (base.html) */
+.compliance-dashboard .text-muted,
+.compliance-dashboard .metric-label,
+.compliance-dashboard .app-meta,
+.compliance-dashboard .stat-meta,
+.compliance-dashboard .alert-text p {
+  color: var(--vis-text-muted, var(--admin-content-text-muted)) !important;
+  opacity: 1;
+}
+[data-theme="dark"] .compliance-dashboard .text-muted,
+[data-theme="dark"] .compliance-dashboard .metric-label {
+  color: var(--vis-text-muted, var(--admin-sidebar-text-muted)) !important;
+}
+
+/* Dashboard page body: ensure all labels/values visible */
+[data-dashboard-page] .card-title,
+[data-dashboard-page] .card-body h5,
+[data-dashboard-page] .card-body h6,
+[data-dashboard-page] .dashboard-kpi-label,
+[data-dashboard-page] .dashboard-kpi-value {
+  opacity: 1 !important;
+}
+[data-dashboard-page="parent"] .card .text-muted,
+[data-dashboard-page="teacher"] .card .text-muted {
+  color: var(--vis-text-muted, var(--admin-content-text-muted)) !important;
+}
+body.portal-backend-dark [data-dashboard-page="parent"] .card .text-muted,
+body.portal-backend-dark [data-dashboard-page="teacher"] .card .text-muted {
+  color: var(--vis-text-muted, var(--admin-sidebar-text-muted)) !important;
+}

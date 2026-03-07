@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Edit profile - {{ SITE.site_name|default:"Portal" }}{% endblock %}
+
+{% block content %}
+  <div class="container py-4">
+    <div class="row justify-content-center">
+      <div class="col-lg-6">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h1 class="h4 mb-3">Edit profile</h1>
+            <form method="post" action="" enctype="multipart/form-data">
+              {% csrf_token %}
+              {% if form.non_field_errors %}
+                <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+              {% endif %}
+              <div class="mb-3">
+                <label for="id_first_name" class="form-label">{{ form.first_name.label }}</label>
+                {{ form.first_name }}
+                {% if form.first_name.errors %}<div class="invalid-feedback d-block">{{ form.first_name.errors.0 }}</div>{% endif %}
+              </div>
+              <div class="mb-3">
+                <label for="id_last_name" class="form-label">{{ form.last_name.label }}</label>
+                {{ form.last_name }}
+                {% if form.last_name.errors %}<div class="invalid-feedback d-block">{{ form.last_name.errors.0 }}</div>{% endif %}
+              </div>
+              <div class="mb-3">
+                <label for="id_email" class="form-label">{{ form.email.label }}</label>
+                {{ form.email }}
+                {% if form.email.errors %}<div class="invalid-feedback d-block">{{ form.email.errors.0 }}</div>{% endif %}
+              </div>
+              <div class="mb-3">
+                <label for="id_profile_photo" class="form-label">{{ form.profile_photo.label }}</label>
+                {{ form.profile_photo }}
+                {% if request.user.profile_photo %}
+                  <div class="mt-2">
+                    <img src="{{ request.user.profile_photo.url }}" alt="Current photo" style="max-height:80px;border-radius:8px;">
+                  </div>
+                {% endif %}
+                {% if form.profile_photo.errors %}<div class="invalid-feedback d-block">{{ form.profile_photo.errors.0 }}</div>{% endif %}
+              </div>
+              <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Save changes</button>
+                <a class="btn btn-outline-secondary" href="{% url 'accounts:user_profile' %}">Cancel</a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

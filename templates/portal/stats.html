@@ -1,0 +1,156 @@
+{% extends "portal_base.html" %}
+{% load region_format %}
+{% block title %}School Stats{% endblock %}
+
+{% block content %}
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h2 class="mb-1">School Stats</h2>
+      <div class="text-muted small">Real-time view of rankings, improvements, and hotspots.</div>
+    </div>
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:parent_dashboard' %}">Back</a>
+  </div>
+
+  {% if widget_data %}
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-body">
+            <div class="text-muted small mb-1">Attendance</div>
+            <div class="display-6 fw-bold">{{ widget_data.attendance.overall|default:"0" }}%</div>
+            <p class="small text-muted mb-2">{{ widget_data.attendance.label }}</p>
+            <div class="progress mb-2" style="height:6px;">
+              <div class="progress-bar" role="progressbar" style="width: {{ widget_data.attendance.overall|default:0 }}%;" aria-valuenow="{{ widget_data.attendance.overall|default:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <div class="small text-muted">
+              Missing: {{ widget_data.attendance.missing|default:"0" }} · Late: {{ widget_data.attendance.late|default:"0" }}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-body">
+            <div class="text-muted small mb-1">Finances</div>
+            <div class="display-6 fw-bold">{{ widget_data.finance.balance|default:"0.00" }}</div>
+            <p class="small text-muted mb-2">Balance outstanding</p>
+            <div class="small text-muted">
+              Overdue invoices: {{ widget_data.finance.overdue|default:0 }}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-body">
+            <div class="text-muted small mb-1">Tasks & progress</div>
+            <div class="display-6 fw-bold">{{ widget_data.tasks.pending_evaluations|default:"0" }}</div>
+            <p class="small text-muted mb-2">Pending evaluation entries</p>
+            <div class="d-flex gap-2">
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'portal:portal_stats' %}#">View tasks</a>
+              <a class="btn btn-sm btn-outline-secondary btn-back-primary" href="{% url 'portal:parent_dashboard' %}"><i class="bi bi-arrow-left me-1"></i>Back to portal</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="row g-3 mb-4">
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="mb-3">Top students (term)</h5>
+          <ul class="list-group list-group-flush">
+            {% for row in top_students %}
+              <li class="list-group-item list-group-item-action">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <strong>#{{ forloop.counter }}</strong> {{ row.0 }}
+                  </div>
+                  <span class="badge bg-primary">{{ row.1|format_number:2 }}</span>
+                </div>
+              </li>
+            {% empty %}
+              <li class="list-group-item text-muted">No term rankings yet.</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="mb-3">Specialty pass rates</h5>
+          <div class="table-responsive">
+            <table class="table table-sm mb-0" aria-label="Specialty pass rates">
+              <thead>
+                <tr>
+                  <th scope="col">Specialty</th>
+                  <th scope="col" class="text-end">Rate</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in specialty_rows %}
+                  <tr>
+                    <td>{{ row.specialty.name }}</td>
+                    <td class="text-end">{{ row.rate|format_number:2 }}%</td>
+                  </tr>
+                {% empty %}
+                  <tr><td colspan="2" class="text-muted">No data yet. Data appears after grades are entered.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="mb-3">Subject weak spots</h5>
+          <ul class="list-group list-group-flush">
+            {% for row in weak_subjects %}
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                {{ row.subject.name }}
+                <span class="badge bg-warning text-dark">{{ row.average|format_number:2 }}</span>
+              </li>
+            {% empty %}
+              <li class="list-group-item text-muted">No weak subjects identified.</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="mb-3">Improving students</h5>
+          <div class="table-responsive">
+            <table class="table table-sm mb-0" aria-label="Improving students by delta">
+              <thead>
+                <tr>
+                  <th scope="col">Student</th>
+                  <th scope="col" class="text-end">Delta</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in improvement_rows %}
+                  <tr>
+                    <td>{{ row.student }}</td>
+                    <td class="text-end">{{ row.delta|format_number:2 }}</td>
+                  </tr>
+                {% empty %}
+                  <tr><td colspan="2" class="text-muted">No improvements tracked.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

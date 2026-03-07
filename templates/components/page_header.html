@@ -1,0 +1,17 @@
+{% comment %}
+Reusable page header: title, optional subtitle, optional primary action(s) on the right.
+Usage:
+  {% include "components/page_header.html" with title="Page title" subtitle="Short description." action_url=url action_text="Button" %}
+  Or pass action_html for custom markup: {% include "components/page_header.html" with title="..." action_html='<a class="btn ...">Back</a>' %}
+{% endcomment %}
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-3 page-header">
+  <div>
+    <h2 class="mb-0">{{ title|default:"Page" }}</h2>
+    {% if subtitle %}<div class="text-muted">{{ subtitle }}</div>{% endif %}
+  </div>
+  {% if action_url and action_text %}
+    <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{{ action_url }}">{{ action_text }}</a>
+  {% elif action_html %}
+    {{ action_html|safe }}
+  {% endif %}
+</div>

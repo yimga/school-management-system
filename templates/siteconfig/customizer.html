@@ -1,0 +1,115 @@
+{% extends "portal_base.html" %}
+
+{% block title %}Customizer overview{% endblock %}
+
+{% block content %}
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3">
+        <div>
+          <h1 class="h4 mb-1">Customizer overview</h1>
+          <p class="text-muted mb-2">
+            Global themes, brand assets, portal toggles, and notification defaults are now editable inside Site Settings. Staff and leadership can still tweak their personal dashboards via Preferences.
+          </p>
+          <p class="mb-0 small text-muted">
+            Links below respect role-based access and keep you inside the warm, modern console you already love.
+          </p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+          <a class="btn btn-primary btn-sm" href="{{ site_settings_url }}">Open Site Settings</a>
+          <a class="btn btn-outline-primary btn-sm" href="{{ preferences_url }}">Edit Preferences</a>
+          <a class="btn btn-outline-secondary btn-sm" href="{% url 'siteconfig:reportcard_builder' %}">Report card builder</a>
+          <a class="btn btn-outline-secondary btn-sm" href="{% url 'siteconfig:tag_manager' %}">Tag Manager</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if theme_packs %}
+    <div class="card shadow-sm mb-4">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h5 class="mb-0">Theme packs</h5>
+            <p class="text-muted small mb-0">Switch between preset looks inside Site Settings for a fresh face lift.</p>
+          </div>
+          {% if settings.theme_pack %}
+            <span class="small text-muted">Active theme: {{ settings.theme_pack.name }}</span>
+          {% else %}
+            <span class="small text-muted">Active theme: Custom</span>
+          {% endif %}
+        </div>
+        <div class="row g-3">
+          {% for pack in theme_packs %}
+            <div class="col-md-4">
+              <div class="card h-100 border {% if settings.theme_pack and pack.pk == settings.theme_pack.pk %}border-primary{% else %}border-light{% endif %}">
+                <div class="card-body text-white" style="{{ pack.preview_style }}">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                      <div class="fw-semibold">{{ pack.name }}</div>
+                      <div class="small text-white-50">{{ pack.layout }}</div>
+                    </div>
+                    {% if pack.is_default %}
+                      <span class="badge bg-white text-dark">Default</span>
+                    {% endif %}
+                  </div>
+                  <p class="small text-white-75">{{ pack.description }}</p>
+                </div>
+                <div class="card-footer bg-transparent border-0 pt-0">
+                  <a class="btn btn-sm btn-outline-primary" href="{{ site_settings_url }}#field-theme_pack">
+                    {% if settings.theme_pack and pack.pk == settings.theme_pack.pk %}
+                      Currently applied
+                    {% else %}
+                      Apply pack in Site Settings
+                    {% endif %}
+                  </a>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="row g-3">
+    <div class="col-md-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h5 class="mb-3">Current branding</h5>
+          <dl class="row">
+            <dt class="col-5 text-muted small">Site name</dt>
+            <dd class="col-7 mb-2">{{ settings.site_name }}</dd>
+            <dt class="col-5 text-muted small">School code</dt>
+            <dd class="col-7 mb-2">{{ settings.school_code }}</dd>
+            <dt class="col-5 text-muted small">Theme pack</dt>
+            <dd class="col-7 mb-2">
+              {% if settings.theme_pack %}{{ settings.theme_pack.name }}{% else %}Custom{% endif %}
+            </dd>
+            <dt class="col-5 text-muted small">Logo</dt>
+            <dd class="col-7 mb-2">
+              {% if settings.logo %}{{ settings.logo.name }}{% else %}Not provided{% endif %}
+            </dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h5 class="mb-3">Portal defaults</h5>
+          <ul class="list-unstyled mb-0 small">
+            <li>Parent portal: <strong>{{ settings.enable_parent_portal|yesno:"Enabled,Disabled" }}</strong></li>
+            <li>Teacher portal: <strong>{{ settings.enable_teacher_portal|yesno:"Enabled,Disabled" }}</strong></li>
+            <li>Report downloads: <strong>{{ settings.report_downloads_enabled|yesno:"On,Off" }}</strong></li>
+            <li>Default dashboard: <strong>{{ settings.default_dashboard_view }}</strong></li>
+            <li>Refresh rate: <strong>{{ settings.default_refresh_rate }}s</strong></li>
+          </ul>
+          <p class="small text-muted mt-3 mb-0">
+            Site Settings remain admin-only; other users adjust timezone, dashboards, and notifications in Preferences.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

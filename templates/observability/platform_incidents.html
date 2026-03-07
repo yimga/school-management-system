@@ -1,0 +1,166 @@
+{% extends "control_plane_base.html" %}
+
+{% block cp_title %}Platform Incidents{% endblock %}
+
+{% block cp_content %}
+<div class="container py-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div>
+      <h1 class="h4 mb-1">Platform incident console</h1>
+      <p class="text-muted mb-0">Shared control-plane incidents for availability, security, billing, integrations, and data integrity.</p>
+    </div>
+    <div class="text-end">
+      <div class="small text-uppercase text-muted">Webhook migration drift</div>
+      <div class="h5 mb-0">{{ webhook_stack.unsynced_legacy_groups }} unsynced legacy groups</div>
+      <div class="small text-muted">
+        Legacy groups: {{ webhook_stack.legacy_groups }} | Canonical groups: {{ webhook_stack.canonical_groups }}
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <div class="text-muted small text-uppercase">Open</div>
+          <div class="display-6">{{ incident_counts.open|default:0 }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <div class="text-muted small text-uppercase">Acknowledged</div>
+          <div class="display-6">{{ incident_counts.acknowledged|default:0 }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <div class="text-muted small text-uppercase">Mitigated</div>
+          <div class="display-6">{{ incident_counts.mitigated|default:0 }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <div class="text-muted small text-uppercase">Resolved</div>
+          <div class="display-6">{{ incident_counts.resolved|default:0 }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Incident</th>
+              <th>Scope</th>
+              <th>Severity</th>
+              <th>Status</th>
+              <th>Detected</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for incident in incidents %}
+            <tr id="incident-{{ incident.id }}">
+              <td>
+                <div class="fw-semibold">{{ incident.title }}</div>
+                <div class="small text-muted">{{ incident.summary|truncatechars:140 }}</div>
+                {% if incident.source_system %}
+                <div class="small text-muted">Source: {{ incident.source_system }}</div>
+                {% endif %}
+              </td>
+              <td>
+                {% if incident.affected_school %}
+                <div>{{ incident.affected_school.name }}</div>
+                {% endif %}
+                {% if incident.affected_schema_name %}
+                <div class="small text-muted">{{ incident.affected_schema_name }}</div>
+                {% endif %}
+                {% if not incident.affected_school and not incident.affected_schema_name %}
+                <span class="text-muted">Platform-wide</span>
+                {% endif %}
+              </td>
+              <td><span class="badge text-bg-secondary text-uppercase">{{ incident.severity }}</span></td>
+              <td><span class="badge text-bg-dark text-uppercase incident-status">{{ incident.status }}</span></td>
+              <td>
+                <div>{{ incident.detected_at|date:"Y-m-d H:i" }}</div>
+                {% if incident.acknowledged_at %}
+                <div class="small text-muted">Ack: {{ incident.acknowledged_at|date:"Y-m-d H:i" }}</div>
+                {% endif %}
+              </td>
+              <td class="text-end">
+                <div class="btn-group btn-group-sm">
+                  <button class="btn btn-outline-secondary incident-action" data-incident-id="{{ incident.id }}" data-action="acknowledge">Acknowledge</button>
+                  <button class="btn btn-outline-warning incident-action" data-incident-id="{{ incident.id }}" data-action="mitigate">Mitigate</button>
+                  <button class="btn btn-outline-success incident-action" data-incident-id="{{ incident.id }}" data-action="resolve">Resolve</button>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" class="text-center py-5 text-muted">No platform incidents recorded.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function getCookie(name) {
+    const cookies = document.cookie ? document.cookie.split(";") : [];
+    for (const cookie of cookies) {
+      const trimmed = cookie.trim();
+      if (trimmed.startsWith(name + "=")) {
+        return decodeURIComponent(trimmed.slice(name.length + 1));
+      }
+    }
+    return "";
+  }
+
+  async function updateIncidentStatus(button) {
+    const incidentId = button.dataset.incidentId;
+    const action = button.dataset.action;
+    const response = await fetch(`/api/observability/incidents/${incidentId}/status/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCookie("csrftoken"),
+      },
+      body: JSON.stringify({ action }),
+      credentials: "same-origin",
+    });
+
+    if (!response.ok) {
+      return;
+    }
+
+    const payload = await response.json();
+    const row = document.getElementById(`incident-${incidentId}`);
+    if (!row || !payload.incident) {
+      return;
+    }
+
+    const badge = row.querySelector(".incident-status");
+    if (badge) {
+      badge.textContent = payload.incident.status;
+    }
+  }
+
+  document.querySelectorAll(".incident-action").forEach((button) => {
+    button.addEventListener("click", () => {
+      updateIncidentStatus(button);
+    });
+  });
+</script>
+{% endblock %}

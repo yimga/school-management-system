@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Marketing funnel dashboard" %} | RunMyCampus{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <h1 class="mb-4">{% trans "Conversion funnel" %}</h1>
+  <p class="text-muted">{% trans "Visit → Discovery → Signup → Activation. Staff only." %}</p>
+
+  <section class="mb-4">
+    <h2 class="h5 mb-3">{% trans "All time" %}</h2>
+    <div class="row g-3">
+      <div class="col-md-3">
+        <div class="card">
+          <div class="card-body">
+            <div class="text-muted small">{% trans "Visit (landing)" %}</div>
+            <div class="fs-3 fw-bold">{{ visit }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card">
+          <div class="card-body">
+            <div class="text-muted small">{% trans "Discovery (find school)" %}</div>
+            <div class="fs-3 fw-bold">{{ discovery }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card">
+          <div class="card-body">
+            <div class="text-muted small">{% trans "Signup" %}</div>
+            <div class="fs-3 fw-bold">{{ signup }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card">
+          <div class="card-body">
+            <div class="text-muted small">{% trans "Activation" %}</div>
+            <div class="fs-3 fw-bold">{{ activation }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="mb-4">
+    <h2 class="h5 mb-3">{% trans "Last 7 days" %}</h2>
+    <div class="row g-3">
+      <div class="col-md-3"><div class="card"><div class="card-body"><span class="text-muted small">{% trans "Visit" %}</span><div class="fw-bold">{{ last7.visit|default:0 }}</div></div></div></div>
+      <div class="col-md-3"><div class="card"><div class="card-body"><span class="text-muted small">{% trans "Discovery" %}</span><div class="fw-bold">{{ last7.discovery|default:0 }}</div></div></div></div>
+      <div class="col-md-3"><div class="card"><div class="card-body"><span class="text-muted small">{% trans "Signup" %}</span><div class="fw-bold">{{ last7.signup|default:0 }}</div></div></div></div>
+      <div class="col-md-3"><div class="card"><div class="card-body"><span class="text-muted small">{% trans "Activation" %}</span><div class="fw-bold">{{ last7.activation|default:0 }}</div></div></div></div>
+    </div>
+  </section>
+
+  <section class="mb-4">
+    <h2 class="h5 mb-3">{% trans "Last 30 days" %}</h2>
+    <div class="row g-3">
+      <div class="col-md-3"><div class="card"><div class="card-body"><span class="text-muted small">{% trans "Visit" %}</span><div class="fw-bold">{{ last30.visit|default:0 }}</div></div></div></div>
+      <div class="col-md-3"><div class="card"><div class="card-body"><span class="text-muted small">{% trans "Discovery" %}</span><div class="fw-bold">{{ last30.discovery|default:0 }}</div></div></div></div>
+      <div class="col-md-3"><div class="card"><div class="card-body"><span class="text-muted small">{% trans "Signup" %}</span><div class="fw-bold">{{ last30.signup|default:0 }}</div></div></div></div>
+      <div class="col-md-3"><div class="card"><div class="card-body"><span class="text-muted small">{% trans "Activation" %}</span><div class="fw-bold">{{ last30.activation|default:0 }}</div></div></div></div>
+    </div>
+  </section>
+
+  {% if channel_breakdown %}
+  <section class="mb-4">
+    <h2 class="h5 mb-3">{% trans "By channel (last 30 days)" %}</h2>
+    <p class="text-muted small">{% trans "Breakdown by utm_source / utm_medium. Use ?utm_source=...&utm_medium=... on landing and signup URLs to attribute traffic." %}</p>
+    <div class="table-responsive">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>{% trans "utm_source" %}</th>
+            <th>{% trans "utm_medium" %}</th>
+            <th>{% trans "Visit" %}</th>
+            <th>{% trans "Discovery" %}</th>
+            <th>{% trans "Signup" %}</th>
+            <th>{% trans "Activation" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in channel_breakdown %}
+          <tr>
+            <td>{{ row.utm_source|default:"—" }}</td>
+            <td>{{ row.utm_medium|default:"—" }}</td>
+            <td>{{ row.visit }}</td>
+            <td>{{ row.discovery }}</td>
+            <td>{{ row.signup }}</td>
+            <td>{{ row.activation }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,8 @@
+{% load i18n %}
+<a href="{{ control.url }}{% if control.append_next %}?next={{ request.path|urlencode }}{% endif %}"
+   class="admin-control-btn"
+   {% if control.target %}target="{{ control.target }}"{% endif %}
+   {% if control.rel %}rel="{{ control.rel }}"{% endif %}>
+  <span class="material-symbols-outlined" aria-hidden="true">{{ control.icon }}</span>
+  {% trans control.label %}
+</a>

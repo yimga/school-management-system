@@ -1,0 +1,49 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+{% block backend_title %}{% trans "Migration runs" %}{% endblock %}
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+    <h1 class="h4 mb-1 fw-bold">{% trans "Migration runs" %}</h1>
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:migration_wizard' %}">{% trans "Migration wizard" %}</a>
+    <a class="btn btn-outline-secondary btn-sm ms-1" href="{% url 'accounts:legacy_data_cleaner' %}">{% trans "Legacy data cleaner" %}</a>
+  </div>
+  <p class="text-muted small">Section 11.1: Audit of migration runs. Open a run to view read-only legacy data.</p>
+  <div class="table-responsive">
+    <table class="table table-sm">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>{% trans "Type" %}</th>
+          <th>{% trans "Dry run" %}</th>
+          <th>{% trans "Status" %}</th>
+          <th>{% trans "Rows" %}</th>
+          <th>{% trans "Started" %}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for run in runs %}
+        <tr>
+          <td>{{ run.id }}</td>
+          <td>{{ run.migration_type }}</td>
+          <td>{% if run.dry_run %}Yes{% else %}No{% endif %}</td>
+          <td><span class="badge bg-{% if run.status == 'SUCCESS' %}success{% elif run.status == 'PARTIAL' %}warning{% else %}secondary{% endif %}">{{ run.status }}</span></td>
+          <td>{{ run.row_count }}</td>
+          <td>{{ run.started_at|date:"SHORT_DATETIME_FORMAT" }}</td>
+          <td>
+            {% if run.legacy_snapshot.rows %}
+            <a href="{% url 'accounts:migration_legacy_view' run.id %}">{% trans "View legacy" %}</a>
+            {% else %}
+            <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-muted">{% trans "No migration runs yet." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

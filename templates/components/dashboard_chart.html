@@ -1,0 +1,39 @@
+{% comment %}
+  Reusable chart component.
+  Required: chart_id, chart_type, chart_title
+  Optional: chart_data (JSON), chart_data_url (fetch URL), show_export, aria_label, fill_container (when True, chart fills wrapper; omit fixed canvas height)
+  Use with dashboard-charts-shared.js and dashboard-charts.css
+{% endcomment %}
+<div class="card dashboard-chart-card" data-chart-id="{{ chart_id }}" data-chart-type="{{ chart_type }}"{% if fill_container %} data-chart-fill-container="true"{% endif %}>
+  <div class="card-body">
+    <div class="dashboard-chart-header">
+      <h5 class="card-title mb-0">{{ chart_title }}</h5>
+      {% if show_export|default:True %}
+      <button type="button" class="btn btn-sm btn-outline-secondary dashboard-chart-export" aria-label="Download chart as PNG" title="Download as PNG" data-chart-export="{{ chart_id }}">
+        <i class="bi bi-download" aria-hidden="true"></i>
+        <span class="d-none d-sm-inline ms-1">Export</span>
+      </button>
+      {% endif %}
+    </div>
+    <div class="dashboard-chart-wrapper" role="img" aria-label="{{ aria_label|default:chart_title }}"{% if fill_container %} data-chart-fill-container="true"{% endif %}>
+      <div class="dashboard-chart-loading d-none" data-chart-loading="{{ chart_id }}">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading chart...</span>
+        </div>
+      </div>
+      <div class="dashboard-chart-error d-none" data-chart-error="{{ chart_id }}">
+        <i class="bi bi-exclamation-triangle"></i>
+        <span class="small">Could not load chart data.</span>
+        <button type="button" class="btn btn-sm btn-outline-primary btn-retry" data-chart-retry="{{ chart_id }}">Retry</button>
+      </div>
+      <div class="dashboard-chart-empty d-none" data-chart-empty="{{ chart_id }}">
+        <i class="bi bi-bar-chart"></i>
+        <span class="small">No data to display</span>
+      </div>
+      <canvas id="{{ chart_id }}"{% if not fill_container %} height="200"{% endif %}></canvas>
+      {% if chart_data %}
+      <script type="application/json" data-chart-config="{{ chart_id }}">{{ chart_data|safe }}</script>
+      {% endif %}
+    </div>
+  </div>
+</div>

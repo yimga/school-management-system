@@ -1,0 +1,156 @@
+{% extends "control_plane_base.html" %}
+{% load static %}
+
+{% block cp_title %}Blueprint marketplace{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-4 control-plane-shell">
+  <section class="cp-hero cp-hero-compact mb-4">
+    <div class="cp-hero-grid">
+      <div>
+        <div class="cp-eyebrow">RunMyCampus Manager</div>
+        <h1 class="cp-hero-title">Blueprint marketplace</h1>
+        <p class="cp-hero-copy">
+          Apply policy packs (e.g. Cameroon Francophone, UAE MoE+IB, UK GCSE/A-Level) to a school. Requires POLICY_USE_BUNDLES=True for the resolver to use the applied bundle.
+        </p>
+      </div>
+      <div class="cp-hero-actions">
+        <a href="{% url 'super:marketplace_governance' %}" class="btn btn-outline-light btn-sm">Governance</a>
+        <a href="{% url 'super:app_catalog' %}" class="btn btn-outline-light btn-sm">App catalog</a>
+        <a href="{% url 'super:dashboard' %}" class="btn btn-outline-light btn-sm">Control plane</a>
+      </div>
+    </div>
+  </section>
+
+  {% if messages %}
+  <div class="mb-3">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if preview %}
+  <div class="alert alert-info mb-3">
+    <strong>Preview (24.15)</strong> — Pack: {{ preview.pack_name }} ({{ preview.pack_slug }}) v{{ preview.pack_version }}. Policy keys: {{ preview.policy_keys|join:", "|default:"—" }}. Current bundle ID: {{ preview.current_bundle_id|default:"none" }}. No changes applied.
+  </div>
+  {% endif %}
+
+  <div class="row g-4">
+    <div class="col-12 col-lg-7">
+      <section class="cp-panel">
+        <div class="cp-panel-header">
+          <span class="cp-panel-eyebrow">Catalog</span>
+          <h2 class="cp-panel-title">Blueprint packs</h2>
+        </div>
+        <div class="cp-list">
+          {% for pack in packs %}
+          <div class="cp-list-row d-flex align-items-start justify-content-between flex-wrap gap-2">
+            <div>
+              <strong>{{ pack.name }}</strong>
+              <span class="text-muted small ms-1">({{ pack.slug }})</span>
+              {% if pack.category %}<span class="badge bg-secondary ms-1">{{ pack.category }}</span>{% endif %}
+              {% if pack.country_code %}<span class="badge bg-light text-dark ms-1">{{ pack.country_code }}</span>{% endif %}
+              {% if pack.description %}<p class="small text-muted mb-0 mt-1">{{ pack.description|truncatewords:30 }}</p>{% endif %}
+            </div>
+            <form method="post" class="d-flex align-items-center gap-2">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="preview">
+              <input type="hidden" name="pack_id" value="{{ pack.pk }}">
+              <select name="school_id" class="form-select form-select-sm" style="width: auto; min-width: 180px;" required>
+                <option value="">Select school…</option>
+                {% for s in schools %}
+                <option value="{{ s.pk }}">{{ s.name }}</option>
+                {% endfor %}
+              </select>
+              <button type="submit" class="btn btn-outline-secondary btn-sm">Preview</button>
+            </form>
+            <form method="post" class="d-flex align-items-center gap-2">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="apply">
+              <input type="hidden" name="pack_id" value="{{ pack.pk }}">
+              <select name="school_id" class="form-select form-select-sm" style="width: auto; min-width: 180px;" required>
+                <option value="">Select school…</option>
+                {% for s in schools %}
+                <option value="{{ s.pk }}">{{ s.name }}</option>
+                {% endfor %}
+              </select>
+              <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+            </form>
+          </div>
+          {% empty %}
+          <div class="cp-list-row text-muted">No active blueprint packs. Add packs in Django admin (policies → Blueprint packs).</div>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+    <div class="col-12 col-lg-5">
+      <div class="cp-panel mb-3">
+        <div class="cp-panel-header">
+          <span class="cp-panel-eyebrow">24.15 Rollback</span>
+          <h2 class="cp-panel-title">Revert to previous bundle</h2>
+        </div>
+        <div class="p-3">
+          <form method="post" id="rollback-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="rollback">
+            <div class="mb-2">
+              <label class="form-label small">School</label>
+              <select name="school_id" class="form-select form-select-sm" id="rollback-school" required>
+                <option value="">Select school…</option>
+                {% for sid, data in school_bundles.items %}
+                <option value="{{ sid }}">{{ data.school_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-2">
+              <label class="form-label small">Bundle (or clear)</label>
+              <select name="bundle_id" class="form-select form-select-sm" id="rollback-bundle">
+                <option value="">— Clear blueprint (no bundle) —</option>
+                {% for sid, data in school_bundles.items %}
+                {% for b in data.bundles %}
+                <option value="{{ b.id }}" data-school-id="{{ sid }}">{{ data.school_name }} — {{ b.name }} ({{ b.created_at|date:"Y-m-d H:i" }})</option>
+                {% endfor %}
+                {% endfor %}
+              </select>
+            </div>
+            <button type="submit" class="btn btn-outline-warning btn-sm">Revert to selected bundle</button>
+          </form>
+          <p class="small text-muted mt-2 mb-0">Sets TenantBlueprint.active_bundle for the school. Pick the bundle to restore (or clear). Policy cache is invalidated.</p>
+        </div>
+      </div>
+      <div class="cp-panel">
+        <div class="cp-panel-header">
+          <span class="cp-panel-eyebrow">Phase 6</span>
+          <h2 class="cp-panel-title">About blueprint packs</h2>
+        </div>
+        <div class="p-3">
+          <p class="small mb-0">Each pack defines a <code>policy_snapshot</code> (terminology, grading, admissions, features). Applying it creates a PolicyBundle for the selected school and sets TenantBlueprint.active_bundle so <code>get_effective_policy(school)</code> merges from that bundle when <code>POLICY_USE_BUNDLES</code> is True. Use <strong>Preview</strong> before Apply; use <strong>Revert</strong> to restore a previous bundle.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(function() {
+  var schoolSelect = document.getElementById('rollback-school');
+  var bundleSelect = document.getElementById('rollback-bundle');
+  if (!schoolSelect || !bundleSelect) return;
+  function filterBundles() {
+    var sid = schoolSelect.value;
+    for (var i = 0; i < bundleSelect.options.length; i++) {
+      var opt = bundleSelect.options[i];
+      if (opt.value === '') { opt.style.display = ''; continue; }
+      opt.style.display = (opt.getAttribute('data-school-id') === sid) ? '' : 'none';
+    }
+    bundleSelect.value = '';
+  }
+  schoolSelect.addEventListener('change', filterBundles);
+})();
+</script>
+{% endblock %}

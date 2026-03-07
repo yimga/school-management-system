@@ -1,0 +1,31 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Feed" %}{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="{% url 'portal:parent_dashboard' %}">{% trans "Parent home" %}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{% trans "Feed" %}</li>
+    </ol>
+  </nav>
+  <h4 class="mb-3">{% trans "School feed" %}</h4>
+  <p class="text-muted small">{% trans "Announcements, achievements, and updates for your children." %}</p>
+  <div class="list-group list-group-flush">
+    {% for item in feed_items %}
+    <div class="list-group-item">
+      <div class="d-flex w-100 justify-content-between">
+        <h6 class="mb-1">{{ item.title }}</h6>
+        <small class="text-muted">{{ item.created_at|date:"M d, Y H:i" }}</small>
+      </div>
+      <span class="badge bg-secondary me-1">{{ item.get_item_type_display }}</span>
+      {% if item.student %}<span class="badge bg-light text-dark">{{ item.student }}</span>{% endif %}
+      {% if item.body %}<p class="mb-0 mt-1">{{ item.body }}</p>{% endif %}
+      {% if item.link_url %}<a href="{{ item.link_url }}" class="small">{{ item.link_label|default:item.link_url }}</a>{% endif %}
+    </div>
+    {% empty %}
+    <p class="text-muted">{% trans "No feed items yet." %}</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

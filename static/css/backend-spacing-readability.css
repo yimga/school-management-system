@@ -1,0 +1,180 @@
+/**
+ * Backend spacing, layout, and containment.
+ * Applied when body has .portal-backend-dark or .portal-backend-light.
+ * Single source for padding, gaps, and no-spill rules.
+ */
+
+/* ===== Backend spacing variables (set by theme files; fallbacks here) ===== */
+body.portal-backend-dark,
+body.portal-backend-light {
+  --backend-page-padding-x: 1.5rem;
+  --backend-page-padding-y: 1.25rem;
+  --backend-card-padding: 1.25rem;
+  --backend-gutter-x: 0.5rem;
+  --backend-gutter-y: 0.5rem;
+  --backend-section-margin: 0.5rem;
+}
+
+@media (max-width: 767.98px) {
+  body.portal-backend-dark,
+  body.portal-backend-light {
+    --backend-page-padding-x: 1rem;
+    --backend-page-padding-y: 1rem;
+    --backend-card-padding: 1rem;
+    --backend-gutter-x: 0.75rem;
+    --backend-gutter-y: 0.75rem;
+  }
+}
+
+/* ===== Page wrap: properly padded ===== */
+body.portal-backend-dark .page-wrap,
+body.portal-backend-light .page-wrap {
+  padding: var(--backend-page-padding-y) var(--backend-page-padding-x) !important;
+}
+
+/* ===== Dashboard grid: consistent gaps and card padding ===== */
+body.portal-backend-dark #dashboard-layout .row,
+body.portal-backend-light #dashboard-layout .row,
+body.portal-backend-dark .dashboard-layout-unified .row,
+body.portal-backend-light .dashboard-layout-unified .row {
+  --bs-gutter-x: var(--backend-gutter-x);
+  --bs-gutter-y: var(--backend-gutter-y);
+}
+
+body.portal-backend-dark #dashboard-layout .row.g-3,
+body.portal-backend-light #dashboard-layout .row.g-3 {
+  --bs-gutter-x: var(--backend-gutter-x);
+  --bs-gutter-y: var(--backend-gutter-y);
+}
+
+body.portal-backend-dark #dashboard-layout .card .card-body,
+body.portal-backend-light #dashboard-layout .card .card-body,
+body.portal-backend-dark .dashboard-layout-unified .card .card-body,
+body.portal-backend-light .dashboard-layout-unified .card .card-body {
+  padding: var(--backend-card-padding) !important;
+}
+
+/* Quick Actions: use same padding and gap (no more cramped) */
+body.portal-backend-dark .backend-quick-actions-card .card-body,
+body.portal-backend-light .backend-quick-actions-card .card-body {
+  padding: var(--backend-card-padding) !important;
+}
+
+body.portal-backend-dark .backend-quick-actions-grid,
+body.portal-backend-light .backend-quick-actions-grid {
+  gap: var(--backend-gutter-y) var(--backend-gutter-x);
+}
+
+body.portal-backend-dark #dashboard-layout .row.mb-4,
+body.portal-backend-light #dashboard-layout .row.mb-4 {
+  margin-bottom: var(--backend-section-margin) !important;
+}
+
+/* ===== No-gap rules: align-items-stretch, no double margins ===== */
+body.portal-backend-dark #dashboard-layout .row,
+body.portal-backend-light #dashboard-layout .row {
+  align-items: stretch;
+}
+body.portal-backend-dark #dashboard-layout .row .card,
+body.portal-backend-light #dashboard-layout .row .card {
+  margin-bottom: 0;
+}
+body.portal-backend-dark #dashboard-layout,
+body.portal-backend-light #dashboard-layout {
+  width: 100%;
+  overflow: visible;
+}
+
+/* ===== Backend top fill row + middle chart ===== */
+.backend-top-fill-row [class*="col-"] .card {
+  height: 100%;
+}
+.backend-top-fill-row .backend-middle-chart .dashboard-chart-wrapper {
+  max-height: 200px;
+}
+.backend-top-fill-row .backend-middle-chart canvas {
+  max-height: 180px;
+}
+
+/* ===== No spill: containment ===== */
+body.portal-backend-dark #dashboard-layout .card,
+body.portal-backend-light #dashboard-layout .card,
+body.portal-backend-dark .dashboard-layout-unified .card,
+body.portal-backend-light .dashboard-layout-unified .card {
+  overflow: hidden;
+}
+
+body.portal-backend-dark #dashboard-layout .card .card-body,
+body.portal-backend-light #dashboard-layout .card .card-body {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+body.portal-backend-dark #dashboard-layout .row > [class*="col-"],
+body.portal-backend-light #dashboard-layout .row > [class*="col-"],
+body.portal-backend-dark .backend-quick-actions-grid,
+body.portal-backend-light .backend-quick-actions-grid {
+  min-width: 0;
+}
+
+/* Right sidebar: contain overflow */
+body.portal-backend-dark .backend-right-sidebar .card .card-body,
+body.portal-backend-light .backend-right-sidebar .card .card-body {
+  overflow-y: auto;
+  max-height: 280px;
+}
+
+/* ===== Chart wrapper parent: allow shrink ===== */
+body.portal-backend-dark .dashboard-chart-card,
+body.portal-backend-light .dashboard-chart-card,
+body.portal-backend-dark [data-widget-id][data-widget-id*="chart"] .card-body,
+body.portal-backend-light [data-widget-id][data-widget-id*="chart"] .card-body {
+  min-width: 0;
+}
+
+/* Chart wrapper: ensure axis/legend text fallback (JS injects options from --chart-text) */
+body.portal-backend-dark .dashboard-chart-wrapper,
+body.portal-backend-light .dashboard-chart-wrapper {
+  color: var(--chart-text, var(--backend-text-muted));
+}
+
+/* Chart loading/error/empty states: use theme text color */
+body.portal-backend-dark .dashboard-chart-loading,
+body.portal-backend-light .dashboard-chart-loading {
+  color: var(--chart-text, var(--backend-text-muted)) !important;
+}
+body.portal-backend-dark .dashboard-chart-error,
+body.portal-backend-light .dashboard-chart-error {
+  color: var(--brand-danger, var(--backend-text-muted)) !important;
+}
+body.portal-backend-dark .dashboard-chart-empty,
+body.portal-backend-light .dashboard-chart-empty {
+  color: var(--chart-text, var(--backend-text-muted)) !important;
+}
+
+/* ===== Focus visible (accessibility) ===== */
+body.portal-backend-dark .btn:focus-visible,
+body.portal-backend-light .btn:focus-visible,
+body.portal-backend-dark a:focus-visible,
+body.portal-backend-light a:focus-visible,
+body.portal-backend-dark .form-control:focus-visible,
+body.portal-backend-light .form-control:focus-visible,
+body.portal-backend-dark .form-select:focus-visible,
+body.portal-backend-light .form-select:focus-visible {
+  outline: 2px solid var(--focus-ring-color, #6366f1);
+  outline-offset: 2px;
+}
+
+/* ===== Reduced motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  body.portal-backend-dark .card,
+  body.portal-backend-light .card,
+  body.portal-backend-dark .btn,
+  body.portal-backend-light .btn {
+    transition: none;
+  }
+  body.portal-backend-dark .card:hover,
+  body.portal-backend-light .card:hover {
+    transform: none;
+  }
+}

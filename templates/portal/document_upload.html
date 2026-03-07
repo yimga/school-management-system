@@ -1,0 +1,176 @@
+{% extends "portal_base.html" %}
+{% load static %}
+
+{% block title %}{% if is_edit %}Edit{% else %}Upload{% endif %} Document{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h1 class="h4 mb-1">{% if is_edit %}Edit{% else %}Upload{% endif %} Document</h1>
+          <p class="text-muted mb-0">{% if is_edit %}Update document information{% else %}Add a new document to the library{% endif %}</p>
+        </div>
+        <a href="{% url 'portal:document_library_manage' %}" class="btn btn-sm btn-outline-secondary btn-back-secondary"><i class="bi bi-arrow-left me-1"></i>Back to Library</a>
+      </div>
+
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+              <div class="alert alert-danger">
+                {{ form.non_field_errors }}
+              </div>
+            {% endif %}
+
+            <div class="row g-3">
+              <!-- Title -->
+              <div class="col-12">
+                <label class="form-label fw-semibold">Title <span class="text-danger">*</span></label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                  <div class="text-danger small">{{ form.title.errors }}</div>
+                {% endif %}
+              </div>
+
+              <!-- Description -->
+              <div class="col-12">
+                <label class="form-label fw-semibold">Description</label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                  <div class="text-danger small">{{ form.description.errors }}</div>
+                {% endif %}
+              </div>
+
+              <!-- Document Type -->
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Document Type <span class="text-danger">*</span></label>
+                {{ form.document_type }}
+                {% if form.document_type.errors %}
+                  <div class="text-danger small">{{ form.document_type.errors }}</div>
+                {% endif %}
+              </div>
+
+              <!-- Requires Signature -->
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Signature</label>
+                <div class="form-check form-switch mt-2">
+                  {{ form.requires_signature }}
+                  <label class="form-check-label" for="{{ form.requires_signature.id_for_label }}">
+                    Requires electronic signature
+                  </label>
+                </div>
+                {% if form.requires_signature.errors %}
+                  <div class="text-danger small">{{ form.requires_signature.errors }}</div>
+                {% endif %}
+                <div class="form-text">Only FORM documents can require signatures</div>
+              </div>
+
+              <!-- File Upload -->
+              <div class="col-12">
+                <label class="form-label fw-semibold">Upload File</label>
+                <div class="border border-2 border-dashed rounded p-4 text-center bg-light">
+                  {% if document and document.file %}
+                    <div class="mb-2">
+                      <i class="bi bi-file-earmark-pdf text-danger fs-1"></i>
+                      <div class="mt-2">
+                        <strong>{{ document.file.name|slice:"20:" }}</strong>
+                        <span class="text-muted">({{ document.file_size_mb }}MB)</span>
+                      </div>
+                      <div class="small text-muted">Current file</div>
+                    </div>
+                  {% endif %}
+                  {{ form.file }}
+                  {% if form.file.errors %}
+                    <div class="text-danger small mt-2">{{ form.file.errors }}</div>
+                  {% endif %}
+                  <div class="form-text mt-2">
+                    Supported: PDF, Word (.doc, .docx), Excel (.xls, .xlsx) - Max 10MB
+                  </div>
+                </div>
+              </div>
+
+              <!-- OR Divider -->
+              <div class="col-12">
+                <div class="text-center text-muted position-relative">
+                  <hr>
+                  <span class="bg-white px-3 position-absolute top-50 start-50 translate-middle">OR</span>
+                </div>
+              </div>
+
+              <!-- External Link -->
+              <div class="col-12">
+                <label class="form-label fw-semibold">External Link</label>
+                {{ form.link }}
+                {% if form.link.errors %}
+                  <div class="text-danger small">{{ form.link.errors }}</div>
+                {% endif %}
+                <div class="form-text">If document is hosted elsewhere, provide the URL</div>
+              </div>
+
+              <!-- Visible To Roles -->
+              <div class="col-12">
+                <label class="form-label fw-semibold">Visible To</label>
+                {{ form.visible_to_roles }}
+                {% if form.visible_to_roles.errors %}
+                  <div class="text-danger small">{{ form.visible_to_roles.errors }}</div>
+                {% endif %}
+                <div class="form-text">Select roles that can view this document. Leave empty for all authenticated users.</div>
+              </div>
+
+              <!-- Active Status -->
+              <div class="col-12">
+                <div class="form-check form-switch">
+                  {{ form.is_active }}
+                  <label class="form-check-label fw-semibold" for="{{ form.is_active.id_for_label }}">
+                    Active (visible to users)
+                  </label>
+                </div>
+                {% if form.is_active.errors %}
+                  <div class="text-danger small">{{ form.is_active.errors }}</div>
+                {% endif %}
+              </div>
+
+              <!-- Submit Buttons -->
+              <div class="col-12">
+                <hr>
+                <div class="d-flex gap-2 justify-content-end">
+                  <a href="{% url 'portal:document_library_manage' %}" class="btn btn-outline-secondary">
+                    Cancel
+                  </a>
+                  <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle me-1"></i>
+                    {% if is_edit %}Update{% else %}Upload{% endif %} Document
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Show/hide file/link fields based on document type
+document.addEventListener('DOMContentLoaded', function() {
+  const docTypeField = document.getElementById('{{ form.document_type.id_for_label }}');
+  const requiresSigField = document.getElementById('{{ form.requires_signature.id_for_label }}');
+  
+  function updateSignatureField() {
+    const isForm = docTypeField.value === 'FORM';
+    requiresSigField.disabled = !isForm;
+    if (!isForm) {
+      requiresSigField.checked = false;
+    }
+  }
+  
+  docTypeField.addEventListener('change', updateSignatureField);
+  updateSignatureField();
+});
+</script>
+{% endblock %}

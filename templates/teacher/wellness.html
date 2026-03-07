@@ -1,0 +1,21 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Wellness" %}{% endblock %}
+
+{% block content %}
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:teacher_dashboard_alias' %}"><i class="bi bi-arrow-left me-1"></i>{% trans "Back to Teacher hub" %}</a>
+  </div>
+  {% include "widgets/dashboard_hero.html" with hero=hero %}
+
+  <div class="card">
+    <div class="card-body">
+      <p class="lead">{% trans "Your wellbeing matters." %}</p>
+      <p>{% trans "Take short breaks, stay hydrated, and reach out to colleagues or your line manager if you need support. Many schools offer counselling or an employee assistance programme—check with HR or your handbook." %}</p>
+      <p class="mb-0">
+        <a href="{% url 'kb:kb_home' %}">{% trans "Learn more in the Help centre" %}</a>
+      </p>
+    </div>
+  </div>
+{% endblock %}

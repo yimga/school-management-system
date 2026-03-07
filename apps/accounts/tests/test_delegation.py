@@ -1,0 +1,83 @@
+"""Tests for delegation (Out of Office / Acting) helpers and models."""
+from django.test import TestCase
+from django.utils import timezone
+from datetime import timedelta
+
+from apps.accounts.models import User, Delegation
+from apps.accounts.delegation import (
+    get_approval_roles_for_workflow,
+    get_effective_approvers,
+    WORKFLOW_SYLLABUS_APPROVAL,
+    WORKFLOW_GRADE_APPROVAL,
+    can_user_approve_for_workflow,
+    get_active_delegation_for_delegate,
+)
+from apps.siteconfig.models import SiteSettings
+
+
+class DelegationHelperTests(TestCase):
+    def setUp(self):
+        self.site = SiteSettings.get_solo()
+        self.site.syllabus_approval_roles = ["DEAN", "HOD"]
+        self.site.grade_approval_roles = ["DEAN", "HOD"]
+        self.site.save()
+
+        self.dean = User.objects.create_user(
+            "dean", "dean@test.com", "pass", role=User.Role.DEAN
+        )
+        self.hod = User.objects.create_user(
+            "hod", "hod@test.com", "pass", role=User.Role.HOD
+        )
+        self.teacher = User.objects.create_user(
+            "teacher", "teacher@test.com", "pass", role=User.Role.TEACHER
+        )
+
+    def test_get_approval_roles_for_workflow(self):
+        roles = get_approval_roles_for_workflow(WORKFLOW_SYLLABUS_APPROVAL)
+        self.assertIn("DEAN", roles)
+        self.assertIn("HOD", roles)
+        roles_grade = get_approval_roles_for_workflow(WORKFLOW_GRADE_APPROVAL)
+        self.assertIn("DEAN", roles_grade)
+
+    def test_get_effective_approvers_without_delegation(self):
+        approvers = get_effective_approvers(WORKFLOW_SYLLABUS_APPROVAL)
+        ids = [u.id for u in approvers]
+        self.assertIn(self.dean.id, ids)
+        self.assertIn(self.hod.id, ids)
+        self.assertNotIn(self.teacher.id, ids)
+
+    def test_can_user_approve_for_workflow(self):
+        self.assertTrue(can_user_approve_for_workflow(self.dean, WORKFLOW_SYLLABUS_APPROVAL))
+        self.assertTrue(can_user_approve_for_workflow(self.hod, WORKFLOW_SYLLABUS_APPROVAL))
+        self.assertFalse(can_user_approve_for_workflow(self.teacher, WORKFLOW_SYLLABUS_APPROVAL))
+
+    def test_get_effective_approvers_with_delegation(self):
+        """When Dean is OOO and delegated to Teacher, Teacher should be an effective approver."""
+        now = timezone.now()
+        Delegation.objects.create(
+            delegator=self.dean,
+            delegate=self.teacher,
+            start_date=now - timedelta(days=1),
+            end_date=now + timedelta(days=5),
+            is_active=True,
+            scope=[WORKFLOW_SYLLABUS_APPROVAL],
+        )
+        approvers = get_effective_approvers(WORKFLOW_SYLLABUS_APPROVAL)
+        ids = [u.id for u in approvers]
+        self.assertIn(self.dean.id, ids)
+        self.assertIn(self.hod.id, ids)
+        self.assertIn(self.teacher.id, ids)
+
+    def test_get_active_delegation_for_delegate(self):
+        now = timezone.now()
+        d = Delegation.objects.create(
+            delegator=self.dean,
+            delegate=self.teacher,
+            start_date=now - timedelta(days=1),
+            end_date=now + timedelta(days=5),
+            is_active=True,
+        )
+        active = get_active_delegation_for_delegate(self.teacher)
+        self.assertIsNotNone(active)
+        self.assertEqual(active.id, d.id)
+        self.assertIsNone(get_active_delegation_for_delegate(self.dean))

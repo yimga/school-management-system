@@ -1,0 +1,319 @@
+{% load i18n static %}
+<div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+<script>
+(function() {
+  'use strict';
+  var container = document.getElementById('toast-container');
+  if (!container) return;
+
+  var MAX_TOASTS = 5;
+
+  // Toast function - can be called globally
+  // Third arg: number = duration_ms, or object { duration: number, onUndo: function }
+  window.showToast = function(message, type, durationOrOptions) {
+    type = type || 'info';
+    var options = typeof durationOrOptions === 'object' && durationOrOptions !== null
+      ? durationOrOptions
+      : { duration: durationOrOptions };
+    var duration = typeof options.duration === 'number' ? options.duration : 3000;
+    var onUndo = typeof options.onUndo === 'function' ? options.onUndo : null;
+
+    // Stack limit: keep only the 5 most recent (evict oldest synchronously)
+    while (container.children.length >= MAX_TOASTS && container.firstChild) {
+      var oldest = container.firstChild;
+      if (oldest.parentNode) oldest.parentNode.removeChild(oldest);
+    }
+
+    var toast = document.createElement('div');
+    toast.className = 'toast-notification toast-' + type;
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'assertive');
+
+    var iconMap = {
+      success: 'bi-check-circle-fill',
+      error: 'bi-x-circle-fill',
+      warning: 'bi-exclamation-triangle-fill',
+      info: 'bi-info-circle-fill'
+    };
+
+    var undoHtml = onUndo
+      ? '<button type="button" class="toast-undo" aria-label="{% trans "Undo" %}">{% trans "Undo" %}</button>'
+      : '';
+    toast.innerHTML =
+      '<div class="toast-body">' +
+        '<div class="toast-icon"><i class="bi ' + (iconMap[type] || iconMap.info) + '"></i></div>' +
+        '<div class="toast-message">' + (message || '') + '</div>' +
+      '</div>' +
+      '<div class="toast-actions">' +
+        undoHtml +
+        '<button type="button" class="toast-close" aria-label="{% trans "Close" %}"><i class="bi bi-x"></i></button>' +
+      '</div>' +
+      '<div class="toast-progress" role="presentation"></div>';
+
+    var progressEl = toast.querySelector('.toast-progress');
+    if (progressEl) progressEl.style.animationDuration = duration + 'ms';
+
+    container.appendChild(toast);
+
+    // Trigger animation
+    setTimeout(function() { toast.classList.add('show'); }, 10);
+
+    // Optional haptic feedback on success/error (mobile)
+    if ((type === 'success' || type === 'error') && typeof navigator !== 'undefined' && navigator.vibrate) {
+      try { navigator.vibrate(50); } catch (err) {}
+    }
+
+    // Auto-dismiss
+    var timeout = setTimeout(function() {
+      dismissToast(toast);
+    }, duration);
+
+    // Undo button
+    var undoBtn = toast.querySelector('.toast-undo');
+    if (undoBtn && onUndo) {
+      undoBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        clearTimeout(timeout);
+        try { onUndo(); } catch (err) {}
+        dismissToast(toast);
+      });
+    }
+
+    // Manual dismiss
+    var closeBtn = toast.querySelector('.toast-close');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function() {
+        clearTimeout(timeout);
+        dismissToast(toast);
+      });
+    }
+
+    // Click to dismiss (body/message only)
+    toast.addEventListener('click', function(e) {
+      if (e.target === toast || e.target.closest('.toast-body')) {
+        clearTimeout(timeout);
+        dismissToast(toast);
+      }
+    });
+  };
+
+  function dismissToast(toast) {
+    var progress = toast.querySelector('.toast-progress');
+    if (progress) progress.classList.add('toast-progress-paused');
+    toast.classList.remove('show');
+    setTimeout(function() {
+      if (toast.parentNode) toast.parentNode.removeChild(toast);
+    }, 300);
+  }
+
+  // Listen for custom events
+  document.addEventListener('showToast', function(e) {
+    if (e.detail) {
+      var d = e.detail;
+      var third = d.onUndo ? { duration: d.duration || 5000, onUndo: d.onUndo } : (d.duration != null ? d.duration : undefined);
+      window.showToast(d.message, d.type, third);
+    }
+  });
+})();
+</script>
+
+<style>
+.toast-container {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  pointer-events: none;
+  max-height: calc(100vh - 120px);
+  overflow: hidden;
+}
+
+.toast-notification {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  min-width: 300px;
+  max-width: 400px;
+  padding: 1rem 1rem 0.875rem;
+  border-radius: var(--dashboard-card-radius, 12px);
+  border: 1px solid var(--admin-content-border, rgba(15,23,42,0.12));
+  border-left-width: 4px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  opacity: 0;
+  transform: translateX(400px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: auto;
+  overflow: hidden;
+}
+
+.toast-notification.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Type identity: left border + subtle background tint */
+.toast-success {
+  background: linear-gradient(to right, rgba(34, 197, 94, 0.07), var(--admin-content-bg, #fff) 120px);
+  border-left-color: var(--brand-success, #22c55e);
+}
+.toast-error {
+  background: linear-gradient(to right, rgba(220, 38, 38, 0.07), var(--admin-content-bg, #fff) 120px);
+  border-left-color: var(--admin-content-danger, #dc2626);
+}
+.toast-warning {
+  background: linear-gradient(to right, rgba(245, 158, 11, 0.08), var(--admin-content-bg, #fff) 120px);
+  border-left-color: var(--brand-warning, #f59e0b);
+}
+.toast-info {
+  background: linear-gradient(to right, rgba(14, 165, 233, 0.06), var(--admin-content-bg, #fff) 120px);
+  border-left-color: var(--admin-content-accent, #0ea5e9);
+}
+
+.toast-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.toast-icon {
+  flex-shrink: 0;
+  font-size: 1.25rem;
+  line-height: 1.3;
+}
+
+.toast-success .toast-icon { color: var(--brand-success, #22c55e); }
+.toast-error .toast-icon { color: var(--admin-content-danger, #dc2626); }
+.toast-warning .toast-icon { color: var(--brand-warning, #f59e0b); }
+.toast-info .toast-icon { color: var(--admin-content-accent, #0ea5e9); }
+
+.toast-message {
+  flex: 1;
+  font-size: 0.875rem;
+  color: var(--admin-content-text, #0f172a);
+  line-height: 1.4;
+  min-width: 0;
+}
+
+.toast-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.toast-close {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 0.25rem;
+  cursor: pointer;
+  color: var(--admin-content-text-muted, #475569);
+  opacity: 0.6;
+  transition: opacity 0.2s;
+  line-height: 1;
+}
+.toast-close:hover {
+  opacity: 1;
+}
+
+.toast-undo {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 0.2rem 0.4rem;
+  font-size: 0.8125rem;
+  color: var(--admin-content-accent, #0ea5e9);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.toast-undo:hover {
+  opacity: 0.85;
+}
+
+/* Progress bar */
+.toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  width: 100%;
+  transform-origin: left;
+  animation: toast-progress-shrink linear forwards;
+}
+.toast-progress-paused {
+  animation-play-state: paused;
+  width: 0 !important;
+}
+.toast-success .toast-progress { background: var(--brand-success, #22c55e); }
+.toast-error .toast-progress { background: var(--admin-content-danger, #dc2626); }
+.toast-warning .toast-progress { background: var(--brand-warning, #f59e0b); }
+.toast-info .toast-progress { background: var(--admin-content-accent, #0ea5e9); }
+
+@keyframes toast-progress-shrink {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+
+/* Dark mode: same type identity, adjusted surfaces */
+:root[data-theme="dark"] .toast-notification,
+html[data-bs-theme="dark"] .toast-notification {
+  border-color: var(--admin-content-border, rgba(148,163,184,0.2));
+}
+:root[data-theme="dark"] .toast-success,
+html[data-bs-theme="dark"] .toast-success {
+  background: linear-gradient(to right, rgba(34, 197, 94, 0.12), var(--admin-content-surface, #1e293b) 120px);
+  border-left-color: var(--brand-success, #22c55e);
+}
+:root[data-theme="dark"] .toast-error,
+html[data-bs-theme="dark"] .toast-error {
+  background: linear-gradient(to right, rgba(220, 38, 38, 0.12), var(--admin-content-surface, #1e293b) 120px);
+  border-left-color: var(--admin-content-danger, #dc2626);
+}
+:root[data-theme="dark"] .toast-warning,
+html[data-bs-theme="dark"] .toast-warning {
+  background: linear-gradient(to right, rgba(245, 158, 11, 0.12), var(--admin-content-surface, #1e293b) 120px);
+  border-left-color: var(--brand-warning, #f59e0b);
+}
+:root[data-theme="dark"] .toast-info,
+html[data-bs-theme="dark"] .toast-info {
+  background: linear-gradient(to right, rgba(14, 165, 233, 0.1), var(--admin-content-surface, #1e293b) 120px);
+  border-left-color: var(--admin-content-accent, #0ea5e9);
+}
+
+:root[data-theme="dark"] .toast-message,
+html[data-bs-theme="dark"] .toast-message {
+  color: var(--admin-content-text, #f1f5f9);
+}
+
+:root[data-theme="dark"] .toast-close,
+html[data-bs-theme="dark"] .toast-close {
+  color: var(--admin-content-text-muted, #94a3b8);
+}
+
+:root[data-theme="dark"] .toast-undo,
+html[data-bs-theme="dark"] .toast-undo {
+  color: var(--admin-content-accent, #38bdf8);
+}
+
+/* Mobile */
+@media (max-width: 576px) {
+  .toast-container {
+    left: 10px;
+    right: 10px;
+    top: 70px;
+  }
+  .toast-notification {
+    min-width: auto;
+    max-width: none;
+  }
+}
+</style>

@@ -1,0 +1,605 @@
+{% extends "backend_base.html" %}
+{% load admin_health i18n static region_format %}
+
+{% block backend_title %}Backend Dashboard{% endblock %}
+{% block body_extra_class %}
+backend-shell dashboard-page-backend
+{% if backend_theme_settings.warm_palette %} backend-theme-warm{% endif %}
+{% if backend_theme_settings.reduce_card_flatness %} backend-theme-depth{% endif %}
+{% if backend_theme_settings.high_depth_surfaces %} backend-theme-high-depth{% endif %}
+{% if backend_theme_settings.balanced_motion %} backend-motion-balanced{% endif %}
+{% if backend_theme_settings.layout_equal_heights %} backend-equal-heights{% endif %}
+{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/dashboard-auto-grid.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard-charts.css' %}">
+<link rel="stylesheet" href="{% static 'css/backend-dashboard-tokens.css' %}">
+<link rel="stylesheet" href="{% static 'css/backend-dashboard-v2.css' %}">
+<link rel="stylesheet" href="{% static 'css/backend-dashboard-v2-contract.css' %}">
+<!-- Include navigation bridge styles -->
+<script>
+  (function () {
+    var apply = function () {
+      if (!document.body) return;
+      document.body.dataset.dashboardPage = 'backend';
+      document.body.classList.add('dashboard-page-backend');
+
+      var allowed = { executive: true, operational: true, analytical: true };
+      var params = new URLSearchParams(window.location.search);
+      var fromUrl = (params.get('style') || params.get('preset') || '').toLowerCase();
+      var root = document.getElementById('dashboard-layout');
+      var fromData = root ? String(root.dataset.stylePreset || '').toLowerCase() : '';
+      var fromTile = root ? String(root.dataset.tileVariant || '').toLowerCase() : '';
+      var preset = 'executive';
+      if (allowed[fromUrl]) {
+        preset = fromUrl;
+      } else if (allowed[fromData]) {
+        preset = fromData;
+      } else if (fromTile === 'compact') {
+        preset = 'operational';
+      } else if (fromTile === 'flat') {
+        preset = 'analytical';
+      }
+      document.body.classList.remove('backend-preset-executive', 'backend-preset-operational', 'backend-preset-analytical');
+      document.body.classList.add('backend-preset-' + preset);
+      document.body.dataset.backendPreset = preset;
+      if (root) root.dataset.stylePreset = preset;
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', apply, { once: true });
+    } else {
+      apply();
+    }
+  })();
+</script>
+  <style>
+  {# ThemePack (admin_theme_pack) colors - single source for dashboard so it uses the active theme #}
+  {% with theme=SITE_ADMIN_THEME|default:SITE_THEME %}
+  :root {
+    --brand-primary: var(--school-primary, {{ theme.primary_color|default:"#0d6efd" }});
+    --brand-accent: var(--school-accent, {{ theme.accent_color|default:"#198754" }});
+    --brand-success: var(--school-success, {{ SITE.success_color|default:"#22c55e" }});
+    --brand-warning: var(--school-warning, {{ SITE.warning_color|default:"#fbbf24" }});
+    --brand-danger: var(--school-danger, {{ SITE.danger_color|default:"#ef4444" }});
+    --dashboard-theme-primary: var(--school-primary, {{ theme.primary_color|default:"#0d6efd" }});
+    --dashboard-theme-accent: var(--school-accent, {{ theme.accent_color|default:"#198754" }});
+  }
+  body[data-dashboard-page="backend"] {
+    --brand-primary: var(--school-primary, {{ theme.primary_color|default:"#0d6efd" }});
+    --brand-accent: var(--school-accent, {{ theme.accent_color|default:"#198754" }});
+    --dashboard-theme-primary: var(--school-primary, {{ theme.primary_color|default:"#0d6efd" }});
+    --dashboard-theme-accent: var(--school-accent, {{ theme.accent_color|default:"#198754" }});
+    --chart-color-1: var(--brand-primary);
+    --chart-color-2: var(--brand-accent);
+  }
+  {% endwith %}
+  </style>
+{% endblock %}
+
+{% block content %}
+  {% admin_health as health %}
+
+  {# Optional: load status strip via HTMX so initial render does not wait on this data #}
+  <div class="backend-dashboard-content">
+  <div id="backend-status-fragment" class="backend-status-fragment-placeholder backend-status-fragment--compact"
+       hx-get="{% url 'accounts:backend_dashboard_status_fragment' %}"
+       hx-trigger="load"
+       hx-swap="innerHTML"
+       hx-headers='{"X-Requested-With": "XMLHttpRequest"}'
+       aria-live="polite" aria-atomic="true">
+  </div>
+  <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7Nlx9D84UOpmUlJ2ANZ+4ysAuqpgUdXDk4" crossorigin="anonymous" defer></script>
+  <script>
+    document.addEventListener('htmx:responseError', function(ev) {
+      if (ev.detail && ev.detail.target && ev.detail.target.id === 'backend-status-fragment') {
+        ev.detail.target.innerHTML = '<span class="text-muted small">-</span>';
+      }
+    });
+  </script>
+
+  {% if first_login_checklist_show %}
+  {% include "accounts/first_login_checklist_card.html" %}
+  {% endif %}
+
+  <div class="backend-v2-shell">
+    <div class="backend-v2-grid {% if not backend_module_visibility.admin_portal %}backend-v2-grid--single{% endif %}">
+      <section class="backend-v2-main">
+        {% if backend_module_visibility.overview %}
+        <div class="backend-v2-overview" data-widget-id="backend-v2-overview">
+          <div class="backend-v2-overview-head">
+            <div>
+              <h2>Overview</h2>
+              <p class="backend-v2-overview-sub">Live pulse of academics, people, attendance, and finance</p>
+            </div>
+            <div class="backend-v2-ctas">
+              {% for cta in primary_ctas %}
+              <a class="backend-v2-cta" href="{{ cta.url }}">
+                <i class="bi {{ cta.icon }}"></i>
+                <span>{{ cta.label }}</span>
+              </a>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="backend-v2-metrics">
+            {% for metric in overview_cards %}
+            <article class="backend-v2-metric backend-v2-metric--tone-{{ forloop.counter }} {% if metric.status == 'danger' %}is-danger{% endif %}">
+              <div class="backend-v2-metric-title">
+                <span>{{ metric.title }}</span>
+                <i class="bi {{ metric.icon }}"></i>
+              </div>
+              <div class="backend-v2-metric-value">{{ metric.value }}</div>
+              {% if metric.sparkline_points %}
+              <div class="backend-v2-sparkline-wrap" aria-hidden="true">
+                <svg class="backend-v2-sparkline" viewBox="0 0 100 24" preserveAspectRatio="none" width="100%" height="24">
+                  <polyline class="backend-v2-sparkline-line" fill="none" stroke="currentColor" stroke-width="1.2" points="{{ metric.sparkline_points }}"/>
+                </svg>
+              </div>
+              {% endif %}
+              <div class="backend-v2-metric-meta">
+                <span>{{ metric.meta }}</span>
+                {% if metric.delta %}<span>{{ metric.delta }}</span>{% endif %}
+              </div>
+            </article>
+            {% endfor %}
+          </div>
+          {% if kpi_strip_cards %}
+          <div class="backend-v2-kpi-strip" data-widget-id="backend-overview-kpis">
+            {% for item in kpi_strip_cards %}
+            <article class="backend-v2-kpi backend-v2-kpi--tone-{{ forloop.counter }} {% if item.status == 'danger' %}is-danger{% elif item.status == 'warn' %}is-warn{% endif %}">
+              <div class="backend-v2-kpi-head">
+                <span>{{ item.label }}</span>
+                <i class="bi {{ item.icon }}"></i>
+              </div>
+              <div class="backend-v2-kpi-value">{{ item.value }}</div>
+              <div class="backend-v2-kpi-meta">{{ item.meta }}</div>
+            </article>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        {% if backend_module_visibility.welcome %}
+        <div class="backend-v2-welcome" data-widget-id="backend-v2-welcome">
+          <div class="backend-v2-welcome-top">
+            <div>
+              <h3 class="backend-v2-welcome-title">Welcome back, {{ request.user.first_name|default:request.user.username }}</h3>
+              <p class="backend-v2-welcome-sub">Manage your school operations from this unified dashboard.</p>
+            </div>
+            <div class="backend-v2-welcome-controls">
+              <a class="backend-v2-cta" href="{% url 'accounts:workflow_center' %}">
+                <i class="bi bi-diagram-3"></i>
+                <span>Workflow</span>
+              </a>
+              <a class="backend-v2-cta" href="{% url 'siteconfig:set_default_dashboard_view' %}?view=WORKFLOW&amp;next={% url 'accounts:workflow_center' %}">
+                <i class="bi bi-pin-angle"></i>
+                <span>Use workflow default</span>
+              </a>
+              <button type="button" class="backend-v2-cta js-open-backend-command">
+                <i class="bi bi-command"></i>
+                <span>Command center</span>
+              </button>
+              {% if allow_custom_layout %}
+              {% include "components/dashboard_customize_ui.html" %}
+              {% endif %}
+            </div>
+          </div>
+          <div class="backend-v2-chip-row">
+            {% url 'accounts:workflow_center' as workflow_center_url %}
+            {% for chip in action_chips %}
+            {% with chip_label=chip.label|default_if_none:""|lower %}
+            {% if chip.url != workflow_center_url and chip_label != 'workflow center' and chip_label != 'workflow' and chip_label != 'customize layout' and chip_label != 'command center' and chip_label != 'use workflow default' %}
+            <a class="backend-v2-chip" href="{{ chip.url }}">
+              <i class="bi {{ chip.icon }}"></i>
+              <span>{{ chip.label }}</span>
+            </a>
+            {% endif %}
+            {% endwith %}
+            {% endfor %}
+          </div>
+          <div class="backend-v2-action-grid">
+            {% for action in welcome_action_grid %}
+            <a class="backend-v2-action" href="{{ action.url }}">
+              <i class="bi {{ action.icon }}"></i>
+              <span>{{ action.label }}</span>
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        {% if not backend_module_visibility.overview and not backend_module_visibility.welcome %}
+        <article class="card backend-v2-panel backend-v2-panel--empty" data-widget-id="backend-v2-main-empty">
+          <div class="card-body">
+            <h5 class="backend-v2-panel-title mb-1">Dashboard Intro Modules Hidden</h5>
+            <p class="small text-muted mb-0">Enable Overview or Welcome in Feature Control to restore the top workspace blocks.</p>
+          </div>
+        </article>
+        {% endif %}
+
+      </section>
+
+      {% if backend_module_visibility.admin_portal %}
+      <aside class="backend-v2-side">
+        <div class="backend-v2-side-card" data-widget-id="backend-v2-admin-portal">
+          <div class="backend-v2-side-head">
+            <h3 class="backend-v2-side-title">Admin Portal</h3>
+            <a class="backend-v2-chip" href="{% url 'accounts:workflow_center' %}">
+              <i class="bi bi-diagram-3"></i>
+              <span>Workflow</span>
+            </a>
+          </div>
+          <p class="backend-v2-side-meta">Snapshots, systems, and workflows</p>
+
+          <div class="backend-dtw-and-calendar">
+            <div class="backend-dtw-and-calendar__dtw">
+              {% include "components/backend_datetime_weather.html" %}
+            </div>
+            <div class="backend-dtw-and-calendar__cal">
+              {% include "components/backend_mini_calendar.html" %}
+            </div>
+          </div>
+
+          <div class="backend-v2-side-grid">
+            {% for item in admin_portal.academics %}
+            <div class="backend-v2-mini">
+              <span>Academics - {{ item.label }}</span>
+              <strong>{{ item.value }}</strong>
+            </div>
+            {% endfor %}
+            {% for item in admin_portal.accounts %}
+            <div class="backend-v2-mini">
+              <span>Accounts - {{ item.label }}</span>
+              <strong>{{ item.value }}</strong>
+            </div>
+            {% endfor %}
+            {% for item in admin_portal.finance %}
+            <div class="backend-v2-mini">
+              <span>Finance - {{ item.label }}</span>
+              <strong>{{ item.value }}</strong>
+            </div>
+            {% endfor %}
+          </div>
+
+        </div>
+      </aside>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="backend-v2-workspace {% if not backend_show_workspace_rail %}backend-v2-workspace--single{% endif %}">
+    <div
+      id="dashboard-layout"
+      class="backend-v2-workbench"
+      data-save-url="{{ dashboard_layout_url }}"
+      data-load-url="{{ dashboard_layout_url }}"
+      data-dashboard-column="main"
+      data-show-sidebar="{{ dashboard_settings.show_sidebar|yesno:'true,false' }}"
+      data-tile-variant="{{ dashboard_settings.tile_variant|default:'default' }}"
+      data-sidebar-items='{{ dashboard_settings.sidebar_items|default:"[]"|safe }}'
+      data-custom-links='{{ dashboard_settings.custom_links|default:"[]"|safe }}'
+      data-custom-drag-enabled="true"
+      data-widget-meta='{{ dashboard_settings.widget_meta|default:"{}"|safe }}'
+      data-widget-config='{{ widget_meta_json }}'
+      data-widget-chart-types="{{ widget_chart_types_json|default:'{}'|escapejs }}"
+      data-style-preset="{{ dashboard_settings.style_preset|default:'' }}"
+      data-max-list-items="{{ backend_layout_max_items_per_list }}"
+      data-layout-equal-heights="{{ backend_theme_settings.layout_equal_heights|yesno:'true,false' }}">
+      <div class="backend-v2-main-grid{% if backend_workspace_fluid or not backend_theme_settings.layout_equal_heights %} backend-v2-main-grid--fluid{% endif %}">
+        {% if backend_module_visibility.outstanding_fees %}
+        <div class="backend-v2-span-2" data-widget-id="backend-outstanding-fees">
+          {% if chart_finance_status_json %}
+          {% include "components/dashboard_chart.html" with chart_id="backendFinanceStatusChart" chart_type="doughnut" chart_title="Outstanding Fees" chart_data=chart_finance_status_json show_export=False fill_container=True aria_label="Outstanding fees by invoice status" %}
+          {% else %}
+          <article class="card backend-v2-panel backend-v2-panel--empty">
+            <div class="card-body">
+              <h5 class="backend-v2-panel-title mb-1">Outstanding Fees</h5>
+              <p class="small text-muted mb-0">No fee status data yet. Create invoices to see breakdown here.</p>
+            </div>
+          </article>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        {% if backend_module_visibility.at_risk_students %}
+        <article class="card backend-v2-panel {% if not at_risk_students %}backend-v2-panel--empty{% endif %}" data-widget-id="backend-at-risk-students">
+          <div class="card-body">
+            <div class="backend-v2-panel-head">
+              <h5 class="backend-v2-panel-title mb-0">At-Risk Students</h5>
+              <span class="badge text-bg-light">{{ at_risk_students|length }}</span>
+            </div>
+            {% if backend_visual_settings.show_progress_rings %}
+            <div class="backend-v2-progress-ring-wrap" aria-hidden="true">
+              <div class="backend-v2-progress-ring" style="--ring-pct: {{ at_risk_ratio_pct|default:0 }};">
+                <span>{{ at_risk_ratio_pct|default:0 }}%</span>
+              </div>
+              <small class="text-muted">Share of tracked students flagged</small>
+            </div>
+            {% endif %}
+            <div class="dashboard-card-scroll">
+              <div class="backend-v2-list">
+                {% for student in at_risk_students|slice:backend_max_items_slice %}
+                <div class="backend-v2-list-item">
+                  <div>
+                    <strong>{{ student.name }}</strong>
+                    <div class="small text-muted">{{ student.classroom }} - {{ student.tag }}</div>
+                  </div>
+                  <span class="badge text-bg-warning">{{ student.value }}</span>
+                </div>
+                {% empty %}
+                <p class="small text-muted mb-0">No at-risk learners detected.</p>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </article>
+        {% endif %}
+
+        {% if backend_module_visibility.enrollment_trends %}
+        <div class="backend-v2-span-2" data-widget-id="backend-enrollment-trends">
+          {% if chart_enrollment_trend_json %}
+          {% include "components/dashboard_chart.html" with chart_id="backendEnrollmentTrendChart" chart_type="line" chart_title="Enrollment Trends" chart_data=chart_enrollment_trend_json show_export=False fill_container=True aria_label="Enrollment trend over recent months" %}
+          {% else %}
+          <article class="card backend-v2-panel backend-v2-panel--empty">
+            <div class="card-body">
+              <h5 class="backend-v2-panel-title mb-1">Enrollment Trends</h5>
+              <p class="small text-muted mb-0">No enrollment trend data yet. Add students with join dates to see trends.</p>
+            </div>
+          </article>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        {% if backend_module_visibility.recent_admissions %}
+        <article class="card backend-v2-panel" data-widget-id="backend-recent-admissions">
+          <div class="card-body">
+            <div class="backend-v2-panel-head">
+              <h5 class="backend-v2-panel-title mb-0">Recent Admissions</h5>
+              <a href="{{ quick_student_create_url }}" class="btn btn-sm btn-outline-primary">Add student</a>
+            </div>
+            <div class="dashboard-card-scroll">
+              <div class="backend-v2-list">
+                {% for student in recent_admissions|slice:backend_max_items_slice %}
+                <div class="backend-v2-list-item">
+                  <div>
+                    <strong>{{ student.name }}</strong>
+                    <div class="small text-muted">{{ student.classroom }}</div>
+                    {% if backend_visual_settings.show_trend_ribbons %}
+                    <div class="backend-v2-trend-ribbon" aria-hidden="true"><span style="width: calc(42% + {{ forloop.counter0 }} * 9%);"></span></div>
+                    {% endif %}
+                  </div>
+                  <span class="badge text-bg-light">{{ student.admission_number }}</span>
+                </div>
+                {% empty %}
+                <div class="small text-muted">No recent admissions yet.</div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </article>
+        {% endif %}
+
+        {% if backend_module_visibility.recent_activity %}
+        <article class="card backend-v2-panel" data-widget-id="backend-recent-activity">
+          <div class="card-body">
+            <div class="backend-v2-panel-head">
+              <h5 class="backend-v2-panel-title mb-0">Recent Activity</h5>
+              <span class="badge text-bg-light">Live feed</span>
+            </div>
+            <div class="dashboard-card-scroll">
+              <div class="backend-v2-list">
+                {% for activity in recent_activities|slice:backend_max_items_slice %}
+                <div class="backend-v2-list-item">
+                  <div>
+                    <strong>{{ activity.object|truncatechars:40 }}</strong>
+                    <div class="small text-muted">{{ activity.user.get_full_name|default:activity.user.username }} - {{ activity.action }}</div>
+                  </div>
+                  <span class="small text-muted">{{ activity.time_ago }} ago</span>
+                </div>
+                {% empty %}
+                <div class="small text-muted">No recent activity available.</div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </article>
+        {% endif %}
+
+        {% if backend_module_visibility.top_performing %}
+        <article class="card backend-v2-panel" data-widget-id="backend-top-performing">
+          <div class="card-body">
+            <div class="backend-v2-panel-head">
+              <h5 class="backend-v2-panel-title mb-0">Top-Performing</h5>
+              <span class="badge text-bg-light">This term</span>
+            </div>
+            <div class="dashboard-card-scroll">
+              <div class="backend-v2-list">
+                {% for student in top_performing_students|slice:backend_max_items_slice %}
+                <div class="backend-v2-list-item">
+                  <div>
+                    <strong>{{ student.name }}</strong>
+                    <div class="small text-muted">{{ student.classroom }}</div>
+                    {% if backend_visual_settings.show_rank_sparklines %}
+                    <div class="backend-v2-rank-ribbon" aria-hidden="true"><span style="width: {{ student.ribbon_pct|default:0 }}%;"></span></div>
+                    {% endif %}
+                  </div>
+                  <span class="badge text-bg-success">{{ student.score }}/20</span>
+                </div>
+                {% empty %}
+                <div class="small text-muted">Top-performing metrics will appear once marks are entered.</div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </article>
+        {% endif %}
+
+        {% if backend_module_visibility.attendance_today %}
+        <article class="card backend-v2-panel backend-v2-panel--attendance" data-widget-id="backend-attendance-today">
+          <div class="card-body">
+            <div class="backend-v2-panel-head">
+              <h5 class="backend-v2-panel-title mb-0">Attendance</h5>
+              <span class="badge text-bg-light">Staff</span>
+            </div>
+            <div class="backend-attendance-pulse">
+              <div class="backend-attendance-pulse-row">
+                <span class="backend-attendance-pulse-value">{{ attended_today|default:0 }}</span>
+                <span class="backend-attendance-pulse-label">Present today</span>
+              </div>
+              {% if attendance_trend_total is not None %}
+              <div class="backend-attendance-pulse-row backend-attendance-pulse-meta">
+                <span class="small text-muted">This week: {{ attendance_trend_total }} present total</span>
+              </div>
+              {% endif %}
+            </div>
+            <a class="backend-empty-quick-action mt-2 d-inline-block" href="{% url 'portal:teacher_attendance' %}">View teacher attendance</a>
+          </div>
+        </article>
+        {% endif %}
+
+        {% if backend_main_module_count == 0 %}
+        <article class="card backend-v2-panel backend-v2-panel--empty" data-widget-id="backend-modules-disabled">
+          <div class="card-body">
+            <h5 class="backend-v2-panel-title mb-1">Dashboard Modules Hidden</h5>
+            <p class="small text-muted mb-0">Enable backend modules in Feature Control to populate this workspace.</p>
+          </div>
+        </article>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if backend_show_workspace_rail %}
+    <aside class="backend-v2-rail" data-widget-id="backend-command-sidebar">
+      {% if backend_module_visibility.ops_watch %}
+      <div class="card mb-3 backend-ops-watch-card backend-v2-rail-card backend-v2-rail-card--ops" data-widget-id="backend-ops-watch">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="mb-0">Operations watch</h6>
+            <span class="badge bg-light text-dark" id="backendOpsWatchUpdatedAt">Live - {{ local_time|date:"h:i A" }}</span>
+          </div>
+          <div class="d-grid gap-2 mb-3 small js-ops-watch-list" data-refresh-url="{{ ops_watch_refresh_url }}" data-finance-url="{{ finance_request_link }}">
+            {% for item in operations_watch|slice:backend_max_items_slice %}
+            <div class="backend-ops-item {% if item.status == 'warn' %}is-warn{% elif item.status == 'danger' %}is-danger{% endif %}" data-ops-key="{{ item.key }}">
+              <div class="backend-ops-item-left">
+                <span class="backend-ops-dot"></span>
+                <a href="{{ item.url }}">
+                  <i class="bi {{ item.icon }} me-1"></i>{{ item.label }}
+                </a>
+              </div>
+              <strong>{{ item.value }}</strong>
+            </div>
+            {% endfor %}
+            <div class="backend-ops-item {% if ops_watch_finance_requests > 0 %}is-warn{% endif %}" data-ops-key="finance_requests">
+              <div class="backend-ops-item-left">
+                <span class="backend-ops-dot"></span>
+                <a href="{{ finance_request_link }}">
+                  <i class="bi bi-wallet2 me-1"></i>Finance requests
+                </a>
+              </div>
+              <strong>{{ ops_watch_finance_requests|default:0 }}</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if backend_module_visibility.quick_links %}
+      <div class="card mb-3 backend-quick-links-card backend-v2-rail-card backend-v2-rail-card--links {% if not quick_links %}backend-v2-panel--empty{% endif %}" data-widget-id="backend-quick-links">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="mb-0">Quick Links</h6>
+            <span class="badge bg-light text-dark">Shortcuts</span>
+          </div>
+          <div class="backend-quick-links-list">
+            {% for quick in quick_links|slice:backend_max_items_slice %}
+            <a class="backend-quick-link" href="{{ quick.url }}" data-quick-link-id="{{ quick.id|default:'' }}">
+              <span><i class="bi {{ quick.icon }} me-1"></i>{{ quick.label }}</span>
+              <i class="bi bi-chevron-right small"></i>
+            </a>
+            {% empty %}
+            <p class="small text-muted mb-1">No shortcuts for your role.</p>
+            <a class="backend-empty-quick-action" href="{% url 'siteconfig:user_preferences' %}"><i class="bi bi-sliders me-1"></i>Add in Preferences</a>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if backend_module_visibility.planner %}
+      <div class="card mb-3 backend-quick-links-card backend-v2-planner-card backend-v2-rail-card backend-v2-rail-card--planner {% if not upcoming_events and not recommended_next_steps %}backend-v2-panel--empty{% endif %}" data-widget-id="backend-planner">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="mb-0">Planner</h6>
+            <a class="badge bg-light text-dark text-decoration-none" href="{% url 'portal:unified_calendar' %}">View calendar</a>
+          </div>
+          <div class="backend-planner-sections">
+            <section class="backend-planner-section">
+              <div class="backend-planner-section-head">
+                <span class="small fw-semibold text-muted">Upcoming events</span>
+              </div>
+              <div class="backend-planner-list backend-planner-events">
+                {% for item in upcoming_events|slice:backend_max_items_slice %}
+                <div class="backend-quick-link d-flex align-items-start gap-2 small py-1">
+                  <span class="badge bg-secondary text-white flex-shrink-0 backend-planner-date-badge">{{ item.when|format_date }}</span>
+                  <div class="min-width-0">
+                    <span class="fw-medium">{{ item.title|truncatechars:32 }}</span>
+                    {% if item.detail %}<div class="text-muted backend-planner-detail">{{ item.detail|truncatechars:28 }}</div>{% endif %}
+                  </div>
+                </div>
+                {% empty %}
+                <p class="small text-muted mb-1">No upcoming events.</p>
+                {% endfor %}
+              </div>
+            </section>
+            <section class="backend-planner-section">
+              <div class="backend-planner-section-head d-flex align-items-center justify-content-between">
+                <span class="small fw-semibold text-muted">Suggested next</span>
+                {% if finance_requests_count %}
+                <a class="badge text-bg-warning text-decoration-none" href="{{ finance_request_link }}">Finance {{ finance_requests_count }}</a>
+                {% endif %}
+              </div>
+              <div class="backend-planner-list backend-planner-next">
+                {% for step in recommended_next_steps|slice:backend_max_items_slice %}
+                <a href="{{ step.url }}" class="backend-quick-link d-flex align-items-center gap-2 text-decoration-none small">
+                  <span>{% if step.icon %}<i class="bi {{ step.icon }} me-1"></i>{% endif %}{{ step.label }}</span>
+                  <i class="bi bi-chevron-right ms-auto"></i>
+                </a>
+                {% empty %}
+                <p class="small text-muted mb-1">No pending workflow actions.</p>
+                {% endfor %}
+              </div>
+            </section>
+            <a href="{% url 'accounts:workflow_center' %}" class="backend-quick-link d-flex align-items-center gap-2 text-decoration-none small text-muted">
+              <span>View all workflow steps</span>
+              <i class="bi bi-arrow-right ms-auto"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </aside>
+    {% endif %}
+  </div>
+  {{ command_palette|json_script:"backend-command-palette-data" }}
+  <div id="backendCommandPalette" class="backend-cmd-palette" aria-hidden="true">
+    <div class="backend-cmd-overlay" data-cmd-close></div>
+    <div class="backend-cmd-box" role="dialog" aria-modal="true" aria-labelledby="backendCommandPaletteLabel">
+      <label id="backendCommandPaletteLabel" class="visually-hidden" for="backendCommandInput">Command center</label>
+      <input id="backendCommandInput" class="backend-cmd-input" type="text" placeholder="Type a command..." autocomplete="off" />
+      <div id="backendCommandResults" class="backend-cmd-results"></div>
+    </div>
+  </div>
+  </div><!-- .backend-dashboard-content -->
+
+{% endblock %}
+
+{% block extra_js %}
+  {{ block.super }}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="{% static 'js/dashboard-charts-shared.js' %}"></script>
+  <script src="{% static 'js/dashboard-layout.js' %}"></script>
+  <script src="{% static 'js/backend-dashboard-v2-page.js' %}"></script>
+{% endblock %}

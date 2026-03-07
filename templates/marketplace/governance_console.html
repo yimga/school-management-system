@@ -1,0 +1,159 @@
+{% extends "control_plane_base.html" %}
+{% load static %}
+
+{% block cp_title %}Marketplace Governance{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-4 control-plane-shell">
+  <section class="cp-hero cp-hero-compact mb-4">
+    <div class="cp-hero-grid">
+      <div>
+        <div class="cp-eyebrow">RunMyCampus Manager</div>
+        <h1 class="cp-hero-title">Marketplace governance</h1>
+        <p class="cp-hero-copy">
+          Govern publishers, listing approvals, security reviews, kill switches, and revenue-share obligations from one control-plane surface.
+        </p>
+        <div class="cp-chip-row">
+          <span class="cp-chip">Publishers {{ metrics.publishers_total }}</span>
+          <span class="cp-chip">Approved listings {{ metrics.approved_listings }}</span>
+          <span class="cp-chip">Pending reviews {{ pending_reviews|length }}</span>
+          <span class="cp-chip">Kill switches {{ metrics.kill_switch_apps }}</span>
+        </div>
+      </div>
+      <div class="cp-hero-actions">
+        <div class="cp-action-stack">
+          <div class="cp-hero-stat">
+            <span class="cp-hero-stat-label">Publisher payouts queued</span>
+            <strong class="cp-hero-stat-value">${{ metrics.scheduled_payout_total|floatformat:2 }}</strong>
+            <span class="cp-hero-stat-subtitle">Scheduled revenue-share obligations</span>
+          </div>
+          <div class="cp-action-row">
+            <a href="{% url 'super:dashboard' %}" class="btn btn-outline-light btn-sm">Control plane</a>
+            <a href="{% url 'super:billing_dashboard' %}" class="btn btn-outline-light btn-sm">Billing</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="cp-overview-grid mb-4">
+    <article class="cp-overview-card cp-overview-card-blue">
+      <span class="cp-overview-label">Verified publishers</span>
+      <strong class="cp-overview-value">{{ metrics.publishers_verified }}</strong>
+      <span class="cp-overview-meta">{{ metrics.publishers_total|add:"-"|add:metrics.publishers_verified }} still need verification</span>
+    </article>
+    <article class="cp-overview-card cp-overview-card-amber">
+      <span class="cp-overview-label">Pending listings</span>
+      <strong class="cp-overview-value">{{ metrics.pending_listings }}</strong>
+      <span class="cp-overview-meta">Apps blocked from install until review closes</span>
+    </article>
+    <article class="cp-overview-card cp-overview-card-crimson">
+      <span class="cp-overview-label">Kill-switched apps</span>
+      <strong class="cp-overview-value">{{ metrics.kill_switch_apps }}</strong>
+      <span class="cp-overview-meta">Immediate blast-radius containment</span>
+    </article>
+    <article class="cp-overview-card cp-overview-card-violet">
+      <span class="cp-overview-label">Third-party apps</span>
+      <strong class="cp-overview-value">{{ metrics.third_party_apps }}</strong>
+      <span class="cp-overview-meta">{{ metrics.pending_security_reviews }} still awaiting security review</span>
+    </article>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-12 col-xxl-5">
+      <section class="cp-panel">
+        <div class="cp-panel-header">
+          <div>
+            <span class="cp-panel-eyebrow">Review queue</span>
+            <h2 class="cp-panel-title">Pending reviews</h2>
+          </div>
+        </div>
+        <div class="cp-list">
+          {% for review in pending_reviews %}
+          <div class="cp-list-row">
+            <div>
+              <strong>{{ review.listing.app.name }}</strong>
+              <div class="cp-list-meta">{{ review.review_type|title }} | {{ review.listing.publisher.name|default:"Unassigned publisher" }} | v{{ review.app_version|default:review.listing.app.version }}</div>
+            </div>
+            <span class="cp-status-badge cp-status-badge-{{ review.status }}">{{ review.status|title }}</span>
+          </div>
+          {% empty %}
+          <div class="cp-empty-state">No pending marketplace reviews.</div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="cp-panel mt-4">
+        <div class="cp-panel-header">
+          <div>
+            <span class="cp-panel-eyebrow">Payout queue</span>
+            <h2 class="cp-panel-title">Publisher revenue share</h2>
+          </div>
+        </div>
+        <div class="cp-list">
+          {% for payout in scheduled_payouts %}
+          <div class="cp-list-row">
+            <div>
+              <strong>{{ payout.payee_name }}</strong>
+              <div class="cp-list-meta">{{ payout.status|title }} | {{ payout.processor_code|default:"manual" }} | {{ payout.scheduled_for|date:"Y-m-d H:i" }}</div>
+            </div>
+            <span class="cp-status-badge cp-status-badge-{{ payout.status|lower }}">${{ payout.net_amount|floatformat:2 }}</span>
+          </div>
+          {% empty %}
+          <div class="cp-empty-state">No queued publisher payouts.</div>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+
+    <div class="col-12 col-xxl-7">
+      <section class="cp-panel">
+        <div class="cp-panel-header">
+          <div>
+            <span class="cp-panel-eyebrow">Catalog posture</span>
+            <h2 class="cp-panel-title">Listings and installability</h2>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr>
+                <th>App</th>
+                <th>Publisher</th>
+                <th>Listing</th>
+                <th>Security</th>
+                <th>Installs</th>
+                <th>Revenue share</th>
+                <th>Kill switch</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for listing in listings %}
+              <tr>
+                <td>
+                  <strong>{{ listing.app.name }}</strong>
+                  <div class="small text-muted">{{ listing.app.slug }} | {{ listing.app.kind|title }} | v{{ listing.app.version }}</div>
+                </td>
+                <td>{{ listing.publisher.name|default:listing.app.publisher.name|default:"-" }}</td>
+                <td><span class="cp-status-badge cp-status-badge-{{ listing.status }}">{{ listing.status|title }}</span></td>
+                <td><span class="cp-status-badge cp-status-badge-{{ listing.security_review_status }}">{{ listing.security_review_status|title }}</span></td>
+                <td>{{ listing.installation_count }}</td>
+                <td>{{ listing.revenue_share_percent }}%</td>
+                <td>{% if listing.kill_switch_active %}<span class="cp-status-badge cp-status-badge-danger">Active</span>{% else %}<span class="cp-status-badge cp-status-badge-success">Off</span>{% endif %}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="7" class="text-muted">No governed listings yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,361 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Submit Knowledge Base Article{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'portal:home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'kb:kb_home' %}">Knowledge Base</a></li>
+            <li class="breadcrumb-item active">Submit Article</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="h4 mb-0">
+                        <i class="fas fa-plus-circle"></i> Write a Knowledge Base Article
+                    </h1>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">
+                        Share your knowledge with the community! Create a comprehensive guide, tutorial, or how-to article.
+                    </p>
+
+                    <form method="post" action="{% url 'kb:kb_article_submit' %}" class="article-form" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <!-- Title -->
+                        <div class="form-group">
+                            <label for="{{ form.title.id_for_label }}">
+                                <strong>Article Title</strong>
+                                <span class="badge badge-danger">Required</span>
+                            </label>
+                            {{ form.title }}
+                            {% if form.title.help_text %}
+                            <small class="form-text text-muted d-block mt-1">
+                                {{ form.title.help_text|safe }}
+                            </small>
+                            {% endif %}
+                            {% if form.title.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.title.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Summary -->
+                        <div class="form-group">
+                            <label for="{{ form.summary.id_for_label }}">
+                                <strong>Summary</strong>
+                                <span class="badge badge-danger">Required</span>
+                            </label>
+                            {{ form.summary }}
+                            <small class="form-text text-muted d-block mt-1">
+                                Brief overview of what your article covers (50-150 words)
+                            </small>
+                            {% if form.summary.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.summary.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Content -->
+                        <div class="form-group">
+                            <label for="{{ form.content.id_for_label }}">
+                                <strong>Article Content</strong>
+                                <span class="badge badge-danger">Required</span>
+                            </label>
+                            <p class="small text-muted mb-2">
+                                Write the full article content. You can use HTML formatting and markdown.
+                            </p>
+                            {{ form.content }}
+                            <div class="formatting-help small text-muted mt-2">
+                                <strong>Formatting Tips:</strong><br>
+                                • Use headings: &lt;h2&gt;, &lt;h3&gt;, &lt;h4&gt;<br>
+                                • Create lists: &lt;ul&gt;, &lt;ol&gt;<br>
+                                • Add emphasis: &lt;strong&gt;, &lt;em&gt;
+                            </div>
+                            {% if form.content.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.content.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Category -->
+                        <div class="form-group">
+                            <label for="{{ form.category.id_for_label }}">
+                                <strong>Category</strong>
+                                <span class="badge badge-danger">Required</span>
+                            </label>
+                            {{ form.category }}
+                            {% if form.category.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.category.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Difficulty -->
+                        <div class="form-group">
+                            <label for="{{ form.difficulty.id_for_label }}">
+                                <strong>Difficulty Level</strong>
+                            </label>
+                            {{ form.difficulty }}
+                            <small class="form-text text-muted d-block mt-1">
+                                Choose the appropriate difficulty for readers
+                            </small>
+                            {% if form.difficulty.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.difficulty.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Read Time -->
+                        <div class="form-group">
+                            <label for="{{ form.read_time.id_for_label }}">
+                                <strong>Estimated Read Time (minutes)</strong>
+                            </label>
+                            {{ form.read_time }}
+                            <small class="form-text text-muted d-block mt-1">
+                                Estimate how long it takes to read your article
+                            </small>
+                            {% if form.read_time.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.read_time.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Tags -->
+                        <div class="form-group">
+                            <label for="{{ form.tags.id_for_label }}">
+                                <strong>Tags</strong>
+                            </label>
+                            {{ form.tags }}
+                            <small class="form-text text-muted d-block mt-1">
+                                Add relevant tags (comma-separated) for better searchability
+                            </small>
+                            {% if form.tags.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.tags.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Related Articles -->
+                        <div class="form-group">
+                            <label for="{{ form.related_articles.id_for_label }}">
+                                <strong>Related Articles</strong>
+                            </label>
+                            {{ form.related_articles }}
+                            <small class="form-text text-muted d-block mt-1">
+                                Link to other relevant articles (hold Ctrl/Cmd to select multiple)
+                            </small>
+                            {% if form.related_articles.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.related_articles.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- File Uploads -->
+                        <div class="form-group">
+                            <label>
+                                <strong>Attachments</strong> - Screenshots, Images, or Files
+                            </label>
+                            <div class="upload-area border-2 border-dashed p-4 text-center bg-light rounded" 
+                                 id="uploadArea">
+                                <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i><br>
+                                <p class="text-muted">Drag and drop files here or click to browse</p>
+                                <input type="file" id="fileInput" name="attachments" multiple accept="image/*,.pdf,.doc,.docx" 
+                                       style="display: none;">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('fileInput').click()">
+                                    <i class="fas fa-folder-open"></i> Choose Files
+                                </button>
+                            </div>
+                            <div id="fileList" class="mt-3"></div>
+                            <small class="form-text text-muted d-block mt-2">
+                                Supported: Images (JPG, PNG, GIF), PDF, Word documents. Max 10MB per file.
+                            </small>
+                        </div>
+
+                        <!-- Info Box -->
+                        <div class="alert alert-info" role="alert">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-info-circle"></i> Benefits of Contributing
+                            </h6>
+                            <ul class="small mb-0">
+                                <li>Earn <strong>20 points</strong> for every approved article</li>
+                                <li>Build your reputation as a knowledge expert</li>
+                                <li>Help thousands of users</li>
+                                <li>Get featured on the KB homepage</li>
+                                <li>Contribute bonus points for popular articles</li>
+                            </ul>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i> Submit Article
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="saveDraft()">
+                                <i class="fas fa-save"></i> Save Draft
+                            </button>
+                            <a href="{% url 'kb:kb_home' %}" class="btn btn-light">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+
+                    <!-- Guidelines -->
+                    <div class="mt-4 p-3 bg-light border rounded">
+                        <h6>
+                            <i class="fas fa-check-circle text-success"></i> Guidelines for Quality Articles
+                        </h6>
+                        <ul class="small mb-0">
+                            <li><strong>Be comprehensive:</strong> Cover the topic thoroughly</li>
+                            <li><strong>Use examples:</strong> Include real-world use cases</li>
+                            <li><strong>Add visuals:</strong> Screenshots help users understand better</li>
+                            <li><strong>Format well:</strong> Use headings, lists, and paragraphs</li>
+                            <li><strong>Be accurate:</strong> Double-check all instructions and code</li>
+                            <li><strong>Link related content:</strong> Connect to other articles</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-control, textarea, select {
+    border-radius: 0.25rem;
+    border: 1px solid #ced4da;
+}
+
+textarea {
+    min-height: 300px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+textarea:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.form-control:focus, select:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.invalid-feedback {
+    color: #dc3545;
+    font-size: 0.875rem;
+}
+
+.border-2 {
+    border-width: 2px !important;
+}
+
+.border-dashed {
+    border-style: dashed !important;
+}
+
+.upload-area {
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.upload-area:hover {
+    background-color: #e7f3ff !important;
+    border-color: #0056b3 !important;
+}
+
+.upload-area.dragover {
+    background-color: #d4f1ff !important;
+    border-color: #0056b3 !important;
+    transform: scale(1.02);
+}
+
+.formatting-help {
+    font-family: monospace;
+    background: #f8f9fa;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+}
+</style>
+
+<script>
+// File upload handling
+const uploadArea = document.getElementById('uploadArea');
+const fileInput = document.getElementById('fileInput');
+
+uploadArea.addEventListener('click', () => fileInput.click());
+
+uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('dragover');
+});
+
+uploadArea.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('dragover');
+});
+
+uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('dragover');
+    fileInput.files = e.dataTransfer.files;
+    updateFileList();
+});
+
+fileInput.addEventListener('change', updateFileList);
+
+function updateFileList() {
+    const fileList = document.getElementById('fileList');
+    fileList.innerHTML = '';
+    
+    Array.from(fileInput.files).forEach((file, index) => {
+        const item = document.createElement('div');
+        item.className = 'alert alert-light mb-2';
+        item.innerHTML = `
+            <i class="fas fa-file"></i> ${file.name} (${formatFileSize(file.size)})
+            <button type="button" class="btn btn-sm btn-outline-danger float-right" onclick="removeFile(${index})">
+                <i class="fas fa-trash"></i>
+            </button>
+        `;
+        fileList.appendChild(item);
+    });
+}
+
+function removeFile(index) {
+    const dt = new DataTransfer();
+    Array.from(fileInput.files).forEach((file, i) => {
+        if (i !== index) dt.items.add(file);
+    });
+    fileInput.files = dt.files;
+    updateFileList();
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+}
+
+function saveDraft() {
+    alert('Draft saved locally! Your article is not yet submitted.');
+    // TODO: Implement local storage draft saving
+}
+</script>
+{% endblock %}

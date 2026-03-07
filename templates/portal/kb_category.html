@@ -1,0 +1,204 @@
+{% extends "portal_base.html" %}
+{% load static %}
+
+{% block title %}{{ category.name }} - Knowledge Base{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-3 mb-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'accounts:redirect' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'kb:kb_home' %}">Knowledge Base</a></li>
+            <li class="breadcrumb-item active">{{ category.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Sidebar: Categories (narrow so main content has most of the page) -->
+        <div class="col-lg-2 col-xl-2 mb-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-folder"></i> Categories
+                    </h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{% url 'kb:kb_home' %}" 
+                       class="list-group-item list-group-item-action">
+                        <i class="fas fa-home"></i> Home
+                    </a>
+                    {% for cat in all_categories %}
+                    <a href="{% url 'kb:kb_category' cat.slug %}" 
+                       class="list-group-item list-group-item-action {% if category.slug == cat.slug %}active{% endif %}">
+                        <i class="fas {{ cat.icon }}"></i> {{ cat.name }}
+                        <span class="badge badge-secondary float-right">{{ cat.article_count }}</span>
+                    </a>
+                    {% for subcat in cat.children.all %}
+                    <a href="{% url 'kb:kb_category' subcat.slug %}" 
+                       class="list-group-item list-group-item-action pl-5 {% if category.slug == subcat.slug %}active{% endif %}">
+                        <i class="fas fa-angle-right"></i> {{ subcat.name }}
+                        <span class="badge badge-secondary float-right">{{ subcat.article_count }}</span>
+                    </a>
+                    {% endfor %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Difficulty Filter -->
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-sliders-h"></i> Filter
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="form-group">
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="beginner" 
+                                   name="difficulty" value="BEGINNER"
+                                   {% if 'BEGINNER' in selected_difficulties %}checked{% endif %}>
+                            <label class="custom-control-label" for="beginner">
+                                <span class="badge badge-success">Beginner</span>
+                            </label>
+                        </div>
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="intermediate" 
+                                   name="difficulty" value="INTERMEDIATE"
+                                   {% if 'INTERMEDIATE' in selected_difficulties %}checked{% endif %}>
+                            <label class="custom-control-label" for="intermediate">
+                                <span class="badge badge-warning">Intermediate</span>
+                            </label>
+                        </div>
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="advanced" 
+                                   name="difficulty" value="ADVANCED"
+                                   {% if 'ADVANCED' in selected_difficulties %}checked{% endif %}>
+                            <label class="custom-control-label" for="advanced">
+                                <span class="badge badge-danger">Advanced</span>
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-primary mt-2 w-100">Apply</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content: Articles (wide - ~80% of page) -->
+        <div class="col-lg-10 col-xl-10">
+            <!-- Header -->
+            <div class="mb-4">
+                <h1 class="h2 mb-2">
+                    <i class="fas {{ category.icon }}"></i> {{ category.name }}
+                </h1>
+                <p class="text-muted">{{ category.description }}</p>
+                <div class="badge badge-info">
+                    {{ articles.count }} article{{ articles.count|pluralize }}
+                </div>
+            </div>
+
+            <!-- Articles List -->
+            {% if articles %}
+                <div class="article-list">
+                    {% for article in articles %}
+                    <div class="card shadow-sm mb-3 article-card transition">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-lg-9">
+                                    <h5 class="card-title">
+                                        <a href="{% url 'kb:kb_article' article.slug %}" class="text-primary">
+                                            <i class="fas fa-file-alt"></i> {{ article.title }}
+                                        </a>
+                                        {% if article.is_featured %}
+                                        <span class="badge badge-success">
+                                            <i class="fas fa-star"></i> Featured
+                                        </span>
+                                        {% endif %}
+                                    </h5>
+                                    <p class="card-text text-muted">
+                                        {{ article.summary|truncatewords:30 }}
+                                    </p>
+                                    <div class="article-meta">
+                                        {% if article.difficulty %}
+                                        <span class="badge 
+                                            {% if article.difficulty == 'BEGINNER' %}badge-success
+                                            {% elif article.difficulty == 'INTERMEDIATE' %}badge-warning
+                                            {% else %}badge-danger{% endif %}">
+                                            {{ article.get_difficulty_display }}
+                                        </span>
+                                        {% endif %}
+                                        <small class="text-muted ml-2">
+                                            <i class="fas fa-clock"></i> {{ article.read_time }} min read
+                                        </small>
+                                        <small class="text-muted ml-2">
+                                            <i class="fas fa-eye"></i> {{ article.views }} views
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 text-right">
+                                    {% if article.attachments.count %}
+                                    <span class="badge badge-info">
+                                        <i class="fas fa-images"></i> {{ article.attachments.count }}
+                                    </span>
+                                    {% endif %}
+                                    <a href="{% url 'kb:kb_article' article.slug %}" 
+                                       class="btn btn-sm btn-outline-primary mt-2">
+                                        Read <i class="fas fa-arrow-right"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination -->
+                {% if page_obj and page_obj.paginator.num_pages > 1 %}
+                {% include "components/pagination.html" with page_obj=page_obj pagination_extra_query=pagination_extra_query %}
+                {% endif %}
+            {% else %}
+                <div class="alert alert-info" role="alert">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>No articles found</strong> in this category yet.
+                    Check back soon for more content!
+                </div>
+            {% endif %}
+
+            <!-- CTA: Contribute -->
+            <div class="alert alert-light border border-primary mt-4">
+                <h6 class="alert-heading">
+                    <i class="fas fa-lightbulb text-primary"></i> Ready to Contribute?
+                </h6>
+                <p>Share your knowledge by writing an article for this category!</p>
+                {% if user.is_authenticated %}
+                <a href="{% url 'kb:kb_article_submit' %}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-pen"></i> Write an Article
+                </a>
+                {% else %}
+                <a href="{% url 'accounts:login' %}?next={% url 'kb:kb_article_submit' %}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-sign-in-alt"></i> Login & Contribute
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.transition {
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.transition:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.article-meta {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+</style>
+{% endblock %}

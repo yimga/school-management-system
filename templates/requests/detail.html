@@ -1,0 +1,108 @@
+{% extends "portal_base.html" %}
+{% load region_format %}
+{% block title %}Request {{ req.reference }}{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-start justify-content-between mb-3">
+  <div>
+    <h2 class="mb-1">Request {{ req.reference }}</h2>
+    <div class="text-muted small">{{ req.get_request_type_display }}</div>
+  </div>
+  <span class="badge {% if req.status == 'APPROVED' %}bg-success{% elif req.status == 'DENIED' %}bg-danger{% elif req.status == 'CLARIFICATION_REQUESTED' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+    {{ req.get_status_display }}
+  </span>
+</div>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <div class="text-muted small">Requester</div>
+        <div>{{ req.requester.get_full_name|default:req.requester.username|default:"-" }}</div>
+      </div>
+      <div class="col-md-6">
+        <div class="text-muted small">Requested at</div>
+        <div>{{ req.requested_at|format_date }} {{ req.requested_at|time:"H:i" }}</div>
+      </div>
+      <div class="col-12">
+        <div class="text-muted small">Summary</div>
+        <div>{{ req.summary|default:"-" }}</div>
+      </div>
+      <div class="col-12">
+        <div class="text-muted small">Details</div>
+        <pre class="bg-light p-2 rounded small">{{ req.details|default:"{}" }}</pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <h5 class="mb-3">Action</h5>
+    <form method="post" class="row g-3" id="request-action-form" data-draft-key="request_action_{{ req.id }}" data-draft-max-age-hours="24" data-draft-pending-label="Unsynced decision">
+      {% csrf_token %}
+      <div class="col-12">
+        <label class="form-label small">Decision notes / clarification reason</label>
+        <textarea name="reason" class="form-control" rows="3" placeholder="Explain the decision or request clarification"></textarea>
+      </div>
+      <div class="col-12 d-flex flex-wrap gap-2">
+        <button type="submit" name="action" value="APPROVED" class="btn btn-success">Approve</button>
+        <button type="submit" name="action" value="DENIED" class="btn btn-danger">Deny</button>
+        <button type="submit" name="action" value="CLARIFY" class="btn btn-warning text-dark">Request clarification</button>
+        <a href="{% url 'requests:dashboard' %}" class="btn btn-outline-secondary">Back</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if decisions %}
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h5 class="mb-3">Decisions</h5>
+      <ul class="list-group list-group-flush">
+        {% for decision in decisions %}
+          <li class="list-group-item">
+            <strong>{{ decision.get_decision_display }}</strong>
+            <span class="text-muted small">- {{ decision.created_at|format_date }} {{ decision.created_at|time:"H:i" }}</span>
+            <div class="small text-muted">
+              By {{ decision.decided_by.get_full_name|default:decision.decided_by.username|default:"System" }}
+            </div>
+            {% if decision.reason %}
+              <div class="mt-1">{{ decision.reason }}</div>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+{% endif %}
+
+{% if audits %}
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h5 class="mb-3">Audit trail</h5>
+      <ul class="list-group list-group-flush">
+        {% for audit in audits %}
+          <li class="list-group-item">
+            <strong class="text-uppercase small">{{ audit.action }}</strong>
+            <span class="text-muted small">- {{ audit.created_at|format_date }} {{ audit.created_at|time:"H:i" }}</span>
+            <div class="small text-muted">By {{ audit.actor.get_full_name|default:audit.actor.username|default:"System" }}</div>
+            {% if audit.message %}
+              <div class="mt-1">{{ audit.message }}</div>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}
+
+{% block extrajs %}
+<script>
+(function() {
+  var form = document.getElementById('request-action-form');
+  if (form && window.FormDraftSave) window.FormDraftSave.init(form);
+})();
+</script>
+{% endblock %}

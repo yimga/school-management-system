@@ -1,0 +1,125 @@
+{% extends "portal_base.html" %}
+{% load static i18n %}
+
+{% block title %}{% block backend_title %}Backend{% endblock %}{% endblock %}
+
+{% block content %}
+  {% if request.session.impersonation %}
+  <div class="alert alert-warning d-flex align-items-center justify-content-between flex-wrap gap-2 mb-0 rounded-0 border-0 border-bottom" role="alert">
+    <span><strong>{% trans "Viewing as tenant" %}</strong> — {% trans "You are impersonating this school. Actions are audited." %}</span>
+    <a href="{% url 'accounts:end_impersonation' %}" class="btn btn-sm btn-outline-dark">{% trans "Exit impersonation" %}</a>
+  </div>
+  {% endif %}
+  {{ block.super }}
+{% endblock %}
+
+{% block breadcrumb_actions %}
+{% if request.user.is_superuser %}
+<a href="{% url 'admin:index' %}" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1" title="{% trans 'Configuration Engine – system and data' %}">
+  <i class="bi bi-gear-wide-connected"></i>
+  <span>{% trans "Configuration Engine" %}</span>
+</a>
+{% endif %}
+{% endblock %}
+{% block body_extra_class %}backend-shell{% endblock %}
+
+{# Staff theme: /backend uses same ThemePack as /admin (admin_theme_pack). Platform (manager) uses navy/gold. #}
+{% block theme_root_variables %}
+{% if PUBLIC_BRAND_MODE %}
+:root {
+  --obsidian-bg: #0B0E14;
+  --school-primary: #0B0E14;
+  --school-accent: #d4af37;
+  --platform-navy: #0B0E14;
+  --platform-navy-dark: #070a0e;
+  --platform-gold: #d4af37;
+  --platform-gold-fg: #f1f5f9;
+  --portal-bg: #0B0E14;
+  --portal-font: Inter, system-ui, sans-serif;
+  {% if SITE_BASE_FONT_SIZE %}--base-font-size: {{ SITE_BASE_FONT_SIZE }}px;{% endif %}
+}
+{% else %}
+{% with theme=SITE_ADMIN_THEME|default:SITE_THEME %}
+:root {
+  {% if theme.primary_color %}--school-primary: {{ theme.primary_color }};{% endif %}
+  {% if theme.accent_color %}--school-accent: {{ theme.accent_color }};{% endif %}
+  --portal-bg: {{ theme.background_color|default:"rgba(247,251,255,1)" }};
+  --portal-font: {{ theme.font_family|default:"Inter, system-ui, sans-serif" }};
+  {% if SITE and SITE.header_bg_color %}--header-brand-bg: {{ SITE.header_bg_color }};{% endif %}
+  {% if SITE and SITE.footer_bg_color %}--footer-bg: {{ SITE.footer_bg_color }};{% endif %}
+  {% if SITE_BASE_FONT_SIZE %}--base-font-size: {{ SITE_BASE_FONT_SIZE }}px;{% endif %}
+}
+{% endwith %}
+{% endif %}
+{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/dashboard-auto-grid.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard-layout-controls.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard-layout-unified.css' %}">
+<link rel="stylesheet" href="{% static 'css/backend-spacing-readability.css' %}">
+<link rel="stylesheet" href="{% static 'css/backend-shell-parity.css' %}">
+{% with backend_theme=RESOLVED_BACKEND_CONSOLE_THEME|default:'dark' %}
+{% if backend_theme == 'light' or backend_theme == 'sand' or backend_theme == 'snow' or backend_theme == 'cream' or backend_theme == 'lavender' %}
+<link rel="stylesheet" href="{% static 'css/backend-light-theme.css' %}">
+{% else %}
+<link rel="stylesheet" href="{% static 'css/backend-dark-theme.css' %}">
+{% endif %}
+<link rel="stylesheet" href="{% static 'css/backend-themes.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard-high-contrast.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard-text-visibility.css' %}">
+{% endwith %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var theme = '{{ RESOLVED_BACKEND_CONSOLE_THEME|default:"dark" }}';
+    if (theme === 'system') {
+      theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    var darkThemes = ['dark', 'black', 'charcoal', 'graphite', 'midnight', 'ocean', 'steel', 'slate', 'forest', 'indigo', 'amber'];
+    var lightThemes = ['light', 'sand', 'snow', 'cream', 'lavender'];
+    if (darkThemes.indexOf(theme) >= 0) {
+      document.body.classList.add('portal-backend-dark');
+      document.body.classList.add('portal-backend-' + theme);
+      document.documentElement.setAttribute('data-theme', 'dark');
+      document.documentElement.setAttribute('data-bs-theme', 'dark');
+    } else {
+      document.body.classList.add('portal-backend-light');
+      document.body.classList.add('portal-backend-' + theme);
+      document.documentElement.setAttribute('data-theme', 'light');
+      document.documentElement.setAttribute('data-bs-theme', 'light');
+    }
+    // Load recent activity into left sidebar when present (desktop + mobile sidebars)
+    (function() {
+      var lists = document.querySelectorAll('.recent-activity-list');
+      if (!lists.length) return;
+      function escapeHtml(text) {
+        var div = document.createElement('div');
+        div.textContent = String(text || '');
+        return div.innerHTML;
+      }
+      function setContent(html) {
+        for (var i = 0; i < lists.length; i++) lists[i].innerHTML = html;
+      }
+      function buildItems(data) {
+        if (!data || !Array.isArray(data.activities) || data.activities.length === 0) {
+          return '<li class="text-muted small px-2">No recent activity.</li>';
+        }
+        var html = '';
+        data.activities.slice(0, 8).forEach(function(item) {
+          html += '<li class="sidebar-activity-item px-2 py-1 rounded mb-1" style="border-left:3px solid rgba(99,102,241,0.5);padding-left:0.6rem">' +
+            '<span class="fw-semibold d-block" style="font-size:0.8rem">' + escapeHtml(item.title || item.type || 'Event') + '</span>' +
+            '<span class="small text-muted">' + escapeHtml(item.description || '') + '</span>' +
+            '<span class="badge bg-secondary ms-1" style="font-size:0.65rem">' + escapeHtml(item.when || item.time || '') + '</span></li>';
+        });
+        return html;
+      }
+      fetch('/api/activities/?limit=8').then(function(r) { return r.json(); }).then(function(data) {
+        setContent(buildItems(data));
+      }).catch(function() {
+        setContent('<li class="text-muted small px-2">No recent activity.</li>');
+      });
+    })();
+  });
+</script>
+{% endblock %}

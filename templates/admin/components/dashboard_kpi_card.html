@@ -1,0 +1,41 @@
+{% load i18n %}
+<div class="admin-kpi-card" data-widget-id="{{ card.id }}">
+  <div class="admin-kpi-card__head">
+    <span class="admin-kpi-card__label">{% trans card.label %}</span>
+    <span class="material-symbols-outlined admin-kpi-card__icon" aria-hidden="true">{{ card.icon }}</span>
+  </div>
+  {% if card.value != None %}
+  <div class="admin-kpi-card__value{% if card.value_class %} {{ card.value_class }}{% endif %}">
+    {% if card.value_link %}
+      <a {% if card.value_id %}id="{{ card.value_id }}"{% endif %}
+         href="{{ card.value_link }}"
+         {% if card.value_target %}target="{{ card.value_target }}"{% endif %}
+         {% if card.value_rel %}rel="{{ card.value_rel }}"{% endif %}
+         {% if card.value_title %}title="{% trans card.value_title %}"{% endif %}
+         class="admin-kpi-link {% if card.value_link_class %}{{ card.value_link_class }}{% else %}admin-stat{% endif %}">
+        {{ card.value }}
+      </a>
+    {% else %}
+      <span {% if card.value_id %}id="{{ card.value_id }}"{% endif %}>{{ card.value }}</span>
+    {% endif %}
+  </div>
+  {% endif %}
+  <div class="admin-kpi-card__details">
+    {% for row in card.rows %}
+    <div class="admin-kpi-row">
+      {% if row.link_url %}
+        <a href="{{ row.link_url }}"
+           class="admin-kpi-link {% if row.link_class %}{{ row.link_class }}{% else %}admin-kpi-val{% endif %}">
+          {% trans row.link_label %}
+        </a>
+      {% else %}
+        <span>{% trans row.label %}:</span>
+        <span {% if row.value_id %}id="{{ row.value_id }}"{% endif %}
+              class="{% if row.value_class %}{{ row.value_class }}{% else %}admin-kpi-val{% endif %}">
+          {{ row.value }}
+        </span>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>

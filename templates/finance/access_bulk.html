@@ -1,0 +1,64 @@
+{% extends "portal_base.html" %}
+
+{% block title %}Finance Access Bulk{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h2 class="mb-0">Bulk Finance Access</h2>
+    <div class="text-muted">Grant finance visibility to guardians by year/class.</div>
+  </div>
+  <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{% url 'finance:invoices' %}"><i class="bi bi-arrow-left me-1"></i>Back to Invoices</a>
+</div>
+
+<form method="post" class="card mb-3">
+  {% csrf_token %}
+  <div class="card-body">
+    <div class="row g-3 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label small">Academic year</label>
+        <select class="form-select" name="year">
+          <option value="">All</option>
+          {% for y in years %}
+            <option value="{{ y.id }}" {% if selected_year == y.id|stringformat:"s" %}selected{% endif %}>{{ y.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label small">Classroom</label>
+        <select class="form-select" name="classroom">
+          <option value="">All</option>
+          {% for c in classrooms %}
+            <option value="{{ c.id }}" {% if selected_class == c.id|stringformat:"s" %}selected{% endif %}>
+              {{ c.name }}{% if c.academic_year %} ({{ c.academic_year.name }}){% endif %}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4 d-grid">
+        <button class="btn btn-primary" type="submit" onclick="return confirm('Grant finance access to all matching guardians?');">Grant finance access</button>
+      </div>
+    </div>
+  </div>
+</form>
+
+<div class="card">
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <div class="text-muted small">Opt-in required</div>
+        <div class="fw-semibold">{{ require_opt_in|yesno:"Yes,No" }}</div>
+      </div>
+      <div class="col-md-4">
+        <div class="text-muted small">Pending links</div>
+        <div class="fw-semibold">{{ pending_count }}</div>
+      </div>
+      <div class="col-md-4">
+        <div class="text-muted small">Total links in scope</div>
+        <div class="fw-semibold">{{ total_links }}</div>
+      </div>
+    </div>
+    <p class="small text-muted mt-3 mb-0">Only guardians without finance access are updated. Notifications are sent according to site channels (email/SMS/app).</p>
+  </div>
+</div>
+{% endblock %}

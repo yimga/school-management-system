@@ -1,0 +1,165 @@
+<style>
+  {% with style=report_style|default_if_none:None %}
+  {% with primary=style.primary_color|default:SITE.primary_color|default:'#0d6efd' accent=style.accent_color|default:SITE.accent_color|default:'#198754' %}
+  :root {
+    --report-primary: {{ primary }};
+    --report-accent: {{ accent }};
+    --report-watermark-opacity: {{ style.watermark_opacity|default:0.08 }};
+    --report-watermark-scale: {{ style.watermark_scale|default:55 }};
+  }
+  {% endwith %}
+  {% endwith %}
+
+  @page { size: A4; margin: 14mm 12mm; }
+  body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; font-size: 10.5pt; color: #111; }
+  .letterhead { display:flex; gap:14px; align-items:center; border-bottom: 3px solid var(--report-primary); padding-bottom:10px; margin-bottom: 12px; }
+  .letterhead img { height: 58px; }
+  .title { font-size: 18pt; font-weight: 800; margin:0; }
+  .sub { margin:2px 0 0; color:#444; }
+  .pill { display:inline-block; padding:4px 10px; border-radius:999px; background: rgba(13,110,253,.10); color: var(--report-primary); font-weight:700; font-size:10pt; }
+  .location-line { margin:2px 0 0; font-size: 10pt; color:#2d2d2d; }
+  {% with style=report_style|default_if_none:None %}
+  {% with watermark_mode=style.watermark_mode|default:"TEXT" %}
+  {% if watermark_mode == "TEXT" %}
+  {% with watermark_text=style.watermark_text|default:SITE.school_code|default:SITE.site_name|default:"School" %}
+  body::after {
+    content: "{{ watermark_text }}";
+    position: fixed;
+    {% if style and style.watermark_position == "TOP_LEFT" %}
+    top: 14%;
+    left: 9%;
+    {% elif style and style.watermark_position == "TOP_RIGHT" %}
+    top: 14%;
+    right: 8%;
+    {% elif style and style.watermark_position == "BOTTOM_LEFT" %}
+    bottom: 12%;
+    left: 8%;
+    {% elif style and style.watermark_position == "BOTTOM_RIGHT" %}
+    bottom: 12%;
+    right: 8%;
+    {% else %}
+    top: 42%;
+    left: 20%;
+    {% endif %}
+    font-size: calc(var(--report-watermark-scale) * 1px);
+    color: rgba(15, 23, 42, var(--report-watermark-opacity));
+    z-index: -1;
+    pointer-events: none;
+    font-weight: 900;
+    letter-spacing: 0.32rem;
+    transform: rotate(-15deg);
+  }
+  {% endwith %}
+  {% elif watermark_mode == "STYLE_LOGO" or watermark_mode == "SITE_LOGO" %}
+  {% if watermark_mode == "STYLE_LOGO" and style and style.watermark_logo %}
+  body::before {
+    content: "";
+    position: fixed;
+    {% if style and style.watermark_position == "TOP_LEFT" %}
+    top: 10%;
+    left: 8%;
+    {% elif style and style.watermark_position == "TOP_RIGHT" %}
+    top: 10%;
+    right: 8%;
+    {% elif style and style.watermark_position == "BOTTOM_LEFT" %}
+    bottom: 10%;
+    left: 8%;
+    {% elif style and style.watermark_position == "BOTTOM_RIGHT" %}
+    bottom: 10%;
+    right: 8%;
+    {% else %}
+    top: 25%;
+    left: 15%;
+    {% endif %}
+    width: calc(var(--report-watermark-scale) * 1%);
+    aspect-ratio: 1 / 1;
+    background: url("{{ style.watermark_logo.url }}") center/contain no-repeat;
+    opacity: var(--report-watermark-opacity);
+    z-index: -1;
+    pointer-events: none;
+    transform: rotate(-8deg);
+  }
+  {% elif watermark_mode == "SITE_LOGO" and SITE_LOGO_URL %}
+  body::before {
+    content: "";
+    position: fixed;
+    {% if style and style.watermark_position == "TOP_LEFT" %}
+    top: 10%;
+    left: 8%;
+    {% elif style and style.watermark_position == "TOP_RIGHT" %}
+    top: 10%;
+    right: 8%;
+    {% elif style and style.watermark_position == "BOTTOM_LEFT" %}
+    bottom: 10%;
+    left: 8%;
+    {% elif style and style.watermark_position == "BOTTOM_RIGHT" %}
+    bottom: 10%;
+    right: 8%;
+    {% else %}
+    top: 25%;
+    left: 15%;
+    {% endif %}
+    width: calc(var(--report-watermark-scale) * 1%);
+    aspect-ratio: 1 / 1;
+    background: url("{{ SITE_LOGO_URL }}") center/contain no-repeat;
+    opacity: var(--report-watermark-opacity);
+    z-index: -1;
+    pointer-events: none;
+    transform: rotate(-8deg);
+  }
+  {% endif %}
+  {% endif %}
+  {% endwith %}
+  {% endwith %}
+  .grid { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+  .box { border:1px solid #e6e6e6; border-radius: 12px; padding:10px; }
+  table { width:100%; border-collapse: collapse; }
+  th, td { border-bottom: 1px solid #eee; padding: 6px 6px; vertical-align: top; }
+  th { text-align:left; font-size: 10pt; color:#333; background: #fafafa; position: sticky; top: 0; z-index: 2; }
+  h3 { margin: 0 0 6px; font-size: 12pt; }
+  .text-end { text-align: right; }
+  .ms-auto { margin-left: auto; }
+  .badge-good { background: rgba(25,135,84,.12); color: #198754; padding:3px 8px; border-radius: 999px; font-weight:700; font-size: 10pt; }
+  .badge-warn { background: rgba(255,193,7,.18); color: #b58100; padding:3px 8px; border-radius: 999px; font-weight:700; font-size: 10pt; }
+  .footer { margin-top: 14px; font-size: 9.5pt; color: var(--report-text-muted, #555); display:flex; justify-content: space-between; }
+
+  /* Phase 18.4: Print-friendly — professional when handed to parents */
+  @media print {
+    @page { size: A4; margin: 14mm 12mm; }
+    body { font-size: 10.5pt; color: #111; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .letterhead { page-break-after: avoid; }
+    .grid { page-break-inside: avoid; }
+    .box { page-break-inside: avoid; }
+    table { page-break-inside: avoid; }
+    thead { display: table-header-group; }
+    .footer { page-break-inside: avoid; margin-top: 14px; }
+  }
+</style>
+{% if embed_preview and preview_token %}
+<script>
+  (function () {
+    var token = "{{ preview_token|escapejs }}";
+    function notifyReady() {
+      try {
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage(
+            {
+              type: "reportcard-preview-ready",
+              previewToken: token
+            },
+            window.location.origin
+          );
+        }
+      } catch (error) {
+        // Ignore parent messaging failures in print/PDF contexts.
+      }
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", notifyReady, { once: true });
+      return;
+    }
+    notifyReady();
+  })();
+</script>
+{% endif %}

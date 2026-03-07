@@ -1,0 +1,294 @@
+/* ============================================
+   DESIGN TOKENS - Shared CSS variables
+   Used by Portal, Admin, and Backend.
+   Load this first; templates may override with SITE/theme values.
+
+   Figma token mapping (school theme packs):
+   - Academic Authority: Primary-Base #0D173B -> --school-primary / palette.primary
+   - Digital Lavender:   Primary-Base #7C7CE4 -> --school-primary
+   - Modern Sage:        Primary-Deep #2D4739 -> --school-primary
+   - Surface-Bg / Neutral-Text: see palette.dashboard_bg, palette.text
+   - Shared states: Success #22C55E, Warning #F59E0B, Error #EF4444, Disabled #9CA3AF
+   - See docs/THEME_COMPONENT_KITS.md and docs/THEME_ACCESSIBILITY.md
+   ============================================ */
+
+:root {
+  /* Brand (overridden by SITE.primary_color / accent_color in base/portal/backend templates).
+     Phase 5.2: Default Navy/Slate-friendly primary; use for buttons, links, active states. */
+  --school-primary: #0d6efd;
+  --school-accent: #198754;
+  --school-primary-light: rgba(13, 110, 253, 0.15);
+  --school-accent-light: rgba(25, 135, 84, 0.1);
+
+  /* Admin content area (forms, lists). Overridden in #content by admin-content-readability.css
+     and in dark theme by admin-dark-readability.css. Refined dark uses softer slate, not navy. */
+  --admin-content-bg: #ffffff;
+  --admin-content-surface: #ffffff;
+  --admin-content-text: #0f172a;
+  --admin-content-text-muted: #475569;
+  --admin-content-border: rgba(15, 23, 42, 0.12);
+  --admin-content-card-bg: #ffffff;
+  --admin-content-accent: #0ea5e9;
+  --admin-content-accent-alt: #38bdf8;
+  --admin-content-accent-fg: #ffffff;
+  --admin-content-thead-bg: #f1f5f9;
+  --admin-content-danger: #dc2626;
+
+  /* Admin surface (overridden by SITE.admin_sidebar_* in admin base_site).
+     Defaults tuned for WCAG-friendly readability; admin_sidebar_enhanced.css
+     applies theme-specific overrides (light/dark). */
+  --admin-accent: #0d6efd;
+  --admin-accent-light: rgba(13, 110, 253, 0.12);
+  --admin-sidebar-bg: #0f172a;
+  --admin-sidebar-surface: #1e293b;
+  --admin-sidebar-border: #334155;
+  --admin-sidebar-text: #f1f5f9;
+  --admin-sidebar-text-muted: #94a3b8;
+  --admin-sidebar-heading: #e2e8f0;
+  --admin-sidebar-hover-bg: #1e293b;
+  --admin-sidebar-active-bg: #1e293b;
+  --admin-sidebar-active-border: #38bdf8;
+  --admin-sidebar-badge-bg: #334155;
+  --admin-sidebar-badge-text: #f1f5f9;
+  /* Lively child block (no black); overridden per theme in admin_sidebar_enhanced.css */
+  --admin-sidebar-child-bg: linear-gradient(160deg, #334155 0%, #475569 100%);
+  --admin-sidebar-child-border: rgba(148, 163, 184, 0.35);
+
+  /* Portal (light defaults; dark overrides in portal-theme-modes.css) */
+  --portal-bg: rgba(247, 251, 255, 1);
+  --portal-font: Inter, system-ui, sans-serif;
+  --portal-text: #111827;
+  --portal-text-muted: #6c757d;
+  --portal-border: rgba(15, 23, 42, 0.08);
+  --portal-border-strong: rgba(15, 23, 42, 0.15);
+  --portal-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+  --portal-shadow-hover: 0 20px 40px rgba(15, 23, 42, 0.2);
+  --portal-nav-pill: #495057;
+  --portal-nav-pill-hover: #0d6efd;
+  --portal-nav-pill-bg-hover: rgba(13, 110, 253, 0.1);
+  --portal-nav-pill-bg-active: rgba(13, 110, 253, 0.15);
+
+  /* Backend console (theme files override) */
+  --backend-surface: #1a1f2e;
+  --backend-surface-alt: #252b3b;
+  --backend-text: #e5e7eb;
+  --backend-border: rgba(255, 255, 255, 0.08);
+
+  /* Header & footer – always visible regardless of themepack.
+     Portal/backend headers: use --header-brand-bg (topbar), --header-brand-fg (text).
+     Footer: use --footer-bg, --footer-text, --footer-border.
+     Admin sidebar logo: --admin-sidebar-logo-bg ensures logo has contrasting container. */
+  --header-brand-bg: linear-gradient(90deg, var(--school-primary), var(--school-accent));
+  --header-brand-fg: #ffffff;
+  --header-brand-logo-bg: rgba(255, 255, 255, 0.2);
+  --footer-bg: linear-gradient(180deg, rgba(6, 12, 34, 0.92), rgba(4, 10, 28, 0.95));
+  --footer-text: #e2e8f0;
+  --footer-text-muted: #94a3b8;
+  --footer-border: rgba(148, 163, 184, 0.2);
+  --admin-sidebar-logo-bg: rgba(0, 0, 0, 0.25);
+  --admin-sidebar-logo-fg: #ffffff;
+
+  /* Common spacing – single source (4px base). Other sheets use --spacing-* or --token-space-* from here. */
+  --token-space-xs: 0.25rem;   /* 4px */
+  --token-space-sm: 0.5rem;    /* 8px */
+  --token-space-md: 1rem;      /* 16px */
+  --token-space-lg: 1.5rem;    /* 24px */
+  --token-space-xl: 2rem;      /* 32px */
+  --token-space-2xl: 3rem;     /* 48px */
+  --token-space-3xl: 4rem;     /* 64px */
+  /* Aliases for design-system-unified and phase7 compatibility */
+  --spacing-xs: var(--token-space-xs);
+  --spacing-sm: var(--token-space-sm);
+  --spacing-md: var(--token-space-md);
+  --spacing-lg: var(--token-space-lg);
+  --spacing-xl: var(--token-space-xl);
+  --spacing-2xl: var(--token-space-2xl);
+  --spacing-3xl: var(--token-space-3xl);
+  --token-radius-sm: 8px;
+  --token-radius-md: 12px;
+
+  /* Dashboard tokens (radius, spacing, shadow, type scale) – used by backend/admin/parent/teacher dashboards.
+     Premium feel: platform-high-end.css overrides with --platform-* tokens where loaded. */
+  --dashboard-space-unit: 8px;
+  --dashboard-card-radius: 14px;
+  --dashboard-card-shadow: 0 12px 28px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(15, 23, 42, 0.04);
+  --dashboard-card-border: 1px solid rgba(15, 23, 42, 0.08);
+  --dashboard-gap-sm: 12px;
+  --dashboard-gap-md: 16px;
+  --dashboard-gap-lg: 24px;
+  --dashboard-title-size: 1.5rem;
+  --dashboard-section-size: 1.125rem;
+  --dashboard-card-title-size: 1rem;
+
+  /* Teacher dashboard Today's Overview cards (optional; theme pack can override) */
+  --teacher-warning-bg: #d97706;
+  --teacher-warning-border: #b45309;
+  --teacher-warning-alt-bg: #ea580c;
+  --teacher-warning-alt-border: #c2410c;
+
+  /* Parent dashboard Today at a Glance card tints (optional) */
+  --parent-glance-messages-bg: rgba(13, 110, 253, 0.08);
+  --parent-glance-messages-border: rgba(13, 110, 253, 0.2);
+  --parent-glance-followup-bg: rgba(253, 126, 20, 0.1);
+  --parent-glance-followup-border: rgba(253, 126, 20, 0.25);
+  --parent-glance-outstanding-bg: rgba(220, 53, 69, 0.08);
+  --parent-glance-outstanding-border: rgba(220, 53, 69, 0.2);
+  --parent-glance-good-bg: rgba(25, 135, 84, 0.1);
+  --parent-glance-good-border: rgba(25, 135, 84, 0.2);
+
+  /* Fluid typography (clamp: min, preferred, max) – smooth scaling, no rigid breakpoint jumps */
+  --text-xs: clamp(0.7rem, 1.5vw, 0.75rem);
+  --text-sm: clamp(0.8rem, 1.8vw, 0.875rem);
+  --text-base: clamp(0.9rem, 2vw, 1rem);
+  --text-lg: clamp(1rem, 2.2vw, 1.125rem);
+  --text-xl: clamp(1.1rem, 2.5vw, 1.25rem);
+  --text-2xl: clamp(1.25rem, 3vw, 1.5rem);
+  --text-3xl: clamp(1.4rem, 4vw, 1.875rem);
+  --text-hero: clamp(1.2rem, 2.6vw, 1.8rem);
+
+  /* Phase 5.3: H1–H4 type scale – use for semantic headings; prefer over display/fw-bold overrides */
+  --heading-h1: clamp(1.5rem, 3.5vw, 2rem);   /* ~24–32px */
+  --heading-h2: clamp(1.25rem, 2.8vw, 1.5rem); /* ~20–24px */
+  --heading-h3: clamp(1.125rem, 2.2vw, 1.25rem); /* ~18px */
+  --heading-h4: 1rem;                           /* 16px */
+
+  /* Content-based breakpoints (use in media queries: max-width: var(--bp-mobile) etc.) */
+  --bp-narrow: 360px;
+  --bp-content-sm: 480px;
+  --bp-content-sm-max: 479px;   /* below 480 */
+  --bp-content-md: 640px;
+  --bp-extra-narrow: 575px;     /* e.g. hide secondary nav */
+  --bp-mobile: 768px;           /* common mobile/tablet split */
+  --bp-mobile-max: 767px;       /* below 768 */
+  --bp-content-lg: 832px;
+  --bp-tablet: 991px;           /* common tablet/desktop split */
+  --bp-below-wide: 1023px;      /* below 1024 */
+  --bp-wide: 1024px;
+  --bp-max: 1280px;
+
+  /* Focus ring: high-contrast in both themes (override in theme files if needed) */
+  --focus-ring-color: #0d6efd;
+  --focus-ring-offset: 2px;
+
+  /* Overlay / surface text: ensure readable on both themes when used in modals, dropdowns */
+  --overlay-bg: rgba(255, 255, 255, 0.98);
+  --overlay-text: #0f172a;
+  --overlay-text-muted: #64748b;
+
+  /* Unified content surface: use for cards, panels, dropdowns (alias for admin-content-bg when same) */
+  --admin-surface: #ffffff;
+  /* Aliases used by theme-everywhere-dark and components for text/border on main content */
+  --admin-text: #0f172a;
+  --admin-border: rgba(15, 23, 42, 0.12);
+
+  /* Semantic role/stat colors for dashboards (admin stats, charts, badges) – theme-aware */
+  --stat-admin: #6366f1;
+  --stat-student: #0ea5e9;
+  --stat-teacher: #10b981;
+  --stat-parent: var(--admin-text);
+  --stat-accent: var(--admin-content-accent);
+
+  /* Theme-proof visibility (Light + Dark): stroke-like outline, backplate, safe mid-tones.
+     Use for labels, badges, and critical UI that must stay legible when system theme switches. */
+  --theme-proof-stroke-light: 0 0 1px #fff, 0 0 2px #fff, 0 1px 2px rgba(0,0,0,0.4);
+  --theme-proof-stroke-dark: 0 0 1px #000, 0 0 2px #000, 0 1px 2px rgba(255,255,255,0.15);
+  --theme-proof-backplate: rgba(128, 128, 128, 0.5);
+  --theme-proof-backplate-light: rgba(255, 255, 255, 0.85);
+  --theme-proof-backplate-dark: rgba(0, 0, 0, 0.5);
+  --theme-proof-shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.12);
+  --theme-proof-shadow-soft-dark: 0 2px 12px rgba(0, 0, 0, 0.4);
+  /* Safe mid-tones: visible on both #000 and #fff (avoid pure black/white for un-outlined text) */
+  --theme-proof-muted: #64748b;
+  --theme-proof-accent: #0ea5e9;
+}
+
+/* Phase 9: Visible keyboard focus – use tokens so theme can override */
+:root *:focus {
+  outline: none; /* remove default; :focus-visible provides replacement */
+}
+:root *:focus-visible {
+  outline: 2px solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Dark theme: one place for all token overrides. Applies to portal (data-theme/data-bs-theme) and backend/admin (body.portal-backend-dark). */
+html[data-theme="dark"],
+html[data-bs-theme="dark"],
+body.portal-backend-dark {
+  /* Admin content area */
+  --admin-content-bg: #0f172a;
+  --admin-content-surface: #1e293b;
+  --admin-content-text: #f1f5f9;
+  --admin-content-text-muted: #94a3b8;
+  --admin-content-border: rgba(148, 163, 184, 0.25);
+  --admin-content-card-bg: #1e293b;
+  --admin-content-thead-bg: #334155;
+  --admin-content-accent-fg: #f1f5f9;
+  --admin-surface: #1e293b;
+
+  /* Portal */
+  --portal-bg: #0f172a;
+  --portal-text: #e2e8f0;
+  --portal-text-muted: #94a3b8;
+  --portal-border: rgba(148, 163, 184, 0.2);
+  --portal-border-strong: rgba(148, 163, 184, 0.35);
+
+  --admin-text: #f1f5f9;
+  --admin-border: rgba(148, 163, 184, 0.25);
+
+  /* Overlay / modals / dropdowns */
+  --overlay-bg: #1e293b;
+  --overlay-text: #e2e8f0;
+  --overlay-text-muted: #94a3b8;
+
+  /* Dashboard tokens – dark (premium elevation) */
+  --dashboard-card-shadow: 0 12px 28px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --dashboard-card-border: 1px solid rgba(148, 163, 184, 0.2);
+
+  /* Semantic role/stat colors – dark (slightly lighter for contrast on dark bg) */
+  --stat-admin: #818cf8;
+  --stat-student: #38bdf8;
+  --stat-teacher: #34d399;
+  --stat-parent: var(--admin-text);
+
+  /* Theme-proof: dark mode uses light stroke and darker backplate */
+  --theme-proof-stroke-light: 0 0 1px #000, 0 0 2px #000, 0 1px 2px rgba(255,255,255,0.2);
+  --theme-proof-stroke-dark: 0 0 1px #fff, 0 0 2px #fff, 0 1px 2px rgba(0,0,0,0.3);
+  --theme-proof-backplate: rgba(0, 0, 0, 0.45);
+  --theme-proof-shadow-soft: 0 2px 12px rgba(0, 0, 0, 0.4);
+}
+
+
+/* Dark themes: logo container slightly lighter than sidebar so dark logos visible.
+   Light themes: logo container slightly darker so light/white logos visible. */
+body.portal-backend-cream #nav-sidebar .admin-sidebar-logo-wrap,
+body.portal-backend-lavender #nav-sidebar .admin-sidebar-logo-wrap,
+body.portal-backend-sand #nav-sidebar .admin-sidebar-logo-wrap,
+body.portal-backend-snow #nav-sidebar .admin-sidebar-logo-wrap,
+body.portal-backend-light #nav-sidebar .admin-sidebar-logo-wrap {
+  --admin-sidebar-logo-bg: rgba(0, 0, 0, 0.12);
+  --admin-sidebar-logo-fg: #1e293b;
+}
+
+/* Focus ring for keyboard and a11y – use school primary */
+button:focus-visible,
+.btn:focus-visible,
+.form-control:focus-visible,
+.form-select:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--school-primary);
+  outline-offset: 2px;
+}
+
+/* Tables: use design tokens so lists stay readable in light/dark (Phase 4.2). */
+.table thead th {
+  background: var(--admin-content-thead-bg);
+  color: var(--admin-content-text);
+  border-bottom-color: var(--admin-content-border);
+}
+.table td {
+  color: var(--admin-content-text);
+}
+.table-border-color {
+  border-color: var(--admin-content-border);
+}

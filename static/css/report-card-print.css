@@ -1,0 +1,59 @@
+/**
+ * Phase 18.4: Print-friendly CSS for report cards (and parent-facing docs).
+ * Include this when rendering a report card inside a layout that has nav/sidebar
+ * (e.g. print-friendly view with ?print=1). Hides chrome and keeps content professional.
+ */
+@media print {
+  /* Hide navigation, sidebar, header, footer chrome */
+  .portal-sidebar-wrapper,
+  .portal-sidebar,
+  nav.navbar,
+  .navbar,
+  .dashboard-header,
+  .breadcrumb,
+  .btn-print,
+  .no-print,
+  [data-print-hide],
+  header[role="banner"] .nav,
+  .skip-link,
+  .toast-container {
+    display: none !important;
+  }
+
+  /* Full width content, no sidebar offset */
+  body {
+    background: #fff;
+    font-size: 11pt;
+    color: #111;
+  }
+  main,
+  .main-content,
+  [role="main"],
+  .report-card-print-wrapper {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Sensible page setup */
+  @page {
+    size: A4;
+    margin: 14mm 12mm;
+  }
+
+  /* Avoid breaking report card sections across pages */
+  .letterhead,
+  .report-card-print-wrapper .grid,
+  .report-card-print-wrapper .box,
+  .report-card-print-wrapper table {
+    page-break-inside: avoid;
+  }
+  .report-card-print-wrapper thead {
+    display: table-header-group;
+  }
+
+  /* Links: show URL for audit */
+  a[href]::after {
+    content: none;
+  }
+}

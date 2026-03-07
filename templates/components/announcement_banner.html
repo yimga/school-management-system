@@ -1,0 +1,133 @@
+<!-- Global Announcement Banner -->
+{% load static %}
+
+<style>
+  .announcement-banner {
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    border-radius: 10px;
+    border-left: 5px solid;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    animation: slideDown 0.3s ease;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .announcement-banner.info {
+    background: linear-gradient(135deg, rgba(13, 110, 253, 0.08), rgba(13, 110, 253, 0.04));
+    border-left-color: #0d6efd;
+    color: #0d5bc7;
+  }
+
+  .announcement-banner.success {
+    background: linear-gradient(135deg, rgba(25, 135, 84, 0.08), rgba(25, 135, 84, 0.04));
+    border-left-color: #198754;
+    color: #0f5132;
+  }
+
+  .announcement-banner.warning {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.08), rgba(255, 193, 7, 0.04));
+    border-left-color: #ffc107;
+    color: #664d03;
+  }
+
+  .announcement-banner.danger {
+    background: linear-gradient(135deg, rgba(220, 53, 69, 0.08), rgba(220, 53, 69, 0.04));
+    border-left-color: #dc3545;
+    color: #842029;
+  }
+
+  .announcement-content {
+    flex: 1;
+  }
+
+  .announcement-title {
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .announcement-message {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    margin: 0;
+  }
+
+  .announcement-close {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    cursor: pointer;
+    opacity: 0.6;
+    padding: 0;
+    margin-left: 1rem;
+    transition: opacity 0.2s ease;
+  }
+
+  .announcement-close:hover {
+    opacity: 1;
+  }
+
+  @media (max-width: 576px) {
+    .announcement-banner {
+      flex-direction: column;
+      text-align: center;
+      align-items: flex-start;
+    }
+
+    .announcement-close {
+      margin-left: 0;
+      margin-top: 0.75rem;
+      align-self: flex-end;
+    }
+  }
+</style>
+
+<!-- Display Active Announcements -->
+{% if announcements %}
+  {% for announcement in announcements %}
+    {% if announcement.is_active %}
+      <div class="announcement-banner {{ announcement.banner_type|default:'info' }}" id="announcement-{{ announcement.id }}">
+        <div class="announcement-content">
+          <div class="announcement-title">
+            <i class="bi bi-megaphone-fill me-2"></i>{{ announcement.title }}
+          </div>
+          <p class="announcement-message mb-0">{{ announcement.message }}</p>
+        </div>
+        <button class="announcement-close" onclick="closeAnnouncement({{ announcement.id }});" type="button">
+          &times;
+        </button>
+      </div>
+    {% endif %}
+  {% endfor %}
+{% endif %}
+
+<script>
+  function closeAnnouncement(announcementId) {
+    const element = document.getElementById('announcement-' + announcementId);
+    if (element) {
+      element.style.animation = 'slideDown 0.3s ease reverse';
+      setTimeout(() => {
+        element.remove();
+      }, 300);
+      
+      // Optionally, store in localStorage to not show again during session
+      const closedAnnouncements = JSON.parse(localStorage.getItem('closedAnnouncements') || '[]');
+      if (!closedAnnouncements.includes(announcementId)) {
+        closedAnnouncements.push(announcementId);
+        localStorage.setItem('closedAnnouncements', JSON.stringify(closedAnnouncements));
+      }
+    }
+  }
+</script>

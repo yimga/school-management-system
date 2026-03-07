@@ -1,0 +1,243 @@
+{% extends "backend_base.html" %}
+{% load static i18n %}
+
+{% block backend_title %}Entity Import (Beta){% endblock %}
+
+{% block content %}
+  {% include 'components/admin_nav_bridge.html' %}
+  <div class="mb-4 d-flex flex-wrap justify-content-between align-items-start gap-2">
+    <div>
+      <h2 class="fw-bold mb-1">Entity import (beta)</h2>
+      <p class="text-muted mb-0">Paste CSV to preview student or guardian imports before syncing to the new entity endpoints.</p>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:import_hub' %}" title="Back to Import Hub">{% trans "Import Hub" %}</a>
+      <a class="btn btn-outline-info btn-sm" href="{% url 'accounts:import_hub' %}#entity-import" title="{% trans 'Help: Entity import' %}"><i class="bi bi-question-circle"></i> {% trans "Help" %}</a>
+    </div>
+  </div>
+
+  {# W2-3: Empty state + Download sample / Column guide #}
+  <div class="alert alert-info mb-3">
+    <strong>{% trans "First time?" %}</strong>
+    <a href="{% static 'samples/entity_students_sample.csv' %}" download class="alert-link">{% trans "Download sample" %}</a>
+    {% trans "or see the" %}
+    <a href="#column-guide" data-bs-toggle="collapse" class="alert-link">{% trans "Column guide" %}</a>
+    {% trans "for required columns and format." %}
+  </div>
+  <div id="column-guide" class="collapse card card-body bg-light mb-3">
+    <strong>{% trans "Students CSV" %}:</strong> first_name, last_name, admission_number, academic_year, classroom, specialty, status.
+    <strong>{% trans "Guardians CSV" %}:</strong> guardian_user, student, relationship, can_view_results, can_view_finance.
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="mb-0">Students CSV</h5>
+            <span class="badge bg-light text-dark">Admin only</span>
+          </div>
+          <p class="small text-muted mb-2">Columns: first_name, last_name, admission_number, academic_year, classroom, specialty, status</p>
+          <textarea id="studentCsv" class="form-control" rows="8" placeholder="first_name,last_name,admission_number,academic_year,classroom,specialty,status&#10;Ama,Ngum,ADM-001,1,3,2,NEW"></textarea>
+          <div class="d-flex gap-2 align-items-center mt-2">
+            <button type="button" class="btn btn-primary btn-sm" id="previewStudents">Preview students</button>
+            <button type="button" class="btn btn-outline-success btn-sm" id="commitStudents">Commit preview</button>
+            <div id="studentStatus" class="small text-muted"></div>
+          </div>
+          <pre class="mt-3 bg-light p-2 rounded small" id="studentPreview" style="min-height: 120px;">Awaiting preview…</pre>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="mb-0">Guardians CSV</h5>
+            <span class="badge bg-light text-dark">Admin only</span>
+          </div>
+          <p class="small text-muted mb-2">Columns: guardian_user, student, relationship, can_view_results, can_view_finance</p>
+          <textarea id="guardianCsv" class="form-control" rows="8" placeholder="guardian_user,student,relationship,can_view_results,can_view_finance&#10;8,12,FATHER,true,true"></textarea>
+          <div class="d-flex gap-2 align-items-center mt-2">
+            <button type="button" class="btn btn-primary btn-sm" id="previewGuardians">Preview guardians</button>
+            <button type="button" class="btn btn-outline-success btn-sm" id="commitGuardians">Commit preview</button>
+            <div id="guardianStatus" class="small text-muted"></div>
+          </div>
+          <pre class="mt-3 bg-light p-2 rounded small" id="guardianPreview" style="min-height: 120px;">Awaiting preview…</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}
+
+{% block extra_js %}
+  {{ block.super }}
+  <script src="{% static 'js/entity-orchestrator.js' %}"></script>
+  <script>
+    (function() {
+      const csrf = (function getCsrf() {
+        const cookies = document.cookie ? document.cookie.split(';') : [];
+        for (const raw of cookies) {
+          const c = raw.trim();
+          if (c.startsWith('csrftoken=')) return decodeURIComponent(c.split('=')[1]);
+        }
+        return '';
+      })();
+
+      const studentBtn = document.getElementById('previewStudents');
+      const guardianBtn = document.getElementById('previewGuardians');
+      const commitStudents = document.getElementById('commitStudents');
+      const commitGuardians = document.getElementById('commitGuardians');
+      const studentStatus = document.getElementById('studentStatus');
+      const guardianStatus = document.getElementById('guardianStatus');
+      const studentPreview = document.getElementById('studentPreview');
+      const guardianPreview = document.getElementById('guardianPreview');
+      let lastStudentPreview = null;
+      let lastGuardianPreview = null;
+
+      function formatValidationErrors(errors) {
+        if (!errors || !errors.length) return '';
+        return 'Validation errors:\n' + errors.map(function(e) {
+          return 'Row ' + (e.row || e.index || '?') + ': ' + (e.error || e.message || JSON.stringify(e));
+        }).join('\n');
+      }
+
+      async function previewStudents() {
+        studentStatus.textContent = 'Previewing…';
+        try {
+          const csv = document.getElementById('studentCsv').value;
+          const res = await fetch('/api/entities/students/bulk-preview/', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': csrf
+            },
+            body: JSON.stringify({ csv })
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            const errList = formatValidationErrors(data.errors || data.validation_errors);
+            const msg = data.error || 'Preview failed';
+            studentStatus.textContent = msg + (errList ? ' (see details below)' : '');
+            studentStatus.className = 'small text-danger';
+            studentPreview.textContent = errList || msg + '\n\n' + (data.detail || '');
+            lastStudentPreview = null;
+            return;
+          }
+          studentStatus.textContent = `${data.preview.length} rows parsed, ${(data.errors || []).length} errors`;
+          studentStatus.className = (data.errors && data.errors.length) ? 'small text-warning' : 'small text-success';
+          studentPreview.textContent = (data.errors && data.errors.length)
+            ? formatValidationErrors(data.errors) + '\n\n--- Preview ---\n' + JSON.stringify(data.preview, null, 2)
+            : JSON.stringify(data, null, 2);
+          lastStudentPreview = data.preview;
+        } catch (err) {
+          studentStatus.textContent = err.message || 'Preview failed';
+          studentStatus.className = 'small text-danger';
+          studentPreview.textContent = err.message || '';
+          lastStudentPreview = null;
+        }
+      }
+
+      async function previewGuardians() {
+        guardianStatus.textContent = 'Previewing…';
+        try {
+          const csv = document.getElementById('guardianCsv').value;
+          const res = await fetch('/api/entities/guardians/bulk-preview/', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': csrf
+            },
+            body: JSON.stringify({ csv })
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            const errList = formatValidationErrors(data.errors || data.validation_errors);
+            const msg = data.error || 'Preview failed';
+            guardianStatus.textContent = msg + (errList ? ' (see details below)' : '');
+            guardianStatus.className = 'small text-danger';
+            guardianPreview.textContent = errList || msg + '\n\n' + (data.detail || '');
+            lastGuardianPreview = null;
+            return;
+          }
+          guardianStatus.textContent = `${data.preview.length} rows parsed, ${(data.errors || []).length} errors`;
+          guardianStatus.className = (data.errors && data.errors.length) ? 'small text-warning' : 'small text-success';
+          guardianPreview.textContent = (data.errors && data.errors.length)
+            ? formatValidationErrors(data.errors) + '\n\n--- Preview ---\n' + JSON.stringify(data.preview, null, 2)
+            : JSON.stringify(data, null, 2);
+          lastGuardianPreview = data.preview;
+        } catch (err) {
+          guardianStatus.textContent = err.message || 'Preview failed';
+          guardianStatus.className = 'small text-danger';
+          guardianPreview.textContent = err.message || '';
+          lastGuardianPreview = null;
+        }
+      }
+
+      async function commitStudentsFn() {
+        if (!lastStudentPreview || !lastStudentPreview.length) {
+          studentStatus.textContent = 'Preview first';
+          studentStatus.className = 'small text-danger';
+          return;
+        }
+        studentStatus.textContent = 'Committing…';
+        try {
+          const res = await fetch('/api/entities/students/bulk-commit/', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': csrf
+            },
+            body: JSON.stringify({ rows: lastStudentPreview })
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Commit failed');
+          studentStatus.textContent = `Created ${data.created.length} (errors: ${data.errors.length})`;
+          studentStatus.className = data.errors.length ? 'small text-warning' : 'small text-success';
+        } catch (err) {
+          studentStatus.textContent = err.message || 'Commit failed';
+          studentStatus.className = 'small text-danger';
+        }
+      }
+
+      async function commitGuardiansFn() {
+        if (!lastGuardianPreview || !lastGuardianPreview.length) {
+          guardianStatus.textContent = 'Preview first';
+          guardianStatus.className = 'small text-danger';
+          return;
+        }
+        guardianStatus.textContent = 'Committing…';
+        try {
+          const res = await fetch('/api/entities/guardians/bulk-commit/', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': csrf
+            },
+            body: JSON.stringify({ rows: lastGuardianPreview })
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            const errList = formatValidationErrors(data.errors || data.validation_errors);
+            guardianStatus.textContent = (data.error || 'Commit failed') + (errList ? '. See details in preview.' : '');
+            guardianStatus.className = 'small text-danger';
+            guardianPreview.textContent = (data.error || 'Commit failed') + '\n\n' + (errList || data.detail || '');
+            return;
+          }
+          guardianStatus.textContent = `Created ${(data.created || []).length} (errors: ${(data.errors || []).length})`;
+          guardianStatus.className = (data.errors && data.errors.length) ? 'small text-warning' : 'small text-success';
+          if (data.errors && data.errors.length)
+            guardianPreview.textContent = 'Per-row errors:\n' + formatValidationErrors(data.errors) + '\n\nCreated IDs: ' + (data.created || []).join(', ');
+        } catch (err) {
+          guardianStatus.textContent = err.message || 'Commit failed';
+          guardianStatus.className = 'small text-danger';
+        }
+      }
+
+      if (studentBtn) studentBtn.addEventListener('click', previewStudents);
+      if (guardianBtn) guardianBtn.addEventListener('click', previewGuardians);
+      if (commitStudents) commitStudents.addEventListener('click', commitStudentsFn);
+      if (commitGuardians) commitGuardians.addEventListener('click', commitGuardiansFn);
+    })();
+  </script>
+{% endblock %}

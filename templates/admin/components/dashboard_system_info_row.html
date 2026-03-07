@@ -1,0 +1,7 @@
+{% load i18n %}
+<tr>
+  <td class="admin-sysinfo__label">{% trans label %}</td>
+  <td class="admin-sysinfo__val{% if value_class %} {{ value_class }}{% endif %}"{% if value_id %} id="{{ value_id }}"{% endif %}>
+    {{ value }}
+  </td>
+</tr>

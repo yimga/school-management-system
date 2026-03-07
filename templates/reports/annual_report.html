@@ -1,0 +1,97 @@
+{% load region_format %}
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  {% include "reports/_report_styles.html" %}
+</head>
+<body>
+  <div class="letterhead">
+    {% if SITE_LOGO_URL %}
+      <img src="{{ SITE_LOGO_URL }}" alt="Logo" width="80" height="80" decoding="async" style="max-height: 80px; width: auto; object-fit: contain;" />
+    {% endif %}
+    <div>
+      <p class="title">{{ SITE.site_name|default:"School" }}</p>
+      <p class="sub">Annual Report Card - {{ year.name|default:"" }}</p>
+      {% if SITE.company_phone or SITE.company_email %}
+        <p class="sub">
+          {% if SITE.company_phone %}Tel {{ SITE.company_phone }}{% endif %}
+          {% if SITE.company_phone and SITE.company_email %} • {% endif %}
+          {% if SITE.company_email %}{{ SITE.company_email }}{% endif %}
+        </p>
+      {% endif %}
+      {% if SITE.company_address %}
+        <p class="sub">{{ SITE.company_address|linebreaksbr }}</p>
+      {% endif %}
+      {% if SITE.ministry_registration_code %}
+        <p class="sub">Ministry Reg: {{ SITE.ministry_registration_code }}</p>
+      {% endif %}
+      {% if SITE.company_slug %}
+        <p class="sub text-uppercase">Slug: {{ SITE.company_slug }}</p>
+      {% endif %}
+    </div>
+    <div class="ms-auto" style="text-align:right;">
+      <div class="pill">AVERAGE: {{ annual_average|format_number:2|default:"-" }}</div>
+      <div style="margin-top:6px;font-size:10pt;">
+        Class Rank: {{ class_rank_display|default:"-" }} |
+        Specialty Rank: {{ specialty_rank_display|default:"-" }} |
+        School Rank: {{ school_rank_display|default:"-" }}
+      </div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="box">
+      <h3>Student</h3>
+      <div><b>Name:</b> {{ student_name|default:"" }}</div>
+      <div><b>Class:</b> {{ student.classroom.name|default:"" }}</div>
+      <div><b>Specialty:</b> {{ student.specialty.name|default:"" }}</div>
+    </div>
+    <div class="box">
+      <h3>Decision</h3>
+      <div class="pill">{{ promotion_status|default:"Pending" }}</div>
+      {% if promotion_average %}
+        <div style="margin-top:8px;">Promotion average required: {{ promotion_average }}</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <h3 style="margin-top:14px;">Term Summary</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Term</th>
+        <th class="text-end">Average</th>
+        <th class="text-end">Class Position</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in term_rows %}
+        <tr>
+          <td>{{ row.term }}</td>
+          <td class="text-end">{{ row.avg|format_number:2|default:"-" }}</td>
+          <td class="text-end">{{ row.rank_display|default:"-" }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="3">No term data.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="grid" style="margin-top:10px;">
+    <div class="box">
+      <b>Teacher Remark</b><br>
+      {{ teacher_remark }}
+    </div>
+    <div class="box">
+      <b>Generated</b><br>
+      {{ generated_at|format_date }}
+    </div>
+  </div>
+
+  <div class="footer">
+    <div>Signature (Principal): ______________________</div>
+    <div>Date: ______________________</div>
+  </div>
+</body>
+</html>

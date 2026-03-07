@@ -1,0 +1,85 @@
+/* ============================================
+   RESPONSIVE & PERFORMANCE (2025–2026)
+   Mobile-first, fluid layouts, CLS prevention, container queries
+   ============================================ */
+
+/* --- Fluid typography (use design-tokens vars); 16px min on mobile for readability --- */
+body {
+  font-size: var(--text-base, 1rem);
+  line-height: 1.5;
+}
+@media (max-width: var(--bp-mobile, 768px)) {
+  body {
+    font-size: max(1rem, var(--text-base));
+  }
+}
+
+h1 { font-size: var(--text-3xl, 1.875rem); }
+h2 { font-size: var(--text-2xl, 1.5rem); }
+h3 { font-size: var(--text-xl, 1.25rem); }
+h4 { font-size: var(--text-lg, 1.125rem); }
+h5, h6 { font-size: var(--text-base, 1rem); }
+
+/* --- Prevent CLS: reserve space for images --- */
+img.brand-logo,
+img[alt="Logo"],
+.header-logo {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+img:not([width]):not([height]) {
+  max-width: 100%;
+  height: auto;
+}
+
+/* --- Container queries: components adapt to parent width --- */
+@supports (container-type: inline-size) {
+  .portal-sidebar-wrapper,
+  .sidebar {
+    container-type: inline-size;
+    container-name: sidebar;
+  }
+
+  .card,
+  .dashboard-card,
+  .stat-card {
+    container-type: inline-size;
+    container-name: card;
+  }
+
+  @container card (max-width: 280px) {
+    .card-body { padding: var(--token-space-sm, 0.5rem); }
+    .card-title { font-size: var(--text-sm, 0.875rem); }
+  }
+}
+
+/* --- Fluid containers (avoid fixed px where possible) --- */
+.container-fluid {
+  width: 100%;
+  max-width: 100%;
+  padding-left: clamp(0.75rem, 2vw, 1.5rem);
+  padding-right: clamp(0.75rem, 2vw, 1.5rem);
+}
+
+/* --- Touch targets (INP / accessibility): min 44px --- */
+@media (pointer: coarse) {
+  .btn,
+  .nav-link.nav-pill,
+  .dropdown-toggle,
+  input[type="submit"],
+  input[type="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* --- Reduce motion for preference --- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

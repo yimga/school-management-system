@@ -1,0 +1,47 @@
+{% extends "portal_base.html" %}
+{% block title %}Share Report{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+  <div>
+    <h2 class="mb-1">Share Report</h2>
+    <div class="text-muted small">Generate a secure link for {{ report_type|capfirst }} report cards.</div>
+  </div>
+  <a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:parent_dashboard' %}">Back</a>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <b>Student:</b> {{ student.last_name }} {{ student.first_name }} ({{ student.student_code }})<br/>
+    <b>Class:</b> {{ student.classroom.name }} / {{ student.specialty.name }}<br/>
+    <b>Year:</b> {{ year.name }}
+    {% if report_type == "TERM" and term %}
+      | <b>Term:</b> {{ term.get_name_display }}
+    {% endif %}
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <label class="form-label fw-semibold">Share link</label>
+    <input type="text" class="form-control" value="{{ share_url }}" readonly>
+    <div class="form-text">Links expire automatically after a few days.</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="email">
+      <div class="d-flex flex-wrap gap-2 align-items-center">
+        <button class="btn btn-primary btn-sm" type="submit">Email Link</button>
+        <a class="btn btn-outline-secondary btn-sm" href="{{ share_url }}">Open Link</a>
+        {% if enable_whatsapp_share %}
+        <a class="btn btn-outline-success btn-sm" href="https://wa.me/?text={{ share_url|urlencode }}" target="_blank" rel="noopener noreferrer" title="Share via WhatsApp">Share via WhatsApp</a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

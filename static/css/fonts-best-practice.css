@@ -1,0 +1,19 @@
+/**
+ * Font loading best practice (2025–2026)
+ * --------------------------------------
+ * When adding @font-face in this project:
+ * 1. Always set font-display: swap (or optional for non-critical fonts).
+ * 2. Preload only the heaviest/critical font file (e.g. one weight) to avoid blocking.
+ * 3. Use variable fonts when possible to reduce number of files.
+ *
+ * Portal uses Inter from Google Fonts with display=swap (see portal_base.html).
+ * If you self-host fonts, add @font-face here with font-display: swap.
+ */
+/* Example for future self-hosted font:
+@font-face {
+  font-family: 'Inter';
+  src: url('/static/fonts/Inter.var.woff2') format('woff2');
+  font-weight: 100 900;
+  font-display: swap;
+}
+*/

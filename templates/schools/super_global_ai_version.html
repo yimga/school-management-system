@@ -1,0 +1,26 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+{% block title %}Global AI Version{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h1>Global AI Version</h1>
+  <p class="text-muted">Upgrade all regions to a target model. Enqueues sync_regional_models per cluster.</p>
+  <p><a href="{{ dashboard_url }}">Super dashboard</a> | <a href="{{ ai_model_hub_url }}">AI Model Hub</a></p>
+  <div class="card shadow-sm">
+    <div class="card-header">Upgrade all regions</div>
+    <div class="card-body">
+      <form method="post" action="">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label for="model_id" class="form-label">Target model ID (e.g. llama3.1:8b-q4)</label>
+          <input type="text" class="form-control" id="model_id" name="model_id" placeholder="llama3.1:8b-q4" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Upgrade all regions</button>
+      </form>
+      {% if clusters %}
+      <p class="mt-3 small text-muted">Regions that will be synced: {{ clusters|join:", " }}</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% load i18n %}
+{% with current_role=request.user.role|default:"Administrator" %}
+<noscript>
+  <p class="alert alert-info mb-2">{% trans "Theme preview requires JavaScript. Use the form fields to change colors; save to see changes on the site." %}</p>
+</noscript>
+<section class="theme-preview-section">
+  <div class="theme-preview-card" data-current-role="{{ current_role }}">
+    <header>
+      <h2>Live screen preview</h2>
+      <p>Auto-updates while you edit Theme & Experience fields. Switch between desktop, tablet, and mobile layouts.</p>
+    </header>
+
+    <div class="preview-role-selector">
+      <label for="previewRoleSelect"><strong>Preview as:</strong></label>
+      <select id="previewRoleSelect" data-current-role="{{ current_role }}">
+        <option value="Administrator"{% if current_role == "Administrator" %} selected{% endif %}>Administrator</option>
+        <option value="Principal"{% if current_role == "Principal" %} selected{% endif %}>Principal</option>
+        <option value="Teacher"{% if current_role == "Teacher" %} selected{% endif %}>Teacher</option>
+        <option value="Finance"{% if current_role == "Finance" %} selected{% endif %}>Finance</option>
+        <option value="Support"{% if current_role == "Support" %} selected{% endif %}>Support</option>
+      </select>
+      <span class="preview-role-note" id="previewRoleLabel">Inherits {{ current_role }} access.</span>
+    </div>
+
+    <div class="preview-mode-switch" role="group" aria-label="{% trans 'Preview device mode' %}">
+      <button type="button" class="preview-mode-btn active" data-preview-mode="desktop">{% trans "Desktop" %}</button>
+      <button type="button" class="preview-mode-btn" data-preview-mode="tablet">{% trans "Tablet" %}</button>
+      <button type="button" class="preview-mode-btn" data-preview-mode="mobile">{% trans "Mobile" %}</button>
+    </div>
+
+    <div class="preview-device" data-preview-mode="desktop" aria-live="polite">
+      <div class="preview-sidebar">
+        <div class="preview-logo">Logo</div>
+        <div class="preview-nav">
+          <span>Dashboard</span>
+          <span>Students</span>
+          <span>Documents</span>
+          <span>Reports</span>
+        </div>
+      </div>
+      <div class="preview-content">
+        <div class="preview-topbar">
+          <span class="preview-chip preview-chip-active">Live metrics</span>
+          <span class="preview-chip">Workflow</span>
+          <span class="preview-chip">Alerts</span>
+        </div>
+        <div class="preview-metrics-grid">
+          <div class="preview-card">
+            <strong>Attendance</strong>
+            <p>98% present</p>
+          </div>
+          <div class="preview-card">
+            <strong>Approvals</strong>
+            <p>3 pending</p>
+          </div>
+          <div class="preview-card">
+            <strong>Finance</strong>
+            <p>2 invoices due</p>
+          </div>
+        </div>
+        <div class="preview-chart-card">
+          <strong>Weekly activity</strong>
+          <div class="preview-chart-bars" aria-hidden="true">
+            <span style="height: 35%;"></span>
+            <span style="height: 55%;"></span>
+            <span style="height: 42%;"></span>
+            <span style="height: 68%;"></span>
+            <span style="height: 48%;"></span>
+            <span style="height: 76%;"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="contrastHint" class="contrast-hint" aria-live="polite">
+      <strong>Contrast check</strong> Running color ratios for sidebar tokens...
+    </div>
+    <div class="preview-note" aria-live="polite">
+      Live preview reads values from this form only. Save to apply globally.
+    </div>
+    <footer>
+      <button type="button" class="btn btn-sm btn-outline-primary" id="preview-reset" data-reset-message="Preview reset" data-default-mode="desktop">
+        Reset preview
+      </button>
+    </footer>
+  </div>
+</section>
+{% endwith %}

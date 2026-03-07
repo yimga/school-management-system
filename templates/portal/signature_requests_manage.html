@@ -1,0 +1,208 @@
+{% extends "portal_base.html" %}
+{% load static region_format %}
+
+{% block title %}Signature Requests Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 mb-1">Signature Requests</h1>
+      <p class="text-muted mb-0">Manage electronic signature requests for forms</p>
+    </div>
+    <a href="{% url 'portal:signature_request_create' %}" class="btn btn-primary">
+      <i class="bi bi-plus-circle me-1"></i>Create Request
+    </a>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <div class="text-muted small">Total Requests</div>
+              <div class="h4 mb-0">{{ stats.total }}</div>
+            </div>
+            <div class="text-primary">
+              <i class="bi bi-file-earmark-text fs-1"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm border-warning">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <div class="text-muted small">Pending</div>
+              <div class="h4 mb-0 text-warning">{{ stats.pending }}</div>
+            </div>
+            <div class="text-warning">
+              <i class="bi bi-clock fs-1"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm border-success">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <div class="text-muted small">Signed</div>
+              <div class="h4 mb-0 text-success">{{ stats.signed }}</div>
+            </div>
+            <div class="text-success">
+              <i class="bi bi-check-circle fs-1"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm border-danger">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <div class="text-muted small">Expired</div>
+              <div class="h4 mb-0 text-danger">{{ stats.expired }}</div>
+            </div>
+            <div class="text-danger">
+              <i class="bi bi-x-circle fs-1"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <form method="get" class="row g-3">
+        <div class="col-md-10">
+          <label class="form-label">Status</label>
+          <select name="status" class="form-select">
+            <option value="">All Statuses</option>
+            {% for status_code, status_label in status_choices %}
+              <option value="{{ status_code }}" {% if current_status == status_code %}selected{% endif %}>
+                {{ status_label }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="bi bi-filter me-1"></i>Filter
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Requests Table -->
+  <div class="card shadow-sm">
+    <div class="card-body">
+      {% if requests %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle" aria-label="Signature requests: form, student, parent, status, dates, and actions">
+            <thead>
+              <tr>
+                <th scope="col">Form</th>
+                <th scope="col">Student</th>
+                <th scope="col">Parent</th>
+                <th scope="col">Status</th>
+                <th scope="col">Created</th>
+                <th scope="col">Expires</th>
+                <th scope="col">Signed</th>
+                <th scope="col" class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for req in requests %}
+                <tr>
+                  <td>
+                    <div class="fw-semibold">{{ req.form_document.title }}</div>
+                    <div class="text-muted small">{{ req.form_document.get_document_type_display }}</div>
+                  </td>
+                  <td>
+                    {% if req.student %}
+                      <div>{{ req.student.get_full_name }}</div>
+                      <div class="text-muted small">{{ req.student.admission_number }}</div>
+                    {% else %}
+                      <span class="text-muted">—</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <div>{{ req.parent.get_full_name }}</div>
+                    <div class="text-muted small">{{ req.parent.email }}</div>
+                  </td>
+                  <td>
+                    {% if req.status == 'PENDING' %}
+                      {% if req.is_expired %}
+                        <span class="badge bg-danger">Expired</span>
+                      {% else %}
+                        <span class="badge bg-warning text-dark">Pending</span>
+                      {% endif %}
+                    {% elif req.status == 'SIGNED' %}
+                      <span class="badge bg-success">Signed</span>
+                    {% elif req.status == 'REJECTED' %}
+                      <span class="badge bg-danger">Rejected</span>
+                    {% else %}
+                      <span class="badge bg-secondary">{{ req.get_status_display }}</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <div class="small">{{ req.created_at|format_date }}</div>
+                    <div class="text-muted small">{{ req.created_at|time:"g:i A" }}</div>
+                  </td>
+                  <td>
+                    {% if req.expires_at %}
+                      <div class="small">{{ req.expires_at|format_date }}</div>
+                      {% if req.is_expired %}
+                        <div class="text-danger small">Expired</div>
+                      {% else %}
+                        <div class="text-muted small">{{ req.expires_at|timesince }} left</div>
+                      {% endif %}
+                    {% else %}
+                      <span class="text-muted">No expiry</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if req.signed_at %}
+                      <div class="small">{{ req.signed_at|format_date }}</div>
+                      <div class="text-muted small">{{ req.signed_at|time:"g:i A" }}</div>
+                    {% else %}
+                      <span class="text-muted">—</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end">
+                    <div class="btn-group btn-group-sm">
+                      {% if req.signed_pdf %}
+                        <a href="{{ req.signed_pdf.url }}" target="_blank" class="btn btn-outline-success" title="View Signed PDF">
+                          <i class="bi bi-file-pdf"></i>
+                        </a>
+                      {% endif %}
+                      {% if req.form_document.file %}
+                        <a href="{% url 'portal:document_download' req.form_document.id %}" class="btn btn-outline-primary" title="View Form">
+                          <i class="bi bi-eye"></i>
+                        </a>
+                      {% endif %}
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        {% url 'portal:signature_request_create' as empty_action_url %}
+        {% include "components/dashboard_empty_state.html" with icon="bi-pen" title="No signature requests found" message="When you request signatures from staff or parents, they will appear here." action_url=empty_action_url action_text="Create your first request" %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

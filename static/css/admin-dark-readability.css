@@ -1,0 +1,294 @@
+/**
+ * Admin dark theme readability – match Access roles page.
+ *
+ * When you click a sidebar item and land on a list/detail page, all text
+ * (metadata, "General Menu", descriptions, Views, Created Date) stays visible.
+ *
+ * Design (theme-agnostic, WCAG-friendly):
+ * - Accent (blue #60a5fa / #93c5fd) for breadcrumbs and primary links (visible in both themes)
+ * - Off-white / light grey (#e2e8f0, #cbd5e1) for body and secondary text
+ * - Section headers #f1f5f9
+ *
+ * Sidebar: admin_sidebar_enhanced.css uses --admin-sidebar-text-muted: #cbd5e1
+ * in dark theme so "General Menu" and section titles are readable.
+ */
+
+:root[data-theme="dark"],
+html[data-bs-theme="dark"] {
+  /* Content area: use palette vars when set (black theme), else refined dark */
+  --admin-content-bg: var(--admin-palette-dashboard-bg, #1e293b);
+  --admin-content-surface: var(--admin-palette-surface, #334155);
+  --admin-content-text: var(--admin-palette-text, #e2e8f0);
+  --admin-content-text-secondary: var(--admin-palette-muted, #cbd5e1);
+  --admin-content-accent: var(--admin-palette-primary, #38bdf8);
+  --admin-content-accent-alt: var(--admin-palette-accent, #7dd3fc);
+  --admin-content-border: var(--admin-palette-border, rgba(148, 163, 184, 0.25));
+}
+
+/* Main content (list views, change views, breadcrumbs) */
+:root[data-theme="dark"] #content,
+html[data-bs-theme="dark"] #content,
+:root[data-theme="dark"] .content,
+html[data-bs-theme="dark"] .content,
+:root[data-theme="dark"] main,
+html[data-bs-theme="dark"] main {
+  color: var(--admin-content-text) !important;
+}
+
+:root[data-theme="dark"] #content .text-muted,
+html[data-bs-theme="dark"] #content .text-muted,
+:root[data-theme="dark"] #content .text-body-secondary,
+html[data-bs-theme="dark"] #content .text-body-secondary,
+:root[data-theme="dark"] #content small,
+html[data-bs-theme="dark"] #content small,
+:root[data-theme="dark"] #content .small,
+html[data-bs-theme="dark"] #content .small,
+:root[data-theme="dark"] main .text-muted,
+html[data-bs-theme="dark"] main .text-muted,
+:root[data-theme="dark"] main .text-body-secondary,
+html[data-bs-theme="dark"] main .text-body-secondary,
+:root[data-theme="dark"] main small,
+html[data-bs-theme="dark"] main small,
+:root[data-theme="dark"] main .small,
+html[data-bs-theme="dark"] main .small {
+  color: #cbd5e1 !important;
+}
+
+/* Section headers (e.g. "General Menu", "People Management") – visible like Access roles */
+:root[data-theme="dark"] #content h1,
+html[data-bs-theme="dark"] #content h1,
+:root[data-theme="dark"] #content h2,
+html[data-bs-theme="dark"] #content h2,
+:root[data-theme="dark"] #content h3,
+html[data-bs-theme="dark"] #content h3,
+:root[data-theme="dark"] #content .module caption,
+html[data-bs-theme="dark"] #content .module caption,
+:root[data-theme="dark"] #content .module h2,
+html[data-bs-theme="dark"] #content .module h2,
+:root[data-theme="dark"] main h1,
+html[data-bs-theme="dark"] main h1,
+:root[data-theme="dark"] main h2,
+html[data-bs-theme="dark"] main h2,
+:root[data-theme="dark"] main h3,
+html[data-bs-theme="dark"] main h3,
+:root[data-theme="dark"] [class*="section-title"],
+html[data-bs-theme="dark"] [class*="section-title"],
+:root[data-theme="dark"] [class*="menu-title"],
+html[data-bs-theme="dark"] [class*="menu-title"] {
+  color: #f1f5f9 !important;
+}
+
+/* Breadcrumbs – accent color (align with content tokens) */
+:root[data-theme="dark"] .breadcrumbs a,
+html[data-bs-theme="dark"] .breadcrumbs a,
+:root[data-theme="dark"] .breadcrumb a,
+html[data-bs-theme="dark"] .breadcrumb a,
+:root[data-theme="dark"] [class*="breadcrumb"] a,
+html[data-bs-theme="dark"] [class*="breadcrumb"] a {
+  color: var(--admin-content-accent) !important;
+}
+
+:root[data-theme="dark"] .breadcrumbs a:hover,
+html[data-bs-theme="dark"] .breadcrumbs a:hover,
+:root[data-theme="dark"] .breadcrumb a:hover,
+html[data-bs-theme="dark"] .breadcrumb a:hover {
+  color: var(--admin-content-accent-alt) !important;
+}
+
+:root[data-theme="dark"] .breadcrumb-item.active,
+html[data-bs-theme="dark"] .breadcrumb-item.active,
+:root[data-theme="dark"] .breadcrumbs .active,
+html[data-bs-theme="dark"] .breadcrumbs .active {
+  color: #e2e8f0 !important;
+}
+
+/* List view rows – primary label (e.g. name) white, metadata/secondary light grey */
+:root[data-theme="dark"] #content .results td,
+html[data-bs-theme="dark"] #content .results td,
+:root[data-theme="dark"] #content .results th,
+html[data-bs-theme="dark"] #content .results th,
+:root[data-theme="dark"] #content table td,
+html[data-bs-theme="dark"] #content table td,
+:root[data-theme="dark"] #content table th,
+html[data-bs-theme="dark"] #content table th,
+:root[data-theme="dark"] main table td,
+html[data-bs-theme="dark"] main table td,
+:root[data-theme="dark"] main table th,
+html[data-bs-theme="dark"] main table th {
+  color: #e2e8f0 !important;
+  border-color: var(--admin-content-border) !important;
+}
+
+:root[data-theme="dark"] #content table thead th,
+html[data-bs-theme="dark"] #content table thead th {
+  color: var(--admin-content-text) !important;
+  background: var(--admin-content-surface) !important;
+  border-color: var(--admin-content-border) !important;
+}
+
+/* Unfold / list card metadata (V: STUDENT, F: Finance, P: Parents, Description, Views, Created Date) */
+:root[data-theme="dark"] [class*="list-row"] small,
+html[data-bs-theme="dark"] [class*="list-row"] small,
+:root[data-theme="dark"] [class*="changelist"] small,
+html[data-bs-theme="dark"] [class*="changelist"] small,
+:root[data-theme="dark"] [class*="row"] .text-muted,
+html[data-bs-theme="dark"] [class*="row"] .text-muted,
+:root[data-theme="dark"] [class*="description"],
+html[data-bs-theme="dark"] [class*="description"],
+:root[data-theme="dark"] [class*="metadata"],
+html[data-bs-theme="dark"] [class*="metadata"],
+:root[data-theme="dark"] td small,
+html[data-bs-theme="dark"] td small,
+:root[data-theme="dark"] .field-description,
+html[data-bs-theme="dark"] .field-description,
+:root[data-theme="dark"] .field-views,
+html[data-bs-theme="dark"] .field-views,
+:root[data-theme="dark"] .field-created,
+html[data-bs-theme="dark"] .field-created {
+  color: #cbd5e1 !important;
+}
+
+/* Search bar – visible placeholder and text */
+:root[data-theme="dark"] #content input[type="search"],
+html[data-bs-theme="dark"] #content input[type="search"],
+:root[data-theme="dark"] #content input[type="text"].search,
+html[data-bs-theme="dark"] #content input[type="text"].search,
+:root[data-theme="dark"] #content .nav-search,
+html[data-bs-theme="dark"] #content .nav-search,
+:root[data-theme="dark"] main input[type="search"],
+html[data-bs-theme="dark"] main input[type="search"],
+:root[data-theme="dark"] [class*="search"] input,
+html[data-bs-theme="dark"] [class*="search"] input {
+  background: var(--admin-content-surface) !important;
+  border-color: var(--admin-content-border) !important;
+  color: var(--admin-content-text) !important;
+}
+
+:root[data-theme="dark"] #content input::placeholder,
+html[data-bs-theme="dark"] #content input::placeholder,
+:root[data-theme="dark"] main input::placeholder,
+html[data-bs-theme="dark"] main input::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Filters button and controls */
+:root[data-theme="dark"] #content .btn,
+html[data-bs-theme="dark"] #content .btn,
+:root[data-theme="dark"] main .btn,
+html[data-bs-theme="dark"] main .btn {
+  border-color: var(--admin-content-border) !important;
+}
+
+:root[data-theme="dark"] #content .btn-outline-secondary,
+html[data-bs-theme="dark"] #content .btn-outline-secondary,
+:root[data-theme="dark"] main .btn-outline-secondary,
+html[data-bs-theme="dark"] main .btn-outline-secondary {
+  color: #cbd5e1 !important;
+  border-color: rgba(148, 163, 184, 0.4) !important;
+}
+
+:root[data-theme="dark"] #content .btn-outline-secondary:hover,
+html[data-bs-theme="dark"] #content .btn-outline-secondary:hover,
+:root[data-theme="dark"] main .btn-outline-secondary:hover,
+html[data-bs-theme="dark"] main .btn-outline-secondary:hover {
+  background: rgba(148, 163, 184, 0.15) !important;
+  color: #e2e8f0 !important;
+}
+
+/* Cards / panels in content */
+:root[data-theme="dark"] #content .card,
+html[data-bs-theme="dark"] #content .card,
+:root[data-theme="dark"] #content .module,
+html[data-bs-theme="dark"] #content .module,
+:root[data-theme="dark"] main .card,
+html[data-bs-theme="dark"] main .card,
+:root[data-theme="dark"] main .module,
+html[data-bs-theme="dark"] main .module {
+  background: #1e293b !important;
+  border-color: var(--admin-content-border) !important;
+  color: #e2e8f0 !important;
+}
+
+:root[data-theme="dark"] #content .card-title,
+html[data-bs-theme="dark"] #content .card-title,
+:root[data-theme="dark"] main .card-title,
+html[data-bs-theme="dark"] main .card-title {
+  color: #f1f5f9 !important;
+}
+
+/* Primary links in list/changelist (e.g. object name) – accent like Access roles */
+:root[data-theme="dark"] #content #result_list a,
+html[data-bs-theme="dark"] #content #result_list a,
+:root[data-theme="dark"] #content .results a,
+html[data-bs-theme="dark"] #content .results a,
+:root[data-theme="dark"] #content .changelist a,
+html[data-bs-theme="dark"] #content .changelist a {
+  color: var(--admin-content-accent) !important;
+}
+
+:root[data-theme="dark"] #content #result_list a:hover,
+html[data-bs-theme="dark"] #content #result_list a:hover,
+:root[data-theme="dark"] #content .results a:hover,
+html[data-bs-theme="dark"] #content .results a:hover,
+:root[data-theme="dark"] #content .changelist a:hover,
+html[data-bs-theme="dark"] #content .changelist a:hover {
+  color: var(--admin-content-accent-alt) !important;
+}
+
+/* Select all rows / checkbox labels */
+:root[data-theme="dark"] #content label,
+html[data-bs-theme="dark"] #content label,
+:root[data-theme="dark"] main label,
+html[data-bs-theme="dark"] main label {
+  color: #e2e8f0 !important;
+}
+
+/* Empty state ("No results found") – keep message and button visible */
+:root[data-theme="dark"] #content .text-muted + .btn,
+html[data-bs-theme="dark"] #content .text-muted + .btn,
+:root[data-theme="dark"] main [class*="empty"],
+html[data-bs-theme="dark"] main [class*="empty"] {
+  color: #e2e8f0 !important;
+}
+
+/* ========== Content area flow and layout ========== */
+#content,
+main.main-content {
+  padding: 1rem 1.25rem !important;
+  max-width: 100%;
+}
+
+:root[data-theme="dark"] #content,
+html[data-bs-theme="dark"] #content,
+:root[data-theme="dark"] main.main-content,
+html[data-bs-theme="dark"] main.main-content {
+  background: var(--admin-palette-dashboard-bg, #0f172a) !important;
+  color: var(--admin-palette-text, #e2e8f0) !important;
+}
+
+/* Toolbar (back button) – ensure visible in both themes */
+#content .admin-content-toolbar {
+  margin-bottom: 1.25rem !important;
+}
+
+:root[data-theme="dark"] #content .admin-content-toolbar,
+html[data-bs-theme="dark"] #content .admin-content-toolbar {
+  background: transparent !important;
+  border-color: var(--admin-content-border) !important;
+  color: var(--admin-content-text) !important;
+}
+
+:root[data-theme="dark"] #content .admin-toolbar-back,
+html[data-bs-theme="dark"] #content .admin-toolbar-back,
+:root[data-theme="dark"] #content .admin-toolbar-dashboard,
+html[data-bs-theme="dark"] #content .admin-toolbar-dashboard {
+  color: #e2e8f0 !important;
+}
+
+:root[data-theme="dark"] #content .admin-toolbar-back:hover,
+html[data-bs-theme="dark"] #content .admin-toolbar-back:hover,
+:root[data-theme="dark"] #content .admin-toolbar-dashboard:hover,
+html[data-bs-theme="dark"] #content .admin-toolbar-dashboard:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #f1f5f9 !important;
+}

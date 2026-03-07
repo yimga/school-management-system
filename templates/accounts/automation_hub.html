@@ -1,0 +1,86 @@
+{% extends "backend_base.html" %}
+{% load static %}
+
+{% block backend_title %}Automation Hub{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+    <div>
+      <h1 class="h4 mb-1 fw-bold">Automation Hub</h1>
+      <p class="text-muted small mb-0">Execution logs, approval queue, and schedule configuration</p>
+    </div>
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:workflow_center' %}">
+      <i class="bi bi-arrow-left me-1"></i>Workflow Center
+    </a>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-md-6 col-lg-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-journal-text text-primary" style="font-size: 1.5rem;"></i>
+            <h5 class="mb-0">Execution Log</h5>
+          </div>
+          <p class="text-muted small mb-3">View all automation runs: scheduled, manual, and dry-run. Success, failed, and partial.</p>
+          {% if execution_log_url %}
+          <a class="btn btn-primary btn-sm" href="{{ execution_log_url }}">
+            View execution log <i class="bi bi-chevron-right ms-1"></i>
+          </a>
+          {% else %}
+          <span class="text-muted small">Not available</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-check2-square text-success" style="font-size: 1.5rem;"></i>
+            <h5 class="mb-0">Approval Queue</h5>
+          </div>
+          <p class="text-muted small mb-3">Approve or reject automation requests that require approval before execution.</p>
+          {% if approval_queue_url %}
+          <a class="btn btn-success btn-sm" href="{{ approval_queue_url }}">
+            Review approval queue <i class="bi bi-chevron-right ms-1"></i>
+          </a>
+          {% else %}
+          <span class="text-muted small">Not available</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-gear text-secondary" style="font-size: 1.5rem;"></i>
+            <h5 class="mb-0">Site Settings</h5>
+          </div>
+          <p class="text-muted small mb-3">Configure schedules and thresholds: Finance Automation, Notifications, dry-run options.</p>
+          {% if site_settings_url %}
+          <a class="btn btn-outline-secondary btn-sm" href="{{ site_settings_url }}">
+            Open Site Settings <i class="bi bi-chevron-right ms-1"></i>
+          </a>
+          {% else %}
+          <span class="text-muted small">Not available</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mt-4 shadow-sm">
+    <div class="card-body">
+      <h6 class="fw-bold mb-2">Quick tips</h6>
+      <ul class="small text-muted mb-0">
+        <li>Use <strong>dry-run</strong> on payment reminders and invoice generation (via management commands or task args) to preview without sending or applying.</li>
+        <li>Receipt verification supports <code>dry_run=True</code> in the task to verify without creating a payment.</li>
+        <li>High-impact automations can require approval; pending items appear in the Approval Queue.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

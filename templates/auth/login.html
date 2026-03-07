@@ -1,0 +1,344 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "School portal login" %}{% endblock %}
+
+{% block extrastyle %}
+  <style>
+    body {
+      background: var(--portal-bg);
+    }
+
+    .auth-landing {
+      min-height: 100vh;
+      padding-bottom: 4rem;
+    }
+
+    .auth-hero {
+      border-radius: 0 0 18px 18px;
+      padding: 1.5rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(135deg, var(--school-primary), var(--school-accent));
+      color: white;
+      margin-bottom: 0.5rem;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
+    }
+
+    .auth-hero .hero-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+    }
+
+    .auth-hero .hero-logo {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.9);
+      display: grid;
+      place-items: center;
+      font-size: 1.3rem;
+    }
+
+    .auth-hero h1 {
+      font-size: 1.1rem;
+      margin-bottom: 0;
+    }
+
+    .auth-hero small {
+      display: block;
+      color: rgba(255, 255, 255, 0.85);
+      letter-spacing: 0.08em;
+    }
+
+    .auth-hero .hero-meta {
+      text-align: right;
+    }
+
+    .auth-breadcrumb {
+      background: var(--admin-content-bg);
+      padding: 0.8rem 1.2rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.85rem;
+    }
+
+    .login-card,
+    .info-card {
+      border-radius: 18px;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      background: var(--admin-content-bg);
+    }
+
+    .login-card .form-control {
+      border-radius: 12px;
+      border: 1px solid rgba(15, 23, 42, 0.15);
+      padding: 0.75rem 0.85rem;
+    }
+
+    .info-card {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .quick-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      padding: 0.35rem 0.9rem;
+      border: 1px solid color-mix(in srgb, var(--school-primary) 45%, transparent);
+      color: var(--school-primary);
+      font-weight: 600;
+      text-decoration: none;
+      background: color-mix(in srgb, var(--school-primary) 8%, transparent);
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .quick-link:hover {
+      background: var(--school-primary);
+      color: var(--admin-content-accent-fg);
+      border-color: var(--school-primary);
+    }
+
+    .quick-link-muted {
+      opacity: 0.6;
+      border-color: rgba(108, 117, 125, 0.4);
+      color: var(--portal-text-muted);
+      background: rgba(108, 117, 125, 0.08);
+    }
+
+    .quick-link-muted:hover {
+      opacity: 1;
+      color: var(--portal-text-muted);
+      border-color: rgba(108, 117, 125, 0.6);
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+    }
+
+    .info-card .quick-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+    }
+
+    .hero-actions a {
+      margin-right: 0.35rem;
+    }
+
+    .login-split {
+      display: flex;
+      min-height: 100vh;
+    }
+    .login-split__left {
+      flex: 1;
+      min-height: 60vh;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-color: color-mix(in srgb, var(--admin-content-border) 55%, var(--admin-content-bg));
+    }
+    .login-split__right {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 2rem;
+      background: var(--portal-bg);
+    }
+    .login-split .auth-hero {
+      margin-bottom: 0;
+      border-radius: 0;
+    }
+    @media (max-width: 767px) {
+      .login-split {
+        flex-direction: column;
+      }
+      .login-split__left {
+        min-height: 28vh;
+      }
+    }
+    @media (max-width: 991px) {
+      .info-card {
+        flex-direction: column;
+      }
+
+      .auth-hero {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.8rem;
+      }
+
+      .auth-hero .hero-meta {
+        text-align: left;
+      }
+
+      .auth-breadcrumb {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  {% if TENANT_WALLPAPER_URL %}
+  <div class="login-split" id="preview-login-page">
+    <div class="login-split__left" style="background-image: url('{{ TENANT_WALLPAPER_URL|escape }}');" role="img" aria-hidden="true"></div>
+    <div class="login-split__right">
+  {% else %}
+  <section class="auth-landing py-5" id="preview-login-page">
+    <div class="container">
+  {% endif %}
+      <div class="auth-hero" id="preview-login-hero" data-preview-label="{% trans 'Login hero (colors & branding)' %}" data-preview-changes="{% trans 'Primary/accent colors, logo, heading' %}">
+        <div class="hero-brand" id="preview-login-brand" data-preview-label="{% trans 'Logo & site name' %}" data-preview-changes="{% trans 'Site name, tagline, hero heading' %}">
+          <div class="hero-logo">
+            {% if is_manager_host and not SITE_LOGO_URL and not PUBLIC_BRAND_LOGO_URL %}
+              <span>R</span>
+            {% elif PUBLIC_BRAND_MODE and PUBLIC_BRAND_LOGO_URL %}
+              <img src="{{ PUBLIC_BRAND_LOGO_URL }}" alt="" width="80" height="80" decoding="async" loading="eager" style="width:100%;height:100%;object-fit:contain;">
+            {% elif SITE_LOGO_URL %}
+              <img src="{{ SITE_LOGO_URL }}" alt="" width="80" height="80" decoding="async" loading="eager" style="width:100%;height:100%;object-fit:contain;">
+            {% else %}
+              <span>{% if PUBLIC_BRAND_MODE %}R{% elif SITE.site_name %}{{ SITE.site_name|slice:":1" }}{% else %}G{% endif %}</span>
+            {% endif %}
+          </div>
+          <div>
+            {% if is_manager_host %}
+              <strong>RunMyCampus</strong>
+              <small>{% trans "Platform & tenant management" %}</small>
+              <small class="d-block mt-1 opacity-75">{% trans "You're signing in to manage schools and tenants" %}</small>
+            {% else %}
+              <strong>{% if PUBLIC_BRAND_MODE %}{{ PUBLIC_BRAND_NAME }}{% elif SITE.login_hero_heading %}{{ SITE.login_hero_heading }}{% else %}{{ SITE.site_name|default:"School Management System" }}{% endif %}</strong>
+              <small>{% if PUBLIC_BRAND_MODE %}{{ PUBLIC_BRAND_TAGLINE }}{% elif SITE.login_hero_subtext %}{{ SITE.login_hero_subtext }}{% else %}{{ SITE.tagline|default:"Sign in for staff, families, and admins" }}{% endif %}</small>
+              {% if SITE_BRANDED_DOMAIN %}
+                <small class="d-block mt-1 opacity-75">{% trans "You're logging in to" %} {{ SITE_BRANDED_DOMAIN }}</small>
+              {% endif %}
+            {% endif %}
+          </div>
+        </div>
+        {% if request.user.is_authenticated %}
+          <div class="auth-hero hero-meta">
+            <div class="d-flex align-items-center gap-2">
+              <span>Logged in as {{ request.user.username }}</span>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+      {% if not TENANT_WALLPAPER_URL %}
+      <div class="auth-breadcrumb text-muted text-uppercase small">
+        <span>Home / Authentication / Login</span>
+      </div>
+      {% endif %}
+
+      <div class="row justify-content-center g-4 align-items-stretch {% if TENANT_WALLPAPER_URL %}mx-0{% endif %}">
+        <div class="col-lg-5">
+          <div class="card shadow-sm login-card" id="preview-login-form" data-preview-label="{% trans 'Sign-in form' %}" data-preview-changes="{% trans 'Form layout and styling' %}">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start mb-3 gap-2">
+                <div>
+                  <p class="text-uppercase small text-muted mb-1">{% trans "Staff & admin access" %}</p>
+                  <h2 class="h5 mb-0">{% trans "Secure sign in" %}</h2>
+                </div>
+                <span class="badge rounded-pill text-primary border border-primary px-3 py-1">
+                  {% trans "Portal credentials" %}
+                </span>
+              </div>
+
+              <form method="post" novalidate>
+                {% csrf_token %}
+                {% if request.GET.next %}
+                  <input type="hidden" name="next" value="{{ request.GET.next }}">
+                {% elif request.POST.next %}
+                  <input type="hidden" name="next" value="{{ request.POST.next }}">
+                {% endif %}
+                <div class="mb-3">
+                  <label class="form-label">{% trans "I am signing in as" %}</label>
+                  <select class="form-select" name="role" id="login-role">
+                    <option value="staff">{{ TENANT_LABELS.staff|default:"Staff" }}</option>
+                    <option value="student">{{ TENANT_LABELS.student|default:"Student" }}</option>
+                    <option value="parent">{{ TENANT_LABELS.parent|default:"Parent" }}</option>
+                  </select>
+                </div>
+                {% if LOGIN_SSO_INTEGRATIONS %}
+                <div class="mb-3">
+                  {% for item in LOGIN_SSO_INTEGRATIONS %}
+                  <a href="{{ item.url }}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" class="btn btn-outline-secondary w-100 mb-2">{{ item.label }}</a>
+                  {% endfor %}
+                  <p class="small text-muted text-center my-2">{% trans "— or sign in with username —" %}</p>
+                </div>
+                {% endif %}
+                <div class="mb-3">
+                  <label class="form-label">{% trans "Username" %}</label>
+                  <input class="form-control" type="text" name="username" autocomplete="username" value="{{ request.POST.username|default:'' }}" placeholder="{{ LOGIN_EMAIL_PLACEHOLDER|default:'School Email' }}" required autofocus>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">{% trans "Password" %}</label>
+                  <input class="form-control" type="password" name="password" autocomplete="current-password" required>
+                </div>
+                <button class="btn btn-primary w-100" type="submit">{% trans "Log in" %}</button>
+              </form>
+
+              <p class="small text-muted mt-3 mb-0">
+                {% trans "Teachers land on the teacher dashboard, admins land on the console, and parents claim invites to link students." %}
+                <br>
+                {% trans "New parents can claim an invite" %} <a href="{% url 'accounts:claim_invite' %}">{% trans "here" %}</a>.
+              </p>
+              <p class="small text-muted mt-3 mb-0 text-center">
+                <a href="https://runmycampus.com" target="_blank" rel="noopener noreferrer" class="text-muted">Powered by RunMyCampus</a>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-5">
+          <div class="card shadow-sm info-card">
+            <div>
+              <p class="text-uppercase small text-muted mb-1">{% trans "Families & guardians" %}</p>
+              <h3 class="h5 mb-2">{% trans "Link your children securely" %}</h3>
+              <p class="text-muted mb-3">
+                {% trans "Use the invite email, SMS, or WhatsApp token sent by the school to claim your learner and unlock attendance, marks, and open invoices." %}
+              </p>
+              <a class="btn btn-outline-primary" href="{% url 'portal:link_child' %}">{% trans "Claim an invite" %}</a>
+            </div>
+
+            <div>
+              <p class="text-uppercase small text-muted mb-2">{% trans "Quick links" %}</p>
+              <div class="d-flex flex-wrap gap-2">
+                <a class="quick-link" href="{% url 'portal:parent_dashboard' %}">{% trans "Parent portal" %}</a>
+                <a class="quick-link" href="{% url 'siteconfig:user_preferences' %}">{% trans "Preferences" %}</a>
+                <a
+                  class="quick-link quick-link-muted"
+                  href="{% url 'siteconfig:customizer' %}"
+                  title="{% trans "Admins only: Site Settings & theme packs" %}"
+                >
+                  {% trans "Site Settings (admin only)" %}
+                </a>
+              </div>
+              <p class="small text-muted mt-3 mb-0">
+                {% trans "Customizer controls now live inside Site Settings or your Preferences so you can always control how the dashboard looks." %}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% if TENANT_WALLPAPER_URL %}
+    </div>
+  </div>
+  {% else %}
+    </div>
+  </section>
+  {% endif %}
+{% endblock %}

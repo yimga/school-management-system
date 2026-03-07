@@ -1,0 +1,93 @@
+{% extends "portal_base.html" %}
+{% load static region_format %}
+
+{% block title %}Certification & Exams{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-2 mb-3">
+    <div>
+      <h2 class="fw-bold mb-1">Certification & Exams</h2>
+      <div class="text-muted">
+        Active year: <strong>{{ active_year.name }}</strong>
+        {% if active_term %} · Active term: <strong>{{ active_term.label }}</strong>{% endif %}
+      </div>
+      <div class="small text-muted mt-1">
+        This module helps you follow the official 3-phase process (Pre‑registration → MTN payment → Validation) and export a submission pack.
+      </div>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:workflow_center' %}">
+        <i class="bi bi-diagram-3 me-1"></i>Workflow Center
+      </a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ admin_year_url }}" title="Configuration Engine">
+        <i class="bi bi-calendar3 me-1"></i>Academic Years
+      </a>
+      <a class="btn btn-sm btn-primary" href="{{ admin_session_url }}" title="Configuration Engine">
+        <i class="bi bi-plus-circle me-1"></i>Create Exam Session
+      </a>
+    </div>
+  </div>
+
+  <div class="alert alert-info">
+    <div class="fw-semibold mb-1">Official references</div>
+    <div class="small">
+      - E‑REG 2026 manual: <a href="https://camgceb.org/wp-content/uploads/2025/10/2026-E-Reg-user-manual.pdf" target="_blank" rel="noopener">PDF</a><br>
+      - Data submission: <a href="https://camgceb.org/submit-reg-data/" target="_blank" rel="noopener">Submit Registration Data</a>
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h5 class="mb-3">Exam sessions</h5>
+      {% if sessions %}
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr>
+                <th>Session</th>
+                <th>Board</th>
+                <th>Level</th>
+                <th>Centre</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for s in sessions %}
+              <tr>
+                <td>
+                  <div class="fw-semibold">{{ s.name }}</div>
+                  <div class="small text-muted">
+                    {% if s.registration_closes_at %}Closes {{ s.registration_closes_at|format_date }}{% endif %}
+                    {% if s.ca_submission_deadline_at %} · CA deadline {{ s.ca_submission_deadline_at|format_date }}{% endif %}
+                  </div>
+                </td>
+                <td>{{ s.get_board_display }}</td>
+                <td>{{ s.get_level_display }}</td>
+                <td>
+                  <div class="small">
+                    {{ s.exam_centre_name|default:"—" }}<br>
+                    <span class="text-muted">#{{ s.exam_centre_number|default:"—" }}</span>
+                  </div>
+                </td>
+                <td class="text-end">
+                  <a class="btn btn-sm btn-outline-primary" href="{% url 'accounts:certification_session_detail' s.id %}">
+                    Open
+                  </a>
+                  <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:certification_export_zip' s.id %}">
+                    Export `Data[CentreNo].zip`
+                  </a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="text-muted">No exam sessions yet. Create one first.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+

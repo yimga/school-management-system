@@ -1,0 +1,359 @@
+{% extends "portal_base.html" %}
+{% load static %}
+
+{% block title %}EMIS Export Dashboard{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/dashboard-auto-grid.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard-charts.css' %}">
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.body.dataset.dashboardPage = 'emis';
+  });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="emis-dashboard-widgets">
+
+<div class="dashboard-card-grid" style="gap: 1.5rem;">
+  <!-- Export Form -->
+  <div class="card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">
+          <i class="bi bi-file-earmark-spreadsheet me-2"></i>
+          EMIS Data Export
+        </h5>
+      </div>
+      <div class="card-body">
+        <form method="post" action="{% url 'emis:export' %}">
+          {% csrf_token %}
+
+          <div class="row g-3">
+            <!-- Export Type -->
+            <div class="col-md-6">
+              <label for="export_type" class="form-label">Export Type</label>
+              <select class="form-select" id="export_type" name="export_type" required>
+                {% for value, label in export_types %}
+                <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <!-- Country -->
+            <div class="col-md-6">
+              <label for="country_code" class="form-label">Country</label>
+              <select class="form-select" id="country_code" name="country_code" required>
+                {% for country in supported_countries %}
+                <option value="{{ country.country_code }}" {% if country.country_code == default_country %}selected{% endif %}>
+                  {{ country.country_name }} ({{ country.country_code }})
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <!-- Academic Year -->
+            <div class="col-md-6">
+              <label for="academic_year" class="form-label">Academic Year</label>
+              <select class="form-select" id="academic_year" name="academic_year" required>
+                {% for year in academic_years %}
+                <option value="{{ year.id }}" {% if year == current_year %}selected{% endif %}>
+                  {{ year.name }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <!-- Term (Optional) -->
+            <div class="col-md-6">
+              <label for="term" class="form-label">Term (Optional)</label>
+              <select class="form-select" id="term" name="term">
+                <option value="">All Terms</option>
+                <!-- Terms will be loaded dynamically -->
+              </select>
+            </div>
+
+            <!-- Format -->
+            <div class="col-md-6">
+              <label for="format" class="form-label">Export Format</label>
+              <select class="form-select" id="format" name="format" required>
+                <option value="csv">CSV</option>
+                <option value="xlsx">Excel (.xlsx)</option>
+                <option value="json">JSON</option>
+              </select>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="col-12">
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-download me-2"></i>
+                Generate EMIS Export
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  <!-- Information Panel -->
+  <div class="card">
+      <div class="card-header">
+        <h6 class="card-title mb-0">
+          <i class="bi bi-info-circle me-2"></i>
+          EMIS Information
+        </h6>
+      </div>
+      <div class="card-body">
+        <div id="country-info">
+          <div class="text-center">
+            <div class="spinner-border spinner-border-sm" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Entity Distribution Chart -->
+    <div class="mt-3">
+      {% include "components/dashboard_chart.html" with chart_id="emisEntityChart" chart_type="doughnut" chart_title="Entity distribution" chart_data=chart_entity_donut_json aria_label="Students, teachers, subjects, and classes count" %}
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="card mt-3">
+      <div class="card-header">
+        <h6 class="card-title mb-0">
+          <i class="bi bi-bar-chart me-2"></i>
+          Quick Stats
+        </h6>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-6">
+            <div class="text-center">
+              <div class="h4 mb-1" id="total-students">-</div>
+              <small class="text-muted">Students</small>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="text-center">
+              <div class="h4 mb-1" id="total-teachers">-</div>
+              <small class="text-muted">Teachers</small>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="text-center">
+              <div class="h4 mb-1" id="total-subjects">-</div>
+              <small class="text-muted">Subjects</small>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="text-center">
+              <div class="h4 mb-1" id="total-classes">-</div>
+              <small class="text-muted">Classes</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Exports -->
+<div class="row mt-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">
+          <i class="bi bi-clock-history me-2"></i>
+          Recent Exports
+        </h5>
+        <button type="button" class="btn btn-sm btn-outline-primary" onclick="refreshExports()">
+          <i class="bi bi-arrow-clockwise"></i>
+        </button>
+      </div>
+      <div class="card-body">
+        <div id="recent-exports">
+          <div class="text-center">
+            <div class="spinner-border spinner-border-sm" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div> <!-- /emis-dashboard-widgets -->
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="{% static 'js/dashboard-charts-shared.js' %}"></script>
+<script>
+(function() {
+  function initEmisChart() {
+    if (typeof Chart === 'undefined' || !window.DashboardChartsShared) return;
+    var configEl = document.querySelector('[data-chart-config="emisEntityChart"]');
+    if (!configEl) return;
+    try {
+      var config = JSON.parse(configEl.textContent);
+      if (config.data && config.data.labels && config.data.labels.length > 0) {
+        var ch = window.DashboardChartsShared.createChart('emisEntityChart', config);
+        if (ch) {
+          document.querySelectorAll('[data-chart-export="emisEntityChart"]').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+              window.DashboardChartsShared.exportChartToPng(ch, 'emis-entities.png');
+            });
+          });
+        }
+      } else {
+        document.querySelector('[data-chart-empty="emisEntityChart"]')?.classList.remove('d-none');
+        var c = document.getElementById('emisEntityChart');
+        if (c) c.style.display = 'none';
+      }
+    } catch (e) { console.warn('EMIS chart init:', e); }
+  }
+  document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', initEmisChart) : initEmisChart();
+})();
+</script>
+<script>
+  window.EMIS_DOWNLOAD_URL_BASE = "{% url 'emis:download' 0 %}";
+document.addEventListener('DOMContentLoaded', function() {
+  // Load initial data
+  loadCountryInfo();
+  loadRecentExports();
+  loadStats();
+
+  // Update country info when country changes
+  document.getElementById('country_code').addEventListener('change', loadCountryInfo);
+
+  // Update terms when academic year changes
+  document.getElementById('academic_year').addEventListener('change', loadTerms);
+});
+
+function loadCountryInfo() {
+  const countryCode = document.getElementById('country_code').value;
+  const infoDiv = document.getElementById('country-info');
+
+  fetch(`/emis/api/compliance/${countryCode}/`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.error) {
+        infoDiv.innerHTML = '<p class="text-muted mb-0">Country information not available</p>';
+        return;
+      }
+
+      infoDiv.innerHTML = `
+        <h6>${data.country_name}</h6>
+        <p class="mb-2"><strong>Ministry:</strong> ${data.ministry_name}</p>
+        <p class="mb-2"><strong>EMIS Version:</strong> ${data.emis_version}</p>
+        ${data.requirements_url ? `<p class="mb-0"><a href="${data.requirements_url}" target="_blank" class="btn btn-sm btn-outline-primary">View Requirements</a></p>` : ''}
+      `;
+    })
+    .catch(error => {
+      console.error('Error loading country info:', error);
+      infoDiv.innerHTML = '<p class="text-danger mb-0">Error loading country information</p>';
+    });
+}
+
+function loadRecentExports() {
+  fetch('/emis/api/status/')
+    .then(response => response.json())
+    .then(data => {
+      const container = document.getElementById('recent-exports');
+
+      if (data.exports.length === 0) {
+        container.innerHTML = '<p class="text-muted mb-0">No recent exports</p>';
+        return;
+      }
+
+      let html = '<div class="table-responsive"><table class="table table-sm">';
+      html += '<thead><tr><th>Type</th><th>Records</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
+
+      data.exports.forEach(export_item => {
+        const statusClass = export_item.status === 'completed' ? 'success' : 'warning';
+        html += `
+          <tr>
+            <td>${export_item.type}</td>
+            <td>${export_item.record_count}</td>
+            <td>${new Date(export_item.export_date).toLocaleDateString()}</td>
+            <td><span class="badge bg-${statusClass}">${export_item.status}</span></td>
+            <td>
+              ${export_item.status === 'completed' ?
+                `<a href="${(window.EMIS_DOWNLOAD_URL_BASE || '/emis/download/0/').replace('/0/', '/' + export_item.id + '/')}" class="btn btn-sm btn-outline-primary">Download</a>` :
+                '-'}
+            </td>
+          </tr>
+        `;
+      });
+
+      html += '</tbody></table></div>';
+      container.innerHTML = html;
+    })
+    .catch(error => {
+      console.error('Error loading exports:', error);
+      document.getElementById('recent-exports').innerHTML = '<p class="text-danger mb-0">Error loading exports</p>';
+    });
+}
+
+function loadStats() {
+  // Load basic stats - in a real implementation, this would come from an API
+  fetch('/api/dashboard/stats/')  // Assuming this endpoint exists
+    .then(response => response.json())
+    .then(data => {
+      document.getElementById('total-students').textContent = data.students || '-';
+      document.getElementById('total-teachers').textContent = data.teachers || '-';
+      document.getElementById('total-subjects').textContent = data.subjects || '-';
+      document.getElementById('total-classes').textContent = data.classes || '-';
+    })
+    .catch(error => {
+      console.error('Error loading stats:', error);
+      // Set defaults
+      document.getElementById('total-students').textContent = '-';
+      document.getElementById('total-teachers').textContent = '-';
+      document.getElementById('total-subjects').textContent = '-';
+      document.getElementById('total-classes').textContent = '-';
+    });
+}
+
+function loadTerms() {
+  const academicYearId = document.getElementById('academic_year').value;
+  const termSelect = document.getElementById('term');
+
+  if (!academicYearId) {
+    termSelect.innerHTML = '<option value="">All Terms</option>';
+    return;
+  }
+
+  // In a real implementation, fetch terms for the selected academic year
+  // For now, just reset
+  termSelect.innerHTML = '<option value="">All Terms</option>';
+}
+
+function refreshExports() {
+  const button = event.target.closest('button');
+  const originalHtml = button.innerHTML;
+  button.innerHTML = '<i class="bi bi-arrow-clockwise spinning"></i>';
+  button.disabled = true;
+
+  loadRecentExports().finally(() => {
+    button.innerHTML = originalHtml;
+    button.disabled = false;
+  });
+}
+</script>
+
+<style>
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+</style>
+{% endblock %}

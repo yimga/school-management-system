@@ -1,0 +1,216 @@
+/**
+ * Platform-wide premium content styling.
+ * Applied to all portal/backend content (#main-content .page-wrap) so every page
+ * has a consistent high-end feel. Uses design-tokens and design-system-unified variables.
+ * See docs/PREMIUM_FRONTEND_AUDIT.md and docs/THEME_COMPONENT_KITS.md.
+ */
+
+/* ===== Scope: main content only ===== */
+#main-content .page-wrap {
+  --premium-card-radius: var(--radius-md, 12px);
+  --premium-card-shadow: var(--shadow-md, 0 4px 12px rgba(15, 23, 42, 0.08));
+  --premium-card-shadow-hover: var(--shadow-lg, 0 8px 24px rgba(15, 23, 42, 0.12));
+  --premium-border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
+  --premium-section-gap: 1.25rem;
+}
+
+/* ===== Cards: consistent elevation and radius ===== */
+#main-content .page-wrap .card {
+  border-radius: var(--premium-card-radius);
+  border: var(--premium-border);
+  box-shadow: var(--premium-card-shadow);
+  background: var(--admin-content-bg, var(--color-bg-primary, #fff));
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+#main-content .page-wrap .card:hover {
+  box-shadow: var(--premium-card-shadow-hover);
+}
+
+#main-content .page-wrap .card-header {
+  border-radius: var(--premium-card-radius) var(--premium-card-radius) 0 0;
+  border-bottom: var(--premium-border);
+  font-weight: var(--font-weight-semibold, 600);
+  padding: 1rem 1.25rem;
+}
+
+#main-content .page-wrap .card-body {
+  padding: 1.25rem;
+}
+
+/* ===== Page and section headings ===== */
+#main-content .page-wrap h1:first-child,
+#main-content .page-wrap .page-title,
+#main-content .page-wrap .content-title {
+  font-size: clamp(1.35rem, 2vw, 1.75rem);
+  font-weight: 700;
+  letter-spacing: var(--letter-spacing-tight, -0.02em);
+  color: var(--admin-content-text, var(--color-text-primary));
+  margin-bottom: 0.5rem;
+}
+
+#main-content .page-wrap h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: var(--premium-section-gap);
+  margin-bottom: 0.75rem;
+  color: var(--admin-content-text, var(--color-text-primary));
+}
+
+#main-content .page-wrap h3 {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+/* ===== Tables: clean borders and hover ===== */
+#main-content .page-wrap .table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+#main-content .page-wrap .table thead th {
+  background: var(--admin-content-thead-bg, var(--color-bg-light));
+  color: var(--admin-content-text, var(--color-text-primary));
+  font-weight: 600;
+  font-size: 0.8125rem;
+  text-transform: none;
+  letter-spacing: 0.01em;
+  padding: 0.75rem 1rem;
+  border-bottom: var(--premium-border);
+}
+
+#main-content .page-wrap .table tbody td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--portal-border, rgba(15, 23, 42, 0.06));
+  vertical-align: middle;
+}
+
+#main-content .page-wrap .table tbody tr:hover td {
+  background: color-mix(in srgb, var(--school-primary, #0d6efd) 4%, transparent);
+}
+
+#main-content .page-wrap .table-bordered {
+  border-radius: var(--premium-card-radius);
+  overflow: hidden;
+  border: var(--premium-border);
+}
+
+#main-content .page-wrap .table-bordered thead th {
+  border-right: var(--premium-border);
+}
+
+#main-content .page-wrap .table-bordered thead th:last-child {
+  border-right: none;
+}
+
+#main-content .page-wrap .table-bordered tbody td {
+  border-right: 1px solid var(--portal-border, rgba(15, 23, 42, 0.06));
+}
+
+#main-content .page-wrap .table-bordered tbody td:last-child {
+  border-right: none;
+}
+
+/* ===== Alerts: subtle radius and border ===== */
+#main-content .page-wrap .alert {
+  border-radius: var(--premium-card-radius);
+  border: 1px solid transparent;
+  padding: 1rem 1.25rem;
+}
+
+#main-content .page-wrap .alert-success {
+  border-color: color-mix(in srgb, var(--color-success, #22c55e) 35%, transparent);
+}
+
+#main-content .page-wrap .alert-warning {
+  border-color: color-mix(in srgb, var(--color-warning, #f59e0b) 35%, transparent);
+}
+
+#main-content .page-wrap .alert-danger {
+  border-color: color-mix(in srgb, var(--color-danger, #ef4444) 35%, transparent);
+}
+
+#main-content .page-wrap .alert-info {
+  border-color: color-mix(in srgb, var(--color-info, #3b82f6) 35%, transparent);
+}
+
+/* ===== Form groups: spacing and focus ===== */
+#main-content .page-wrap .form-control,
+#main-content .page-wrap .form-select {
+  border-radius: 8px;
+  border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.12));
+  padding: 0.5rem 0.75rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#main-content .page-wrap .form-control:focus,
+#main-content .page-wrap .form-select:focus {
+  border-color: var(--school-primary, var(--color-primary));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--school-primary, #0d6efd) 18%, transparent);
+}
+
+#main-content .page-wrap .form-label {
+  font-weight: 500;
+  color: var(--admin-content-text, var(--color-text-primary));
+  margin-bottom: 0.35rem;
+}
+
+#main-content .page-wrap .mb-3:has(.form-label) {
+  margin-bottom: 1rem;
+}
+
+/* ===== Buttons: consistent radius ===== */
+#main-content .page-wrap .btn {
+  border-radius: 8px;
+  font-weight: 500;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+}
+
+#main-content .page-wrap .btn:hover {
+  transform: translateY(0);
+}
+
+#main-content .page-wrap .btn-primary {
+  background: var(--school-primary, var(--color-primary));
+  border-color: var(--school-primary, var(--color-primary));
+}
+
+#main-content .page-wrap .btn-primary:hover {
+  filter: brightness(1.08);
+}
+
+/* ===== List groups ===== */
+#main-content .page-wrap .list-group-item {
+  border-color: var(--portal-border, rgba(15, 23, 42, 0.08));
+  padding: 0.75rem 1rem;
+}
+
+#main-content .page-wrap .list-group-item:first-child {
+  border-radius: var(--premium-card-radius) var(--premium-card-radius) 0 0;
+}
+
+#main-content .page-wrap .list-group-item:last-child {
+  border-radius: 0 0 var(--premium-card-radius) var(--premium-card-radius);
+}
+
+/* ===== Empty states and muted text ===== */
+#main-content .page-wrap .text-muted {
+  color: var(--admin-content-text-muted, var(--color-text-muted)) !important;
+}
+
+#main-content .page-wrap .empty-state,
+#main-content .page-wrap .cp-empty-state,
+#main-content .page-wrap [class*="empty"] {
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--admin-content-text-muted, var(--color-text-muted));
+  font-size: 0.9375rem;
+}
+
+/* ===== Section spacing for professional-page ===== */
+#main-content .page-wrap.professional-page > * + *,
+#main-content .page-wrap.hub-page > * + * {
+  margin-top: var(--premium-section-gap);
+}

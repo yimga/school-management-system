@@ -1,0 +1,161 @@
+/**
+ * Dashboard Charts - Coordination & Alignment
+ * 12-column grid, consistent padding, responsive containers.
+ * Use with dashboard-charts-shared.js and components/dashboard_chart.html
+ */
+
+/* Standard chart container - 12-col grid */
+.dashboard-chart-container {
+  min-height: 200px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  background: var(--chart-bg, #fff);
+  border-radius: 0.375rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* Card wrapper for chart - consistent with other dashboard cards */
+.dashboard-chart-card {
+  height: 100%;
+  min-width: 0;
+}
+
+.dashboard-chart-card .card-body {
+  padding: var(--dashboard-gap-md, 1rem) 1.25rem;
+  min-height: 220px;
+}
+.dashboard-chart-card .card-title {
+  font-size: var(--dashboard-card-title-size, 1rem);
+  font-weight: 600;
+}
+
+/* Responsive chart wrapper - maintains aspect ratio */
+.dashboard-chart-wrapper {
+  position: relative;
+  width: 100%;
+  min-height: 180px;
+  max-height: 320px;
+}
+
+.dashboard-chart-wrapper canvas {
+  max-height: 320px;
+}
+
+/* Loading state */
+.dashboard-chart-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  color: var(--bs-secondary);
+}
+
+.dashboard-chart-loading .spinner-border {
+  width: 2rem;
+  height: 2rem;
+}
+
+/* Error state */
+.dashboard-chart-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--bs-danger);
+}
+
+.dashboard-chart-error .btn-retry {
+  margin-top: 0.75rem;
+}
+
+/* Empty state */
+.dashboard-chart-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--bs-secondary);
+}
+
+.dashboard-chart-empty i {
+  font-size: 2.5rem;
+  opacity: 0.5;
+  margin-bottom: 0.5rem;
+}
+
+/* Chart header - title + export */
+.dashboard-chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.dashboard-chart-header h5,
+.dashboard-chart-header h6 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.dashboard-chart-export {
+  opacity: 0.7;
+}
+
+.dashboard-chart-export:hover {
+  opacity: 1;
+}
+
+/* Grid alignment - 12-col bootstrap */
+.dashboard-charts-row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-left: -0.75rem;
+  margin-right: -0.75rem;
+}
+
+.dashboard-charts-row > [class*="col-"] {
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+
+/* Mobile: stack vertically */
+@media (max-width: 767.98px) {
+  .dashboard-chart-wrapper {
+    min-height: 200px;
+    max-height: 280px;
+  }
+
+  .dashboard-chart-card .card-body {
+    min-height: 200px;
+    padding: 0.75rem 1rem;
+  }
+}
+
+/* Print */
+@media print {
+  .dashboard-chart-export,
+  .dashboard-chart-error .btn-retry {
+    display: none !important;
+  }
+
+  .dashboard-chart-container,
+  .dashboard-chart-card {
+    break-inside: avoid;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-chart-wrapper canvas {
+    animation: none;
+  }
+}

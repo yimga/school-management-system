@@ -1,0 +1,136 @@
+{% extends "portal_base.html" %}
+
+{% block title %}Portal Preferences - {{ SITE.site_name|default:"Portal" }}{% endblock %}
+
+{% block content %}
+  {% include "components/page_header.html" with title="Portal preferences" subtitle="Pick your dashboard style, theme, timezone, and how often to refresh data." action_url=previous_page action_text="Back to dashboard" %}
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-7">
+      <div class="alert alert-info d-flex align-items-start gap-2">
+        <div class="flex-grow-1">
+          <strong>Personalize your portal.</strong>
+          These settings only change what <em>you</em> see (theme, widgets, notifications). Full Site Settings stay locked to Admins.
+        </div>
+        {% if request.user.is_superuser or request.user.role == "ADMIN" %}
+          <a class="btn btn-sm btn-outline-primary" href="{% url 'admin:siteconfig_sitesettings_change' SITE_SETTINGS.pk|default_if_none:1 %}">
+            Open Site Settings
+          </a>
+        {% endif %}
+      </div>
+
+      <div class="card shadow-sm">
+        <div class="card-header bg-white">
+          <h2 class="h6 mb-0">Settings</h2>
+          <p class="text-muted small mb-0">Theme, timezone, dashboard view, and refresh options.</p>
+        </div>
+        <div class="card-body">
+          <form method="post" novalidate id="user-preferences-form">
+            {% csrf_token %}
+
+            {% if form.dashboard_visual_preset %}
+            <div class="mb-3 p-3 border rounded-3 bg-light-subtle">
+              <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+                <div>
+                  <label class="form-label fw-semibold mb-1" for="{{ form.dashboard_visual_preset.id_for_label }}">
+                    {{ form.dashboard_visual_preset.label }}
+                  </label>
+                  <div class="small text-muted">
+                    Applied to your current role:
+                    <strong>{{ request.user.get_role_display|default:request.user.role|default:"User" }}</strong>
+                  </div>
+                </div>
+              </div>
+              {{ form.dashboard_visual_preset }}
+              {% if form.dashboard_visual_preset.help_text %}
+                <div class="form-text">{{ form.dashboard_visual_preset.help_text }}</div>
+              {% endif %}
+              {% if form.dashboard_visual_preset.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ form.dashboard_visual_preset.errors|join:", " }}
+                </div>
+              {% endif %}
+            </div>
+            {% endif %}
+
+            {% for field in form %}
+              {% if field.name != "dashboard_visual_preset" %}
+              {% if field.field.widget.input_type == "checkbox" %}
+                <div class="form-check mb-3">
+                  {{ field }}
+                  <label class="form-check-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {% if field.help_text %}
+                    <div class="form-text">{{ field.help_text }}</div>
+                  {% endif %}
+                  {% if field.errors %}
+                    <div class="invalid-feedback d-block">
+                      {{ field.errors|join:", " }}
+                    </div>
+                  {% endif %}
+                </div>
+              {% else %}
+                <div class="mb-3">
+                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.help_text %}
+                    <div class="form-text">{{ field.help_text }}</div>
+                  {% endif %}
+                  {% if field.errors %}
+                    <div class="invalid-feedback d-block">
+                      {{ field.errors|join:", " }}
+                    </div>
+                  {% endif %}
+                </div>
+              {% endif %}
+              {% endif %}
+            {% endfor %}
+
+            <div class="d-flex flex-wrap gap-2 mt-3">
+              <button type="submit" class="btn btn-primary" id="preferences-submit-btn">Save preferences</button>
+              <a class="btn btn-outline-secondary btn-back-primary" href="{{ previous_page }}"><i class="bi bi-arrow-left me-1"></i>Back to dashboard</a>
+              {% if request.user.is_superuser or request.user.role == "ADMIN" %}
+                <a class="btn btn-outline-secondary" href="{% url 'admin:siteconfig_sitesettings_change' SITE_SETTINGS.pk|default_if_none:1 %}">
+                  Manage full Site Settings
+                </a>
+              {% endif %}
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const viewSelect = document.getElementById("id_dashboard_view");
+      const widgetRow = document.getElementById("id_dashboard_widgets")?.closest(".mb-3");
+      const timezoneSelect = document.getElementById("id_timezone");
+
+      const toggleWidgets = () => {
+        if (!viewSelect || !widgetRow) return;
+        widgetRow.style.display = viewSelect.value === "CUSTOM" ? "block" : "none";
+      };
+      if (viewSelect && widgetRow) {
+        viewSelect.addEventListener("change", toggleWidgets);
+        toggleWidgets();
+      }
+
+      // Default to browser timezone when available
+      if (timezoneSelect) {
+        const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+        const hasOption = Array.from(timezoneSelect.options || []).some((opt) => opt.value === browserTz);
+        if (hasOption && !timezoneSelect.value) {
+          timezoneSelect.value = browserTz;
+        }
+      }
+
+      const form = document.getElementById("user-preferences-form");
+      const submitBtn = document.getElementById("preferences-submit-btn");
+      if (form && submitBtn) {
+        form.addEventListener("submit", function () {
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span> Saving…';
+        });
+      }
+    })();
+  </script>
+{% endblock %}

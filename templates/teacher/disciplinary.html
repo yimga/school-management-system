@@ -1,0 +1,15 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Disciplinary" %}{% endblock %}
+
+{% block content %}
+  {% include "widgets/dashboard_hero.html" with hero=hero %}
+
+  <div class="card">
+    <div class="card-body">
+      <p class="mb-3">{% trans "Refer student incidents or behavioral concerns to the Discipline Master. Use the contact channel below to report an incident." %}</p>
+      <a href="{% url 'portal:support_request' %}?type=support&subject=Discipline%20referral" class="btn btn-outline-primary">{% trans "Submit referral / Contact Discipline Master" %}</a>
+    </div>
+  </div>
+{% endblock %}

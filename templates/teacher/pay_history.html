@@ -1,0 +1,118 @@
+{% extends "portal_base.html" %}
+
+{% block title %}Pay History{% endblock %}
+
+{% block content %}
+  {% include "widgets/dashboard_hero.html" with hero=hero %}
+
+  <div class="row g-3 mb-3">
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="text-muted small">Total paid</div>
+          <div class="fs-4 fw-semibold">{{ total_paid_amount|default:"0.00" }}</div>
+          <p class="small text-muted mb-0">Completed pay records.</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="text-muted small">Raises & stipends</div>
+          <div class="fs-4 fw-semibold">{{ raise_total|default:"0.00" }}</div>
+          <p class="small text-muted mb-0">Adjustments captured this term.</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="text-muted small">Bonus payouts</div>
+          <div class="fs-4 fw-semibold">{{ bonus_total|default:"0.00" }}</div>
+          <p class="small text-muted mb-0">Rewards issued to date.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="mb-2">Attendance streak</h5>
+          <div class="display-5 fw-bold">{{ attendance_streak }}</div>
+          <p class="small text-muted mb-0">Consecutive days present</p>
+          {% if attendance_alert %}
+            <p class="small text-warning mb-0">{{ attendance_alert }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="mb-2">Payment types</h5>
+          <ul class="list-unstyled small mb-0">
+            {% for method in payment_type_breakdown %}
+              <li class="d-flex justify-content-between">
+                <span>{{ method.label }}</span>
+                <strong>{{ method.amount }}</strong>
+              </li>
+            {% empty %}
+              <li class="text-muted">No pay records yet.</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if attendance_logs %}
+    <div class="card mb-3">
+      <div class="card-body">
+        <h5 class="mb-3">Recent attendance</h5>
+        <div class="d-flex flex-wrap gap-2 small text-muted">
+          {% for log in attendance_logs|slice:":5" %}
+            <span class="badge {% if log.status == 'PRESENT' %}bg-success{% else %}bg-secondary{% endif %}">
+              {{ log.date }} · {{ log.get_status_display }}
+            </span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="card">
+    <div class="card-body">
+      <h5 class="mb-3">Records</h5>
+      {% if pay_records %}
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th class="text-end">Amount</th>
+                <th>Description</th>
+                <th>Recorded by</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for r in pay_records %}
+                <tr>
+                  <td>{{ r.effective_date }}</td>
+                  <td>{{ r.get_record_type_display }}</td>
+                  <td class="text-end">{{ r.amount }}</td>
+                  <td>{{ r.description|default:"-" }}</td>
+                  <td>{{ r.created_by|default:"-" }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="alert alert-info mb-0">No pay records yet.</div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

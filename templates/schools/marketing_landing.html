@@ -1,0 +1,207 @@
+{% extends "schools/marketing_base.html" %}
+{% load static i18n %}
+{% block title %}{{ seo_title|default:"RunMyCampus - The Operating System for Modern Schools" }}{% endblock %}
+{% block extrahead %}
+  <meta name="description" content="{{ seo_description|default:'One platform for admissions, academics, finance, communication, and compliance. Run your campus with clarity and scale.' }}">
+  {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
+  {% for alt in hreflang_entries %}
+    <link rel="alternate" hreflang="{{ alt.hreflang }}" href="{{ alt.href }}">
+  {% endfor %}
+  {% if marketing_analytics_preconnect_origin %}<link rel="preconnect" href="{{ marketing_analytics_preconnect_origin }}" crossorigin>{% endif %}
+  <script type="application/ld+json">{{ structured_data_json|safe }}</script>
+  {% if organization_schema_json %}<script type="application/ld+json">{{ organization_schema_json|safe }}</script>{% endif %}
+  {% if marketing_analytics_script_url %}<script src="{{ marketing_analytics_script_url }}" async></script>{% endif %}
+{% endblock %}
+{% block content %}
+<div class="marketing-home">
+  <a href="#hero" class="mkt-skip-link">{% trans "Skip to main content" %}</a>
+  <div id="mkt-sticky-cta-bar" class="mkt-sticky-cta-bar" aria-hidden="true">
+    <div class="container d-flex align-items-center justify-content-between gap-2 flex-wrap py-2">
+      <span class="text-white small fw-medium">{% trans "Ready to run your campus?" %}</span>
+      <div class="d-flex gap-2">
+        <a href="{% url 'signup_school' %}" class="btn btn-sm btn-primary">{% trans "Start Free Trial" %}</a>
+        <a href="{% url 'marketing_book_demo' %}" class="btn btn-sm btn-outline-light">{% trans "Book a demo" %}</a>
+      </div>
+    </div>
+  </div>
+  <section id="hero" class="mkt-hero" tabindex="-1">
+    <div class="mkt-hero-inner">
+      <div>
+        <h1 class="mkt-hero-headline">{{ hero_headline }}</h1>
+        <p class="mkt-hero-subheadline">{{ hero_subheadline }}</p>
+        {% if global_features %}
+        <p class="mkt-hero-trusted mb-2"><span class="text-muted small">{% trans "Trusted for:" %}</span> {% for f in global_features %}{% if forloop.counter <= 6 %}{% if not forloop.first %}, {% endif %}{{ f }}{% endif %}{% endfor %}</p>
+        {% endif %}
+        <div class="mkt-hero-ctas">
+          {% for cta in hero_ctas %}
+            <a href="{{ cta.url }}" class="btn {% if cta.primary %}btn-primary{% else %}btn-outline-light{% endif %}">{% trans cta.label %}</a>
+          {% endfor %}
+          {% if demo_tenant_url %}
+            <a href="{{ demo_tenant_url }}" class="btn btn-outline-light" target="_blank" rel="noopener">{% trans "Try demo" %}</a>
+          {% endif %}
+        </div>
+      </div>
+      <div class="mkt-hero-visual">
+        {% static 'images/runmycampus-logo.png' as hero_image %}
+        <img src="{% if hero_dashboard_image_url %}{{ hero_dashboard_image_url }}{% else %}{% static 'images/runmycampus-logo.png' %}{% endif %}" alt="RunMyCampus dashboard overview" width="800" height="450" decoding="async" fetchpriority="high">
+      </div>
+    </div>
+  </section>
+
+  <section id="social-proof" class="mkt-trust-band" aria-label="Trusted by schools">
+    <p class="mkt-trust-band-heading">{% trans "Trusted by schools worldwide" %}</p>
+    <div class="mkt-trust-logos">
+      {% for logo in trust_logos %}
+        <div class="mkt-trust-logo" aria-hidden="true">
+          {% if logo.image_url %}
+            <img src="{{ logo.image_url }}" alt="" width="120" height="32" loading="lazy" decoding="async">
+          {% else %}
+            <span class="text-muted small">{{ logo.name }}</span>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section id="platform-overview" class="mkt-section">
+    <h2 class="mkt-section-heading">{% trans "Everything you need to run your school" %}</h2>
+    <p class="mkt-section-lead">{% trans "Admissions, academics, finance, communication, and compliance in one platform." %}</p>
+    <div class="mkt-modules-grid">
+      {% for module in core_modules %}
+        <article class="mkt-module-card">
+          {% if module.screenshot_url %}
+            <div class="mkt-module-screenshot"><img src="{{ module.screenshot_url }}" alt="" width="400" height="250" loading="lazy" decoding="async"></div>
+          {% endif %}
+          <h3>{{ module.title }}</h3>
+          <p>{{ module.summary }}</p>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section id="product-demo" class="mkt-section">
+    <h2 class="mkt-section-heading">{% trans "See the platform in action" %}</h2>
+    <p class="mkt-section-lead">{% trans "One place for admins, teachers, parents, and students." %}</p>
+    <div class="mkt-product-demo">
+      <div class="mkt-product-demo-visual">
+        <img src="{% if product_demo_image_url %}{{ product_demo_image_url }}{% else %}{% static 'images/runmycampus-logo.png' %}{% endif %}" alt="Product overview" width="960" height="540" loading="lazy" decoding="async">
+      </div>
+    </div>
+  </section>
+
+  <section id="platform-architecture" class="mkt-section">
+    <h2 class="mkt-section-heading">{% trans "Built for how schools actually work" %}</h2>
+    <p class="mkt-section-lead">{% trans "Workflows, dashboards, and extensions in one coherent system." %}</p>
+    <div class="mkt-platform-grid">
+      {% for card in platform_cards %}
+        <article class="mkt-platform-card">
+          <h3>{{ card.title }}</h3>
+          <p>{{ card.summary }}</p>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section id="migration" class="mkt-section">
+    <h2 class="mkt-section-heading">{% trans "Migrate with confidence" %}</h2>
+    <p class="mkt-section-lead">{% trans "Move from spreadsheets or legacy systems with guided setup and support. 195+ country-ready profiles, multi-currency, and data residency options." %}</p>
+    <div class="mkt-migration">
+      <ul class="mkt-migration-list">
+        {% for bullet in migration_bullets %}
+          <li>{{ bullet }}</li>
+        {% endfor %}
+      </ul>
+      {% if migration_studio_image_url %}
+        <div class="mkt-migration-visual">
+          <img src="{{ migration_studio_image_url }}" alt="Migration studio" width="600" height="360" loading="lazy" decoding="async">
+        </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <section id="ecosystem" class="mkt-section">
+    <h2 class="mkt-section-heading">{% trans "Ecosystem & integrations" %}</h2>
+    <p class="mkt-section-lead">{% trans "Connect your LMS, payments, messaging, and identity providers." %}</p>
+    <div class="mkt-ecosystem-grid">
+      {% for app in ecosystem_apps %}
+        <div class="mkt-ecosystem-card">
+          <h4>{{ app.name }}</h4>
+          <p>{{ app.summary }}</p>
+        </div>
+      {% endfor %}
+    </div>
+    <p class="text-center mt-3">
+      <a href="{% url 'marketing_integrations' %}" class="btn btn-outline-primary">{% trans "View integrations" %}</a>
+      <a href="{% url 'marketing_app_marketplace' %}" class="btn btn-outline-secondary ms-2">{% trans "App Marketplace" %}</a>
+    </p>
+  </section>
+
+  <section id="customer-stories" class="mkt-section">
+    <h2 class="mkt-section-heading">{% trans "What schools say about RunMyCampus" %}</h2>
+    <p class="mkt-section-lead">{% trans "Outcomes from real operations teams." %}</p>
+    <div class="mkt-testimonials-grid">
+      {% for t in testimonials %}
+        <article class="mkt-testimonial-card">
+          <div class="mkt-testimonial-stars" aria-hidden="true">{% for i in ""|ljust:t.stars %}★{% endfor %}</div>
+          <blockquote>{{ t.quote }}</blockquote>
+          <div class="mkt-testimonial-author">{{ t.author }}</div>
+          <div class="mkt-testimonial-role">{{ t.role }}</div>
+        </article>
+      {% endfor %}
+    </div>
+    <p class="text-center mt-3">
+      <a href="{% url 'marketing_case_studies' %}" class="btn btn-outline-primary">{% trans "Read case studies" %}</a>
+    </p>
+  </section>
+
+  <section id="security-compliance" class="mkt-section">
+    <h2 class="mkt-section-heading">{% trans "Security & compliance" %}</h2>
+    <p class="mkt-section-lead">{% trans "Enterprise-grade safeguards and regional compliance readiness." %}</p>
+    <div class="mkt-security-badges">
+      {% for badge in security_badges %}
+        <span class="mkt-security-badge">{{ badge }}</span>
+      {% endfor %}
+    </div>
+    <p class="mkt-security-copy">{% trans "We align with FERPA and GDPR practices, use encryption at rest and in transit, and provide role-based access and audit trails." %}</p>
+    <p class="text-center mt-3">
+      <a href="{% url 'marketing_security_compliance' %}" class="btn btn-outline-primary">{% trans "Security & compliance" %}</a>
+    </p>
+  </section>
+
+  <section id="final-cta" class="mkt-final-cta" aria-label="{% trans 'Call to action' %}">
+    <h2 class="mkt-section-heading">{{ final_cta_headline }}</h2>
+    <div class="mkt-hero-ctas">
+      <a href="{% url 'signup_school' %}" class="btn btn-primary mkt-cta-focus">{% trans "Start Free Trial" %}</a>
+      <a href="{% url 'marketing_book_demo' %}" class="btn btn-outline-light mkt-cta-focus">{% trans "Book a Demo" %}</a>
+      <a href="{% url 'global_login_discovery' %}" class="btn btn-outline-light mkt-cta-focus">{% trans "Login" %}</a>
+    </div>
+  </section>
+
+  <footer class="mkt-section border-top pt-4 mt-4 text-center text-muted small">
+    <p class="mb-1">
+      <a href="{% url 'marketing_privacy' %}">{% trans "Privacy Policy" %}</a>
+      <span class="mx-2">|</span>
+      <a href="{% url 'marketing_terms' %}">{% trans "Terms of Service" %}</a>
+      <span class="mx-2">|</span>
+      <a href="{% url 'marketing_cookie_policy' %}">{% trans "Cookie Policy" %}</a>
+    </p>
+    <p class="mb-0">{% trans "Made with ❤️ by RunMyCampus" %} · © {% now "Y" %} RunMyCampus</p>
+  </footer>
+</div>
+<script>
+(function () {
+  var bar = document.getElementById('mkt-sticky-cta-bar');
+  var hero = document.getElementById('hero');
+  if (!bar || !hero) return;
+  var threshold = 350;
+  function update() {
+    var show = window.scrollY > threshold;
+    bar.classList.toggle('is-visible', show);
+    bar.setAttribute('aria-hidden', show ? 'false' : 'true');
+  }
+  window.addEventListener('scroll', function () { requestAnimationFrame(update); }, { passive: true });
+  window.addEventListener('resize', update);
+  update();
+})();
+</script>
+{% endblock %}

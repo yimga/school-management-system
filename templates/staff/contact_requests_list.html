@@ -1,0 +1,71 @@
+{% extends "portal_base.html" %}
+{% load region_format %}
+
+{% block title %}Contact Requests{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h2 class="mb-0">Contact Requests</h2>
+    <p class="text-muted small mb-0">Triage and assign parent requests.</p>
+  </div>
+</div>
+
+<form class="row g-2 mb-3" method="get">
+  <div class="col-md-4">
+    <label class="form-label small text-muted">Status</label>
+    <select class="form-select" name="status">
+      {% for value,label in status_options %}
+        <option value="{{ value }}" {% if value == status_filter %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-3">
+    <label class="form-label small text-muted">Mine</label>
+    <select class="form-select" name="mine">
+      <option value="" {% if not mine %}selected{% endif %}>All</option>
+      <option value="1" {% if mine == "1" %}selected{% endif %}>Only mine</option>
+    </select>
+  </div>
+  <div class="col-md-3 d-flex align-items-end">
+    <button class="btn btn-outline-primary w-100" type="submit">Filter</button>
+  </div>
+</form>
+
+<div class="card">
+  {% if requests %}
+  <div class="table-responsive">
+    <table class="table table-striped mb-0">
+      <thead>
+        <tr>
+          <th>Submitted</th>
+          <th>Parent</th>
+          <th>Student</th>
+          <th>Subject</th>
+          <th>Status</th>
+          <th>Assigned</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in requests %}
+          <tr>
+            <td class="text-nowrap">{{ r.created_at|format_date }} {{ r.created_at|time:"H:i" }}</td>
+            <td>{{ r.contact_name }}</td>
+            <td>{{ r.student|default:"—" }}</td>
+            <td>
+              <a href="{% url 'portal:staff_contact_request_detail' r.id %}">{{ r.subject }}</a>
+            </td>
+            <td><span class="badge bg-info text-uppercase">{{ r.status }}</span></td>
+            <td>{{ r.assigned_to.get_full_name|default:r.assigned_to.username|default:"—" }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  {% url 'requests:dashboard' as empty_action_url %}
+  {% include "components/dashboard_empty_state.html" with icon="bi-envelope" title="No contact requests found" message="When parents submit contact requests they will appear here. You can also check the Requests dashboard." action_url=empty_action_url action_text="Open Requests dashboard" %}
+  {% endif %}
+</div>
+{% endblock %}
+

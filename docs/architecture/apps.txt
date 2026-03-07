@@ -1,0 +1,47 @@
+# Django INSTALLED_APPS (project apps; see config/settings.py for full list)
+
+# Admin / core
+unfold
+django.contrib.admin
+django.contrib.auth
+django.contrib.contenttypes
+django.contrib.sessions
+django.contrib.messages
+django.contrib.staticfiles
+django_otp
+django_otp.plugins.otp_totp
+django_otp.plugins.otp_static
+rest_framework
+rest_framework_simplejwt
+
+# Project apps
+apps.accounts.apps.AccountsConfig
+apps.customers
+apps.tenancy.apps.TenancyConfig
+apps.policies.apps.PoliciesConfig
+apps.events.apps.EventsConfig
+apps.marketplace.apps.MarketplaceConfig
+apps.evals
+apps.portal
+apps.academics
+apps.people
+apps.reports
+apps.siteconfig.apps.SiteconfigConfig
+apps.schools
+apps.analytics
+apps.finance
+apps.payroll
+apps.compliance.apps.ComplianceConfig
+apps.communication
+apps.requests
+apps.observability
+apps.api
+apps.apicenter
+apps.automation
+emis
+django_celery_results
+django_celery_beat
+
+# Optional: channels (when installed)
+# channels
+# channels_redis

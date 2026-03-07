@@ -1,0 +1,24 @@
+{% extends "control_plane_base.html" %}
+{% load static %}
+
+{% block cp_title %}Migration Cloud{% endblock %}
+
+{% block cp_content %}
+  <div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+      <h1 class="h4 mb-0">Migration cloud</h1>
+      <a href="{% url 'super:dashboard' %}" class="btn btn-outline-secondary">Back to dashboard</a>
+    </div>
+    <p class="text-muted">First-class platform pillar for onboarding and data growth: import studio, field mapping, dry-run, scorecard, parity checker, rollback.</p>
+    <div class="card shadow-sm border-0">
+      <div class="card-body">
+        <h5 class="card-title">Control plane</h5>
+        <ul class="mb-0">
+          <li>Tenant-facing migration (per-school): use <strong>Import / Migration wizard</strong> in each school backend (accounts).</li>
+          <li>Docs: <code>docs/architecture/phase5_migration_cloud.md</code>, <code>phase8_migration_cloud_and_marketplaces.md</code>.</li>
+          <li>Touchpoints: <code>apps/accounts/views.migration_wizard</code>, <code>apps/automation.models.MigrationRun</code>, <code>apps/evals/importers</code>.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+{% endblock %}

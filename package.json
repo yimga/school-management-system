@@ -1,0 +1,22 @@
+{
+  "name": "sms-portal",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "lint:accessibility": "npx pa11y-ci http://localhost:8000/portal/parent/ http://localhost:8000/teacher/ http://localhost:8000/finance/ || true",
+    "check:images": "python scripts/check_image_dimensions.py",
+    "perf": "npm run check:images -- && echo 'Lighthouse: run in Chrome DevTools (Lighthouse tab) or npm run lighthouse. See docs/PERFORMANCE_BUDGET.md'",
+    "lighthouse": "npx @lhci/cli@0.13.x autorun --config=lighthouserc.js",
+    "vendor:dexie": "node -e \"require('fs').mkdirSync('static/js/vendor',{recursive:true})\" && npx copyfiles -f node_modules/dexie/dist/dexie.min.js static/js/vendor/"
+  },
+  "dependencies": {
+    "dexie": "^4.0.10"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "copyfiles": "^2.4.1",
+    "pa11y-ci": "^3.1.0"
+  }
+}

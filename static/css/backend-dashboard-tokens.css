@@ -1,0 +1,69 @@
+/*
+ * Backend dashboard – single token contract.
+ * --brand-* and --dashboard-theme-* are set from the active ThemePack (admin_theme_pack)
+ * in backend_dashboard.html so the dashboard uses the assigned/active theme colors.
+ * Aligns with --admin-content-* and theme-visibility-guard --vis-* for readability.
+ *
+ * Spacing and padding: use these tokens in backend-dashboard-v2.css and other
+ * backend dashboard/backend page styles so all aesthetics are defined in one place.
+ */
+:root {
+  /* ---- Spacing (gaps, margins) ---- */
+  --dash-gap: 0.75rem;
+  --dash-gap-xs: 0.2rem;
+  --dash-gap-sm: 0.3rem;
+  --dash-gap-md: 0.45rem;
+  --dash-gap-lg: 0.55rem;
+  --dash-gap-xl: 0.7rem;
+  --dash-gap-2xl: 0.9rem;
+  --dash-section: 0.75rem;
+  --dash-block-spacing: 0.75rem;
+  /* ---- Padding ---- */
+  --dash-card-pad: 0.95rem 1.1rem;
+  --dash-pad-tight: 0.45rem 0.65rem;
+  --dash-pad-chip: 0.36rem 0.72rem;
+  --dash-pad-chip-sm: 0.34rem 0.58rem;
+  --dash-pad-chip-lg: 0.5rem 1.02rem;
+  --dash-pad-cta: 0.58rem 0.86rem;
+  --dash-pad-mini: 0.55rem 0.62rem;
+  --dash-pad-side-meta: 0.15rem 0 0.55rem;
+  --dash-pad-list: 0.5rem 0.62rem;
+
+  /* ---- Surfaces and colors ---- */
+  --admin-dashboard-bg: var(--dashboard-surface-soft, #f8fafc);
+  --admin-surface: var(--dashboard-surface, var(--admin-content-surface, #ffffff));
+  --admin-surface-alt: var(--admin-content-thead-bg, #f1f5f9);
+  --admin-border: var(--dashboard-border, var(--admin-content-border, #e2e8f0));
+  --admin-border-strong: var(--dashboard-border, #cbd5e0);
+  --admin-text: var(--dashboard-text-strong, var(--admin-content-text, #0f172a));
+  --admin-muted: var(--dashboard-text-muted, var(--admin-content-text-muted, #64748b));
+  --admin-subtle: var(--admin-content-text-muted, #475569);
+  --admin-accent: var(--brand-primary);
+  --admin-accent-light: var(--brand-accent);
+  --admin-shadow: var(--dashboard-shadow-soft, 0 4px 14px rgba(2, 6, 23, 0.08));
+  --admin-shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --admin-border-hover: #64748b;
+  --gradient-primary: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-accent) 100%);
+  --gradient-success: linear-gradient(135deg, #11998e 0%, var(--brand-success) 100%);
+  --gradient-warning: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --gradient-info: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --shadow-lg: var(--dashboard-shadow, 0 20px 60px rgba(0, 0, 0, 0.15));
+  --shadow-md: var(--dashboard-shadow-soft, 0 10px 30px rgba(0, 0, 0, 0.1));
+}
+
+:root[data-theme="dark"],
+html[data-bs-theme="dark"] {
+  --admin-dashboard-bg: var(--dashboard-surface-soft, #0b1220);
+  --admin-surface: var(--dashboard-surface, var(--admin-content-surface, #111827));
+  --admin-surface-alt: #1f2937;
+  --admin-border: var(--dashboard-border, #1f2937);
+  --admin-border-strong: #334155;
+  --admin-text: var(--dashboard-text-strong, var(--admin-content-text, #e2e8f0));
+  --admin-muted: var(--dashboard-text-muted, #94a3b8);
+  --admin-subtle: #cbd5e1;
+  --admin-accent: var(--brand-primary);
+  --admin-accent-light: var(--brand-accent);
+  --admin-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --admin-shadow-hover: 0 6px 16px rgba(0, 0, 0, 0.5);
+  --admin-border-hover: #64748b;
+}

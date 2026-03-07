@@ -1,0 +1,646 @@
+{% extends "portal_base.html" %}
+{% load static region_format %}
+
+{% block title %}Analytics Dashboard{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/dashboard-auto-grid.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard-charts.css' %}">
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.body.dataset.dashboardPage = 'analytics';
+  });
+</script>
+{% endblock %}
+
+{% block content %}
+{% if finance_requests_count %}
+  <div class="alert alert-warning d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <strong>{{ finance_requests_count }} finance access request{% if finance_requests_count != 1 %}s{% endif %} waiting</strong>
+      <div class="small text-muted">Stay on top of guardian access requests without leaving the dashboard.</div>
+    </div>
+    <a class="btn btn-sm btn-outline-dark" href="{{ finance_request_link }}">Open inbox</a>
+  </div>
+  {% if finance_request_notifications %}
+    <div class="card shadow-sm mb-4">
+      <div class="card-body">
+        <h6 class="mb-3">Finance access alerts</h6>
+        <ul class="list-unstyled mb-0">
+          {% for notif in finance_request_notifications %}
+            <li class="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <strong>{{ notif.title }}</strong>
+                <div class="small text-muted">{{ notif.message|truncatechars:120 }}</div>
+              </div>
+              <span class="badge bg-secondary">{{ notif.created_at|format_date }} {{ notif.created_at|time:"H:i" }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+        <a class="btn btn-sm btn-link mt-3" href="{{ finance_request_link }}">View all finance requests</a>
+      </div>
+    </div>
+  {% endif %}
+{% endif %}
+
+<div class="analytics-dashboard-widgets">
+
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+  <div>
+    <h2 class="mb-0">Analytics Dashboard</h2>
+    <div class="text-muted">School-wide performance insights based on submitted scores.</div>
+  </div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'analytics:master_sheet' %}">Master Sheet</a>
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'analytics:deadlines' %}">Grading Deadlines</a>
+  </div>
+</div>
+
+<div class="dashboard-card-grid dashboard-card-grid--charts mb-4" data-dashboard-column="main">
+  <div class="card shadow-sm p-3" data-widget-id="analytics-operational-pulse">
+      <div class="d-flex justify-content-between align-items-center flex-wrap">
+        <div>
+          <h3 class="h5 mb-1">Operational pulse</h3>
+          <p class="text-muted small mb-0">Live KPI snapshot for principal & admin teams.</p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+          <span class="badge bg-success">Real-time</span>
+          <span class="badge bg-outline-primary">2026 insights</span>
+        </div>
+      </div>
+      <div class="dashboard-card-grid dashboard-card-grid--dense mt-3">
+        <div class="border p-3 rounded-3" style="background: var(--admin-content-bg);">
+          <div class="text-uppercase small text-muted mb-1">Top students</div>
+          <div class="h4">{{ top_n }}</div>
+          <div class="small text-muted">per filter results</div>
+          <div class="progress mt-2" style="height:4px;">
+            <div class="progress-bar" role="progressbar" style="width:{{ weak_subjects|length|default:30 }}%;"></div>
+          </div>
+        </div>
+        <div class="border p-3 rounded-3" style="background: var(--admin-content-bg);">
+          <div class="text-uppercase small text-muted mb-1">Weak subjects</div>
+          <div class="h4">{{ weak_subjects|length }}</div>
+          <div class="small text-muted">monitor action</div>
+          <div class="progress mt-2" style="height:4px;">
+            <div class="progress-bar bg-warning" style="width:{{ weak_subjects|length|default:10 }}%;"></div>
+          </div>
+        </div>
+        <div class="border p-3 rounded-3" style="background: var(--admin-content-bg);">
+          <div class="text-uppercase small text-muted mb-1">Teacher compliance</div>
+          <div class="h4">{{ teacher_stats|length }}</div>
+          <div class="small text-muted">on deadlines</div>
+        </div>
+        <div class="border p-3 rounded-3 text-center" style="background: var(--admin-content-bg);">
+          <div class="h1 fw-bold">{{ improvement_rows|length }}</div>
+          <div class="small text-muted">students improved</div>
+        </div>
+      </div>
+      <div class="d-flex flex-wrap gap-2 mt-3">
+        <a class="btn btn-sm btn-outline-primary" href="{% url 'portal:parent_dashboard' %}">Parent portal</a>
+        <a class="btn btn-sm btn-outline-primary" href="{% url 'accounts:rbac' %}">RBAC tools</a>
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'finance:dashboard' %}">Finance console</a>
+      </div>
+    </div>
+  </div>
+  <div class="card shadow-sm p-3" data-widget-id="analytics-ai-insight">
+      <h5 class="mb-2">AI insight</h5>
+      <p class="small text-muted mb-3">Popular subject: {{ specialty_rates.0.subject|default:"No data available" }} — trending across {{ specialty_rates|length }} specializations.</p>
+      <ul class="list-group list-group-flush mb-3">
+        <li class="list-group-item py-2 d-flex justify-content-between align-items-center">
+          <span>Teacher compliance</span>
+          <span class="badge bg-success">{{ teacher_rows|length }}</span>
+        </li>
+        <li class="list-group-item py-2 d-flex justify-content-between align-items-center">
+          <span>Weak thresholds</span>
+          <span class="badge bg-warning">{{ weak_subjects|length }}</span>
+        </li>
+      </ul>
+      <div class="d-grid gap-2">
+        <a class="btn btn-sm btn-outline-dark" href="{% url 'analytics:master_sheet' %}">Master sheet</a>
+        <a class="btn btn-sm btn-outline-dark" href="{% url 'reports:publish_term_results' %}">Publish term results</a>
+      </div>
+  </div>
+</div>
+
+<form method="get" class="card mb-3" data-dashboard-column="main" data-widget-id="analytics-filters">
+  <div class="card-body">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-2">
+        <label class="form-label small">Academic year</label>
+        <select class="form-select" name="year">
+          {% for y in years %}
+            <option value="{{ y.id }}" {% if y.id == year.id %}selected{% endif %}>{{ y.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Term</label>
+        <select class="form-select" name="term">
+          {% for t in terms %}
+            <option value="{{ t.id }}" {% if t.id == term.id %}selected{% endif %}>{{ t.get_name_display }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Classroom</label>
+        <select class="form-select" name="classroom">
+          <option value="">All</option>
+          {% for c in classrooms %}
+            <option value="{{ c.id }}" {% if selected_classroom and c.id == selected_classroom.id %}selected{% endif %}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Specialty</label>
+        <select class="form-select" name="specialty">
+          <option value="">All</option>
+          {% for s in specialties %}
+            <option value="{{ s.id }}" {% if selected_specialty and s.id == selected_specialty.id %}selected{% endif %}>{{ s.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Top students</label>
+        <input class="form-control" type="number" name="top_n" min="1" max="100" value="{{ top_n }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Deadline mode</label>
+        <select class="form-select" name="deadline_mode">
+          {% for value, label in deadline_modes %}
+            <option value="{{ value }}" {% if value == deadline_mode %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Pass period</label>
+        <select class="form-select" name="pass_period">
+          <option value="term" {% if pass_period == "term" %}selected{% endif %}>Term</option>
+          <option value="annual" {% if pass_period == "annual" %}selected{% endif %}>Annual</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Pass mark</label>
+        <input class="form-control" type="number" step="0.01" name="pass_mark" value="{{ pass_mark }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Weak subject threshold</label>
+        <input class="form-control" type="number" step="0.01" name="weak_threshold" value="{{ weak_threshold }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Improvement delta</label>
+        <input class="form-control" type="number" step="0.01" name="improve_delta" value="{{ improve_delta }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Improve from</label>
+        <select class="form-select" name="improve_from">
+          {% for t in terms %}
+            <option value="{{ t.id }}" {% if improve_from and t.id == improve_from.id %}selected{% endif %}>{{ t.get_name_display }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Improve to</label>
+        <select class="form-select" name="improve_to">
+          {% for t in terms %}
+            <option value="{{ t.id }}" {% if improve_to and t.id == improve_to.id %}selected{% endif %}>{{ t.get_name_display }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="use_promotion_rule" value="1" id="usePromotionRule" {% if use_promotion_rule %}checked{% endif %}>
+          <label class="form-check-label" for="usePromotionRule">Use promotion rule</label>
+        </div>
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+      </div>
+    </div>
+  </div>
+</form>
+
+<div class="row g-3 mb-4" data-dashboard-column="main">
+  <div class="col-lg-8">
+    {% include "components/dashboard_chart.html" with chart_id="analyticsWeakSubjectsChart" chart_type="bar" chart_title="Weak subjects (below threshold)" chart_data=chart_weak_subjects_json aria_label="Weak subjects average scores" %}
+  </div>
+  <div class="col-lg-4">
+    {% include "components/dashboard_chart.html" with chart_id="analyticsSpecialtyChart" chart_type="doughnut" chart_title="Specialty pass rates" chart_data=chart_specialty_donut_json aria_label="Passed students by specialty" %}
+  </div>
+</div>
+
+<div class="row g-3 mb-4" data-dashboard-column="main">
+  <div class="col-lg-4" data-widget-id="analytics-top-class-performers">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h5 class="mb-0">Top class performers</h5>
+          <span class="badge bg-primary">{{ top_class_students|length }}</span>
+        </div>
+        <ul class="list-group list-group-flush">
+          {% for student in top_class_students|slice:":4" %}
+            <li class="list-group-item d-flex justify-content-between py-2">
+              <span>#{{ student.rank }} {{ student.student }}</span>
+              <strong>{{ student.average|format_number:2 }}</strong>
+            </li>
+          {% empty %}
+            <li class="list-group-item text-muted">No data yet.</li>
+          {% endfor %}
+        </ul>
+        <div class="mt-3">
+          <a class="btn btn-sm btn-outline-primary" href="{% url 'analytics:master_sheet' %}?classroom={{ selected_classroom.id|default:'' }}">Open master sheet</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4" data-widget-id="analytics-weak-subjects">
+    <div class="card shadow-sm h-100">
+      <div class="card-body d-flex flex-column">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h5 class="mb-0">Weak subjects</h5>
+          <span class="badge bg-warning">{{ weak_subjects|length }}</span>
+        </div>
+        <p class="small text-muted mb-2">Subjects that need attention this term.</p>
+        <ul class="list-group list-group-flush">
+          {% for subject in weak_subjects|slice:":3" %}
+            <li class="list-group-item d-flex justify-content-between py-2">
+              <span>{{ subject.subject }}</span>
+              <strong>{{ subject.average|format_number:1 }}</strong>
+            </li>
+          {% endfor %}
+        </ul>
+        <div class="mt-3 d-flex gap-2 flex-wrap">
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'analytics:deadlines' %}">Adjust deadlines</a>
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal:teacher_attendance' %}">Alert teachers</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4" data-widget-id="analytics-teacher-compliance">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h5 class="mb-0">Teacher compliance</h5>
+          <span class="badge bg-success">{{ teacher_stats|length }}</span>
+        </div>
+        <div class="d-flex flex-column gap-1 small mb-3">
+          {% for stat in teacher_stats|slice:":4" %}
+            <div class="d-flex justify-content-between">
+              <span>{{ stat.label }}</span>
+              <strong>{{ stat.value }}</strong>
+            </div>
+          {% empty %}
+            <div class="text-muted">No compliance data.</div>
+          {% endfor %}
+        </div>
+        <div class="d-grid gap-2">
+          <a class="btn btn-sm btn-outline-dark" href="{% url 'finance:notifications' %}">Send reminders</a>
+          <a class="btn btn-sm btn-outline-dark" href="{% url 'accounts:rbac' %}">Review RBAC</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if selected_classroom %}
+  <div class="card mb-3" data-dashboard-column="secondary" data-widget-id="analytics-class-ranking">
+    <div class="card-body">
+      <h5 class="mb-2">Ranking per class</h5>
+      <div class="text-muted small mb-2">{{ selected_classroom.name }} - {{ term.get_name_display }}</div>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead>
+            <tr>
+              <th style="width:80px;">Rank</th>
+              <th>Student</th>
+              <th class="text-end">Average</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in class_rankings %}
+              <tr>
+                <td><span class="badge bg-dark">{{ forloop.counter }}</span></td>
+                <td>{{ row.0 }}</td>
+                <td class="text-end">{{ row.1|format_number:2 }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="3" class="text-muted">No data for this class/term.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+<div class="row g-3 mb-3" data-dashboard-column="secondary">
+  <div class="col-lg-6" data-widget-id="analytics-top-class-term">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="mb-2">Top students (class, term)</h5>
+        {% if selected_classroom %}
+          <div class="table-responsive">
+            <table class="table table-sm align-middle">
+              <thead>
+                <tr>
+                  <th style="width:80px;">Rank</th>
+                  <th>Student</th>
+                  <th class="text-end">Average</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in top_class_students %}
+                  <tr>
+                    <td><span class="badge bg-primary">{{ row.rank }}</span></td>
+                    <td>{{ row.student }}</td>
+                    <td class="text-end">{{ row.average|format_number:2 }}</td>
+                  </tr>
+                {% empty %}
+                  <tr><td colspan="3" class="text-muted">Select a classroom to view.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="text-muted">Select a classroom to see class rankings.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6" data-widget-id="analytics-top-school-term">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="mb-2">Top students (school, term)</h5>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr>
+                <th style="width:80px;">Rank</th>
+                <th>Student</th>
+                <th class="text-end">Average</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in top_school_students %}
+                <tr>
+                  <td><span class="badge bg-primary">{{ row.rank }}</span></td>
+                  <td>{{ row.student }}</td>
+                  <td class="text-end">{{ row.average|format_number:2 }}</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="3" class="text-muted">No data for this term.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-3" data-dashboard-column="secondary">
+  <div class="col-lg-6" data-widget-id="analytics-top-class-annual">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="mb-2">Top students (class, annual)</h5>
+        {% if selected_classroom %}
+          <div class="table-responsive">
+            <table class="table table-sm align-middle">
+              <thead>
+                <tr>
+                  <th style="width:80px;">Rank</th>
+                  <th>Student</th>
+                  <th class="text-end">Average</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in top_annual_class %}
+                  <tr>
+                    <td><span class="badge bg-success">{{ row.rank }}</span></td>
+                    <td>{{ row.student }}</td>
+                    <td class="text-end">{{ row.average|format_number:2 }}</td>
+                  </tr>
+                {% empty %}
+                  <tr><td colspan="3" class="text-muted">Select a classroom to view.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="text-muted">Select a classroom to see class rankings.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6" data-widget-id="analytics-top-school-annual">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="mb-2">Top students (school, annual)</h5>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr>
+                <th style="width:80px;">Rank</th>
+                <th>Student</th>
+                <th class="text-end">Average</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in top_annual_school %}
+                <tr>
+                  <td><span class="badge bg-success">{{ row.rank }}</span></td>
+                  <td>{{ row.student }}</td>
+                  <td class="text-end">{{ row.average|format_number:2 }}</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="3" class="text-muted">No data for annual ranking.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-3" data-dashboard-column="tertiary">
+  <div class="col-lg-6" data-widget-id="analytics-weak-subject-focus">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="mb-2">Weak subject focus</h5>
+        <div class="text-muted small mb-2">Subjects below the selected threshold.</div>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr>
+                <th>Subject</th>
+                <th class="text-end">Average</th>
+                <th class="text-end">Entries</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in weak_subjects %}
+                <tr>
+                  <td>{{ row.subject.name }}</td>
+                  <td class="text-end">{{ row.average|format_number:2 }}</td>
+                  <td class="text-end">{{ row.count }}</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="3" class="text-muted">No weak subjects found.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6" data-widget-id="analytics-improvement-list">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="mb-2">Student improvement list</h5>
+        <div class="text-muted small mb-2">Students whose averages improved between terms.</div>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th class="text-end">From</th>
+                <th class="text-end">To</th>
+                <th class="text-end">Delta</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in improvements %}
+                <tr>
+                  <td>{{ row.student }}</td>
+                  <td class="text-end">{{ row.from_average|format_number:2 }}</td>
+                  <td class="text-end">{{ row.to_average|format_number:2 }}</td>
+                  <td class="text-end">{{ row.delta|format_number:2 }}</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="4" class="text-muted">No improvements matched the threshold.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-3" data-dashboard-column="tertiary">
+  <div class="col-lg-6" data-widget-id="analytics-teacher-deadlines">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="mb-2">Teacher deadline compliance</h5>
+        <div class="text-muted small mb-2">Based on selected deadline mode.</div>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr>
+                <th>Teacher</th>
+                <th class="text-end">Expected</th>
+                <th class="text-end">On time</th>
+                <th class="text-end">Late</th>
+                <th class="text-end">Missing</th>
+                <th class="text-end">On-time %</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in teacher_stats %}
+                <tr>
+                  <td>{{ row.teacher }}</td>
+                  <td class="text-end">{{ row.expected }}</td>
+                  <td class="text-end">{{ row.on_time }}</td>
+                  <td class="text-end">{{ row.late }}</td>
+                  <td class="text-end">{{ row.missing }}</td>
+                  <td class="text-end">{{ row.on_time_rate|format_number:2 }}%</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="6" class="text-muted">No teacher data for this term.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6" data-widget-id="analytics-specialty-pass-rates">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="mb-2">Specialty pass rates</h5>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr>
+                <th>Specialty</th>
+                <th class="text-end">Passed</th>
+                <th class="text-end">Total</th>
+                <th class="text-end">Missing</th>
+                <th class="text-end">Rate</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in specialty_rates %}
+                <tr>
+                  <td>{{ row.specialty.name }}</td>
+                  <td class="text-end">{{ row.passed }}</td>
+                  <td class="text-end">{{ row.total }}</td>
+                  <td class="text-end">{{ row.missing }}</td>
+                  <td class="text-end">{{ row.rate|format_number:2 }}%</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="5" class="text-muted">No data for specialties.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> <!-- /analytics-dashboard-widgets -->
+{% endblock %}
+
+{% block extrajs %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="{% static 'js/dashboard-charts-shared.js' %}"></script>
+<script>
+(function() {
+  function initAnalyticsCharts() {
+    if (typeof Chart === 'undefined' || !window.DashboardChartsShared) return;
+    var shared = window.DashboardChartsShared;
+    var charts = {};
+    ['analyticsWeakSubjectsChart', 'analyticsSpecialtyChart'].forEach(function(chartId) {
+      var configEl = document.querySelector('[data-chart-config="' + chartId + '"]');
+      if (!configEl) return;
+      try {
+        var config = JSON.parse(configEl.textContent);
+        if (!config.data || !config.data.labels) {
+          document.querySelector('[data-chart-empty="' + chartId + '"]')?.classList.remove('d-none');
+          var c = document.getElementById(chartId);
+          if (c) c.style.display = 'none';
+          return;
+        }
+        var ds = config.data.datasets && config.data.datasets[0];
+        var hasValues = !ds || !ds.data || ds.data.some(function(v){ return (v || 0) > 0; });
+        if (!hasValues && (config.type === 'doughnut' || config.type === 'pie')) {
+          document.querySelector('[data-chart-empty="' + chartId + '"]')?.classList.remove('d-none');
+          var c = document.getElementById(chartId);
+          if (c) c.style.display = 'none';
+          return;
+        }
+        var ch = shared.createChart(chartId, config);
+        if (ch) charts[chartId] = ch;
+      } catch (e) { console.warn('Analytics chart init:', chartId, e); }
+    });
+    document.querySelectorAll('[data-chart-export]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var id = this.getAttribute('data-chart-export');
+        if (charts[id]) shared.exportChartToPng(charts[id], 'analytics-' + id + '.png');
+      });
+    });
+  }
+  document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', initAnalyticsCharts) : initAnalyticsCharts();
+})();
+</script>
+{% endblock %}

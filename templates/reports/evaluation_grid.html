@@ -1,0 +1,107 @@
+{% load region_format %}
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  {% include "reports/_report_styles.html" %}
+</head>
+<body>
+  <div class="letterhead">
+    {% if SITE_LOGO_URL %}
+      <img src="{{ SITE_LOGO_URL }}" alt="Logo" width="80" height="80" decoding="async" style="max-height: 80px; width: auto; object-fit: contain;" />
+    {% endif %}
+    <div>
+      <p class="title">{{ SITE.site_name|default:"School System" }}</p>
+      <p class="sub">{{ SITE.tagline|default:"Excellence in Learning" }}</p>
+      {% if SITE.country or SITE.region or SITE.ministry %}
+        <p class="location-line">
+          {% if SITE.country %}Country: {{ SITE.country }}{% endif %}
+          {% if SITE.region %} · Region: {{ SITE.region }}{% endif %}
+          {% if SITE.ministry %} · Ministry: {{ SITE.ministry }}{% endif %}
+        </p>
+      {% endif %}
+      {% if SITE.school_code %}
+        <p class="location-line">School code: {{ SITE.school_code }}</p>
+      {% endif %}
+    </div>
+    <div class="ms-auto text-end">
+      <div class="pill">{{ report_title }}</div>
+      <div class="sub">{{ report_period }}</div>
+      <div class="sub">{{ report_total|default:"" }}</div>
+    </div>
+  </div>
+
+  <div class="box">
+    <div class="d-flex flex-wrap justify-content-between align-items-center">
+      <div>
+        <h3>{{ report_title }}</h3>
+        {% if filters %}
+          <div class="small text-muted">
+            {% for label, value in filters.items %}
+              {% if value %}
+                {{ label }}: {{ value }}{% if not forloop.last %} · {% endif %}
+              {% endif %}
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+      <div class="small text-muted ms-auto">Generated {{ generated_at|format_date }} {{ generated_at|time:"H:i" }}</div>
+    </div>
+  </div>
+
+  <div class="box" style="margin-top:10px;">
+    <table>
+      <thead>
+        <tr>
+          <th>Updated</th>
+          <th>Student</th>
+          <th>Class</th>
+          <th>Subject</th>
+          <th class="text-end">Seq1</th>
+          <th class="text-end">Seq2</th>
+          <th class="text-end">Exam</th>
+          <th class="text-end">Mock</th>
+          <th class="text-end">Pract</th>
+          <th class="text-end">Total</th>
+          <th>Remarks</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+          <tr>
+            <td>{{ row.updated_at }}</td>
+            <td>{{ row.student }}</td>
+            <td>{{ row.classroom }}</td>
+            <td>{{ row.subject }}</td>
+            <td class="text-end">{{ row.seq1 }}</td>
+            <td class="text-end">{{ row.seq2 }}</td>
+            <td class="text-end">{{ row.exam }}</td>
+            <td class="text-end">{{ row.mock }}</td>
+            <td class="text-end">{{ row.practical }}</td>
+            <td class="text-end">{{ row.total }}</td>
+            <td>{{ row.remarks }}</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="11" class="text-center sub">No records available.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if summary %}
+    <div class="grid" style="margin-top:10px;">
+      <div class="box">
+        <b>Totals</b>
+        <p class="sub mb-0">{{ summary }}</p>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="footer">
+    <div>Powered by RunMyCampus</div>
+    <div>Signature: ______________________</div>
+  </div>
+</body>
+</html>

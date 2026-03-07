@@ -1,0 +1,363 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load region_format %}
+
+{% block title %}Import Job Monitor{% endblock %}
+
+{% block extra_css %}
+<style>
+.job-card {
+    border-left: 4px solid;
+    margin-bottom: 15px;
+    transition: transform 0.2s;
+}
+
+.job-card:hover {
+    transform: translateX(5px);
+}
+
+.job-card.processing {
+    border-left-color: #007bff;
+    background: #f0f7ff;
+}
+
+.job-card.completed {
+    border-left-color: #28a745;
+    background: #f0fff4;
+}
+
+.job-card.failed {
+    border-left-color: #dc3545;
+    background: #fff5f5;
+}
+
+.job-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.stat-item {
+    padding: 10px;
+    background: rgba(0,0,0,0.05);
+    border-radius: 5px;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.stat-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #666;
+}
+
+.error-log {
+    max-height: 300px;
+    overflow-y: auto;
+    background: #f9f9f9;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
+.error-item {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+    font-size: 12px;
+    font-family: monospace;
+}
+
+.error-item:last-child {
+    border-bottom: none;
+}
+
+.refresh-btn {
+    animation: spin 2s linear infinite;
+}
+
+.refresh-btn.stopped {
+    animation: none;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-tasks"></i> Import Job Monitor</h1>
+                <button type="button" class="btn btn-primary" id="refreshBtn" onclick="refreshJobList()">
+                    <i class="fas fa-sync refresh-btn stopped"></i> Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="form-inline">
+                        <label class="mr-2">Filter by Status:</label>
+                        <select name="status" class="form-control mr-3">
+                            <option value="">All Jobs</option>
+                            <option value="processing" {% if status == 'processing' %}selected{% endif %}>Processing</option>
+                            <option value="completed" {% if status == 'completed' %}selected{% endif %}>Completed</option>
+                            <option value="failed" {% if status == 'failed' %}selected{% endif %}>Failed</option>
+                        </select>
+                        
+                        <label class="mr-2">Date Range:</label>
+                        <input type="date" name="from_date" class="form-control mr-2" value="{{ from_date }}" placeholder="From">
+                        <input type="date" name="to_date" class="form-control mr-2" value="{{ to_date }}" placeholder="To">
+                        
+                        <button type="submit" class="btn btn-info">Filter</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Summary Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-left-primary">
+                <div class="card-body text-center">
+                    <h3 class="text-primary">{{ total_jobs }}</h3>
+                    <small>Total Jobs</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-left-info">
+                <div class="card-body text-center">
+                    <h3 class="text-info">{{ processing_jobs }}</h3>
+                    <small>Processing</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-left-success">
+                <div class="card-body text-center">
+                    <h3 class="text-success">{{ completed_jobs }}</h3>
+                    <small>Completed</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-left-danger">
+                <div class="card-body text-center">
+                    <h3 class="text-danger">{{ failed_jobs }}</h3>
+                    <small>Failed</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Jobs List -->
+    <div class="row">
+        <div class="col-12">
+            {% if jobs %}
+                {% for job in jobs %}
+                <div class="card job-card job-card-{{ job.status }}" data-job-id="{{ job.id }}">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h5 class="mb-1">
+                                    Job #{{ job.id }}
+                                    {% if job.status == 'processing' %}
+                                        <span class="badge badge-info">
+                                            <i class="fas fa-spinner fa-spin"></i> Processing
+                                        </span>
+                                    {% elif job.status == 'completed' %}
+                                        <span class="badge badge-success">✓ Completed</span>
+                                    {% else %}
+                                        <span class="badge badge-danger">✗ Failed</span>
+                                    {% endif %}
+                                </h5>
+                                <small class="text-muted">
+                                    Created: {{ job.created_at|format_date }} {{ job.created_at|time:"H:i" }}
+                                    {% if job.completed_at %}
+                                        | Completed: {{ job.completed_at|format_date }} {{ job.completed_at|time:"H:i" }}
+                                    {% endif %}
+                                </small>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="toggleJobDetails(this)">
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="card-body job-details" style="display: none;">
+                        <!-- Statistics -->
+                        <div class="job-stats">
+                            <div class="stat-item">
+                                <div class="stat-value text-success">{{ job.created_count }}</div>
+                                <div class="stat-label">Created</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value text-info">{{ job.updated_count }}</div>
+                                <div class="stat-label">Updated</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value text-danger">{{ job.failed_count }}</div>
+                                <div class="stat-label">Failed</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value text-primary">{{ job.total_rows }}</div>
+                                <div class="stat-label">Total Rows</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Progress Bar -->
+                        {% if job.total_rows > 0 %}
+                        <div class="mt-3">
+                            <small class="text-muted">Success Rate:</small>
+                            <div class="progress" style="height: 25px;">
+                                {% widthratio job.created_count job.total_rows 100 as success_rate %}
+                                <div class="progress-bar bg-success" style="width: {{ success_rate }}%">
+                                    {{ success_rate }}%
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Duration -->
+                        {% if job.duration_seconds %}
+                        <div class="mt-3">
+                            <strong>Duration:</strong> 
+                            <span class="badge badge-light">{{ job.duration_seconds }} seconds</span>
+                            <span class="text-muted">
+                                (~{{ job.total_rows|add:0 }}/s rate)
+                            </span>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Error Log (if any) -->
+                        {% if job.error_log %}
+                        <div class="mt-4">
+                            <h6>Error Log:</h6>
+                            <div class="error-log">
+                                {% for error in job.error_log %}
+                                <div class="error-item">
+                                    <strong>Row {{ error.row }}:</strong> {{ error.message }}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Actions -->
+                        <div class="mt-4">
+                            {% if job.status == 'processing' %}
+                                <button type="button" class="btn btn-sm btn-info" onclick="pollJobStatus({{ job.id }})">
+                                    <i class="fas fa-sync"></i> Check Status
+                                </button>
+                            {% elif job.status == 'completed' %}
+                                <a href="{% url 'evals:compliance_dashboard' %}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-chart-line"></i> View Compliance Dashboard
+                                </a>
+                                <button type="button" class="btn btn-sm btn-secondary" onclick="exportJobResults({{ job.id }})">
+                                    <i class="fas fa-download"></i> Export Results
+                                </button>
+                            {% else %}
+                                <button type="button" class="btn btn-sm btn-warning" onclick="retryJob({{ job.id }})">
+                                    <i class="fas fa-redo"></i> Retry
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No import jobs found
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleJobDetails(button) {
+    const card = button.closest('.job-card');
+    const details = card.querySelector('.job-details');
+    
+    if (details.style.display === 'none') {
+        details.style.display = 'block';
+        button.innerHTML = '<i class="fas fa-chevron-up"></i>';
+    } else {
+        details.style.display = 'none';
+        button.innerHTML = '<i class="fas fa-chevron-down"></i>';
+    }
+}
+
+function refreshJobList() {
+    const btn = document.getElementById('refreshBtn');
+    const icon = btn.querySelector('i');
+    icon.classList.remove('stopped');
+    
+    setTimeout(() => {
+        location.reload();
+    }, 500);
+}
+
+function pollJobStatus(jobId) {
+    // Fetch latest job status
+    fetch(`/api/import-jobs/${jobId}/`)
+        .then(response => response.json())
+        .then(data => {
+            // Update card
+            const card = document.querySelector(`[data-job-id="${jobId}"]`);
+            if (data.status === 'completed' || data.status === 'failed') {
+                location.reload();
+            } else {
+                alert('Job still processing... Refreshing page.');
+                setTimeout(() => location.reload(), 2000);
+            }
+        });
+}
+
+function exportJobResults(jobId) {
+    // Export job results as CSV
+    window.location.href = `/evals/import-job/${jobId}/export/`;
+}
+
+function retryJob(jobId) {
+    if (confirm('Are you sure you want to retry this job?')) {
+        fetch(`/api/import-jobs/${jobId}/retry/`, { 
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Job queued for retry');
+                    location.reload();
+                }
+            });
+    }
+}
+
+// Auto-refresh if there are processing jobs
+window.addEventListener('load', function() {
+    const processingCards = document.querySelectorAll('.job-card-processing');
+    if (processingCards.length > 0) {
+        setInterval(() => location.reload(), 5000);
+    }
+});
+</script>
+{% endblock %}

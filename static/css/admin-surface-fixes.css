@@ -1,0 +1,101 @@
+/* Admin-only stability fixes.
+   Keeps /admin isolated from backend look-and-feel bleed.
+*/
+
+#main {
+  overflow-x: hidden;
+}
+
+/* Keep one clear top stack: bridge header + optional preview cues. */
+.admin-nav-bridge {
+  margin: 0 !important;
+  border-radius: 0 !important;
+}
+
+#main > #header.admin-top-header {
+  margin-bottom: 0 !important;
+  border-top: 0 !important;
+}
+
+/* The index page should not show a second utility row. */
+body.admin-index #main > #header.admin-top-header {
+  display: none !important;
+}
+
+/* Sidebar: prevent browser-default list/link fallbacks. */
+#nav-sidebar ul,
+#nav-sidebar ol,
+#nav-sidebar-apps ul,
+#nav-sidebar-apps ol {
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+#nav-sidebar li::marker,
+#nav-sidebar-apps li::marker {
+  content: "" !important;
+}
+
+#nav-sidebar a,
+#nav-sidebar-apps a {
+  text-decoration: none !important;
+}
+
+/* Sidebar hierarchy and sizing. */
+#nav-sidebar .admin-sidebar-section-title,
+#nav-sidebar-apps .admin-sidebar-section-title {
+  font-size: 0.78rem !important;
+  line-height: 1.25 !important;
+  font-weight: 700 !important;
+  margin: 0.85rem 1rem 0.45rem !important;
+}
+
+#nav-sidebar .admin-sidebar-app-title,
+#nav-sidebar-apps .admin-sidebar-app-title {
+  margin: 0.25rem 0.75rem 0.15rem !important;
+  padding: 0.55rem 0.75rem !important;
+  min-height: 2.2rem !important;
+}
+
+#nav-sidebar .admin-sidebar-app-title a,
+#nav-sidebar-apps .admin-sidebar-app-title a {
+  font-size: 1rem !important;
+  font-weight: 650 !important;
+  text-decoration: none !important;
+}
+
+#nav-sidebar .admin-sidebar-model-list,
+#nav-sidebar-apps .admin-sidebar-model-list {
+  margin: 0 0.75rem 0.5rem 1.65rem !important;
+  padding-left: 0.65rem !important;
+}
+
+#nav-sidebar .admin-sidebar-model-link,
+#nav-sidebar-apps .admin-sidebar-model-link {
+  font-size: 0.86rem !important;
+  line-height: 1.25 !important;
+  padding: 0.38rem 0.6rem !important;
+}
+
+#nav-sidebar .admin-sidebar-link,
+#nav-sidebar-apps .admin-sidebar-link {
+  font-size: 0.96rem !important;
+}
+
+/* Search area sizing/alignment. */
+#nav-sidebar #nav-filter,
+#nav-sidebar input[type="search"] {
+  width: 100% !important;
+}
+
+#nav-sidebar .admin-sidebar-search-hint {
+  text-align: left !important;
+  margin: 0 1rem 0.5rem !important;
+  padding: 0 !important;
+}
+
+/* Ensure bridge text line is rendered correctly with readable contrast. */
+.admin-nav-bridge__location {
+  color: rgba(255, 255, 255, 0.9) !important;
+}

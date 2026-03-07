@@ -1,0 +1,49 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+{# Section 15.1: Single academic year immutable transcript (read-only). #}
+{% block title %}Transcript {{ snapshot.academic_year_name|default:transcript.academic_year.name }} — {{ student.get_full_name }}{% endblock %}
+{% block content %}
+<div class="container-fluid py-3">
+  <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+    <div>
+      <h1 class="h4 mb-1">Transcript — {{ student.get_full_name }}</h1>
+      <p class="text-muted mb-0">{{ snapshot.academic_year_name|default:transcript.academic_year.name }} (immutable snapshot)</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'portal:transcript_archive' student.pk %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Transcript archive</a>
+      <a href="{% url 'portal:student_360_page' student.pk %}" class="btn btn-outline-secondary btn-sm">Student 360</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <table class="table table-sm">
+        <tbody>
+          <tr><th class="text-muted" style="width:12rem;">Student</th><td>{{ snapshot.student_name|default:student.get_full_name }}</td></tr>
+          <tr><th class="text-muted">Academic year</th><td>{{ snapshot.academic_year_name|default:transcript.academic_year.name }}</td></tr>
+          <tr><th class="text-muted">Annual average</th><td>{{ snapshot.annual_average|floatformat:2|default:"—" }}</td></tr>
+          <tr><th class="text-muted">Class rank</th><td>{{ snapshot.class_rank_display|default:"—" }}</td></tr>
+          <tr><th class="text-muted">Promotion status</th><td>{{ snapshot.promotion_status|default:"—" }}</td></tr>
+          <tr><th class="text-muted">Teacher remark</th><td>{{ snapshot.teacher_remark|default:"—" }}</td></tr>
+        </tbody>
+      </table>
+      {% if snapshot.term_rows %}
+      <h6 class="mt-3">Term breakdown</h6>
+      <table class="table table-sm table-bordered">
+        <thead><tr><th>Term</th><th>Average</th><th>Rank</th></tr></thead>
+        <tbody>
+          {% for row in snapshot.term_rows %}
+          <tr>
+            <td>{{ row.term }}</td>
+            <td>{{ row.avg|floatformat:2|default:"—" }}</td>
+            <td>{{ row.rank_display|default:"—" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+      <p class="text-muted small mt-2 mb-0">Frozen {{ transcript.created_at|date:"M d, Y H:i" }}{% if transcript.created_by %} by {{ transcript.created_by.get_full_name }}{% endif %}.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

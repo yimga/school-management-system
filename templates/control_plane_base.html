@@ -1,0 +1,170 @@
+{% extends "control_plane_skeleton.html" %}
+{% load static i18n %}
+
+{% block title %}{% block cp_title %}RunMyCampus Manager{% endblock %}{% endblock %}
+
+{% block content %}
+<nav class="navbar navbar-expand-lg navbar-dark cp-navbar" style="background: var(--cp-bg, #0B0E14); border-bottom: 1px solid rgba(125,152,187,0.18);">
+  <div class="container-fluid px-3">
+    <a class="navbar-brand fw-bold d-flex align-items-center gap-2 text-white" href="{% url 'super:dashboard' %}">
+      {% if PUBLIC_BRAND_FAVICON_URL %}
+        <img src="{{ PUBLIC_BRAND_FAVICON_URL }}" alt="" width="32" height="32" decoding="async" style="object-fit: contain;">
+      {% else %}
+        <img src="{% static 'images/runmycampus-icon.png' %}" alt="" width="32" height="32" decoding="async" style="object-fit: contain;">
+      {% endif %}
+      <span>RunMyCampus Manager</span>
+    </a>
+    <button class="navbar-toggler border-light d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#cpSidebarOffcanvas" aria-controls="cpSidebarOffcanvas" aria-label="{% trans 'Open menu' %}">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="cpNavbarContent">
+      <div class="d-flex align-items-center gap-3 ms-lg-auto">
+        <div class="cp-header-search d-none d-md-block position-relative">
+          <input type="search" class="form-control form-control-sm bg-dark border-secondary text-white" placeholder="{% trans 'Search tenants, incidents… (Ctrl+K)' %}" aria-label="Search" id="cpSearchInput" style="min-width: 220px;" autocomplete="off">
+          <div id="cpSearchResults" class="dropdown-menu position-absolute start-0 mt-1 shadow" style="min-width: 280px; max-height: 70vh; overflow-y: auto;" aria-label="Search results"></div>
+        </div>
+        {% if request.user.is_authenticated %}
+          <a href="{% url 'admin:index' %}" class="btn btn-sm btn-outline-light d-flex align-items-center gap-1" title="{% trans 'Configuration Engine – system and data' %}">
+            <i class="bi bi-gear-wide-connected"></i>
+            <span class="d-none d-lg-inline">{% trans "Configuration Engine" %}</span>
+          </a>
+          <div class="dropdown">
+            <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" id="cpUserDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-person-circle me-1"></i>
+              {{ request.user.username }}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="cpUserDropdown">
+              <li><a class="dropdown-item" href="{% url 'accounts:user_profile' %}"><i class="bi bi-person me-2"></i>{% trans "My Profile" %}</a></li>
+              <li><a class="dropdown-item" href="{% url 'siteconfig:user_preferences' %}"><i class="bi bi-sliders me-2"></i>{% trans "Preferences" %}</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-gear-wide-connected me-2"></i>{% trans "Configuration Engine" %}</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}"><i class="bi bi-box-arrow-right me-2"></i>{% trans "Logout" %}</a></li>
+            </ul>
+          </div>
+        {% else %}
+          <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:login' %}">{% trans "Login" %}</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="container-fluid px-3 py-2 cp-layout">
+  <div class="row g-3">
+    <aside class="cp-sidebar-col col-lg-3 col-xl-2 d-none d-lg-block" id="cp-sidebar-col">
+      <div class="cp-sidebar-inner p-3 rounded" style="background: var(--cp-panel-bg, rgba(8,16,30,0.78)); border: 1px solid var(--cp-panel-border);">
+        {% block control_plane_sidebar %}
+          {% include "partials/control_plane_sidebar.html" %}
+        {% endblock %}
+      </div>
+    </aside>
+    <main id="cp-main-content" class="cp-main-col col-lg-9 col-xl-10" role="main">
+      {% if messages %}
+        <div class="mb-3">
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} mb-2">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <div class="mb-0">{% block breadcrumbs %}{% endblock %}</div>
+        <div class="breadcrumb-actions">{% block breadcrumb_actions %}{% endblock %}</div>
+      </div>
+      {% block cp_content %}{% endblock %}
+    </main>
+  </div>
+</div>
+
+{# Mobile sidebar (offcanvas) — same nav as desktop #}
+<div class="offcanvas offcanvas-start d-lg-none cp-sidebar-offcanvas" tabindex="-1" id="cpSidebarOffcanvas" aria-labelledby="cpSidebarOffcanvasLabel" style="background: var(--cp-panel-bg, rgba(8,16,30,0.98)); border-right: 1px solid var(--cp-panel-border);">
+  <div class="offcanvas-header border-secondary">
+    <h5 class="offcanvas-title text-white" id="cpSidebarOffcanvasLabel">{% trans "Menu" %}</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" data-bs-target="#cpSidebarOffcanvas" aria-label="{% trans 'Close' %}"></button>
+  </div>
+  <div class="offcanvas-body p-0">
+    {% block control_plane_sidebar_mobile %}
+      {% include "partials/control_plane_sidebar.html" %}
+    {% endblock %}
+  </div>
+</div>
+
+<script>
+(function () {
+  var searchInput = document.getElementById('cpSearchInput');
+  var resultsEl = document.getElementById('cpSearchResults');
+  if (!searchInput || !resultsEl) return;
+  var debounce = null;
+  function renderResults(data) {
+    var list = (data && data.results) ? data.results : [];
+    if (list.length === 0) {
+      resultsEl.innerHTML = '<div class="px-3 py-2 text-muted small">No results</div>';
+    } else {
+      resultsEl.innerHTML = list.map(function (r) {
+        var url = r.url || '#';
+        var title = (r.title || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        var desc = (r.description || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return '<a class="dropdown-item text-white" href="' + url + '"><strong>' + title + '</strong>' + (desc ? '<br><span class="small text-secondary">' + desc + '</span>' : '') + '</a>';
+      }).join('');
+    }
+    resultsEl.classList.add('show');
+  }
+  function doSearch() {
+    var q = (searchInput.value || '').trim();
+    if (q.length === 0) {
+      fetch('/api/search/?q=', { headers: { 'Accept': 'application/json' } })
+        .then(function (res) { return res.json(); })
+        .then(renderResults)
+        .catch(function () { renderResults({ results: [] }); });
+      resultsEl.classList.add('show');
+      return;
+    }
+    if (q.length < 2) {
+      resultsEl.innerHTML = '';
+      resultsEl.classList.remove('show');
+      return;
+    }
+    fetch('/api/search/?q=' + encodeURIComponent(q), { headers: { 'Accept': 'application/json' } })
+      .then(function (res) { return res.json(); })
+      .then(renderResults)
+      .catch(function () { renderResults({ results: [] }); });
+  }
+  searchInput.addEventListener('input', function () {
+    clearTimeout(debounce);
+    debounce = setTimeout(doSearch, 220);
+  });
+  searchInput.addEventListener('focus', function () {
+    doSearch();
+  });
+  searchInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { resultsEl.classList.remove('show'); searchInput.blur(); }
+  });
+  document.addEventListener('click', function (e) {
+    if (!searchInput.contains(e.target) && !resultsEl.contains(e.target)) resultsEl.classList.remove('show');
+  });
+  document.addEventListener('keydown', function (e) {
+    if ((e.key === 'k' || e.key === 'K') && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      searchInput.focus();
+      if ((searchInput.value || '').trim().length >= 2) doSearch();
+    }
+  });
+})();
+(function () {
+  var offcanvas = document.getElementById('cpSidebarOffcanvas');
+  if (!offcanvas) return;
+  offcanvas.addEventListener('click', function (e) {
+    var link = e.target.closest('a.nav-link');
+    if (link && link.getAttribute('href') && link.getAttribute('href') !== '#') {
+      var bs = window.bootstrap;
+      if (bs && bs.Offcanvas) {
+        var instance = bs.Offcanvas.getInstance(offcanvas);
+        if (instance) instance.hide();
+      }
+    }
+  });
+})();
+</script>
+{% endblock %}

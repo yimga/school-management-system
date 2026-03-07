@@ -1,0 +1,79 @@
+{% extends "portal_base.html" %}
+{% load region_format %}
+
+{% block title %}Evaluation Evidence{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="mb-1">Evaluation Evidence</h2>
+    <div class="text-muted">
+      Upload photos, videos, or documents to support technical grading.
+    </div>
+  </div>
+  <a class="btn btn-outline-secondary btn-back-secondary" href="{% url 'evals:evaluation_admin' %}"><i class="bi bi-arrow-left me-1"></i>Back to Evaluations</a>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-lg-5">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="mb-3">Upload Evidence</h5>
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">Evaluation</label>
+            {{ form.evaluation }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Media Type</label>
+            {{ form.media_type }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">File</label>
+            {{ form.file }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Caption</label>
+            {{ form.caption }}
+          </div>
+          <button type="submit" class="btn btn-primary">Upload</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-7">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="mb-3">Recent Evidence</h5>
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Subject</th>
+                <th>Type</th>
+                <th>Uploaded</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in evidence_items %}
+                <tr>
+                  <td>{{ item.evaluation.student }}</td>
+                  <td>{{ item.evaluation.subject_assignment.subject.name }}</td>
+                  <td>{{ item.get_media_type_display }}</td>
+                  <td>{{ item.uploaded_at|format_date }} {{ item.uploaded_at|time:"H:i" }}</td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="4" class="text-muted">No evidence uploaded yet.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

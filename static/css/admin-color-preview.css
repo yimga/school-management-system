@@ -1,0 +1,251 @@
+/* Color input: interactive wheel/picker (Pickr) + editable hex */
+.color-input-with-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.color-pickr-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 0;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  transition: box-shadow 0.2s, transform 0.1s;
+}
+
+.color-pickr-trigger:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.color-pickr-trigger:focus {
+  outline: 2px solid var(--color-primary-500, var(--color-primary));
+  outline-offset: 2px;
+}
+
+.color-input-with-preview-hex {
+  font-family: ui-monospace, "SF Mono", Monaco, monospace;
+  font-size: 14px;
+  width: 100px;
+  min-width: 100px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+/* Pickr nano theme tweaks - keep picker readable in admin */
+.pickr .pcr-button,
+.pcr-button {
+  border-radius: 8px !important;
+}
+
+.pickr .pcr-interaction input {
+  font-family: ui-monospace, monospace !important;
+}
+
+/* Palette selector swatches */
+.admin-dashboard-palette-selector {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.theme-pack-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.theme-pack-filter-row .form-control {
+  max-width: 360px;
+}
+
+.theme-pack-catalog[open] .theme-pack-catalog-body {
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: 0.35rem;
+}
+
+.theme-pack-catalog[open] .theme-pack-catalog-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.theme-pack-catalog[open] .theme-pack-catalog-body::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.5);
+  border-radius: 999px;
+}
+
+.admin-dashboard-palette-card {
+  border: 2px solid var(--vis-border, transparent);
+  border-radius: 10px;
+  padding: 10px;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background: var(--vis-surface-muted, transparent);
+  color: var(--vis-text);
+}
+
+.admin-dashboard-palette-card:hover {
+  border-color: var(--color-border, rgba(15, 23, 42, 0.15));
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.admin-dashboard-palette-card.selected {
+  border-color: var(--color-primary, #ff6a88);
+  box-shadow: 0 0 0 2px rgba(255, 106, 136, 0.2);
+}
+
+.admin-dashboard-palette-card.is-site-active {
+  border-color: rgba(37, 99, 235, 0.55);
+}
+
+.admin-dashboard-palette-card.is-admin-active {
+  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.18);
+}
+
+.admin-dashboard-palette-card.is-active-unified {
+  border-color: rgba(8, 145, 178, 0.85);
+  box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
+}
+
+.admin-dashboard-palette-swatches {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-dashboard-palette-swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.admin-dashboard-palette-name {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--vis-text, var(--color-text-primary, var(--admin-content-text)));
+}
+
+.admin-dashboard-palette-desc {
+  font-size: 11px;
+  color: var(--vis-text-muted, var(--color-text-muted, var(--admin-content-text-muted)));
+  margin-top: 2px;
+}
+
+.admin-dashboard-palette-meta {
+  margin-top: 0.35rem;
+}
+
+.theme-pack-pill {
+  font-size: 0.64rem;
+  letter-spacing: 0.01em;
+}
+
+.theme-pack-catalog {
+  border: 1px solid var(--vis-border, var(--admin-content-border));
+  border-radius: 12px;
+  padding: 0.75rem;
+  background: var(--vis-surface-muted, color-mix(in srgb, var(--vis-surface, var(--admin-content-surface)) 92%, var(--admin-content-text) 8%));
+}
+
+.theme-pack-catalog-scroll {
+  max-height: 360px;
+  overflow: auto;
+  padding-right: 0.25rem;
+  scrollbar-gutter: stable both-edges;
+}
+
+.theme-pack-catalog-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.theme-pack-catalog-scroll::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.4);
+  border-radius: 999px;
+}
+
+.theme-pack-catalog-hint {
+  margin-top: 0.35rem;
+}
+
+.theme-pack-active-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.theme-pack-active-legend .badge {
+  font-size: 0.72rem;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+/* Grouped palette applets (Theme & Experience) */
+.admin-dashboard-palette-group {
+  margin-bottom: 1.5rem;
+}
+.admin-dashboard-palette-group-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--vis-text, var(--color-text-primary, var(--admin-content-text)));
+  margin: 0 0 0.5rem 0;
+}
+
+@media (max-width: 991px) {
+  .theme-pack-catalog-scroll {
+    max-height: 50vh;
+  }
+}
+
+/* Site Settings visibility guard: theme-pack catalog must stay readable in all theme combinations */
+body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog,
+body.app-siteconfig.model-sitesettings.change-form .admin-dashboard-palette-card,
+body.app-siteconfig.model-sitesettings.change-form .theme-pack-filter-row .form-control {
+  background: var(--admin-content-surface, #ffffff);
+  color: var(--admin-content-text, #0f172a);
+  border-color: var(--admin-content-border, rgba(15, 23, 42, 0.14));
+}
+
+body.app-siteconfig.model-sitesettings.change-form .admin-dashboard-palette-card {
+  background: color-mix(in srgb, var(--admin-content-surface, #ffffff) 94%, var(--school-primary, #3b82f6) 6%);
+}
+
+body.app-siteconfig.model-sitesettings.change-form .admin-dashboard-palette-name,
+body.app-siteconfig.model-sitesettings.change-form .admin-dashboard-palette-group-title,
+body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog summary,
+body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog .help {
+  color: var(--admin-content-text, #0f172a);
+}
+
+body.app-siteconfig.model-sitesettings.change-form .admin-dashboard-palette-card .admin-dashboard-palette-name {
+  color: var(--card-fg, var(--admin-content-text, #0f172a));
+}
+
+body.app-siteconfig.model-sitesettings.change-form .admin-dashboard-palette-card .admin-dashboard-palette-desc {
+  color: var(--card-fg, var(--admin-content-text-muted, #64748b));
+}
+
+body.app-siteconfig.model-sitesettings.change-form .admin-dashboard-palette-desc,
+body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog-hint {
+  color: var(--admin-content-text-muted, #64748b);
+}
+
+:root[data-theme="dark"] body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog,
+html[data-bs-theme="dark"] body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog,
+:root[data-theme="dark"] body.app-siteconfig.model-sitesettings.change-form .admin-dashboard-palette-card,
+html[data-bs-theme="dark"] body.app-siteconfig.model-sitesettings.change-form .admin-dashboard-palette-card,
+:root[data-theme="dark"] body.app-siteconfig.model-sitesettings.change-form .theme-pack-filter-row .form-control,
+html[data-bs-theme="dark"] body.app-siteconfig.model-sitesettings.change-form .theme-pack-filter-row .form-control {
+  background: var(--admin-content-surface, #1e293b);
+  color: var(--admin-content-text, #f1f5f9);
+  border-color: var(--admin-content-border, rgba(148, 163, 184, 0.26));
+}

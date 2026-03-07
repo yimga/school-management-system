@@ -1,0 +1,47 @@
+﻿{% extends "base.html" %}
+{% load i18n %}
+{% block title %}Find your school{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center mb-4">
+    <div class="col-lg-10">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <h2 class="h5 mb-2">{% trans "Tenant access portal" %}</h2>
+          <p class="text-muted mb-3">{% trans "Use email discovery if you belong to a school, or start onboarding if you are creating a new tenant." %}</p>
+          <div class="d-flex flex-wrap gap-2">
+            <a href="{% url 'signup_school' %}" class="btn btn-outline-primary btn-sm">{% trans "Create school tenant" %}</a>
+            <a href="{% url 'find_school' %}" class="btn btn-outline-secondary btn-sm">{% trans "Search by school name" %}</a>
+            <a href="{% url 'accounts:login' %}" class="btn btn-outline-secondary btn-sm">{% trans "Direct login" %}</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <h1 class="h3 mb-4">{% trans "Find your school" %}</h1>
+      <p class="text-muted">Enter your email to be redirected to your school portal.</p>
+      {% if error %}<div class="alert alert-warning">{{ error }}</div>{% endif %}
+      <form method="post" action="{% url 'global_login_discovery' %}">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label for="email" class="form-label">{% trans "Email" %}</label>
+          <input type="email" name="email" id="email" class="form-control" value="{{ email|default:'' }}" required placeholder="you@school.edu">
+        </div>
+        <button type="submit" class="btn btn-primary">{% trans "Continue" %}</button>
+        <a href="{% url 'accounts:login' %}" class="btn btn-outline-secondary ms-2">{% trans "School login" %}</a>
+      </form>
+      <p class="mt-4 small text-muted">
+        <a href="{% url 'signup_school' %}">Get started</a> - Create a new school.
+      </p>
+    </div>
+    <div class="col-lg-6 mt-4 mt-lg-0">
+      {% include "schools/partials/school_finder_bento.html" with finder_id="discovery-school-finder-results" input_id="discovery-school-finder-input" query=query results=results %}
+    </div>
+  </div>
+  {% if role_checklists %}
+    {% include "schools/partials/role_onboarding_checklists.html" with role_checklists=role_checklists %}
+  {% endif %}
+</div>
+{% endblock %}

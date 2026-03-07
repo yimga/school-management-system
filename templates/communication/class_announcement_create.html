@@ -1,0 +1,96 @@
+{% extends "portal_base.html" %}
+{% load static %}
+
+{% block title %}Create Class Announcement{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-header bg-secondary text-white">
+          <h4 class="mb-0"><i class="bi bi-journal-text me-2"></i>Create Class Announcement</h4>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
+            This announcement will be visible to parents and staff for the selected class (or department). Use <strong>Class</strong> to target one class; only HOD/leadership can post to a whole department from here.
+          </div>
+
+          <form method="post">
+            {% csrf_token %}
+
+            <div class="mb-3">
+              <label for="{{ form.title.id_for_label }}" class="form-label">Title *</label>
+              {{ form.title }}
+              {% if form.title.errors %}
+              <div class="text-danger small">{{ form.title.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ form.body.id_for_label }}" class="form-label">Content *</label>
+              {{ form.body }}
+              {% if form.body.errors %}
+              <div class="text-danger small">{{ form.body.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ form.classroom.id_for_label }}" class="form-label">Classroom</label>
+              {{ form.classroom }}
+              <div class="form-text">Select the class this announcement is for (required if not selecting department).</div>
+              {% if form.classroom.errors %}
+              <div class="text-danger small">{{ form.classroom.errors }}</div>
+              {% endif %}
+            </div>
+
+            {% if form.department.field.required %}
+            <div class="mb-3">
+              <label for="{{ form.department.id_for_label }}" class="form-label">Department</label>
+              {{ form.department }}
+              {% if form.department.errors %}
+              <div class="text-danger small">{{ form.department.errors }}</div>
+              {% endif %}
+            </div>
+            {% else %}
+            <div class="mb-3">
+              <label for="{{ form.department.id_for_label }}" class="form-label">Department (optional)</label>
+              {{ form.department }}
+              <div class="form-text">Leave blank to target only the classroom above. HOD/leadership can select a department instead.</div>
+              {% if form.department.errors %}
+              <div class="text-danger small">{{ form.department.errors }}</div>
+              {% endif %}
+            </div>
+            {% endif %}
+
+            <div class="mb-3">
+              <label for="{{ form.audience.id_for_label }}" class="form-label">Audience</label>
+              {{ form.audience }}
+              {% if form.audience.errors %}
+              <div class="text-danger small">{{ form.audience.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <div class="form-check">
+                {{ form.is_pinned }}
+                <label class="form-check-label" for="{{ form.is_pinned.id_for_label }}">
+                  Pin this announcement (show at top)
+                </label>
+              </div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle me-2"></i>Create Announcement
+              </button>
+              <a href="{% url 'portal:teacher_dashboard_alias' %}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

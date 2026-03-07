@@ -1,0 +1,269 @@
+{% extends "control_plane_base.html" %}
+{% load static %}
+
+{% block cp_title %}Mission Queues{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-4 control-plane-shell">
+  <section class="cp-hero cp-hero-compact mb-4">
+    <div class="cp-hero-grid">
+      <div>
+        <div class="cp-eyebrow">RunMyCampus Manager</div>
+        <h1 class="cp-hero-title">Operational queues</h1>
+        <p class="cp-hero-copy">
+          Drill into the work that blocks revenue, rollout speed, platform health, and operator trust.
+        </p>
+        <div class="cp-chip-row">
+          <span class="cp-chip cp-chip-{{ platform_health.overall_status|default:'warning' }}">Platform {{ platform_health.overall_status|default:"warning"|upper }}</span>
+          <span class="cp-chip">Support backlog 48h+ {{ command_center.support_backlog_48h_count }}</span>
+          <span class="cp-chip">Provisioning breaches {{ command_center.provisioning_sla_breaches }}</span>
+          <span class="cp-chip">Billing watchlist {{ billing_watchlist|length }}</span>
+        </div>
+      </div>
+      <div class="cp-hero-actions">
+        <div class="cp-action-stack">
+          <a href="{{ dashboard_url }}" class="btn btn-outline-light btn-sm">Back to control plane</a>
+          <div class="cp-action-row">
+            <a href="{{ support_dashboard_url }}" class="btn btn-outline-light btn-sm">Support</a>
+            <a href="{{ billing_dashboard_url }}" class="btn btn-outline-light btn-sm">Billing</a>
+            <a href="{% url 'super:marketplace_governance' %}" class="btn btn-outline-light btn-sm">Marketplace</a>
+            <a href="{{ usage_url }}" class="btn btn-outline-light btn-sm">Usage</a>
+            {% if platform_incidents_url %}<a href="{{ platform_incidents_url }}" class="btn btn-outline-light btn-sm">Incidents</a>{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="cp-overview-grid mb-4">
+    <article class="cp-overview-card cp-overview-card-blue">
+      <span class="cp-overview-label">Pending approvals</span>
+      <strong class="cp-overview-value">{{ pending_schools|length }}</strong>
+      <span class="cp-overview-meta">Schools blocked before activation</span>
+    </article>
+    <article class="cp-overview-card cp-overview-card-amber">
+      <span class="cp-overview-label">Support backlog 48h+</span>
+      <strong class="cp-overview-value">{{ command_center.support_backlog_48h_count }}</strong>
+      <span class="cp-overview-meta">{{ command_center.support_backlog_7d_count }} older than seven days</span>
+    </article>
+    <article class="cp-overview-card cp-overview-card-crimson">
+      <span class="cp-overview-label">Live incidents</span>
+      <strong class="cp-overview-value">{{ platform_incidents|length }}</strong>
+      <span class="cp-overview-meta">{{ incident_counts.open|default:0 }} open / {{ incident_counts.acknowledged|default:0 }} acknowledged</span>
+    </article>
+    <article class="cp-overview-card cp-overview-card-violet">
+      <span class="cp-overview-label">Billing watchlist</span>
+      <strong class="cp-overview-value">{{ billing_watchlist|length }}</strong>
+      <span class="cp-overview-meta">Past due and suspended subscriptions</span>
+    </article>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-12 col-xl-6">
+      <section class="cp-panel">
+        <div class="cp-panel-header">
+          <div>
+            <span class="cp-panel-eyebrow">Approvals</span>
+            <h2 class="cp-panel-title">Tenant approvals</h2>
+          </div>
+        </div>
+        <div class="cp-list">
+          {% for school in pending_schools %}
+          <div class="cp-list-row">
+            <div>
+              <strong>{{ school.name }}</strong>
+              <div class="cp-list-meta">Created {{ school.created_at|date:"Y-m-d H:i" }} | Students {{ school.student_count|default:0 }}</div>
+            </div>
+            <span class="cp-status-badge cp-status-badge-pending">Pending</span>
+          </div>
+          {% empty %}
+          <div class="cp-empty-state">No tenant approvals waiting.</div>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+
+    <div class="col-12 col-xl-6">
+      <section class="cp-panel">
+        <div class="cp-panel-header">
+          <div>
+            <span class="cp-panel-eyebrow">Free trials</span>
+            <h2 class="cp-panel-title">Trials ending soon</h2>
+          </div>
+        </div>
+        <div class="cp-list">
+          {% for school in trial_schools %}
+          <div class="cp-list-row">
+            <div>
+              <strong>{{ school.name }}</strong>
+              <div class="cp-list-meta">Trial end {{ school.trial_end_date|date:"Y-m-d"|default:"-" }}</div>
+            </div>
+            <span class="cp-status-badge cp-status-badge-warning">Trial</span>
+          </div>
+          {% empty %}
+          <div class="cp-empty-state">No active trial watchlist.</div>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+
+    <div class="col-12 col-xl-6">
+      <section class="cp-panel">
+        <div class="cp-panel-header">
+          <div>
+            <span class="cp-panel-eyebrow">Provisioning</span>
+            <h2 class="cp-panel-title">SLA breaches</h2>
+          </div>
+        </div>
+        <div class="cp-list">
+          {% for row in provisioning_breach_rows %}
+          <div class="cp-list-row">
+            <div>
+              <strong>{{ row.school.name|default:"Unknown school" }}</strong>
+              <div class="cp-list-meta">Exceeded target by {{ row.hours }}h</div>
+            </div>
+            <span class="cp-status-badge cp-status-badge-danger">{{ row.hours }}h</span>
+          </div>
+          {% empty %}
+          <div class="cp-empty-state">No provisioning breaches in the sampled window.</div>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+
+    <div class="col-12 col-xl-6">
+      <section class="cp-panel">
+        <div class="cp-panel-header">
+          <div>
+            <span class="cp-panel-eyebrow">Support</span>
+            <h2 class="cp-panel-title">Stale backlog</h2>
+          </div>
+        </div>
+        <div class="cp-list">
+          {% for row in stale_support %}
+          <div class="cp-list-row">
+            <div>
+              <strong>{{ row.ticket.school.name }}</strong>
+              <div class="cp-list-meta">{{ row.ticket.subject|truncatewords:7 }}</div>
+            </div>
+            <span class="cp-status-badge cp-status-badge-warning">{{ row.age_hours }}h</span>
+          </div>
+          {% empty %}
+          <div class="cp-empty-state">No stale support tickets.</div>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+
+    <div class="col-12 col-xl-6">
+      <section class="cp-panel">
+        <div class="cp-panel-header">
+          <div>
+            <span class="cp-panel-eyebrow">Incident response</span>
+            <h2 class="cp-panel-title">Platform incidents</h2>
+          </div>
+        </div>
+        <div class="cp-list">
+          {% for incident in platform_incidents %}
+          <div class="cp-list-row">
+            <div>
+              <strong>{{ incident.title }}</strong>
+              <div class="cp-list-meta">{{ incident.incident_type|title }} | {{ incident.severity|upper }}{% if incident.affected_school %} | {{ incident.affected_school.name }}{% endif %}</div>
+            </div>
+            <span class="cp-status-badge cp-status-badge-{{ incident.status }}">{{ incident.status|title }}</span>
+          </div>
+          {% empty %}
+          <div class="cp-empty-state">No unresolved incidents.</div>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+
+    <div class="col-12 col-xl-6">
+      <section class="cp-panel">
+        <div class="cp-panel-header">
+          <div>
+            <span class="cp-panel-eyebrow">Billing</span>
+            <h2 class="cp-panel-title">Exceptions and recovery</h2>
+          </div>
+        </div>
+        <div class="cp-list">
+          {% for subscription in billing_watchlist %}
+          <div class="cp-list-row">
+            <div>
+              <strong>{{ subscription.school.name }}</strong>
+              <div class="cp-list-meta">{{ subscription.status|title }}{% if subscription.plan %} | {{ subscription.plan.name }}{% endif %}</div>
+            </div>
+            <span class="cp-status-badge cp-status-badge-{{ subscription.status|lower }}">{{ subscription.status|title }}</span>
+          </div>
+          {% empty %}
+          <div class="cp-empty-state">No billing exceptions right now.</div>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+
+    <div class="col-12 col-xl-6">
+      <section class="cp-panel">
+        <div class="cp-panel-header">
+          <div>
+            <span class="cp-panel-eyebrow">Churn risk</span>
+            <h2 class="cp-panel-title">Schools needing intervention</h2>
+          </div>
+        </div>
+        <div class="cp-list">
+          {% for row in risk_rows %}
+          <div class="cp-list-row">
+            <div>
+              <strong>{{ row.school.name }}</strong>
+              <div class="cp-list-meta">{{ row.reasons|join:", " }}</div>
+            </div>
+            <span class="cp-status-badge cp-status-badge-warning">{{ row.risk_score }}</span>
+          </div>
+          {% empty %}
+          <div class="cp-empty-state">No churn-risk tenants detected.</div>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+
+    <div class="col-12 col-xl-6">
+      <section class="cp-panel">
+        <div class="cp-panel-header">
+          <div>
+            <span class="cp-panel-eyebrow">Stack posture</span>
+            <h2 class="cp-panel-title">Health and delivery drift</h2>
+          </div>
+        </div>
+        <div class="cp-stack-card">
+          <div class="cp-stack-row">
+            <span>Platform health</span>
+            <strong>{{ platform_health.overall_status|default:"warning"|upper }}</strong>
+          </div>
+          <div class="cp-stack-row">
+            <span>Database</span>
+            <strong>{{ platform_health.database.status|default:"unknown"|upper }}</strong>
+          </div>
+          <div class="cp-stack-row">
+            <span>Cache</span>
+            <strong>{{ platform_health.cache.status|default:"unknown"|upper }}</strong>
+          </div>
+          <div class="cp-stack-row">
+            <span>Legacy webhook groups</span>
+            <strong>{{ webhook_stack.legacy_groups|default:0 }}</strong>
+          </div>
+          <div class="cp-stack-row">
+            <span>Unsynced webhook groups</span>
+            <strong>{{ webhook_stack.unsynced_legacy_groups|default:0 }}</strong>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}

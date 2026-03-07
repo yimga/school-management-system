@@ -1,0 +1,264 @@
+{% extends "admin/base.html" %}
+{% load i18n static admin_extras %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <!-- Admin-only design tokens -->
+  <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/design-system-unified.css' %}">
+  <link rel="stylesheet" href="{% static 'css/admin-components.css' %}">
+  <link rel="stylesheet" href="{% static 'css/unfold-integration.css' %}">
+  <link rel="stylesheet" href="{% static 'css/admin-console-themes.css' %}">
+
+  <!-- Admin sidebar -->
+  <link rel="stylesheet" href="{% static 'css/admin-sidebar-scroll.css' %}">
+  <link rel="stylesheet" href="{% static 'css/admin-sidebar-backend-inspired.css' %}">
+  <link rel="stylesheet" href="{% static 'css/admin-sidebar-polish.css' %}">
+  <link rel="stylesheet" href="{% static 'css/admin-surface-fixes.css' %}">
+  <link rel="stylesheet" href="{% static 'css/theme-visibility-guard.css' %}">
+  <link rel="stylesheet" href="{% static 'css/platform-high-end.css' %}">
+    <style>
+      #container, #content, .dashboard-container, .main-content, .content {
+        position: relative;
+        z-index: 1;
+      }
+      /* Admin dashboard: full width */
+      #container, #content {
+        max-width: none !important;
+        width: 100% !important;
+      }
+      body.admin-index #content .container,
+      body[data-dashboard-page] #content .container {
+        max-width: none !important;
+        width: 100% !important;
+      }
+
+      /* Skip link for keyboard users */
+      .skip-link {
+        position: absolute;
+        left: -999px;
+        top: 0;
+        padding: 0.4rem 0.75rem;
+        background: #0f172a;
+        color: #f9fafb;
+        z-index: 2000;
+        border-radius: 999px;
+        font-size: 0.85rem;
+      }
+      .skip-link:focus {
+        left: 0.75rem;
+        top: 0.5rem;
+      }
+    </style>
+  <style>
+    .preview-cue {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid var(--color-base-200, #e2e8f0);
+      font-size: 0.92rem;
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--color-base-900, #0f172a);
+      margin-top: 12px;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.45);
+    }
+    .preview-cue--active {
+      background: rgba(251, 191, 36, 0.08);
+      border-color: #f97316;
+      color: #f97316;
+    }
+    .preview-cue--ready {
+      background: rgba(56, 189, 248, 0.08);
+      border-color: #38bdf8;
+      color: #38bdf8;
+    }
+    .preview-cue-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .preview-cue-actions a {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid currentColor;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: inherit;
+      transition: all 0.2s ease;
+    }
+    .preview-cue-actions a:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+  </style>
+  {# Single source for admin brand/semantic CSS variables (no conflicting settings). #}
+  {# On manager host use platform primary only (no tenant SITE). Else align with site accent. #}
+  <style>
+    :root {
+      --brand-primary: {{ ADMIN_RESOLVED_PRIMARY|default:"#0d6efd" }};
+      --brand-accent: {{ ADMIN_RESOLVED_ACCENT|default:"#198754" }};
+      --brand-success: {{ ADMIN_RESOLVED_SUCCESS|default:"#22c55e" }};
+      --brand-warning: {{ ADMIN_RESOLVED_WARNING|default:"#fbbf24" }};
+      --brand-danger: {{ ADMIN_RESOLVED_DANGER|default:"#ef4444" }};
+      --surface-deep: {{ ADMIN_RESOLVED_BACKGROUND|default:"#1a1a1a" }};
+      {% if is_manager_host %}
+      --admin-sidebar-active-border: {{ ADMIN_RESOLVED_PRIMARY|default:"#0d6efd" }};
+      {% elif SITE and SITE.admin_use_site_primary %}
+      --admin-sidebar-active-border: {{ SITE.primary_color|default:"#0d6efd" }};
+      {% else %}
+      --admin-sidebar-active-border: {{ ADMIN_RESOLVED_PRIMARY|default:"#0d6efd" }};
+      {% endif %}
+    }
+    body, #content {
+      --color-primary: var(--brand-primary);
+      --color-primary-500: var(--brand-primary);
+      --color-primary-600: var(--brand-primary);
+    }
+  </style>
+  {# Critical: sidebar must stay LEFT of dashboard (not on top). Inline so it cannot be overridden by cached CSS. #}
+  <style id="admin-layout-sidebar-left">
+    #page { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; }
+    #page .admin-sidebar-column { flex: 0 0 288px !important; width: 288px !important; max-width: 288px !important; min-width: 288px !important; }
+    #page > #main { flex: 1 1 auto !important; min-width: 0 !important; }
+    @media (max-width: 1279px) {
+      #page .admin-sidebar-column { flex: 0 0 0 !important; width: 0 !important; min-width: 0 !important; max-width: 0 !important; overflow: hidden !important; }
+    }
+  </style>
+  {# Critical fallback: keep /admin sidebar readable even if external sidebar css is stale or cached. #}
+  <style id="admin-sidebar-critical-fallback">
+    #nav-sidebar ul,
+    #nav-sidebar ol,
+    #nav-sidebar-apps ul,
+    #nav-sidebar-apps ol,
+    #nav-sidebar .admin-sidebar-quick-list,
+    #nav-sidebar .admin-sidebar-model-list,
+    #nav-sidebar-apps .admin-sidebar-quick-list,
+    #nav-sidebar-apps .admin-sidebar-model-list {
+      list-style: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    #nav-sidebar li,
+    #nav-sidebar-apps li {
+      list-style: none !important;
+    }
+    #nav-sidebar .admin-sidebar-link,
+    #nav-sidebar .admin-sidebar-model-link,
+    #nav-sidebar .admin-sidebar-app-title a,
+    #nav-sidebar-apps .admin-sidebar-link,
+    #nav-sidebar-apps .admin-sidebar-model-link,
+    #nav-sidebar-apps .admin-sidebar-app-title a {
+      text-decoration: none !important;
+    }
+    #nav-sidebar .admin-sidebar-app-title,
+    #nav-sidebar-apps .admin-sidebar-app-title {
+      margin: 0.625rem 0.75rem 0.25rem !important;
+      line-height: 1.2 !important;
+    }
+    #nav-sidebar .admin-sidebar-app-title a,
+    #nav-sidebar-apps .admin-sidebar-app-title a {
+      font-size: 1.0625rem !important;
+      font-weight: 600 !important;
+      line-height: 1.2 !important;
+    }
+    #nav-sidebar .admin-sidebar-model-link,
+    #nav-sidebar-apps .admin-sidebar-model-link {
+      display: block !important;
+      padding: 0.3rem 0.9rem !important;
+      font-size: 0.95rem !important;
+      line-height: 1.35 !important;
+    }
+  </style>
+{% endblock %}
+
+{% block extrahead %}
+  {{ block.super }}
+  {% if SITE_FAVICON_URL %}<link rel="icon" href="{{ SITE_FAVICON_URL }}" type="image/x-icon">{% endif %}
+  {# Apply backend_console_theme to admin (black, charcoal, etc.) #}
+  <script>
+    (function(){
+      function apply() {
+        var theme = '{{ RESOLVED_BACKEND_CONSOLE_THEME|default:"dark"|escapejs }}';
+        if (theme === 'system') {
+          theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        var darkThemes = ['dark', 'black', 'ink', 'onyx', 'charcoal', 'graphite', 'midnight', 'ocean', 'steel', 'slate', 'forest', 'indigo', 'amber'];
+        if (darkThemes.indexOf(theme) >= 0) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          document.documentElement.setAttribute('data-bs-theme', 'dark');
+          document.documentElement.classList.add('dark');
+          document.body.classList.add('portal-backend-dark', 'portal-backend-' + theme);
+        } else {
+          document.documentElement.setAttribute('data-theme', 'light');
+          document.documentElement.setAttribute('data-bs-theme', 'light');
+          document.body.classList.add('portal-backend-light', 'portal-backend-' + theme);
+        }
+      }
+      if (document.body) apply(); else document.addEventListener('DOMContentLoaded', apply);
+    })();
+  </script>
+  {# Set dark mode when black theme pack is active (Deep Space, midnight, dark palettes) #}
+  {% if SITE_ADMIN_THEME and SITE_ADMIN_THEME.slug %}
+  <script>
+    (function(){
+      var s = "{{ SITE_ADMIN_THEME.slug|escapejs }}";
+      if (s.indexOf("deep-space") >= 0 || s.indexOf("midnight") >= 0 || s.indexOf("-dark") >= 0 || s.indexOf("high-contrast-dark") >= 0) {
+        document.documentElement.setAttribute("data-theme", "dark");
+        document.documentElement.setAttribute("data-bs-theme", "dark");
+        document.documentElement.classList.add("dark");
+      }
+    })();
+  </script>
+  {% endif %}
+  <script src="{% static 'js/admin-sidebar-nav.js' %}" defer></script>
+{% endblock %}
+
+{% block title %}{% if site_title %}{{ site_title }}{% else %}{% trans 'Site administration' %}{% endif %}{% endblock %}
+
+{% block branding %}
+  {% include 'components/admin_nav_bridge.html' %}
+  {% if PREVIEW_MODE_ENABLED %}
+    <div class="preview-cue preview-cue--active">
+      <span>
+        <strong>Preview mode</strong> &mdash; {{ PREVIEW_BANNER_TEXT|default:PREVIEW_NOTE|default:"Sandbox data will not persist." }}
+      </span>
+      <div class="preview-cue-actions">
+        <a href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">Toggle sandbox</a>
+        <a href="{% url 'siteconfig:clear_preview' %}">Clear preview</a>
+      </div>
+    </div>
+  {% elif PREVIEW_TOGGLE_ENABLED %}
+    <div class="preview-cue preview-cue--ready">
+      <span>
+        <strong>Preview ready</strong> &mdash; {{ PREVIEW_BANNER_TEXT|default:"Staged changes can be reviewed without publishing." }}
+      </span>
+      <div class="preview-cue-actions">
+        <a href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">{{ PREVIEW_TOGGLE_LABEL }}</a>
+      </div>
+    </div>
+  {% endif %}
+  {% if show_mfa_banner %}
+    <div class="preview-cue preview-cue--ready mfa-encourage-banner" role="region" aria-label="{% trans 'MFA setup' %}">
+      <span>
+        <strong>{% trans "Stronger security" %}</strong> &mdash; {% trans "Set up MFA (TOTP) to protect your account. Free and quick." %}
+      </span>
+      <div class="preview-cue-actions">
+        <a href="{{ mfa_setup_url }}?next={{ request.get_full_path|urlencode }}" class="btn-mfa-setup">{% trans "Set up MFA" %}</a>
+        <a href="{% url 'accounts:dismiss_mfa_banner' %}?next={{ request.get_full_path|urlencode }}" class="btn-mfa-dismiss">{% trans "Dismiss" %}</a>
+      </div>
+    </div>
+  {% endif %}
+    {# The logo background is handled by CSS above. #}
+{% endblock %}
+
+{% block nav-global %}
+  <a href="#content" class="skip-link">Skip to main content</a>
+{% endblock %}
+
+{% block footer %}
+  {{ block.super }}
+  {% include 'components/ai_copilot.html' %}
+  {% include 'components/toast_notifications.html' %}
+{% endblock %}

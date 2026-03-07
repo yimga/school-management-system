@@ -1,0 +1,38 @@
+{% comment %}
+  Global connection status for offline-first UX.
+  Shows: Connected (green) | Offline - N items will sync (orange) | Syncing... (spinner).
+  "Sync now" triggers replay; "Last synced X ago" and "Resolve conflicts (N)" when applicable.
+  Only rendered when SITE.enable_offline_mode is True; hidden when offline mode disabled.
+{% endcomment %}
+<div id="sms-offline-status-bar" class="topbar-offline-status d-none d-inline-flex align-items-center gap-2 px-2 py-1 rounded-pill small text-white" role="status" aria-live="polite" style="min-width: 0; background: rgba(0,0,0,0.2);">
+  <span id="sms-offline-status-dot" class="rounded-circle" style="width: 8px; height: 8px; flex-shrink: 0;"></span>
+  <span id="sms-offline-status-text">Connected</span>
+  <span id="sms-offline-status-last-synced" class="d-none text-white-50" style="font-size: 0.85em;" title="Last successful sync"></span>
+  <span id="sms-offline-status-spinner" class="spinner-border spinner-border-sm d-none text-white" role="img" aria-label="Syncing"></span>
+  <button type="button" id="sms-offline-sync-now-btn" class="btn btn-link btn-sm p-0 ms-1 text-white text-decoration-underline" style="font-size: inherit;" aria-label="Sync queued data now">Sync now</button>
+  <button type="button" id="sms-offline-conflicts-btn" class="d-none btn btn-link btn-sm p-0 text-warning text-decoration-underline" style="font-size: inherit;" aria-label="View sync conflicts">Resolve conflicts</button>
+</div>
+<!-- Modal: list of sync conflicts (409 / client errors) for user to resolve manually -->
+<div class="modal fade" id="sms-offline-conflicts-modal" tabindex="-1" aria-labelledby="sms-offline-conflicts-modal-label" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="sms-offline-conflicts-modal-label">Sync conflicts</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="small text-body-secondary mb-2">These items could not sync (e.g. changed on server or validation error).</p>
+        <ol class="small text-body-secondary mb-3 ps-3">
+          <li>Open the linked page below (or the relevant screen).</li>
+          <li>Re-apply your changes there and submit while online.</li>
+          <li>Use <strong>Dismiss</strong> to clear this list from the bar once you have fixed or discarded the changes.</li>
+        </ol>
+        <ul id="sms-offline-conflicts-list" class="list-group list-group-flush"></ul>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="sms-offline-conflicts-dismiss-btn">Dismiss list</button>
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>

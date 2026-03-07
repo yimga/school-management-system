@@ -1,0 +1,160 @@
+{% extends "backend_base.html" %}
+{% load static %}
+
+{% block title %}Year-end rollover{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="{% url 'accounts:backend_dashboard' %}">Backend</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'accounts:workflow_center' %}">Workflow Center</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Year-end rollover</li>
+    </ol>
+  </nav>
+
+  <div class="card shadow-sm mb-3">
+    <div class="card-body">
+      <h2 class="h5 mb-3">Year-end rollover</h2>
+      <p class="text-muted small mb-3">
+        Move students from the source year to the target year and assign their next classroom.
+        Select source and target year, then choose the next class for each student (or keep the suggestion) and apply.
+        Optionally lock the source year after rollover to prevent further grade edits.
+      </p>
+      <p class="mb-2 small">
+        <a href="{% url 'accounts:rollover_queue' %}">Rollover queue</a> — prepare a proposal, review suggested classes, approve, then apply.
+      </p>
+      <form method="get" action="" class="row g-3 align-items-end mb-0">
+        <div class="col-md-4">
+          <label for="source_year" class="form-label">Source year (current)</label>
+          <select name="source_year" id="source_year" class="form-select" required>
+            <option value="">— Select —</option>
+            {% for y in years %}
+            <option value="{{ y.id }}" {% if source_year and source_year.id == y.id %}selected{% endif %}>{{ y.name }}{% if y.is_locked %} (locked){% endif %}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label for="target_year" class="form-label">Target year (next)</label>
+          <select name="target_year" id="target_year" class="form-select" required>
+            <option value="">— Select —</option>
+            {% for y in years %}
+            <option value="{{ y.id }}" {% if target_year and target_year.id == y.id %}selected{% endif %}>{{ y.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-outline-primary w-100">Show students</button>
+        </div>
+      </form>
+      {% if source_year and target_year and not source_year.is_locked %}
+      <form method="post" action="{% url 'accounts:rollover_prepare' %}" class="mt-2">
+        {% csrf_token %}
+        <input type="hidden" name="source_year" value="{{ source_year.id }}">
+        <input type="hidden" name="target_year" value="{{ target_year.id }}">
+        <button type="submit" class="btn btn-outline-secondary">Prepare and add to queue</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if source_year and target_year %}
+  {% if checklist %}
+  <div class="card shadow-sm mb-3 border-info">
+    <div class="card-header py-2">
+      <span class="small fw-bold">Pre-rollover checklist</span>
+    </div>
+    <div class="card-body py-2">
+      <ul class="mb-0 small">
+        {% for item in checklist %}
+        <li>
+          {% if item.ok == True %}
+          <span class="text-success">✓</span>
+          {% elif item.ok == False %}
+          <span class="text-danger">✗</span>
+          {% else %}
+          <span class="text-muted">○</span>
+          {% endif %}
+          {{ item.label }}
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+  <form method="post" action="">
+    {% csrf_token %}
+    <input type="hidden" name="source_year" value="{{ source_year.id }}">
+    <input type="hidden" name="target_year" value="{{ target_year.id }}">
+    <div class="card shadow-sm">
+      <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <span>Students in {{ source_year.name }} → assign to {{ target_year.name }}</span>
+        <div class="d-flex flex-wrap gap-3">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="notify_parents" id="notify_parents" value="on">
+            <label class="form-check-label small" for="notify_parents">Notify parents after rollover</label>
+          </div>
+          {% if block_promotion_if_outstanding_returns %}
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="allow_outstanding_returns" id="allow_outstanding_returns" value="on">
+            <label class="form-check-label small" for="allow_outstanding_returns">Allow rollover despite outstanding returns</label>
+          </div>
+          {% endif %}
+          {% if carry_forward_arrears_on_rollover %}
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="carry_forward_arrears" id="carry_forward_arrears" value="on">
+            <label class="form-check-label small" for="carry_forward_arrears">Carry forward unpaid fees to next year</label>
+          </div>
+          {% endif %}
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="lock_source" id="lock_source" value="on">
+            <label class="form-check-label small" for="lock_source">Lock source year after rollover</label>
+          </div>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Student</th>
+                <th>Current class</th>
+                <th>Annual avg</th>
+                <th>Promotion</th>
+                <th>Returns</th>
+                <th>Next class</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in rows %}
+              <tr>
+                <td>{{ row.student.get_full_name|default:row.student.last_name }}</td>
+                <td>{{ row.student.classroom.name|default:"—" }}</td>
+                <td>{{ row.annual_average|default:"—" }}</td>
+                <td><span class="badge {% if row.promotion_status == 'PROMOTED' %}bg-success{% elif row.promotion_status == 'REPEAT' or row.promotion_status == 'DEMOTED' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">{{ row.promotion_status }}</span></td>
+                <td>{% if row.outstanding_returns %}<span class="badge bg-warning text-dark">{{ row.outstanding_returns }} outstanding</span>{% else %}<span class="text-muted">0</span>{% endif %}</td>
+                <td>
+                  <select name="classroom_{{ row.student.id }}" class="form-select form-select-sm" style="min-width:160px;">
+                    <option value="__graduate__">— Graduate (Alumni) —</option>
+                    {% for c in target_classrooms %}
+                    <option value="{{ c.id }}" {% if row.suggested_classroom and c.id == row.suggested_classroom.id %}selected{% endif %}>{{ c.name }}</option>
+                    {% endfor %}
+                  </select>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="6" class="text-muted">No active students in {{ source_year.name }}.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card-footer">
+        <button type="submit" class="btn btn-primary">Apply rollover</button>
+        <a href="{% url 'accounts:workflow_center' %}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </div>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,235 @@
+{% extends "backend_base.html" %}
+{% load static %}
+{# Backend UI: distinct from /admin; uses portal backend light theme. #}
+{% block backend_title %}Create Student - Backend{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 class="fw-bold mb-1">Create Student</h2>
+          <p class="text-muted mb-0">Add a new student to the system</p>
+        </div>
+        <a href="{% url 'accounts:backend_student_list' %}" class="btn btn-sm btn-outline-secondary btn-back-secondary"><i class="bi bi-arrow-left me-1"></i>Back to List</a>
+      </div>
+
+      {% if has_draft %}
+      <div class="alert alert-info d-flex align-items-center justify-content-between mb-3" role="alert">
+        <span><i class="bi bi-file-earmark-check me-2"></i>Draft saved{% if draft_updated_at %} on {{ draft_updated_at|date:"M j, Y g:i A" }}{% endif %}.</span>
+        <button type="button" class="btn btn-sm btn-outline-primary" id="form-draft-discard" data-form-draft-url="{{ form_draft_url }}">Discard draft</button>
+      </div>
+      {% endif %}
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <form method="post" novalidate enctype="multipart/form-data" id="backend-student-create-form">
+            {% csrf_token %}
+            
+            <div class="row g-3">
+              <!-- Basic Information -->
+              <div class="col-12">
+                <h5 class="border-bottom pb-2 mb-3">Basic Information</h5>
+              </div>
+              
+              <div class="col-md-6">
+                <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                  First Name <span class="text-danger">*</span>
+                </label>
+                {{ form.first_name }}
+                {% if form.first_name.errors %}
+                  <div class="text-danger small">{{ form.first_name.errors }}</div>
+                {% endif %}
+              </div>
+              
+              <div class="col-md-6">
+                <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                  Last Name <span class="text-danger">*</span>
+                </label>
+                {{ form.last_name }}
+                {% if form.last_name.errors %}
+                  <div class="text-danger small">{{ form.last_name.errors }}</div>
+                {% endif %}
+              </div>
+              
+              <div class="col-md-4">
+                <label for="{{ form.gender.id_for_label }}" class="form-label">Gender</label>
+                {{ form.gender }}
+                {% if form.gender.errors %}
+                  <div class="text-danger small">{{ form.gender.errors }}</div>
+                {% endif %}
+              </div>
+              
+              <div class="col-md-4">
+                <label for="{{ form.date_of_birth.id_for_label }}" class="form-label">Date of Birth</label>
+                {{ form.date_of_birth }}
+                {% if form.date_of_birth.errors %}
+                  <div class="text-danger small">{{ form.date_of_birth.errors }}</div>
+                {% endif %}
+              </div>
+              
+              <div class="col-md-4">
+                <label for="{{ form.place_of_birth.id_for_label }}" class="form-label">Place of Birth</label>
+                {{ form.place_of_birth }}
+                {% if form.place_of_birth.errors %}
+                  <div class="text-danger small">{{ form.place_of_birth.errors }}</div>
+                {% endif %}
+              </div>
+
+              <div class="col-12">
+                <label for="{{ form.profile_photo.id_for_label }}" class="form-label">Profile photo</label>
+                {{ form.profile_photo }}
+                <small class="form-text text-muted">Used on digital ID. Optional.</small>
+                {% if form.profile_photo.errors %}
+                  <div class="text-danger small">{{ form.profile_photo.errors }}</div>
+                {% endif %}
+              </div>
+
+              <!-- Academic Information -->
+              <div class="col-12 mt-4">
+                <h5 class="border-bottom pb-2 mb-3">Academic Information</h5>
+              </div>
+              
+              <div class="col-md-4">
+                <label for="{{ form.academic_year.id_for_label }}" class="form-label">
+                  Academic Year <span class="text-danger">*</span>
+                </label>
+                {{ form.academic_year }}
+                {% if form.academic_year.errors %}
+                  <div class="text-danger small">{{ form.academic_year.errors }}</div>
+                {% endif %}
+              </div>
+              
+              <div class="col-md-4">
+                <label for="{{ form.classroom.id_for_label }}" class="form-label">
+                  Classroom <span class="text-danger">*</span>
+                </label>
+                {{ form.classroom }}
+                {% if form.classroom.errors %}
+                  <div class="text-danger small">{{ form.classroom.errors }}</div>
+                {% endif %}
+              </div>
+              
+              <div class="col-md-4">
+                <label for="{{ form.specialty.id_for_label }}" class="form-label">Specialty</label>
+                {{ form.specialty }}
+                {% if form.specialty.errors %}
+                  <div class="text-danger small">{{ form.specialty.errors }}</div>
+                {% endif %}
+              </div>
+              
+              <div class="col-md-6">
+                <label for="{{ form.admission_number.id_for_label }}" class="form-label">Admission Number</label>
+                {{ form.admission_number }}
+                <small class="form-text text-muted">Leave blank to auto-generate</small>
+                {% if form.admission_number.errors %}
+                  <div class="text-danger small">{{ form.admission_number.errors }}</div>
+                {% endif %}
+              </div>
+              
+              <div class="col-md-6">
+                <label for="{{ form.status.id_for_label }}" class="form-label">Status</label>
+                {{ form.status }}
+                {% if form.status.errors %}
+                  <div class="text-danger small">{{ form.status.errors }}</div>
+                {% endif %}
+              </div>
+
+              <!-- Parent/Guardian Information -->
+              <div class="col-12 mt-4">
+                <h5 class="border-bottom pb-2 mb-3">Parent/Guardian Information</h5>
+              </div>
+              
+              <div class="col-md-6">
+                <label for="{{ form.parent_phone.id_for_label }}" class="form-label">Parent Phone</label>
+                {{ form.parent_phone }}
+                {% if form.parent_phone.errors %}
+                  <div class="text-danger small">{{ form.parent_phone.errors }}</div>
+                {% endif %}
+              </div>
+              
+              <div class="col-md-6">
+                <label for="{{ form.parent_email.id_for_label }}" class="form-label">Parent Email</label>
+                {{ form.parent_email }}
+                <small class="form-text text-muted">If provided, a parent account will be created</small>
+                {% if form.parent_email.errors %}
+                  <div class="text-danger small">{{ form.parent_email.errors }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mt-4">
+              <a href="{% url 'accounts:backend_student_list' %}" class="btn btn-outline-secondary">Cancel</a>
+              {% if form_draft_url %}
+              <button type="button" class="btn btn-outline-secondary" id="form-draft-save" data-form-draft-url="{{ form_draft_url }}">
+                <i class="bi bi-cloud-arrow-up me-2"></i>Save draft
+              </button>
+              {% endif %}
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle me-2"></i>Create Student
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% if form_draft_url %}
+<script>
+(function() {
+  var form = document.getElementById('backend-student-create-form');
+  var saveBtn = document.getElementById('form-draft-save');
+  var discardBtn = document.getElementById('form-draft-discard');
+  if (!form) return;
+  function getCookie(name) {
+    var v = document.cookie.match('(?:^|; )\\s*' + name + '\\s*=\\s*([^;]+)');
+    return v ? v.pop() : '';
+  }
+  function collectFormData() {
+    var data = {};
+    var inputs = form.querySelectorAll('input, select, textarea');
+    for (var i = 0; i < inputs.length; i++) {
+      var el = inputs[i];
+      if (el.name && el.name !== 'csrfmiddlewaretoken' && el.type !== 'file') {
+        if (el.type === 'checkbox' || el.type === 'radio') {
+          if (el.checked) data[el.name] = el.value;
+        } else {
+          data[el.name] = el.value || '';
+        }
+      }
+    }
+    return data;
+  }
+  if (saveBtn) {
+    saveBtn.addEventListener('click', function() {
+      var url = saveBtn.getAttribute('data-form-draft-url');
+      var payload = JSON.stringify({ data: collectFormData() });
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', url, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.setRequestHeader('X-CSRFToken', getCookie('csrftoken'));
+      xhr.onload = function() {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          if (typeof window.location.reload === 'function') window.location.reload();
+        }
+      };
+      xhr.send(payload);
+    });
+  }
+  if (discardBtn) {
+    discardBtn.addEventListener('click', function() {
+      var url = discardBtn.getAttribute('data-form-draft-url');
+      var xhr = new XMLHttpRequest();
+      xhr.open('DELETE', url, true);
+      xhr.setRequestHeader('X-CSRFToken', getCookie('csrftoken'));
+      xhr.onload = function() {
+        if (xhr.status === 204 || xhr.status === 200) window.location.reload();
+      };
+      xhr.send();
+    });
+  }
+})();
+</script>
+{% endif %}
+{% endblock %}

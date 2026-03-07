@@ -1,0 +1,100 @@
+{% extends "portal_base.html" %}
+{% load static region_format %}
+{% block title %}Access Requests{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/dashboard-auto-grid.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard-charts.css' %}">
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.body.dataset.dashboardPage = 'requests';
+  });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+  <div>
+    <h2 class="mb-0">Access requests</h2>
+    <p class="text-muted small mb-0">Review and action all approval requests in one place.</p>
+  </div>
+  <div class="badge bg-secondary">Total {% if page_obj %}{{ page_obj.paginator.count }}{% else %}{{ requests|length }}{% endif %}</div>
+</div>
+
+<form method="get" class="row g-2 align-items-end mb-3">
+  <div class="col-md-4">
+    <label class="form-label small">Search</label>
+    <input type="text" name="q" value="{{ search }}" class="form-control form-control-sm" placeholder="REQ-2026...">
+  </div>
+  <div class="col-md-3">
+    <label class="form-label small">Request type</label>
+    <select name="type" class="form-select form-select-sm">
+      <option value="all">All</option>
+      {% for option in type_options %}
+        <option value="{{ option.key }}" {% if type_filter == option.key %}selected{% endif %}>
+          {{ option.label }} ({{ option.count }})
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-3">
+    <label class="form-label small">Status</label>
+    <select name="status" class="form-select form-select-sm">
+      <option value="all">All</option>
+      {% for option in status_options %}
+        <option value="{{ option.key }}" {% if status_filter == option.key %}selected{% endif %}>
+          {{ option.label }} ({{ option.count }})
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-2 d-grid">
+    <button class="btn btn-sm btn-primary" type="submit">Filter</button>
+  </div>
+</form>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    {% if requests %}
+      <div class="dashboard-card-scroll table-responsive">
+        <table class="table table-hover align-middle mb-0" aria-label="Access requests: reference, type, requester, status, and actions">
+          <thead>
+            <tr>
+              <th scope="col">Reference</th>
+              <th scope="col">Type</th>
+              <th scope="col">Requester</th>
+              <th scope="col">Status</th>
+              <th scope="col">Requested</th>
+              <th scope="col"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for req in requests %}
+              <tr>
+                <td><strong>{{ req.reference }}</strong></td>
+                <td>{{ req.get_request_type_display }}</td>
+                <td>{{ req.requester.get_full_name|default:req.requester.username|default:"-" }}</td>
+                <td>
+                  <span class="badge {% if req.status == 'APPROVED' %}bg-success{% elif req.status == 'DENIED' %}bg-danger{% elif req.status == 'CLARIFICATION_REQUESTED' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                    {{ req.get_status_display }}
+                  </span>
+                </td>
+                <td class="text-muted small">{{ req.requested_at|format_date }} {{ req.requested_at|time:"H:i" }}</td>
+                <td class="text-end">
+                  <a class="btn btn-sm btn-outline-primary" href="{% url 'requests:detail' req.id %}">Review</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="alert alert-info mb-0">No matching requests.</div>
+    {% endif %}
+    {% if page_obj and page_obj.paginator.num_pages > 1 %}
+    {% include "components/pagination.html" with page_obj=page_obj pagination_extra_query=pagination_extra_query %}
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

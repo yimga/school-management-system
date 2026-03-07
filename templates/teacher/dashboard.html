@@ -1,0 +1,554 @@
+{% extends "portal_base.html" %}
+{% load admin_health evals_extras static region_format i18n %}
+{% block title %}Teacher Dashboard{% endblock %}
+{% block body_extra_class %}dashboard-page-teacher{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/dashboard-auto-grid.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard-layout-unified.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard-charts.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard-layout-controls.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard-clear.css' %}">
+<link rel="stylesheet" href="{% static 'css/teacher-dashboard-modern.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard-premium-compact.css' %}">
+<script>
+  (function () {
+    var apply = function () {
+      if (!document.body) return;
+      document.body.dataset.dashboardPage = 'teacher';
+      document.body.classList.add('dashboard-page-teacher');
+    };
+    apply();
+    document.addEventListener('DOMContentLoaded', apply, { once: true });
+  })();
+  document.documentElement.classList.add('tdm-mounted');
+</script>
+{% endblock %}
+
+{% block content %}
+{% with widgets=display_widgets %}
+<div class="tdm-bg">
+  <div class="tdm-shell">
+    <section class="tdm-hero card-glass">
+      <div class="tdm-hero__text">
+        <p class="tdm-eyebrow">{% trans "Teacher Hub" %}</p>
+        <h1>{% trans "Good afternoon" %}{% if request.user %}, {{ request.user.get_full_name|default:request.user.username }}{% endif %}</h1>
+        <p class="tdm-subtitle">{% trans "Here's an overview of your classes for today." %}</p>
+        <div class="tdm-hero__chips">
+          {% if acting_role_label %}<span class="chip">{{ acting_role_label }} (proxy)</span>{% endif %}
+          {% if certification_badge %}<span class="chip chip-accent">{{ certification_badge }}</span>{% endif %}
+          {% if staff_badges %}{% for b in staff_badges %}<span class="chip chip-soft">{{ b.badge_type.label }}</span>{% endfor %}{% endif %}
+        </div>
+        <div class="tdm-hero__actions">
+          <a class="btn btn-primary" href="{% url 'evals:teacher_marks_entry' %}"><i class="bi bi-pencil-square me-1"></i>{% trans "Enter marks" %}</a>
+          <a class="btn btn-outline-light" href="{% url 'portal:teacher_workflow' %}"><i class="bi bi-diagram-3 me-1"></i>{% trans "Workflow" %}</a>
+          <a class="btn btn-outline-light btn-sm" href="{% url 'portal:teacher_onboarding' %}"><i class="bi bi-person-plus me-1"></i>{% trans "Complete your profile" %}</a>
+        </div>
+      </div>
+      <div class="tdm-hero__profile card-glass">
+        <div class="tdm-profile-top">
+          {% if request.user.profile_photo %}
+          <img src="{{ request.user.profile_photo.url }}" alt="{% trans 'Teacher profile photo' %}" class="tdm-avatar" loading="lazy" decoding="async">
+          {% else %}
+          <div class="tdm-avatar fallback">{% firstof request.user.username|default:"T" "T" %}</div>
+          {% endif %}
+          <div>
+            <div class="tdm-profile-name">{{ request.user.get_full_name|default:request.user.username }}</div>
+            <div class="tdm-profile-meta">{% trans "Teacher" %} | {{ year.name }} | {{ term.label }}</div>
+          </div>
+        </div>
+        <div class="tdm-profile-actions">
+          <a class="btn btn-soft" href="{% url 'evals:teacher_marks_list' %}"><i class="bi bi-list-check me-1"></i>{% trans "View marks" %}</a>
+          <a class="btn btn-soft" href="{% url 'portal:teacher_dashboard_alias' %}"><i class="bi bi-grid me-1"></i>{% trans "Dashboard" %}</a>
+        </div>
+      </div>
+    </section>
+
+    {% if not assignments %}
+    <div class="alert alert-info mb-3" role="status">
+      {% trans "You don't have any classes yet." %}
+      <a href="{% url 'portal:teacher_workflow' %}">{% trans "My Workflow" %}</a>
+      {% trans "or ask your admin to assign you to classes." %}
+    </div>
+    {% endif %}
+
+    <section class="tdm-overview-grid dashboard-card-grid dashboard-card-grid--dense">
+      <div class="tdm-stat card-glass purple">
+        <div class="tdm-stat-label">{% trans "Classes today" %}</div>
+        <div class="tdm-stat-value">{{ assignments|length|default:0 }}</div>
+        <div class="tdm-stat-meta">{% trans "Active subjects" %}</div>
+      </div>
+      <div class="tdm-stat card-glass blue">
+        <div class="tdm-stat-label">{% trans "Syllabus progress" %}</div>
+        <div class="tdm-stat-value">{{ widget_data.completion_pct|default:0 }}%</div>
+        <div class="tdm-stat-meta">{% trans "All classes" %}</div>
+      </div>
+      <div class="tdm-stat card-glass teal">
+        <div class="tdm-stat-label">{% trans "Attendance" %}</div>
+        <div class="tdm-stat-value">{{ widget_data.attendance.overall|default:"0" }}%</div>
+        <div class="tdm-stat-meta">{% trans "Overall" %}</div>
+      </div>
+      <div class="tdm-stat card-glass orange">
+        <div class="tdm-stat-label">{% trans "Alerts" %}</div>
+        <div class="tdm-stat-value">{{ items_requiring_review|default:0 }}</div>
+        <div class="tdm-stat-meta">{% trans "Requiring action" %}</div>
+      </div>
+    </section>
+
+    <section class="tdm-main-grid">
+      <div class="tdm-main-left">
+        <div class="card-glass tdm-panel">
+          <div class="tdm-panel-head">
+            <div>
+              <p class="tdm-eyebrow">{% trans "My classes" %}</p>
+              <h3>{% trans "Today" %}</h3>
+            </div>
+            <div class="tdm-panel-actions">
+              <a class="btn btn-soft" href="{% url 'evals:teacher_marks_entry' %}">{% trans "Enter class" %}</a>
+              <a class="btn btn-outline-secondary btn-sm" href="{% url 'evals:teacher_marks_list' %}">{% trans "All classes" %}</a>
+            </div>
+          </div>
+          <div class="tdm-class-grid">
+            {% for a in assignments|slice:":2" %}
+              {% with p=progress|get_item:a.id %}
+              <article class="tdm-class-card card-glass">
+                <header class="tdm-class-top">
+                  <div>
+                    <div class="tdm-class-title">{{ a.subject_assignment.subject.name }}</div>
+                    <div class="tdm-class-meta">{{ a.subject_assignment.classroom.name }}</div>
+                  </div>
+                  <span class="badge text-bg-light">{{ p.total|default:0 }} {% trans "students" %}</span>
+                </header>
+                <div class="tdm-progress-row">
+                  <div class="tdm-progress-track">
+                    <div class="tdm-progress-fill" style="width: {{ p.width|default:0 }}%;"></div>
+                  </div>
+                  <span class="tdm-progress-label">{{ p.width|default:0 }}% {% trans "entered" %}</span>
+                </div>
+                <footer class="tdm-class-actions">
+                  <a class="btn btn-outline-primary btn-sm" href="{% url 'evals:teacher_marks_entry' %}?assignment={{ a.id }}">{% trans "Enter marks" %}</a>
+                  <a class="btn btn-outline-secondary btn-sm" href="{% url 'evals:teacher_marks_list' %}?assignment={{ a.id }}">{% trans "View" %}</a>
+                </footer>
+              </article>
+              {% endwith %}
+            {% empty %}
+            <p class="text-muted small mb-0">{% trans "No classes assigned yet." %}</p>
+            {% endfor %}
+          </div>
+          {% if assignments|length > 2 %}
+          <div class="tdm-panel-foot">
+            <a class="btn btn-outline-secondary btn-sm" href="{% url 'evals:teacher_marks_list' %}">{% trans "View full class list" %}</a>
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="card-glass tdm-panel">
+          <div class="tdm-panel-head">
+            <div>
+              <p class="tdm-eyebrow">{% trans "Academic insights" %}</p>
+              <h3>{% trans "Completion & marks" %}</h3>
+            </div>
+            <a class="btn btn-soft" href="{% url 'evals:teacher_marks_list' %}">{% trans "Analytics" %}</a>
+          </div>
+          <div class="tdm-insight-grid">
+            <div class="tdm-insight-card">
+              <div class="tdm-donut" style="--value: {{ widget_data.completion_pct|default:0 }}%;">
+                <span>{{ widget_data.completion_pct|default:0 }}%</span>
+              </div>
+              <div class="tdm-insight-meta">
+                <div class="label">{% trans "Marks entered" %}</div>
+                <div class="value">{{ widget_data.tasks.pending_evaluations|default:0 }} {% trans "pending" %}</div>
+              </div>
+            </div>
+            <div class="tdm-chart-wrap">
+              {% if chart_completion_bar_json %}
+              {% include "components/dashboard_chart.html" with chart_id="teacherCompletionChart" chart_type="bar" chart_title="Completion by class" chart_data=chart_completion_bar_json aria_label="Marks completion by class" %}
+              {% else %}
+              <p class="text-muted small mb-0">{% trans "Completion chart will appear once class data is available." %}</p>
+              {% endif %}
+            </div>
+            <div class="tdm-chart-wrap">
+              {% if chart_marks_donut_json %}
+              {% include "components/dashboard_chart.html" with chart_id="teacherMarksDonutChart" chart_type="doughnut" chart_title="Marks entered vs pending" chart_data=chart_marks_donut_json aria_label="Marks entered versus pending slots" %}
+              {% else %}
+              <p class="text-muted small mb-0">{% trans "Charts will appear after marks are entered." %}</p>
+              {% endif %}
+            </div>
+          </div>
+          <div class="tdm-compact-stack">
+            <article class="tdm-compact-card">
+              <div class="tdm-compact-head">
+                <h4>{% trans "Student attention queue" %}</h4>
+                <span class="badge rounded-pill text-bg-light">{{ ews_list|length|default:0 }}</span>
+              </div>
+              {% if ews_list %}
+              <ul class="tdm-compact-list">
+                {% for item in ews_list|slice:":3" %}
+                <li>
+                  <div>
+                    <strong>{{ item.student_name|truncatechars:28 }}</strong>
+                    <small>{{ item.subject }} | {{ item.classroom }}</small>
+                  </div>
+                  <span class="badge text-bg-warning">-{{ item.drop_points }}</span>
+                </li>
+                {% endfor %}
+              </ul>
+              {% else %}
+              <p class="text-muted small mb-0">{% trans "No at-risk students detected today." %}</p>
+              {% endif %}
+            </article>
+            <article class="tdm-compact-card">
+              <div class="tdm-compact-head">
+                <h4>{% trans "Syllabus status" %}</h4>
+                <a class="btn btn-outline-secondary btn-sm" href="{% url 'academics:teacher_syllabus_hub' %}">{% trans "Open" %}</a>
+              </div>
+              <div class="tdm-badge-grid">
+                <div class="tdm-badge-tile"><span>{% trans "Draft" %}</span><strong>{{ syllabus_status_summary.draft|default:0 }}</strong></div>
+                <div class="tdm-badge-tile"><span>{% trans "Pending" %}</span><strong>{{ syllabus_status_summary.pending|default:0 }}</strong></div>
+                <div class="tdm-badge-tile"><span>{% trans "Needs revision" %}</span><strong>{{ syllabus_status_summary.needs_revision|default:0 }}</strong></div>
+                <div class="tdm-badge-tile"><span>{% trans "Approved" %}</span><strong>{{ syllabus_status_summary.approved|default:0 }}</strong></div>
+              </div>
+            </article>
+            <article class="tdm-compact-card">
+              <div class="tdm-compact-head">
+                <h4>{% trans "Upcoming deadlines" %}</h4>
+                <span class="badge rounded-pill text-bg-light">{{ dashboard_events|length|default:0 }}</span>
+              </div>
+              {% if dashboard_events %}
+              <ul class="tdm-compact-list">
+                {% for ev in dashboard_events|slice:":3" %}
+                <li>
+                  <div>
+                    <strong>{{ ev.title|truncatechars:30 }}</strong>
+                    <small>{% if ev.detail %}{{ ev.detail }}{% else %}{% trans "Grading deadline" %}{% endif %}</small>
+                  </div>
+                  <span>{{ ev.when|date:"M j" }}</span>
+                </li>
+                {% endfor %}
+              </ul>
+              {% else %}
+              <p class="text-muted small mb-0">{% trans "No upcoming deadlines yet." %}</p>
+              {% endif %}
+            </article>
+          </div>
+          <div class="tdm-action-grid" aria-label="{% trans 'Teacher action blocks' %}">
+            <article class="tdm-action-card">
+              <div class="tdm-compact-head">
+                <h4>{% trans "At-risk follow-up" %}</h4>
+                <span class="badge rounded-pill text-bg-light">{{ teacher_followup_items|length|default:0 }}</span>
+              </div>
+              {% if teacher_followup_items %}
+              <ul class="tdm-compact-list">
+                {% for item in teacher_followup_items %}
+                <li>
+                  <div>
+                    <strong>{{ item.student_name|truncatechars:30 }}</strong>
+                    <small>{{ item.subject }} | {{ item.classroom }}</small>
+                  </div>
+                  <span class="badge text-bg-warning">-{{ item.drop_points }}</span>
+                </li>
+                {% endfor %}
+              </ul>
+              {% else %}
+              <p class="text-muted small mb-0">{% trans "No at-risk students." %}</p>
+              {% endif %}
+              <div class="tdm-action-buttons">
+                <a class="btn btn-soft btn-sm" href="{{ teacher_action_links.message }}">{% trans "Message" %}</a>
+                <a class="btn btn-outline-secondary btn-sm" href="{{ teacher_action_links.open_marks }}">{% trans "Open marks" %}</a>
+                <a class="btn btn-outline-primary btn-sm" href="{{ teacher_action_links.flag_hod }}">{% trans "Flag for HOD" %}</a>
+              </div>
+            </article>
+            <article class="tdm-action-card">
+              <div class="tdm-compact-head">
+                <h4>{% trans "This week deadlines" %}</h4>
+                <span class="badge rounded-pill text-bg-light">{{ teacher_deadline_items|length|default:0 }}</span>
+              </div>
+              <div class="tdm-deadline-metrics">
+                <div class="tdm-badge-tile">
+                  <span>{% trans "Sequence/CA" %}</span>
+                  <strong>{{ teacher_deadline_counts.sequence_ca_deadlines|default:0 }}</strong>
+                </div>
+                <div class="tdm-badge-tile">
+                  <span>{% trans "Practical pending" %}</span>
+                  <strong>{{ teacher_deadline_counts.practical_workshop_pending|default:0 }}</strong>
+                </div>
+                <div class="tdm-badge-tile">
+                  <span>{% trans "Conflicts" %}</span>
+                  <strong>{{ teacher_deadline_counts.timetable_conflicts|default:0 }}</strong>
+                </div>
+              </div>
+              {% if teacher_deadline_items %}
+              <ul class="tdm-compact-list">
+                {% for ev in teacher_deadline_items %}
+                <li>
+                  <div>
+                    <strong>{{ ev.title|truncatechars:34 }}</strong>
+                    <small>{% if ev.detail %}{{ ev.detail }}{% else %}{% trans "Grading deadline" %}{% endif %}</small>
+                  </div>
+                  <span>{{ ev.when|date:"M j" }}</span>
+                </li>
+                {% endfor %}
+              </ul>
+              {% else %}
+              <p class="text-muted small mb-0">{% trans "No pending deadlines." %}</p>
+              {% endif %}
+              <div class="tdm-action-buttons">
+                <a class="btn btn-primary btn-sm" href="{{ teacher_action_links.enter_marks }}">{% trans "Enter marks" %}</a>
+                <a class="btn btn-outline-secondary btn-sm" href="{{ teacher_action_links.open_timetable }}">{% trans "Open timetable" %}</a>
+                <a class="btn btn-soft btn-sm" href="{{ teacher_action_links.export_list }}">{% trans "Export list" %}</a>
+              </div>
+            </article>
+          </div>
+          <div class="tdm-balance-row" aria-label="{% trans 'Teaching pulse and curriculum progress' %}">
+            <article class="tdm-balance-card">
+              <div class="tdm-compact-head">
+                <h4>{% trans "Teaching pulse" %}</h4>
+                <span class="badge rounded-pill text-bg-light">{{ workflow_summary.completion_pct|default:0 }}%</span>
+              </div>
+              <div class="tdm-pulse-grid">
+                <div class="tdm-pulse-item">
+                  <span>{% trans "At-risk" %}</span>
+                  <strong>{{ ews_list|length|default:0 }}</strong>
+                </div>
+                <div class="tdm-pulse-item">
+                  <span>{% trans "Pending marks" %}</span>
+                  <strong>{{ widget_data.tasks.pending_evaluations|default:0 }}</strong>
+                </div>
+                <div class="tdm-pulse-item">
+                  <span>{% trans "Syllabus pending" %}</span>
+                  <strong>{{ syllabus_pending_count|default:0 }}</strong>
+                </div>
+                <div class="tdm-pulse-item">
+                  <span>{% trans "Pending leave" %}</span>
+                  <strong>{{ pending_leaves|default:0 }}</strong>
+                </div>
+              </div>
+            </article>
+            <article class="tdm-balance-card">
+              <div class="tdm-compact-head">
+                <h4>{% trans "Curriculum progress snapshot" %}</h4>
+                <a class="btn btn-outline-secondary btn-sm" href="{% url 'evals:teacher_marks_list' %}">{% trans "Open classes" %}</a>
+              </div>
+              {% if curriculum_map %}
+              <ul class="tdm-curriculum-list">
+                {% for item in curriculum_map|slice:":3" %}
+                <li>
+                  <div class="tdm-curriculum-top">
+                    <strong>{{ item.label|truncatechars:36 }}</strong>
+                    <span>{{ item.covered|default:0 }}%</span>
+                  </div>
+                  <div class="tdm-progress-track">
+                    <div class="tdm-progress-fill" style="width: {{ item.covered|default:0 }}%;"></div>
+                  </div>
+                </li>
+                {% endfor %}
+              </ul>
+              {% else %}
+              <p class="text-muted small mb-0">{% trans "Progress snapshot will appear once class data is available." %}</p>
+              {% endif %}
+            </article>
+          </div>
+        </div>
+      </div>
+
+      <aside class="tdm-main-right">
+        {% if teacher_org_tree and teacher_org_tree.diagram_levels or org_chain %}
+        <div class="card-glass tdm-panel">
+          <div class="tdm-panel-head">
+            <p class="tdm-eyebrow">{% trans "Organization" %}</p>
+            <h3>{% trans "Org chart" %}</h3>
+          </div>
+          {% if teacher_org_tree and teacher_org_tree.diagram_levels %}
+          <div class="org-chart-tree mt-2" role="list" aria-label="{% trans 'Organization chart' %}">
+            {% for level in teacher_org_tree.diagram_levels %}
+            <div class="org-chart-level d-flex flex-wrap justify-content-center gap-3 mb-2" role="listitem">
+              {% for node in level %}
+              <div class="org-chart-card card border shadow-sm {% if node.is_self %}org-chart-card-self border-primary border-2{% endif %}" role="listitem">
+                <div class="org-chart-photo-wrap">
+                  {% if node.photo_url %}
+                  <img src="{{ node.photo_url }}" alt="" class="org-chart-photo" loading="lazy">
+                  {% else %}
+                  <div class="org-chart-photo-placeholder" aria-hidden="true"><span class="org-chart-photo-placeholder-inner"></span></div>
+                  {% endif %}
+                </div>
+                <div class="card-body p-2 text-center">
+                  <div class="org-chart-name fw-semibold text-truncate small">{% if node.is_self %}{% trans "You" %}{% else %}{{ node.name }}{% endif %}</div>
+                  <div class="org-chart-title text-muted text-truncate small">{{ node.title }}{% if node.department %} · {{ node.department }}{% endif %}</div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            {% if not forloop.last %}
+            <div class="org-chart-connector d-flex justify-content-center mb-1">
+              <span class="org-chart-line" aria-hidden="true"></span>
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="small mb-0">
+            {% for node in org_chain %}
+              {% if not forloop.first %}<span class="text-muted mx-1">→</span>{% endif %}
+              {% if node.user_id == request.user.id %}<strong>{% trans "You" %}</strong>{% else %}{{ node.user.get_full_name|default:node.user.username }}{% if node.position_title %} <span class="text-muted">({{ node.position_title }})</span>{% endif %}{% endif %}
+            {% endfor %}
+          </p>
+          {% endif %}
+          <a class="btn btn-soft btn-sm mt-2" href="{% url 'accounts:user_profile' %}">{% trans "View profile" %}</a>
+        </div>
+        {% endif %}
+        <div class="card-glass tdm-panel tdm-workflow-panel">
+          <div class="tdm-panel-head">
+            <div>
+              <p class="tdm-eyebrow">{% trans "Workflow guide" %}</p>
+              <h3>{% trans "What to do next" %}</h3>
+            </div>
+            <a class="btn btn-soft btn-sm" href="{% url 'portal:teacher_workflow' %}">{% trans "Open full" %}</a>
+          </div>
+          <div class="tdm-workflow-progress">
+            <div class="tdm-workflow-progress-head">
+              <span>{{ workflow_summary.done_steps|default:0 }}/{{ workflow_summary.total_steps|default:0 }} {% trans "complete" %}</span>
+              <strong>{{ workflow_summary.completion_pct|default:0 }}%</strong>
+            </div>
+            <div class="tdm-progress-track">
+              <div class="tdm-progress-fill" style="width: {{ workflow_summary.completion_pct|default:0 }}%;"></div>
+            </div>
+          </div>
+          <div class="tdm-workflow-focus">
+            <div class="tdm-task-title">{{ workflow_summary.focus_label }}</div>
+            {% if workflow_summary.focus_meta %}
+            <div class="tdm-task-meta">{{ workflow_summary.focus_meta }}</div>
+            {% endif %}
+          </div>
+          <div class="tdm-workflow-actions">
+            {% for action in workflow_summary.next_actions %}
+            <a class="btn {% if forloop.first %}btn-primary{% else %}btn-outline-secondary{% endif %} btn-sm" href="{{ action.url }}">{{ action.label }}</a>
+            {% empty %}
+            <a class="btn btn-primary btn-sm" href="{% url 'portal:teacher_workflow' %}">{% trans "Open workflow" %}</a>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="card-glass tdm-panel">
+          <div class="tdm-panel-head">
+            <p class="tdm-eyebrow">{% trans "Today's tasks" %}</p>
+            <h3>{% trans "Priority items" %}</h3>
+          </div>
+          <div class="tdm-task-list">
+            {% if teacher_alerts %}
+              {% for alert in teacher_alerts|slice:":3" %}
+              <div class="tdm-task">
+                <div>
+                  <div class="tdm-task-title">{{ alert.message }}</div>
+                  {% if alert.cta %}<div class="tdm-task-meta">{{ alert.cta }}</div>{% endif %}
+                </div>
+                {% if alert.url %}<a class="btn btn-soft" href="{{ alert.url }}">{% trans "Open" %}</a>{% endif %}
+              </div>
+              {% endfor %}
+            {% elif dashboard_events %}
+              {% for ev in dashboard_events|slice:":3" %}
+              <div class="tdm-task">
+                <div>
+                  <div class="tdm-task-title">{{ ev.title|truncatewords:8 }}</div>
+                  <div class="tdm-task-meta">{{ ev.date|default:ev.start_date }}</div>
+                </div>
+                <a class="btn btn-soft" href="{% url 'evals:teacher_marks_entry' %}">{% trans "View" %}</a>
+              </div>
+              {% endfor %}
+            {% else %}
+            <p class="text-muted small mb-0">{% trans "No tasks for today." %}</p>
+            {% endif %}
+
+            {% with latest_ann=class_announcements|first %}
+            {% if latest_ann %}
+            <div class="tdm-task tdm-task-inline">
+              <div>
+                <div class="tdm-task-title">{% trans "Latest class update" %}</div>
+                <div class="tdm-task-meta">{{ latest_ann.title|truncatewords:8 }} | {{ latest_ann.created_at|date:"M j" }}</div>
+              </div>
+              <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:user_messages' %}">{% trans "Messages" %}</a>
+            </div>
+            {% endif %}
+            {% endwith %}
+          </div>
+        </div>
+
+        <div class="card-glass tdm-panel">
+          <div class="tdm-panel-head">
+            <p class="tdm-eyebrow">{% trans "Finance & leave" %}</p>
+            <h3>{% trans "You" %}</h3>
+          </div>
+          <div class="tdm-mini-grid tdm-mini-grid-compact">
+            <div class="tdm-mini card-glass border-0">
+              <div class="tdm-mini-label">{% trans "Pay grade" %}</div>
+              <div class="tdm-mini-value">{{ teacher_profile.pay_grade|default:"N/A" }}</div>
+              <div class="tdm-mini-meta">{% trans "Next pay" %}: {{ teacher_profile.next_pay_date|default:"-" }}</div>
+              <a class="btn btn-soft btn-sm w-100 mt-2" href="{% url 'portal:teacher_pay_history' %}">{% trans "Pay history" %}</a>
+            </div>
+            <div class="tdm-mini card-glass border-0">
+              <div class="tdm-mini-label">{% trans "Attendance & leave" %}</div>
+              <div class="tdm-mini-value">{{ pending_leaves|default:0 }} {% trans "pending" %}</div>
+              <div class="tdm-mini-meta">{% trans "Payment method" %}: {{ teacher_profile.get_payment_method_display|default:"-" }}</div>
+              {% if finance_access_message %}
+              <div class="tdm-mini-meta">{{ finance_access_message }}</div>
+              {% endif %}
+              <div class="d-flex gap-1 mt-2">
+                <a class="btn btn-outline-secondary btn-sm flex-fill" href="{% url 'portal:teacher_attendance' %}">{% trans "Attendance" %}</a>
+                <a class="btn btn-soft btn-sm flex-fill" href="{% url 'portal:teacher_leave' %}">{% trans "Leave" %}</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </section>
+  </div>
+</div>
+{% endwith %}
+{% endblock %}
+
+{% block extrajs %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="{% static 'js/dashboard-charts-shared.js' %}"></script>
+<script>
+(function() {
+  function initTeacherCharts() {
+    if (typeof Chart === 'undefined' || !window.DashboardChartsShared) return;
+    var shared = window.DashboardChartsShared;
+    var charts = {};
+    ['teacherCompletionChart', 'teacherMarksDonutChart'].forEach(function(chartId) {
+      var configEl = document.querySelector('[data-chart-config="' + chartId + '"]');
+      if (!configEl) return;
+      try {
+        var config = JSON.parse(configEl.textContent);
+        if (!config.data || !config.data.labels || config.data.labels.length === 0) {
+          document.querySelector('[data-chart-empty="' + chartId + '"]')?.classList.remove('d-none');
+          var c = document.getElementById(chartId);
+          if (c) c.style.display = 'none';
+          return;
+        }
+        var ds = config.data.datasets && config.data.datasets[0];
+        var hasValues = ds && ds.data && ds.data.some(function(v){ return (v || 0) > 0; });
+        if (!hasValues && (config.type === 'doughnut' || config.type === 'pie')) {
+          document.querySelector('[data-chart-empty="' + chartId + '"]')?.classList.remove('d-none');
+          var c = document.getElementById(chartId);
+          if (c) c.style.display = 'none';
+          return;
+        }
+        charts[chartId] = shared.createChart(chartId, config);
+      } catch (e) { console.warn('Teacher chart init:', chartId, e); }
+    });
+    document.querySelectorAll('[data-chart-export]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var id = this.getAttribute('data-chart-export');
+        if (charts[id]) shared.exportChartToPng(charts[id], 'teacher-chart-' + id + '.png');
+      });
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTeacherCharts);
+  } else {
+    initTeacherCharts();
+  }
+})();
+</script>
+{% endblock %}

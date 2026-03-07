@@ -1,0 +1,84 @@
+{% load i18n %}
+{% comment %}
+Reusable empty state component for dashboards
+Usage: {% include 'components/dashboard_empty_state.html' with icon='bi-inbox' title='No items' message='...' action_url='...' action_text='...' %}
+Optional: illustration_url='...' for an image above the icon (e.g. empty-state SVG).
+{% endcomment %}
+<div class="dashboard-empty-state">
+  {% if illustration_url %}
+  <div class="dashboard-empty-illustration mb-3">
+    <img src="{{ illustration_url }}" alt="" class="img-fluid" style="max-height: 160px; width: auto;">
+  </div>
+  {% endif %}
+  {% if icon %}
+  <div class="dashboard-empty-icon">
+    <i class="bi {{ icon }}"></i>
+  </div>
+  {% endif %}
+  <h3 class="dashboard-empty-title">{{ title|default:"No items found" }}</h3>
+  {% if message %}
+  <p class="dashboard-empty-message">{{ message }}</p>
+  {% endif %}
+  {% if action_url and action_text %}
+  <a href="{{ action_url }}" class="btn btn-primary dashboard-empty-action">
+    <i class="bi bi-plus-circle me-2"></i>{{ action_text }}
+  </a>
+  {% endif %}
+</div>
+
+<style>
+.dashboard-empty-state {
+  text-align: center;
+  padding: var(--dashboard-gap-lg, 3rem) var(--dashboard-gap-md, 1rem);
+  color: var(--admin-content-text-muted, #475569);
+}
+
+.dashboard-empty-icon {
+  font-size: 3.5rem;
+  color: var(--admin-content-text-muted, #94a3b8);
+  margin-bottom: var(--dashboard-gap-md, 1rem);
+  opacity: 0.6;
+}
+
+.dashboard-empty-title {
+  font-size: var(--dashboard-section-size, 1.125rem);
+  font-weight: 600;
+  color: var(--admin-content-text, #0f172a);
+  margin-bottom: var(--token-space-sm, 0.5rem);
+}
+
+.dashboard-empty-message {
+  font-size: 0.9375rem;
+  color: var(--admin-content-text-muted, #64748b);
+  margin-bottom: var(--dashboard-gap-md, 1rem);
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.dashboard-empty-action {
+  margin-top: var(--token-space-md, 1rem);
+}
+
+/* Dark mode */
+:root[data-theme="dark"] .dashboard-empty-state,
+html[data-bs-theme="dark"] .dashboard-empty-state {
+  color: var(--admin-content-text-muted, #94a3b8);
+}
+
+:root[data-theme="dark"] .dashboard-empty-icon,
+html[data-bs-theme="dark"] .dashboard-empty-icon {
+  color: var(--admin-content-text-muted, #64748b);
+}
+
+:root[data-theme="dark"] .dashboard-empty-title,
+html[data-bs-theme="dark"] .dashboard-empty-title {
+  color: var(--admin-content-text, #f1f5f9);
+}
+
+:root[data-theme="dark"] .dashboard-empty-message,
+html[data-bs-theme="dark"] .dashboard-empty-message {
+  color: var(--admin-content-text-muted, #94a3b8);
+}
+</style>
+

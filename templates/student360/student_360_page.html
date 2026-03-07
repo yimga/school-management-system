@@ -1,0 +1,146 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+{# Section 15.1 / 26.1: Full Student 360 UI — summary, academic, finance, attendance, timeline (tabbed). #}
+{% block title %}Student 360 — {{ student.get_full_name }}{% endblock %}
+{% block content %}
+<div class="container-fluid py-3">
+  <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+    <div>
+      <h1 class="h4 mb-1">Student 360 — {{ student.get_full_name }}</h1>
+      <p class="text-muted mb-0">{{ student.admission_number|default:"" }}{% if student.classroom %} · {{ student.classroom.name }}{% endif %}{% if student.academic_year %} · {{ student.academic_year.name }}{% endif %}</p>
+    </div>
+    <div class="d-flex gap-2">
+      {% if summary.export_pack_available %}
+      <a href="{% url 'portal:student_360_export' student.pk %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-download me-1"></i>Export pack (JSON)</a>
+      {% endif %}
+      <a href="{% url 'accounts:backend_student_list' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Back to students</a>
+    </div>
+  </div>
+
+  <ul class="nav nav-tabs mb-3" id="student360Tabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="tab-summary" data-bs-toggle="tab" data-bs-target="#panel-summary" type="button" role="tab" aria-controls="panel-summary" aria-selected="true">Summary</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-academic" data-bs-toggle="tab" data-bs-target="#panel-academic" type="button" role="tab" aria-controls="panel-academic" aria-selected="false">Academic</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-finance" data-bs-toggle="tab" data-bs-target="#panel-finance" type="button" role="tab" aria-controls="panel-finance" aria-selected="false">Finance</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-attendance" data-bs-toggle="tab" data-bs-target="#panel-attendance" type="button" role="tab" aria-controls="panel-attendance" aria-selected="false">Attendance</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-timeline" data-bs-toggle="tab" data-bs-target="#panel-timeline" type="button" role="tab" aria-controls="panel-timeline" aria-selected="false">Timeline</button>
+    </li>
+  </ul>
+
+  <div class="tab-content" id="student360TabContent">
+    <div class="tab-pane fade show active" id="panel-summary" role="tabpanel" aria-labelledby="tab-summary">
+      <div class="row">
+        <div class="col-md-6 col-lg-4 mb-3">
+          <div class="card h-100">
+            <div class="card-header">Overview</div>
+            <div class="card-body">
+              <ul class="list-unstyled mb-0">
+                <li class="d-flex justify-content-between py-1"><span class="text-muted">Evaluations</span><span>{{ summary.academic.evaluations_count|default:0 }}</span></li>
+                <li class="d-flex justify-content-between py-1"><span class="text-muted">Enrollments</span><span>{{ summary.academic.enrollments_count|default:0 }}</span></li>
+                <li class="d-flex justify-content-between py-1"><span class="text-muted">Invoices</span><span>{{ summary.finance.invoices_count|default:0 }}</span></li>
+                <li class="d-flex justify-content-between py-1"><span class="text-muted">Invoice total</span><span>{{ summary.finance.invoices_total|default:0 }}</span></li>
+                <li class="d-flex justify-content-between py-1"><span class="text-muted">Timeline events</span><span>{{ summary.timeline_events_count|default:0 }}</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-8">
+          <div class="card">
+            <div class="card-body">
+              <p class="text-muted mb-0">Use the tabs above to view Academic, Finance, Attendance, and Timeline details. Export pack (JSON) is available for data portability.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="panel-academic" role="tabpanel" aria-labelledby="tab-academic">
+      <div class="card">
+        <div class="card-header">Academic</div>
+        <div class="card-body">
+          <p class="mb-2">Evaluations: <strong>{{ summary.academic.evaluations_count|default:0 }}</strong></p>
+          <p class="mb-3">Enrollments: <strong>{{ summary.academic.enrollments_count|default:0 }}</strong></p>
+          {% if academic.enrollments %}
+          <h6 class="mt-3">Recent enrollments</h6>
+          <ul class="list-unstyled small">
+            {% for enr in academic.enrollments %}
+            <li class="py-1">{% if enr.classroom %}{{ enr.classroom.name }}{% endif %}{% if enr.academic_year %} · {{ enr.academic_year.name }}{% endif %}</li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+          {% if academic.evaluations %}
+          <h6 class="mt-3">Recent evaluations</h6>
+          <ul class="list-unstyled small">
+            {% for ev in academic.evaluations %}
+            <li class="py-1">{% if ev.term %}{{ ev.term.name }}{% endif %}{% if ev.academic_year %} · {{ ev.academic_year.name }}{% endif %}</li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+          <p class="text-muted small mt-2 mb-0">Detailed grades and enrollments are in the Gradebook and Academics modules.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="panel-finance" role="tabpanel" aria-labelledby="tab-finance">
+      <div class="card">
+        <div class="card-header">Finance</div>
+        <div class="card-body">
+          <p class="mb-2">Invoices: <strong>{{ summary.finance.invoices_count|default:0 }}</strong></p>
+          <p class="mb-3">Total (invoices): <strong>{{ summary.finance.invoices_total|default:0 }}</strong></p>
+          {% if finance.invoices %}
+          <h6 class="mt-3">Recent invoices</h6>
+          <ul class="list-unstyled small">
+            {% for inv in finance.invoices %}
+            <li class="py-1">{{ inv.reference|default:inv.id }} · {{ inv.total_amount }} · {{ inv.get_status_display|default:"" }}</li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+          <p class="text-muted small mt-2 mb-0">View and manage invoices in the Finance module.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="panel-attendance" role="tabpanel" aria-labelledby="tab-attendance">
+      <div class="card">
+        <div class="card-header">Attendance</div>
+        <div class="card-body">
+          {% if summary.attendance.summary_available %}
+          <p class="text-muted mb-0">Attendance data is available in the Attendance module. Policy-driven summaries can be linked here when configured.</p>
+          {% else %}
+          <p class="text-muted mb-0">Attendance is tracked in the Attendance module. No summary is loaded for this view.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="panel-timeline" role="tabpanel" aria-labelledby="tab-timeline">
+      <div class="card">
+        <div class="card-header">Timeline</div>
+        <div class="card-body">
+          {% if timeline %}
+          <ul class="list-unstyled mb-0">
+            {% for e in timeline %}
+            <li class="border-bottom py-2">
+              <span class="text-muted small">{{ e.created_at }}</span>
+              <strong class="d-block">{{ e.event_type }}</strong>
+              {% if e.payload %}<pre class="small mb-0 mt-1 bg-light p-2 rounded">{{ e.payload }}</pre>{% endif %}
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <p class="text-muted mb-0">No timeline events yet. Events are recorded when actions occur (e.g. enrollment, grade entry, finance).</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

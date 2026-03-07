@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>API Schema | RunMyCampus</title>
+  <style>
+    body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+    header { padding: 12px 20px; background: #0b172a; color: #fff; }
+    header h1 { margin: 0; font-size: 18px; }
+    .bar { display: flex; gap: 10px; align-items: center; }
+    .badge { padding: 2px 8px; background: #1f2937; border-radius: 6px; font-size: 12px; }
+    .wrap { height: calc(100vh - 52px); }
+  </style>
+  <script src="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"></script>
+</head>
+<body>
+  <header>
+    <div class="bar">
+      <h1>RunMyCampus API</h1>
+      <span class="badge">Admin-only</span>
+      <span class="badge">RBAC aware</span>
+    </div>
+  </header>
+  <div id="redoc-container" class="wrap"></div>
+  <script>
+    Redoc.init('{{ schema_url }}', {}, document.getElementById('redoc-container'));
+  </script>
+</body>
+</html>

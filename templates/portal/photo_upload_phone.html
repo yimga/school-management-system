@@ -1,0 +1,80 @@
+{% extends "portal_base.html" %}
+{% load static i18n %}
+{% block title %}{% trans "Upload photo" %}{% endblock %}
+{% block content %}
+<div class="container py-4" style="max-width: 480px;">
+  <h3 class="mb-3">{% trans "Upload photo for ID" %}</h3>
+  <p class="text-muted small">{% trans "Take a photo or choose from gallery. It will be cropped to ID size." %}</p>
+
+  <form id="photoUploadForm" method="post" action="{{ upload_endpoint }}" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="hidden" name="token" value="{{ token }}">
+    <div class="mb-3">
+      {% include "components/photo_capture_id.html" with input_name="photo" input_id="id_photo" show_upload_fallback=True %}
+    </div>
+    <div id="uploadSection" class="mb-3" style="display: none;">
+      <button type="submit" class="btn btn-primary btn-lg w-100">
+        <i class="bi bi-cloud-upload me-2"></i>{% trans "Upload photo" %}
+      </button>
+    </div>
+  </form>
+
+  <div id="successMessage" class="alert alert-success" style="display: none;">
+    <i class="bi bi-check-circle me-2"></i>{% trans "Photo received. You can close this page." %}
+  </div>
+  <div id="errorMessage" class="alert alert-danger" style="display: none;"></div>
+</div>
+
+<script>
+(function() {
+  var form = document.getElementById('photoUploadForm');
+  var uploadSection = document.getElementById('uploadSection');
+  var successMessage = document.getElementById('successMessage');
+  var errorMessage = document.getElementById('errorMessage');
+  var fileInput = document.getElementById('id_photo');
+
+  function checkPhoto() {
+    if (fileInput && fileInput.files && fileInput.files.length > 0) {
+      uploadSection.style.display = 'block';
+    }
+  }
+  if (fileInput) {
+    fileInput.addEventListener('change', checkPhoto);
+  }
+  setTimeout(checkPhoto, 500);
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+      errorMessage.textContent = '{% trans "Please take or choose a photo first." %}';
+      errorMessage.style.display = 'block';
+      return;
+    }
+    var fd = new FormData(form);
+    errorMessage.style.display = 'none';
+    fetch(form.action, {
+      method: 'POST',
+      body: fd,
+      credentials: 'same-origin',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+    .then(function(r) {
+      if (r.ok) {
+        form.style.display = 'none';
+        uploadSection.style.display = 'none';
+        successMessage.style.display = 'block';
+      } else {
+        errorMessage.textContent = r.data && r.data.error ? r.data.error : '{% trans "Upload failed. Try again." %}';
+        errorMessage.style.display = 'block';
+      }
+    })
+    .catch(function() {
+      errorMessage.textContent = '{% trans "Upload failed. Check your connection and try again." %}';
+      errorMessage.style.display = 'block';
+    });
+  });
+})();
+</script>
+<script src="{% static 'js/photo-capture-id.js' %}"></script>
+{% endblock %}

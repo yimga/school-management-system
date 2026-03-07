@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Grading Compliance Dashboard{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/dashboard-auto-grid.css' %}">
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.body.dataset.dashboardPage = 'evals-compliance';
+  });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-chart-line"></i> Grading Compliance Dashboard
+                <small class="text-muted">{{ current_term }}</small>
+            </h1>
+        </div>
+    </div>
+    
+    <!-- KPI Cards -->
+    <div class="dashboard-card-grid dashboard-card-grid--dense mb-4">
+        <div class="card border-left-primary shadow-sm">
+            <div class="card-body">
+                <div class="text-primary font-weight-bold text-uppercase mb-1">Total Teachers</div>
+                <div class="h3 mb-0">{{ kpis.total }}</div>
+            </div>
+        </div>
+        <div class="card border-left-success shadow-sm">
+            <div class="card-body">
+                <div class="text-success font-weight-bold text-uppercase mb-1">Compliant</div>
+                <div class="h3 mb-0">{{ kpis.compliant }}</div>
+            </div>
+        </div>
+        <div class="card border-left-warning shadow-sm">
+            <div class="card-body">
+                <div class="text-warning font-weight-bold text-uppercase mb-1">At Risk</div>
+                <div class="h3 mb-0">{{ kpis.at_risk }}</div>
+            </div>
+        </div>
+        <div class="card border-left-danger shadow-sm">
+            <div class="card-body">
+                <div class="text-danger font-weight-bold text-uppercase mb-1">Overdue</div>
+                <div class="h3 mb-0">{{ kpis.overdue }}</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="form-inline">
+                        <label class="mr-2">Filter by Status:</label>
+                        <select name="status" class="form-control mr-2">
+                            <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All</option>
+                            <option value="compliant" {% if status_filter == 'compliant' %}selected{% endif %}>Compliant</option>
+                            <option value="at_risk" {% if status_filter == 'at_risk' %}selected{% endif %}>At Risk</option>
+                            <option value="overdue" {% if status_filter == 'overdue' %}selected{% endif %}>Overdue</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary">Filter</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Compliance Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Teacher Submission Status</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th>Teacher</th>
+                                <th>Code</th>
+                                <th>Classroom</th>
+                                <th>Completion Rate</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for teacher in compliance_data %}
+                            <tr>
+                                <td>
+                                    <strong>{{ teacher.teacher_name }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ teacher.classroom_count }} subjects</small>
+                                </td>
+                                <td>{{ teacher.teacher_code }}</td>
+                                <td>{{ teacher.classroom_name }}</td>
+                                <td>
+                                    <div class="progress" style="height: 20px;">
+                                        {% if teacher.overall_completion >= 75 %}
+                                            <div class="progress-bar bg-success" style="width: {{ teacher.overall_completion }}%">
+                                        {% elif teacher.overall_completion >= 50 %}
+                                            <div class="progress-bar bg-warning" style="width: {{ teacher.overall_completion }}%">
+                                        {% else %}
+                                            <div class="progress-bar bg-danger" style="width: {{ teacher.overall_completion }}%">
+                                        {% endif %}
+                                                {{ teacher.overall_completion }}%
+                                            </div>
+                                        </div>
+                                </td>
+                                <td>
+                                    {% if teacher.status == 'compliant' %}
+                                        <span class="badge badge-success">✓ Compliant</span>
+                                    {% elif teacher.status == 'at_risk' %}
+                                        <span class="badge badge-warning">⚠ At Risk</span>
+                                    {% else %}
+                                        <span class="badge badge-danger">✗ Overdue</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#detailsModal" 
+                                            onclick="showTeacherDetails({{ teacher.teacher_id }}, '{{ teacher.teacher_name }}', {{ teacher.deadlines|safe }})">
+                                        View Details
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">No teachers found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Details Modal -->
+<div class="modal fade" id="detailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Teacher Deadline Details</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h6 id="teacherName"></h6>
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Subject</th>
+                            <th>Deadline</th>
+                            <th>Days Left</th>
+                            <th>Submitted</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="deadlinesList"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+  window.EVALS_EXTEND_DEADLINE_URL_BASE = "{% url 'evals:extend_deadline' 0 %}";
+function showTeacherDetails(teacherId, teacherName, deadlines) {
+    document.getElementById('teacherName').textContent = teacherName;
+    
+    const tbody = document.getElementById('deadlinesList');
+    tbody.innerHTML = '';
+    
+    deadlines.forEach(deadline => {
+        const row = tbody.insertRow();
+        row.innerHTML = `
+            <td>${deadline.subject_name}</td>
+            <td>${deadline.deadline_date}</td>
+            <td>
+                <span class="badge ${deadline.days_left < 0 ? 'badge-danger' : deadline.days_left <= 3 ? 'badge-warning' : 'badge-success'}">
+                    ${deadline.days_left} days
+                </span>
+            </td>
+            <td>${deadline.submitted_count}/${deadline.total_students}</td>
+            <td>
+                <span class="badge ${deadline.submission_status === 'on_track' ? 'badge-success' : deadline.submission_status === 'at_risk' ? 'badge-warning' : 'badge-danger'}">
+                    ${deadline.submission_status}
+                </span>
+            </td>
+            <td>
+                <a href="${(window.EVALS_EXTEND_DEADLINE_URL_BASE || '/evals/compliance/deadline/0/extend/').replace('/0/', '/' + deadline.subject_assignment_id + '/')}" class="btn btn-xs btn-warning">
+                    Extend
+                </a>
+            </td>
+        `;
+    });
+}
+</script>
+
+{# AI Copilot Assistant #}
+{% include 'components/ai_copilot.html' %}
+{% endblock %}

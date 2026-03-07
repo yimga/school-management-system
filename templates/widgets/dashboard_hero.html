@@ -1,0 +1,59 @@
+{% if hero %}
+  <div class="dashboard-hero p-4 p-lg-5 mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+      <div class="d-flex flex-wrap align-items-start gap-3">
+        {% if hero.icon %}
+          <div class="hero-icon d-inline-flex align-items-center justify-content-center">
+            <i class="bi {{ hero.icon }} fs-3 text-white"></i>
+          </div>
+        {% endif %}
+        <div>
+          <div class="text-uppercase small opacity-75 mb-1">{{ hero.tagline|default:"Dashboard" }}</div>
+          <h2 class="mb-1">{{ hero.title }}</h2>
+          {% if hero.subtitle %}<div class="small opacity-85">{{ hero.subtitle }}</div>{% endif %}
+          {% if hero.insight %}
+            <div class="mt-2 text-white-65">Insight: {{ hero.insight }}</div>
+          {% endif %}
+          {% if hero.actions %}
+            <div class="d-flex flex-wrap gap-2 mt-3 hero-actions">
+              {% for action in hero.actions %}
+                <a class="btn btn-sm {% if forloop.first %}btn-light text-primary fw-semibold{% else %}btn-outline-light{% endif %}" href="{{ action.url }}">
+                  {{ action.label }}
+                </a>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+      {% if hero.status_pills %}
+        <div class="d-flex flex-wrap gap-2">
+          {% for pill in hero.status_pills %}
+            <div class="status-pill px-3 py-2 rounded-3 bg-light text-dark text-center">
+              <div class="small text-uppercase opacity-75">{{ pill.meta }}</div>
+              <strong class="h5">{{ pill.value }}</strong>
+              {% if pill.label %}<div class="small">{{ pill.label }}</div>{% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      {% if hero.stats %}
+        <div class="kpi-grid">
+          {% for stat in hero.stats %}
+            <div class="kpi-pill">
+              <div class="kpi-label">{{ stat.label }}</div>
+              <div class="kpi-value">{{ stat.value }}</div>
+              {% if stat.meta %}
+                <div class="small opacity-75">{{ stat.meta }}</div>
+              {% endif %}
+              {% if stat.progress %}
+                <div class="pill-bar mt-2">
+                  <div class="pill-fill" style="width: {{ stat.progress }}%;"></div>
+                </div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% endif %}

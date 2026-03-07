@@ -1,0 +1,42 @@
+{% extends "portal_base.html" %}
+{% block title %}Access required{% endblock %}
+
+{% block content %}
+{% url 'home' as home_url %}
+{% include "components/page_header.html" with title="Access required" subtitle="" action_url=home_url action_text="Back to dashboard" %}
+<div class="row justify-content-center">
+  <div class="col-lg-6 mx-auto">
+    <div class="card shadow-sm">
+      <div class="card-body text-center">
+        <p class="mb-2"><i class="bi bi-shield-exclamation text-warning" style="font-size: 2.5rem;" aria-hidden="true"></i></p>
+        <p class="text-muted mb-3">
+          You do not have {{ action }} access for the <strong>{{ module|title }}</strong> module.
+        </p>
+        <form method="post" action="{% url 'requests:module_access' %}" id="access-request-form" class="d-flex flex-wrap gap-2 justify-content-center" data-draft-key="access_request_{{ module }}_{{ action }}" data-draft-max-age-hours="24" data-draft-pending-label="Unsynced access request">
+          {% csrf_token %}
+          <input type="hidden" name="module" value="{{ module }}">
+          <input type="hidden" name="action" value="{{ action }}">
+          <input type="hidden" name="next" value="{{ next }}">
+          <button type="submit" class="btn btn-primary" id="access-request-btn">Request access</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extrajs %}
+<script>
+(function() {
+  var form = document.getElementById('access-request-form');
+  var btn = document.getElementById('access-request-btn');
+  if (form && btn) {
+    form.addEventListener('submit', function() {
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span> Submitting…';
+    });
+  }
+  if (form && window.FormDraftSave) window.FormDraftSave.init(form);
+})();
+</script>
+{% endblock %}

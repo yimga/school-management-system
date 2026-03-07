@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Phase I: Example Docker entrypoint when using django-tenants (USE_DJANGO_TENANTS=1).
+# Run migrate_schemas then health check then Gunicorn so traffic only starts when DB is ready.
+# Copy to docker_entrypoint.sh and use as ENTRYPOINT or CMD in Dockerfile.
+set -euo pipefail
+PYTHON_BIN="${VENV_PYTHON:-.venv/bin/python}"
+if [[ ! -x "${PYTHON_BIN}" ]]; then
+  PYTHON_BIN="python"
+fi
+if [[ "${USE_DJANGO_TENANTS:-0}" == "1" ]]; then
+  echo "[entrypoint] Running migrate_schemas --shared..."
+  "${PYTHON_BIN}" manage.py migrate_schemas --shared
+  echo "[entrypoint] Running migrate_schemas --tenant..."
+  "${PYTHON_BIN}" manage.py migrate_schemas --tenant
+fi
+echo "[entrypoint] Running DB health check..."
+"${PYTHON_BIN}" manage.py db_health_check
+echo "[entrypoint] Starting Gunicorn..."
+exec "${PYTHON_BIN}" -m gunicorn -c config/gunicorn.conf.py config.wsgi:application "$@"

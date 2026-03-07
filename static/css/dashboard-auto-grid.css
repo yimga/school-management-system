@@ -1,0 +1,104 @@
+/**
+ * Dashboard Auto-Grid – shared layout for auto-adjustable card grids.
+ * Use on all dashboards so cards reflow as data grows.
+ * Breakpoints: 768px (tablet), 576px (mobile).
+ */
+
+.dashboard-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.dashboard-card-grid .card,
+.dashboard-card-grid > [class*="card"],
+.dashboard-card-grid .dashboard-chart-card,
+.dashboard-card-grid > * {
+  height: auto;
+  min-height: 0;
+  min-width: 0;
+}
+
+/* Dense variant for KPI-style tiles (smaller min column width) */
+.dashboard-card-grid--dense {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.75rem;
+}
+
+.dashboard-card-grid--dense .card,
+.dashboard-card-grid--dense > [class*="card"] {
+  height: auto;
+  min-height: 0;
+  min-width: 0;
+}
+
+/* Optional: two-column max for chart rows (e.g. payroll, finance) */
+.dashboard-card-grid--charts {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+@media (max-width: 767.98px) {
+  .dashboard-card-grid,
+  .dashboard-card-grid--dense,
+  .dashboard-card-grid--charts,
+  .metrics-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .dashboard-card-grid,
+  .dashboard-card-grid--dense {
+    gap: 0.6rem;
+  }
+}
+
+/* Compliance / metrics grids: let metric cards grow with content */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.metrics-grid .metric-card {
+  height: auto;
+  min-height: 0;
+  min-width: 0;
+}
+
+/* JS-injected content: let containers reflow when fetch/HTMX add content */
+.recent-activity-list {
+  min-width: 0;
+  height: auto;
+}
+
+#calendarGrid {
+  min-width: 0;
+  height: auto;
+}
+
+/* Option B: inner scroll for long tables/lists – cap height, scroll inside card */
+.dashboard-card-scroll {
+  max-height: min(320px, 50vh);
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  min-width: 0;
+}
+
+.dashboard-card-scroll--tall {
+  max-height: min(420px, 60vh);
+}
+
+@media (max-width: 767.98px) {
+  .dashboard-card-scroll {
+    max-height: min(280px, 45vh);
+  }
+  .dashboard-card-scroll--tall {
+    max-height: min(360px, 55vh);
+  }
+}

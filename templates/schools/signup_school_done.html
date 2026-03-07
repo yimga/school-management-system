@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}Check your email{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <h1 class="h3 mb-4">{% trans "Check your email" %}</h1>
+      <p class="text-muted">We sent a verification link to <strong>{{ email }}</strong>. Click the link to activate your school.</p>
+      <p class="small text-muted">The link is valid for 2 days. If you don't see the email, check your spam folder.</p>
+      <p class="mt-4"><a href="{% url 'global_login_discovery' %}" class="btn btn-outline-primary">{% trans "Back to login" %}</a></p>
+    </div>
+  </div>
+</div>
+{% endblock %}

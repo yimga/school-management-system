@@ -1,0 +1,67 @@
+{% comment %}
+  Backend Admin Portal: mini calendar grid only (no clock). Use beside datetime/weather in .backend-dtw-and-calendar.
+  Uses same grid styling as backend_sidebar_calendar_clock; client-side only.
+{% endcomment %}
+<style>
+  .backend-dtw-and-calendar .backend-calendar-dow,
+  .backend-dtw-and-calendar .backend-calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1.1rem);
+    gap: 1px;
+    justify-content: center;
+  }
+  .backend-dtw-and-calendar .backend-cal-dow-cell {
+    text-align: center;
+    font-size: 0.58rem;
+    color: var(--admin-muted, #64748b);
+    font-weight: 600;
+  }
+  .backend-dtw-and-calendar .backend-cal-cell {
+    text-align: center;
+    font-size: 0.62rem;
+    min-width: 1.1rem;
+    color: var(--admin-text, #0f172a);
+  }
+  .backend-dtw-and-calendar .backend-cal-empty { opacity: 0.35; }
+  .backend-dtw-and-calendar .backend-cal-today {
+    border-radius: 3px;
+    background: var(--school-primary, var(--bs-primary));
+    color: #fff;
+  }
+</style>
+<div class="backend-mini-calendar" id="backendMiniCalendar" aria-label="Current month calendar">
+  <div class="backend-calendar-dow" id="backendMiniCalDOW"></div>
+  <div class="backend-calendar-grid" id="backendMiniCalGrid"></div>
+</div>
+<script>
+(function() {
+  var dowEl = document.getElementById('backendMiniCalDOW');
+  var gridEl = document.getElementById('backendMiniCalGrid');
+  if (!dowEl || !gridEl) return;
+  function render() {
+    var now = new Date();
+    var year = now.getFullYear();
+    var month = now.getMonth();
+    var first = new Date(year, month, 1);
+    var last = new Date(year, month + 1, 0);
+    var startPad = first.getDay();
+    var days = last.getDate();
+    var labels = ['S','M','T','W','T','F','S'];
+    var i, d, cls, gridHtml = '';
+    for (i = 0; i < 7; i++) gridHtml += '<span class="backend-cal-dow-cell">' + labels[i] + '</span>';
+    dowEl.innerHTML = gridHtml;
+    gridHtml = '';
+    for (i = 0; i < startPad; i++) gridHtml += '<span class="backend-cal-cell backend-cal-empty">-</span>';
+    for (d = 1; d <= days; d++) {
+      cls = 'backend-cal-cell' + (d === now.getDate() ? ' backend-cal-today' : '');
+      gridHtml += '<span class="' + cls + '">' + d + '</span>';
+    }
+    gridEl.innerHTML = gridHtml;
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', render);
+  } else {
+    render();
+  }
+})();
+</script>

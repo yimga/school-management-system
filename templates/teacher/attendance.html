@@ -1,0 +1,61 @@
+{% extends "portal_base.html" %}
+
+{% block title %}Attendance{% endblock %}
+
+{% block content %}
+  {% include "widgets/dashboard_hero.html" with hero=hero %}
+
+  <div class="row g-3 mb-3">
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="text-muted small">Summary</div>
+          <h5 class="mb-3">This record</h5>
+          <ul class="list-unstyled mb-0">
+            <li><strong>Present:</strong> {{ present }}</li>
+            <li><strong>Late:</strong> {{ late }}</li>
+            <li><strong>Absent:</strong> {{ absences }}</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-8">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="mb-0">History</h5>
+            <a class="btn btn-sm btn-outline-primary" href="{{ export_url }}">Export CSV</a>
+          </div>
+          {% if logs %}
+            <div class="table-responsive">
+              <table class="table align-middle mb-0 table-mobile-cards" id="history">
+                <thead class="table-light">
+                  <tr>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Check-in</th>
+                    <th>Check-out</th>
+                    <th>Remarks</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for log in logs %}
+                    <tr>
+                      <td data-label="Date">{{ log.date }}</td>
+                      <td data-label="Status">{{ log.get_status_display }}</td>
+                      <td data-label="Check-in">{{ log.check_in|default:"-" }}</td>
+                      <td data-label="Check-out">{{ log.check_out|default:"-" }}</td>
+                      <td class="small text-muted" data-label="Remarks">{{ log.remarks|default:"-" }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="alert alert-info mb-0">No attendance records yet.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

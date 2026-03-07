@@ -1,0 +1,288 @@
+{% extends "portal_base.html" %}
+{% load evals_extras static region_format %}
+{% block title %}Enter Marks{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+  <div class="d-flex align-items-center gap-2">
+    <h2 class="mb-0">Enter Marks (Bulk)</h2>
+    {% include "components/pin_to_quick_access.html" with sidebar_item_id="marks_entry" %}
+  </div>
+  <div>
+    <a class="btn btn-outline-primary btn-sm" href="{% url 'evals:teacher_dashboard' %}">Dashboard</a>
+    <a class="btn btn-outline-primary btn-sm" href="{% url 'evals:teacher_marks_list' %}">My Marks</a>
+  </div>
+</div>
+
+{% if year and term %}
+  <div class="alert alert-info">
+    <b>Active Year:</b> {{ year.name }} | <b>Term:</b> {{ term.get_name_display }}
+  </div>
+{% endif %}
+
+{% if locked %}
+  <div class="alert alert-danger">
+    <b>LOCKED:</b> This term has been published. Marks entry is disabled.
+  </div>
+{% endif %}
+
+<form method="get" class="card mb-3">
+  <div class="card-body">
+    <label class="form-label"><b>Select your assigned class/subject</b></label>
+    <div class="d-flex gap-2">
+      <select class="form-select" name="subject_assignment_id" required {% if locked %}disabled{% endif %}>
+        <option value="">-- choose --</option>
+        {% for ta in teacher_assignments %}
+          <option value="{{ ta.subject_assignment.id }}" {% if selected_sa_id == ta.subject_assignment.id|stringformat:"s" %}selected{% endif %}>
+            {{ ta.subject_assignment.subject.name }} —
+            {{ ta.subject_assignment.classroom.name }} /
+            {{ ta.subject_assignment.specialty.name }} —
+            {{ ta.subject_assignment.term.get_name_display }}
+          </option>
+        {% endfor %}
+      </select>
+      <button class="btn btn-primary" type="submit" {% if locked %}disabled{% endif %}>Load Students</button>
+    </div>
+  </div>
+</form>
+
+{% if selected_sa %}
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <div class="small text-muted">
+      <b>Progress:</b> {{ filled_count }} / {{ total_students }} students have all required marks.
+      <span class="ms-2">Required: {{ required_fields|join:", " }}</span>
+    </div>
+    <div>
+      {% if show_missing %}
+        <a class="btn btn-outline-secondary btn-sm" href="?subject_assignment_id={{ selected_sa.id }}">Show all</a>
+      {% else %}
+        <a class="btn btn-outline-secondary btn-sm" href="?subject_assignment_id={{ selected_sa.id }}&missing=1">Show missing only</a>
+      {% endif %}
+    </div>
+  </div>
+  <div class="card mb-3">
+    <div class="card-header">
+      <div class="d-flex justify-content-between align-items-center">
+        <span>Upload Marksheet (OCR)</span>
+        {% if marksheet_ocr_enabled %}
+          <span class="badge bg-success">Live</span>
+        {% else %}
+          <span class="badge bg-secondary">Disabled</span>
+        {% endif %}
+      </div>
+    </div>
+    <div class="card-body">
+      {% if marksheet_ocr_ready %}
+        <div class="mb-2 small text-muted">
+          Using <code>{{ marksheet_ocr_command }}</code>{% if marksheet_ocr_version %} (v{{ marksheet_ocr_version }}){% endif %}.
+        </div>
+      {% else %}
+        <div class="alert alert-warning mb-3">
+          Tesseract isn’t configured on the backend (<code>{{ marksheet_ocr_command }}</code> failed). Install it or set the command in Site Settings before uploading.
+        </div>
+      {% endif %}
+      {% if not marksheet_ocr_enabled %}
+        <div class="alert alert-warning mb-3">
+          Marksheet OCR uploads are controlled from Site Settings. Contact an admin to enable this feature.
+        </div>
+      {% endif %}
+      <form method="post" enctype="multipart/form-data" class="mb-3">
+        {% csrf_token %}
+        {{ upload_form.subject_assignment_id }}
+        <div class="mb-2">
+          {{ upload_form.marksheet_file }}
+        </div>
+        <button class="btn btn-outline-primary" type="submit" {% if not marksheet_ocr_enabled or not marksheet_ocr_ready %}disabled{% endif %}>
+          Parse & Apply
+        </button>
+        {% if marksheet_mobile_upload_allowed %}
+          <small class="text-muted ms-2">Works on mobile - choose or capture a photo directly.</small>
+        {% endif %}
+      </form>
+      {% if upload_feedback %}
+        <div class="alert alert-{{ upload_feedback.level }} mb-3">
+          {{ upload_feedback.message }}
+        </div>
+      {% endif %}
+      {% if upload_summary.processed %}
+        <p class="small text-muted mb-3">
+          Processed {{ upload_summary.processed }} row{{ upload_summary.processed|pluralize }} at {{ upload_confidence|format_number:0 }}% confidence.
+          {% if upload_summary.applied %}
+            Auto-applied {{ upload_summary.applied }} row{{ upload_summary.applied|pluralize }}.
+          {% endif %}
+          {% if upload_manual_review_pending %}
+            Manual verification is required before committing changes.
+          {% endif %}
+        </p>
+      {% endif %}
+      {% if upload_preview %}
+        <div class="alert alert-info mb-3">
+          <strong>Delta mode:</strong> {% if upload_summary.delta_mode %}ON (only fills missing marks){% else %}OFF (updates all marks){% endif %}
+          {% if upload_summary.field_confidences %}
+            <br><small>Field confidence: 
+              {% for field, conf in upload_summary.field_confidences.items %}
+                {{ field|title }}: {{ conf|format_number:0 }}%{% if not forloop.last %}, {% endif %}
+              {% endfor %}
+            </small>
+          {% endif %}
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-striped">
+            <thead>
+              <tr>
+                <th scope="col">Code</th>
+                <th scope="col">Student</th>
+                <th scope="col">Scores (editable)</th>
+                <th scope="col">Confidence</th>
+                <th scope="col">Extracted line</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in upload_preview %}
+                <tr class="{% if not row.matched %}table-warning{% endif %}">
+                  <td>{{ row.code }}</td>
+                  <td>{{ row.student_name }}</td>
+                  <td>
+                    {% if upload_manual_review_pending %}
+                      {% for field, value in row.scores.items %}
+                        <div class="mb-1">
+                          <label class="small text-muted">{{ field|title }}:</label>
+                          <input 
+                            type="number" 
+                            step="0.01" 
+                            class="form-control form-control-sm d-inline-block" 
+                            style="width: 80px;"
+                            name="ocr_correct_{{ row.code }}_{{ field }}"
+                            value="{{ value }}"
+                            placeholder="—"
+                          >
+                          {% if field in row.existing_scores %}
+                            <small class="text-muted ms-1">(current: {{ row.existing_scores|get_item:field }})</small>
+                          {% endif %}
+                        </div>
+                      {% endfor %}
+                    {% else %}
+                      {% for field, value in row.scores.items %}
+                        <span class="badge bg-light text-dark border border-1 me-1">
+                          {{ field|title }}: {{ value }}
+                          {% if field in row.existing_scores %}
+                            <small class="text-muted">(was: {{ row.existing_scores|get_item:field }})</small>
+                          {% endif %}
+                        </span>
+                      {% endfor %}
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if row.field_confidences %}
+                      {% for field, conf in row.field_confidences.items %}
+                        <span class="badge {% if conf < 50 %}bg-danger{% elif conf < 70 %}bg-warning{% else %}bg-success{% endif %} me-1" title="Confidence: {{ conf|format_number:0 }}%">
+                          {{ field|title }}: {{ conf|format_number:0 }}%
+                        </span>
+                      {% endfor %}
+                    {% else %}
+                      <span class="text-muted">—</span>
+                    {% endif %}
+                  </td>
+                  <td><small class="text-muted">{{ row.line|truncatewords:10 }}</small></td>
+                </tr>
+              {% endfor %}
+          </tbody>
+          </table>
+        </div>
+        {% if upload_manual_review_pending %}
+          <form method="post" class="mt-3">
+            {% csrf_token %}
+            {{ upload_form.subject_assignment_id }}
+            <input type="hidden" name="confirm_pending" value="1">
+            <button class="btn btn-primary" type="submit">Apply parsed marks</button>
+            <span class="ms-2 text-muted">Review and correct values above, then click to apply.</span>
+          </form>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+{% endif %}
+
+{% if grade_approval_enabled %}
+  <div class="mb-3">
+    {% if grade_approval_requests %}
+      <div class="alert alert-info">
+        <p class="mb-1"><strong>Recent approval requests for this assignment:</strong></p>
+        <ul class="mb-0 small">
+          {% for req in grade_approval_requests %}
+            <li>
+              {{ req.get_status_display }} · {{ req.requested_at|format_date }} {{ req.requested_at|time:"H:i" }}
+              <a href="{% url 'evals:grade_approval_detail' req.id %}">View</a>
+            </li>
+          {% endfor %}
+        </ul>
+        <small class="text-muted">Grade approvals land with {{ grade_approval_roles|join:", " }}.</small>
+      </div>
+    {% else %}
+      <div class="alert alert-secondary">
+        Grade approvals are enabled. Use the action button below to submit your changes for review.
+      </div>
+    {% endif %}
+  </div>
+{% endif %}
+
+{% if sa and students %}
+  <div class="card">
+    <div class="card-header">
+      <b>{{ sa.subject.name }}</b> — {{ sa.classroom.name }} / {{ sa.specialty.name }} — coef {{ sa.coefficient }}
+    </div>
+    <div class="card-body table-responsive">
+      <form method="post" id="marks-entry-form" data-draft-key="marks_{{ sa.id }}" data-draft-max-age-hours="24" data-draft-pending-label="Unsynced marks">
+        {% csrf_token %}
+        <input type="hidden" name="subject_assignment_id" value="{{ sa.id }}">
+
+        <table class="table table-sm table-striped align-middle">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th style="width:110px;">Sequence 1</th>
+              <th style="width:110px;">Sequence 2</th>
+              <th style="width:110px;">Exam</th>
+              <th style="width:110px;">Mock</th>
+              <th style="width:110px;">Practical</th>
+              <th>Remarks</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in students %}
+              {% with e=existing|get_item:s.id %}
+              <tr class="{% if e|evaluation_incomplete:required_fields %}table-warning{% endif %}">
+                <td>{{ s.last_name }} {{ s.first_name }} ({{ s.student_code }})</td>
+                <td><input class="form-control form-control-sm" name="seq1_{{ s.id }}" value="{% if e %}{{ e.seq1_score }}{% endif %}" {% if locked %}disabled{% endif %}></td>
+                <td><input class="form-control form-control-sm" name="seq2_{{ s.id }}" value="{% if e %}{{ e.seq2_score }}{% endif %}" {% if locked %}disabled{% endif %}></td>
+                <td><input class="form-control form-control-sm" name="exam_{{ s.id }}" value="{% if e %}{{ e.exam_score }}{% endif %}" {% if locked %}disabled{% endif %}></td>
+                <td><input class="form-control form-control-sm" name="mock_{{ s.id }}" value="{% if e %}{{ e.mock_score }}{% endif %}" {% if locked %}disabled{% endif %}></td>
+                <td><input class="form-control form-control-sm" name="practical_{{ s.id }}" value="{% if e %}{{ e.practical_score }}{% endif %}" {% if locked %}disabled{% endif %}></td>
+                <td><input class="form-control form-control-sm" name="remarks_{{ s.id }}" value="{% if e %}{{ e.remarks }}{% endif %}" {% if locked %}disabled{% endif %}></td>
+              </tr>
+              {% endwith %}
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <button class="btn btn-success" type="submit" {% if locked %}disabled{% endif %}>Save All Marks</button>
+        {% if grade_approval_enabled %}
+          <button class="btn btn-outline-warning ms-2" type="submit" name="action" value="submit_for_approval" {% if locked %}disabled{% endif %}>
+            Submit for Review
+          </button>
+        {% endif %}
+        <p class="small text-muted mt-2 mb-0">Draft is saved automatically in your browser. If the power or tab closes, return here and choose &quot;Restore draft&quot; when prompted.</p>
+      </form>
+    </div>
+  </div>
+  <script src="{% static 'js/form-draft-save.js' %}"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var form = document.getElementById('marks-entry-form');
+      if (form && window.FormDraftSave) FormDraftSave.init(form);
+    });
+  </script>
+{% endif %}
+{% include "components/was_this_helpful.html" with feedback_id="teacher-marks-entry" %}
+{% endblock %}
+

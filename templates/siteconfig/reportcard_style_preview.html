@@ -1,0 +1,190 @@
+{% extends "portal_base.html" %}
+
+{% load i18n region_format report_style_tags %}
+
+{% block title %}{{ report_style.name }} preview{% endblock %}
+
+{% block extrastyle %}
+  {% include "reports/_report_styles.html" %}
+  <style>
+    :root {
+      --preview-primary: {{ report_style.primary_color|default:SITE.primary_color }};
+      --preview-accent: {{ report_style.accent_color|default:SITE.accent_color }};
+    }
+    .preview-header {
+      border-radius: 14px;
+      padding: 1.25rem;
+      background: linear-gradient(135deg, rgba(13,110,253,0.9), rgba(124,58,237,0.95));
+      color: white;
+    }
+    .preview-header .tagline {
+      letter-spacing: 0.2em;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      opacity: 0.8;
+    }
+    .style-details {
+      border-radius: 16px;
+      border: 1px solid rgba(0,0,0,0.05);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+    .style-preview {
+      padding: 1rem;
+      background: linear-gradient(135deg, var(--preview-primary), var(--preview-accent));
+      color: white;
+    }
+    .style-preview .watermark {
+      font-size: 1rem;
+      opacity: 0.7;
+    }
+    .report-table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 1rem;
+    }
+    .report-table th,
+    .report-table td {
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+      padding: 0.65rem;
+      font-size: 0.85rem;
+    }
+    .report-table th {
+      background: #f7f7fc;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+    .summary-card {
+      border-radius: 12px;
+      padding: 0.75rem;
+      border: 1px solid rgba(0,0,0,0.05);
+      background: #fff;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.02);
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3">
+        <div>
+          <p class="tagline mb-2">{{ report_style.name }}</p>
+          <h2 class="h4 mb-1">{{ report_style.description|default:"Modern report layout" }}</h2>
+          <p class="text-muted mb-0">
+            Term template: {{ report_style.term_template }} · Annual template: {{ report_style.annual_template }}
+          </p>
+        </div>
+        <div class="d-flex gap-2">
+          <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{% url 'siteconfig:reportcard_builder' %}"><i class="bi bi-arrow-left me-1"></i>Back to builder</a>
+          <a class="btn btn-primary btn-sm" href="{% url 'siteconfig:customizer' %}#field-theme_pack">Apply pack</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="style-details mb-4">
+    <div class="style-preview">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <p class="mb-1">Modern letterhead</p>
+          <strong>{{ SITE.site_name|default:"School System" }}</strong>
+        </div>
+        <div class="text-end">
+          <div class="small text-uppercase opacity-75">Watermark</div>
+          <div class="small opacity-75">
+            {{ report_style.get_watermark_mode_display }} · {{ report_style.get_watermark_position_display }} · {{ report_style.watermark_scale }}%
+          </div>
+          {% if report_style.watermark_mode == "STYLE_LOGO" and report_style.watermark_logo %}
+            <img src="{{ report_style.watermark_logo.url }}" alt="Style watermark" width="38" height="38" style="height:38px; width:auto; object-fit:contain; opacity:{{ report_style.watermark_opacity }};">
+          {% elif report_style.watermark_mode == "SITE_LOGO" and SITE_LOGO_URL %}
+            <img src="{{ SITE_LOGO_URL }}" alt="Site watermark" width="38" height="38" style="height:38px; width:auto; object-fit:contain; opacity:{{ report_style.watermark_opacity }};">
+          {% elif report_style.watermark_mode == "NONE" %}
+            <div class="watermark">Disabled</div>
+          {% else %}
+            <div class="watermark">{{ report_style.watermark_text|default:SITE.school_code|default:SITE.site_name }}</div>
+          {% endif %}
+        </div>
+      </div>
+      <p class="small mb-0 text-white-75">
+        {{ report_style.header_tagline|default:"Academic Report Sheet / Bulletin de Notes" }}
+      </p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <h5 class="mb-3">Sample term table</h5>
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>{% report_style_label report_style "subject_header" "Subject / Matiere" %}</th>
+            <th class="text-center">{% report_style_label report_style "coef_header" "Coef" %}</th>
+            <th class="text-center">{{ labels.sequence_1|default:"Sequence 1 / Sequence 1" }}</th>
+            <th class="text-center">{{ labels.sequence_2|default:"Sequence 2 / Sequence 2" }}</th>
+            <th class="text-center">{{ labels.exam|default:"Exam / Examen" }}</th>
+            <th class="text-center">{{ labels.total|default:"Total / Total" }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows|slice:":5" %}
+            <tr>
+              <td>{{ row.subject }}</td>
+              <td class="text-center">{{ row.coef }}</td>
+              <td class="text-center">{{ row.seq1|default:"-" }}</td>
+              <td class="text-center">{{ row.seq2|default:"-" }}</td>
+              <td class="text-center">{{ row.exam|default:"-" }}</td>
+              <td class="text-center">{{ row.total|format_number:2 }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <div class="summary-grid">
+        <div class="summary-card">
+          <strong>{{ labels.average|default:"Average / Moyenne" }}</strong>
+          <p class="mb-0">{{ summary.average|format_number:2|default:"-" }}</p>
+        </div>
+        <div class="summary-card">
+          <strong>{{ labels.class_rank|default:"Class Rank / Rang Classe" }}</strong>
+          <p class="mb-0">{{ summary.class_rank_display|default:"-" }}</p>
+        </div>
+        <div class="summary-card">
+          <strong>{{ labels.school_rank|default:"School Rank / Rang Etablissement" }}</strong>
+          <p class="mb-0">{{ summary.school_rank_display|default:"-" }}</p>
+        </div>
+        <div class="summary-card">
+          <strong>{{ labels.promotion|default:"Promotion / Decision" }}</strong>
+          <p class="mb-0">{{ summary.promotion_status }}</p>
+        </div>
+        <div class="summary-card">
+          <strong>{{ labels.teacher_remark|default:"Teacher Remark / Appreciation" }}</strong>
+          <p class="mb-0">{{ summary.teacher_remark }}</p>
+        </div>
+        <div class="summary-card">
+          <strong>Generated</strong>
+          <p class="mb-0">{{ generated_at|format_date }}</p>
+        </div>
+        <div class="summary-card">
+          <strong>Sequence cues</strong>
+          <p class="mb-0 small">
+            {% for cue in sequence_cues %}
+              {{ cue.label }} {{ cue.weight }}%{% if not forloop.last %} | {% endif %}
+            {% empty %}
+              No sequence weights configured.
+            {% endfor %}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

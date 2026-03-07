@@ -1,0 +1,25 @@
+{% load i18n %}
+<section class="mt-4">
+  <h2 class="h5 mb-3">{% trans "Role-based quick start" %}</h2>
+  <div class="row g-3">
+    {% for card in role_checklists %}
+    <div class="col-lg-4">
+      <article class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <h3 class="h6 text-uppercase text-muted mb-2">{{ card.role }}</h3>
+          <p class="small text-muted mb-3">{{ card.summary }}</p>
+          <ol class="small mb-0 ps-3">
+            {% for step in card.steps %}
+            <li class="mb-2">
+              <span class="fw-semibold d-block">{{ step.title }}</span>
+              <span class="d-block text-muted mb-1">{{ step.detail }}</span>
+              <a href="{{ step.href }}" class="link-primary">{{ step.cta }}</a>
+            </li>
+            {% endfor %}
+          </ol>
+        </div>
+      </article>
+    </div>
+    {% endfor %}
+  </div>
+</section>

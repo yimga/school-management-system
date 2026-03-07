@@ -1,0 +1,57 @@
+{% extends "control_plane_base.html" %}
+{% load static %}
+
+{% block cp_title %}Sync Repair — {{ school.name }}{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-4">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+    <h1 class="h4 mb-0">Emergency Sync Repair</h1>
+    <a href="{{ dashboard_url }}" class="btn btn-outline-secondary">← Back to Super Dashboard</a>
+  </div>
+  <p class="text-muted small">School: <strong>{{ school.name }}</strong> ({{ school.id }})</p>
+
+  {% if conflicts %}
+  <div class="table-responsive">
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Entity</th>
+          <th>Status</th>
+          <th>Reported</th>
+          <th>Client (offline) data</th>
+          <th>Server data</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in conflicts %}
+        <tr>
+          <td>{{ c.id }}</td>
+          <td>{{ c.entity_type }} #{{ c.entity_id }}</td>
+          <td><span class="badge {% if c.status == 'PENDING' %}bg-warning{% else %}bg-secondary{% endif %}">{{ c.status }}</span></td>
+          <td>{{ c.reported_by|default:"—" }} {{ c.created_at|date:"Y-m-d H:i" }}</td>
+          <td><pre class="small mb-0 p-2 bg-light rounded" style="max-width:280px; max-height:120px; overflow:auto;">{{ c.client_data|default:"{}" }}</pre></td>
+          <td><pre class="small mb-0 p-2 bg-light rounded" style="max-width:280px; max-height:120px; overflow:auto;">{{ c.server_data|default:"{}" }}</pre></td>
+          <td>
+            {% if c.status == 'PENDING' %}
+            <form method="post" action="{% url 'super:sync_repair' school_id=school.id %}" class="d-inline">
+              {% csrf_token %}
+              <input type="hidden" name="conflict_id" value="{{ c.id }}">
+              <button type="submit" class="btn btn-sm btn-danger">Force Overwrite (client)</button>
+            </form>
+            {% else %}
+            —
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="alert alert-info">No sync conflicts for this school.</div>
+  {% endif %}
+</div>
+{% endblock %}

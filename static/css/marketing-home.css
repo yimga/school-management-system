@@ -1,0 +1,441 @@
+/**
+ * RunMyCampus marketing homepage — world-class SaaS front (Stripe/Shopify tier).
+ * Scoped under .marketing-home. Load only on landing; do not use in tenant/superadmin.
+ */
+.marketing-home {
+  position: relative; /* anchor for skip-link positioning */
+  --mkt-spacing-xs: 0.5rem;
+  --mkt-spacing-sm: 1rem;
+  --mkt-spacing-md: 1.5rem;
+  --mkt-spacing-lg: 2.5rem;
+  --mkt-spacing-xl: 4rem;
+  --mkt-spacing-2xl: 5rem;
+  --mkt-radius-sm: 8px;
+  --mkt-radius-md: 12px;
+  --mkt-radius-lg: 16px;
+  --mkt-radius-xl: 24px;
+  --mkt-shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
+  --mkt-shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08);
+  --mkt-shadow-lg: 0 18px 48px rgba(15, 23, 42, 0.12);
+  font-family: var(--portal-font, Inter, system-ui, sans-serif);
+}
+
+/* Skip link (a11y) */
+.marketing-home .mkt-skip-link {
+  position: absolute;
+  top: -3rem;
+  left: var(--mkt-spacing-sm);
+  z-index: 1060;
+  padding: 0.5rem 1rem;
+  background: #0f172a;
+  color: #f8fafc;
+  font-weight: 600;
+  border-radius: var(--mkt-radius-sm);
+  text-decoration: none;
+  transition: top 0.2s ease;
+}
+.marketing-home .mkt-skip-link:focus {
+  top: var(--mkt-spacing-sm);
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+/* CTA focus visibility */
+.marketing-home .mkt-cta-focus:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+/* ----- Hero ----- */
+.marketing-home .mkt-hero {
+  padding: var(--mkt-spacing-2xl) var(--mkt-spacing-md);
+  background: linear-gradient(155deg, #0f172a 0%, #1e293b 45%, #334155 100%);
+  color: #f8fafc;
+  border-radius: 0 0 var(--mkt-radius-xl) var(--mkt-radius-xl);
+  position: relative;
+  overflow: hidden;
+}
+.marketing-home .mkt-hero::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(ellipse 80% 50% at 70% 20%, rgba(59, 130, 246, 0.15), transparent 50%),
+              radial-gradient(ellipse 60% 40% at 20% 80%, rgba(99, 102, 241, 0.1), transparent 45%);
+  pointer-events: none;
+}
+.marketing-home .mkt-hero-inner {
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  gap: var(--mkt-spacing-lg);
+  align-items: center;
+}
+@media (min-width: 992px) {
+  .marketing-home .mkt-hero-inner {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.marketing-home .mkt-hero-headline {
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin-bottom: var(--mkt-spacing-sm);
+}
+.marketing-home .mkt-hero-subheadline {
+  font-size: 1.125rem;
+  line-height: 1.6;
+  color: rgba(248, 250, 252, 0.9);
+  margin-bottom: var(--mkt-spacing-lg);
+  max-width: 42ch;
+}
+.marketing-home .mkt-hero-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mkt-spacing-sm);
+}
+.marketing-home .mkt-hero-ctas .btn {
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  border-radius: var(--mkt-radius-md);
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.marketing-home .mkt-hero-ctas .btn-primary {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+}
+.marketing-home .mkt-hero-ctas .btn-primary:hover {
+  background: #1d4ed8;
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: var(--mkt-shadow-md);
+}
+.marketing-home .mkt-hero-ctas .btn-outline-light {
+  background: transparent;
+  color: #f8fafc;
+  border: 2px solid rgba(248, 250, 252, 0.5);
+}
+.marketing-home .mkt-hero-ctas .btn-outline-light:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border-color: #fff;
+}
+
+/* Sticky CTA bar (appears after scroll past hero) */
+.marketing-home .mkt-sticky-cta-bar {
+  position: fixed;
+  top: 56px;
+  left: 0;
+  right: 0;
+  z-index: 1018;
+  background: #0f172a;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transform: translateY(-100%);
+  opacity: 0;
+  visibility: hidden;
+  transition: transform 0.25s ease, opacity 0.2s ease, visibility 0.2s;
+}
+.marketing-home .mkt-sticky-cta-bar.is-visible {
+  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+}
+
+.marketing-home .mkt-hero-visual {
+  border-radius: var(--mkt-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--mkt-shadow-lg);
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+.marketing-home .mkt-hero-visual img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ----- Social proof / trust band ----- */
+.marketing-home .mkt-trust-band {
+  padding: var(--mkt-spacing-lg) var(--mkt-spacing-md);
+  text-align: center;
+  background: var(--admin-content-bg, #fff);
+}
+.marketing-home .mkt-trust-band-heading {
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--admin-content-text-muted, #64748b);
+  margin-bottom: var(--mkt-spacing-md);
+}
+.marketing-home .mkt-trust-logos {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: var(--mkt-spacing-lg);
+  max-width: 900px;
+  margin: 0 auto;
+}
+.marketing-home .mkt-trust-logo {
+  height: 32px;
+  opacity: 0.7;
+  filter: grayscale(1);
+}
+.marketing-home .mkt-trust-logo img {
+  height: 100%;
+  width: auto;
+  object-fit: contain;
+}
+
+/* ----- Section common ----- */
+.marketing-home .mkt-section {
+  padding: var(--mkt-spacing-2xl) var(--mkt-spacing-md);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.marketing-home .mkt-section-heading {
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: var(--mkt-spacing-sm);
+  color: var(--admin-content-text, #0f172a);
+}
+.marketing-home .mkt-section-lead {
+  font-size: 1.125rem;
+  color: var(--admin-content-text-muted, #64748b);
+  text-align: center;
+  max-width: 60ch;
+  margin: 0 auto var(--mkt-spacing-xl);
+  line-height: 1.6;
+}
+
+/* ----- Platform overview (core modules grid) ----- */
+.marketing-home .mkt-modules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--mkt-spacing-md);
+}
+.marketing-home .mkt-module-card {
+  background: var(--admin-content-bg, #fff);
+  border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
+  border-radius: var(--mkt-radius-lg);
+  padding: var(--mkt-spacing-md);
+  box-shadow: var(--mkt-shadow-sm);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.marketing-home .mkt-module-card:hover {
+  box-shadow: var(--mkt-shadow-md);
+  transform: translateY(-2px);
+}
+.marketing-home .mkt-module-card h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+.marketing-home .mkt-module-card p {
+  font-size: 0.9375rem;
+  color: var(--admin-content-text-muted, #64748b);
+  margin-bottom: var(--mkt-spacing-sm);
+  line-height: 1.5;
+}
+.marketing-home .mkt-module-card .mkt-module-screenshot {
+  border-radius: var(--mkt-radius-sm);
+  overflow: hidden;
+  background: #f1f5f9;
+  aspect-ratio: 16/10;
+}
+.marketing-home .mkt-module-card .mkt-module-screenshot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ----- Product demo ----- */
+.marketing-home .mkt-product-demo {
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: var(--mkt-radius-xl);
+  padding: var(--mkt-spacing-xl);
+  border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
+}
+.marketing-home .mkt-product-demo-visual {
+  border-radius: var(--mkt-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--mkt-shadow-lg);
+  max-width: 100%;
+}
+.marketing-home .mkt-product-demo-visual img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ----- Platform architecture (3 cards) ----- */
+.marketing-home .mkt-platform-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--mkt-spacing-md);
+}
+.marketing-home .mkt-platform-card {
+  background: var(--admin-content-bg, #fff);
+  border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
+  border-radius: var(--mkt-radius-lg);
+  padding: var(--mkt-spacing-lg);
+  box-shadow: var(--mkt-shadow-sm);
+}
+.marketing-home .mkt-platform-card h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+.marketing-home .mkt-platform-card p {
+  font-size: 0.9375rem;
+  color: var(--admin-content-text-muted, #64748b);
+  line-height: 1.6;
+}
+
+/* ----- Migration section ----- */
+.marketing-home .mkt-migration {
+  display: grid;
+  gap: var(--mkt-spacing-lg);
+  align-items: center;
+}
+@media (min-width: 768px) {
+  .marketing-home .mkt-migration {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.marketing-home .mkt-migration-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.marketing-home .mkt-migration-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--mkt-spacing-sm);
+  margin-bottom: var(--mkt-spacing-sm);
+  font-size: 1rem;
+}
+.marketing-home .mkt-migration-list li::before {
+  content: "✓";
+  color: #22c55e;
+  font-weight: 700;
+}
+.marketing-home .mkt-migration-visual {
+  border-radius: var(--mkt-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--mkt-shadow-md);
+}
+.marketing-home .mkt-migration-visual img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ----- Ecosystem / marketplace ----- */
+.marketing-home .mkt-ecosystem-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--mkt-spacing-md);
+}
+.marketing-home .mkt-ecosystem-card {
+  background: var(--admin-content-bg, #fff);
+  border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
+  border-radius: var(--mkt-radius-md);
+  padding: var(--mkt-spacing-md);
+  text-align: center;
+}
+.marketing-home .mkt-ecosystem-card h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+.marketing-home .mkt-ecosystem-card p {
+  font-size: 0.875rem;
+  color: var(--admin-content-text-muted, #64748b);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* ----- Testimonials ----- */
+.marketing-home .mkt-testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--mkt-spacing-md);
+}
+.marketing-home .mkt-testimonial-card {
+  background: var(--admin-content-bg, #fff);
+  border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
+  border-radius: var(--mkt-radius-lg);
+  padding: var(--mkt-spacing-lg);
+  box-shadow: var(--mkt-shadow-sm);
+}
+.marketing-home .mkt-testimonial-card blockquote {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--admin-content-text, #0f172a);
+  margin-bottom: var(--mkt-spacing-sm);
+}
+.marketing-home .mkt-testimonial-card .mkt-testimonial-author {
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+.marketing-home .mkt-testimonial-card .mkt-testimonial-role {
+  font-size: 0.875rem;
+  color: var(--admin-content-text-muted, #64748b);
+}
+.marketing-home .mkt-testimonial-stars {
+  color: #eab308;
+  margin-bottom: 0.5rem;
+}
+
+/* ----- Security / compliance ----- */
+.marketing-home .mkt-security-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--mkt-spacing-md);
+  margin-bottom: var(--mkt-spacing-md);
+}
+.marketing-home .mkt-security-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--admin-content-bg, #fff);
+  border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.marketing-home .mkt-security-copy {
+  font-size: 0.9375rem;
+  color: var(--admin-content-text-muted, #64748b);
+  text-align: center;
+  max-width: 55ch;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* ----- Final CTA ----- */
+.marketing-home .mkt-final-cta {
+  padding: var(--mkt-spacing-2xl) var(--mkt-spacing-md);
+  text-align: center;
+  background: linear-gradient(155deg, #0f172a 0%, #1e293b 100%);
+  color: #f8fafc;
+  border-radius: var(--mkt-radius-xl);
+}
+.marketing-home .mkt-final-cta h2 {
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  font-weight: 700;
+  margin-bottom: var(--mkt-spacing-md);
+}
+.marketing-home .mkt-final-cta .mkt-hero-ctas {
+  justify-content: center;
+}

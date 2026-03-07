@@ -1,0 +1,244 @@
+<!-- Weather Marquee - Scrolling weather and quote strip for admin dashboard -->
+<style>
+  .weather-marquee-container {
+    background: linear-gradient(90deg, rgba(255, 149, 0, 0.05), rgba(59, 130, 246, 0.05), rgba(255, 149, 0, 0.05));
+    border: 1px solid rgba(255, 149, 0, 0.15);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .weather-marquee-content {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    animation: scroll-marquee 30s linear infinite;
+    white-space: nowrap;
+  }
+
+  .weather-marquee-content:hover {
+    animation-play-state: paused;
+  }
+
+  @keyframes scroll-marquee {
+    0% {
+      transform: translateX(100%);
+    }
+    100% {
+      transform: translateX(-100%);
+    }
+  }
+
+  .weather-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    color: var(--admin-text, #0f172a);
+  }
+
+  .weather-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+
+  .weather-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .weather-temp {
+    font-weight: 700;
+    font-size: 16px;
+  }
+
+  .weather-desc {
+    font-size: 12px;
+    opacity: 0.7;
+  }
+
+  .weather-divider {
+    width: 1px;
+    height: 24px;
+    background: rgba(15, 23, 42, 0.2);
+    flex-shrink: 0;
+  }
+
+  .daily-quote-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-style: italic;
+    color: var(--admin-subtle, #475569);
+    font-size: 13px;
+  }
+
+  :root[data-theme="dark"] .weather-item,
+  :root[data-theme="dark"] .daily-quote-item {
+    color: var(--admin-text-dark, #e2e8f0);
+  }
+
+  :root[data-theme="dark"] .weather-divider {
+    background: rgba(255, 255, 255, 0.15);
+  }
+</style>
+
+<div class="weather-marquee-container" data-weather-endpoint="{% url 'api_admin_weather' %}">
+  <div class="weather-marquee-content" id="weatherMarqueeContent">
+    <div class="weather-item">
+      <span class="material-symbols-outlined weather-icon" id="marqueeWeatherIcon" aria-hidden="true">partly_cloudy_day</span>
+      <div class="weather-info">
+        <div class="weather-temp" id="marqueeWeatherTemp">--&deg;</div>
+        <div class="weather-desc" id="marqueeWeatherDesc">Loading weather...</div>
+      </div>
+    </div>
+
+    <div class="weather-divider"></div>
+
+    <div class="daily-quote-item">
+      <span aria-hidden="true">Quote:</span>
+      <span id="marqueeQuote">"Great things are done by a series of small things brought together."</span>
+    </div>
+
+    <div class="weather-divider"></div>
+
+    <div class="weather-item">
+      <span class="material-symbols-outlined weather-icon" id="marqueeWeatherIcon2" aria-hidden="true">partly_cloudy_day</span>
+      <div class="weather-info">
+        <div class="weather-temp" id="marqueeWeatherTemp2">--&deg;</div>
+        <div class="weather-desc" id="marqueeWeatherDesc2">Loading weather...</div>
+      </div>
+    </div>
+
+    <div class="weather-divider"></div>
+
+    <div class="daily-quote-item">
+      <span aria-hidden="true">Quote:</span>
+      <span id="marqueeQuote2">"Great things are done by a series of small things brought together."</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    var root = document.querySelector('.weather-marquee-container[data-weather-endpoint]');
+    if (!root) return;
+
+    var weatherIcons = {
+      0: 'sunny',
+      1: 'partly_cloudy_day',
+      2: 'partly_cloudy_day',
+      3: 'cloud',
+      45: 'foggy',
+      48: 'foggy',
+      51: 'rainy',
+      53: 'rainy',
+      55: 'rainy_heavy',
+      61: 'rainy',
+      63: 'rainy',
+      65: 'rainy_heavy',
+      71: 'ac_unit',
+      73: 'ac_unit',
+      75: 'ac_unit',
+      80: 'rainy',
+      81: 'rainy_heavy',
+      82: 'rainy_heavy',
+      95: 'thunderstorm',
+      96: 'thunderstorm',
+      99: 'thunderstorm'
+    };
+
+    function setText(id, value) {
+      var node = document.getElementById(id);
+      if (node) node.textContent = value;
+    }
+
+    function applyWeather(payload) {
+      var tempUnit = String((payload && payload.temperature_unit) || 'celsius').toLowerCase() === 'fahrenheit' ? 'F' : 'C';
+      var label = String((payload && payload.label) || 'Weather');
+      var weather = payload && payload.weather;
+
+      if (!payload || payload.enabled === false || !weather) {
+        setText('marqueeWeatherIcon', 'disabled_by_default');
+        setText('marqueeWeatherIcon2', 'disabled_by_default');
+        setText('marqueeWeatherTemp', '--\u00B0' + tempUnit);
+        setText('marqueeWeatherTemp2', '--\u00B0' + tempUnit);
+        setText('marqueeWeatherDesc', label);
+        setText('marqueeWeatherDesc2', label);
+        return;
+      }
+
+      var code = Number(weather.weather_code);
+      var icon = weatherIcons[code] || 'partly_cloudy_day';
+      var description = String(weather.description || 'Unknown');
+      var temperature = Number(weather.temperature);
+      var tempText = Number.isFinite(temperature) ? (Math.round(temperature) + '\u00B0' + tempUnit) : ('--\u00B0' + tempUnit);
+      var descriptionText = description + ' - ' + label;
+
+      setText('marqueeWeatherIcon', icon);
+      setText('marqueeWeatherIcon2', icon);
+      setText('marqueeWeatherTemp', tempText);
+      setText('marqueeWeatherTemp2', tempText);
+      setText('marqueeWeatherDesc', descriptionText);
+      setText('marqueeWeatherDesc2', descriptionText);
+    }
+
+    async function loadWeatherForMarquee() {
+      var endpoint = root.getAttribute('data-weather-endpoint');
+      if (!endpoint) return;
+      try {
+        var response = await fetch(endpoint, {
+          credentials: 'same-origin',
+          headers: { 'Accept': 'application/json' }
+        });
+        if (!response.ok) {
+          throw new Error('Weather endpoint request failed');
+        }
+        var data = await response.json();
+        applyWeather(data || {});
+      } catch (_error) {
+        applyWeather({
+          enabled: true,
+          label: 'Weather',
+          temperature_unit: 'celsius',
+          weather: null
+        });
+      }
+    }
+
+    function loadDailyQuoteForMarquee() {
+      var messages = [
+        '"Great things are done by a series of small things brought together." - Vincent Van Gogh',
+        '"Education is the most powerful weapon which you can use to change the world." - Nelson Mandela',
+        '"The beautiful thing about learning is that no one can take it away from you." - B.B. King',
+        '"Success is not final, failure is not fatal: it is the courage to continue that counts." - Winston Churchill',
+        '"The only way to do great work is to love what you do." - Steve Jobs',
+        '"Believe you can and you are halfway there." - Theodore Roosevelt',
+        '"In the middle of difficulty lies opportunity." - Albert Einstein',
+        '"Quality is not an act, it is a habit." - Aristotle',
+        '"Excellence is not a skill, it is an attitude." - Ralph Marston',
+        '"The expert in anything was once a beginner." - Helen Hayes',
+      ];
+      var now = new Date();
+      var start = new Date(now.getFullYear(), 0, 0);
+      var dayOfYear = Math.floor((now - start) / 86400000);
+      var quote = messages[dayOfYear % messages.length];
+      setText('marqueeQuote', quote);
+      setText('marqueeQuote2', quote);
+    }
+
+    function initWeatherMarquee() {
+      loadWeatherForMarquee();
+      loadDailyQuoteForMarquee();
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initWeatherMarquee);
+    } else {
+      initWeatherMarquee();
+    }
+  })();
+</script>

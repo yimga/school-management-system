@@ -1,0 +1,64 @@
+{% load i18n %}
+<button type="button" id="back-to-top-btn" class="back-to-top-btn" aria-label="{% trans 'Back to top' %}" title="{% trans 'Back to top' %}" hidden>
+  <span class="back-to-top-icon" aria-hidden="true">↑</span>
+</button>
+<style>
+  .back-to-top-btn {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 1040;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 50%;
+    background: var(--portal-bg, #fff);
+    color: var(--portal-text, #111827);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    line-height: 1;
+    transition: opacity 0.2s, visibility 0.2s, transform 0.2s;
+  }
+  .back-to-top-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+  .back-to-top-btn[hidden] {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  /* Admin / dark contexts */
+  [data-theme="dark"] .back-to-top-btn,
+  .portal-backend-dark .back-to-top-btn {
+    background: var(--admin-content-surface, #334155);
+    color: var(--admin-content-text, #f1f5f9);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+</style>
+<script>
+  (function() {
+    var scrollThreshold = 400;
+    var btn = document.getElementById('back-to-top-btn');
+    if (!btn) return;
+    function updateVisibility() {
+      if (window.scrollY >= scrollThreshold) {
+        btn.removeAttribute('hidden');
+      } else {
+        btn.setAttribute('hidden', '');
+      }
+    }
+    function scrollToTop() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    window.addEventListener('scroll', updateVisibility, { passive: true });
+    btn.addEventListener('click', scrollToTop);
+    updateVisibility();
+  })();
+</script>

@@ -1,0 +1,95 @@
+{% extends "portal_base.html" %}
+{% block title %}Take student attendance{% endblock %}
+{% block content %}
+  {% include "widgets/dashboard_hero.html" with hero=hero %}
+  <div class="card mb-3">
+    <div class="card-body">
+      <form method="get" action="{% url 'portal:take_student_attendance' %}" class="row g-2 align-items-end mb-3">
+        <div class="col-auto">
+          <label class="form-label small mb-0">Date</label>
+          <input type="date" name="date" class="form-control" value="{{ date_value }}">
+        </div>
+        <div class="col-auto">
+          <label class="form-label small mb-0">Class</label>
+          <select name="classroom" class="form-select">
+            <option value="">-- Select class --</option>
+            {% for c in classrooms %}
+              <option value="{{ c.id }}" {% if classroom_id == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-auto">
+          <button type="submit" class="btn btn-primary">Load</button>
+        </div>
+        <div class="col-auto">
+          <a href="{% url 'portal:seating_chart' %}{% if classroom %}?classroom={{ classroom.id }}{% endif %}" class="btn btn-outline-secondary">Seating chart</a>
+        </div>
+      </form>
+      {% if classroom and students_with_status %}
+        <form method="post" action="{% url 'portal:take_student_attendance' %}">
+          {% csrf_token %}
+          <input type="hidden" name="date" value="{{ date_value }}">
+          <input type="hidden" name="classroom" value="{{ classroom.id }}">
+          <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
+            <h6 class="mb-0">{{ classroom.name }} – {{ date_value }}</h6>
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-sm btn-outline-secondary" id="mark-all-present">Mark all present</button>
+              <button type="button" class="btn btn-sm btn-success" id="save-all-present">Save all present</button>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-sm align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>Student</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in students_with_status %}
+                  <tr>
+                    <td>{{ row.student.last_name }}, {{ row.student.first_name }}</td>
+                    <td>
+                      <select name="status_{{ row.student.id }}" class="form-select form-select-sm status-select">
+                        {% for value, label in status_choices %}
+                          <option value="{{ value }}" {% if row.status == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                      </select>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <button type="submit" class="btn btn-primary">Save attendance</button>
+        </form>
+      {% elif classroom_id and not students_with_status %}
+        <p class="text-muted mb-0">No students in this class.</p>
+      {% endif %}
+    </div>
+  </div>
+  <div id="sms-roll-call-offline-cache" class="d-none alert alert-info small mb-0 mt-2" role="status" aria-live="polite" data-offline-only></div>
+  <script>
+    var presentVal = '{{ Attendance.PRESENT }}';
+    document.getElementById('mark-all-present')?.addEventListener('click', function() {
+      document.querySelectorAll('.status-select').forEach(function(s) { s.value = presentVal; });
+    });
+    document.getElementById('save-all-present')?.addEventListener('click', function() {
+      document.querySelectorAll('.status-select').forEach(function(s) { s.value = presentVal; });
+      this.closest('form').submit();
+    });
+    (function() {
+      if (navigator.onLine || !window.SMSOfflineDB || !window.SMSOfflineDB.getClassrooms) return;
+      var el = document.getElementById('sms-roll-call-offline-cache');
+      if (!el) return;
+      el.classList.remove('d-none');
+      Promise.all([window.SMSOfflineDB.getClassrooms(), window.SMSOfflineDB.getStudents()]).then(function(res) {
+        var classrooms = res[0] || [];
+        var students = res[1] || [];
+        el.textContent = 'Offline: ' + classrooms.length + ' class(es) and ' + students.length + ' student(s) cached. Choose date and class when back online to take attendance.';
+      }).catch(function() {
+        el.textContent = 'Offline. Cached data may be available after you sync when online.';
+      });
+    })();
+  </script>
+{% endblock %}

@@ -1,0 +1,259 @@
+/*
+ * Theme visibility guard
+ * Ensures readable surfaces/text across theme-pack, palette, harmony, and lens combinations.
+ */
+
+:root {
+  --vis-surface: var(--admin-surface, var(--admin-content-surface, #ffffff));
+  --vis-surface-muted: color-mix(in srgb, var(--vis-surface) 90%, #0f172a 10%);
+  --vis-text: var(--admin-text, var(--admin-content-text, #0f172a));
+  --vis-text-muted: var(--admin-content-text-muted, #475569);
+  --vis-border: var(--admin-border, var(--admin-content-border, rgba(15, 23, 42, 0.14)));
+  --vis-heading: color-mix(in srgb, var(--vis-text) 92%, #0f172a 8%);
+  --vis-heading-strong: color-mix(in srgb, var(--vis-text) 96%, #0f172a 4%);
+  --vis-link: color-mix(in srgb, var(--school-primary, #3b82f6) 72%, var(--vis-text) 28%);
+}
+
+html[data-theme="dark"],
+html[data-bs-theme="dark"],
+body.portal-backend-dark,
+body.portal-backend-black,
+body.portal-backend-ink,
+body.portal-backend-onyx,
+body.portal-backend-charcoal,
+body.portal-backend-midnight {
+  --vis-surface: var(--admin-surface, var(--admin-content-surface, #1e293b));
+  --vis-surface-muted: color-mix(in srgb, var(--vis-surface) 88%, #f8fafc 12%);
+  --vis-text: var(--admin-text, var(--admin-content-text, #f1f5f9));
+  --vis-text-muted: var(--admin-content-text-muted, #94a3b8);
+  --vis-border: var(--admin-border, var(--admin-content-border, rgba(148, 163, 184, 0.28)));
+  --vis-heading: color-mix(in srgb, var(--vis-text) 94%, #f8fafc 6%);
+  --vis-heading-strong: color-mix(in srgb, var(--vis-text) 97%, #f8fafc 3%);
+  --vis-link: color-mix(in srgb, var(--school-primary, #60a5fa) 62%, #f8fafc 38%);
+}
+
+/* Site Settings / Theme pack catalog hardening */
+body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog,
+body.app-siteconfig.model-sitesettings.change-form .site-settings-main,
+body.app-siteconfig.model-sitesettings.change-form .site-settings-sidebar-nav,
+body.app-siteconfig.model-sitesettings.change-form .site-settings-mobile-dropdown {
+  background: var(--vis-surface) !important;
+  color: var(--vis-text) !important;
+  border-color: var(--vis-border) !important;
+}
+
+body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog summary,
+body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog .help,
+body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog .admin-dashboard-palette-group-title,
+body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog .admin-dashboard-palette-name {
+  color: var(--vis-text) !important;
+}
+
+body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog .admin-dashboard-palette-desc,
+body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog .theme-pack-catalog-hint,
+body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog .form-check-label,
+body.app-siteconfig.model-sitesettings.change-form .site-settings-section .help,
+body.app-siteconfig.model-sitesettings.change-form .site-settings-search-no-match {
+  color: var(--vis-text-muted) !important;
+}
+
+body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog .admin-dashboard-palette-card {
+  background: var(--vis-surface-muted) !important;
+  border-color: var(--vis-border) !important;
+}
+
+body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog .admin-dashboard-palette-card:hover,
+body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog .admin-dashboard-palette-card.selected {
+  border-color: color-mix(in srgb, var(--school-primary, #3b82f6) 55%, var(--vis-border) 45%) !important;
+}
+
+body.app-siteconfig.model-sitesettings.change-form .theme-pack-filter-row .form-control,
+body.app-siteconfig.model-sitesettings.change-form .site-settings-search {
+  background: var(--vis-surface-muted) !important;
+  color: var(--vis-text) !important;
+  border-color: var(--vis-border) !important;
+}
+
+body.app-siteconfig.model-sitesettings.change-form .theme-pack-filter-row .form-control::placeholder,
+body.app-siteconfig.model-sitesettings.change-form .site-settings-search::placeholder {
+  color: color-mix(in srgb, var(--vis-text-muted) 88%, transparent) !important;
+}
+
+/* Generic safeguard for subtle labels on themed surfaces */
+[data-dashboard-page] .text-muted,
+[data-dashboard-page] .small.text-muted {
+  color: var(--vis-text-muted) !important;
+}
+
+/* ===== Global: .text-muted, .help, .form-text (token-driven) ===== */
+html[data-bs-theme="light"] .text-muted,
+html[data-bs-theme="light"] .small.text-muted,
+:root:not([data-theme="dark"]) .text-muted,
+:root:not([data-theme="dark"]) .small.text-muted,
+body.portal-backend-light .text-muted,
+body.portal-backend-light .small.text-muted {
+  color: var(--vis-text-muted) !important;
+}
+
+html[data-bs-theme="dark"] .text-muted,
+html[data-bs-theme="dark"] .small.text-muted,
+[data-theme="dark"] .text-muted,
+[data-theme="dark"] .small.text-muted,
+body.portal-backend-dark .text-muted,
+body.portal-backend-dark .small.text-muted {
+  color: var(--vis-text-muted) !important;
+}
+
+.help,
+.form-text {
+  color: var(--vis-text-muted) !important;
+}
+
+/* ===== Badges: .badge.text-bg-light visible on light/dark ===== */
+html[data-bs-theme="light"] .badge.text-bg-light,
+:root:not([data-theme="dark"]) .badge.text-bg-light,
+body.portal-backend-light .badge.text-bg-light {
+  border: 1px solid var(--vis-border) !important;
+  color: var(--vis-text) !important;
+  background: var(--vis-surface-muted) !important;
+}
+
+html[data-bs-theme="dark"] .badge.text-bg-light,
+[data-theme="dark"] .badge.text-bg-light,
+body.portal-backend-dark .badge.text-bg-light {
+  border: 1px solid var(--vis-border) !important;
+  color: var(--vis-text) !important;
+  background: var(--vis-surface-muted) !important;
+}
+
+/* ===== Cards: minimum visible border (no feature removal) ===== */
+.card {
+  border: 1px solid var(--vis-border) !important;
+}
+
+/* ===== Critical text: never faded or blocked by low opacity ===== */
+.card-body,
+.card-body p,
+.card-title,
+.form-label,
+.help,
+.form-text,
+.dashboard-kpi-label,
+.dashboard-kpi-value,
+#dashboard-layout .card-body,
+#dashboard-layout .card-title {
+  opacity: 1 !important;
+}
+
+[data-dashboard-page] h1,
+[data-dashboard-page] h2,
+[data-dashboard-page] h3,
+[data-dashboard-page] h4,
+[data-dashboard-page] h5,
+[data-dashboard-page] h6,
+[data-dashboard-page] .card-title,
+[data-dashboard-page] .section-title,
+[data-dashboard-page] .backend-v2-panel-title,
+[data-dashboard-page] .backend-v2-side-title,
+[data-dashboard-page] .backend-v2-rail-card h6,
+[data-dashboard-page] .admin-controls__title,
+[data-dashboard-page] .admin-sysinfo__title {
+  color: var(--vis-heading-strong) !important;
+  opacity: 1 !important;
+}
+
+[data-dashboard-page] .backend-ops-item a,
+[data-dashboard-page] .backend-ops-item strong,
+[data-dashboard-page] .backend-quick-link,
+[data-dashboard-page] .backend-planner-section-head .small,
+[data-dashboard-page] .backend-v2-progress-ring span {
+  color: var(--vis-heading-strong) !important;
+  opacity: 1 !important;
+}
+
+[data-dashboard-page] a:not(.btn):not(.nav-link):not(.dropdown-item) {
+  color: var(--vis-link);
+}
+
+[data-dashboard-page] a:not(.btn):not(.nav-link):not(.dropdown-item):hover {
+  color: color-mix(in srgb, var(--vis-link) 82%, var(--vis-heading-strong) 18%);
+}
+
+/* Secondary labels (e.g. meta-tag) stay readable; cap at 0.9 minimum */
+.modular-card .meta-tag,
+.card .meta-tag {
+  opacity: 0.9 !important;
+}
+
+/* ===== Theme & Experience page: theme pack catalog (mirror Site Settings) ===== */
+.theme-experience-page .theme-pack-catalog,
+.theme-experience-page .theme-pack-catalog .theme-pack-catalog-body {
+  background: var(--vis-surface) !important;
+  color: var(--vis-text) !important;
+  border-color: var(--vis-border) !important;
+}
+
+.theme-experience-page .theme-pack-catalog summary,
+.theme-experience-page .theme-pack-catalog .help,
+.theme-experience-page .theme-pack-catalog .admin-dashboard-palette-group-title,
+.theme-experience-page .theme-pack-catalog .admin-dashboard-palette-name {
+  color: var(--vis-text) !important;
+}
+
+.theme-experience-page h1,
+.theme-experience-page h2,
+.theme-experience-page h3,
+.theme-experience-page h4,
+.theme-experience-page h5,
+.theme-experience-page h6,
+body.app-siteconfig.model-sitesettings.change-form h1,
+body.app-siteconfig.model-sitesettings.change-form h2,
+body.app-siteconfig.model-sitesettings.change-form h3,
+body.app-siteconfig.model-sitesettings.change-form h4,
+body.app-siteconfig.model-sitesettings.change-form h5,
+body.app-siteconfig.model-sitesettings.change-form h6 {
+  color: var(--vis-heading-strong) !important;
+}
+
+.theme-experience-page .theme-pack-catalog .admin-dashboard-palette-desc,
+.theme-experience-page .theme-pack-catalog .theme-pack-catalog-hint,
+.theme-experience-page .theme-pack-catalog .form-check-label {
+  color: var(--vis-text-muted) !important;
+}
+
+.theme-experience-page .theme-pack-catalog .admin-dashboard-palette-card {
+  background: var(--vis-surface-muted) !important;
+  border-color: var(--vis-border) !important;
+}
+
+.theme-experience-page .theme-pack-catalog .admin-dashboard-palette-card:hover,
+.theme-experience-page .theme-pack-catalog .admin-dashboard-palette-card.selected {
+  border-color: color-mix(in srgb, var(--school-primary, #3b82f6) 55%, var(--vis-border) 45%) !important;
+}
+
+.theme-experience-page .theme-pack-filter-row .form-control {
+  background: var(--vis-surface-muted) !important;
+  color: var(--vis-text) !important;
+  border-color: var(--vis-border) !important;
+}
+
+.theme-experience-page .theme-pack-filter-row .form-control::placeholder {
+  color: color-mix(in srgb, var(--vis-text-muted) 88%, transparent) !important;
+}
+
+/* Theme & Experience page – dark */
+html[data-theme="dark"] .theme-experience-page .theme-pack-catalog,
+html[data-bs-theme="dark"] .theme-experience-page .theme-pack-catalog,
+html[data-theme="dark"] .theme-experience-page .admin-dashboard-palette-card,
+html[data-bs-theme="dark"] .theme-experience-page .admin-dashboard-palette-card,
+html[data-theme="dark"] .theme-experience-page .theme-pack-filter-row .form-control,
+html[data-bs-theme="dark"] .theme-experience-page .theme-pack-filter-row .form-control {
+  background: var(--vis-surface) !important;
+  color: var(--vis-text) !important;
+  border-color: var(--vis-border) !important;
+}
+
+html[data-theme="dark"] .theme-experience-page .admin-dashboard-palette-card,
+html[data-bs-theme="dark"] .theme-experience-page .admin-dashboard-palette-card {
+  background: var(--vis-surface-muted) !important;
+}

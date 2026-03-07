@@ -1,0 +1,201 @@
+/**
+ * Admin sidebar - visual polish: alignment, spacing grid, professional look.
+ * Uses 8px base grid. Load after admin-sidebar-backend-inspired.css.
+ */
+
+/* ----- 8px grid: sidebar content padding ----- */
+#nav-sidebar-inner,
+#nav-sidebar {
+  --sidebar-px: 16px;   /* horizontal padding */
+  --sidebar-py: 12px;   /* vertical padding for blocks */
+  --sidebar-gap: 8px;   /* gap between items */
+  --sidebar-section: 24px; /* space before section title */
+}
+
+/* Brand block: aligned, consistent padding */
+#nav-sidebar-inner .admin-sidebar-brand-link-header {
+  padding: var(--sidebar-py) var(--sidebar-px);
+  margin: 0;
+  border-radius: 10px;
+  min-height: auto;
+}
+#nav-sidebar-inner .flex-shrink-0.border-b {
+  padding: 12px var(--sidebar-px) 12px !important;
+  border-bottom-color: rgba(255, 255, 255, 0.06) !important;
+}
+.dark #nav-sidebar-inner .flex-shrink-0.border-b {
+  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Logo box: square, aligned */
+#nav-sidebar .admin-sidebar-logo-wrap {
+  width: 40px !important;
+  height: 40px !important;
+  padding: 8px !important;
+  border-radius: 10px;
+}
+
+/* Section titles: uppercase, spaced, aligned */
+#nav-sidebar .admin-sidebar-section-title,
+#nav-sidebar-apps .admin-sidebar-section-title {
+  font-size: 0.6875rem !important;   /* 11px */
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  margin: var(--sidebar-section) var(--sidebar-px) 10px !important;
+  padding: 0 !important;
+  color: var(--color-base-500, #64748b) !important;
+  line-height: 1.2;
+}
+.dark #nav-sidebar .admin-sidebar-section-title,
+.dark #nav-sidebar-apps .admin-sidebar-section-title {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Quick access + app list: same horizontal padding, no double margins */
+#nav-sidebar .admin-sidebar-quick-access,
+#nav-sidebar-apps .admin-sidebar-quick-access {
+  padding: 0 var(--sidebar-px) 12px !important;
+  margin-bottom: 4px !important;
+  border-bottom-width: 1px !important;
+}
+
+#nav-sidebar .admin-sidebar-quick-list,
+#nav-sidebar-apps .admin-sidebar-quick-list {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* All sidebar links: same padding, aligned left, icon + text baseline */
+#nav-sidebar .admin-sidebar-link,
+#nav-sidebar .admin-sidebar-model-link,
+#nav-sidebar-apps .admin-sidebar-link,
+#nav-sidebar-apps .admin-sidebar-model-link {
+  padding: 10px var(--sidebar-px) !important;
+  margin: 2px var(--sidebar-px) !important;
+  border-radius: 8px !important;
+  font-size: 0.875rem !important;
+  min-height: 40px;
+  align-items: center;
+  gap: 12px !important;
+}
+
+/* Quick list items: tight vertical rhythm */
+.admin-sidebar-quick-list li {
+  margin: 0 !important;
+}
+.admin-sidebar-quick-list .admin-sidebar-link {
+  margin: 2px var(--sidebar-px) !important;
+}
+
+/* Icon: fixed size, aligned */
+#nav-sidebar .admin-sidebar-icon,
+#nav-sidebar-apps .admin-sidebar-icon {
+  width: 20px !important;
+  height: 20px !important;
+  font-size: 1.25rem !important;
+  flex-shrink: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+#nav-sidebar .admin-sidebar-icon svg,
+#nav-sidebar-apps .admin-sidebar-icon svg {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+/* App group titles: same padding as links, no underline for cleaner look */
+#nav-sidebar .admin-sidebar-app-title,
+#nav-sidebar-apps .admin-sidebar-app-title {
+  margin: 4px var(--sidebar-px) 2px !important;
+  padding: 10px var(--sidebar-px) !important;
+  border-radius: 8px !important;
+  min-height: 40px;
+}
+#nav-sidebar .admin-sidebar-app-title a,
+#nav-sidebar-apps .admin-sidebar-app-title a {
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+  color: var(--color-base-700, #334155) !important;
+}
+.dark #nav-sidebar .admin-sidebar-app-title a,
+.dark #nav-sidebar-apps .admin-sidebar-app-title a {
+  color: var(--color-base-300, #cbd5e1) !important;
+}
+#nav-sidebar .admin-sidebar-app-title:hover a,
+#nav-sidebar-apps .admin-sidebar-app-title:hover a {
+  color: var(--color-primary-600, #2563eb) !important;
+}
+.dark #nav-sidebar .admin-sidebar-app-title:hover a,
+.dark #nav-sidebar-apps .admin-sidebar-app-title:hover a {
+  color: var(--color-primary-400, #60a5fa) !important;
+}
+
+/* Model list: clear indent, subtle left border */
+#nav-sidebar .admin-sidebar-model-list,
+#nav-sidebar-apps .admin-sidebar-model-list {
+  margin: 0 0 12px !important;
+  margin-left: var(--sidebar-px) !important;
+  padding-left: 12px !important;
+  padding-right: var(--sidebar-px) !important;
+  border-left: 2px solid rgba(255, 255, 255, 0.08) !important;
+}
+.dark #nav-sidebar .admin-sidebar-model-list,
+.dark #nav-sidebar-apps .admin-sidebar-model-list {
+  border-left-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+#nav-sidebar .admin-sidebar-model-list li,
+#nav-sidebar-apps .admin-sidebar-model-list li {
+  margin: 0 !important;
+}
+
+#nav-sidebar .admin-sidebar-model-link,
+#nav-sidebar-apps .admin-sidebar-model-link {
+  padding: 8px 12px !important;
+  margin: 2px 0 !important;
+  font-size: 0.8125rem !important;
+  border-radius: 6px !important;
+}
+
+/* App groups container: consistent padding */
+#nav-sidebar .admin-sidebar-app-groups,
+#nav-sidebar-apps .admin-sidebar-app-groups {
+  padding: 4px var(--sidebar-px) 24px !important;
+}
+
+/* Section divider: thin, aligned */
+.admin-sidebar-section-divider {
+  margin: 16px var(--sidebar-px) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+.dark .admin-sidebar-section-divider {
+  border-top-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Search hint: aligned, subtle */
+.admin-sidebar-search-hint {
+  padding: 6px var(--sidebar-px) 10px !important;
+  font-size: 0.6875rem !important;
+}
+
+/* User block at bottom: same padding scale */
+#nav-sidebar .admin-sidebar-user-card,
+#nav-sidebar-inner .admin-sidebar-user-card {
+  padding: var(--sidebar-px) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Active states: keep purple for quick links, consistent for model links */
+#nav-sidebar .admin-sidebar-quick-list .admin-sidebar-link.active,
+#nav-sidebar-apps .admin-sidebar-quick-list .admin-sidebar-link.active {
+  margin: 2px var(--sidebar-px) !important;
+}
+#nav-sidebar .admin-sidebar-model-link.active,
+#nav-sidebar-apps .admin-sidebar-model-link.active,
+#nav-sidebar .admin-sidebar-model-link[aria-current="page"],
+#nav-sidebar-apps .admin-sidebar-model-link[aria-current="page"] {
+  margin: 2px 0 !important;
+}

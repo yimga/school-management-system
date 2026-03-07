@@ -1,0 +1,198 @@
+{% extends "portal_base.html" %}
+{% load region_format tenant_hook %}
+{% load static %}
+{% block title %}Finance Dashboard{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/dashboard-auto-grid.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard-charts.css' %}">
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.body.dataset.dashboardPage = 'finance';
+  });
+</script>
+{% endblock %}
+
+{% block content %}
+{% if finance_requests_count %}
+  <div class="alert alert-warning d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <strong>{{ finance_requests_count }} finance access request{% if finance_requests_count != 1 %}s{% endif %} pending</strong>
+      <div class="small text-muted">Handle guardian access requests without leaving the dashboard.</div>
+    </div>
+    <a class="btn btn-sm btn-outline-dark" href="{{ finance_request_link }}">View inbox</a>
+  </div>
+  {% if finance_request_notifications %}
+    <div class="card shadow-sm mb-4">
+      <div class="card-body">
+        <h6 class="mb-3">Finance access alerts</h6>
+        <ul class="list-unstyled mb-0">
+          {% for notif in finance_request_notifications %}
+            <li class="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <strong>{{ notif.title }}</strong>
+                <div class="small text-muted">{{ notif.message|truncatechars:120 }}</div>
+              </div>
+              <span class="badge bg-secondary">{{ notif.created_at|format_date }} {{ notif.created_at|time:"H:i" }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+        <a class="btn btn-sm btn-link mt-3" href="{{ finance_request_link }}">Open finance inbox</a>
+      </div>
+    </div>
+  {% endif %}
+{% endif %}
+
+<div class="finance-dashboard-widgets">
+
+  <div class="d-flex flex-wrap align-items-center justify-content-between mb-2 gap-3">
+    <div>
+      <h2 class="mb-0">Finance Dashboard</h2>
+      <div class="text-muted">Compliance: {{ profile.name }} ({{ profile.country_code }})</div>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-outline-light btn-sm border-0" style="background:rgba(255,255,255,0.1);" href="{% url 'finance:generate_fees' %}">Generate Fee Invoices</a>
+      <a class="btn btn-outline-light btn-sm border-0" style="background:rgba(255,255,255,0.1);" href="{% url 'finance:invoices' %}">All Invoices</a>
+      <a class="btn btn-outline-warning btn-sm" href="{% url 'finance:invoices' %}?status=OVERDUE">Overdue</a>
+      <a class="btn btn-outline-light btn-sm border-0" style="background:rgba(255,255,255,0.1);" href="{% url 'finance:payments' %}">Payments</a>
+      <a class="btn btn-outline-light btn-sm border-0" style="background:rgba(255,255,255,0.1);" href="{% url 'finance:trial_balance' %}">Trial Balance</a>
+    </div>
+  </div>
+  <div class="finance-dashboard-extra mb-3">
+    {% tenant_hook 'FINANCE_DASHBOARD_EXTRA' %}
+  </div>
+
+  <div class="row g-3 mb-3" data-dashboard-column="hero">
+    <div class="col-12" data-widget-id="finance-hero">
+      {% include "widgets/dashboard_hero.html" with hero=hero %}
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3" data-dashboard-column="main">
+    {% include "widgets/finance_dashboard_widgets.html" %}
+  </div>
+
+  <div class="dashboard-card-grid dashboard-card-grid--charts mt-2" data-dashboard-column="secondary">
+    <div class="card border-0 shadow-sm" data-widget-id="finance-recent-invoices">
+      <div class="card-body">
+        <h5 class="mb-3">Recent Invoices</h5>
+        {% if recent_invoices %}
+        <div class="dashboard-card-scroll table-responsive">
+            <table class="table table-sm align-middle mb-0" aria-label="Recent invoices">
+              <thead>
+                <tr>
+                  <th scope="col">Reference</th>
+                  <th scope="col">Status</th>
+                  <th scope="col" class="text-end">Balance</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for inv in recent_invoices %}
+                  <tr>
+                    <td>{{ inv.reference|default:inv.id }}</td>
+                    <td>{{ inv.get_status_display }}</td>
+                    <td class="text-end">{{ inv.balance_amount|format_currency }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          {% url 'finance:generate_fees' as empty_action_url %}
+          {% include "components/dashboard_empty_state.html" with icon="bi-receipt" title="No invoices yet" message="Generate fee invoices to see them here." action_url=empty_action_url action_text="Generate fees" %}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="card border-0 shadow-sm" data-widget-id="finance-recent-payments">
+      <div class="card-body">
+        <h5 class="mb-3">Recent Payments</h5>
+          {% if recent_payments %}
+          <div class="dashboard-card-scroll table-responsive">
+            <table class="table table-sm align-middle mb-0" aria-label="Recent payments">
+              <thead>
+                <tr>
+                  <th scope="col">Invoice</th>
+                  <th scope="col">Method</th>
+                  <th scope="col" class="text-end">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for pay in recent_payments %}
+                  <tr>
+                    <td>{{ pay.invoice.reference|default:pay.invoice.id }}</td>
+                    <td>{{ pay.get_method_display }}</td>
+                    <td class="text-end">{{ pay.amount|format_currency }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          {% url 'finance:invoices' as empty_action_url %}
+          {% include "components/dashboard_empty_state.html" with icon="bi-credit-card" title="No payments yet" message="Payments will appear here once invoices are paid." action_url=empty_action_url action_text="View invoices" %}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="finance-summary-footer mt-3 pt-3 border-top">
+    {% tenant_hook 'FINANCE_SUMMARY_FOOTER' %}
+  </div>
+</div> <!-- /finance-dashboard-widgets -->
+{% endblock %}
+
+{% block extrajs %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="{% static 'js/dashboard-charts-shared.js' %}"></script>
+<script>
+(function() {
+  function initFinanceCharts() {
+    if (typeof Chart === 'undefined' || !window.DashboardChartsShared) return;
+    var shared = window.DashboardChartsShared;
+    var charts = {};
+
+    function initChart(chartId) {
+      var configEl = document.querySelector('[data-chart-config="' + chartId + '"]');
+      if (!configEl) return;
+      var config;
+      try {
+        config = JSON.parse(configEl.textContent);
+      } catch (e) {
+        console.warn('Finance chart config parse error:', chartId, e);
+        return;
+      }
+      if (!config.data || !config.data.labels || config.data.labels.length === 0) {
+        document.querySelector('[data-chart-empty="' + chartId + '"]')?.classList.remove('d-none');
+        document.getElementById(chartId).style.display = 'none';
+        return;
+      }
+      var ds = config.data.datasets && config.data.datasets[0];
+      var hasValues = ds && ds.data && ds.data.some(function(v){ return (v || 0) > 0; });
+      if (!hasValues && (config.type === 'doughnut' || config.type === 'pie')) {
+        document.querySelector('[data-chart-empty="' + chartId + '"]')?.classList.remove('d-none');
+        document.getElementById(chartId).style.display = 'none';
+        return;
+      }
+      var chart = shared.createChart(chartId, config);
+      if (chart) charts[chartId] = chart;
+    }
+
+    ['financeInvoiceStatusChart', 'financeInvoiceTrendChart'].forEach(initChart);
+
+    document.querySelectorAll('[data-chart-export]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var id = this.getAttribute('data-chart-export');
+        if (charts[id]) shared.exportChartToPng(charts[id], 'finance-chart-' + id + '.png');
+      });
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initFinanceCharts);
+  } else {
+    initFinanceCharts();
+  }
+})();
+</script>
+{% endblock %}

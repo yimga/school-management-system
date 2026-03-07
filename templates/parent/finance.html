@@ -1,0 +1,233 @@
+{% extends "portal_base.html" %}
+{% load static i18n region_format %}
+
+{% block title %}Finances{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/report-card-print.css' %}">
+{% endblock %}
+
+{% block content %}
+  <div class="report-card-print-wrapper">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2 no-print">
+    {% include "components/pin_to_quick_access.html" with sidebar_item_id="finance" %}
+    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print();" aria-label="{% trans 'Print fee statement' %}"><i class="bi bi-printer me-1"></i>{% trans "Print" %}</button>
+  </div>
+  {% include "widgets/dashboard_hero.html" with hero=hero %}
+
+  {% if finance_access_required and not finance_access_granted %}
+  <div class="alert alert-warning d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-3" role="alert">
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi bi-shield-lock"></i>
+      <div>
+        Finance access is not yet enabled for your account. Once an admin grants access, invoices and payments will appear here.
+        <div class="small text-muted">Finance-enabled students: {{ finance_guardian_count|default:0 }}/{{ guardian_link_count|default:0 }}</div>
+      </div>
+    </div>
+    {% if can_request_finance_access %}
+    <form method="post" action="{{ finance_request_url }}" class="ms-md-auto">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-sm btn-primary">Request finance access</button>
+    </form>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <div class="row g-3 mb-3">
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="text-muted small">Invoice attachments</div>
+          <div class="fs-4 fw-semibold">{{ attachment_count }}</div>
+          <p class="small text-muted mb-0">Receipts, slips, and PDFs uploaded by finance.</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="text-muted small">Payment methods</div>
+          <div class="d-flex flex-column gap-1">
+            {% for method in payment_method_summary %}
+              <div class="d-flex justify-content-between">
+                <span class="small">{{ method.method }}</span>
+                <strong>{{ method.count }}</strong>
+              </div>
+            {% empty %}
+              <div class="small text-muted">No payments recorded yet.</div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="text-muted small">Referral rewards</div>
+          <div class="fs-4 fw-semibold">{{ referral_total|default:"0.00" }}</div>
+          <p class="small text-muted mb-0">{{ referral_pending }} pending for approval.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-md-3">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="text-muted small">Total due</div>
+          <div class="fs-5 fw-semibold">{{ total_due }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="text-muted small">Paid</div>
+          <div class="fs-5 fw-semibold">{{ paid }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="text-muted small">Outstanding</div>
+          <div class="fs-5 fw-semibold">{{ balance }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="text-muted small">Overdue invoices</div>
+          <div class="fs-5 fw-semibold">{{ overdue_count }}</div>
+          <div class="small text-muted">Contact finance if this looks off.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if finance_access_granted %}
+  <form method="get" class="card mb-3 no-print">
+    <div class="card-body">
+      <div class="row g-2 align-items-end">
+        <div class="col-md-4">
+          <label class="form-label small">Status</label>
+          <select class="form-select form-select-sm" name="status">
+            <option value="">All</option>
+            {% for value, label in invoice_statuses %}
+              <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small">Sort by</label>
+          <select class="form-select form-select-sm" name="order">
+            {% for value, label in order_options %}
+              <option value="{{ value }}" {% if selected_order == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+        </div>
+      </div>
+    </div>
+  </form>
+  {% endif %}
+
+  <div class="card">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">Invoices</h5>
+        <a class="btn btn-sm btn-outline-secondary btn-back-primary no-print" href="{% url 'portal:parent_dashboard' %}#finance"><i class="bi bi-arrow-left me-1"></i>Back to dashboard</a>
+      </div>
+      {% if invoice_rows %}
+        <div class="table-responsive">
+          <table class="table align-middle table-mobile-cards" aria-label="Your invoices: reference, student, due date, status, total, balance, and actions">
+            <thead class="table-light">
+            <tr>
+              <th scope="col">Reference</th>
+              <th scope="col">Payment code (MoMo)</th>
+              <th scope="col">Student</th>
+              <th scope="col">Due</th>
+              <th scope="col">Status</th>
+              <th scope="col">Method</th>
+              <th scope="col" class="text-end">Total</th>
+              <th scope="col" class="text-end">Balance</th>
+              <th scope="col">Attachment</th>
+              <th scope="col" class="text-end">Action</th>
+            </tr>
+            </thead>
+            <tbody>
+              {% for row in invoice_rows %}
+                {% with invoice=row.invoice link=row.payment_link %}
+              <tr>
+                <td data-label="Reference">{{ invoice.reference|default:invoice.id }}</td>
+                <td data-label="Payment code"><code class="small">{{ invoice.payment_code|default:"—" }}</code></td>
+                <td data-label="Student">{{ invoice.student|default:"-" }}</td>
+                <td data-label="Due">{{ invoice.due_date|format_date|default:"TBD" }}</td>
+                <td data-label="Status">
+                  <span class="badge bg-light text-dark border">{{ invoice.get_status_display }}</span>
+                </td>
+                <td data-label="Method">{{ row.preferred_method }}</td>
+                <td class="text-end" data-label="Total">{{ invoice.total_amount|format_currency }}</td>
+                <td class="text-end" data-label="Balance">{{ invoice.balance_amount|format_currency }}</td>
+                <td class="text-center" data-label="Attachment">
+                  {% if row.attachment_url %}
+                    <a href="{{ row.attachment_url }}" target="_blank">View</a>
+                  {% else %}
+                    <span class="text-muted small">N/A</span>
+                  {% endif %}
+                </td>
+                <td class="text-end" data-label="Action">
+                  {% if link %}
+                    <a class="btn btn-primary btn-sm" href="{{ link.url }}" target="_blank">Pay now</a>
+                  {% else %}
+                    <span class="text-muted small">No link</span>
+                  {% endif %}
+                </td>
+              </tr>
+                {% endwith %}
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="alert alert-info mb-0">No invoices yet. Finance will publish them here when ready.</div>
+      {% endif %}
+    </div>
+  </div>
+  <div class="card mt-4">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">Payment reminders</h5>
+        <span class="small text-muted">{{ reminders|length }} queued</span>
+      </div>
+      {% if reminders %}
+        <div class="list-group list-group-flush">
+          {% for entry in reminders %}
+            <div class="list-group-item d-flex justify-content-between align-items-start px-0 py-2 border-0">
+              <div>
+                <div class="fw-semibold">{{ entry.invoice.student }}</div>
+                <div class="small text-muted">
+                  Due {{ entry.invoice.due_date|format_date|default:"TBD" }} · Balance {{ entry.invoice.balance_amount|format_currency }}
+                </div>
+                <div class="small text-muted">Next send {{ entry.reminder.next_send_at|format_date }}</div>
+              </div>
+              {% if entry.payment_link %}
+                <a class="btn btn-sm btn-outline-primary" href="{{ entry.payment_link.url }}" target="_blank">Send pay link</a>
+              {% else %}
+                <span class="badge bg-secondary">No integration</span>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="alert alert-info mb-0">No active reminders. Finance will queue reminders once invoices become due.</div>
+      {% endif %}
+    </div>
+  </div>
+  </div>
+{% endblock %}

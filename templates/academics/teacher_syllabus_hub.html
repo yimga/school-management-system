@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}Syllabus – {{ SITE.site_name|default:"Portal" }}{% endblock %}
+
+{% block content %}
+  <div class="container py-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+      <div>
+        <h1 class="h4 mb-1">Course syllabi</h1>
+        <div class="text-muted small">
+          {% if year_term.0 %}{{ year_term.0.name }}{% if year_term.1 %} – {{ year_term.1.label }}{% endif %}{% else %}No active year/term.{% endif %}
+          {% if approved_count is not None %}<br>Syllabus coverage: {{ approved_count }} of {{ cards|length }} approved{% endif %}
+        </div>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:teacher_dashboard_alias' %}">Teacher dashboard</a>
+      </div>
+    </div>
+
+    {% if cards %}
+      <div class="row g-3">
+        {% for card in cards %}
+          <div class="col-md-6 col-lg-4">
+            <div class="card shadow-sm h-100">
+              <div class="card-body">
+                <h5 class="card-title">{{ card.subject_assignment.subject.name }}</h5>
+                <p class="card-text text-muted small mb-2">{{ card.subject_assignment.classroom.name }} · {{ card.subject_assignment.term.label }}</p>
+                <p class="mb-2">
+                  {% if card.status_label == "Missing" %}
+                    <span class="badge bg-secondary">Missing</span>
+                  {% elif card.status_label == "Draft" %}
+                    <span class="badge bg-warning text-dark">Draft</span>
+                  {% elif card.status_label == "Pending approval" %}
+                    <span class="badge bg-info">Pending</span>
+                  {% elif card.status_label == "Needs revision" %}
+                    <span class="badge bg-warning text-dark">Needs revision</span>
+                  {% else %}
+                    <span class="badge bg-success">Approved</span>
+                  {% endif %}
+                </p>
+                <div class="d-flex flex-wrap gap-1">
+                  <a class="btn btn-outline-primary btn-sm" href="{% url 'academics:syllabus_builder' card.subject_assignment.pk %}">Builder</a>
+                  <a class="btn btn-outline-secondary btn-sm" href="{% url 'academics:syllabus_upload' card.subject_assignment.pk %}">Upload</a>
+                  {% if card.syllabus %}
+                    <a class="btn btn-outline-secondary btn-sm" href="{% url 'academics:syllabus_preview' card.subject_assignment.pk %}">Preview</a>
+                    {% if card.status_label == "Draft" or card.status_label == "Needs revision" %}
+                      <form method="post" action="{% url 'academics:syllabus_submit' card.subject_assignment.pk %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary btn-sm">Submit</button>
+                      </form>
+                    {% endif %}
+                    <a class="btn btn-outline-secondary btn-sm" href="{% url 'academics:syllabus_clone' card.subject_assignment.pk %}">Clone</a>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="alert alert-info">
+        You have no class assignments for the current year. Assignments are managed by your school admin.
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

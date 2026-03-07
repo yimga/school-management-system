@@ -1,0 +1,145 @@
+{% load i18n static %}
+
+<div id="nav-sidebar-apps" class="admin-sidebar-apps h-0 grow overflow-auto d-flex flex-column" role="navigation" aria-label="{% trans 'Applications' %}">
+  {% comment %}Brand at top (navigation.html). Quick access first, then app groups. User at bottom (navigation_user). {% endcomment %}
+
+  {% comment %}Quick access (target: uppercase title, purple active, grey inactive) {% endcomment %}
+  <div class="admin-sidebar-quick-access">
+    <h2 class="admin-sidebar-section-title">
+      {% trans "Quick access" %}
+    </h2>
+    <ul class="admin-sidebar-quick-list" style="list-style: none; margin: 0; padding: 0;">
+      <li>
+        <a href="{% url 'admin:index' %}" class="admin-sidebar-link {% if request.path == '/admin/' or request.path == '/admin' %}active{% endif %}"
+           aria-current="{% if request.path == '/admin/' or request.path == '/admin' %}page{% endif %}">
+          <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+          {% trans "Dashboard" %}
+        </a>
+      </li>
+      {% if CAN_MANAGE_SETTINGS %}
+      <li>
+        {% if SITE and SITE.pk %}
+        <a href="{% url 'admin:siteconfig_sitesettings_change' SITE.pk %}" class="admin-sidebar-link {% if 'siteconfig/sitesettings' in request.path %}active{% endif %}"
+           aria-current="{% if 'siteconfig/sitesettings' in request.path %}page{% endif %}">
+        {% else %}
+        <a href="{% url 'admin:siteconfig_sitesettings_changelist' %}" class="admin-sidebar-link {% if 'siteconfig/sitesettings' in request.path %}active{% endif %}"
+           aria-current="{% if 'siteconfig/sitesettings' in request.path %}page{% endif %}">
+        {% endif %}
+          <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+          {% trans "Site settings" %}
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'admin:siteconfig_regionconfig_changelist' %}" class="admin-sidebar-link {% if 'siteconfig/regionconfig' in request.path %}active{% endif %}"
+           aria-current="{% if 'siteconfig/regionconfig' in request.path %}page{% endif %}">
+          <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-6-5.33-6-10a6 6 0 1 1 12 0c0 4.67-6 10-6 10Z"/><circle cx="12" cy="11" r="2.5"/></svg></span>
+          {% trans "Region Config" %}
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'admin:siteconfig_integration_changelist' %}" class="admin-sidebar-link {% if 'siteconfig/integration' in request.path %}active{% endif %}"
+           aria-current="{% if 'siteconfig/integration' in request.path %}page{% endif %}">
+          <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M17.5 14.5a2.5 2.5 0 1 0 0 5h3"/><path d="M20.5 17h-3"/></svg></span>
+          {% trans "Integrations" %}
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'siteconfig:feature_control_panel' %}" class="admin-sidebar-link {% if 'feature-control' in request.path %}active{% endif %}"
+           aria-current="{% if 'feature-control' in request.path %}page{% endif %}">
+          <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="10" width="18" height="10" rx="5"/><circle cx="9" cy="15" r="3"/></svg></span>
+          {% trans "Feature Control" %}
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'siteconfig:theme_colors' %}" class="admin-sidebar-link {% if '/siteconfig/theme-colors' in request.path %}active{% endif %}">
+          <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r="2"/><circle cx="17.5" cy="10.5" r="2"/><circle cx="8.5" cy="7.5" r="2"/><circle cx="6.5" cy="12.5" r="2"/><circle cx="12" cy="14" r="2"/></svg></span>
+          {% trans "Theme & Experience" %}
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'siteconfig:report_library' %}" class="admin-sidebar-link {% if '/siteconfig/reports' in request.path %}active{% endif %}">
+          <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 3h8l4 4v14H7z"/><path d="M15 3v4h4"/></svg></span>
+          {% trans "Report Library" %}
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'kb:kb_home' %}" class="admin-sidebar-link {% if '/kb/' in request.path %}active{% endif %}">
+          <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z"/><path d="M8 4v16"/></svg></span>
+          {% trans "Knowledge Base" %}
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'portal:document_library_manage' %}" class="admin-sidebar-link {% if '/portal/backend/documents' in request.path %}active{% endif %}">
+          <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h6l2 2h8v14H4z"/></svg></span>
+          {% trans "Document Library" %}
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'accounts:backend_dashboard' %}" class="admin-sidebar-link {% if '/authentication/backend' in request.path %}active{% endif %}"
+           aria-current="{% if '/authentication/backend' in request.path %}page{% endif %}">
+          <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg></span>
+          {% trans "Backend Console" %}
+        </a>
+      </li>
+      {% endif %}
+    </ul>
+  </div>
+
+  {% if app_list %}
+  <div class="admin-sidebar-app-groups" role="list">
+    {% for app in app_list %}
+    {% ifchanged app.section %}{% if not forloop.first %}<hr class="admin-sidebar-section-divider" aria-hidden="true">{% endif %}{% endifchanged %}
+    <div class="app-{{ app.app_label }} module admin-sidebar-app-group{% if app.app_url in request.path %} current-app{% endif %}"
+         x-data="{ open: {% if app.app_url in request.path %}true{% elif request.path == '/admin/' or request.path == '/admin' %}true{% else %}false{% endif %} }"
+         role="listitem">
+      {% if app.models and not app.hidden %}
+      <h2 class="admin-sidebar-app-title"
+          x-on:click="open = !open"
+          :aria-expanded="open"
+          role="button"
+          tabindex="0"
+          aria-label="{% blocktranslate with name=app.name %}Toggle {{ name }}{% endblocktranslate %}"
+          @keydown.enter.prevent="open = !open"
+          @keydown.space.prevent="open = !open">
+        <a href="{{ app.app_url }}" class="block truncate"
+           title="{% blocktranslate with name=app.name %}Models in the {{ name }} application{% endblocktranslate %}"
+           @click.stop>
+          {{ app.name }}
+        </a>
+        <span class="admin-sidebar-chevron inline-flex items-center justify-center" aria-hidden="true"
+              :class="{ 'rotate-90': open }">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+        </span>
+      </h2>
+      <ol class="admin-sidebar-model-list flex flex-col gap-1 px-0 mx-0 overflow-hidden" style="list-style: none; margin-left: 0; padding-left: 0;" x-show="open" x-transition.50ms role="list" :aria-hidden="!open">
+        {% for model in app.models %}
+        {% if not model.hidden %}
+        <li class="model-{{ model.object_name|lower }}{% if model.admin_url and model.admin_url in request.path %} current-model{% endif %}" role="listitem">
+          {% if model.header %}
+          <h3 class="font-medium my-2 text-base-900 text-sm dark:text-base-200">{{ model.header }}</h3>
+          {% endif %}
+          {% if model.admin_url %}
+          <a href="{{ model.admin_url }}"
+             id="link-{{ app.app_label }}-{{ model.object_name|lower }}"
+             class="admin-sidebar-model-link truncate {% if model.admin_url in request.path %}active{% endif %}"
+             {% if model.admin_url in request.path %}aria-current="page"{% endif %}>
+            {{ model.name }}
+          </a>
+          {% else %}
+          {{ model.name }}
+          {% endif %}
+        </li>
+        {% endif %}
+        {% endfor %}
+      </ol>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="px-4 py-3 text-sm">
+    {% trans "You don't have permission to view or edit anything." as error_message %}
+    {% include "unfold/helpers/messages/error.html" with error=error_message %}
+  </p>
+  {% endif %}
+</div>

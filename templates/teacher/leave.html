@@ -1,0 +1,61 @@
+{% extends "portal_base.html" %}
+{% block title %}Leave{% endblock %}
+
+{% block content %}
+  {% include "widgets/dashboard_hero.html" with hero=hero %}
+
+  <div class="row g-3">
+    <div class="col-lg-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="mb-3">Request leave</h5>
+          <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button class="btn btn-primary w-100" type="submit">Submit request</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-8">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="mb-3">My requests</h5>
+          {% if leave_requests %}
+            <div class="table-responsive">
+              <table class="table align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Dates</th>
+                    <th>Status</th>
+                    <th>Approver</th>
+                    <th>Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for l in leave_requests %}
+                    <tr id="approvals">
+                      <td>{{ l.start_date }} → {{ l.end_date }}</td>
+                      <td>
+                        <span class="badge
+                          {% if l.status == 'APPROVED' %}bg-success
+                          {% elif l.status == 'REJECTED' %}bg-danger
+                          {% else %}bg-warning text-dark{% endif %}">
+                          {{ l.get_status_display }}
+                        </span>
+                      </td>
+                      <td>{{ l.approver|default:"-" }}</td>
+                      <td class="small text-muted">{{ l.decision_notes|default:"-" }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="alert alert-info mb-0">No leave requests yet.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

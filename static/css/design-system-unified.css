@@ -1,0 +1,826 @@
+/* ============================================
+   UNIFIED DESIGN SYSTEM - GILEAD ADMIN & PORTAL
+   Single source of truth for all styling
+   Import this FIRST in all templates before any other CSS
+   ============================================ */
+
+:root {
+  /* ============================================
+     PRIMARY COLOR PALETTE - 2026 Gilead Colors
+     Prefer --school-primary from design-tokens.css (and SITE override) for brand/CTAs.
+     ============================================ */
+  
+  /* Primary: Warm Pink (legacy; use var(--school-primary) for brand) */
+  --color-primary: #ff6a88;
+  --color-primary-light: #ffb3c1;
+  --color-primary-dark: #ff3b5f;
+  
+  /* Secondary: Purple */
+  --color-secondary: #9b6bff;
+  --color-secondary-light: #c4a5ff;
+  --color-secondary-dark: #7040d8;
+  
+  /* Accent: Teal/Mint */
+  --color-accent: #2dd4bf;
+  --color-accent-light: #76ead6;
+  --color-accent-dark: #1ba896;
+  
+  /* Text & Background */
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #22314e;
+  --color-text-muted: #6b7280;
+  
+  --color-bg-primary: #ffffff;
+  --color-bg-light: #f8fafc;
+  --color-bg-lighter: #f0f4f8;
+  --color-bg-dark: #1a1f3a;
+  
+  /* Borders */
+  --color-border: rgba(15, 23, 42, 0.08);
+  --color-border-light: rgba(15, 23, 42, 0.04);
+  
+  /* Status Colors */
+  --color-success: #10b981;
+  --color-success-light: rgba(16, 185, 129, 0.1);
+  
+  --color-warning: #f59e0b;
+  --color-warning-light: rgba(245, 158, 11, 0.1);
+  
+  --color-danger: #ef4444;
+  --color-danger-light: rgba(239, 68, 68, 0.1);
+  
+  --color-info: #3b82f6;
+  --color-info-light: rgba(59, 130, 246, 0.1);
+  
+  /* ============================================
+     SPACING – defined in design-tokens.css (--token-space-* / --spacing-*).
+     Do not redefine here so one source of truth is maintained.
+     ============================================ */
+  
+  /* ============================================
+     BORDER RADIUS SCALE
+     ============================================ */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+  --radius-full: 999px;
+  
+  /* ============================================
+     SHADOWS - Consistent elevation system
+     ============================================ */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.1);
+  --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.15);
+  --shadow-xl: 0 18px 48px rgba(15, 23, 42, 0.2);
+  --shadow-2xl: 0 25px 60px rgba(15, 23, 42, 0.25);
+  
+  /* Inset shadows for card borders */
+  --shadow-inset-light: inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+  --shadow-inset-border: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+  
+  /* ============================================
+     TYPOGRAPHY - Font family + sizing scale
+     ============================================ */
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  
+  --font-size-xs: 0.75rem;    /* 12px */
+  --font-size-sm: 0.875rem;   /* 14px */
+  --font-size-md: 1rem;       /* 16px */
+  --font-size-lg: 1.125rem;   /* 18px */
+  --font-size-xl: 1.5rem;     /* 24px */
+  --font-size-2xl: 2rem;      /* 32px */
+  --font-size-3xl: 2.5rem;    /* 40px */
+  
+  /* Font weights */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  /* Line heights */
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-loose: 1.75;
+  
+  /* Letter spacing */
+  --letter-spacing-tight: -0.01em;
+  --letter-spacing-normal: 0em;
+  --letter-spacing-wide: 0.1em;
+  --letter-spacing-wider: 0.2em;
+  
+  /* ============================================
+     TRANSITIONS & ANIMATIONS
+     ============================================ */
+  --transition-duration: 0.3s;
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.3s ease;
+  --transition-slow: 0.5s ease;
+  
+  --transition-colors: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+  --transition-transform: transform 0.3s ease;
+  --transition-all: all 0.3s ease;
+  
+  /* ============================================
+     Z-INDEX SCALE - Hierarchical stacking
+     ============================================ */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+  --z-navigation: 1100;
+  
+  /* ============================================
+     RESPONSIVE BREAKPOINTS
+     ============================================ */
+  --breakpoint-sm: 480px;     /* Mobile */
+  --breakpoint-md: 768px;     /* Tablet */
+  --breakpoint-lg: 1024px;    /* Tablet landscape */
+  --breakpoint-xl: 1440px;    /* Desktop */
+  --breakpoint-2xl: 1920px;   /* Large desktop */
+}
+
+/* ============================================
+   EXPLICIT THEME OVERRIDES (data-theme)
+   ============================================ */
+:root[data-theme="light"],
+html[data-bs-theme="light"] {
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #22314e;
+  --color-text-muted: #4b5563; /* Stronger contrast on light bg (WCAG AA) */
+  --color-bg-primary: #ffffff;
+  --color-bg-light: #f8fafc;
+  --color-bg-lighter: #f0f4f8;
+  --color-border: rgba(15, 23, 42, 0.08);
+  --color-border-light: rgba(15, 23, 42, 0.04);
+  --color-success-light: rgba(16, 185, 129, 0.1);
+  --color-warning-light: rgba(245, 158, 11, 0.1);
+  --color-danger-light: rgba(239, 68, 68, 0.1);
+  --color-info-light: rgba(59, 130, 246, 0.1);
+}
+
+:root[data-theme="dark"],
+html[data-bs-theme="dark"],
+body.portal-backend-dark {
+  --color-text-primary: #f1f5f9;
+  --color-text-secondary: #e2e8f0;
+  --color-text-muted: #94a3b8;
+  --color-bg-primary: #0f172a;
+  --color-bg-light: #1e293b;
+  --color-bg-lighter: #334155;
+  --color-border: rgba(148, 163, 184, 0.25);
+  --color-border-light: rgba(148, 163, 184, 0.12);
+  /* Desaturated accents for dark (no vibration, 4.5:1 on dark bg) */
+  --color-primary: #e87995;
+  --color-primary-light: #f0a4b5;
+  --color-primary-dark: #c45a72;
+  --color-secondary: #a78bfa;
+  --color-secondary-light: #c4b5fd;
+  --color-secondary-dark: #7c5ce8;
+  --color-accent: #5eead4;
+  --color-accent-light: #99f6e4;
+  --color-accent-dark: #2dd4bf;
+  --color-success: #34d399;
+  --color-warning: #fbbf24;
+  --color-danger: #f87171;
+  --color-info: #60a5fa;
+  --color-success-light: rgba(16, 185, 129, 0.2);
+  --color-warning-light: rgba(245, 158, 11, 0.2);
+  --color-danger-light: rgba(239, 68, 68, 0.2);
+  --color-info-light: rgba(59, 130, 246, 0.2);
+  --focus-ring-color: var(--color-primary);
+}
+
+/* ============================================
+   DARK MODE - Respects user preference
+   ============================================ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-text-primary: #f0f4f8;
+    --color-text-secondary: #cbd5e1;
+    --color-text-muted: #94a3b8;
+    
+    --color-bg-primary: #1a1f3a;
+    --color-bg-light: #252d48;
+    --color-bg-lighter: #3f4765;
+    
+    --color-border: rgba(240, 244, 248, 0.1);
+    --color-border-light: rgba(240, 244, 248, 0.05);
+    
+    /* Status colors adapt for dark mode */
+    --color-success-light: rgba(16, 185, 129, 0.2);
+    --color-warning-light: rgba(245, 158, 11, 0.2);
+    --color-danger-light: rgba(239, 68, 68, 0.2);
+    --color-info-light: rgba(59, 130, 246, 0.2);
+  }
+}
+
+/* ============================================
+   BASE STYLES - Apply design system globally
+   ============================================ */
+
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-primary);
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  line-height: var(--line-height-tight);
+  font-weight: var(--font-weight-bold);
+}
+
+h1 {
+  font-size: var(--font-size-2xl);
+}
+
+h2 {
+  font-size: var(--font-size-xl);
+}
+
+h3 {
+  font-size: var(--font-size-lg);
+}
+
+h4, h5, h6 {
+  font-size: var(--font-size-md);
+}
+
+/* Links */
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: var(--transition-colors);
+}
+
+a:hover {
+  color: var(--color-primary-dark);
+}
+
+/* Inputs */
+input,
+select,
+textarea {
+  font-family: var(--font-family);
+  font-size: var(--font-size-md);
+}
+
+/* Focus states (use canonical token from design-tokens.css). Phase 9.2: visible focus ring. */
+:focus-visible {
+  outline: 2px solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset, 2px);
+}
+
+/* Skip link: hidden until focused (Phase 9.2). */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  z-index: 9999;
+}
+.skip-link:focus,
+.skip-link:focus-visible {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--color-primary, #0d6efd);
+  color: #fff;
+  text-decoration: none;
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/* Selection */
+::selection {
+  background-color: var(--color-primary);
+  color: #f8fafc;
+}
+/* Selection – dark mode: desaturated primary, off-white text */
+:root[data-theme="dark"] ::selection,
+html[data-bs-theme="dark"] ::selection {
+  background-color: var(--color-primary);
+  color: #f1f5f9;
+}
+
+/* Scrollbar for webkit browsers */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-light);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* ============================================
+   UTILITY CLASSES - For rapid development
+   ============================================ */
+
+/* Visibility - use .ds-hidden to avoid conflict with Tailwind .hidden (used by Unfold sidebar) */
+.ds-hidden {
+  display: none !important;
+}
+
+.invisible {
+  visibility: hidden !important;
+}
+
+/* Text utilities */
+.text-center {
+  text-align: center;
+}
+
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+.text-primary {
+  color: var(--color-primary);
+}
+
+.uppercase {
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide);
+}
+
+/* Opacity */
+.opacity-75 {
+  opacity: 0.75;
+}
+
+.opacity-50 {
+  opacity: 0.5;
+}
+
+/* Display */
+.flex {
+  display: flex;
+}
+
+.grid {
+  display: grid;
+}
+
+.block {
+  display: block;
+}
+
+.inline-block {
+  display: inline-block;
+}
+
+.gap-sm {
+  gap: var(--spacing-sm);
+}
+
+.gap-md {
+  gap: var(--spacing-md);
+}
+
+.gap-lg {
+  gap: var(--spacing-lg);
+}
+
+/* Margin & Padding */
+.m-0 {
+  margin: 0;
+}
+
+.mb-1 {
+  margin-bottom: var(--spacing-xs);
+}
+
+.mb-2 {
+  margin-bottom: var(--spacing-sm);
+}
+
+.mb-3 {
+  margin-bottom: var(--spacing-md);
+}
+
+.mb-4 {
+  margin-bottom: var(--spacing-lg);
+}
+
+.mt-2 {
+  margin-top: var(--spacing-sm);
+}
+
+.mt-3 {
+  margin-top: var(--spacing-md);
+}
+
+.p-2 {
+  padding: var(--spacing-sm);
+}
+
+.p-3 {
+  padding: var(--spacing-md);
+}
+
+.p-4 {
+  padding: var(--spacing-lg);
+}
+
+.px-2 {
+  padding-left: var(--spacing-sm);
+  padding-right: var(--spacing-sm);
+}
+
+.py-2 {
+  padding-top: var(--spacing-sm);
+  padding-bottom: var(--spacing-sm);
+}
+
+/* Width utilities */
+.w-100 {
+  width: 100%;
+}
+
+.max-w-full {
+  max-width: 100%;
+}
+
+/* Borders */
+.border-top {
+  border-top: 1px solid var(--color-border);
+}
+
+.border-bottom {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.rounded-lg {
+  border-radius: var(--radius-lg);
+}
+
+.rounded-2xl {
+  border-radius: var(--radius-2xl);
+}
+/* ============================================
+   MOBILE-FIRST RESPONSIVE DESIGN
+   Base styles are mobile, breakpoints enhance
+   ============================================ */
+
+/* Mobile: 320px - 479px */
+@media (max-width: 479px) {
+  /* Font sizing for small screens */
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+  }
+
+  h3 {
+    font-size: 1.1rem;
+  }
+
+  /* Reduce padding on mobile */
+  body {
+    padding: 0;
+  }
+
+  /* Stack elements vertically on very small screens only - exclude critical layouts */
+  .flex-row:not(.flex-nowrap):not(.rbac-form-check-wrapper):not(.form-check-wrapper):not(.backend-quick-actions-grid) {
+    flex-direction: column;
+  }
+  .d-flex:not(.flex-wrap):not(.flex-nowrap):not(.rbac-form-check-wrapper):not(.form-check):not(.form-check-wrapper):not(.justify-content-between):not(.backend-quick-actions-grid) {
+    flex-direction: column;
+  }
+
+  /* Reduce button size */
+  .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    min-height: 44px; /* Touch target */
+  }
+
+  /* Full width inputs on mobile */
+  input,
+  select,
+  textarea,
+  .form-control {
+    width: 100%;
+    min-height: 44px; /* Touch target */
+  }
+
+  /* Reduce spacing on mobile */
+  .mt-3, .my-3 {
+    margin-top: var(--spacing-md) !important;
+  }
+
+  .mb-3, .my-3 {
+    margin-bottom: var(--spacing-md) !important;
+  }
+
+  .p-3 {
+    padding: var(--spacing-md) !important;
+  }
+
+  .p-4 {
+    padding: var(--spacing-lg) !important;
+  }
+
+  /* Stack grid items on mobile */
+  [class*="grid"],
+  .row {
+    gap: var(--spacing-md);
+  }
+
+  [class*="grid"] > * {
+    width: 100%;
+  }
+}
+
+/* Tablet: 480px - 767px */
+@media (max-width: 767px) {
+  /* Optimize spacing for tablets */
+  body {
+    font-size: 0.95rem;
+  }
+
+  /* Stack containers */
+  .container-fluid {
+    padding-left: var(--spacing-md);
+    padding-right: var(--spacing-md);
+  }
+
+  /* Full-width cards on small tablets */
+  .card,
+  .widget-card {
+    margin-bottom: var(--spacing-md);
+  }
+
+  /* Responsive tables */
+  table {
+    font-size: 0.85rem;
+  }
+
+  th, td {
+    padding: var(--spacing-sm) !important;
+  }
+
+  /* Hide unnecessary columns on tablet */
+  .d-none.d-md-table-cell {
+    display: none !important;
+  }
+}
+
+/* Tablet Landscape & Small Desktop: 768px - 1023px */
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* Adjust grid columns for tablet landscape */
+  [class*="grid-cols"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* More breathing room */
+  .container-fluid {
+    padding-left: var(--spacing-lg);
+    padding-right: var(--spacing-lg);
+  }
+}
+
+/* Desktop: 1024px+ */
+@media (min-width: 1024px) {
+  /* Desktop optimizations */
+  body {
+    font-size: 1rem;
+  }
+
+  /* Sidebar can be fixed on desktop */
+  .sidebar {
+    position: sticky;
+    top: 10px;
+  }
+
+  /* Multi-column layouts */
+  [class*="grid-cols-2"] {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  [class*="grid-cols-3"] {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  [class*="grid-cols-4"] {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Large Desktop: 1440px+ */
+@media (min-width: 1440px) {
+  /* Use full width benefits */
+  .container-xl {
+    max-width: 1440px;
+  }
+
+  /* More generous spacing */
+  .p-4 {
+    padding: 2.5rem;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  /* Larger touch targets */
+  button,
+  a,
+  .btn,
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Bigger tap areas */
+  .nav-link,
+  .dropdown-item {
+    padding: 0.75rem 1rem !important;
+  }
+
+  /* Remove hover effects on touch */
+  button:hover,
+  a:hover,
+  .btn:hover {
+    transform: none;
+  }
+
+  /* Optimize spacing for touch */
+  .btn {
+    margin-bottom: var(--spacing-sm);
+  }
+}
+
+/* Landscape orientation fixes */
+@media (max-height: 500px) {
+  /* Reduce vertical padding in landscape */
+  .navbar,
+  .header,
+  .page-wrap {
+    padding-top: var(--spacing-sm);
+    padding-bottom: var(--spacing-sm);
+  }
+
+  /* Sticky position for critical elements */
+  .navbar {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-navigation);
+  }
+}
+
+/* ============================================
+   BACK BUTTON PATTERNS (color-coded by intent)
+   Use: .btn-back-primary = back to dashboard/home,
+        .btn-back-secondary = back to list/parent,
+        .btn-back-outline = back to admin/config
+   ============================================ */
+.btn-back-primary {
+  color: var(--school-primary, var(--color-primary, #0d6efd));
+  border-color: var(--school-primary, var(--color-primary, #0d6efd));
+}
+.btn-back-primary:hover {
+  background-color: var(--school-primary-light, rgba(13, 110, 253, 0.1));
+  color: var(--school-primary, #0d6efd);
+  border-color: var(--school-primary, #0d6efd);
+}
+.btn-back-secondary {
+  color: var(--color-text-muted, #6b7280);
+  border-color: var(--color-border, rgba(15, 23, 42, 0.08));
+}
+.btn-back-secondary:hover {
+  background-color: var(--color-bg-light, #f8fafc);
+  color: var(--color-text-primary, #0f172a);
+  border-color: var(--color-border, rgba(15, 23, 42, 0.08));
+}
+.btn-back-outline {
+  color: var(--color-text-muted, #6b7280);
+  border: 1px solid var(--color-border, rgba(15, 23, 42, 0.08));
+  background: transparent;
+}
+.btn-back-outline:hover {
+  background-color: var(--color-bg-light, #f8fafc);
+  color: var(--color-text-primary, #0f172a);
+}
+
+/* Phase 15.4: Condensed table view (smaller padding and font) */
+.table-condensed th,
+.table-condensed td {
+  padding: 0.35rem 0.5rem;
+  font-size: 0.8125rem;
+}
+.table-condensed thead th {
+  font-size: 0.75rem;
+}
+
+/* Phase 15.2: Sticky table headers for scrollable tables */
+.table-sticky-head thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--bs-light, #f8f9fa);
+  box-shadow: 0 1px 0 0 var(--admin-content-border, rgba(0,0,0,0.08));
+}
+:root[data-theme="dark"] .table-sticky-head thead th,
+html[data-bs-theme="dark"] .table-sticky-head thead th {
+  background: var(--admin-content-thead-bg, #334155);
+}
+
+/* Phase 15.1: Zebra striping for data tables (theme-aware) */
+.table-zebra tbody tr:nth-of-type(even) {
+  background-color: var(--table-row-alt-bg, rgba(0, 0, 0, 0.02));
+}
+:root[data-theme="dark"] .table-zebra tbody tr:nth-of-type(even),
+html[data-bs-theme="dark"] .table-zebra tbody tr:nth-of-type(even) {
+  background-color: var(--table-row-alt-bg-dark, rgba(255, 255, 255, 0.04));
+}
+
+/* Phase 15.3: Conditional formatting (failing grade, overdue) */
+.table-cell-fail,
+.td-fail {
+  background-color: var(--alert-fail-bg, rgba(220, 38, 38, 0.08));
+  color: var(--alert-fail-fg, #b91c1c);
+}
+.table-cell-overdue,
+.td-overdue {
+  font-weight: 600;
+  color: var(--alert-warning-fg, #b45309);
+}
+.table-cell-overdue .badge,
+.td-overdue .badge,
+.cell-overdue {
+  font-weight: 600;
+}
+.cell-overdue {
+  color: var(--alert-warning-fg, #b45309);
+}
+
+/* Phase 15.1: Zebra striping for data tables (theme-aware) */
+.table-zebra tbody tr:nth-of-type(even) {
+  background-color: var(--table-stripe-bg, rgba(0, 0, 0, 0.03));
+}
+:root[data-theme="dark"] .table-zebra tbody tr:nth-of-type(even),
+html[data-bs-theme="dark"] .table-zebra tbody tr:nth-of-type(even) {
+  background-color: var(--admin-content-surface, rgba(255, 255, 255, 0.04));
+}
+
+/* Phase 15.3: Conditional formatting (failing grades, overdue – use with icon/text too) */
+.cell-fail,
+.table .cell-fail {
+  color: var(--admin-content-danger, #dc2626);
+  font-weight: 600;
+}
+.cell-overdue,
+.table .cell-overdue {
+  color: var(--brand-warning, #f59e0b);
+  font-weight: 600;
+}
+
+/* Phase 12.3 optional: 44×44px tap targets for mobile (use .touch-target on small buttons/links) */
+@media (hover: none) and (pointer: coarse) {
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+  }
+}
+
+.cell-success,
+.table .cell-success {
+  color: var(--brand-success, #22c55e);
+}
+
+/* Phase C: Gradebook sticky header (teacher marks list, evals tables) */
+.table-responsive { position: relative; }
+.gradebook-thead-sticky th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--bs-table-bg, #fff);
+  box-shadow: 0 1px 0 0 var(--bs-border-color, #dee2e6);
+}
+[data-bs-theme="dark"] .gradebook-thead-sticky th {
+  background: var(--bs-body-bg);
+}

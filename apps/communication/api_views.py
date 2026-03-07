@@ -1,0 +1,518 @@
+"""
+Communication API Views
+Messages, Announcements, and Communication management endpoints
+"""
+
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+from django.db.models import Q, Count
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from datetime import datetime, timedelta
+
+from apps.api.permissions import IsAdminUser, IsTeacherOrAdmin
+from apps.accounts.permissions import api_user_has_any_role
+
+
+def _can_message_user(sender, recipient):
+    """
+    Enforce recipient policy: staff/admin/leadership can message anyone;
+    parents can message teachers (of their children) and staff; teachers can message parents (of their students) and staff.
+    """
+    if not sender or not recipient or not getattr(sender, "is_authenticated", False):
+        return False
+    if sender.id == recipient.id:
+        return False
+    # Staff / admin / leadership can message anyone
+    if getattr(sender, "is_staff", False) or getattr(sender, "is_superuser", False):
+        return True
+    if api_user_has_any_role(sender, {"ADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "COMMS_STAFF"}):
+        return True
+    # Recipient is staff → allow (so parents/teachers can contact school)
+    if getattr(recipient, "is_staff", False):
+        return True
+    role = (getattr(sender, "role", None) or "").upper()
+    recipient_role = (getattr(recipient, "role", None) or "").upper()
+    # Parent can message teachers (of their children) and other parents in same context - allow teacher/parent
+    if role == "PARENT":
+        if recipient_role in ("TEACHER", "ADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "HOD", "ACADEMICS_STAFF"):
+            return True
+        if recipient_role == "PARENT":
+            from apps.people.models import StudentGuardian
+            sender_children = set(StudentGuardian.objects.filter(guardian_user=sender).values_list("student_id", flat=True))
+            recip_children = set(StudentGuardian.objects.filter(guardian_user=recipient).values_list("student_id", flat=True))
+            if sender_children & recip_children:
+                return True
+        return False
+    # Teacher can message parents (of students in their classes) and staff
+    if role in ("TEACHER", "HOD", "ACADEMICS_STAFF"):
+        if recipient_role in ("ADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN"):
+            return True
+        if recipient_role == "PARENT":
+            from apps.people.models import StudentGuardian
+            from apps.evals.models import TeacherAssignment
+            teacher_profile = getattr(sender, "teacher_profile", None)
+            if not teacher_profile:
+                return False
+            my_classroom_ids = set(
+                TeacherAssignment.objects.filter(teacher=teacher_profile, is_active=True)
+                .values_list("subject_assignment__classroom_id", flat=True)
+            )
+            parent_student_ids = set(
+                StudentGuardian.objects.filter(guardian_user=recipient).values_list("student_id", flat=True)
+            )
+            from apps.people.models import StudentProfile
+            parent_classroom_ids = set(
+                StudentProfile.objects.filter(id__in=parent_student_ids).values_list("classroom_id", flat=True)
+            )
+            if my_classroom_ids & parent_classroom_ids:
+                return True
+        return False
+    # Student: allow messaging teachers/staff only
+    if role == "STUDENT":
+        return recipient_role in ("TEACHER", "ADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "HOD", "ACADEMICS_STAFF")
+    return False
+
+
+class MessageViewSet(viewsets.ModelViewSet):
+    """
+    Internal messaging API
+    
+    Send, retrieve, and manage messages between users
+    Support for threads, archiving, and filtering
+    """
+    permission_classes = [IsAuthenticated]
+    filterset_fields = ['recipient', 'sender', 'is_read', 'created_at']
+    ordering_fields = ['created_at', 'updated_at']
+    ordering = ['-created_at']
+    
+    def get_queryset(self):
+        from apps.communication.models import Message
+        
+        user = self.request.user
+        return Message.objects.filter(
+            Q(sender=user) | Q(recipient=user)
+        ).select_related('sender', 'recipient')
+    
+    def list(self, request, *args, **kwargs):
+        """
+        List messages
+        
+        Query Parameters:
+        - folder: inbox, sent, archive
+        - unread_only: true/false
+        - from_user: filter by sender
+        - search: search in subject/body
+        """
+        queryset = self.get_queryset()
+        
+        folder = request.query_params.get('folder', 'inbox')
+        if folder == 'inbox':
+            queryset = queryset.filter(recipient=request.user)
+        elif folder == 'sent':
+            queryset = queryset.filter(sender=request.user)
+        elif folder == 'archive':
+            queryset = queryset.filter(is_archived=True)
+        
+        unread_only = request.query_params.get('unread_only', 'false').lower() == 'true'
+        if unread_only:
+            queryset = queryset.filter(is_read=False)
+        
+        from_user = request.query_params.get('from_user')
+        if from_user:
+            queryset = queryset.filter(sender_id=from_user)
+        
+        search_term = request.query_params.get('search')
+        if search_term:
+            queryset = queryset.filter(
+                Q(subject__icontains=search_term) |
+                Q(body__icontains=search_term)
+            )
+        
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            from apps.api.serializers import MessageSerializer
+            serializer = MessageSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        
+        from apps.api.serializers import MessageSerializer
+        serializer = MessageSerializer(queryset, many=True)
+        return Response(serializer.data)
+    
+    def create(self, request, *args, **kwargs):
+        """
+        Send a new message. Recipient must be allowed by policy (role/relationship).
+        """
+        from apps.communication.models import Message
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+
+        recipient_id = request.data.get('recipient')
+        subject = request.data.get('subject')
+        body = request.data.get('body')
+
+        if not all([recipient_id, subject, body]):
+            return Response(
+                {'error': 'recipient, subject, and body are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        recipient = get_object_or_404(User, pk=recipient_id)
+        if not _can_message_user(request.user, recipient):
+            return Response(
+                {'error': 'You are not allowed to send messages to this recipient.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        message = Message.objects.create(
+            sender=request.user,
+            recipient=recipient,
+            subject=subject,
+            body=body
+        )
+
+        from apps.api.serializers import MessageSerializer
+        serializer = MessageSerializer(message)
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED
+        )
+    
+    @action(detail=True, methods=['post'])
+    def mark_read(self, request, pk=None):
+        """Mark a message as read. Returns 404 for invalid or non-existent pk."""
+        from apps.communication.models import Message
+
+        message = get_object_or_404(Message, pk=pk)
+        if message.recipient != request.user:
+            return Response(
+                {'error': 'Permission denied'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        message.is_read = True
+        message.save()
+        
+        return Response({'status': 'success', 'is_read': True})
+    
+    @action(detail=True, methods=['post'])
+    def archive(self, request, pk=None):
+        """Archive a message"""
+        from apps.communication.models import Message
+        
+        message = get_object_or_404(Message, pk=pk)
+        if message.recipient != request.user and message.sender != request.user:
+            return Response(
+                {'error': 'Permission denied'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        message.is_archived = True
+        message.save()
+        
+        return Response({'status': 'success', 'is_archived': True})
+    
+    @action(detail=False, methods=['post'])
+    def mark_all_read(self, request):
+        """Mark all unread messages as read"""
+        from apps.communication.models import Message
+        
+        count = Message.objects.filter(
+            recipient=request.user,
+            is_read=False
+        ).update(is_read=True)
+        
+        return Response({
+            'status': 'success',
+            'marked_as_read': count
+        })
+    
+    @action(detail=False, methods=['get'])
+    def unread_count(self, request):
+        """Get count of unread messages"""
+        from apps.communication.models import Message
+        
+        count = Message.objects.filter(
+            recipient=request.user,
+            is_read=False
+        ).count()
+        
+        return Response({'unread_count': count})
+    
+    @action(detail=False, methods=['get'])
+    def conversations(self, request):
+        """Get list of unique conversations"""
+        from apps.communication.models import Message
+        from django.contrib.auth.models import User
+        
+        messages = self.get_queryset()
+        
+        conversation_users = set()
+        for msg in messages:
+            if msg.sender == request.user:
+                conversation_users.add(msg.recipient_id)
+            else:
+                conversation_users.add(msg.sender_id)
+        
+        users = User.objects.filter(id__in=conversation_users).values(
+            'id', 'first_name', 'last_name'
+        )
+        
+        conversations = []
+        for user_data in users:
+            user_id = user_data['id']
+            user_messages = Message.objects.filter(
+                Q(sender=request.user, recipient_id=user_id) |
+                Q(sender_id=user_id, recipient=request.user)
+            ).order_by('-created_at')
+            
+            if user_messages.exists():
+                latest = user_messages.first()
+                unread_count = Message.objects.filter(
+                    sender_id=user_id,
+                    recipient=request.user,
+                    is_read=False
+                ).count()
+                
+                conversations.append({
+                    'user_id': user_id,
+                    'name': f"{user_data['first_name']} {user_data['last_name']}",
+                    'last_message': latest.body[:100],
+                    'last_message_time': latest.created_at,
+                    'unread_count': unread_count
+                })
+        
+        return Response({
+            'total_conversations': len(conversations),
+            'conversations': sorted(
+                conversations,
+                key=lambda x: x['last_message_time'],
+                reverse=True
+            )
+        })
+
+
+class AnnouncementViewSet(viewsets.ModelViewSet):
+    """
+    School announcements API
+    
+    Create, retrieve, and manage school announcements
+    Filter by audience, type, and date
+    """
+    permission_classes = [IsAuthenticated]
+    filterset_fields = ['audience', 'announcement_type', 'is_active', 'created_by']
+    ordering_fields = ['created_at', 'expiry_date']
+    ordering = ['-created_at']
+    
+    def get_queryset(self):
+        from apps.communication.models import Announcement
+
+        return Announcement.objects.filter(
+            is_active=True,
+            status=Announcement.Status.PUBLISHED,
+            expiry_date__gte=timezone.now()
+        ).select_related('created_by')
+
+    def create(self, request, *args, **kwargs):
+        """
+        Create a school-wide announcement. Restricted to admins/leadership only
+        (same as web). Teachers should use class/department announcements.
+
+        Request Body:
+        {
+            "title": "School Closed Tomorrow",
+            "content": "Due to holiday...",
+            "announcement_type": "general",
+            "audience": "all_parents",
+            "expiry_date": "2025-02-22"
+        }
+        """
+        from apps.communication.models import Announcement
+        from apps.communication.views_announcements import _can_create_school_wide_announcement
+
+        if not _can_create_school_wide_announcement(request.user):
+            return Response(
+                {'error': 'Only administrators and leadership can create school-wide announcements.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        from apps.communication.models import log_announcement_audit
+
+        announcement = Announcement.objects.create(
+            title=request.data.get('title'),
+            content=request.data.get('content'),
+            announcement_type=request.data.get('announcement_type', 'general'),
+            audience=request.data.get('audience', 'all'),
+            created_by=request.user,
+            status=Announcement.Status.PUBLISHED,
+        )
+
+        if 'expiry_date' in request.data:
+            announcement.expiry_date = request.data.get('expiry_date')
+            announcement.save()
+
+        log_announcement_audit(announcement, request.user, "created")
+
+        from apps.api.serializers import AnnouncementSerializer
+        serializer = AnnouncementSerializer(announcement)
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED
+        )
+    
+    @action(detail=False, methods=['get'])
+    def active(self, request):
+        """Get active, published announcements for current user."""
+        from apps.communication.models import Announcement
+
+        user = request.user
+        now = timezone.now()
+        announcements = Announcement.objects.filter(
+            is_active=True,
+            status=Announcement.Status.PUBLISHED,
+            expiry_date__gte=now
+        ).order_by('-created_at')
+        
+        if user.role == 'STUDENT':
+            announcements = announcements.filter(
+                Q(audience='all') | Q(audience='students')
+            )
+        elif user.role == 'PARENT':
+            announcements = announcements.filter(
+                Q(audience='all') | Q(audience='all_parents')
+            )
+        elif user.role == 'TEACHER':
+            announcements = announcements.filter(
+                Q(audience='all') | Q(audience='staff') | Q(audience='teachers')
+            )
+        
+        from apps.api.serializers import AnnouncementSerializer
+        serializer = AnnouncementSerializer(announcements[:10], many=True)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'])
+    def deactivate(self, request, pk=None):
+        """Deactivate an announcement"""
+        if not request.user.is_staff:
+            return Response(
+                {'error': 'Permission denied'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        from apps.communication.models import Announcement
+        
+        announcement = get_object_or_404(Announcement, pk=pk)
+        announcement.is_active = False
+        announcement.save()
+        
+        return Response({'status': 'success', 'is_active': False})
+
+
+class BroadcastAPI(APIView):
+    """
+    Send broadcast messages to groups
+    """
+    permission_classes = [IsAdminUser]
+    
+    def post(self, request):
+        """
+        Send message to multiple recipients
+        
+        Request Body:
+        {
+            "recipients": [1, 2, 3],
+            "recipient_type": "user_ids",
+            "subject": "Important Notice",
+            "body": "Please read carefully",
+            "recipient_group": "all_teachers"  # Alternative to recipients list
+        }
+        """
+        from apps.communication.models import Message
+        from django.contrib.auth.models import User
+        
+        recipient_ids = request.data.get('recipients', [])
+        recipient_group = request.data.get('recipient_group')
+        subject = request.data.get('subject')
+        body = request.data.get('body')
+        
+        if not all([subject, body]):
+            return Response(
+                {'error': 'subject and body are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if recipient_group:
+            if recipient_group == 'all_teachers':
+                users = User.objects.filter(role='TEACHER')
+            elif recipient_group == 'all_students':
+                users = User.objects.filter(role='STUDENT')
+            elif recipient_group == 'all_parents':
+                users = User.objects.filter(role='PARENT')
+            elif recipient_group == 'all':
+                users = User.objects.all()
+            else:
+                users = User.objects.none()
+            
+            recipient_ids = users.values_list('id', flat=True)
+        
+        messages_created = 0
+        for recipient_id in recipient_ids:
+            try:
+                Message.objects.create(
+                    sender=request.user,
+                    recipient_id=recipient_id,
+                    subject=subject,
+                    body=body
+                )
+                messages_created += 1
+            except Exception as e:
+                continue
+        
+        return Response({
+            'status': 'success',
+            'messages_sent': messages_created,
+            'recipients': len(recipient_ids)
+        }, status=status.HTTP_201_CREATED)
+
+
+class CommunicationAnalyticsAPI(APIView):
+    """
+    Communication statistics and analytics
+    """
+    permission_classes = [IsAdminUser]
+    
+    def get(self, request):
+        """Get communication analytics"""
+        from apps.communication.models import Message, Announcement
+        
+        now = timezone.now()
+        week_ago = now - timedelta(days=7)
+        month_ago = now - timedelta(days=30)
+        
+        messages_total = Message.objects.count()
+        messages_this_week = Message.objects.filter(created_at__gte=week_ago).count()
+        messages_this_month = Message.objects.filter(created_at__gte=month_ago).count()
+        
+        unread_messages = Message.objects.filter(is_read=False).count()
+        
+        active_announcements = Announcement.objects.filter(
+            is_active=True,
+            status=Announcement.Status.PUBLISHED,
+            expiry_date__gte=now
+        ).count()
+        
+        most_active_users = Message.objects.values('sender__first_name', 'sender__last_name').annotate(
+            message_count=Count('id')
+        ).order_by('-message_count')[:10]
+        
+        return Response({
+            'total_messages': messages_total,
+            'messages_this_week': messages_this_week,
+            'messages_this_month': messages_this_month,
+            'unread_messages': unread_messages,
+            'active_announcements': active_announcements,
+            'most_active_users': list(most_active_users),
+            'average_response_time': 'N/A'
+        })

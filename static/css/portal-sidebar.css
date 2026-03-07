@@ -1,0 +1,194 @@
+/* Shared portal sidebar styles.
+   Loaded once in portal_base to avoid duplicate inline CSS from repeated includes. */
+
+.portal-sidebar-collapse-wrap {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.portal-sidebar-collapse-toggle {
+  border-radius: 10px;
+  min-height: 34px;
+}
+
+.sidebar-header {
+  padding: 0.875rem 0.5rem;
+  border-bottom: 1px solid var(--portal-border, rgba(0, 0, 0, 0.08));
+  margin-bottom: 1.1rem;
+}
+
+.sidebar-header-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.sidebar-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0d6efd, #198754);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
+.sidebar-info h6 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.sidebar-info p {
+  font-size: 0.75rem;
+  color: var(--portal-text-muted);
+  margin: 0.25rem 0 0;
+}
+
+.sidebar-section-title {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--portal-text-muted);
+  font-weight: 700;
+  margin: 1.05rem 0 0.48rem 0;
+  padding-inline: 0.5rem;
+}
+
+.nav-link.nav-pill {
+  border-radius: 10px;
+  font-size: 0.875rem;
+  padding: 0.58rem 0.75rem 0.58rem 0.875rem !important;
+  color: var(--portal-nav-pill);
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.nav-link.nav-pill:hover {
+  background: var(--portal-nav-pill-bg-hover);
+  color: var(--portal-nav-pill-hover, #0d6efd);
+}
+
+.nav-link.nav-pill.active,
+.nav-link.nav-pill[aria-current="page"] {
+  background: var(--portal-nav-pill-bg-active);
+  color: var(--portal-nav-pill-hover, #0d6efd);
+  font-weight: 600;
+}
+
+.sidebar-nav-item-wrapper {
+  margin-bottom: 0;
+}
+
+.sidebar-nav-item-wrapper .nav-link {
+  min-width: 0;
+}
+
+.sidebar-pin-btn {
+  opacity: 0.6;
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.sidebar-nav-item-wrapper:hover .sidebar-pin-btn,
+.sidebar-pin-btn:hover,
+.sidebar-pin-btn:focus {
+  opacity: 1;
+}
+
+.sidebar-collapsible {
+  margin: 1.1rem 0 0.6rem 0;
+}
+
+.sidebar-collapsible-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.72rem;
+  background: rgba(13, 110, 253, 0.08);
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.sidebar-collapsible-header:hover {
+  background: rgba(13, 110, 253, 0.12);
+}
+
+.sidebar-collapsible-header span {
+  font-weight: 600;
+  font-size: 0.86rem;
+  color: var(--school-primary, #0d6efd);
+}
+
+.sidebar-collapsible-header i {
+  transition: transform 0.2s ease;
+}
+
+.sidebar-collapsible-header i.collapsed {
+  transform: rotate(-90deg);
+}
+
+.sidebar-collapsible-content {
+  max-height: 500px;
+  overflow: hidden;
+  transition: max-height 0.24s ease, opacity 0.2s ease;
+  opacity: 1;
+}
+
+.sidebar-collapsible-content.collapsed {
+  max-height: 0;
+  opacity: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.portal-sidebar-footer {
+  margin-top: 1rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--portal-border, rgba(0, 0, 0, 0.08));
+}
+
+@media (min-width: 992px) {
+  .portal-sidebar-col.portal-sidebar-collapsed .sidebar-pin-btn {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .sidebar-header {
+    margin-bottom: 0.9rem;
+  }
+
+  .sidebar-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 0.88rem;
+  }
+
+  .sidebar-info h6 {
+    font-size: 0.85rem;
+  }
+
+  .sidebar-info p {
+    font-size: 0.72rem;
+  }
+
+  .nav-link.nav-pill {
+    font-size: 0.9rem;
+    min-height: 42px;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .nav-link.nav-pill {
+    min-height: 44px;
+  }
+
+  .sidebar-collapsible-header {
+    min-height: 44px;
+  }
+}

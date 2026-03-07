@@ -1,0 +1,157 @@
+{% comment %}
+  Backend Admin Portal card: date, local time, weather, location.
+  Reference layout: vertical stack - "April 2024", "10:21 AM", icon + "27deg", location (no separators).
+  Uses internal weather API for weather; Intl for date/time. Works in light and dark backend themes.
+{% endcomment %}
+<div
+  class="backend-v2-side-time backend-dtw"
+  id="backendDatetimeWeather"
+  data-weather-endpoint="{% url 'api_weather_context' %}"
+  data-weather-lat="{{ HEADER_WEATHER_LATITUDE|default:'0' }}"
+  data-weather-lon="{{ HEADER_WEATHER_LONGITUDE|default:'0' }}"
+  data-weather-unit="{{ HEADER_WEATHER_TEMPERATURE_UNIT|default:'celsius' }}"
+  data-weather-label="{{ HEADER_WEATHER_LABEL|default:'Weather' }}"
+  aria-label="Local date, time, and weather"
+>
+  <div class="backend-dtw__line backend-dtw__month-year" id="backendDtwMonthYear">--</div>
+  <div class="backend-dtw__line backend-dtw__time" id="backendDtwTime">--:--</div>
+  <div class="backend-dtw__line backend-dtw__weather">
+    <i class="bi bi-cloud-sun backend-dtw__weather-icon" id="backendDtwWeatherIcon" aria-hidden="true"></i>
+    <span class="backend-dtw__temp" id="backendDtwTemp">--&deg;</span>
+  </div>
+  <div class="backend-dtw__line backend-dtw__location" id="backendDtwLocation">{{ HEADER_WEATHER_LABEL|default:"Weather" }}</div>
+</div>
+
+<style>
+  .backend-dtw {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    margin-top: 0.4rem;
+    margin-bottom: 0.35rem;
+    border-top: 1px solid var(--admin-border, #cbd5e1);
+    padding-top: 0.4rem;
+  }
+  .backend-dtw__line {
+    line-height: 1.25;
+  }
+  .backend-dtw__month-year {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--admin-text, #0f172a);
+  }
+  .backend-dtw__time {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--admin-text, #0f172a);
+  }
+  .backend-dtw__weather {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.9rem;
+  }
+  .backend-dtw__weather-icon {
+    font-size: 1.1rem;
+    color: var(--admin-text, #0f172a);
+  }
+  .backend-dtw__temp {
+    font-weight: 700;
+    color: var(--admin-text, #0f172a);
+  }
+  .backend-dtw__location {
+    font-size: 0.78rem;
+    color: var(--admin-muted, #64748b);
+  }
+</style>
+
+<script>
+(function() {
+  "use strict";
+  var root = document.getElementById("backendDatetimeWeather");
+  if (!root) return;
+
+  var monthYearEl = document.getElementById("backendDtwMonthYear");
+  var timeEl = document.getElementById("backendDtwTime");
+  var iconEl = document.getElementById("backendDtwWeatherIcon");
+  var tempEl = document.getElementById("backendDtwTemp");
+  var locEl = document.getElementById("backendDtwLocation");
+
+  var weatherIconClasses = {
+    0: "bi-sun-fill", 1: "bi-brightness-high", 2: "bi-cloud-sun", 3: "bi-cloud",
+    45: "bi-cloud-fog2", 48: "bi-cloud-fog2",
+    51: "bi-cloud-drizzle", 53: "bi-cloud-drizzle", 55: "bi-cloud-rain",
+    61: "bi-cloud-rain", 63: "bi-cloud-rain", 65: "bi-cloud-rain-heavy",
+    71: "bi-cloud-snow", 73: "bi-cloud-snow", 75: "bi-cloud-snow",
+    80: "bi-cloud-rain", 81: "bi-cloud-rain", 82: "bi-cloud-rain-heavy",
+    95: "bi-cloud-lightning", 96: "bi-cloud-lightning", 99: "bi-cloud-lightning"
+  };
+
+  function updateDateTime() {
+    var now = new Date();
+    var locale = document.documentElement.lang || navigator.language || "en-US";
+    if (monthYearEl) {
+      monthYearEl.textContent = new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }).format(now);
+    }
+    if (timeEl) {
+      timeEl.textContent = new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "2-digit", hour12: true }).format(now);
+    }
+  }
+
+  function getWeatherConfig() {
+    var endpoint = root.getAttribute("data-weather-endpoint") || "";
+    var lat = parseFloat(root.getAttribute("data-weather-lat"));
+    var lon = parseFloat(root.getAttribute("data-weather-lon"));
+    var unit = (root.getAttribute("data-weather-unit") || "celsius").toLowerCase();
+    if (Number.isNaN(lat)) lat = 4.1527;
+    if (Number.isNaN(lon)) lon = 9.2410;
+    if (unit !== "fahrenheit") unit = "celsius";
+    return { endpoint: endpoint, lat: lat, lon: lon, unit: unit };
+  }
+
+  function updateWeather() {
+    var config = getWeatherConfig();
+    if (!config.endpoint) {
+      if (tempEl) tempEl.textContent = "--\u00B0";
+      return;
+    }
+
+    fetch(config.endpoint, {
+      method: "GET",
+      credentials: "same-origin",
+      headers: { "Accept": "application/json" }
+    })
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(data) {
+        var weather = data && data.weather;
+        if (!data || data.enabled === false || !weather || !tempEl) {
+          if (tempEl) tempEl.textContent = "--\u00B0";
+          return;
+        }
+        var temp = Math.round(Number(weather.temperature));
+        var code = Number(weather.weather_code);
+        var unit = String(data.temperature_unit || config.unit).toLowerCase() === "fahrenheit" ? "fahrenheit" : "celsius";
+        var sym = unit === "fahrenheit" ? "\u00B0F" : "\u00B0";
+        tempEl.textContent = temp + sym;
+        if (iconEl) {
+          var cls = weatherIconClasses[code] || "bi-cloud-sun";
+          iconEl.className = "bi " + cls + " backend-dtw__weather-icon";
+        }
+      })
+      .catch(function() {
+        if (tempEl) tempEl.textContent = "--\u00B0";
+      });
+  }
+
+  if (locEl && root.getAttribute("data-weather-label")) {
+    locEl.textContent = root.getAttribute("data-weather-label");
+  }
+
+  updateDateTime();
+  updateWeather();
+  setInterval(updateDateTime, 1000);
+  setInterval(updateWeather, 15 * 60 * 1000);
+})();
+</script>

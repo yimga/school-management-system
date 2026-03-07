@@ -1,0 +1,171 @@
+{% extends "portal_base.html" %}
+{% load static %}
+
+{% block title %}Notifications - {{ SITE.site_name|default:"Portal" }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
+    <div>
+      <h1 class="h3 mb-1">Notifications</h1>
+      <p class="text-muted mb-0">Your recent alerts and reminders</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'accounts:user_profile' %}" class="btn btn-sm btn-outline-secondary btn-back-secondary"><i class="bi bi-arrow-left me-1"></i>Back to Profile</a>
+      <a class="btn btn-primary" href="{% url 'accounts:redirect' %}">
+        <i class="bi bi-speedometer2 me-1"></i>Go to Dashboard
+      </a>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <div class="text-muted small">Total</div>
+              <div class="h4 mb-0">{{ total_count }}</div>
+            </div>
+            <div class="text-primary">
+              <i class="bi bi-bell fs-1"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm border-warning">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <div class="text-muted small">Unread</div>
+              <div class="h4 mb-0 text-warning">{{ unread_count }}</div>
+            </div>
+            <div class="text-warning">
+              <i class="bi bi-circle-fill fs-1"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm border-success">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <div class="text-muted small">Read</div>
+              <div class="h4 mb-0 text-success">{{ read_count }}</div>
+            </div>
+            <div class="text-success">
+              <i class="bi bi-check-circle fs-1"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <div class="btn-group" role="group">
+        <a href="{% url 'accounts:user_notifications' %}" class="btn btn-outline-primary {% if not status_filter %}active{% endif %}">
+          All ({{ total_count }})
+        </a>
+        <a href="{% url 'accounts:user_notifications' %}?status=unread" class="btn btn-outline-warning {% if status_filter == 'unread' %}active{% endif %}">
+          Unread ({{ unread_count }})
+        </a>
+        <a href="{% url 'accounts:user_notifications' %}?status=read" class="btn btn-outline-success {% if status_filter == 'read' %}active{% endif %}">
+          Read ({{ read_count }})
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notifications List -->
+  <div class="card shadow-sm">
+    <div class="card-body">
+      {% if notifications %}
+        <div class="list-group list-group-flush">
+          {% for notif in notifications %}
+            <div class="list-group-item {% if not notif.is_read %}bg-light{% endif %}">
+              <div class="d-flex justify-content-between align-items-start">
+                <div class="flex-grow-1">
+                  <div class="d-flex align-items-center gap-2 mb-1">
+                    {% if notif.severity == 'ALERT' %}
+                      <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+                    {% elif notif.severity == 'WARNING' %}
+                      <i class="bi bi-exclamation-circle-fill text-warning"></i>
+                    {% else %}
+                      <i class="bi bi-info-circle-fill text-info"></i>
+                    {% endif %}
+                    <h6 class="mb-0 {% if not notif.is_read %}fw-bold{% endif %}">{{ notif.title }}</h6>
+                    {% if not notif.is_read %}
+                      <span class="badge bg-warning text-dark">New</span>
+                    {% endif %}
+                  </div>
+                  <p class="mb-1 text-muted">{{ notif.message }}</p>
+                  <div class="small text-muted">
+                    <i class="bi bi-clock me-1"></i>{{ notif.created_at|timesince }} ago
+                    {% if notif.created_by %}
+                      · by {{ notif.created_by.get_full_name|default:notif.created_by.username }}
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="d-flex gap-2">
+                  {% if notif.link %}
+                    <a href="{{ notif.link }}" class="btn btn-sm btn-outline-primary">
+                      <i class="bi bi-arrow-right"></i>
+                    </a>
+                  {% endif %}
+                  {% if not notif.is_read %}
+                    <form method="post" action="{% url 'api:notification-read' notif.id %}" style="display: inline;">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-sm btn-outline-success" title="Mark as read">
+                        <i class="bi bi-check"></i>
+                      </button>
+                    </form>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="text-center py-5">
+          <i class="bi bi-bell-slash text-muted" style="font-size: 4rem;"></i>
+          <h5 class="mt-3">No Notifications</h5>
+          <p class="text-muted">You're all caught up! No notifications at this time.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+async function markAsRead(notifId) {
+  try {
+    const response = await fetch(`/api/notifications/${notifId}/read/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}',
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (response.ok) {
+      // Reload page to show updated status
+      window.location.reload();
+    } else {
+      alert('Failed to mark notification as read');
+    }
+  } catch (error) {
+    console.error('Error marking notification as read:', error);
+    alert('An error occurred');
+  }
+}
+</script>
+{% endblock %}
+

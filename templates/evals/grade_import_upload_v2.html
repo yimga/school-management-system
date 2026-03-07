@@ -1,0 +1,508 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Bulk Grade Import - Upload & Validate{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.css">
+<style>
+.dz-preview {
+    margin-bottom: 20px;
+}
+
+.validation-results {
+    margin-top: 30px;
+}
+
+.error-row {
+    background-color: #f8d7da !important;
+}
+
+.warning-row {
+    background-color: #fff3cd !important;
+}
+
+.success-row {
+    background-color: #d4edda !important;
+}
+
+.progress-wrapper {
+    display: none;
+    margin: 20px 0;
+}
+
+.step-indicator {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 30px;
+}
+
+.step {
+    text-align: center;
+    flex: 1;
+    padding: 10px;
+    border-radius: 5px;
+    background: #f0f0f0;
+    margin: 0 5px;
+}
+
+.step.active {
+    background: #007bff;
+    color: white;
+    font-weight: bold;
+}
+
+.step.completed {
+    background: #28a745;
+    color: white;
+}
+
+.summary-card {
+    border-left: 4px solid #007bff;
+    padding: 15px;
+    margin: 10px 0;
+    background: #f9f9f9;
+}
+
+.summary-card.error {
+    border-left-color: #dc3545;
+    background: #fff5f5;
+}
+
+.summary-card.warning {
+    border-left-color: #ffc107;
+    background: #fffbf0;
+}
+
+.summary-card.success {
+    border-left-color: #28a745;
+    background: #f0fff4;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-upload"></i> Bulk Grade Import
+            </h1>
+        </div>
+    </div>
+    
+    <!-- Step Indicator -->
+    <div class="step-indicator">
+        <div class="step active" id="step1">
+            <h6>1. Upload</h6>
+            <small>Select CSV file</small>
+        </div>
+        <div class="step" id="step2">
+            <h6>2. Validate</h6>
+            <small>Check for errors</small>
+        </div>
+        <div class="step" id="step3">
+            <h6>3. Review</h6>
+            <small>Preview changes</small>
+        </div>
+        <div class="step" id="step4">
+            <h6>4. Apply</h6>
+            <small>Import to database</small>
+        </div>
+    </div>
+    
+    <!-- Step 1: Upload -->
+    <div class="row" id="uploadStep">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Step 1: Upload CSV File</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <strong>Expected CSV Format:</strong>
+                        <code>student_code, subject_assignment_id, term_id, teacher_username, seq1, seq2, exam, mock, practical, remarks</code>
+                        <br>
+                        <a href="{% url 'evals:grade_import_template' %}" class="btn btn-sm btn-info mt-2">
+                            <i class="fas fa-download"></i> Download Template
+                        </a>
+                    </div>
+                    
+                    <form class="dropzone" id="gradeImportDropzone" action="{% url 'evals:grade_import_preview_api' %}" method="POST">
+                        {% csrf_token %}
+                        <div class="fallback">
+                            <input name="file" type="file" multiple accept=".csv">
+                        </div>
+                    </form>
+                    
+                    <div class="progress-wrapper">
+                        <div class="progress" style="height: 25px;">
+                            <div id="uploadProgress" class="progress-bar progress-bar-striped progress-bar-animated" 
+                                 role="progressbar" style="width: 0%">
+                                <span id="uploadProgressText">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Step 2: Validation Results -->
+    <div class="row mt-4" id="validationStep" style="display: none;">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Step 2: Validation Results</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Summary Cards -->
+                    <div class="row mb-4" id="validationSummary">
+                        <div class="col-md-3">
+                            <div class="card border-left-success">
+                                <div class="card-body text-center">
+                                    <h3 class="text-success" id="validRowsCount">0</h3>
+                                    <small>Valid Rows</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-left-warning">
+                                <div class="card-body text-center">
+                                    <h3 class="text-warning" id="warningRowsCount">0</h3>
+                                    <small>Rows with Warnings</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-left-danger">
+                                <div class="card-body text-center">
+                                    <h3 class="text-danger" id="invalidRowsCount">0</h3>
+                                    <small>Invalid Rows</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-left-primary">
+                                <div class="card-body text-center">
+                                    <h3 class="text-primary" id="totalRowsCount">0</h3>
+                                    <small>Total Rows</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- File Errors -->
+                    <div id="fileErrorsContainer"></div>
+                    
+                    <!-- Validation Table -->
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover" id="validationTable">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th style="width: 50px;">Row #</th>
+                                    <th>Student Code</th>
+                                    <th>Subject</th>
+                                    <th>Scores</th>
+                                    <th>Status</th>
+                                    <th>Issues</th>
+                                </tr>
+                            </thead>
+                            <tbody id="validationTableBody"></tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="mt-4">
+                        <button type="button" class="btn btn-primary" id="proceedButton" onclick="moveToStep3()">
+                            <i class="fas fa-arrow-right"></i> Proceed to Review
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="resetUpload()">
+                            <i class="fas fa-redo"></i> Upload New File
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Step 3: Review & Confirm -->
+    <div class="row mt-4" id="reviewStep" style="display: none;">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Step 3: Review & Confirm</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <strong><i class="fas fa-exclamation-triangle"></i> Important:</strong>
+                        You are about to import grades into the database. This will:
+                        <ul class="mb-0 mt-2">
+                            <li>Create new evaluations for students with no existing grade</li>
+                            <li>Update existing evaluations with new scores</li>
+                            <li>Trigger automatic grade conversions (letter grades, GPA)</li>
+                            <li>Create audit trail entries for all changes</li>
+                            <li>Send notifications to parents/guardians if configured</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="summary-card success">
+                        <h6>Ready to import:</h6>
+                        <p class="mb-0">
+                            <strong id="reviewCreatedCount">0</strong> new evaluations will be created<br>
+                            <strong id="reviewUpdatedCount">0</strong> existing evaluations will be updated<br>
+                            <strong id="reviewIgnoredCount">0</strong> rows have issues and will be skipped
+                        </p>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button type="button" class="btn btn-lg btn-success" id="applyButton" onclick="applyImport()">
+                            <i class="fas fa-check"></i> Confirm & Import
+                        </button>
+                        <button type="button" class="btn btn-lg btn-secondary" onclick="backToValidation()">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Step 4: Import In Progress -->
+    <div class="row mt-4" id="progressStep" style="display: none;">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Step 4: Importing...</h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <h5>Processing grades...</h5>
+                    <p id="progressStatus" class="text-muted">Please wait, this may take a moment</p>
+                    
+                    <div class="progress mt-4" style="height: 30px;">
+                        <div id="importProgress" class="progress-bar progress-bar-striped progress-bar-animated bg-success" 
+                             role="progressbar" style="width: 0%">
+                            <span id="importProgressText">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Step 4: Import Complete -->
+    <div class="row mt-4" id="completeStep" style="display: none;">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-check-circle"></i> Import Complete</h5>
+                </div>
+                <div class="card-body">
+                    <div class="summary-card success">
+                        <h6>Import Summary:</h6>
+                        <p class="mb-0">
+                            <strong><span id="completeCreatedCount">0</span> new evaluations created</strong><br>
+                            <strong><span id="completeUpdatedCount">0</span> evaluations updated</strong><br>
+                            <strong>Duration: <span id="completeDuration">0</span> seconds</strong>
+                        </p>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <a href="{% url 'evals:compliance_dashboard' %}" class="btn btn-primary">
+                            <i class="fas fa-chart-line"></i> View Compliance Dashboard
+                        </a>
+                        <button type="button" class="btn btn-secondary" onclick="resetUpload()">
+                            <i class="fas fa-upload"></i> Import Another File
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.js"></script>
+<script>
+let currentFile = null;
+let validationData = null;
+
+// Initialize Dropzone
+Dropzone.options.gradeImportDropzone = {
+    maxFilesize: 50, // MB
+    acceptedFiles: '.csv',
+    uploadMultiple: false,
+    autoProcessQueue: true,
+    init: function() {
+        this.on('sending', function(file, xhr, formData) {
+            document.querySelector('.progress-wrapper').style.display = 'block';
+        });
+        
+        this.on('uploadprogress', function(file, progress) {
+            document.getElementById('uploadProgress').style.width = progress + '%';
+            document.getElementById('uploadProgressText').textContent = Math.round(progress) + '%';
+        });
+        
+        this.on('success', function(file, response) {
+            currentFile = file;
+            validationData = response;
+            displayValidationResults(response);
+        });
+        
+        this.on('error', function(file, errorMessage) {
+            showError('Upload Error: ' + errorMessage);
+        });
+    }
+};
+
+function displayValidationResults(data) {
+    // Update summary counts
+    document.getElementById('totalRowsCount').textContent = data.total_rows;
+    document.getElementById('validRowsCount').textContent = data.valid_rows;
+    document.getElementById('invalidRowsCount').textContent = data.invalid_rows;
+    document.getElementById('warningRowsCount').textContent = data.total_rows - data.valid_rows - data.invalid_rows;
+    
+    // Display file errors
+    if (data.file_errors && data.file_errors.length > 0) {
+        const errorContainer = document.getElementById('fileErrorsContainer');
+        errorContainer.innerHTML = '<div class="alert alert-danger"><strong>File Errors:</strong><ul class="mb-0 mt-2">' +
+            data.file_errors.map(e => '<li>' + e + '</li>').join('') + '</ul></div>';
+    }
+    
+    // Populate validation table
+    const tbody = document.getElementById('validationTableBody');
+    tbody.innerHTML = '';
+    data.preview.forEach((row, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = row.is_valid ? 'success-row' : row.errors.length > 0 ? 'error-row' : 'warning-row';
+        
+        const issues = [];
+        if (row.errors.length > 0) issues.push(...row.errors);
+        if (row.warnings.length > 0) issues.push(...row.warnings.map(w => '⚠ ' + w));
+        
+        tr.innerHTML = `
+            <td><strong>${idx + 2}</strong></td>
+            <td>${row.student_code}</td>
+            <td>${row.subject_assignment_id}</td>
+            <td>
+                <small>
+                    Seq1: ${row.seq1} | Seq2: ${row.seq2} | Exam: ${row.exam}
+                </small>
+            </td>
+            <td>
+                ${row.is_valid ? '<span class="badge badge-success">✓ Valid</span>' : 
+                  row.errors.length > 0 ? '<span class="badge badge-danger">✗ Error</span>' : 
+                  '<span class="badge badge-warning">⚠ Warning</span>'}
+            </td>
+            <td>
+                ${issues.length > 0 ? '<small>' + issues.join('<br>') + '</small>' : '-'}
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+    
+    // Move to validation step
+    document.getElementById('uploadStep').style.display = 'none';
+    document.getElementById('validationStep').style.display = 'block';
+    document.getElementById('step1').classList.remove('active');
+    document.getElementById('step1').classList.add('completed');
+    document.getElementById('step2').classList.add('active');
+    
+    // Disable proceed if all invalid
+    if (data.valid_rows === 0) {
+        document.getElementById('proceedButton').disabled = true;
+        document.getElementById('proceedButton').title = 'Cannot proceed: no valid rows';
+    }
+}
+
+function moveToStep3() {
+    // Calculate review summary
+    const validRows = validationData.preview.filter(r => r.is_valid).length;
+    document.getElementById('reviewCreatedCount').textContent = validRows;
+    document.getElementById('reviewUpdatedCount').textContent = 0;
+    document.getElementById('reviewIgnoredCount').textContent = validationData.total_rows - validRows;
+    
+    document.getElementById('validationStep').style.display = 'none';
+    document.getElementById('reviewStep').style.display = 'block';
+    document.getElementById('step2').classList.remove('active');
+    document.getElementById('step2').classList.add('completed');
+    document.getElementById('step3').classList.add('active');
+}
+
+function backToValidation() {
+    document.getElementById('reviewStep').style.display = 'none';
+    document.getElementById('validationStep').style.display = 'block';
+    document.getElementById('step3').classList.remove('active');
+    document.getElementById('step2').classList.remove('completed');
+    document.getElementById('step2').classList.add('active');
+}
+
+function applyImport() {
+    // Filter valid rows only
+    const validRows = validationData.preview.filter(r => r.is_valid);
+    if (validRows.length === 0) {
+        showError('No valid rows to import');
+        return;
+    }
+    
+    document.getElementById('reviewStep').style.display = 'none';
+    document.getElementById('progressStep').style.display = 'block';
+    document.getElementById('step3').classList.remove('active');
+    document.getElementById('step3').classList.add('completed');
+    document.getElementById('step4').classList.add('active');
+    
+    // Simulate progress
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+        progress += Math.random() * 20;
+        if (progress >= 90) progress = 90;
+        document.getElementById('importProgress').style.width = progress + '%';
+        document.getElementById('importProgressText').textContent = Math.round(progress) + '%';
+    }, 500);
+    
+    // Call import API (placeholder - would POST to actual endpoint)
+    fetch('{% url "evals:grade_import_apply_api" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ rows: validRows })
+    })
+    .then(response => response.json())
+    .then(data => {
+        clearInterval(progressInterval);
+        document.getElementById('importProgress').style.width = '100%';
+        document.getElementById('importProgressText').textContent = '100%';
+        
+        // Show complete step
+        setTimeout(() => {
+            document.getElementById('progressStep').style.display = 'none';
+            document.getElementById('completeStep').style.display = 'block';
+            document.getElementById('step4').classList.remove('active');
+            document.getElementById('step4').classList.add('completed');
+            
+            document.getElementById('completeCreatedCount').textContent = data.created;
+            document.getElementById('completeUpdatedCount').textContent = data.updated;
+            document.getElementById('completeDuration').textContent = data.duration_seconds;
+        }, 500);
+    })
+    .catch(error => {
+        clearInterval(progressInterval);
+        showError('Import failed: ' + error.message);
+        document.getElementById('progressStep').style.display = 'none';
+        document.getElementById('reviewStep').style.display = 'block';
+    });
+}
+
+function resetUpload() {
+    location.reload();
+}
+
+function showError(message) {
+    alert('Error: ' + message);
+}
+</script>
+{% endblock %}

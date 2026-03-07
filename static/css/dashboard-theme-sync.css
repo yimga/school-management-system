@@ -1,0 +1,770 @@
+:root {
+  --school-success: #22c55e;
+  --school-warning: #f59e0b;
+  --school-danger: #ef4444;
+
+  --dashboard-theme-primary: var(--school-primary, #0d6efd);
+  --dashboard-theme-accent: var(--school-accent, #198754);
+  --dashboard-theme-success: var(--school-success, #22c55e);
+  --dashboard-theme-warning: var(--school-warning, #f59e0b);
+  --dashboard-theme-danger: var(--school-danger, #ef4444);
+
+  --dashboard-surface: rgba(255, 255, 255, 0.93);
+  --dashboard-surface: color-mix(in srgb, #ffffff 88%, var(--dashboard-theme-primary) 12%);
+  --dashboard-surface-soft: rgba(255, 255, 255, 0.82);
+  --dashboard-surface-soft: color-mix(in srgb, #ffffff 84%, var(--dashboard-theme-primary) 16%);
+  --dashboard-border: rgba(99, 115, 129, 0.28);
+  --dashboard-border: color-mix(in srgb, var(--dashboard-theme-primary) 24%, #dbe6f4 76%);
+  --dashboard-shadow: 0 16px 34px rgba(15, 23, 42, 0.12);
+  --dashboard-shadow-soft: 0 10px 22px rgba(15, 23, 42, 0.09);
+
+  --dashboard-text-strong: #0f172a;
+  --dashboard-text-muted: #475569;
+  --dashboard-glow-a: color-mix(in srgb, var(--dashboard-theme-primary) 28%, transparent);
+  --dashboard-glow-b: color-mix(in srgb, var(--dashboard-theme-accent) 24%, transparent);
+}
+
+html[data-theme="dark"],
+html[data-bs-theme="dark"],
+body.portal-backend-dark {
+  --dashboard-surface: rgba(15, 23, 42, 0.82);
+  --dashboard-surface-soft: rgba(15, 23, 42, 0.7);
+  --dashboard-border: color-mix(in srgb, var(--dashboard-theme-primary) 36%, #334155 64%);
+  --dashboard-shadow: 0 18px 40px rgba(2, 8, 23, 0.6);
+  --dashboard-shadow-soft: 0 12px 24px rgba(2, 8, 23, 0.45);
+  --dashboard-text-strong: #e2e8f0;
+  --dashboard-text-muted: #94a3b8;
+}
+
+body[data-dashboard-page] {
+  background:
+    radial-gradient(1150px 460px at 96% -24%, var(--dashboard-glow-a), transparent 58%),
+    radial-gradient(980px 420px at 2% -20%, var(--dashboard-glow-b), transparent 55%),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, #f8fbff 86%, var(--dashboard-theme-primary) 14%),
+      color-mix(in srgb, #f6fbff 88%, var(--dashboard-theme-accent) 12%)
+    );
+}
+
+body[data-dashboard-page] .card,
+body[data-dashboard-page] .card-glass,
+body[data-dashboard-page] .modular-card,
+body[data-dashboard-page] .dashboard-chart-card,
+body[data-dashboard-page] .parent-glance-card,
+body[data-dashboard-page] .child-card,
+body[data-dashboard-page] .parent-sidebar-card,
+body[data-dashboard-page] .tdm-panel,
+body[data-dashboard-page] .tdm-class-card,
+body[data-dashboard-page] .backend-quick-actions-card,
+body[data-dashboard-page] .backend-kpi-card,
+body[data-dashboard-page] .backend-right-sidebar .card,
+body[data-dashboard-page] #dashboard-layout .card {
+  background: var(--dashboard-surface);
+  border-color: var(--dashboard-border);
+  box-shadow: var(--dashboard-shadow-soft);
+  min-width: 0;
+  overflow: hidden;
+}
+
+body[data-dashboard-page] .card .card-body,
+body[data-dashboard-page] .table-responsive,
+body[data-dashboard-page] .row > [class*="col-"] {
+  min-width: 0;
+}
+
+body[data-dashboard-page] .card-title,
+body[data-dashboard-page] .dashboard-kpi-label,
+body[data-dashboard-page] .section-title,
+body[data-dashboard-page] .small,
+body[data-dashboard-page] .text-muted,
+body[data-dashboard-page] .table td,
+body[data-dashboard-page] .table th {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+body[data-dashboard-page] .dashboard-kpi-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body[data-dashboard-page] .card-title,
+body[data-dashboard-page] h1,
+body[data-dashboard-page] h2,
+body[data-dashboard-page] h3,
+body[data-dashboard-page] h4,
+body[data-dashboard-page] .dashboard-kpi-value,
+body[data-dashboard-page] .section-title {
+  color: var(--dashboard-text-strong);
+}
+
+body[data-dashboard-page] .text-muted,
+body[data-dashboard-page] .small.text-muted,
+body[data-dashboard-page] .dashboard-kpi-label,
+body[data-dashboard-page] .dashboard-eyebrow {
+  color: var(--dashboard-text-muted) !important;
+}
+
+body[data-dashboard-page] .btn-primary,
+body[data-dashboard-page] .btn-gradient-pill {
+  background: linear-gradient(135deg, var(--dashboard-theme-primary), var(--dashboard-theme-accent));
+  border-color: color-mix(in srgb, var(--dashboard-theme-primary) 70%, #0f172a 30%);
+}
+
+body[data-dashboard-page] .btn-outline-primary {
+  color: var(--dashboard-theme-primary);
+  border-color: color-mix(in srgb, var(--dashboard-theme-primary) 56%, #94a3b8 44%);
+}
+
+body[data-dashboard-page="parent"] .parent-dashboard {
+  --parent-glance-messages-bg: color-mix(in srgb, var(--dashboard-theme-primary) 16%, #ffffff 84%);
+  --parent-glance-messages-border: color-mix(in srgb, var(--dashboard-theme-primary) 30%, #cbd5e1 70%);
+  --parent-glance-followup-bg: color-mix(in srgb, var(--dashboard-theme-warning) 14%, #ffffff 86%);
+  --parent-glance-followup-border: color-mix(in srgb, var(--dashboard-theme-warning) 32%, #d9c8a6 68%);
+  --parent-glance-outstanding-bg: color-mix(in srgb, var(--dashboard-theme-danger) 14%, #ffffff 86%);
+  --parent-glance-outstanding-border: color-mix(in srgb, var(--dashboard-theme-danger) 32%, #d7b8c0 68%);
+  --parent-glance-good-bg: color-mix(in srgb, var(--dashboard-theme-accent) 14%, #ffffff 86%);
+  --parent-glance-good-border: color-mix(in srgb, var(--dashboard-theme-accent) 30%, #bdd7cb 70%);
+  background:
+    radial-gradient(
+      860px 360px at 96% -16%,
+      color-mix(in srgb, var(--dashboard-theme-primary) 26%, transparent),
+      transparent 58%
+    ),
+    radial-gradient(
+      760px 320px at 0% -20%,
+      color-mix(in srgb, var(--dashboard-theme-accent) 22%, transparent),
+      transparent 56%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, #fbfdff 86%, var(--dashboard-theme-primary) 14%),
+      color-mix(in srgb, #f7fbff 88%, var(--dashboard-theme-accent) 12%)
+    );
+}
+
+body[data-dashboard-page="parent"] .parent-dashboard-header,
+body[data-dashboard-page="parent"] .parent-workflow-strip {
+  background: linear-gradient(120deg, var(--dashboard-surface), var(--dashboard-surface-soft));
+  border-color: var(--dashboard-border);
+  box-shadow: var(--dashboard-shadow);
+}
+
+body[data-dashboard-page="parent"] .parent-glance-card,
+body[data-dashboard-page="parent"] .summary-tile,
+body[data-dashboard-page="parent"] .parent-sidebar-card {
+  background: var(--dashboard-surface);
+  border: 1px solid var(--dashboard-border);
+}
+
+body[data-dashboard-page="parent"] .parent-glance-card--messages {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--dashboard-theme-primary) 20%, #ffffff 80%),
+    var(--dashboard-surface)
+  );
+}
+
+body[data-dashboard-page="parent"] .parent-glance-card--followup {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--dashboard-theme-warning) 18%, #ffffff 82%),
+    var(--dashboard-surface)
+  );
+}
+
+body[data-dashboard-page="parent"] .parent-glance-card--fees {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--dashboard-theme-danger) 16%, #ffffff 84%),
+    var(--dashboard-surface)
+  );
+}
+
+body[data-dashboard-page="parent"] .parent-glance-card--attendance {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--dashboard-theme-accent) 18%, #ffffff 82%),
+    var(--dashboard-surface)
+  );
+}
+
+/* Parent dashboard fallback harmonization for legacy card classes */
+body[data-dashboard-page="parent"] .metric-card,
+body[data-dashboard-page="parent"] .activity-section,
+body[data-dashboard-page="parent"] .announcements-card,
+body[data-dashboard-page="parent"] .gauge-card,
+body[data-dashboard-page="parent"] .quick-tools-box,
+body[data-dashboard-page="parent"] .tool-item,
+body[data-dashboard-page="parent"] .contact-box,
+body[data-dashboard-page="parent"] .summary-tile,
+body[data-dashboard-page="parent"] .fee-status-card .small-tile,
+body[data-dashboard-page="parent"] .stat-chip {
+  background: var(--dashboard-surface);
+  border: 1px solid var(--dashboard-border);
+  box-shadow: var(--dashboard-shadow-soft);
+}
+
+body[data-dashboard-page="parent"] .section-title,
+body[data-dashboard-page="parent"] .quick-tools-title {
+  border-bottom-color: color-mix(in srgb, var(--dashboard-theme-primary) 20%, #dbe6f4 80%);
+}
+
+body[data-dashboard-page="parent"] .summary-label,
+body[data-dashboard-page="parent"] .metric-title,
+body[data-dashboard-page="parent"] .metric-desc,
+body[data-dashboard-page="parent"] .child-info p,
+body[data-dashboard-page="parent"] .child-metric-label,
+body[data-dashboard-page="parent"] .activity-meta,
+body[data-dashboard-page="parent"] .announcement-meta,
+body[data-dashboard-page="parent"] .contact-title {
+  color: var(--dashboard-text-muted);
+}
+
+body[data-dashboard-page="parent"] .summary-value,
+body[data-dashboard-page="parent"] .summary-meta .summary-value,
+body[data-dashboard-page="parent"] .activity-title,
+body[data-dashboard-page="parent"] .donut span {
+  color: var(--dashboard-text-strong);
+}
+
+body[data-dashboard-page="parent"] .donut::after {
+  background: var(--dashboard-surface);
+}
+
+body[data-dashboard-page="parent"] .timeline::before {
+  background: color-mix(in srgb, var(--dashboard-theme-primary) 30%, #dbe6f4 70%);
+}
+
+body[data-dashboard-page="parent"] .timeline-item::before {
+  background: linear-gradient(135deg, var(--dashboard-theme-primary), var(--dashboard-theme-accent));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--dashboard-theme-primary) 18%, transparent);
+}
+
+body[data-dashboard-page="parent"] .tool-item:hover {
+  background: color-mix(in srgb, var(--dashboard-theme-primary) 12%, var(--dashboard-surface) 88%);
+}
+
+body[data-dashboard-page="parent"] .btn-gradient {
+  background: linear-gradient(135deg, var(--dashboard-theme-primary), var(--dashboard-theme-accent));
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--dashboard-theme-primary) 28%, transparent);
+}
+
+body[data-dashboard-page="teacher"] .tdm-bg {
+  background:
+    radial-gradient(
+      980px 420px at 95% -14%,
+      color-mix(in srgb, var(--dashboard-theme-primary) 28%, transparent),
+      transparent 56%
+    ),
+    radial-gradient(
+      780px 340px at 0% -20%,
+      color-mix(in srgb, var(--dashboard-theme-accent) 25%, transparent),
+      transparent 54%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, #f6f9ff 84%, var(--dashboard-theme-primary) 16%),
+      color-mix(in srgb, #f8fcff 87%, var(--dashboard-theme-accent) 13%)
+    );
+}
+
+body[data-dashboard-page="teacher"] .tdm-hero,
+body[data-dashboard-page="teacher"] .tdm-panel,
+body[data-dashboard-page="teacher"] .tdm-class-card,
+body[data-dashboard-page="teacher"] .tdm-task,
+body[data-dashboard-page="teacher"] .tdm-mini,
+body[data-dashboard-page="teacher"] .tdm-compact-card {
+  border-color: var(--dashboard-border);
+  box-shadow: var(--dashboard-shadow-soft);
+}
+
+body[data-dashboard-page="teacher"] .chip,
+body[data-dashboard-page="teacher"] .btn-soft,
+body[data-dashboard-page="teacher"] .tdm-badge-tile {
+  border-color: color-mix(in srgb, var(--dashboard-theme-primary) 38%, #cbd5e1 62%);
+  color: color-mix(in srgb, var(--dashboard-theme-primary) 70%, #0f172a 30%);
+  background: color-mix(in srgb, var(--dashboard-theme-primary) 10%, #ffffff 90%);
+}
+
+body[data-dashboard-page="teacher"] .chip-accent {
+  border-color: color-mix(in srgb, var(--dashboard-theme-accent) 45%, #cbd5e1 55%);
+  color: color-mix(in srgb, var(--dashboard-theme-accent) 72%, #0f172a 28%);
+  background: color-mix(in srgb, var(--dashboard-theme-accent) 14%, #ffffff 86%);
+}
+
+body[data-dashboard-page="teacher"] .tdm-stat.purple {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--dashboard-theme-primary) 76%, #312e81 24%),
+    color-mix(in srgb, var(--dashboard-theme-accent) 48%, #4f46e5 52%)
+  );
+}
+
+body[data-dashboard-page="teacher"] .tdm-stat.blue {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--dashboard-theme-primary) 58%, #0ea5e9 42%),
+    color-mix(in srgb, var(--dashboard-theme-primary) 44%, #38bdf8 56%)
+  );
+}
+
+body[data-dashboard-page="teacher"] .tdm-stat.teal {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--dashboard-theme-accent) 72%, #14b8a6 28%),
+    color-mix(in srgb, var(--dashboard-theme-primary) 40%, #06b6d4 60%)
+  );
+}
+
+body[data-dashboard-page="teacher"] .tdm-stat.orange {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--dashboard-theme-warning) 74%, #f97316 26%),
+    color-mix(in srgb, var(--dashboard-theme-danger) 52%, #fb923c 48%)
+  );
+}
+
+body[data-dashboard-page="teacher"] .tdm-progress-fill {
+  background: linear-gradient(90deg, var(--dashboard-theme-primary), var(--dashboard-theme-accent));
+}
+
+body[data-dashboard-page="backend"] {
+  background:
+    radial-gradient(
+      1200px 430px at 95% -22%,
+      color-mix(in srgb, var(--dashboard-theme-primary) 30%, transparent),
+      transparent 58%
+    ),
+    radial-gradient(
+      960px 360px at 3% -18%,
+      color-mix(in srgb, var(--dashboard-theme-accent) 26%, transparent),
+      transparent 56%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, #f7faff 86%, var(--dashboard-theme-primary) 14%),
+      color-mix(in srgb, #f4fbff 88%, var(--dashboard-theme-accent) 12%)
+    );
+}
+
+body[data-dashboard-page="backend"] .backend-welcome-section {
+  background: linear-gradient(130deg, var(--dashboard-surface), var(--dashboard-surface-soft));
+  border: 1px solid var(--dashboard-border);
+  box-shadow: var(--dashboard-shadow);
+}
+
+body[data-dashboard-page="backend"] .backend-quick-action-btn {
+  border-width: 1px;
+  border-color: color-mix(in srgb, var(--dashboard-theme-primary) 45%, #94a3b8 55%);
+  color: color-mix(in srgb, var(--dashboard-theme-primary) 76%, #0f172a 24%);
+  background: color-mix(in srgb, var(--dashboard-theme-primary) 8%, #ffffff 92%);
+}
+
+body[data-dashboard-page="backend"] .backend-quick-action-btn:hover,
+body[data-dashboard-page="backend"] .backend-quick-action-btn:focus-visible {
+  color: #ffffff;
+  border-color: color-mix(in srgb, var(--dashboard-theme-primary) 72%, #0f172a 28%);
+  background: linear-gradient(135deg, var(--dashboard-theme-primary), var(--dashboard-theme-accent));
+  box-shadow: 0 10px 20px color-mix(in srgb, var(--dashboard-theme-primary) 30%, transparent);
+}
+
+body[data-dashboard-page="backend"] .backend-command-center-row {
+  margin-top: 0.5rem;
+}
+
+body[data-dashboard-page="backend"] .backend-command-sidebar .sidebar-sticky {
+  top: 88px;
+}
+
+@media (min-width: 1200px) {
+  body[data-dashboard-page="backend"] .backend-command-center-row {
+    align-items: stretch;
+  }
+
+  body[data-dashboard-page="backend"] .backend-command-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  body[data-dashboard-page="backend"] .backend-command-main #dashboard-layout {
+    flex: 1;
+  }
+}
+
+body.dashboard-preset-soft-glass[data-dashboard-page] {
+  --dashboard-surface: color-mix(in srgb, #ffffff 84%, var(--dashboard-theme-primary) 16%);
+  --dashboard-surface-soft: color-mix(in srgb, #ffffff 80%, var(--dashboard-theme-accent) 20%);
+}
+
+body.dashboard-preset-crisp-professional[data-dashboard-page] {
+  --dashboard-surface: #ffffff;
+  --dashboard-surface-soft: color-mix(in srgb, #ffffff 92%, var(--dashboard-theme-primary) 8%);
+  --dashboard-border: color-mix(in srgb, var(--dashboard-theme-primary) 16%, #cbd5e1 84%);
+}
+
+body.dashboard-preset-high-contrast[data-dashboard-page] {
+  --dashboard-surface: #111827;
+  --dashboard-surface-soft: #1f2937;
+  --dashboard-border: #60a5fa;
+  --dashboard-text-strong: #f8fafc;
+  --dashboard-text-muted: #d1d5db;
+}
+
+body.dashboard-preset-high-contrast[data-dashboard-page] .btn-outline-primary,
+body.dashboard-preset-high-contrast[data-dashboard-page] .backend-quick-action-btn {
+  color: #f8fafc;
+  border-color: #60a5fa;
+  background: rgba(30, 64, 175, 0.25);
+}
+
+.profile-shell { width: 100%; }
+
+.profile-shell .profile-header {
+  background: linear-gradient(
+    125deg,
+    color-mix(in srgb, var(--dashboard-theme-primary) 18%, #ffffff 82%),
+    color-mix(in srgb, var(--dashboard-theme-accent) 14%, #ffffff 86%)
+  );
+  border: 1px solid var(--dashboard-border);
+  border-radius: 18px;
+  box-shadow: var(--dashboard-shadow-soft);
+  padding: 1rem 1.1rem;
+}
+
+.profile-shell .card {
+  border-radius: 16px;
+  border: 1px solid var(--dashboard-border);
+  background: var(--dashboard-surface);
+  box-shadow: var(--dashboard-shadow-soft);
+}
+
+.profile-shell .profile-avatar-wrap {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--dashboard-theme-primary) 16%, #ffffff 84%);
+  color: color-mix(in srgb, var(--dashboard-theme-primary) 72%, #0f172a 28%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-shell .profile-chip {
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--dashboard-theme-primary) 32%, #cbd5e1 68%);
+  background: color-mix(in srgb, var(--dashboard-theme-primary) 10%, #ffffff 90%);
+  color: color-mix(in srgb, var(--dashboard-theme-primary) 72%, #0f172a 28%);
+}
+
+@media (max-width: 1199px) {
+  body[data-dashboard-page="parent"] .parent-sidebar-col .sidebar-sticky,
+  body[data-dashboard-page="backend"] .backend-command-sidebar .sidebar-sticky {
+    position: static;
+    top: auto;
+  }
+}
+
+@media (max-width: 991px) {
+  body[data-dashboard-page="teacher"] .tdm-main-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Compact density pass (all dashboards) ---------- */
+body[data-dashboard-page] #main-content {
+  padding-top: 0.7rem !important;
+  padding-bottom: 0.9rem !important;
+}
+
+body[data-dashboard-page] .container-fluid,
+body[data-dashboard-page] .container-lg {
+  max-width: none;
+  width: 100%;
+  padding-left: 0.72rem;
+  padding-right: 0.72rem;
+}
+
+body[data-dashboard-page] .card .card-body {
+  padding: 0.72rem 0.84rem;
+}
+
+body[data-dashboard-page] .row {
+  --bs-gutter-x: 0.82rem;
+  --bs-gutter-y: 0.82rem;
+}
+
+body[data-dashboard-page] .section-title,
+body[data-dashboard-page] .dashboard-section-title {
+  margin-bottom: 0.52rem !important;
+}
+
+/* Parent dashboard compact + balanced */
+body[data-dashboard-page="parent"] .parent-dashboard .container-lg {
+  padding-top: 0.72rem !important;
+  padding-bottom: 0.72rem !important;
+}
+
+body[data-dashboard-page="parent"] .parent-dashboard-header {
+  padding: 0.82rem 0.92rem;
+  margin-bottom: 0.72rem;
+}
+
+body[data-dashboard-page="parent"] .parent-workflow-strip {
+  margin-top: 0.62rem;
+  margin-bottom: 0.72rem;
+}
+
+body[data-dashboard-page="parent"] .parent-workflow-strip .card-body,
+body[data-dashboard-page="parent"] .child-card .card-body,
+body[data-dashboard-page="parent"] .parent-sidebar-card .card-body {
+  padding: 0.72rem 0.82rem;
+}
+
+body[data-dashboard-page="parent"] .parent-content-row {
+  --bs-gutter-x: 0.78rem;
+  --bs-gutter-y: 0.78rem;
+}
+
+body[data-dashboard-page="parent"] .portal-feed-scroll {
+  max-height: 286px;
+}
+
+/* Teacher dashboard compact + two-column command feel */
+body[data-dashboard-page="teacher"] .tdm-bg {
+  padding: 10px 0 18px;
+}
+
+body[data-dashboard-page="teacher"] .tdm-shell {
+  max-width: none;
+  width: 100%;
+}
+
+body[data-dashboard-page="teacher"] .tdm-hero {
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+
+body[data-dashboard-page="teacher"] .tdm-overview-grid,
+body[data-dashboard-page="teacher"] .tdm-main-grid {
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+body[data-dashboard-page="teacher"] .tdm-panel,
+body[data-dashboard-page="teacher"] .tdm-class-card {
+  padding: 11px;
+}
+
+body[data-dashboard-page="teacher"] .tdm-task {
+  padding: 8px 10px;
+}
+
+/* Backend command center compact + reduced empty areas */
+body[data-dashboard-page="backend"] .container-fluid {
+  max-width: none;
+  width: 100%;
+}
+
+body[data-dashboard-page="backend"] .backend-welcome-section {
+  padding: 0.78rem 0.92rem 0.84rem;
+  margin-bottom: 0.62rem;
+}
+
+body[data-dashboard-page="backend"] .backend-welcome-action-row {
+  gap: 0.42rem !important;
+}
+
+body[data-dashboard-page="backend"] .backend-quick-actions-card .card-body,
+body[data-dashboard-page="backend"] .backend-kpi-card .card-body,
+body[data-dashboard-page="backend"] #dashboard-layout .card-body,
+body[data-dashboard-page="backend"] .backend-right-sidebar .card-body {
+  padding: 0.66rem 0.78rem !important;
+}
+
+body[data-dashboard-page="backend"] .backend-quick-actions-grid {
+  gap: 0.3rem;
+}
+
+body[data-dashboard-page="backend"] .backend-command-center-row {
+  margin-top: 0.36rem;
+}
+
+body[data-dashboard-page="backend"] #dashboard-layout > .row {
+  --bs-gutter-x: 0.72rem;
+  --bs-gutter-y: 0.72rem;
+}
+
+body[data-dashboard-page="backend"] .backend-command-sidebar .sidebar-sticky {
+  top: 84px;
+}
+
+/* Mobile compact */
+@media (max-width: 767px) {
+  body[data-dashboard-page] .container-fluid,
+  body[data-dashboard-page] .container-lg {
+    padding-left: 0.62rem;
+    padding-right: 0.62rem;
+  }
+
+  body[data-dashboard-page] .card .card-body {
+    padding: 0.66rem 0.72rem;
+  }
+
+  body[data-dashboard-page="parent"] .parent-dashboard-header {
+    padding: 0.72rem 0.78rem;
+  }
+
+  body[data-dashboard-page="teacher"] .tdm-hero {
+    padding: 10px 11px;
+  }
+
+  body[data-dashboard-page="backend"] .backend-welcome-section {
+    padding: 0.7rem 0.78rem 0.76rem;
+  }
+}
+
+/* ---------- Fallback + final compact polish ---------- */
+html[data-dashboard-page] body,
+body.dashboard-page-parent,
+body.dashboard-page-teacher,
+body.dashboard-page-backend {
+  background:
+    radial-gradient(1150px 460px at 96% -24%, var(--dashboard-glow-a), transparent 58%),
+    radial-gradient(980px 420px at 2% -20%, var(--dashboard-glow-b), transparent 55%),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, #f8fbff 86%, var(--dashboard-theme-primary) 14%),
+      color-mix(in srgb, #f6fbff 88%, var(--dashboard-theme-accent) 12%)
+    );
+}
+
+html[data-dashboard-page] body .card,
+body.dashboard-page-parent .card,
+body.dashboard-page-teacher .card,
+body.dashboard-page-backend .card {
+  border-color: var(--dashboard-border);
+}
+
+html[data-dashboard-page] body.dashboard-preset-soft-glass,
+body.dashboard-preset-soft-glass.dashboard-page-parent,
+body.dashboard-preset-soft-glass.dashboard-page-teacher,
+body.dashboard-preset-soft-glass.dashboard-page-backend {
+  --dashboard-surface: color-mix(in srgb, #ffffff 84%, var(--dashboard-theme-primary) 16%);
+  --dashboard-surface-soft: color-mix(in srgb, #ffffff 80%, var(--dashboard-theme-accent) 20%);
+}
+
+html[data-dashboard-page] body.dashboard-preset-crisp-professional,
+body.dashboard-preset-crisp-professional.dashboard-page-parent,
+body.dashboard-preset-crisp-professional.dashboard-page-teacher,
+body.dashboard-preset-crisp-professional.dashboard-page-backend {
+  --dashboard-surface: #ffffff;
+  --dashboard-surface-soft: color-mix(in srgb, #ffffff 92%, var(--dashboard-theme-primary) 8%);
+  --dashboard-border: color-mix(in srgb, var(--dashboard-theme-primary) 16%, #cbd5e1 84%);
+}
+
+html[data-dashboard-page] body.dashboard-preset-high-contrast,
+body.dashboard-preset-high-contrast.dashboard-page-parent,
+body.dashboard-preset-high-contrast.dashboard-page-teacher,
+body.dashboard-preset-high-contrast.dashboard-page-backend {
+  --dashboard-surface: #111827;
+  --dashboard-surface-soft: #1f2937;
+  --dashboard-border: #60a5fa;
+  --dashboard-text-strong: #f8fafc;
+  --dashboard-text-muted: #d1d5db;
+}
+
+html[data-dashboard-page="parent"] body .parent-dashboard,
+body.dashboard-page-parent .parent-dashboard {
+  min-height: auto;
+}
+
+html[data-dashboard-page="parent"] body .parent-glance-grid,
+body.dashboard-page-parent .parent-glance-grid {
+  gap: 0.65rem;
+}
+
+html[data-dashboard-page="parent"] body .parent-glance-card,
+body.dashboard-page-parent .parent-glance-card {
+  min-height: 86px;
+  padding: 0.62rem 0.72rem;
+}
+
+html[data-dashboard-page="parent"] body .parent-children-grid,
+body.dashboard-page-parent .parent-children-grid {
+  row-gap: 0.7rem;
+}
+
+html[data-dashboard-page="parent"] body .child-card .card-body,
+body.dashboard-page-parent .child-card .card-body {
+  padding: 0.68rem 0.76rem;
+}
+
+html[data-dashboard-page="parent"] body .parent-sidebar-cards,
+body.dashboard-page-parent .parent-sidebar-cards {
+  display: grid;
+  gap: 0.55rem;
+}
+
+html[data-dashboard-page="parent"] body .parent-sidebar-card,
+body.dashboard-page-parent .parent-sidebar-card {
+  margin-bottom: 0 !important;
+}
+
+html[data-dashboard-page="parent"] body .portal-feed-scroll,
+body.dashboard-page-parent .portal-feed-scroll {
+  max-height: 260px;
+}
+
+html[data-dashboard-page="teacher"] body .tdm-main-grid,
+body.dashboard-page-teacher .tdm-main-grid {
+  gap: 0.6rem;
+}
+
+@media (min-width: 1200px) {
+  html[data-dashboard-page="teacher"] body .tdm-main-grid,
+  body.dashboard-page-teacher .tdm-main-grid {
+    grid-template-columns: minmax(0, 1.75fr) minmax(310px, 1fr);
+  }
+}
+
+html[data-dashboard-page="teacher"] body .tdm-task-list,
+body.dashboard-page-teacher .tdm-task-list {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+html[data-dashboard-page="teacher"] body .tdm-panel-head h3,
+body.dashboard-page-teacher .tdm-panel-head h3 {
+  line-height: 1.2;
+}
+
+html[data-dashboard-page="backend"] body .backend-command-center-row,
+body.dashboard-page-backend .backend-command-center-row {
+  --bs-gutter-x: 0.66rem;
+  --bs-gutter-y: 0.66rem;
+}
+
+html[data-dashboard-page="backend"] body .backend-command-main #dashboard-layout > .row.mb-4,
+body.dashboard-page-backend .backend-command-main #dashboard-layout > .row.mb-4 {
+  margin-bottom: 0.55rem !important;
+}
+
+html[data-dashboard-page="backend"] body .backend-right-sidebar .card,
+body.dashboard-page-backend .backend-right-sidebar .card {
+  margin-bottom: 0.5rem;
+}
+
+html[data-dashboard-page="backend"] body .backend-right-sidebar .card:last-child,
+body.dashboard-page-backend .backend-right-sidebar .card:last-child {
+  margin-bottom: 0;
+}
+
+html[data-dashboard-page="backend"] body .backend-quick-actions-grid,
+body.dashboard-page-backend .backend-quick-actions-grid {
+  gap: 0.26rem;
+}

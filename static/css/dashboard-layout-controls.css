@@ -1,0 +1,342 @@
+/* Dashboard drag/drop widget controls + size/variant styling.
+   Kept lightweight: works with existing Bootstrap cards/tiles without changing HTML. */
+
+[data-widget-id].dash-widget,
+[data-widget-id] {
+  position: relative;
+  overflow: visible;
+}
+
+[data-widget-id] .card {
+  overflow: visible;
+}
+
+/* Backend dashboard: contain widget internals to prevent chart/list spill */
+body[data-dashboard-page="backend"] [data-widget-id].dash-widget,
+body[data-dashboard-page="backend"] [data-widget-id],
+body[data-dashboard-page="backend"] [data-widget-id] .card {
+  overflow: hidden;
+}
+
+/* Keep editor menus usable while layout customization is active */
+#dashboard-layout.drag-mode [data-widget-id],
+#dashboard-layout.drag-mode [data-widget-id] .card {
+  overflow: visible;
+}
+
+/* data-dashboard-column is for layout script only - do NOT change display/flex of elements.
+   Let Bootstrap row/col handle the grid. */
+
+/* main/secondary width rules ONLY for dashboard-layout-sidebar (explicit 2-col layout). */
+#dashboard-layout.dashboard-layout-sidebar > [data-dashboard-column="main"] {
+  flex: 1;
+  min-width: 0;
+}
+#dashboard-layout.dashboard-layout-sidebar > [data-dashboard-column="secondary"] {
+  flex: 0 0 auto;
+  width: 100%;
+}
+@media (min-width: 768px) {
+  #dashboard-layout.dashboard-layout-sidebar > [data-dashboard-column="secondary"] {
+    width: 320px;
+  }
+}
+
+@media (min-width: 992px) {
+  #dashboard-layout.dashboard-layout-sidebar {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  #dashboard-layout.dashboard-layout-sidebar > [data-dashboard-column="main"] { flex: 1; }
+  #dashboard-layout.dashboard-layout-sidebar > [data-dashboard-column="secondary"] {
+    flex: 0 0 320px;
+    position: sticky;
+    top: 20px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+  }
+}
+
+/* Consistent card styling across dashboards */
+[data-widget-id] .card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+[data-widget-id] .card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* Backend grid uses deterministic row heights; avoid hover lift-induced overlap there. */
+body[data-dashboard-page="backend"] [data-widget-id] .card:hover {
+  transform: none;
+}
+
+
+/* Size presets: tune density without breaking the underlying layout grid. */
+[data-widget-id][data-widget-size="sm"] {
+  font-size: 0.92rem;
+}
+[data-widget-id][data-widget-size="sm"] .card-body {
+  padding: 0.75rem !important;
+}
+[data-widget-id][data-widget-size="sm"] .card-header {
+  padding: 0.6rem 0.75rem !important;
+}
+
+[data-widget-id][data-widget-size="md"] .card-body {
+  padding: 1rem;
+}
+
+[data-widget-id][data-widget-size="lg"] {
+  font-size: 1.02rem;
+}
+[data-widget-id][data-widget-size="lg"] .card-body {
+  padding: 1.25rem !important;
+}
+[data-widget-id][data-widget-size="lg"] .card-header {
+  padding: 1rem 1.25rem !important;
+}
+
+/* Variants */
+[data-widget-id][data-widget-variant="flat"] {
+  box-shadow: none !important;
+  border-color: rgba(148, 163, 184, 0.22) !important;
+  background: rgba(255, 255, 255, 0.02) !important;
+}
+
+[data-widget-id][data-widget-variant="compact"] .card-body {
+  padding-top: 0.7rem !important;
+  padding-bottom: 0.7rem !important;
+}
+
+.dash-widget-controls {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 5;
+  display: none;
+}
+
+.dash-widget-gear {
+  appearance: none;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(2, 6, 23, 0.55);
+  color: rgba(226, 232, 240, 0.92);
+  border-radius: 999px;
+  width: 2.15rem;
+  height: 2.15rem;
+  line-height: 2rem;
+  font-size: 1.25rem;
+  padding: 0;
+  cursor: pointer;
+}
+
+html[data-theme="light"] .dash-widget-gear {
+  background: rgba(255, 255, 255, 0.9);
+  color: rgba(15, 23, 42, 0.92);
+}
+
+.dash-widget-menu {
+  position: absolute;
+  top: 2.5rem;
+  right: 0;
+  min-width: 180px;
+  padding: 0.6rem 0.7rem;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(2, 6, 23, 0.88);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+
+.dash-widget-menu[aria-hidden="true"] {
+  display: none;
+}
+
+html[data-theme="light"] .dash-widget-menu {
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.dash-widget-row {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.dash-widget-row:last-child {
+  margin-bottom: 0;
+}
+
+.dash-widget-row label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(148, 163, 184, 0.9);
+}
+
+html[data-theme="light"] .dash-widget-row label {
+  color: rgba(71, 85, 105, 0.9);
+}
+
+.dash-widget-row select {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(15, 23, 42, 0.7);
+  color: rgba(226, 232, 240, 0.95);
+  padding: 0.35rem 0.5rem;
+  font-size: 0.9rem;
+}
+
+html[data-theme="light"] .dash-widget-row select {
+  background: rgba(255, 255, 255, 1);
+  color: rgba(15, 23, 42, 0.95);
+}
+
+/* Drag-and-drop visual feedback (cursor on grip only) */
+#dashboard-layout.drag-mode [data-widget-id] {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#dashboard-layout.drag-mode [data-widget-id]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.sortable-ghost {
+  opacity: 0.4;
+  background: rgba(102, 126, 234, 0.1) !important;
+  border: 2px dashed rgba(102, 126, 234, 0.5) !important;
+}
+
+.sortable-chosen {
+  cursor: grabbing !important;
+  transform: scale(1.02);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2) !important;
+  z-index: 1000;
+}
+
+.sortable-drag {
+  opacity: 0.8;
+}
+
+/* Grip: only drag handle in edit mode */
+.dashboard-widget-grip {
+  position: absolute;
+  left: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1.75rem;
+  height: 2rem;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  color: rgba(148, 163, 184, 0.7);
+  border-radius: 6px;
+  z-index: 4;
+  user-select: none;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.dashboard-widget-grip:hover {
+  color: var(--bs-primary, #0d6efd);
+  background: rgba(102, 126, 234, 0.08);
+}
+.dashboard-widget-grip:active {
+  cursor: grabbing;
+}
+.dashboard-widget-grip-dots {
+  font-size: 1rem;
+  letter-spacing: -0.2em;
+  line-height: 1;
+}
+#dashboard-layout:not(.drag-mode) .dashboard-widget-grip {
+  display: none;
+}
+#dashboard-layout.drag-mode [data-widget-id] {
+  cursor: default;
+}
+#dashboard-layout.drag-mode [data-widget-id] .dash-widget-controls {
+  display: block;
+}
+#dashboard-layout.drag-mode [data-widget-id] .dashboard-widget-grip {
+  display: flex;
+}
+
+/* Toast for save feedback */
+#dashboard-layout-toast {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.dashboard-layout-toast-item {
+  animation: dashboard-toast-in 0.2s ease;
+}
+@keyframes dashboard-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile: up/down reorder buttons (alternative to drag on touch) */
+.dash-widget-move-btn {
+  padding: 0.15rem 0.3rem;
+  font-size: 0.85rem;
+  min-width: 1.5rem;
+  border: 1px solid rgba(0,0,0,0.1);
+  background: rgba(255,255,255,0.9);
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--bs-primary, #0d6efd);
+}
+.dash-widget-move-btn:hover {
+  background: rgba(102, 126, 234, 0.1);
+}
+#dashboard-layout.drag-mode .dashboard-widget-grip {
+  flex-wrap: wrap;
+  gap: 0.2rem;
+  width: auto;
+  min-width: 1.75rem;
+}
+#dashboard-layout.drag-mode .dash-widget-move-btn.d-block {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+}
+@media (min-width: 768px) {
+  .dash-widget-move-btn.d-block.d-md-none {
+    display: none !important;
+  }
+}
+
+/* Mobile touch support */
+@media (max-width: 768px) {
+  #dashboard-layout.drag-mode [data-widget-id] {
+    touch-action: none;
+  }
+  
+  .dash-widget-controls {
+    top: 0.25rem;
+    right: 0.25rem;
+  }
+  
+  .dash-widget-gear {
+    width: 1.8rem;
+    height: 1.8rem;
+    line-height: 1.6rem;
+    font-size: 1.1rem;
+  }
+  
+}
+
+/* Instructions bar (shown in edit mode via JS) */
+#dashboard-customize-instructions.d-none {
+  display: none !important;
+}

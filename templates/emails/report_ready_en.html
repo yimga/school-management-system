@@ -1,0 +1,27 @@
+{% extends "emails/base_branded.html" %}
+{% comment %}English email template for report card ready notification. Uses base_branded for school logo/colors.{% endcomment %}
+{% load i18n %}
+
+{% block email_header_subtitle %}<p style="margin: 8px 0 0; opacity: 0.9;">Report Card Notification</p>{% endblock %}
+
+{% block email_content %}
+<p>Dear {{ parent_name }},</p>
+
+<p>The report card for <strong>{{ student_name }}</strong> for {{ academic_year }} {{ term_name }} is now available.</p>
+
+<h3>Report Details:</h3>
+<ul>
+    <li><strong>Student:</strong> {{ student_name }}</li>
+    <li><strong>Class:</strong> {{ class_name }}</li>
+    <li><strong>Academic Year:</strong> {{ academic_year }}</li>
+    <li><strong>Term:</strong> {{ term_name }}</li>
+    <li><strong>Average Score:</strong> {{ average_score }}</li>
+    <li><strong>Class Rank:</strong> {{ class_rank }}</li>
+</ul>
+
+<p>You can view and download the complete report card by clicking the button below:</p>
+
+<p style="text-align: center;">
+    <a href="{{ report_url }}" class="button" style="background-color: {{ primary_color|default:'#0d6efd' }};">View Report Card</a>
+</p>
+{% endblock %}

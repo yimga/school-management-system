@@ -1,0 +1,808 @@
+{% load static %}
+{# AI Copilot Assistant - RBAC Compatible #}
+<div class="ai-copilot-wrapper" style="position:fixed;right:16px;bottom:16px;left:auto!important;z-index:9999!important;pointer-events:auto;">
+  <!-- Floating AI Button -->
+  <button 
+    class="btn ai-copilot-trigger" 
+    id="aiCopilotTrigger" 
+    type="button"
+    aria-label="Open AI Copilot Assistant (Ctrl/Cmd+Shift+?)"
+    title="AI Copilot Assistant (Ctrl/Cmd+Shift+?)"
+    aria-haspopup="dialog"
+    aria-expanded="false">
+    <i class="bi bi-stars"></i>
+    <span class="pulse-ring"></span>
+  </button>
+  <span class="ai-shortcut-hint" aria-hidden="true">Ctrl/Cmd+Shift+?</span>
+
+  <!-- AI Copilot Chat Panel -->
+  <div class="ai-copilot-panel" id="aiCopilotPanel">
+    <div class="ai-copilot-header">
+      <div class="d-flex align-items-center gap-2">
+        <div class="ai-avatar">
+          <i class="bi bi-robot"></i>
+        </div>
+        <div>
+          <h5 class="mb-0 fw-bold">AI Copilot</h5>
+          <small class="text-muted">
+            {% if request.user.role == 'ADMIN' or request.user.role == 'LEADERSHIP' %}
+              Admin Assistant
+            {% elif request.user.role == 'TEACHER' %}
+              Teacher Assistant
+            {% elif request.user.role == 'PARENT' %}
+              Parent Assistant
+            {% else %}
+              Your AI Assistant
+            {% endif %}
+          </small>
+        </div>
+      </div>
+      <button type="button" class="btn btn-sm btn-link text-white" id="aiCopilotClose">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <div class="ai-copilot-body" id="aiCopilotBody">
+      <!-- Welcome Message -->
+      <div class="ai-message">
+        <div class="ai-message-avatar">
+          <i class="bi bi-robot"></i>
+        </div>
+        <div class="ai-message-content">
+          <p class="mb-2">👋 Hello {{ request.user.first_name|default:request.user.username }}!</p>
+          <p class="mb-0">I'm your AI assistant. I can help you with:</p>
+          <ul class="mt-2 mb-0 small">
+            {% if request.user.role == 'ADMIN' or request.user.role == 'LEADERSHIP' %}
+              <li>System analytics and reports</li>
+              <li>User management queries</li>
+              <li>Financial summaries</li>
+              <li>Compliance and audit tasks</li>
+            {% elif request.user.role == 'TEACHER' %}
+              <li>Grade entry and calculations</li>
+              <li>Class roster information</li>
+              <li>Attendance tracking</li>
+              <li>Student performance insights</li>
+            {% elif request.user.role == 'PARENT' %}
+              <li>Student progress updates</li>
+              <li>Fee payment status</li>
+              <li>Communication with teachers</li>
+              <li>Event schedules</li>
+            {% else %}
+              <li>General system navigation</li>
+              <li>Common tasks and shortcuts</li>
+              <li>Documentation and help</li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="ai-quick-actions" id="aiQuickActions">
+      <div class="small text-muted mb-2 px-3">Quick Actions:</div>
+      <div class="d-flex flex-wrap gap-2 px-3 pb-2" id="aiQuickActionsContainer">
+        <div class="ai-dashboard-actions d-none w-100 mb-2" id="aiDashboardActions">
+          <span class="small text-muted d-block mb-1">Dashboard:</span>
+          <button class="btn btn-sm btn-outline-secondary ai-dashboard-btn" id="aiBtnAddWidget" type="button" title="Open Add widget palette">
+            <i class="bi bi-plus-square"></i> Add widget
+          </button>
+          <button class="btn btn-sm btn-outline-secondary ai-dashboard-btn" id="aiBtnCustomizeLayout" type="button" title="Enter layout customize mode">
+            <i class="bi bi-grid-3x3-gap"></i> Customize layout
+          </button>
+        </div>
+        {% if request.user.role == 'ADMIN' or request.user.role == 'LEADERSHIP' %}
+          <button type="button" class="btn btn-sm btn-outline-primary ai-quick-btn" data-prompt="Show me today's attendance summary">
+            <i class="bi bi-calendar-check"></i> Today's Attendance
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-success ai-quick-btn" data-prompt="What are the overdue invoices?">
+            <i class="bi bi-cash-stack"></i> Overdue Invoices
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-info ai-quick-btn" data-prompt="Show recent user activities">
+            <i class="bi bi-activity"></i> Recent Activities
+          </button>
+        {% elif request.user.role == 'TEACHER' %}
+          <button type="button" class="btn btn-sm btn-outline-primary ai-quick-btn" data-prompt="Show my today's classes">
+            <i class="bi bi-calendar3"></i> Today's Classes
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-success ai-quick-btn" data-prompt="Students pending grades">
+            <i class="bi bi-journal-text"></i> Pending Grades
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-info ai-quick-btn" data-prompt="Attendance summary this week">
+            <i class="bi bi-clipboard-check"></i> Attendance
+          </button>
+        {% elif request.user.role == 'PARENT' %}
+          <button type="button" class="btn btn-sm btn-outline-primary ai-quick-btn" data-prompt="Show my child's recent grades">
+            <i class="bi bi-graph-up"></i> Recent Grades
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-success ai-quick-btn" data-prompt="Check fee payment status">
+            <i class="bi bi-wallet2"></i> Fee Status
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-info ai-quick-btn" data-prompt="Upcoming parent-teacher meetings">
+            <i class="bi bi-calendar-event"></i> Meetings
+          </button>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="ai-copilot-footer">
+      <div class="ai-input-wrapper">
+        <textarea 
+          class="form-control ai-input" 
+          id="aiCopilotInput" 
+          rows="2" 
+          placeholder="Ask me anything..."
+          maxlength="500"></textarea>
+        <button type="button" class="btn btn-primary ai-send-btn" id="aiCopilotSend" disabled>
+          <i class="bi bi-send-fill"></i>
+        </button>
+      </div>
+      <div class="small text-muted text-center mt-2">
+        <i class="bi bi-shield-check"></i> Secure • RBAC Protected • Context-Aware
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .ai-copilot-wrapper {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    bottom: max(16px, env(safe-area-inset-bottom));
+    right: max(16px, env(safe-area-inset-right));
+    left: auto !important;
+    right: max(16px, env(safe-area-inset-right)) !important;
+    z-index: 9999 !important;
+    pointer-events: auto;
+  }
+
+  /* Ensure Copilot is never overlapped by other fixed elements */
+  body > .ai-copilot-wrapper, html > .ai-copilot-wrapper {
+    z-index: 9999 !important;
+  }
+
+  .ai-copilot-trigger {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    border: none;
+    color: white;
+    font-size: 24px;
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 0.3s ease;
+    outline: none;
+  }
+
+  .ai-shortcut-hint {
+    position: absolute;
+    right: 0;
+    bottom: 70px;
+    transform: translateX(10%);
+    background: rgba(15, 23, 42, 0.85);
+    color: #fff;
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.18);
+    white-space: nowrap;
+    pointer-events: none;
+    display: none;
+    opacity: 0;
+  }
+
+  @media (max-width: 576px) {
+    .ai-shortcut-hint {
+      display: none !important;
+    }
+  }
+
+  .ai-copilot-trigger:hover {
+    transform: scale(1.1);
+    box-shadow: 0 12px 32px rgba(99, 102, 241, 0.6);
+  }
+
+  .ai-copilot-trigger:focus-visible {
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.45);
+    transform: scale(1.02);
+  }
+
+  .ai-copilot-trigger .pulse-ring {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: 3px solid #6366f1;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+    opacity: 0.6;
+  }
+
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+      opacity: 0.6;
+    }
+    50% {
+      transform: scale(1.3);
+      opacity: 0;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 0;
+    }
+  }
+
+  .ai-copilot-panel {
+    position: fixed;
+    bottom: 100px;
+    right: 24px;
+    left: auto !important;
+    right: 24px !important;
+    width: 420px;
+    max-width: calc(100vw - 48px);
+    height: 600px;
+    max-height: calc(100vh - 140px);
+    background: var(--admin-content-bg);
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    animation: slideUp 0.3s ease;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .ai-copilot-panel.active {
+    display: flex;
+  }
+
+  .ai-copilot-header {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .ai-avatar {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+
+  .ai-copilot-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    background: #f8f9fa;
+    scroll-behavior: smooth;
+  }
+
+  .ai-message {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 1rem;
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .ai-message-avatar {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .ai-message-content {
+    background: var(--admin-content-bg);
+    border-radius: 12px;
+    padding: 12px 16px;
+    flex: 1;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    color: #111827;
+    line-height: 1.45;
+  }
+
+  .ai-message-content p {
+    margin: 0;
+    color: inherit;
+  }
+
+  .user-message {
+    flex-direction: row-reverse;
+  }
+
+  .user-message .ai-message-avatar {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  }
+
+  .user-message .ai-message-content {
+    background: #e3f2fd;
+    color: #0f172a;
+  }
+
+  .ai-quick-actions {
+    border-top: 1px solid #e9ecef;
+    padding: 12px 0;
+  }
+
+  .ai-quick-btn {
+    font-size: 0.75rem;
+    padding: 4px 12px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+
+  .ai-copilot-footer {
+    border-top: 1px solid #e9ecef;
+    padding: 1rem;
+    background: var(--admin-content-bg);
+  }
+
+  .ai-input-wrapper {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+  }
+
+  .ai-input {
+    flex: 1;
+    border-radius: 12px;
+    resize: none;
+    border: 2px solid #e9ecef;
+    transition: border-color 0.2s ease;
+  }
+
+  .ai-input:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.15);
+  }
+
+  .ai-send-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    border: none;
+    transition: all 0.2s ease;
+    outline: none;
+  }
+
+  .ai-send-btn:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+  }
+
+  .ai-send-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .ai-send-btn:focus-visible {
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.35);
+  }
+
+  /* Loading animation */
+  .ai-loading {
+    display: flex;
+    gap: 4px;
+    padding: 8px 0;
+  }
+
+  .ai-loading span {
+    width: 8px;
+    height: 8px;
+    background: #6366f1;
+    border-radius: 50%;
+    animation: bounce 1.4s infinite ease-in-out both;
+  }
+
+  .ai-loading span:nth-child(1) {
+    animation-delay: -0.32s;
+  }
+
+  .ai-loading span:nth-child(2) {
+    animation-delay: -0.16s;
+  }
+
+  @keyframes bounce {
+    0%, 80%, 100% {
+      transform: scale(0);
+    }
+    40% {
+      transform: scale(1);
+    }
+  }
+
+  /* Mobile Responsive */
+  @media (max-width: 576px) {
+    .ai-copilot-panel {
+      right: 12px;
+      bottom: 90px;
+      left: auto !important;
+      right: 12px !important;
+      width: calc(100vw - 24px);
+    }
+
+    .ai-copilot-trigger {
+      width: 56px;
+      height: 56px;
+      font-size: 22px;
+    }
+  }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const wrappers = document.querySelectorAll('.ai-copilot-wrapper');
+  if (!wrappers.length) return;
+
+  const GEMINI_API_KEY = '{{ GEMINI_API_KEY|default:"" }}';
+  const USE_AI_BACKEND = GEMINI_API_KEY !== '';
+  const AI_PERMISSIONS = {{ AI_PERMISSIONS|default:"{}"|safe }};
+  const USER_ROLE = '{{ USER_ROLE|default:"USER" }}';
+  const CSRF_TOKEN = '{{ csrf_token }}';
+
+  function forceCopilotPosition(wrapper) {
+    const isSmall = window.matchMedia && window.matchMedia('(max-width: 576px)').matches;
+    const right = isSmall ? '12px' : '16px';
+    const bottom = isSmall ? '12px' : '16px';
+    wrapper.style.position = 'fixed';
+    wrapper.style.right = right;
+    wrapper.style.left = 'auto';
+    wrapper.style.bottom = bottom;
+    wrapper.style.zIndex = '9999';
+  }
+
+  function forcePanelPosition(panel) {
+    const isSmall = window.matchMedia && window.matchMedia('(max-width: 576px)').matches;
+    panel.style.right = isSmall ? '12px' : '24px';
+    panel.style.left = 'auto';
+  }
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  const csrfTokenEffective = (CSRF_TOKEN && CSRF_TOKEN !== 'NOTPROVIDED') ? CSRF_TOKEN : getCookie('csrftoken');
+
+  function buildContextualPrompt(userMessage) {
+    const userRole = USER_ROLE;
+    const userName = '{{ request.user.first_name|default:request.user.username }}';
+    let context = `You are an AI assistant for a school management system. `;
+
+    if (userRole === 'ADMIN' || userRole === 'LEADERSHIP') {
+      context += `The user is an administrator named ${userName}. Help them with system analytics, user management, financial summaries, compliance tasks, and administrative operations. `;
+    } else if (userRole === 'TEACHER') {
+      context += `The user is a teacher named ${userName}. Help them with grade entry, class roster information, attendance tracking, student performance insights, and lesson planning. `;
+    } else if (userRole === 'PARENT') {
+      context += `The user is a parent named ${userName}. Help them understand their child's progress, fee payment status, communication with teachers, and school events. Keep all responses focused on their child's information only. `;
+    } else {
+      context += `The user is ${userName}. Help them with general school system navigation and common tasks. `;
+    }
+
+    context += `Keep responses concise (2-3 sentences max), helpful, and professional. 
+    IMPORTANT: Only provide information the user has access to. For queries outside their scope, say you cannot help.
+    User question: ${userMessage}`;
+
+    return context;
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  wrappers.forEach((wrapper) => {
+    forceCopilotPosition(wrapper);
+    const trigger = wrapper.querySelector('#aiCopilotTrigger');
+    const panel = wrapper.querySelector('#aiCopilotPanel');
+    const closeBtn = wrapper.querySelector('#aiCopilotClose');
+    const input = wrapper.querySelector('#aiCopilotInput');
+    const sendBtn = wrapper.querySelector('#aiCopilotSend');
+    const body = wrapper.querySelector('#aiCopilotBody');
+    const quickBtns = wrapper.querySelectorAll('.ai-quick-btn');
+    const shortcutHint = wrapper.querySelector('.ai-shortcut-hint');
+
+    if (panel) {
+      forcePanelPosition(panel);
+    }
+
+    const dashboardPage = document.body.dataset.dashboardPage || '';
+    const dashboardActions = wrapper.querySelector('#aiDashboardActions');
+    if (dashboardActions && (dashboardPage === 'backend' || dashboardPage === 'teacher' || dashboardPage === 'parent')) {
+      dashboardActions.classList.remove('d-none');
+      const addWidgetBtn = wrapper.querySelector('#aiBtnAddWidget');
+      const customizeBtn = wrapper.querySelector('#aiBtnCustomizeLayout');
+      if (addWidgetBtn) {
+        addWidgetBtn.addEventListener('click', function() {
+          document.getElementById('btnAddWidget')?.click();
+        });
+      }
+      if (customizeBtn) {
+        customizeBtn.addEventListener('click', function() {
+          document.getElementById('btnCustomizeLayout')?.click();
+        });
+      }
+    }
+
+    if (!trigger || !panel || !closeBtn || !input || !sendBtn || !body) {
+      return;
+    }
+
+    trigger.addEventListener('click', function() {
+      panel.classList.toggle('active');
+      const isOpen = panel.classList.contains('active');
+      trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      if (isOpen) {
+        if (!AI_PERMISSIONS.can_access_ai) {
+          const infoMsg = document.createElement('div');
+          infoMsg.className = 'ai-message';
+          infoMsg.innerHTML = `
+            <div class="ai-message-avatar">
+              <i class="bi bi-robot"></i>
+            </div>
+            <div class="ai-message-content">
+              <p class="mb-0">
+                <i class="bi bi-info-circle"></i>
+                AI Copilot is visible on all pages but your account currently has limited access.
+              </p>
+            </div>
+          `;
+          body.appendChild(infoMsg);
+        }
+        input.focus();
+      }
+    });
+
+    closeBtn.addEventListener('click', function() {
+      panel.classList.remove('active');
+    });
+
+    input.addEventListener('input', function() {
+      sendBtn.disabled = !this.value.trim();
+    });
+
+    async function sendMessage(message) {
+      if (!message.trim()) return;
+
+      const userMsg = document.createElement('div');
+      userMsg.className = 'ai-message user-message';
+      userMsg.innerHTML = `
+        <div class="ai-message-avatar">
+          <i class="bi bi-person"></i>
+        </div>
+        <div class="ai-message-content">
+          <p class="mb-0">${escapeHtml(message)}</p>
+        </div>
+      `;
+      body.appendChild(userMsg);
+
+      const loadingMsg = document.createElement('div');
+      loadingMsg.className = 'ai-message';
+      loadingMsg.innerHTML = `
+        <div class="ai-message-avatar">
+          <i class="bi bi-robot"></i>
+        </div>
+        <div class="ai-message-content">
+          <div class="ai-loading">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+      `;
+      body.appendChild(loadingMsg);
+      body.scrollTop = body.scrollHeight;
+
+      input.value = '';
+      sendBtn.disabled = true;
+
+      try {
+        const resp = await fetch('/api/ai-copilot/validate/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfTokenEffective,
+          },
+          body: JSON.stringify({
+            query: message
+          })
+        });
+        let result = null;
+        try {
+          result = await resp.json();
+        } catch (error) {
+          result = null;
+        }
+
+        if (!resp.ok || !result || !result.success) {
+          const errText = (result && result.error) || 'An error occurred processing your request.';
+          const isDenied = resp.status === 403 || resp.status === 429;
+          loadingMsg.remove();
+          const errorMsg = document.createElement('div');
+          errorMsg.className = 'ai-message';
+          errorMsg.innerHTML = `
+            <div class="ai-message-avatar">
+              <i class="bi bi-robot"></i>
+            </div>
+            <div class="ai-message-content">
+              <p class="mb-0 text-danger">
+                <i class="bi ${isDenied ? 'bi-lock' : 'bi-exclamation-triangle'}"></i>
+                <strong>${isDenied ? 'Access Denied' : 'Error'}:</strong> ${errText}
+              </p>
+            </div>
+          `;
+          body.appendChild(errorMsg);
+          body.scrollTop = body.scrollHeight;
+          return;
+        }
+
+        const responseText = result.response || 'I captured your request and validated your access. Please try again in a moment.';
+        const safeResponse = escapeHtml(responseText).replace(/\n/g, '<br>');
+
+        loadingMsg.remove();
+        const aiMsg = document.createElement('div');
+        aiMsg.className = 'ai-message';
+        aiMsg.innerHTML = `
+          <div class="ai-message-avatar">
+            <i class="bi bi-robot"></i>
+          </div>
+          <div class="ai-message-content">
+            <p class="mb-0">${safeResponse}</p>
+          </div>
+        `;
+        body.appendChild(aiMsg);
+        body.scrollTop = body.scrollHeight;
+      } catch (error) {
+        console.error('AI Error:', error);
+        loadingMsg.remove();
+        const errorMsg = document.createElement('div');
+        errorMsg.className = 'ai-message';
+        errorMsg.innerHTML = `
+          <div class="ai-message-avatar">
+            <i class="bi bi-robot"></i>
+          </div>
+          <div class="ai-message-content">
+            <p class="mb-0 text-danger">
+              <i class="bi bi-exclamation-triangle"></i>
+              Sorry, I encountered an error. Please try again.
+            </p>
+          </div>
+        `;
+        body.appendChild(errorMsg);
+        body.scrollTop = body.scrollHeight;
+      }
+    }
+
+    sendBtn.addEventListener('click', function() {
+      sendMessage(input.value);
+    });
+
+    input.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage(this.value);
+      }
+    });
+
+    quickBtns.forEach(btn => {
+      btn.addEventListener('click', function() {
+        const prompt = this.getAttribute('data-prompt');
+        sendMessage(prompt);
+      });
+    });
+
+    document.addEventListener('click', function(e) {
+      if (!panel.contains(e.target) && !trigger.contains(e.target)) {
+        panel.classList.remove('active');
+        trigger.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    document.addEventListener('keydown', function(e) {
+      const isToggleShortcut = (e.key === '/' || e.key === '?') && (e.ctrlKey || e.metaKey) && e.shiftKey;
+      if (isToggleShortcut) {
+        e.preventDefault();
+        trigger.click();
+        return;
+      }
+
+      if (e.key === 'Escape') {
+        if (panel.classList.contains('active')) {
+          panel.classList.remove('active');
+          trigger.setAttribute('aria-expanded', 'false');
+          trigger.focus();
+        }
+      }
+    });
+
+    (function handleShortcutHint() {
+      if (!shortcutHint) return;
+      const HINT_KEY = 'ai-shortcut-hint-seen';
+      const seen = localStorage.getItem(HINT_KEY) === '1';
+      if (seen) return;
+
+      const showOnce = () => {
+        if (localStorage.getItem(HINT_KEY) === '1') return;
+        shortcutHint.style.display = 'inline-block';
+        shortcutHint.style.opacity = '1';
+        shortcutHint.style.transition = 'opacity 0.3s ease';
+        setTimeout(() => {
+          shortcutHint.style.opacity = '0';
+          setTimeout(() => {
+            shortcutHint.style.display = 'none';
+            localStorage.setItem(HINT_KEY, '1');
+          }, 350);
+        }, 3000);
+      };
+
+      const onFirstClick = () => {
+        showOnce();
+        trigger.removeEventListener('click', onFirstClick);
+      };
+
+      trigger.addEventListener('click', onFirstClick, { once: true });
+    })();
+  });
+
+  window.addEventListener('resize', function() {
+    wrappers.forEach((wrapper) => {
+      forceCopilotPosition(wrapper);
+      const panel = wrapper.querySelector('#aiCopilotPanel');
+      if (panel) {
+        forcePanelPosition(panel);
+      }
+    });
+  });
+});
+</script>

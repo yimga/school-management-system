@@ -1,0 +1,125 @@
+{% load region_format %}
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  {% include "reports/_report_styles.html" %}
+</head>
+<body>
+  <div class="letterhead">
+    {% if SITE_LOGO_URL %}
+      <img src="{{ SITE_LOGO_URL }}" alt="Logo" width="80" height="80" decoding="async" style="max-height: 80px; width: auto; object-fit: contain;" />
+    {% endif %}
+    <div>
+      <p class="title">{{ SITE.site_name|default:"School" }}</p>
+      <p class="sub">{{ SITE.tagline|default:"Excellence & Character" }}</p>
+      {% if report_style and report_style.header_tagline %}
+        <p class="sub text-uppercase">{{ report_style.header_tagline }}</p>
+      {% endif %}
+      {% if SITE.company_phone or SITE.company_email %}
+        <p class="sub">
+          {% if SITE.company_phone %}Tel {{ SITE.company_phone }}{% endif %}
+          {% if SITE.company_phone and SITE.company_email %} • {% endif %}
+          {% if SITE.company_email %}{{ SITE.company_email }}{% endif %}
+        </p>
+      {% endif %}
+      {% if SITE.company_address %}
+        <p class="sub">{{ SITE.company_address|linebreaksbr }}</p>
+      {% endif %}
+      {% if SITE.ministry_registration_code %}
+        <p class="sub">Ministry Reg: {{ SITE.ministry_registration_code }}</p>
+      {% endif %}
+      {% if SITE.company_slug %}
+        <p class="sub text-uppercase">Slug: {{ SITE.company_slug }}</p>
+      {% endif %}
+      <p class="sub">Academic Year: {{ year.name }}</p>
+    </div>
+    <div style="margin-left:auto; text-align:right;">
+      <div class="pill">Term Report Card</div>
+      <div class="sub">{{ term.get_name_display }}</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="box">
+      <b>Student</b><br>
+      {{ student_name }} ({{ student.student_code }})<br>
+      <span class="sub">{{ student.classroom.name }} / {{ student.specialty.name }}</span>
+    </div>
+    <div class="box">
+      <b>Summary</b><br>
+      Average: <b>{{ summary.average|format_number:2|default:"-" }}</b><br>
+      Class Rank: <b>{{ summary.class_rank_display|default:"-" }}</b><br>
+      Specialty Rank: <b>{{ summary.specialty_rank_display|default:"-" }}</b><br>
+      School Rank: <b>{{ summary.school_rank_display|default:"-" }}</b><br>
+      Status: <b>{{ summary.promotion_status|default:"-" }}</b>
+    </div>
+  </div>
+
+  <div class="box" style="margin-top:10px;">
+    <div class="sub">
+      Weights:
+      {% for cue in sequence_cues %}
+        {{ cue.label }} {{ cue.weight }}%{% if not forloop.last %} | {% endif %}
+      {% empty %}
+        Sequence 1 {{ weights.seq1_weight }}% | Sequence 2 {{ weights.seq2_weight }}% | Exam {{ weights.exam_weight }}%
+        | Mock {{ weights.mock_weight }}% | Practical {{ weights.practical_weight }}%
+      {% endfor %}
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Subject</th>
+          <th class="text-end">Coef</th>
+          <th class="text-end">Sequence 1</th>
+          <th class="text-end">Sequence 2</th>
+          <th class="text-end">Exam</th>
+          <th class="text-end">Mock</th>
+          <th class="text-end">Pract</th>
+          <th class="text-end">Total</th>
+          <th>Remark</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+          <tr>
+            <td>{{ row.subject }}</td>
+            <td class="text-end">{{ row.coef }}</td>
+            <td class="text-end">{{ row.seq1|default_if_none:"" }}</td>
+            <td class="text-end">{{ row.seq2|default_if_none:"" }}</td>
+            <td class="text-end">{{ row.exam|default_if_none:"" }}</td>
+            <td class="text-end">{{ row.mock|default_if_none:"" }}</td>
+            <td class="text-end">{{ row.practical|default_if_none:"" }}</td>
+            <td class="text-end">
+              {% if row.complete %}
+                {{ row.total|format_number:2 }}
+              {% else %}
+                <span class="sub">Pending</span>
+              {% endif %}
+            </td>
+            <td>{{ row.remark }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="9" class="sub">No marks recorded yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="grid" style="margin-top:10px;">
+    <div class="box">
+      <b>Teacher Remark</b><br>
+      {{ summary.teacher_remark }}
+    </div>
+    <div class="box">
+      <b>Generated</b><br>
+      {{ generated_at|format_date }}
+    </div>
+  </div>
+
+  <div class="footer">
+    <div>Powered by {{ SITE.site_name|default:"School System" }}</div>
+    <div>Signature: ______________________</div>
+  </div>
+</body>
+</html>

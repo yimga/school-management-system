@@ -1,0 +1,67 @@
+{% load region_format %}
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Receipt {{ payment.reference|default:payment.id }}</title>
+    <style>
+      body { font-family: "Segoe UI", "Helvetica Neue", sans-serif; margin: 32px; color: #111; }
+      .header { border-bottom: 3px solid {{ primary_color|default:"#0d6efd" }}; padding-bottom: 16px; margin-bottom: 16px; }
+      .header h1 { margin: 0; font-size: 28px; color: {{ primary_color|default:"#0d6efd" }}; }
+      .meta { font-size: 14px; color: #475569; }
+      .section { margin-bottom: 16px; }
+      .section strong { display: block; font-size: 12px; color: #475569; }
+      .table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+      .table th, .table td { border-bottom: 1px solid #cbd5f5; padding: 8px 0; text-align: left; }
+      .table td.text-right { text-align: right; }
+      .total { font-size: 18px; font-weight: 600; }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      {% if logo_url %}<img src="{{ logo_url }}" alt="" style="max-height: 48px; margin-bottom: 8px;" />{% endif %}
+      <h1>{{ school }} Receipt</h1>
+      <div class="meta">
+        Payment #: {{ payment.reference|default:payment.id }} · {{ payment.paid_at|format_date }}
+      </div>
+    </div>
+
+    <div class="section">
+      <strong>Billed to</strong>
+      <div>{{ invoice.student|default:invoice.counterparty }}</div>
+      <div>Invoice: {{ invoice.reference|default:invoice.id }}</div>
+      <div>Due: {{ invoice.due_date|format_date|default:"n/a" }}</div>
+    </div>
+
+    <div class="section">
+      <strong>Payment details</strong>
+      <div>Method: {{ payment.get_method_display }}</div>
+      <div>Amount: {{ payment.amount|format_currency }}</div>
+      <div>Invoice total: {{ invoice.total_amount|format_currency }}</div>
+      <div>Remaining balance: {{ invoice.balance_amount|format_currency }}</div>
+    </div>
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th class="text-right">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for line in invoice.lines.all %}
+          <tr>
+            <td>{{ line.description }}</td>
+            <td class="text-right">{{ line.amount|format_currency }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <th class="total">Amount paid</th>
+          <td class="text-right total">{{ payment.amount|format_currency }}</td>
+        </tr>
+      </tfoot>
+    </table>
+  </body>
+</html>

@@ -1,0 +1,697 @@
+{% extends "control_plane_base.html" %}
+{% load static %}
+
+{% block cp_title %}Tenant Mission Control{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-4 control-plane-shell">
+  <section class="cp-hero mb-4">
+    <div class="cp-hero-grid">
+      <div>
+        <div class="cp-eyebrow">RunMyCampus Manager</div>
+        <h1 class="cp-hero-title">Tenant Mission Control</h1>
+        <p class="cp-hero-copy">
+          Operate the platform here, not inside tenant product surfaces. Provisioning, billing, incidents,
+          readiness, branding, and global rollout posture all converge in one control plane.
+        </p>
+        <div class="cp-chip-row">
+          <span class="cp-chip cp-chip-{{ platform_health.overall_status|default:'warning' }}">Platform {{ platform_health.overall_status|default:"warning"|upper }}</span>
+          <span class="cp-chip">Open incidents {{ platform_incidents|length }}</span>
+          <span class="cp-chip">Countries live {{ countries_live_count }}/{{ registry_counts.countries }}</span>
+          <span class="cp-chip">Webhook drift {{ webhook_stack.unsynced_legacy_groups|default:0 }}</span>
+          <span class="cp-chip">Attention tenants {{ attention_school_count }}</span>
+        </div>
+      </div>
+      <div class="cp-hero-actions">
+        <div class="cp-action-stack">
+          <div class="cp-hero-stat">
+            <span class="cp-hero-stat-label">{{ north_star_label }}</span>
+            <strong class="cp-hero-stat-value">{{ north_star_formatted }}</strong>
+            <span class="cp-hero-stat-subtitle">{{ revenue_snapshot_month|date:"F Y" }}</span>
+          </div>
+          <a href="{% url 'super:create_school_wizard' %}" class="btn btn-primary cp-primary-action">Provision tenant</a>
+          <div class="cp-action-row">
+            <a href="{{ command_center_url|default:'#' }}" class="btn btn-outline-light btn-sm">Queues</a>
+            <a href="{% url 'super:billing_dashboard' %}" class="btn btn-outline-light btn-sm">Billing</a>
+            <a href="{% url 'super:migration_cloud' %}" class="btn btn-outline-light btn-sm">Migration</a>
+            <a href="{% url 'super:marketplace_governance' %}" class="btn btn-outline-light btn-sm">Marketplace</a>
+            {% if platform_incidents_url %}<a href="{{ platform_incidents_url }}" class="btn btn-outline-light btn-sm">Incidents</a>{% endif %}
+            <a href="{% url 'super:export_super_dashboard_pdf' %}{% if current_request_month %}?month={{ current_request_month }}{% endif %}" class="btn btn-outline-light btn-sm">Export PDF</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="cp-overview-grid">
+      {% for card in overview_cards %}
+      <article class="cp-overview-card cp-overview-card-{{ card.tone|default:'slate' }}">
+        <span class="cp-overview-label">{{ card.label }}</span>
+        <strong class="cp-overview-value">{{ card.value }}</strong>
+        <span class="cp-overview-meta">{{ card.meta }}</span>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  {{ super_dashboard_section_order|json_script:"cp-section-order-json" }}
+  <nav class="cp-section-nav mb-4 d-flex flex-wrap align-items-center gap-2" aria-label="Jump to dashboard section">
+    <a href="#cp-action-queue" class="cp-section-link">Action queue</a>
+    <a href="#cp-fleet-health" class="cp-section-link">Fleet health</a>
+    <a href="#cp-global-footprint" class="cp-section-link">Global footprint</a>
+    <a href="#cp-tenant-registry" class="cp-section-link">Tenant registry</a>
+    <a href="#cp-readiness" class="cp-section-link">Readiness</a>
+    <button type="button" class="btn btn-sm btn-outline-secondary ms-2" id="cp-customize-layout-btn" aria-label="Customize section order">Customize layout</button>
+  </nav>
+  <div class="modal fade" id="cp-layout-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content bg-dark border-secondary">
+        <div class="modal-header border-secondary">
+          <h5 class="modal-title text-white">Dashboard section order</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted small">Drag to reorder. Save to persist for your account.</p>
+          <ul class="list-group list-group-flush" id="cp-layout-sortable"></ul>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="cp-layout-save">Save layout</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if next_best_actions %}
+  <div class="cp-next-actions mb-4">
+    {% for action in next_best_actions %}
+    <a href="{{ action.url }}" class="cp-next-action">{{ action.label }}</a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="row g-4">
+    <div class="col-12 col-xxl-8">
+      <section class="cp-panel mb-4" id="cp-action-queue">
+        <div class="cp-panel-header">
+          <div>
+            <span class="cp-panel-eyebrow">Queue board</span>
+            <h2 class="cp-panel-title">Operator queues</h2>
+          </div>
+          <div class="cp-panel-header-actions">
+            <span class="cp-panel-stat">Pending approvals {{ pending_approval_count }}</span>
+            <span class="cp-panel-stat">Support backlog 48h+ {{ command_center.support_backlog_48h_count }}</span>
+            <span class="cp-panel-stat">Provisioning breaches {{ command_center.provisioning_sla_breaches }}</span>
+          </div>
+        </div>
+        <div class="cp-queue-grid">
+          <article class="cp-queue-card">
+            <div class="cp-queue-card-header">
+              <h3>Pending approvals</h3>
+              <span>{{ pending_approval_count }}</span>
+            </div>
+            <div class="cp-list">
+              {% for school in pending_schools|slice:":8" %}
+              <div class="cp-list-row">
+                <div>
+                  <strong>{{ school.name }}</strong>
+                  <div class="cp-list-meta">{{ school.country_display }}{% if school.selected_systems %} | {{ school.selected_systems|join:", " }}{% endif %}</div>
+                </div>
+                <div class="cp-inline-actions">
+                  <button type="button" class="btn btn-sm btn-success approve-btn" data-school-id="{{ school.id }}" data-csrftoken="{{ csrf_token }}">Approve</button>
+                  {% if school.admin_edit_url %}<a href="{{ school.admin_edit_url }}" class="btn btn-sm btn-outline-secondary">Edit</a>{% endif %}
+                </div>
+              </div>
+              {% empty %}
+              <div class="cp-empty-state">No schools waiting for operator approval.</div>
+              {% endfor %}
+            </div>
+          </article>
+
+          <article class="cp-queue-card">
+            <div class="cp-queue-card-header">
+              <h3>Platform incidents</h3>
+              <span>{{ platform_incidents|length }}</span>
+            </div>
+            <div class="cp-list">
+              {% for incident in platform_incidents|slice:":8" %}
+              <div class="cp-list-row">
+                <div>
+                  <strong>{{ incident.title }}</strong>
+                  <div class="cp-list-meta">{{ incident.incident_type|title }} | {{ incident.severity|upper }}{% if incident.affected_school %} | {{ incident.affected_school.name }}{% endif %}</div>
+                </div>
+                <span class="cp-status-badge cp-status-badge-{{ incident.status }}">{{ incident.status|title }}</span>
+              </div>
+              {% empty %}
+              <div class="cp-empty-state">No unresolved platform incidents.</div>
+              {% endfor %}
+            </div>
+            {% if platform_incidents_url %}
+            <a href="{{ platform_incidents_url }}" class="cp-subtle-link">Open incident console</a>
+            {% endif %}
+          </article>
+
+          <article class="cp-queue-card">
+            <div class="cp-queue-card-header">
+              <h3>Billing exceptions</h3>
+              <span>{{ billing_watchlist|length }}</span>
+            </div>
+            <div class="cp-list">
+              {% for subscription in billing_watchlist|slice:":8" %}
+              <div class="cp-list-row">
+                <div>
+                  <strong>{{ subscription.school.name }}</strong>
+                  <div class="cp-list-meta">{{ subscription.status|title }}{% if subscription.plan %} | {{ subscription.plan.name }}{% endif %} | ${{ subscription.billed_amount|floatformat:2 }}</div>
+                </div>
+                <span class="cp-status-badge cp-status-badge-{{ subscription.status|lower }}">{{ subscription.status|title }}</span>
+              </div>
+              {% empty %}
+              <div class="cp-empty-state">No tenants are past due or suspended.</div>
+              {% endfor %}
+            </div>
+            <a href="{% url 'super:billing_dashboard' %}" class="cp-subtle-link">Open billing console</a>
+          </article>
+
+          <article class="cp-queue-card">
+            <div class="cp-queue-card-header">
+              <h3>Support and provisioning</h3>
+              <span>{{ stale_support_rows|length }} / {{ provisioning_breach_rows|length }}</span>
+            </div>
+            <div class="cp-queue-split">
+              <div>
+                <div class="cp-mini-heading">Stale support</div>
+                {% for row in stale_support_rows|slice:":4" %}
+                <div class="cp-mini-row">
+                  <strong>{{ row.ticket.school.name }}</strong>
+                  <span>{{ row.age_hours }}h | {{ row.ticket.subject|truncatewords:5 }}</span>
+                </div>
+                {% empty %}
+                <div class="cp-empty-inline">Clear</div>
+                {% endfor %}
+              </div>
+              <div>
+                <div class="cp-mini-heading">Provisioning breaches</div>
+                {% for row in provisioning_breach_rows|slice:":4" %}
+                <div class="cp-mini-row">
+                  <strong>{{ row.school.name|default:"Unknown school" }}</strong>
+                  <span>{{ row.hours }}h</span>
+                </div>
+                {% empty %}
+                <div class="cp-empty-inline">No breaches</div>
+                {% endfor %}
+              </div>
+            </div>
+            <a href="{{ command_center_url|default:'#' }}" class="cp-subtle-link">Open operational queues</a>
+          </article>
+        </div>
+      </section>
+
+      <section class="cp-panel mb-4" id="cp-fleet-health">
+        <div class="cp-panel-header">
+          <div>
+            <span class="cp-panel-eyebrow">Fleet health</span>
+            <h2 class="cp-panel-title">Platform health, delivery, and operational drag</h2>
+          </div>
+          <div class="cp-panel-header-actions">
+            <span class="cp-panel-stat">Support open {{ command_center.support_open_count }}</span>
+            <span class="cp-panel-stat">Churn risk {{ command_center.tenant_churn_risk_count }}</span>
+          </div>
+        </div>
+        <div class="cp-health-grid">
+          {% for card in platform_health_cards %}
+          <article class="cp-health-card cp-health-card-{{ card.tone|default:'neutral' }}">
+            <span class="cp-health-label">{{ card.label }}</span>
+            <strong class="cp-health-value">{{ card.value }}</strong>
+            <span class="cp-health-meta">{{ card.meta }}</span>
+          </article>
+          {% endfor %}
+        </div>
+        <div class="row g-3 mt-1">
+          <div class="col-lg-5">
+            <div class="cp-stack-card">
+              <div class="cp-mini-heading">Webhook migration posture</div>
+              <div class="cp-stack-metric">Legacy groups {{ webhook_stack.legacy_groups|default:0 }}</div>
+              <div class="cp-stack-metric">Canonical groups {{ webhook_stack.canonical_groups|default:0 }}</div>
+              <div class="cp-stack-metric">Unsynced legacy groups {{ webhook_stack.unsynced_legacy_groups|default:0 }}</div>
+              {% if webhook_stack.sample_unsynced_urls %}
+              <div class="cp-stack-detail">{{ webhook_stack.sample_unsynced_urls|join:", " }}</div>
+              {% endif %}
+            </div>
+          </div>
+          <div class="col-lg-7">
+            <div class="cp-stack-card">
+              <div class="cp-mini-heading">Operational posture</div>
+              <div class="cp-stack-row">
+                <span>Provisioning SLA avg</span>
+                <strong>{{ command_center.provisioning_sla_avg_hours }}h</strong>
+              </div>
+              <div class="cp-stack-row">
+                <span>Target</span>
+                <strong>{{ command_center.provisioning_sla_target_hours }}h</strong>
+              </div>
+              <div class="cp-stack-row">
+                <span>Recovery rate</span>
+                <strong>{{ command_center.recovery_rate_pct }}%</strong>
+              </div>
+              <div class="cp-stack-row">
+                <span>Student passports</span>
+                <strong>{{ command_center.student_passport_count }}</strong>
+              </div>
+              <div class="cp-stack-row">
+                <span>Transfer invites</span>
+                <strong>{{ command_center.student_passport_invite_count }}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% if health_schema_stats or health_top_tables %}
+        <div class="row g-3 mt-1">
+          {% if health_schema_stats %}
+          <div class="col-xl-6">
+            <div class="cp-table-card">
+              <div class="cp-mini-heading">Storage by schema</div>
+              <div class="table-responsive">
+                <table class="table table-sm mb-0 cp-table cp-table-compact">
+                  <thead>
+                    <tr><th>Schema</th><th>Size</th><th>Tables</th></tr>
+                  </thead>
+                  <tbody>
+                    {% for row in health_schema_stats %}
+                    <tr>
+                      <td><code>{{ row.schema_name }}</code></td>
+                      <td>{{ row.pretty_size }}</td>
+                      <td>{{ row.table_count }}</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+          {% if health_top_tables %}
+          <div class="col-xl-6">
+            <div class="cp-table-card">
+              <div class="cp-mini-heading">Largest tables</div>
+              <div class="table-responsive">
+                <table class="table table-sm mb-0 cp-table cp-table-compact">
+                  <thead>
+                    <tr><th>Table</th><th>Size</th><th>Rows</th></tr>
+                  </thead>
+                  <tbody>
+                    {% for row in health_top_tables %}
+                    <tr>
+                      <td><code>{{ row.schema_name }}.{{ row.table_name }}</code></td>
+                      <td>{{ row.total_pretty }}</td>
+                      <td>{{ row.row_count|default:"-" }}</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+      </section>
+
+      <section class="cp-panel mb-4" id="cp-global-footprint">
+        <div class="cp-panel-header">
+          <div>
+            <span class="cp-panel-eyebrow">Global footprint</span>
+            <h2 class="cp-panel-title">Registry readiness and rollout coverage</h2>
+          </div>
+          <div class="cp-panel-header-actions">
+            <form method="get" id="super-month-form" class="cp-month-form">
+              <label for="super-month-select">Month</label>
+              <select name="month" id="super-month-select" class="form-select form-select-sm">
+                {% for value, label in month_options %}
+                <option value="{{ value }}" {% if value == current_request_month %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </form>
+            <a href="{% url 'super:export_revenue_csv' %}?month={{ current_request_month }}" class="btn btn-outline-secondary btn-sm">Export revenue</a>
+          </div>
+        </div>
+        <div class="cp-footprint-metrics">
+          <div class="cp-footprint-card">
+            <span>Country registry</span>
+            <strong>{{ registry_counts.countries }}</strong>
+            <small>{{ countries_live_count }} countries live ({{ countries_live_pct }}%)</small>
+          </div>
+          <div class="cp-footprint-card">
+            <span>Subdivision registry</span>
+            <strong>{{ registry_counts.subdivisions }}</strong>
+            <small>Country-specific subdivision coverage</small>
+          </div>
+          <div class="cp-footprint-card">
+            <span>Education levels</span>
+            <strong>{{ registry_counts.education_levels }}</strong>
+            <small>Canonical global level taxonomy</small>
+          </div>
+          <div class="cp-footprint-card">
+            <span>Education system types</span>
+            <strong>{{ registry_counts.education_system_types }}</strong>
+            <small>General, STEM, trade, IB, hybrid, and more</small>
+          </div>
+        </div>
+        <div class="row g-3 mt-1">
+          <div class="col-xl-7">
+            <div class="cp-table-card">
+              <div class="cp-mini-heading">Top active countries</div>
+              <div class="table-responsive">
+                <table class="table table-sm mb-0 cp-table">
+                  <thead>
+                    <tr><th>Country</th><th>Tenants</th><th>Students</th><th>Revenue</th><th>Waived</th></tr>
+                  </thead>
+                  <tbody>
+                    {% for row in country_rollup %}
+                    <tr>
+                      <td>{{ row.country_name }}</td>
+                      <td>{{ row.school_count }}</td>
+                      <td>{{ row.student_count }}</td>
+                      <td>${{ row.actual_revenue|floatformat:2 }}</td>
+                      <td>${{ row.waived_revenue|floatformat:2 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="text-muted">No country rollup yet.</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="col-xl-5">
+            <div class="cp-table-card">
+              <div class="cp-mini-heading">Billing model split</div>
+              <div class="cp-pill-stack">
+                {% for row in billing_model_breakdown %}
+                <span class="cp-pill">{{ row.billing_model|default:"Unspecified" }} | {{ row.count }}</span>
+                {% empty %}
+                <span class="cp-empty-inline">No billing model data for this month.</span>
+                {% endfor %}
+              </div>
+              <div class="cp-mini-heading mt-3">Revenue by country</div>
+              <div class="cp-mini-table">
+                {% for row in revenue_by_country|slice:":6" %}
+                <div class="cp-mini-table-row">
+                  <span>{{ row.country_code|default:"--" }}</span>
+                  <strong>${{ row.actual|floatformat:2 }}</strong>
+                </div>
+                {% empty %}
+                <div class="cp-empty-inline">No revenue snapshots yet.</div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="cp-panel" id="cp-tenant-registry">
+        <div class="cp-panel-header">
+          <div>
+            <span class="cp-panel-eyebrow">Tenant registry</span>
+            <h2 class="cp-panel-title">Search, triage, and drill into every tenant</h2>
+          </div>
+          <div class="cp-panel-header-actions">
+            <a href="{% url 'super:export_schools_csv' %}" class="btn btn-outline-secondary btn-sm">Export schools</a>
+            <a href="{% url 'super:tenant_health' %}" class="btn btn-outline-secondary btn-sm">Tenant health</a>
+          </div>
+        </div>
+        <div class="cp-toolbar">
+          <input type="search" id="cp-school-search" class="form-control" placeholder="Search schools, countries, systems, risk flags">
+          <select id="cp-school-filter" class="form-select">
+            <option value="all">All tenants</option>
+            <option value="attention">Needs attention</option>
+            <option value="pending">Pending approval</option>
+            <option value="inactive">Inactive</option>
+            <option value="healthy">Healthy</option>
+          </select>
+          <div class="cp-toolbar-summary"><span id="cp-visible-school-count">{{ schools|length }}</span> of {{ schools|length }} tenants visible</div>
+        </div>
+        <div class="table-responsive cp-table-wrap">
+          <table class="table table-hover mb-0 cp-table">
+            <thead>
+              <tr>
+                <th>School</th>
+                <th>Geography</th>
+                <th>Education footprint</th>
+                <th>Brand and domain</th>
+                <th>Subscription</th>
+                <th>Operational state</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for school in schools %}
+              <tr class="cp-school-row" data-state="{{ school.roster_state }}" data-search="{{ school.roster_search }}">
+                <td>
+                  <div class="cp-school-name">{{ school.name }}</div>
+                  <div class="cp-school-meta"><code>{{ school.slug }}</code> | <code>{{ school.subdomain|default:"--" }}</code></div>
+                  <div class="cp-badge-row">
+                    {% if school.is_active %}
+                    <span class="cp-status-badge cp-status-badge-active">Active</span>
+                    {% else %}
+                    <span class="cp-status-badge cp-status-badge-inactive">Inactive</span>
+                    {% endif %}
+                    {% if not school.is_approved %}
+                    <span class="cp-status-badge cp-status-badge-pending">Approval</span>
+                    {% endif %}
+                    <span class="cp-status-badge cp-status-badge-{{ school.identity_tone }}">{{ school.identity_status|title }} identity</span>
+                  </div>
+                </td>
+                <td>
+                  <div>{{ school.country_display }}</div>
+                  <div class="cp-cell-meta">{{ school.subdivision_display }}</div>
+                </td>
+                <td>
+                  <div class="cp-cell-meta">{{ school.education_level_labels|join:", "|default:"No levels" }}</div>
+                  <div class="cp-cell-meta">{{ school.education_system_type_labels|join:", "|default:"No system types" }}</div>
+                  {% if school.selected_systems %}
+                  <div class="cp-cell-meta">Profiles: {{ school.selected_systems|join:", " }}</div>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="cp-cell-meta">{{ school.brand_status }}</div>
+                  {% if school.custom_domain %}
+                  <div class="cp-cell-meta"><code>{{ school.custom_domain }}</code></div>
+                  {% endif %}
+                  <div class="cp-badge-row">
+                    {% if school.custom_domain_verified %}
+                    <span class="cp-status-badge cp-status-badge-success">Verified</span>
+                    {% elif school.custom_domain %}
+                    <span class="cp-status-badge cp-status-badge-warning">Pending</span>
+                    {% else %}
+                    <span class="cp-status-badge cp-status-badge-neutral">Default domain</span>
+                    {% endif %}
+                  </div>
+                </td>
+                <td>
+                  <div class="cp-status-badge cp-status-badge-{{ school.subscription_tone }}">{{ school.subscription_status|title }}</div>
+                  {% if school.latest_subscription_amount %}
+                  <div class="cp-cell-meta">${{ school.latest_subscription_amount|floatformat:2 }}</div>
+                  {% endif %}
+                  {% if school.latest_subscription_period_end %}
+                  <div class="cp-cell-meta">Period end {{ school.latest_subscription_period_end|date:"Y-m-d" }}</div>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if school.attention_reasons %}
+                  <div class="cp-risk-list">
+                    {% for reason in school.attention_reasons %}
+                    <span class="cp-risk-pill">{{ reason }}</span>
+                    {% endfor %}
+                  </div>
+                  {% else %}
+                  <div class="cp-cell-meta">No immediate operator flags.</div>
+                  {% endif %}
+                  <div class="cp-cell-meta">Students {{ school.student_count }} | Teachers {{ school.teacher_count }} | Members {{ school.member_count }}</div>
+                  <div class="cp-cell-meta">Last update {{ school.updated_at|date:"Y-m-d H:i"|default:"-" }}</div>
+                </td>
+                <td>
+                  <div class="cp-action-column">
+                    <form method="post" action="{% url 'super:switch_to_tenant' %}" class="d-inline">
+                      {% csrf_token %}
+                      <input type="hidden" name="school_id" value="{{ school.id }}">
+                      <button type="submit" class="btn btn-sm btn-outline-primary">View as tenant</button>
+                    </form>
+                    {% if school.timeline_url %}<a href="{{ school.timeline_url }}" class="btn btn-sm btn-outline-info">Timeline</a>{% endif %}
+                    {% if school.sync_repair_url %}<a href="{{ school.sync_repair_url }}" class="btn btn-sm btn-outline-warning">Sync repair</a>{% endif %}
+                    {% if school.admin_edit_url %}<a href="{{ school.admin_edit_url }}" class="btn btn-sm btn-outline-secondary">Edit</a>{% endif %}
+                  </div>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="7" class="text-center py-5">
+                  <p class="text-muted mb-2">No tenants yet.</p>
+                  <a href="{% url 'super:create_school_wizard' %}" class="btn btn-primary">Create the first school</a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <div class="col-12 col-xxl-4">
+      <section class="cp-panel mb-4">
+        <div class="cp-panel-header">
+          <div>
+            <span class="cp-panel-eyebrow">Control modules</span>
+            <h2 class="cp-panel-title">Operator workstreams</h2>
+          </div>
+        </div>
+        <div class="cp-workstream-grid">
+          {% for workstream in workstream_cards %}
+          <a href="{{ workstream.url|default:'#' }}" class="cp-workstream-card">
+            <span class="cp-workstream-title">{{ workstream.title }}</span>
+            <strong class="cp-workstream-metric">{{ workstream.metric }}</strong>
+            <span class="cp-workstream-meta">{{ workstream.meta }}</span>
+            <span class="cp-workstream-cta">{{ workstream.cta }}</span>
+          </a>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="cp-panel mb-4" id="cp-readiness">
+        <div class="cp-panel-header">
+          <div>
+            <span class="cp-panel-eyebrow">Readiness</span>
+            <h2 class="cp-panel-title">Platform adoption and consistency</h2>
+          </div>
+        </div>
+        <div class="cp-readiness-grid">
+          {% for card in readiness_cards %}
+          <article class="cp-readiness-card cp-readiness-card-{{ card.tone|default:'neutral' }}">
+            <span class="cp-readiness-label">{{ card.label }}</span>
+            <strong class="cp-readiness-value">{{ card.value }}</strong>
+            <span class="cp-readiness-meta">{{ card.meta }}</span>
+          </article>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="cp-panel mb-4">
+        <div class="cp-panel-header">
+          <div>
+            <span class="cp-panel-eyebrow">Risk watch</span>
+            <h2 class="cp-panel-title">Churn and operator escalation</h2>
+          </div>
+        </div>
+        <div class="cp-list">
+          {% for row in tenant_risk_rows %}
+          <div class="cp-list-row">
+            <div>
+              <strong>{{ row.school.name }}</strong>
+              <div class="cp-list-meta">{{ row.reasons|join:", " }}</div>
+            </div>
+            <span class="cp-status-badge cp-status-badge-warning">{{ row.risk_score }}</span>
+          </div>
+          {% empty %}
+          <div class="cp-empty-state">No churn-risk schools detected right now.</div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="cp-panel">
+        <div class="cp-panel-header">
+          <div>
+            <span class="cp-panel-eyebrow">Recent tenants</span>
+            <h2 class="cp-panel-title">Newest fleet entries</h2>
+          </div>
+        </div>
+        <div class="cp-list">
+          {% for school in recent_schools %}
+          <div class="cp-list-row">
+            <div>
+              <strong>{{ school.name }}</strong>
+              <div class="cp-list-meta">{{ school.country_display }} | Created {{ school.created_at|date:"Y-m-d" }}</div>
+            </div>
+            <span class="cp-status-badge cp-status-badge-{{ school.roster_state }}">{{ school.roster_state|title }}</span>
+          </div>
+          {% empty %}
+          <div class="cp-empty-state">No schools provisioned yet.</div>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extrajs %}
+{{ block.super }}
+<script src="{% static 'js/manager-control-plane.js' %}"></script>
+<script>
+(function() {
+  var layoutUrl = '{{ super_dashboard_layout_url|escapejs }}';
+  var sectionOrder = JSON.parse(document.getElementById('cp-section-order-json').textContent || '[]');
+  var sectionLabels = {
+    'cp-action-queue': 'Action queue',
+    'cp-fleet-health': 'Fleet health',
+    'cp-global-footprint': 'Global footprint',
+    'cp-tenant-registry': 'Tenant registry',
+    'cp-readiness': 'Readiness'
+  };
+  var modal = document.getElementById('cp-layout-modal');
+  var listEl = document.getElementById('cp-layout-sortable');
+  var saveBtn = document.getElementById('cp-layout-save');
+  var customizeBtn = document.getElementById('cp-customize-layout-btn');
+  if (!modal || !listEl || !layoutUrl) return;
+
+  function renderList(order) {
+    listEl.innerHTML = order.map(function(id) {
+      return '<li class="list-group-item d-flex align-items-center gap-2" data-section-id="' + id + '"><span class="text-muted small">⋮⋮</span> ' + (sectionLabels[id] || id) + '</li>';
+    }).join('');
+  }
+  function getOrder() {
+    return [].map.call(listEl.querySelectorAll('[data-section-id]'), function(el) { return el.getAttribute('data-section-id'); });
+  }
+
+  var sortableInstance = null;
+  function initSortable() {
+    if (sortableInstance) return;
+    if (window.Sortable) {
+      sortableInstance = new Sortable(listEl, { animation: 150, handle: '.text-muted' });
+      return;
+    }
+    var s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js';
+    s.onload = function() { sortableInstance = new Sortable(listEl, { animation: 150, handle: '.text-muted' }); };
+    document.head.appendChild(s);
+  }
+
+  customizeBtn.addEventListener('click', function() {
+    renderList(sectionOrder);
+    if (window.bootstrap && window.bootstrap.Modal) {
+      var m = new window.bootstrap.Modal(modal);
+      m.show();
+    } else { modal.style.display = 'block'; }
+    setTimeout(initSortable, 100);
+  });
+
+  saveBtn.addEventListener('click', function() {
+    var order = getOrder();
+    saveBtn.disabled = true;
+    var csrf = (document.querySelector('[name=csrfmiddlewaretoken]') && document.querySelector('[name=csrfmiddlewaretoken]').value) || (function() { var m = document.cookie.match(/csrftoken=([^;]+)/); return m ? m[1] : ''; })();
+    fetch(layoutUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+      body: JSON.stringify({ section_order: order })
+    }).then(function(r) { return r.json(); })
+      .then(function(data) {
+        sectionOrder = data.section_order || order;
+        if (window.bootstrap && modal._modal) modal._modal.hide(); else modal.style.display = 'none';
+      })
+      .catch(function() {})
+      .finally(function() { saveBtn.disabled = false; });
+  });
+})();
+</script>
+{% endblock %}

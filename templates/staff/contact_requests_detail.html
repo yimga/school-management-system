@@ -1,0 +1,91 @@
+{% extends "portal_base.html" %}
+
+{% block title %}Contact Request{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h2 class="mb-0">Contact Request</h2>
+    <p class="text-muted small mb-0">{{ ticket.subject }}</p>
+  </div>
+  <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{{ back_url }}"><i class="bi bi-arrow-left me-1"></i>Back to list</a>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="card mb-3">
+      <div class="card-body">
+        <p class="mb-1"><strong>Status:</strong> <span class="badge bg-info text-uppercase">{{ ticket.status }}</span></p>
+        <p class="mb-1"><strong>Audience:</strong> {{ ticket.get_audience_display }}</p>
+        <p class="mb-1"><strong>Preferred channel:</strong> {{ ticket.get_preferred_channel_display }}</p>
+        <p class="mb-1"><strong>Student:</strong> {{ ticket.student|default:"—" }}</p>
+        <p class="mb-1"><strong>Desired staff:</strong> {{ ticket.desired_staff.get_full_name|default:ticket.desired_staff.username|default:"—" }}</p>
+        <hr>
+        <p class="mb-1"><strong>Parent contact:</strong> {{ ticket.contact_name }}</p>
+        <p class="mb-1">
+          <strong>Phone:</strong>
+          {% if ticket.contact_phone %}
+            <a href="tel:{{ ticket.contact_phone }}">{{ ticket.contact_phone }}</a>
+          {% else %}
+            &mdash;
+          {% endif %}
+        </p>
+        <p class="mb-1">
+          <strong>WhatsApp:</strong>
+          {% if ticket.contact_whatsapp %}
+            <a href="https://wa.me/{{ ticket.contact_whatsapp|urlencode }}?text={{ 'Hello, I am following up on your contact request.'|urlencode }}" target="_blank" rel="noreferrer">
+              {{ ticket.contact_whatsapp }}
+            </a>
+          {% else %}
+            &mdash;
+          {% endif %}
+        </p>
+        <p class="mb-0"><strong>Email:</strong> {{ ticket.contact_email|default:"—" }}</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><strong>Message</strong></div>
+      <div class="card-body">
+        <div style="white-space: pre-wrap;">{{ ticket.message }}</div>
+        {% if ticket.attachments.all %}
+          <hr>
+          <strong>Attachments</strong>
+          <ul class="mb-0">
+            {% for a in ticket.attachments.all %}
+              <li><a href="{{ a.file.url }}">{{ a.file.name }}</a></li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card mb-3 border-warning">
+      <div class="card-header bg-warning-subtle"><strong>Assign</strong></div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="assign">
+          {{ assign_form.as_p }}
+          <button class="btn btn-warning" type="submit">Save assignment</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><strong>Update status</strong></div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="status">
+          {{ status_form.as_p }}
+          <button class="btn btn-primary" type="submit">Update</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

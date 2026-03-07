@@ -1,0 +1,111 @@
+/**
+ * Premium hub shell for tenant-facing hub pages (Workflow hub, Dashboard hub).
+ * Use with .hub-page for consistent hierarchy and polish; aligns with THEME_COMPONENT_KITS.
+ */
+
+.hub-page {
+  --hub-spacing: 1.25rem;
+  --hub-radius: 12px;
+  --hub-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  --hub-border: 1px solid var(--portal-border, rgba(0, 0, 0, 0.08));
+  max-width: 100%;
+  min-width: 0;
+  padding-bottom: 2rem;
+}
+
+.hub-page .hub-hero {
+  margin-bottom: var(--hub-spacing);
+  padding: 1.5rem 1.25rem;
+  border-radius: var(--hub-radius);
+  background: linear-gradient(135deg, var(--admin-content-bg, #fff) 0%, color-mix(in srgb, var(--school-primary, #0d173b) 4%, var(--admin-content-bg, #fff)) 100%);
+  border: var(--hub-border);
+  box-shadow: var(--hub-shadow);
+}
+
+.hub-page .hub-eyebrow {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--school-primary, #0d173b);
+  opacity: 0.85;
+  margin-bottom: 0.5rem;
+}
+
+.hub-page .hub-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 0.35rem;
+  color: var(--admin-content-text, #1a1c1e);
+}
+
+.hub-page .hub-copy {
+  font-size: 0.9375rem;
+  color: var(--admin-content-text-muted, #64748b);
+  margin: 0;
+  max-width: 52ch;
+}
+
+.hub-page .hub-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--hub-spacing);
+}
+
+.hub-page .hub-action-card {
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem;
+  border-radius: var(--hub-radius);
+  border: var(--hub-border);
+  background: var(--admin-content-bg, #fff);
+  box-shadow: var(--hub-shadow);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.hub-page .hub-action-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  border-color: color-mix(in srgb, var(--school-primary, #0d173b) 20%, transparent);
+}
+
+.hub-page .hub-action-card .hub-card-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  margin-bottom: 0.75rem;
+  background: color-mix(in srgb, var(--school-primary, #0d173b) 12%, transparent);
+  color: var(--school-primary, #0d173b);
+}
+
+.hub-page .hub-action-card .hub-card-title {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  margin: 0 0 0.35rem;
+  color: var(--admin-content-text, #1a1c1e);
+}
+
+.hub-page .hub-action-card .hub-card-desc {
+  font-size: 0.875rem;
+  color: var(--admin-content-text-muted, #64748b);
+  margin: 0 0 1rem;
+  flex: 1;
+}
+
+.hub-page .hub-action-card .btn {
+  align-self: flex-start;
+}
+
+.hub-page .hub-quick-links .h6 {
+  font-weight: 600;
+}
+
+@media (max-width: 575.98px) {
+  .hub-page .hub-cards {
+    grid-template-columns: 1fr;
+  }
+}

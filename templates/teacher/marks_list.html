@@ -1,0 +1,112 @@
+{% extends "portal_base.html" %}
+{% load tenant_hook %}
+{% block title %}My Marks{% endblock %}
+
+{% block content %}
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h2 class="mb-0">My Marks</h2>
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-outline-primary btn-sm" href="{% url 'evals:teacher_dashboard' %}">Dashboard</a>
+      <a class="btn btn-primary btn-sm" href="{% url 'evals:teacher_marks_entry' %}">Enter Marks</a>
+      <a class="btn btn-outline-secondary btn-sm" href="?{{ export_csv_query }}">Export CSV</a>
+      <a class="btn btn-outline-secondary btn-sm" href="?{{ export_pdf_query }}">Export PDF</a>
+    </div>
+  </div>
+
+<form method="get" class="card mb-3">
+  <div class="card-body">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label small">Term</label>
+        <select class="form-select" name="term">
+          <option value="">All</option>
+          {% for t in term_choices %}
+            <option value="{{ t.id }}" {% if request.GET.term == t.id|stringformat:"s" %}selected{% endif %}>
+              {{ t.get_name_display }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label small">Class</label>
+        <select class="form-select" name="classroom">
+          <option value="">All</option>
+          {% for c in classrooms %}
+            <option value="{{ c.id }}" {% if request.GET.classroom == c.id|stringformat:"s" %}selected{% endif %}>
+              {{ c.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label small">Subject</label>
+        <select class="form-select" name="subject">
+          <option value="">All</option>
+          {% for s in subjects %}
+            <option value="{{ s.id }}" {% if request.GET.subject == s.id|stringformat:"s" %}selected{% endif %}>
+              {{ s.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="checkbox" value="1" id="missingOnly" name="missing" {% if request.GET.missing %}checked{% endif %}>
+          <label class="form-check-label small" for="missingOnly">Missing only</label>
+        </div>
+        <button class="btn btn-primary w-100" type="submit">Filter</button>
+      </div>
+    </div>
+  </div>
+</form>
+
+<div class="card">
+  <div class="card-body table-responsive">
+    <table class="table table-sm table-striped align-middle gradebook-table">
+      <thead class="gradebook-thead-sticky">
+        <tr>
+          <th>Updated</th>
+          <th>Student</th>
+          <th>Subject</th>
+          <th>Class</th>
+          <th>Specialty</th>
+          <th>Term</th>
+          <th>Sequence 1</th>
+          <th>Sequence 2</th>
+          <th>Exam</th>
+          <th>Mock</th>
+          <th>Practical</th>
+          <th>Remarks</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in evals %}
+          <tr>
+            <td>{{ e.updated_at }}</td>
+            <td>{{ e.student.last_name }} {{ e.student.first_name }} ({{ e.student.student_code }})</td>
+            <td>{{ e.subject_assignment.subject.name }}</td>
+            <td>{{ e.subject_assignment.classroom.name }}</td>
+            <td>{{ e.subject_assignment.specialty.name }}</td>
+            <td>{{ e.term.get_name_display }}</td>
+            <td>{{ e.seq1_score|default:e.test1 }}</td>
+            <td>{{ e.seq2_score|default:e.test2 }}</td>
+            <td>{{ e.exam_score }}</td>
+            <td>{{ e.mock_score }}</td>
+            <td>{{ e.practical_score }}</td>
+            <td>{{ e.remarks }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="12">No marks entered yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card-footer border-top bg-light">
+    {% tenant_hook 'GRADEBOOK_CARD_FOOTER' %}
+  </div>
+</div>
+{% endblock %}
+

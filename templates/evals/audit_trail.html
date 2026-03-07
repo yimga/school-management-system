@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Grade Audit Trail{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-history"></i> Grade Audit Trail
+            </h1>
+            <div class="alert alert-info">
+                <strong>{{ student_name }}</strong> - {{ subject_name }}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Timeline -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    {% if trail %}
+                        <div class="timeline">
+                            {% for entry in trail %}
+                            <div class="timeline-item {% if entry.change_type == 'created' %}bg-light{% elif entry.change_type == 'updated' %}bg-primary bg-opacity-10{% else %}bg-warning bg-opacity-10{% endif %} p-3 mb-3 rounded">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">
+                                            {% if entry.change_type == 'created' %}
+                                                <span class="badge badge-success">Created</span>
+                                            {% elif entry.change_type == 'updated' %}
+                                                <span class="badge badge-primary">Updated</span>
+                                            {% elif entry.change_type == 'validated' %}
+                                                <span class="badge badge-info">Validated</span>
+                                            {% elif entry.change_type == 'offline_synced' %}
+                                                <span class="badge badge-warning">Offline Sync</span>
+                                            {% else %}
+                                                <span class="badge badge-secondary">{{ entry.change_type }}</span>
+                                            {% endif %}
+                                        </h6>
+                                        <p class="text-muted mb-2">
+                                            <small>
+                                                <strong>By:</strong> {{ entry.changed_by }}<br>
+                                                <strong>At:</strong> {{ entry.changed_at }}
+                                            </small>
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Score Changes -->
+                                {% if entry.changes %}
+                                <div class="mt-2">
+                                    <table class="table table-sm mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Component</th>
+                                                <th>Before</th>
+                                                <th>After</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for component, change in entry.changes.items %}
+                                            {% if component != 'remarks' %}
+                                            <tr>
+                                                <td><strong>{{ component|title }}</strong></td>
+                                                <td>
+                                                    {% if change.before %}
+                                                        <span class="badge badge-light">{{ change.before }}</span>
+                                                    {% else %}
+                                                        <span class="text-muted">-</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if change.after %}
+                                                        <span class="badge badge-primary">{{ change.after }}</span>
+                                                    {% else %}
+                                                        <span class="text-muted">-</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            {% endif %}
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <!-- Remarks -->
+                                {% if entry.changes.remarks %}
+                                <div class="alert alert-light mt-2 mb-0">
+                                    <small>
+                                        <strong>Remarks Updated:</strong><br>
+                                        <em>Before:</em> {{ entry.changes.remarks.before|default:"(empty)" }}<br>
+                                        <em>After:</em> {{ entry.changes.remarks.after|default:"(empty)" }}
+                                    </small>
+                                </div>
+                                {% endif %}
+                                {% endif %}
+                                
+                                <!-- Validation Errors -->
+                                {% if entry.validation_errors %}
+                                <div class="alert alert-danger mt-2 mb-0">
+                                    <strong>Validation Errors:</strong>
+                                    <ul class="mb-0 mt-1">
+                                        {% for error in entry.validation_errors %}
+                                        <li>{{ error }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                {% endif %}
+                                
+                                <!-- Offline Conflict -->
+                                {% if entry.offline_conflict_resolved %}
+                                <div class="alert alert-warning mt-2 mb-0">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    Offline conflict resolved (merged with offline entry)
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        No changes recorded for this evaluation.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline {
+    position: relative;
+}
+
+.timeline-item {
+    border-left: 4px solid #007bff;
+    margin-left: 20px;
+}
+
+.timeline-item.bg-light {
+    border-left-color: #28a745;
+}
+
+.timeline-item.bg-primary {
+    border-left-color: #007bff;
+}
+
+.timeline-item.bg-warning {
+    border-left-color: #ffc107;
+}
+</style>
+{% endblock %}

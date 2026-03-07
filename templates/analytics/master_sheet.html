@@ -1,0 +1,127 @@
+{% extends "portal_base.html" %}
+{% load region_format %}
+
+{% block title %}Master Grading Sheet{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+  <div>
+    <h2 class="mb-0">Master Grading Sheet</h2>
+    <div class="text-muted">All marks by term, class, subject, and teacher.</div>
+  </div>
+  <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{% url 'analytics:dashboard' %}"><i class="bi bi-arrow-left me-1"></i>Back to Analytics</a>
+</div>
+
+<form method="get" class="card mb-3">
+  <div class="card-body">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-2">
+        <label class="form-label small">Academic year</label>
+        <select class="form-select" name="year">
+          {% for y in years %}
+            <option value="{{ y.id }}" {% if y.id == year.id %}selected{% endif %}>{{ y.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Term</label>
+        <select class="form-select" name="term">
+          <option value="">All</option>
+          {% for t in terms %}
+            <option value="{{ t.id }}" {% if term and t.id == term.id %}selected{% endif %}>{{ t.get_name_display }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Classroom</label>
+        <select class="form-select" name="classroom">
+          <option value="">All</option>
+          {% for c in classrooms %}
+            <option value="{{ c.id }}" {% if selected_classroom and c.id == selected_classroom.id %}selected{% endif %}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Specialty</label>
+        <select class="form-select" name="specialty">
+          <option value="">All</option>
+          {% for s in specialties %}
+            <option value="{{ s.id }}" {% if selected_specialty and s.id == selected_specialty.id %}selected{% endif %}>{{ s.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Subject</label>
+        <select class="form-select" name="subject">
+          <option value="">All</option>
+          {% for s in subjects %}
+            <option value="{{ s.id }}" {% if selected_subject and s.id == selected_subject.id %}selected{% endif %}>{{ s.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Teacher</label>
+        <select class="form-select" name="teacher">
+          <option value="">All</option>
+          {% for t in teachers %}
+            <option value="{{ t.id }}" {% if selected_teacher and t.id == selected_teacher.id %}selected{% endif %}>
+              {{ t.user.get_full_name|default:t.user.username }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+      </div>
+      <div class="col-md-2">
+        <a class="btn btn-outline-secondary w-100" href="?{{ export_query }}">Export CSV</a>
+      </div>
+    </div>
+  </div>
+</form>
+
+<div class="card">
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-sm align-middle" aria-label="Master sheet: students, class, subject, teacher, term, and score components">
+        <thead>
+          <tr>
+            <th scope="col">Student</th>
+            <th scope="col">Class</th>
+            <th scope="col">Specialty</th>
+            <th scope="col">Subject</th>
+            <th scope="col">Teacher</th>
+            <th scope="col">Term</th>
+            <th scope="col" class="text-end">Seq1</th>
+            <th scope="col" class="text-end">Seq2</th>
+            <th scope="col" class="text-end">Exam</th>
+            <th scope="col" class="text-end">Mock</th>
+            <th scope="col" class="text-end">Pract</th>
+            <th scope="col" class="text-end">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in evals %}
+            <tr>
+              <td>{{ e.student.last_name }} {{ e.student.first_name }} ({{ e.student.student_code }})</td>
+              <td>{{ e.subject_assignment.classroom.name }}</td>
+              <td>{{ e.subject_assignment.specialty.name }}</td>
+              <td>{{ e.subject_assignment.subject.name }}</td>
+              <td>{{ e.teacher.user.get_full_name|default:e.teacher.user.username }}</td>
+              <td>{{ e.term.get_name_display }}</td>
+              <td class="text-end">{{ e.seq1_score|default_if_none:"" }}</td>
+              <td class="text-end">{{ e.seq2_score|default_if_none:"" }}</td>
+              <td class="text-end">{{ e.exam_score|default_if_none:"" }}</td>
+              <td class="text-end">{{ e.mock_score|default_if_none:"" }}</td>
+              <td class="text-end">{{ e.practical_score|default_if_none:"" }}</td>
+              <td class="text-end">{{ e.total_score|format_number:2 }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="12" class="text-muted">No evaluations found. <a href="{% url 'evals:evaluation_admin' %}">Create evaluations</a> or adjust the filters above.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

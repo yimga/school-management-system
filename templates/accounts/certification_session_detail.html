@@ -1,0 +1,181 @@
+{% extends "portal_base.html" %}
+{% load static region_format %}
+
+{% block title %}Exam Session{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-2 mb-3">
+    <div>
+      <h2 class="fw-bold mb-1">{{ session.name }}</h2>
+      <div class="text-muted">
+        {{ session.get_board_display }} · {{ session.get_level_display }}
+        · Centre #{{ session.exam_centre_number|default:"—" }}
+      </div>
+      <div class="small text-muted mt-1">
+        Track UID (matricule), official CIN, MTN transaction ID, and validation status here.
+      </div>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:certification_home' %}">
+        <i class="bi bi-arrow-left me-1"></i>Back
+      </a>
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'admin:academics_certificationexamsession_change' session.id %}" title="Edit in Configuration Engine">
+        Edit session
+      </a>
+      {% if can_add_candidates or has_registration_override %}
+      <a class="btn btn-sm btn-outline-primary" href="{% url 'accounts:certification_bulk_add_candidates' session.id %}">
+        <i class="bi bi-people me-1"></i>Bulk add candidates
+      </a>
+      {% else %}
+      <span class="btn btn-sm btn-outline-secondary disabled" title="{{ add_lock_reason }}">
+        <i class="bi bi-lock me-1"></i>Bulk add (locked)
+      </span>
+      {% endif %}
+      <a class="btn btn-sm btn-primary" href="{% url 'accounts:certification_export_zip' session.id %}">
+        Export `Data[CentreNo].zip`
+      </a>
+    </div>
+  </div>
+
+  {% if not can_add_candidates or not can_edit_candidates or ca_deadline_passed %}
+  <div class="alert alert-warning mb-3">
+    <div class="d-flex justify-content-between align-items-start">
+      <div>
+        <strong><i class="bi bi-exclamation-triangle me-1"></i>Deadline locks active</strong>
+        <ul class="mb-0 mt-2">
+          {% if not can_add_candidates %}
+          <li><strong>Adding candidates:</strong> {{ add_lock_reason }}</li>
+          {% endif %}
+          {% if not can_edit_candidates %}
+          <li><strong>Editing candidates:</strong> {{ edit_lock_reason }}</li>
+          {% endif %}
+          {% if ca_deadline_passed and not has_ca_override %}
+          <li><strong>CA submission:</strong> Deadline passed on {{ session.ca_submission_deadline_at|format_date }} {{ session.ca_submission_deadline_at|time:"H:i" }}</li>
+          {% endif %}
+        </ul>
+      </div>
+      {% if can_override_add or can_override_edit %}
+      <div class="ms-3">
+        <button class="btn btn-sm btn-warning" type="button" data-bs-toggle="modal" data-bs-target="#overrideModal">
+          <i class="bi bi-unlock me-1"></i>Admin override
+        </button>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if has_registration_override or has_ca_override %}
+  <div class="alert alert-info mb-3">
+    <i class="bi bi-info-circle me-1"></i>
+    <strong>Admin override active:</strong>
+    {% if has_registration_override %}Registration lock bypassed{% endif %}
+    {% if has_registration_override and has_ca_override %} · {% endif %}
+    {% if has_ca_override %}CA deadline bypassed{% endif %}
+  </div>
+  {% endif %}
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">Candidates</h5>
+        {% if can_add_candidates or has_registration_override %}
+        <a class="btn btn-sm btn-outline-primary" href="{% url 'admin:academics_certificationcandidate_add' %}" title="Add in Configuration Engine">
+          Add candidate
+        </a>
+        {% else %}
+        <span class="btn btn-sm btn-outline-secondary disabled" title="{{ add_lock_reason }}">
+          <i class="bi bi-lock me-1"></i>Add candidate (locked)
+        </span>
+        {% endif %}
+      </div>
+
+      {% if candidates %}
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Classroom</th>
+              <th>Specialty</th>
+              <th>UID (matricule)</th>
+              <th>Official CIN</th>
+              <th>MTN Txn ID</th>
+              <th class="text-end">Paid (FCFA)</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in candidates %}
+            <tr>
+              <td class="fw-semibold">{{ c.student }}</td>
+              <td>{{ c.student.classroom.name|default:"—" }}</td>
+              <td>{{ c.student.specialty.name|default:"—" }}</td>
+              <td>{{ c.unique_identifier|default:"—" }}</td>
+              <td>{{ c.official_cin|default:"—" }}</td>
+              <td>{{ c.payment_transaction_id|default:"—" }}</td>
+              <td class="text-end">{{ c.payment_amount_fcfa|default:0 }}</td>
+              <td>
+                <span class="badge bg-light text-dark">{{ c.get_status_display }}</span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        <div class="text-muted">No candidates yet.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Admin Override Modal -->
+{% if can_override_add or can_override_edit %}
+<div class="modal fade" id="overrideModal" tabindex="-1" aria-labelledby="overrideModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="overrideModalLabel">Admin Override</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" action="{% url 'accounts:certification_session_override' session.id %}">
+        {% csrf_token %}
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Override type</label>
+            <select name="override_type" class="form-select" required>
+              {% if not can_add_candidates or not can_edit_candidates %}
+              <option value="registration_locked">Registration lock</option>
+              {% endif %}
+              {% if ca_deadline_passed %}
+              <option value="ca_deadline">CA submission deadline</option>
+              {% endif %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Action</label>
+            <select name="action" class="form-select" required>
+              {% if has_registration_override or has_ca_override %}
+              <option value="clear">Clear override</option>
+              {% endif %}
+              <option value="set">Set override</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Reason (optional)</label>
+            <textarea name="reason" class="form-control" rows="3" placeholder="Reason for override..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-warning">Apply override</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+

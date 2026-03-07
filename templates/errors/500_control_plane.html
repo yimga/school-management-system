@@ -1,0 +1,25 @@
+{% extends "control_plane_skeleton.html" %}
+{% load static i18n %}
+
+{% block title %}Server error – RunMyCampus Manager{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      <div class="card shadow-sm border-secondary" style="background: var(--cp-panel-bg, rgba(8,16,30,0.9)); border-color: var(--cp-panel-border) !important;">
+        <div class="card-body text-center py-5 text-white">
+          <div class="mb-4">
+            <i class="bi bi-exclamation-triangle text-warning" style="font-size: 4rem;"></i>
+          </div>
+          <h1 class="h4 mb-2">Something went wrong</h1>
+          <p class="text-secondary mb-4">Something went wrong on our side. Please try again in a moment. If it keeps happening, contact platform support.</p>
+          <a class="btn btn-primary" href="{% url 'super:dashboard' %}" style="background: var(--platform-gold, #d4af37); border-color: var(--platform-gold); color: #0B0E14;">
+            <i class="bi bi-house me-2"></i>{% trans "Back to Manager" %}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

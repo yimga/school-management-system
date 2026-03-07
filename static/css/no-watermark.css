@@ -1,0 +1,60 @@
+/**
+ * Remove watermark/background images from dashboards and sidebars.
+ * Applied globally to ensure no logo/watermark background on any dashboard page.
+ */
+
+/* Sidebar: no background images */
+.sidebar,
+.portal-sidebar-wrapper,
+.portal-sidebar-col,
+.portal-sidebar-content,
+#nav-sidebar,
+#nav-sidebar-inner,
+#nav-sidebar-apps,
+#nav-sidebar .relative,
+#nav-sidebar .fixed,
+.navigation_header,
+[class*="navigation_header"],
+.admin-sidebar-header,
+.admin-sidebar-brand {
+  background-image: none !important;
+}
+
+.sidebar::before,
+.sidebar::after,
+.portal-sidebar-wrapper::before,
+.portal-sidebar-wrapper::after,
+.portal-sidebar-col::before,
+.portal-sidebar-col::after,
+#nav-sidebar::before,
+#nav-sidebar::after,
+#nav-sidebar-inner::before,
+#nav-sidebar-inner::after,
+#nav-sidebar-apps::before,
+#nav-sidebar-apps::after,
+.navigation_header::before,
+.navigation_header::after {
+  display: none !important;
+  background-image: none !important;
+}
+
+/* Admin nav wrapper (Unfold z-60) – no decorative backgrounds */
+.relative.z-60,
+#nav-sidebar .bg-base-50,
+#nav-sidebar .dark\:bg-base-900 {
+  background-image: none !important;
+}
+
+/* Page wrap and main content: no watermark background */
+.page-wrap,
+#main-content,
+.portal-main-col {
+  background-image: none !important;
+}
+
+.page-wrap::before,
+.page-wrap::after,
+#main-content::before,
+#main-content::after {
+  display: none !important;
+}

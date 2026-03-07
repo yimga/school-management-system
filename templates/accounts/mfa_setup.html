@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}MFA Setup - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-shield-alt"></i> Multi-Factor Authentication (MFA)
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    {% if not has_mfa and not qr_code %}
+                        <!-- MFA Not Enabled -->
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> 
+                            <strong>MFA is currently disabled</strong> for your account.
+                        </div>
+                        
+                        <p>Multi-Factor Authentication adds an extra layer of security to your account by requiring a one-time code from your mobile device in addition to your password.</p>
+                        
+                        <h5 class="mt-4">How it works:</h5>
+                        <ol>
+                            <li>Install an authenticator app (Google Authenticator, Authy, Microsoft Authenticator)</li>
+                            <li>Click "Enable MFA" below to generate a QR code</li>
+                            <li>Scan the QR code with your authenticator app</li>
+                            <li>Enter the 6-digit code to verify</li>
+                        </ol>
+
+                        <form method="post" class="mt-4 d-inline">
+                            {% csrf_token %}
+                            {% if next_url %}
+                            <input type="hidden" name="next" value="{{ next_url }}">
+                            {% endif %}
+                            <button type="submit" name="enable_mfa" class="btn btn-success btn-lg">
+                                <i class="fas fa-lock"></i> Enable MFA (authenticator app)
+                            </button>
+                        </form>
+                        {% if use_passkey %}
+                        <span class="ms-2">or</span>
+                        <button type="button" id="btn-add-passkey-first" class="btn btn-outline-primary btn-lg ms-2">
+                            <i class="fas fa-fingerprint"></i> Add passkey instead
+                        </button>
+                        <div id="passkey-message-first" class="mt-2 small"></div>
+                        {% endif %}
+
+                    {% elif qr_code %}
+                        <!-- QR Code Display -->
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Important:</strong> Save your secret key in a secure location. You'll need it if you lose access to your authenticator app.
+                        </div>
+
+                        <h5 class="mb-3">Step 1: Scan this QR code</h5>
+                        <div class="text-center mb-4">
+                            <img src="data:image/png;base64,{{ qr_code }}" alt="MFA QR Code" class="img-fluid" width="300" height="300" decoding="async" style="max-width: 300px; height: auto; object-fit: contain;">
+                        </div>
+
+                        <h5>Step 2: Manual entry code (if needed)</h5>
+                        <div class="card bg-light mb-4">
+                            <div class="card-body">
+                                <code class="fs-5">{{ secret_key }}</code>
+                                <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="navigator.clipboard.writeText('{{ secret_key }}')">
+                                    <i class="fas fa-copy"></i> Copy
+                                </button>
+                            </div>
+                        </div>
+
+                        <h5>Step 3: Verify with a token</h5>
+                        <form method="post" class="mb-3">
+                            {% csrf_token %}
+                            <input type="hidden" name="device_id" value="{{ device_id }}">
+                            {% if next_url %}
+                            <input type="hidden" name="next" value="{{ next_url }}">
+                            {% endif %}
+                            <div class="input-group mb-3">
+                                <input type="text" name="token" class="form-control form-control-lg" 
+                                       placeholder="Enter 6-digit code" maxlength="6" pattern="\d{6}" required 
+                                       autocomplete="off">
+                                <button type="submit" name="verify_token" class="btn btn-primary">
+                                    <i class="fas fa-check"></i> Verify & Enable
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="text-muted">
+                            <small>
+                                <i class="fas fa-lightbulb"></i> 
+                                Enter the 6-digit code from your authenticator app to complete setup.
+                            </small>
+                        </div>
+
+                    {% else %}
+                        <!-- MFA Already Enabled -->
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i>
+                            <strong>MFA is enabled</strong> and protecting your account.
+                        </div>
+
+                        <p>Your account is protected with Multi-Factor Authentication. You'll need to enter a code from your authenticator app every time you log in.</p>
+
+                        <div class="card bg-light mb-4">
+                            <div class="card-body">
+                                <h6>Status</h6>
+                                <ul class="mb-0">
+                                    <li>MFA Type: <strong>Time-based One-Time Password (TOTP)</strong></li>
+                                    <li>Authenticator: <strong>Configured</strong></li>
+                                    <li>Last Verified: <strong>This session</strong></li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        {% if backup_tokens %}
+                        <div class="card bg-light mb-4">
+                            <div class="card-body">
+                                <h6>Backup Codes</h6>
+                                <p class="text-muted small mb-2">Store these in a safe place. Each code can be used once.</p>
+                                <div class="d-flex flex-wrap gap-2">
+                                    {% for code in backup_tokens %}
+                                        <span class="badge bg-secondary text-white">{{ code }}</span>
+                                    {% endfor %}
+                                </div>
+                                <form method="post" class="mt-3">
+                                    {% csrf_token %}
+                                    {% if next_url %}
+                                    <input type="hidden" name="next" value="{{ next_url }}">
+                                    {% endif %}
+                                    <button type="submit" name="regen_backup" class="btn btn-outline-secondary btn-sm">
+                                        <i class="fas fa-sync"></i> Regenerate backup codes
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if use_passkey %}
+                        <hr class="my-4">
+                        <h5><i class="fas fa-fingerprint"></i> Passkeys</h5>
+                        <p class="text-muted small">Sign in with your device (Face ID, Touch ID, or security key) instead of a code.</p>
+                        {% if passkeys %}
+                        <ul class="list-group mb-3">
+                            {% for pk in passkeys %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ pk.name|default:"Passkey" }} <span class="badge bg-secondary">{{ pk.created_at }}</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                        <button type="button" id="btn-add-passkey" class="btn btn-outline-primary">
+                            <i class="fas fa-plus"></i> Add passkey
+                        </button>
+                        <div id="passkey-message" class="mt-2 small"></div>
+                        {% endif %}
+
+                        <h5 class="text-danger mt-4">Disable MFA</h5>
+                        <p class="text-muted">
+                            <i class="fas fa-exclamation-circle"></i>
+                            Disabling MFA will remove the extra security layer from your account. Only do this if absolutely necessary.
+                        </p>
+                        
+                        <form method="post">
+                            {% csrf_token %}
+                            {% if next_url %}
+                            <input type="hidden" name="next" value="{{ next_url }}">
+                            {% endif %}
+                            <button type="submit" name="disable_mfa" class="btn btn-danger" 
+                                    onclick="return confirm('Are you sure you want to disable MFA? This will make your account less secure.')">
+                                <i class="fas fa-unlock"></i> Disable MFA
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+                <div class="card-footer text-muted">
+                    <small>
+                        <i class="fas fa-question-circle"></i>
+                        Need help? Contact IT support or refer to the <a href="/docs/security/">security documentation</a>.
+                    </small>
+                </div>
+            </div>
+
+            <div class="text-center mt-3 d-flex flex-wrap justify-content-center gap-2">
+                <a href="{% url 'accounts:user_profile' %}" class="btn btn-outline-secondary btn-back-secondary"><i class="bi bi-arrow-left me-1"></i>Back to My Profile</a>
+                <a href="{% url 'accounts:redirect' %}" class="btn btn-link btn-back-primary">Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    code {
+        font-size: 1.1rem;
+        letter-spacing: 2px;
+    }
+</style>
+{% if use_passkey %}
+<script>
+(function() {
+    function b64urlToBuf(b64) {
+        b64 = b64.replace(/-/g, '+').replace(/_/g, '/');
+        var pad = b64.length % 4;
+        if (pad) b64 += (new Array(5 - pad)).join('=');
+        var bin = atob(b64);
+        var buf = new Uint8Array(bin.length);
+        for (var i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+        return buf.buffer;
+    }
+    function bufToB64url(buf) {
+        var bin = '';
+        var u8 = new Uint8Array(buf);
+        for (var i = 0; i < u8.length; i++) bin += String.fromCharCode(u8[i]);
+        return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+    function getCookie(n) {
+        var v = document.cookie.match('(^|;)\\s*' + n + '\\s*=\\s*([^;]+)');
+        return v ? v.pop() : '';
+    }
+    function doAddPasskey(btnId, msgId) {
+        var btn = document.getElementById(btnId);
+        var msg = document.getElementById(msgId);
+        if (!btn || !msg) return;
+        btn.addEventListener('click', function() {
+            msg.textContent = 'Requesting passkey registration…';
+            msg.className = 'mt-2 small text-info';
+            fetch('{% url "accounts:passkey_registration_options" %}', { method: 'GET', credentials: 'same-origin' })
+                .then(function(r) { return r.json(); })
+                .then(function(options) {
+                    if (options.error) throw new Error(options.error);
+                    options.challenge = b64urlToBuf(options.challenge);
+                    if (options.user && options.user.id) options.user.id = b64urlToBuf(options.user.id);
+                    return navigator.credentials.create({ publicKey: options });
+                })
+                .then(function(cred) {
+                    if (!cred) throw new Error('No credential returned');
+                    var payload = {
+                        id: cred.id,
+                        rawId: bufToB64url(cred.rawId),
+                        type: cred.type,
+                        response: {
+                            clientDataJSON: bufToB64url(cred.response.clientDataJSON),
+                            attestationObject: bufToB64url(cred.response.attestationObject)
+                        },
+                        deviceName: 'Passkey'
+                    };
+                    return fetch('{% url "accounts:passkey_registration_verify" %}', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                })
+                .then(function(r) { return r.json().then(function(j) { return { ok: r.ok, json: j }; }); })
+                .then(function(o) {
+                    if (o.ok && o.json.ok) {
+                        msg.textContent = 'Passkey added. Reloading…';
+                        msg.className = 'mt-2 small text-success';
+                        window.location.reload();
+                    } else {
+                        msg.textContent = o.json.error || 'Registration failed';
+                        msg.className = 'mt-2 small text-danger';
+                    }
+                })
+                .catch(function(e) {
+                    msg.textContent = e.message || 'Passkey registration failed';
+                    msg.className = 'mt-2 small text-danger';
+                });
+        });
+    }
+    doAddPasskey('btn-add-passkey', 'passkey-message');
+    doAddPasskey('btn-add-passkey-first', 'passkey-message-first');
+})();
+</script>
+{% endif %}
+{% endblock %}

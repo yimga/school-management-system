@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="en"{% if is_rtl %} dir="rtl"{% endif %}
+      data-theme="{% if TENANT_FORCE_LIGHT_THEME %}light{% elif PUBLIC_BRAND_MODE %}system{% else %}{{ USER_THEME_PREFERENCE|default:SITE.theme_brightness|default:'system'|lower }}{% endif %}"
+      data-admin-theme="{% if TENANT_FORCE_LIGHT_THEME %}light{% elif PUBLIC_BRAND_MODE %}system{% else %}{{ SITE.theme_brightness|default:'system'|lower }}{% endif %}"
+      data-simple-mode="{% if simple_mode %}true{% else %}false{% endif %}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {% if request.build_absolute_uri %}<link rel="canonical" href="{{ request.build_absolute_uri }}">{% endif %}
+    {% with desc=meta_description|default:SITE.meta_description|default:"" %}{% if desc %}<meta name="description" content="{{ desc|truncatewords:50 }}">{% endif %}{% endwith %}
+    {% load static i18n %}
+
+    <script>
+      // Apply server-stored theme preference early (before CSS paints).
+      (function () {
+        const key = 'runmycampus-theme-preference';
+        const html = document.documentElement;
+        let pref = (html.getAttribute('data-theme') || 'system').toLowerCase();
+        try {
+          var stored = localStorage.getItem(key);
+          if (!stored && localStorage.getItem('gilead-theme-preference')) {
+            stored = localStorage.getItem('gilead-theme-preference');
+            localStorage.setItem(key, stored);
+            localStorage.removeItem('gilead-theme-preference');
+          }
+          if (stored) pref = stored.toLowerCase();
+        } catch (e) {}
+        if (pref === 'system' || pref === 'auto') {
+          html.removeAttribute('data-theme');
+          html.removeAttribute('data-bs-theme');
+          try { localStorage.removeItem(key); } catch (e) {}
+          return;
+        }
+        html.setAttribute('data-theme', pref);
+        html.setAttribute('data-bs-theme', pref);
+        try { localStorage.setItem(key, pref); } catch (e) {}
+      })();
+    </script>
+    <script>
+      (function () {
+        var path = (window.location.pathname || "").toLowerCase();
+        var page = "";
+        if (path.indexOf("/compliance/dashboard") !== -1) page = "compliance";
+        else if (path === "/finance" || path.indexOf("/finance/") === 0) page = "finance";
+        else if (path === "/payroll" || path.indexOf("/payroll/") === 0) page = "payroll";
+        else if (path === "/analytics" || path.indexOf("/analytics/") === 0) page = "analytics";
+        else if (path === "/requests" || path.indexOf("/requests/") === 0) page = "requests";
+        else if (path === "/emis" || path.indexOf("/emis/") === 0) page = "emis";
+        else if (path.indexOf("/accounts/rbac-dashboard") !== -1 || path.indexOf("/accounts/rbac/") !== -1 || path.indexOf("/authentication/rbac/") !== -1) page = "rbac";
+
+        if (!page) return;
+        if (!document.documentElement.getAttribute("data-dashboard-page")) {
+          document.documentElement.setAttribute("data-dashboard-page", page);
+        }
+
+        var applyBody = function () {
+          if (!document.body) return;
+          if (!document.body.dataset.dashboardPage) {
+            document.body.dataset.dashboardPage = page;
+          }
+          document.body.classList.add("dashboard-page-" + page);
+        };
+
+        applyBody();
+        document.addEventListener("DOMContentLoaded", applyBody, { once: true });
+      })();
+    </script>
+
+    <title>
+      {% block title %}
+        {% if PUBLIC_BRAND_MODE %}{{ PUBLIC_BRAND_NAME }}{% elif SITE %}{{ SITE.site_name }}{% else %}School System{% endif %}
+      {% endblock %}
+    </title>
+    <link rel="icon" href="{% if PUBLIC_BRAND_MODE and PUBLIC_BRAND_FAVICON_URL %}{{ PUBLIC_BRAND_FAVICON_URL }}{% elif SITE_FAVICON_URL %}{{ SITE_FAVICON_URL }}{% else %}{% static 'images/runmycampus-icon.png' %}{% endif %}" type="image/png">
+    {% block extrahead %}{% endblock %}
+
+    <!-- Bootstrap (self-hosted) -->
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'css/design-system-unified.css' %}">
+    <link rel="stylesheet" href="{% static 'css/toggle-colors.css' %}">
+    <link rel="stylesheet" href="{% static 'css/header-footer-visibility.css' %}">
+    <link rel="stylesheet" href="{% static 'css/mobile-tables-forms.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard-responsive.css' %}">
+    <link rel="stylesheet" href="{% static 'css/ui-alignment-improvements.css' %}">
+    <link rel="stylesheet" href="{% static 'css/no-watermark.css' %}">
+    <link rel="stylesheet" href="{% static 'css/topbar-header-polish.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard-high-contrast.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard-text-visibility.css' %}">
+    <link rel="stylesheet" href="{% static 'css/theme-everywhere-dark.css' %}">
+    <link rel="stylesheet" href="{% static 'css/theme-visibility-guard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/platform-high-end.css' %}">
+    <link rel="stylesheet" href="{% static 'css/platform-responsive-touch.css' %}">
+    <script src="{% static 'js/htmx.min.js' %}" defer></script>
+
+    <style>
+                              {% if PUBLIC_BRAND_MODE %}
+                              :root {
+                                --school-primary: #0B0E14;
+                                --school-accent: #d4af37;
+                                --platform-navy: #0B0E14;
+                                --platform-gold: #d4af37;
+                              }
+                              {% elif SITE %}
+                              :root {
+                                {% if SITE_PRIMARY_COLOR or SITE.primary_color %}--school-primary: {{ SITE_PRIMARY_COLOR|default:SITE.primary_color }};{% endif %}
+                                {% if SITE_ACCENT_COLOR or SITE.accent_color %}--school-accent: {{ SITE_ACCENT_COLOR|default:SITE.accent_color }};{% endif %}
+                                {% if SITE.success_color %}--school-success: {{ SITE.success_color }};{% endif %}
+                                {% if SITE.warning_color %}--school-warning: {{ SITE.warning_color }};{% endif %}
+                                {% if SITE.danger_color %}--school-danger: {{ SITE.danger_color }};{% endif %}
+                              }
+                              {% endif %}
+                              {% if HIGH_CONTRAST_MODE %}
+                              html, body, .app-container {
+                                background: black !important;
+                                color: white !important;
+                              }
+                              .card, .navbar, .alert, .btn, .form-control {
+                                background: color-mix(in srgb, black 92%, var(--admin-content-bg)) !important;
+                                color: white !important;
+                                border-color: white !important;
+                              }
+                              .app-container::before {
+                                filter: grayscale(1) contrast(2);
+                              }
+                              {% endif %}
+
+                              {% if REDUCED_MOTION %}
+                              .app-container::before, video, object {
+                                animation: none !important;
+                                transition: none !important;
+                                filter: grayscale(1) brightness(0.7);
+                              }
+                              video, object {
+                                display: none !important;
+                              }
+                              {% endif %}
+                        /* Mobile optimization: hide or reduce logo background on small screens */
+                        @media (max-width: 767px) {
+                          .app-container::before {
+                            opacity: 0.08 !important;
+                          }
+                        }
+                        @media (max-width: 575px) {
+                          .app-container::before {
+                            background-image: none !important;
+                            opacity: 0 !important;
+                          }
+                        }
+                  /*
+                    Best Practices for Logo Background:
+                    - Supports PNG/SVG for transparency.
+                    - Uses ::before pseudo-element for non-intrusive background.
+                    - Opacity is set via SITE_LOGO_OPACITY (admin-configurable).
+                    - Fallback: If no logo, background-image is 'none'.
+                    - Accessibility: Main content remains fully opaque and accessible.
+                    - If using SVG, ensure viewBox and preserveAspectRatio are set for scaling.
+                    - For high-contrast/low-vision users, keep opacity moderate and avoid interfering with text contrast.
+                  */
+      .app-container {
+        position: relative;
+        width: 100%;
+        min-height: 100vh;
+        z-index: 1;
+      }
+      /* Full-width contract: module pages should not be artificially boxed. */
+      body.layout-boxed .app-container {
+        max-width: none;
+        margin-left: 0;
+        margin-right: 0;
+        box-shadow: none;
+      }
+      .app-container::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: none;
+        opacity: 0;
+        z-index: -1;
+        pointer-events: none;
+      }
+      /* Overflow safety contract for base pages. */
+      .app-container [class*="col-"],
+      .app-container .card,
+      .app-container .card .card-body,
+      .app-container .table-responsive {
+        min-width: 0;
+      }
+      .app-container .card-title,
+      .app-container .table td,
+      .app-container .table th,
+      .app-container .badge,
+      #main-content .btn {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
+      {% if not PUBLIC_BRAND_MODE %}
+      {% with theme=SITE_THEME %}
+      :root {
+        {% if theme.primary_color or SITE.primary_color %}--school-primary: {{ theme.primary_color|default:SITE.primary_color }};{% endif %}
+        {% if theme.accent_color or SITE.accent_color %}--school-accent: {{ theme.accent_color|default:SITE.accent_color }};{% endif %}
+        {% if SITE.success_color %}--school-success: {{ SITE.success_color }};{% endif %}
+        {% if SITE.warning_color %}--school-warning: {{ SITE.warning_color }};{% endif %}
+        {% if SITE.danger_color %}--school-danger: {{ SITE.danger_color }};{% endif %}
+        --school-bg: {{ theme.background_color|default:"transparent" }};
+        --school-font: {{ theme.font_family|default:SITE.brand_font|default:"Inter, system-ui, sans-serif" }};
+        {% if SITE_BASE_FONT_SIZE %}--base-font-size: {{ SITE_BASE_FONT_SIZE }}px;{% endif %}
+      }
+      {% endwith %}
+      {% endif %}
+      {% if TENANT_BRANDING_CSS_VARS %}
+      :root { {{ TENANT_BRANDING_CSS_VARS|safe }} }
+      {% endif %}
+      {% if SITE_USE_SECONDARY_FONT_HEADINGS and SITE_SECONDARY_FONT %}
+      h1, h2, h3, h4, h5, h6 { font-family: {{ SITE_SECONDARY_FONT }}, var(--school-font), system-ui, sans-serif; }
+      {% endif %}
+
+      body {
+        font-family: var(--school-font), system-ui, sans-serif;
+        {% if SITE_BASE_FONT_SIZE %}font-size: var(--base-font-size);{% endif %}
+        background: linear-gradient(135deg, rgba(13,110,253,.08), rgba(25,135,84,.05));
+        color: var(--admin-content-text);
+      }
+      body.host-kind-manager {
+        background: radial-gradient(circle at 15% 20%, rgba(52, 211, 153, 0.16), transparent 35%),
+                    radial-gradient(circle at 85% 0%, rgba(14, 165, 233, 0.14), transparent 30%),
+                    rgb(15 23 42);
+        color: rgb(226 232 240);
+      }
+
+      .navbar {
+        background: var(--header-brand-bg);
+        color: var(--header-brand-fg);
+      }
+
+      .navbar-brand img {
+        height: 28px;
+        width: auto;
+      }
+
+      .base-topbar {
+        flex-wrap: nowrap;
+        gap: 0.5rem;
+      }
+
+      .base-topbar-actions {
+        margin-left: auto;
+      }
+
+      @media (max-width: 767px) {
+        .base-topbar {
+          flex-wrap: wrap;
+        }
+        .base-topbar-actions {
+          order: 2;
+          width: 100%;
+          justify-content: flex-end;
+        }
+
+        .base-topbar-weather {
+          order: 3;
+          width: 100%;
+        }
+      }
+
+      @media (max-width: 575px) {
+        .base-topbar-weather {
+          display: none;
+        }
+
+        .base-topbar-actions .btn {
+          padding: 0.2rem 0.4rem;
+        }
+      }
+
+      .skip-link {
+        position: absolute;
+        left: -999px;
+        top: 0;
+        padding: 0.5rem 0.75rem;
+        background: rgb(15 23 42);
+        color: rgb(249 250 251);
+        z-index: 2000;
+      }
+      .skip-link:focus {
+        left: 0.5rem;
+        top: 0.5rem;
+        border-radius: 999px;
+      }
+
+      .card {
+        border: 0;
+        border-radius: 16px;
+        transition: transform .2s ease, box-shadow .2s ease;
+        background: rgba(255, 255, 255, 0.95);
+      }
+
+      .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 20px rgba(0,0,0,.10);
+      }
+
+      /* Make alerts readable in dark mode */
+      {% if SITE and SITE.use_dark_mode %}
+      .alert {
+        color: var(--admin-content-text);
+      }
+      {% endif %}
+    </style>
+    <link rel="stylesheet" href="{% static 'css/dashboard-theme-sync.css' %}">
+    {% if SITE and SITE.custom_css %}
+    <style data-site-custom-css>
+      {{ SITE.custom_css|safe }}
+    </style>
+    {% endif %}
+    {% block extrastyle %}{% endblock %}
+  </head>
+
+  <body class="layout-{{ LAYOUT_STYLE|default:'fluid' }} host-kind-{{ request.public_host_kind|default:'tenant'|lower }}">
+    <a href="#main-content" class="skip-link" aria-label="Skip to main content">Skip to main content</a>
+    <!--
+      .app-container wraps all content for background logo/video/svg effect.
+      If you need to support users with reduced motion or contrast, consider a toggle in user preferences.
+    -->
+    <div class="app-container">
+    {% block navbar %}
+    <nav class="navbar navbar-expand-lg navbar-dark">
+      <div class="container d-flex align-items-center base-topbar">
+        <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{% url 'home' %}">
+          {% if PUBLIC_BRAND_MODE and PUBLIC_BRAND_LOGO_URL %}
+            <img src="{{ PUBLIC_BRAND_LOGO_URL }}" alt="" width="34" height="34" decoding="async" style="object-fit: contain;">
+          {% elif SITE_LOGO_URL %}
+            <img src="{{ SITE_LOGO_URL }}" alt="Logo" width="34" height="34" decoding="async" style="object-fit: contain;">
+          {% endif %}
+          <span>{% if PUBLIC_BRAND_MODE %}{{ PUBLIC_BRAND_NAME }}{% elif SITE %}{{ SITE.site_name }}{% else %}School System{% endif %}</span>
+        </a>
+        {% if request.user.is_authenticated %}
+          <a class="btn btn-sm btn-outline-light ms-3" href="{% url 'accounts:redirect' %}">Home</a>
+        {% endif %}
+
+        {% if SHOW_HEADER_CONTEXT_STRIP %}
+        <div class="base-topbar-weather topbar-context-strip d-flex justify-content-center order-3 order-lg-2">
+          {% include 'components/header_weather_widget.html' %}
+        </div>
+        {% endif %}
+
+        <div class="base-topbar-actions text-white d-flex align-items-center gap-2 ms-lg-auto order-2 order-lg-3 justify-content-end">
+          {% if request.user.is_authenticated %}
+            <span class="small d-none d-md-inline topbar-username">Logged in as {{ request.user.username }}</span>
+            <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:logout' %}">Logout</a>
+          {% else %}
+            <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:login' %}">Login</a>
+          {% endif %}
+        </div>
+      </div>
+    </nav>
+    {% endblock %}
+
+    {% if SITE and SITE.is_preview %}
+      <div class="alert alert-danger text-center text-white m-0 rounded-0 fw-bold">
+        <div class="d-flex flex-column flex-md-row flex-wrap align-items-center justify-content-between gap-2">
+          <div class="d-flex flex-column flex-sm-row align-items-center gap-2">
+            <span>PREVIEW MODE - DATA WILL NOT BE SAVED</span>
+            {% if PREVIEW_ACT_AS_ROLE %}
+              <span class="badge bg-info text-dark">Acting as {{ PREVIEW_ACT_AS_ROLE }}</span>
+            {% endif %}
+          </div>
+          <div class="d-flex flex-column flex-sm-row gap-2 align-items-center">
+            <a class="btn btn-sm btn-light text-dark" href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">Toggle sandbox</a>
+            <a class="btn btn-sm btn-outline-light" href="{% url 'siteconfig:clear_preview' %}">Clear preview</a>
+            {% if request.user.is_staff %}
+              <form method="post" action="{% url 'siteconfig:set_act_as_role' %}" class="d-flex flex-wrap align-items-center gap-2 mb-0">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <label for="actAsSelect" class="small text-white mb-0">Act as</label>
+                <select name="role" id="actAsSelect" class="form-select form-select-sm" onchange="this.form.submit()">
+                  <option value="">Clear</option>
+                  {% for option in PREVIEW_ACT_AS_CHOICES %}
+                    <option value="{{ option.value }}" {% if option.value == PREVIEW_ACT_AS_ROLE %}selected{% endif %}>
+                      {{ option.label }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </form>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    <main id="main-content" class="container py-4" role="main">
+      {% if messages %}
+        <div class="mb-3">
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} mb-2">
+              {{ message }}
+              {% if message.tags == 'error' %}
+                {% url 'kb:kb_home' as kb_home_url %}
+                {% if kb_home_url %}
+                <p class="mb-0 mt-2 small"><a class="alert-link" href="{{ kb_home_url }}">{% trans "Learn more in the Help centre" %}</a></p>
+                {% endif %}
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% include "partials/breadcrumbs.html" %}
+
+      <div class="page-wrap">
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+
+    {% block footer %}
+    {% if PUBLIC_BRAND_MODE %}
+      <footer class="container text-center text-muted small pt-3 pb-5">
+        <p class="mb-1">
+          <a href="{% url 'marketing_privacy' %}">{% trans "Privacy Policy" %}</a>
+          <span class="mx-2">|</span>
+          <a href="{% url 'marketing_terms' %}">{% trans "Terms of Service" %}</a>
+          <span class="mx-2">|</span>
+          <a href="{% url 'marketing_cookie_policy' %}">{% trans "Cookie Policy" %}</a>
+        </p>
+        <div class="fw-semibold">{{ PUBLIC_BRAND_NAME }}</div>
+        <div>{{ PUBLIC_BRAND_DOMAIN }}</div>
+      </footer>
+    {% elif SITE %}
+      <footer class="container text-center text-muted small pt-3 pb-5">
+        <div class="fw-semibold">
+          {{ SITE.company_name|default:SITE.site_name }}
+        </div>
+        {% if SITE.company_address %}
+          <div>{{ SITE.company_address|linebreaksbr }}</div>
+        {% endif %}
+        <div>
+          {% if SITE.company_phone %}Tel {{ SITE.company_phone }}{% endif %}
+          {% if SITE.company_phone and SITE.company_email %} • {% endif %}
+          {% if SITE.company_email %}{{ SITE.company_email }}{% endif %}
+        </div>
+        {% if SITE.ministry_registration_code %}
+          <div>Ministry Reg: {{ SITE.ministry_registration_code }}</div>
+        {% endif %}
+        {% if SITE.company_slug %}
+          <div class="text-uppercase">Slug: {{ SITE.company_slug }}</div>
+        {% endif %}
+      </footer>
+    {% endif %}
+    {% endblock %}
+
+    {# AI Copilot - Available on all pages #}
+    {% include 'components/ai_copilot.html' %}
+
+    <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    {% if SITE and SITE.is_preview %}
+    <link rel="stylesheet" href="{% static 'css/preview-highlights.css' %}">
+    <script>
+      window.PREVIEW_DEFAULT_LABEL = '{% trans "Your changes affect this area" %}';
+      window.PREVIEW_DISMISS_LABEL = '{% trans "Dismiss highlights" %}';
+    </script>
+    <script src="{% static 'js/preview-highlights.js' %}"></script>
+    {% endif %}
+    </div>
+  </body>
+</html>
+

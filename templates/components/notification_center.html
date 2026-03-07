@@ -1,0 +1,634 @@
+{% load static %}
+{# Notification center component for dashboard header #}
+{% if request.public_host_kind == 'manager' %}
+<div class="notification-center">
+  <a class="notification-bell text-decoration-none" href="{% url 'manager_notifications' %}" title="Open mission queues" aria-label="Open mission queues">
+    <i class="bi bi-bell"></i>
+  </a>
+</div>
+{% else %}
+<div class="notification-center">
+  <!-- Notification Bell Icon -->
+  <button class="notification-bell" id="notificationBell" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <i class="bi bi-bell"></i>
+    <span class="notification-badge" id="notificationBadge">0</span>
+  </button>
+
+  <!-- Notification Dropdown Panel -->
+  <div class="dropdown-menu dropdown-menu-end notification-dropdown" aria-labelledby="notificationBell">
+    <div class="notification-header">
+      <h6 class="mb-0">
+        <i class="bi bi-bell-fill"></i> Notifications
+      </h6>
+      <div class="notification-actions">
+        <button type="button" class="btn btn-sm btn-link" id="markAllRead">
+          <i class="bi bi-check-all"></i> Mark all read
+        </button>
+        <button type="button" class="btn btn-sm btn-link" id="notificationSettings">
+          <i class="bi bi-gear"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="notification-tabs">
+      <button type="button" class="notification-tab active" data-tab="all">All</button>
+      <button type="button" class="notification-tab" data-tab="messages">Messages</button>
+      <button type="button" class="notification-tab" data-tab="tasks">Tasks</button>
+      <button type="button" class="notification-tab" data-tab="alerts">Alerts</button>
+    </div>
+
+    <div class="notification-body" id="notificationBody">
+      <!-- Notifications will be dynamically loaded here -->
+      <div class="notification-loading">
+        <div class="spinner-border spinner-border-sm" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <span class="ms-2">Loading notifications...</span>
+      </div>
+    </div>
+
+    <div class="notification-footer">
+      <a href="{% url 'portal:parent_dashboard' %}" class="notification-footer-link">
+        View all notifications <i class="bi bi-arrow-right"></i>
+      </a>
+    </div>
+  </div>
+</div>
+
+<style>
+.notification-center {
+  position: relative;
+}
+
+.notification-bell {
+  position: relative;
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  color: var(--admin-content-text-muted, #64748b);
+}
+
+.notification-bell:hover {
+  background: var(--admin-accent-light, rgba(13, 110, 253, 0.1));
+  color: var(--focus-ring-color, var(--school-primary, #0d6efd));
+}
+
+.notification-bell i {
+  font-size: 1.25rem;
+}
+
+.notification-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: linear-gradient(135deg, var(--admin-content-danger, #dc3545), var(--color-danger, #c82333));
+  color: var(--header-brand-fg, #fff);
+  font-size: 0.65rem;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+  animation: pulse-badge 2s ease-in-out infinite;
+}
+
+.notification-badge:empty {
+  display: none;
+}
+
+@keyframes pulse-badge {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.notification-dropdown {
+  width: 380px;
+  max-width: 90vw;
+  padding: 0;
+  border: none;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.notification-header {
+  padding: 1rem;
+  background: linear-gradient(135deg, #0d6efd, #6366f1);
+  color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notification-header h6 {
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.notification-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.notification-actions .btn-link {
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.85rem;
+}
+
+.notification-actions .btn-link:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+}
+
+.notification-tabs {
+  display: flex;
+  background: var(--admin-content-surface, #f8f9fa);
+  border-bottom: 1px solid var(--admin-content-border, #e9ecef);
+}
+
+.notification-tab {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  background: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.notification-tab:hover {
+  background: rgba(13, 110, 253, 0.05);
+  color: #0d6efd;
+}
+
+.notification-tab.active {
+  color: #0d6efd;
+  background: var(--admin-content-bg);
+}
+
+.notification-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #0d6efd;
+}
+
+.notification-body {
+  max-height: 400px;
+  overflow-y: auto;
+  background: var(--admin-content-bg);
+}
+
+.notification-loading {
+  padding: 2rem;
+  text-align: center;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.notification-item {
+  padding: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.notification-item:hover {
+  background: #f8f9fa;
+}
+
+.notification-item.unread {
+  background: rgba(13, 110, 253, 0.05);
+}
+
+.notification-item.unread::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #0d6efd;
+}
+
+.notification-content {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.notification-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.notification-icon.message {
+  background: rgba(13, 110, 253, 0.1);
+  color: #0d6efd;
+}
+
+.notification-icon.task {
+  background: rgba(255, 193, 7, 0.1);
+  color: #ffc107;
+}
+
+.notification-icon.alert {
+  background: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+}
+
+.notification-icon.success {
+  background: rgba(25, 135, 84, 0.1);
+  color: #198754;
+}
+
+.notification-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 0.25rem;
+}
+
+.notification-message {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.notification-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.notification-time {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.notification-category {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  background: #f1f5f9;
+  border-radius: 999px;
+  font-weight: 500;
+}
+
+.notification-footer {
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  text-align: center;
+}
+
+.notification-footer-link {
+  color: #0d6efd;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.notification-footer-link:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+.notification-empty {
+  padding: 3rem 2rem;
+  text-align: center;
+  color: #94a3b8;
+}
+
+.notification-empty i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+/* Custom scrollbar for notifications */
+.notification-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.notification-body::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.notification-body::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.notification-body::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+</style>
+{% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const notificationBell = document.getElementById('notificationBell');
+  const notificationBadge = document.getElementById('notificationBadge');
+  const notificationBody = document.getElementById('notificationBody');
+  const notificationTabs = document.querySelectorAll('.notification-tab');
+  const markAllReadBtn = document.getElementById('markAllRead');
+  
+  let currentTab = 'all';
+  let notifications = [];
+
+  // Fetch notifications from API
+  async function fetchNotifications() {
+    try {
+      const response = await fetch('/api/notifications/');
+      const data = await response.json();
+      notifications = data.notifications || [];
+      updateBadgeCount();
+      renderNotifications();
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      renderError();
+    }
+  }
+
+  // Render notifications based on current tab
+  function renderNotifications() {
+    const filteredNotifications = currentTab === 'all' 
+      ? notifications 
+      : notifications.filter(n => n.type === currentTab.slice(0, -1));
+
+    if (filteredNotifications.length === 0) {
+      notificationBody.innerHTML = `
+        <div class="notification-empty">
+          <i class="bi bi-inbox"></i>
+          <p class="mb-0">No notifications</p>
+        </div>
+      `;
+      return;
+    }
+
+    notificationBody.innerHTML = filteredNotifications.map(notification => `
+      <div class="notification-item ${notification.is_read ? '' : 'unread'}" data-id="${notification.id}">
+        <div class="notification-content">
+          <div class="notification-icon ${notification.type}">
+            <i class="bi ${getIconForType(notification.type)}"></i>
+          </div>
+          <div class="notification-details">
+            <div class="notification-title">${notification.title}</div>
+            <div class="notification-message">${notification.message}</div>
+            <div class="notification-meta">
+              <span class="notification-time">
+                <i class="bi bi-clock"></i>
+                ${formatTime(notification.created_at)}
+              </span>
+              <span class="notification-category">${notification.category}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    // Add click handlers to notification items
+    document.querySelectorAll('.notification-item').forEach(item => {
+      item.addEventListener('click', function() {
+        const notificationId = this.dataset.id;
+        markAsRead(notificationId);
+        // Navigate to notification link if available
+        const notification = notifications.find(n => n.id == notificationId);
+        if (notification && notification.link) {
+          window.location.href = notification.link;
+        }
+      });
+    });
+  }
+
+  // Render error state
+  function renderError() {
+    notificationBody.innerHTML = `
+      <div class="notification-empty">
+        <i class="bi bi-exclamation-triangle"></i>
+        <p class="mb-0">Failed to load notifications</p>
+        <button type="button" class="btn btn-sm btn-primary mt-2" onclick="location.reload()">Retry</button>
+      </div>
+    `;
+  }
+
+  // Get icon for notification type
+  function getIconForType(type) {
+    const icons = {
+      message: 'bi-envelope',
+      task: 'bi-clipboard-check',
+      alert: 'bi-exclamation-circle',
+      success: 'bi-check-circle',
+    };
+    return icons[type] || 'bi-bell';
+  }
+
+  // Format time ago
+  function formatTime(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now - date) / 1000);
+
+    if (diffInSeconds < 60) return 'Just now';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
+    return date.toLocaleDateString();
+  }
+
+  // Update badge count
+  function updateBadgeCount() {
+    const unreadCount = notifications.filter(n => !n.is_read).length;
+    notificationBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+  }
+
+  // Mark notification as read
+  async function markAsRead(notificationId) {
+    try {
+      await fetch(`/api/notifications/${notificationId}/read/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+      });
+      
+      // Update local state
+      const notification = notifications.find(n => n.id == notificationId);
+      if (notification) {
+        notification.is_read = true;
+        updateBadgeCount();
+        renderNotifications();
+      }
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  }
+
+  // Mark all notifications as read
+  markAllReadBtn.addEventListener('click', async function() {
+    try {
+      await fetch('/api/notifications/mark-all-read/', {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+      });
+      
+      notifications.forEach(n => n.is_read = true);
+      updateBadgeCount();
+      renderNotifications();
+    } catch (error) {
+      console.error('Error marking all as read:', error);
+    }
+  });
+
+  // Tab switching
+  notificationTabs.forEach(tab => {
+    tab.addEventListener('click', function() {
+      notificationTabs.forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+      currentTab = this.dataset.tab;
+      renderNotifications();
+    });
+  });
+
+  // Get CSRF token
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  // Initial load
+  fetchNotifications();
+
+  // Refresh notifications every 30 seconds
+  setInterval(fetchNotifications, 30000);
+
+  // Listen for new notification events (WebSocket or polling)
+  document.addEventListener('new-notification', function(e) {
+    notifications.unshift(e.detail);
+    updateBadgeCount();
+    if (currentTab === 'all' || currentTab === e.detail.type + 's') {
+      renderNotifications();
+    }
+    
+    // Show toast notification
+    showToast(e.detail);
+  });
+
+  // Show toast notification
+  function showToast(notification) {
+    const toast = document.createElement('div');
+    toast.className = 'notification-toast';
+    toast.innerHTML = `
+      <div class="notification-icon ${notification.type}">
+        <i class="bi ${getIconForType(notification.type)}"></i>
+      </div>
+      <div class="notification-toast-content">
+        <div class="notification-toast-title">${notification.title}</div>
+        <div class="notification-toast-message">${notification.message}</div>
+      </div>
+    `;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => toast.classList.add('show'), 100);
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => toast.remove(), 300);
+    }, 5000);
+  }
+});
+</script>
+
+<style>
+/* Toast notification styles */
+.notification-toast {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  background: var(--admin-content-bg);
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  padding: 1rem;
+  display: flex;
+  gap: 0.75rem;
+  min-width: 320px;
+  max-width: 400px;
+  z-index: 9999;
+  transform: translateX(450px);
+  transition: transform 0.3s ease;
+}
+
+.notification-toast.show {
+  transform: translateX(0);
+}
+
+.notification-toast-content {
+  flex: 1;
+}
+
+.notification-toast-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #1e293b;
+  margin-bottom: 0.25rem;
+}
+
+.notification-toast-message {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+</style>

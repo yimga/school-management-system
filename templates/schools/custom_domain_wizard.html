@@ -1,0 +1,146 @@
+{% extends "backend_base.html" %}
+{% load static i18n %}
+{% block backend_title %}{% trans "Custom Domain" %}{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-body p-4 p-lg-5">
+          <header class="mb-4 d-flex align-items-center gap-3">
+            <div class="rounded-3 bg-primary bg-opacity-10 p-3 text-primary">
+              <i class="bi bi-globe" style="font-size: 1.5rem;"></i>
+            </div>
+            <div>
+              <h1 class="h4 mb-0">{% trans "Use Your Own Domain" %}</h1>
+              <p class="text-muted small mb-0">{% trans "Point your school domain (e.g. portal.yourschool.edu) to RunMyCampus." %}</p>
+            </div>
+          </header>
+
+          <p class="text-muted mb-4">{% trans "Enter the domain you want to use. You will then add a CNAME and a TXT record at your DNS provider to verify ownership." %}</p>
+
+          <form id="domain-form" class="mb-4">
+            {% csrf_token %}
+            <label class="form-label fw-bold">{% trans "Domain" %}</label>
+            <div class="input-group">
+              <input type="text" name="domain" class="form-control" placeholder="portal.yourschool.edu" required />
+              <button type="submit" class="btn btn-primary">{% trans "Add domain" %}</button>
+            </div>
+            <div id="domain-error" class="text-danger small mt-1" style="display:none;"></div>
+          </form>
+
+          <hr class="my-4">
+
+          <div class="mb-3 p-2 bg-light rounded small">
+            <strong>{% trans "CNAME record (add at your DNS):" %}</strong> your host (e.g. portal) → <code>{{ cname_target }}</code>
+            <button type="button" class="btn btn-sm btn-link p-0 ms-1 copy-txt" data-txt="{{ cname_target }}"><i class="bi bi-clipboard"></i></button>
+          </div>
+
+          <h2 class="h6 mb-3">{% trans "Your domains" %}</h2>
+          {% if domains %}
+          <div class="list-group list-group-flush">
+            {% for d in domains %}
+            <div class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <div>
+                <span class="fw-medium">{{ d.domain }}</span>
+                {% if d.is_verified %}
+                <span class="badge bg-success ms-2">{% trans "Verified" %}</span>
+                {% else %}
+                <span class="badge bg-warning text-dark ms-2">{% trans "Pending" %}</span>
+                {% endif %}
+              </div>
+              {% if not d.is_verified %}
+              <div class="d-flex align-items-center gap-2">
+                <div class="bg-light rounded p-2 font-monospace small" title="{% trans 'TXT record value' %}">
+                  runmycampus-verify={{ d.dns_token }}
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-primary copy-txt" data-txt="runmycampus-verify={{ d.dns_token }}">
+                  <i class="bi bi-clipboard"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-primary verify-btn" data-id="{{ d.id }}">
+                  <i class="bi bi-check-circle"></i> {% trans "Check DNS" %}
+                </button>
+              </div>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="text-muted">{% trans "No custom domains yet. Add one above." %}</p>
+          {% endif %}
+
+          <div class="mt-4 p-3 bg-light rounded small">
+            <strong>{% trans "Instructions" %}</strong>
+            <ol class="mb-0 mt-1">
+              <li>{% trans "At your DNS provider (e.g. GoDaddy, Namecheap), add a CNAME record: your subdomain (e.g. portal) →" %} <code>{{ cname_target }}</code></li>
+              <li>{% trans "Add a TXT record with the value shown for each domain (runmycampus-verify=...)." %}</li>
+              <li>{% trans "Click “Check DNS” after saving. SSL will be provisioned automatically." %}</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(function() {
+  var form = document.getElementById('domain-form');
+  var errorEl = document.getElementById('domain-error');
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var fd = new FormData(form);
+      var domain = fd.get('domain');
+      errorEl.style.display = 'none';
+      fetch('{% url "api_domains_list_or_create" %}', {
+        method: 'POST',
+        body: JSON.stringify({ domain: domain }),
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+          'Accept': 'application/json'
+        },
+        credentials: 'same-origin'
+      }).then(function(r) {
+        if (r.ok) { window.location.reload(); return; }
+        return r.json().then(function(d) { throw d; });
+      }).catch(function(err) {
+        errorEl.textContent = err && err.error ? err.error : '{% trans "Request failed" %}';
+        errorEl.style.display = 'block';
+      });
+    });
+  }
+  document.querySelectorAll('.copy-txt').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var t = this.getAttribute('data-txt');
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(t);
+      }
+    });
+  });
+  document.querySelectorAll('.verify-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var id = this.getAttribute('data-id');
+      var self = this;
+      self.disabled = true;
+      fetch('{{ api_domains_url|default:"/api/tenant/domains/" }}'.replace(/\/$/, '') + '/' + id + '/verify/', {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+          'Accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        credentials: 'same-origin',
+        body: 'csrfmiddlewaretoken=' + encodeURIComponent(document.querySelector('[name=csrfmiddlewaretoken]').value)
+      }).then(function(r) {
+        return r.json();
+      }).then(function() {
+        window.location.reload();
+      }).finally(function() {
+        self.disabled = false;
+      });
+    });
+  });
+})();
+</script>
+{% endblock %}

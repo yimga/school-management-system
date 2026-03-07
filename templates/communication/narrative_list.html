@@ -1,0 +1,35 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+{% block title %}AI narrative feedback — drafts{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <h4 class="mb-3">{% trans "AI narrative feedback — approve messages to parents" %}</h4>
+      <div class="card shadow-sm">
+        <div class="card-body">
+          {% if drafts %}
+          <div class="list-group list-group-flush">
+            {% for n in drafts %}
+            <div class="list-group-item">
+              <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                <div>
+                  <strong>{{ n.student.get_full_name|default:n.student_id }}</strong>
+                  <span class="text-muted small"> — {{ n.achievement_event.event_type|default:"Achievement" }}</span>
+                  <p class="mb-1 mt-1">{{ n.message_text }}</p>
+                  <p class="text-muted small mb-0">{{ n.created_at|date:"M d, Y H:i" }}</p>
+                </div>
+                <a href="{% url 'communication:narrative_approve' narrative_id=n.id %}" class="btn btn-sm btn-primary">Approve</a>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="text-muted mb-0">No draft narratives. Create achievement events to generate AI messages for parents.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

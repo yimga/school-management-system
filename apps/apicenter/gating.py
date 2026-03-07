@@ -1,0 +1,19 @@
+"""
+Gating: when API Center is enabled, Integration.enabled is the single kill switch.
+"""
+from apps.siteconfig.models import SiteSettings
+
+
+def is_integration_allowed(integration):
+    """
+    Return True if the integration may be used.
+    - If integration is None -> False.
+    - If API Center feature is off -> True (no gating).
+    - Else -> integration.enabled (single source of truth).
+    """
+    if integration is None:
+        return False
+    flags = getattr(SiteSettings.get_solo(), "backend_feature_flags", None) or {}
+    if not flags.get("enable_api_center", False):
+        return True
+    return integration.enabled

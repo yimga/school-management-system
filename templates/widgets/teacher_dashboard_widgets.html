@@ -1,0 +1,112 @@
+{% if widget_data %}
+{% with widgets=display_widgets %}
+  <div class="row g-3 mb-4">
+    {% if not widgets or "completion" in widgets %}
+    <div class="col-md-6 col-lg-8">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="mb-0">Lowest completion subjects</h5>
+          </div>
+          {% if widget_data.completion.spotlight %}
+            <div class="list-group list-group-flush">
+              {% for item in widget_data.completion.spotlight %}
+                <div class="list-group-item px-0 border-0 d-flex justify-content-between align-items-center">
+                  <div>
+                    <div class="fw-semibold">{{ item.label }}</div>
+                    <div class="text-muted small">Pending {{ item.pending }} of {{ item.total }}</div>
+                  </div>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="text-muted small">{{ item.pct }}%</div>
+                    <a class="btn btn-sm btn-outline-primary" href="{{ item.url }}">Fill</a>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="small text-muted mb-0">Completion spotlight appears once assignments are active.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+    {% if not widgets or "communications" in widgets %}
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 border-0 shadow-sm" data-widget-id="teacher-communications">
+        <div class="card-body">
+          <div class="text-muted small">Communication</div>
+          {% if widget_data.communication.items %}
+            <ul class="list-unstyled mb-2">
+              {% for item in widget_data.communication.items %}
+                <li class="small">
+                  <span class="fw-semibold">{{ item.label }}</span>: {{ item.value }}
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="small text-muted">Contact details appear in site settings.</p>
+          {% endif %}
+          {% if widget_data.communication.links %}
+            <div class="d-flex flex-wrap gap-2 mt-2">
+              {% for link in widget_data.communication.links %}
+                <a
+                  class="btn btn-sm btn-outline-success communication-link d-flex align-items-center gap-1"
+                  href="{{ link.url }}"
+                  {% if link.target %}target="{{ link.target }}"{% endif %}
+                >
+                  {% if link.icon %}<i class="bi {{ link.icon }}"></i>{% endif %}
+                  {{ link.label }}
+                </a>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="small text-muted mt-2">Add contact details in site settings.</p>
+          {% endif %}
+          <div class="text-muted small mt-2">{{ widget_data.communication.note }}</div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="row g-3 mb-4">
+    {% if not widgets or "upcoming" in widgets %}
+    <div class="col-lg-8">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="mb-0">Upcoming classes</h5>
+          </div>
+          {% if widget_data.upcoming %}
+            <div class="list-group list-group-flush">
+              {% for session in widget_data.upcoming %}
+                <div class="list-group-item px-0 border-0">
+                  <div class="fw-semibold">{{ session.subject }}</div>
+                  <div class="text-muted small">{{ session.classroom }} · {{ session.term }}</div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="small text-muted mb-0">Schedule updates once subjects are assigned.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+    {% if not widgets or "links" in widgets %}
+    <div class="col-lg-4">
+      <div class="card h-100 border-0 shadow-sm" data-widget-id="teacher-quick-actions-widget">
+        <div class="card-body">
+          <div class="text-muted small mb-2">Quick actions</div>
+          <div class="d-flex flex-wrap gap-2">
+            {% for link in widget_data.links %}
+              <a class="btn btn-sm btn-outline-primary" href="{{ link.url }}">{{ link.label }}</a>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+{% endwith %}
+{% endif %}

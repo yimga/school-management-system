@@ -1,0 +1,45 @@
+{% load i18n %}
+{# Override: proper "Back to site" link and theme switcher with text labels so it works when icon font fails to load. #}
+<div class="absolute flex flex-row items-center justify-between left-0 m-4 right-0 top-0">
+    <a href="{% url 'home' %}" class="flex font-medium gap-2 group items-center text-sm text-primary-600 dark:text-primary-500">
+        <span class="material-symbols-outlined left-0 relative text-sm transition-all group-hover:-left-1" aria-hidden="true">arrow_back</span>
+        <span>{% trans "Back to site" %}</span>
+    </a>
+
+    {% if not theme %}
+    <div class="ml-auto relative" x-data="{ openTheme: false }">
+        <button type="button" class="flex items-center gap-1.5 text-sm font-medium text-base-700 dark:text-base-200 hover:text-base-900 dark:hover:text-base-100 cursor-pointer"
+                x-on:click="openTheme = !openTheme"
+                aria-haspopup="true"
+                aria-expanded="false"
+                aria-label="{% trans 'Theme' %}">
+            <span class="material-symbols-outlined text-lg" aria-hidden="true">
+                <span x-text="adminTheme == 'dark' && 'dark_mode' || adminTheme == 'light' && 'light_mode' || 'computer'"></span>
+            </span>
+            <span>{% trans "Theme" %}</span>
+        </button>
+        <nav class="absolute bg-white border border-base-200 flex flex-col leading-none py-1 right-0 rounded-lg shadow-lg top-8 w-40 z-50 dark:bg-base-800 dark:border-base-700"
+             x-cloak x-show="openTheme" x-transition x-on:click.outside="openTheme = false"
+             role="menu" aria-label="{% trans 'Theme options' %}">
+            <button type="button" role="menuitem" class="cursor-pointer flex flex-row mx-1 px-3 py-2 rounded-md hover:bg-base-100 hover:text-base-700 dark:hover:bg-base-700 dark:hover:text-base-200 text-left w-full gap-2"
+                    x-on:click="adminTheme = 'light'; openTheme = false"
+                    x-bind:class="adminTheme == 'light' && 'text-primary-600 dark:text-primary-500'">
+                <span class="material-symbols-outlined text-lg">light_mode</span>
+                <span>{% trans "Light" %}</span>
+            </button>
+            <button type="button" role="menuitem" class="cursor-pointer flex flex-row mx-1 px-3 py-2 rounded-md hover:bg-base-100 hover:text-base-700 dark:hover:bg-base-700 dark:hover:text-base-200 text-left w-full gap-2"
+                    x-on:click="adminTheme = 'dark'; openTheme = false"
+                    x-bind:class="adminTheme == 'dark' && 'text-primary-600 dark:text-primary-500'">
+                <span class="material-symbols-outlined text-lg">dark_mode</span>
+                <span>{% trans "Dark" %}</span>
+            </button>
+            <button type="button" role="menuitem" class="cursor-pointer flex flex-row mx-1 px-3 py-2 rounded-md hover:bg-base-100 hover:text-base-700 dark:hover:bg-base-700 dark:hover:text-base-200 text-left w-full gap-2"
+                    x-on:click="adminTheme = 'auto'; openTheme = false"
+                    x-bind:class="adminTheme == 'auto' && 'text-primary-600 dark:text-primary-500'">
+                <span class="material-symbols-outlined text-lg">computer</span>
+                <span>{% trans "System" %}</span>
+            </button>
+        </nav>
+    </div>
+    {% endif %}
+</div>

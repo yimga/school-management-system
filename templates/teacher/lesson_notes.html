@@ -1,0 +1,58 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Lesson Notes" %}{% endblock %}
+
+{% block content %}
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:teacher_dashboard_alias' %}"><i class="bi bi-arrow-left me-1"></i>{% trans "Back to Teacher hub" %}</a>
+  </div>
+  {% include "widgets/dashboard_hero.html" with hero=hero %}
+
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="mb-0">{% trans "Upload lesson plan" %}</h5>
+    </div>
+    <div class="card-body">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">{% trans "Upload" %}</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h5 class="mb-0">{% trans "Recent lesson plans" %}</h5>
+    </div>
+    <div class="card-body">
+      {% if plans %}
+        <ul class="list-group list-group-flush">
+          {% for plan in plans %}
+            <li class="list-group-item">
+              <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <span>{{ plan.title }} – {{ plan.week_start_date|date }}</span>
+                <div class="d-flex gap-1 align-items-center">
+                  {% if plan.file %}
+                    <a href="{{ plan.file.url }}" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener">{% trans "Download" %}</a>
+                  {% endif %}
+                  <a href="{% url 'portal:teacher_lesson_plan_add_attachment' plan.pk %}" class="btn btn-sm btn-outline-secondary">{% trans "Add resource" %}</a>
+                </div>
+              </div>
+              {% if plan.attachments.all %}
+                <ul class="list-unstyled mt-2 mb-0 ms-3 small">
+                  {% for att in plan.attachments.all %}
+                    <li><a href="{{ att.file.url }}" target="_blank" rel="noopener">{{ att.label|default:att.file.name }}</a></li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted mb-0">{% trans "No lesson plans uploaded yet." %}</p>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

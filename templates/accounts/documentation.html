@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Documentation - {{ SITE.site_name }}{% endblock %}
+
+{% block content %}
+  <div class="container py-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+      <div>
+        <h1 class="h4 mb-1">Documentation</h1>
+        <div class="text-muted small">Help articles and guides</div>
+      </div>
+      <div class="d-flex gap-2">
+        <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{% url 'accounts:user_profile' %}"><i class="bi bi-arrow-left me-1"></i>Back to profile</a>
+        <a class="btn btn-sm btn-primary" href="{% url 'kb:kb_home' %}">Open knowledge base</a>
+      </div>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div class="text-muted">
+          Use the Knowledge Base for FAQs, articles, and support. If you want, I can add role-specific
+          quick links here (parent/teacher/staff) and make them admin-configurable.
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+

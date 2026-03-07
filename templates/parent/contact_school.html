@@ -1,0 +1,53 @@
+{% extends "portal_base.html" %}
+
+{% block title %}Contact School{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h2 class="mb-0">Contact School</h2>
+    <p class="text-muted small mb-1">
+      Submit a request and the school team will call or message you.
+    </p>
+    {% if SITE.enable_whatsapp_parent_portal and SITE.whatsapp_support_number or SITE.enable_whatsapp_parent_portal and SITE.footer_whatsapp_url %}
+      <div class="d-flex flex-wrap align-items-center gap-2">
+        {% if SITE.whatsapp_support_number %}
+          <a class="btn btn-sm btn-success" href="https://wa.me/{{ SITE.whatsapp_support_number|urlencode }}?text={{ 'Hello, I would like to contact the school.'|urlencode }}" target="_blank" rel="noreferrer">
+            <i class="bi bi-whatsapp me-1"></i>WhatsApp Support
+          </a>
+        {% else %}
+          <a class="btn btn-sm btn-success" href="{{ SITE.footer_whatsapp_url }}" target="_blank" rel="noreferrer">
+            <i class="bi bi-whatsapp me-1"></i>WhatsApp Support
+          </a>
+        {% endif %}
+        {% if SITE.whatsapp_admissions_number %}
+          <a class="btn btn-sm btn-outline-success" href="https://wa.me/{{ SITE.whatsapp_admissions_number|urlencode }}?text={{ 'Hello, I have a question about admissions.'|urlencode }}" target="_blank" rel="noreferrer">
+            <i class="bi bi-whatsapp me-1"></i>Admissions WhatsApp
+          </a>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+  <a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:parent_dashboard' %}">Back</a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form method="post" enctype="multipart/form-data" id="contact-school-form" data-draft-key="parent_contact_school" data-draft-max-age-hours="24" data-draft-pending-label="Unsynced request">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button class="btn btn-primary" type="submit">Submit request</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extrajs %}
+<script>
+(function() {
+  var form = document.getElementById('contact-school-form');
+  if (form && window.FormDraftSave) window.FormDraftSave.init(form);
+})();
+</script>
+{% endblock %}
+

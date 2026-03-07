@@ -1,0 +1,254 @@
+{% extends "portal_base.html" %}
+{% load region_format %}
+
+{% block title %}Invoices{% endblock %}
+
+{% block content %}
+{% url 'finance:dashboard' as finance_dashboard_url %}
+{% include "components/page_header.html" with title="Invoices" subtitle="Accounts receivable and payable." action_url=finance_dashboard_url action_text="Back to Finance" %}
+
+{% if finance_access_required and not finance_access_granted %}
+<div class="alert alert-warning d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-3" role="alert">
+  <div class="d-flex align-items-center gap-2">
+    <i class="bi bi-shield-lock"></i>
+    <div>
+      Finance access is not yet enabled for your account. Once an admin grants access, invoices and payments will appear here.
+      {% if finance_access_summary %}
+      <div class="small text-muted">{{ finance_access_summary }}</div>
+      {% endif %}
+    </div>
+  </div>
+  {% if can_request_finance_access %}
+  <form method="post" action="{{ finance_request_url }}">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-sm btn-primary">Request finance access</button>
+  </form>
+  {% endif %}
+</div>
+{% elif finance_access_summary %}
+<div class="alert alert-info d-flex align-items-center gap-2 mb-3" role="alert">
+  <i class="bi bi-shield-check"></i>
+  <div>{{ finance_access_summary }}</div>
+  {% if can_request_finance_access %}
+  <form method="post" action="{{ finance_request_url }}" class="ms-auto">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-sm btn-outline-primary">Request broader access</button>
+  </form>
+  {% endif %}
+</div>
+{% endif %}
+
+<form method="get" class="card mb-3">
+  <div class="card-body">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label small">Search</label>
+        <input type="search" class="form-control" name="q" placeholder="Reference or student name..." value="{{ search }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Status</label>
+        <select class="form-select" name="status">
+          <option value="">All</option>
+          {% for value, label in statuses %}
+            <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Academic year</label>
+        <select class="form-select" name="year">
+          <option value="">All</option>
+          {% for y in years %}
+            <option value="{{ y.id }}" {% if selected_year == y.id|stringformat:"s" %}selected{% endif %}>{{ y.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small">Sort by</label>
+        <select class="form-select" name="order">
+          {% for value, label in order_options %}
+            <option value="{{ value }}" {% if selected_order == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2 d-grid">
+        <button type="submit" class="btn btn-primary">Filter</button>
+      </div>
+    </div>
+  </div>
+</form>
+
+<div class="card">
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+      <div class="small text-muted">Showing {{ invoices|length }} invoices</div>
+      <div class="d-flex gap-2 align-items-center flex-wrap">
+        <span class="small text-muted me-1">View:</span>
+        <div class="btn-group btn-group-sm table-density-toggle" role="group" aria-label="Table density">
+          <button type="button" class="btn btn-outline-secondary" data-density="condensed">Condensed</button>
+          <button type="button" class="btn btn-outline-secondary" data-density="expanded">Expanded</button>
+        </div>
+        {% if user.is_staff or user.is_superuser %}
+        <a class="btn btn-outline-primary btn-sm" href="{% url 'finance:finance_access_bulk' %}">Bulk finance access</a>
+        {% endif %}
+        <a class="btn btn-outline-secondary btn-sm" href="?{% if pagination_extra_query %}{{ pagination_extra_query }}&{% endif %}export=csv">Export CSV</a>
+        <a class="btn btn-outline-secondary btn-sm" href="?{% if pagination_extra_query %}{{ pagination_extra_query }}&{% endif %}export=pdf">Export PDF</a>
+      </div>
+    </div>
+    <div class="table-responsive" data-table-density-key="finance_invoices">
+      {% if invoices %}
+      <table class="table table-sm align-middle table-sticky-head table-zebra" aria-label="Invoices list: reference, type, status, due date, student, total, balance, and actions">
+        <thead class="table-light">
+          <tr>
+            <th scope="col">Reference</th>
+            <th scope="col">Type</th>
+            <th scope="col">Status</th>
+            <th scope="col">Due</th>
+            <th scope="col">Student</th>
+            {% if user.is_staff or user.is_superuser %}
+            <th scope="col">Parent access</th>
+            {% endif %}
+            <th scope="col">Split billing</th>
+            <th scope="col" class="text-end">Total</th>
+            <th scope="col" class="text-end">Balance</th>
+            <th scope="col" class="text-end">Attachment</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for inv in invoices %}
+            <tr>
+              <td>
+                <a href="{% url 'finance:invoice_detail' inv.id %}">
+                  {{ inv.reference|default:inv.id }}
+                </a>
+              </td>
+              <td>{{ inv.get_invoice_type_display }}</td>
+              <td>{{ inv.get_status_display }}</td>
+              <td>{{ inv.due_date|format_date|default:"-" }}</td>
+              <td>{{ inv.student|default:"-" }}</td>
+              {% if user.is_staff or user.is_superuser %}
+              {% with guardians=inv.student.guardian_links.all %}
+              <td class="small">
+                {% if guardians|length %}
+                  {% with guardian=guardians|dictsort:"-can_view_finance"|first %}
+                    {% if guardian and guardian.can_view_finance %}
+                      <span class="badge bg-success-subtle text-success">Enabled</span>
+                    {% else %}
+                      <span class="badge bg-light text-muted">Not enabled</span>
+                    {% endif %}
+                  {% endwith %}
+                {% else %}
+                  <span class="text-muted">No guardians</span>
+                {% endif %}
+              </td>
+              {% endwith %}
+              {% endif %}
+              <td class="small">
+                {% if inv.split_payer_count %}
+                  {% if inv.my_split_outstanding is not None %}
+                    <div class="fw-semibold">{{ inv.my_split_outstanding|format_currency }}</div>
+                    <div class="text-muted">{{ inv.my_split_status }}</div>
+                  {% elif user.is_staff or user.is_superuser %}
+                    <div class="fw-semibold">{{ inv.split_payer_count }} payer{{ inv.split_payer_count|pluralize }}</div>
+                    <div class="text-muted">Due {{ inv.split_outstanding_total|format_currency }}</div>
+                  {% else %}
+                    <span class="text-muted">Split configured</span>
+                  {% endif %}
+                {% else %}
+                  <span class="text-muted">-</span>
+                {% endif %}
+              </td>
+              <td class="text-end">{{ inv.total_amount|format_currency }}</td>
+              <td class="text-end {% if inv.status == 'OVERDUE' %}cell-overdue fw-bold{% endif %}">{{ inv.balance_amount|format_currency }}</td>
+              <td class="text-end">
+                {% if inv.attachment %}
+                  <a class="btn btn-sm btn-outline-secondary" href="{{ inv.attachment.url }}" target="_blank">View</a>
+                {% else %}
+                  <span class="text-muted small">None</span>
+                {% endif %}
+              </td>
+              <td>
+                <div class="d-flex flex-wrap gap-2">
+                  <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:invoice_detail' inv.id %}">View</a>
+                  {% if inv.payments.first %}
+                    <a class="btn btn-outline-primary btn-sm" href="{% url 'finance:invoice_receipt' inv.id %}">Receipt</a>
+                  {% endif %}
+                  {% if inv.balance_amount > 0 %}
+                    <a class="btn btn-sm btn-primary" href="{% url 'finance:invoice_detail' inv.id %}#pay">Pay now</a>
+                  {% endif %}
+                  {% if user.is_staff or user.is_superuser and inv.student %}
+                  <form method="post" action="{% url 'finance:finance_request_access' %}" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="student_id" value="{{ inv.student.id }}">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="return confirm('Grant finance access to guardians for {{ inv.student }}?');">Grant guardian access</button>
+                  </form>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% elif finance_access_required and not finance_access_granted %}
+      <table class="table table-sm align-middle" aria-label="Invoices list (no results)">
+        <thead class="table-light">
+          <tr>
+            <th scope="col">Reference</th>
+            <th scope="col">Type</th>
+            <th scope="col">Status</th>
+            <th scope="col">Due</th>
+            <th scope="col">Student</th>
+            {% if user.is_staff or user.is_superuser %}
+            <th scope="col">Parent access</th>
+            {% endif %}
+            <th scope="col">Split billing</th>
+            <th scope="col" class="text-end">Total</th>
+            <th scope="col" class="text-end">Balance</th>
+            <th scope="col" class="text-end">Attachment</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="{% if user.is_staff or user.is_superuser %}11{% else %}10{% endif %}" class="text-muted py-4">
+              Finance access is not enabled yet. Request access to see invoices for your linked students.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      {% else %}
+      {% url 'finance:generate_fees' as empty_action_url %}
+      {% include "components/dashboard_empty_state.html" with icon="bi-receipt" title="No invoices found" message="Generate fee invoices to get started." action_url=empty_action_url action_text="Generate fees" %}
+      {% endif %}
+    </div>
+    {% if page_obj %}
+    {% include "components/pagination.html" with page_obj=page_obj pagination_extra_query=pagination_extra_query %}
+    {% endif %}
+  </div>
+</div>
+<script>
+(function() {
+  var key = 'table-density-finance_invoices';
+  var wrapper = document.querySelector('[data-table-density-key="finance_invoices"]');
+  if (!wrapper) return;
+  var table = wrapper.querySelector('table');
+  var condensed = localStorage.getItem(key) === 'condensed';
+  function apply() {
+    if (table) table.classList.toggle('table-condensed', condensed);
+    wrapper.querySelectorAll('.table-density-toggle [data-density]').forEach(function(btn) {
+      btn.classList.toggle('active', (btn.getAttribute('data-density') === 'condensed') === condensed);
+    });
+  }
+  apply();
+  wrapper.querySelectorAll('.table-density-toggle [data-density]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      condensed = this.getAttribute('data-density') === 'condensed';
+      localStorage.setItem(key, condensed ? 'condensed' : 'expanded');
+      apply();
+    });
+  });
+})();
+</script>
+{% include "components/was_this_helpful.html" with feedback_id="finance-invoices" %}
+{% endblock %}

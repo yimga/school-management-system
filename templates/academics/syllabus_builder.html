@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}Syllabus builder – {{ subject_assignment.subject.name }}{% endblock %}
+
+{% block content %}
+  <div class="container py-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+      <div>
+        <h1 class="h4 mb-1">Syllabus builder</h1>
+        <div class="text-muted small">{{ subject_assignment.subject.name }} · {{ subject_assignment.classroom.name }} · {{ subject_assignment.term.label }}</div>
+      </div>
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'academics:teacher_syllabus_hub' %}">Back to syllabi</a>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+      <div class="card-body">
+        <form method="post" action="">
+          {% csrf_token %}
+          <p class="text-muted small">Builder data (JSON). In a full implementation this would be a guided form; for now you can edit the JSON.</p>
+          <textarea name="builder_data" class="form-control font-monospace" rows="12">{{ builder_data_json }}</textarea>
+          <div class="mt-3">
+            <label class="form-label">{% trans "Tag with standards" %}</label>
+            <p class="text-muted small">Optional: link this syllabus to curriculum standards (topics/units).</p>
+            <div class="border rounded p-2 max-height:200px overflow-auto" style="max-height:200px;">
+              {% for node in available_curriculum_nodes %}
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="curriculum_node_ids" value="{{ node.pk }}" id="node-{{ node.pk }}"
+                  {% if node.pk in selected_curriculum_node_ids %}checked{% endif %}>
+                <label class="form-check-label small" for="node-{{ node.pk }}">{{ node.code }} — {{ node.title|default:node.code }}</label>
+              </div>
+              {% empty %}
+              <p class="text-muted small mb-0">No curriculum nodes in this school. Add standards in Admin → Curriculum.</p>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="mt-2">
+            <button type="submit" class="btn btn-primary">Save draft</button>
+            <a class="btn btn-outline-secondary" href="{% url 'academics:teacher_syllabus_hub' %}">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

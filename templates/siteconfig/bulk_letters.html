@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Bulk Letters · {{ SITE.site_name|default:"Portal" }}{% endblock %}
+
+{% block content %}
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 mb-1">Bulk Letters (ODT)</h1>
+      <p class="text-muted mb-0">Generate one LibreOffice Writer (ODT) letter per student in a classroom. Requires Pandoc.</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'siteconfig:report_library' %}">
+        <i class="bi bi-journal-text"></i> Report Library
+      </a>
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'kb:kb_search' %}?q=bulk+letters" title="Search help for bulk letters">
+        <i class="bi bi-question-circle"></i> Help
+      </a>
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      {% if not classroom_list %}
+      <div class="alert alert-info mb-0">
+        <i class="bi bi-info-circle"></i> No classrooms found. {% if is_backend_context %}Add an academic year and classrooms in <a href="{% url 'accounts:workflow_center' %}">Workflow Center</a> (or use Configuration Engine), then return here to generate letters.{% else %}Add an academic year and classrooms in <a href="{% url 'admin:academics_classroom_changelist' %}">Academics → Classrooms</a> (or via year setup), then return here to generate letters.{% endif %}
+      </div>
+      {% else %}
+      <form method="post" action="{% url 'siteconfig:bulk_letters' %}">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label for="classroom_id" class="form-label">Classroom</label>
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <select name="classroom_id" id="classroom_id" class="form-select" required style="max-width: 22rem;">
+              <option value="">— Select a classroom —</option>
+              {% for item in classroom_list %}
+                <option value="{{ item.room.id }}" data-count="{{ item.student_count }}"
+                  {% if form_data and form_data.classroom_id == item.room.id|stringformat:"d" %}selected{% endif %}>
+                  {{ item.room.name }} ({{ item.room.code }}) — {{ item.student_count }} student{{ item.student_count|pluralize }}
+                </option>
+              {% endfor %}
+            </select>
+            <span id="classroom-student-count" class="text-muted small"></span>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="letter_title" class="form-label">Letter title (optional)</label>
+          <input type="text" name="letter_title" id="letter_title" class="form-control" maxlength="200"
+                 placeholder="e.g. Term 1 welcome letter"
+                 value="{% if form_data %}{{ form_data.letter_title }}{% endif %}">
+          <div class="form-text">Used as the document title inside each ODT. If empty, uses "Letter - LastName FirstName".</div>
+        </div>
+        <div class="mb-3">
+          <label for="letter_body" class="form-label">Letter body (HTML)</label>
+          <textarea name="letter_body" id="letter_body" class="form-control font-monospace" rows="14" required maxlength="100000"
+                    placeholder="<p>Dear {{ first_name }},</p>&#10;&#10;<p>Your class is {{ classroom }}. Student code: {{ student_code }}.</p>">{% if form_data %}{{ form_data.letter_body_display|safe }}{% endif %}</textarea>
+          <div class="form-text d-flex justify-content-between align-items-center">
+            <span>Use placeholders: <code>{% templatetag openvariable %} first_name {% templatetag closevariable %}</code>, <code>{% templatetag openvariable %} last_name {% templatetag closevariable %}</code>, <code>{% templatetag openvariable %} student_code {% templatetag closevariable %}</code>, <code>{% templatetag openvariable %} classroom {% templatetag closevariable %}</code>. Simple HTML allowed. Max 100,000 characters.</span>
+            <span id="letter-body-count" class="text-muted small ms-2">0 / 100,000</span>
+          </div>
+        </div>
+        <div class="mb-3 form-check">
+          <input type="checkbox" class="form-check-input" name="include_pdf" id="include_pdf" value="on" {% if form_data and form_data.include_pdf %}checked{% endif %}>
+          <label class="form-check-label" for="include_pdf">Also include PDF for each letter (requires LibreOffice on the server)</label>
+        </div>
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-download"></i> Generate zip
+        </button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+  {% if classroom_list %}
+  <script>
+  (function() {
+    var ta = document.getElementById('letter_body');
+    var countEl = document.getElementById('letter-body-count');
+    if (ta && countEl) {
+      function updateCount() {
+        var n = (ta.value || '').length;
+        countEl.textContent = n.toLocaleString() + ' / 100,000';
+        countEl.classList.toggle('text-danger', n > 100000);
+      }
+      ta.addEventListener('input', updateCount);
+      ta.addEventListener('keyup', updateCount);
+      updateCount();
+    }
+    var sel = document.getElementById('classroom_id');
+    var countSpan = document.getElementById('classroom-student-count');
+    if (sel && countSpan) {
+      function updatePreview() {
+        var opt = sel.options[sel.selectedIndex];
+        var n = opt && opt.value ? parseInt(opt.getAttribute('data-count'), 10) : 0;
+        countSpan.textContent = n > 0 ? n + ' letter' + (n !== 1 ? 's' : '') + ' will be generated' : '';
+      }
+      sel.addEventListener('change', updatePreview);
+      updatePreview();
+    }
+  })();
+  </script>
+  {% endif %}
+{% endblock %}

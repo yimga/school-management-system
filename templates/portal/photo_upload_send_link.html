@@ -1,0 +1,54 @@
+{% extends "portal_base.html" %}
+{% load static i18n %}
+{% block title %}{% trans "Send photo upload link" %}{% endblock %}
+{% block content %}
+<div class="container py-4" style="max-width: 520px;">
+  <h3 class="mb-3">{% trans "Request photo for" %} {{ profile_name }}</h3>
+  <p class="text-muted small">
+    {% if is_student %}
+      {% trans "Send this link to the parent or student. When they open it on their phone, they can take or upload a photo. It will be saved to this profile." %}
+    {% else %}
+      {% trans "Send this link to the staff member. When they open it on their phone, they can take or upload a photo. It will be saved to this profile." %}
+    {% endif %}
+  </p>
+  <div class="border rounded p-3 bg-light mb-3">
+    <label class="form-label small fw-semibold">{% trans "Link (copy and send by SMS, WhatsApp, or email):" %}</label>
+    <div class="input-group">
+      <input type="text" class="form-control font-monospace small" id="photoLinkUrl" value="{{ full_url }}" readonly>
+      <button type="button" class="btn btn-outline-primary" id="photoLinkCopyBtn" data-copied-text="{% trans 'Copied!' %}">
+        <i class="bi bi-clipboard me-1"></i> {% trans "Copy" %}
+      </button>
+    </div>
+  </div>
+  <div class="text-center mb-3">
+    <p class="small text-muted">{% trans "Or scan this QR code on the phone:" %}</p>
+    <img src="{{ qr_url }}" alt="{% trans 'QR code for photo upload link' %}" class="border rounded" style="max-width: 200px; height: auto;">
+  </div>
+  <p class="small text-muted">
+    {% trans "The link is valid for 48 hours. Once they upload a photo, it will appear on this profile." %}
+  </p>
+  <a href="{% url 'accounts:backend_student_list' %}" class="btn btn-outline-secondary btn-sm">{% trans "Back to students" %}</a>
+  <a href="{% url 'accounts:backend_teacher_list' %}" class="btn btn-outline-secondary btn-sm">{% trans "Back to teachers" %}</a>
+</div>
+<script>
+document.getElementById('photoLinkCopyBtn').addEventListener('click', function() {
+  var input = document.getElementById('photoLinkUrl');
+  var btn = document.getElementById('photoLinkCopyBtn');
+  var orig = btn.innerHTML;
+  var copiedText = btn.getAttribute('data-copied-text') || 'Copied!';
+  function showCopied() {
+    btn.innerHTML = '<i class="bi bi-check me-1"></i> ' + copiedText;
+    setTimeout(function() { btn.innerHTML = orig; }, 2000);
+  }
+  input.select();
+  input.setSelectionRange(0, 99999);
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(input.value).then(showCopied).catch(function() {
+      try { document.execCommand('copy'); showCopied(); } catch (e) { }
+    });
+  } else {
+    try { document.execCommand('copy'); showCopied(); } catch (e) { }
+  }
+});
+</script>
+{% endblock %}

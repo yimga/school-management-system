@@ -1,0 +1,25 @@
+{% comment %}
+Recommended next steps for backend dashboard (workflow-aware).
+Expects: recommended_next_steps (list of {label, url, icon})
+{% endcomment %}
+{% if recommended_next_steps %}
+<div class="card shadow-sm mb-3" data-widget-id="recommended-next-steps">
+  <div class="card-body py-3">
+    <div class="d-flex align-items-center gap-2 mb-2">
+      <i class="bi bi-lightning-charge-fill text-warning"></i>
+      <span class="fw-semibold small">Recommended next steps</span>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      {% for step in recommended_next_steps %}
+      <a href="{{ step.url }}" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
+        {% if step.icon %}<i class="bi {{ step.icon }}"></i>{% endif %}
+        {{ step.label }}
+      </a>
+      {% endfor %}
+      <a href="{% url 'accounts:workflow_center' %}" class="btn btn-sm btn-link text-muted">
+        View all workflow steps <i class="bi bi-arrow-right"></i>
+      </a>
+    </div>
+  </div>
+</div>
+{% endif %}

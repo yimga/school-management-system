@@ -1,0 +1,52 @@
+%% RunMyCampus: Request flow, tenant resolution, and DB schema (Section 13.4)
+%% Renders: host → type → resolve tenant → set request context → set DB schema → load blueprint/policy → continue
+
+flowchart TB
+    subgraph Edge["Global Edge + Routing"]
+        A[Request: host + path]
+    end
+
+    subgraph Resolve["Tenant resolution"]
+        B{Host type?}
+        B -->|public / www / base| C[Public: runmycampus.com]
+        B -->|manager.*| D[Control: manager.runmycampus.com]
+        B -->|subdomain / custom domain| E[Tenant: school.runmycampus.com or portal.schoolname.com]
+        B -->|api / docs| F[API / Docs host]
+    end
+
+    C --> G[No tenant<br/>request.school = None<br/>request.tenant = None]
+    D --> H[Superadmin URLconf<br/>/super/ only<br/>No tenant UX]
+    E --> I[Resolve School/Client<br/>from Domain / subdomain / X-Tenant-Slug]
+    F --> J[Public or tenant by host]
+
+    I --> K{USE_DJANGO_TENANTS?}
+    K -->|Yes| L[request.tenant = Client<br/>TenantMainMiddleware<br/>schema_name set]
+    K -->|No| M[request.school = School<br/>TenantMiddleware<br/>app.current_school_id set]
+
+    L --> N[TenantSchemaSchoolBridgeMiddleware<br/>request.school = tenant.school]
+    N --> O[TenantContextMiddleware<br/>request.tenant_ctx = TenantContext]
+    M --> O
+
+    G --> O
+    H --> O
+
+    O --> P[Blueprint/Policy load]
+    P --> Q[get_effective_policy(school)<br/>platform ⊕ country ⊕ tenant<br/>Optional: POLICY_CACHE_TTL]
+    Q --> R[Context processor: global_env, tenant_ctx]
+    R --> S[View / API]
+
+    subgraph DB["Data access + isolation"]
+        T{Mode}
+        T -->|Schema-per-tenant| U[Connection.schema_name = tenant.schema_name<br/>Tenant schemas DB: tenant_a.*, tenant_b.*]
+        T -->|RLS| V[search_path = public<br/>SET app.current_school_id<br/>RLS policies filter by school_id]
+        W[Public/Control DB<br/>tenants, domains, policies, plans, app registry]
+    end
+
+    S --> T
+    U --> W
+    V --> W
+    W --> X[Analytics / Research DB<br/>de-identified, OLAP optional]
+
+    style Edge fill:#e1f5fe
+    style Resolve fill:#fff3e0
+    style DB fill:#e8f5e9

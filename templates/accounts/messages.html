@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Messaging - {{ SITE.site_name|default:"Portal" }}{% endblock %}
+
+{% block content %}
+  <div class="container py-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+      <div>
+        <h1 class="h4 mb-1">Messaging</h1>
+        <div class="text-muted small">Direct messages and group chats</div>
+      </div>
+      <div class="d-flex gap-2">
+        <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{% url 'accounts:user_profile' %}"><i class="bi bi-arrow-left me-1"></i>Back to profile</a>
+        <a class="btn btn-sm btn-primary" href="{% url 'accounts:redirect' %}">Go to dashboard</a>
+      </div>
+    </div>
+
+    <ul class="nav nav-tabs mb-3" role="tablist">
+      <li class="nav-item">
+        <a class="nav-link {% if active_tab == 'direct' %}active{% endif %}" href="{% url 'accounts:user_messages' %}?tab=direct">
+          <i class="bi bi-chat-dots me-1"></i>Direct
+          {% if direct_conversations %}<span class="badge bg-secondary ms-1">{{ direct_conversations|length }}</span>{% endif %}
+        </a>
+      </li>
+      {% if not direct_only %}
+      <li class="nav-item">
+        <a class="nav-link {% if active_tab == 'groups' %}active{% endif %}" href="{% url 'accounts:user_messages' %}?tab=groups">
+          <i class="bi bi-people me-1"></i>Groups
+          {% if threads %}<span class="badge bg-secondary ms-1">{{ threads|length }}</span>{% endif %}
+        </a>
+      </li>
+      {% endif %}
+    </ul>
+
+    <div class="card shadow-sm">
+      <div class="card-body">
+        {% if active_tab == 'direct' %}
+          <div class="mb-2 d-flex justify-content-between align-items-center">
+            <span class="text-muted small">1-on-1 conversations{% if is_student %} with teachers or staff{% endif %}</span>
+            {% if not is_student %}
+            <a class="btn btn-sm btn-outline-primary" href="{% url 'accounts:direct_compose' %}">New message</a>
+            {% endif %}
+          </div>
+          {% if direct_conversations %}
+            <div class="list-group list-group-flush">
+              {% for conv in direct_conversations %}
+                <a href="{% url 'accounts:direct_thread' conv.other_user.id %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-start">
+                  <div class="d-flex align-items-start gap-2 w-100">
+                    <div class="rounded-circle bg-primary bg-opacity-25 d-flex align-items-center justify-content-center text-primary" style="width:40px;height:40px;min-width:40px;">
+                      {{ conv.other_user.first_name|slice:":1"|default:conv.other_user.username|slice:":1" }}{{ conv.other_user.last_name|slice:":1" }}
+                    </div>
+                    <div class="flex-grow-1 min-w-0">
+                      <div class="fw-semibold">{{ conv.other_user.get_full_name|default:conv.other_user.username }}</div>
+                      {% if conv.snippet %}<div class="text-muted small text-truncate">{{ conv.snippet|truncatewords:15 }}</div>{% endif %}
+                      <div class="text-muted small mt-1">{{ conv.last_message_at|timesince }} ago</div>
+                    </div>
+                  </div>
+                  {% if conv.unread_count %}<span class="badge bg-primary rounded-pill ms-2">{{ conv.unread_count }}</span>{% endif %}
+                </a>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-muted mb-0">
+              {% if is_student %}No messages yet. When a teacher or staff member messages you, the conversation will appear here.{% endif %}
+              {% if not is_student %}No direct messages yet. Use <strong>New message</strong> to start a conversation, or you'll see threads here once someone messages you.{% endif %}</p>
+          {% endif %}
+        {% else %}
+          <div class="mb-2 d-flex justify-content-between align-items-center">
+            <span class="text-muted small">Department, class, and role-based threads</span>
+            <a class="btn btn-sm btn-outline-primary" href="{% url 'communication:group_list' %}">Manage groups</a>
+          </div>
+          {% if threads %}
+            <div class="list-group list-group-flush">
+              {% for t in threads %}
+                <a href="{% if t.id %}{% url 'communication:group_detail' thread_id=t.id %}{% else %}#{% endif %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-start">
+                  <div>
+                    <div class="d-flex align-items-center gap-2">
+                      <span class="fw-semibold">{{ t.title }}</span>
+                      {% if t.scope == 'DEPARTMENT' %}<span class="badge bg-info">Department</span>{% endif %}
+                      {% if t.scope == 'CLASSROOM' %}<span class="badge bg-secondary">Class</span>{% endif %}
+                      {% if t.scope == 'ROLE' %}<span class="badge bg-secondary">Role</span>{% endif %}
+                    </div>
+                    {% if t.snippet %}<div class="text-muted small mt-1">{{ t.snippet|truncatewords:18 }}</div>{% endif %}
+                    <div class="text-muted small mt-1">Updated: {{ t.last_message_at|timesince }} ago</div>
+                  </div>
+                  {% if t.unread_count %}<span class="badge bg-primary rounded-pill">{{ t.unread_count }}</span>{% endif %}
+                </a>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-muted mb-0">No group threads yet. Threads appear when you’re added to a department or class group. Use <strong>Manage groups</strong> to create or join threads.</p>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endblock %}

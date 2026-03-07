@@ -1,0 +1,394 @@
+<!-- Keyboard Shortcuts Help Modal -->
+<div class="modal fade" id="keyboardShortcutsModal" tabindex="-1" aria-labelledby="keyboardShortcutsLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-gradient-primary text-white">
+        <h5 class="modal-title" id="keyboardShortcutsLabel">
+          <i class="fas fa-keyboard"></i> Keyboard Shortcuts
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-md-6">
+            <h6 class="text-primary mb-3">Navigation</h6>
+            <table class="table table-sm">
+              <tbody>
+                <tr>
+                  <td><kbd>?</kbd></td>
+                  <td>Show this help</td>
+                </tr>
+                <tr>
+                  <td><kbd>h</kbd></td>
+                  <td>Go to Home/Dashboard</td>
+                </tr>
+                <tr>
+                  <td><kbd>a</kbd></td>
+                  <td>Go to Admin</td>
+                </tr>
+                <tr>
+                  <td><kbd>b</kbd></td>
+                  <td>Go to Backend Dashboard</td>
+                </tr>
+                <tr>
+                  <td><kbd>p</kbd></td>
+                  <td>Go to Portal</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="col-md-6">
+            <h6 class="text-success mb-3">Quick Access</h6>
+            <table class="table table-sm">
+              <tbody>
+                <tr>
+                  <td><kbd>u</kbd></td>
+                  <td>Users Management</td>
+                </tr>
+                <tr>
+                  <td><kbd>s</kbd></td>
+                  <td>Students List</td>
+                </tr>
+                <tr>
+                  <td><kbd>t</kbd></td>
+                  <td>Teachers List</td>
+                </tr>
+                <tr>
+                  <td><kbd>i</kbd></td>
+                  <td>Invoices</td>
+                </tr>
+                <tr>
+                  <td><kbd>r</kbd></td>
+                  <td>Reports</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="row mt-3">
+          <div class="col-md-6">
+            <h6 class="text-info mb-3">Actions</h6>
+            <table class="table table-sm">
+              <tbody>
+                <tr>
+                  <td><kbd>n</kbd> + <kbd>u</kbd></td>
+                  <td>New User</td>
+                </tr>
+                <tr>
+                  <td><kbd>n</kbd> + <kbd>s</kbd></td>
+                  <td>New Student</td>
+                </tr>
+                <tr>
+                  <td><kbd>n</kbd> + <kbd>t</kbd></td>
+                  <td>New Teacher</td>
+                </tr>
+                <tr>
+                  <td><kbd>n</kbd> + <kbd>i</kbd></td>
+                  <td>New Invoice</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="col-md-6">
+            <h6 class="text-warning mb-3">Utilities</h6>
+            <table class="table table-sm">
+              <tbody>
+                <tr>
+                  <td><kbd>f</kbd></td>
+                  <td>Focus Search</td>
+                </tr>
+                <tr>
+                  <td><kbd>Esc</kbd></td>
+                  <td>Close Modal/Clear</td>
+                </tr>
+                <tr>
+                  <td><kbd>Ctrl</kbd> + <kbd>K</kbd></td>
+                  <td>Command Palette</td>
+                </tr>
+                <tr>
+                  <td><kbd>Ctrl</kbd> + <kbd>R</kbd></td>
+                  <td>Refresh Counts</td>
+                </tr>
+                <tr>
+                  <td><kbd>Tab</kbd> / <kbd>Enter</kbd></td>
+                  <td>Portal sidebar: navigate and activate links</td>
+                </tr>
+                <tr>
+                  <td>—</td>
+                  <td>Site Settings: use "Revert to saved" to undo theme/color edits</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer bg-light">
+        <div class="text-muted small">
+          <i class="fas fa-info-circle"></i> Press <kbd>?</kbd> anytime to show this dialog
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Keyboard Shortcuts JavaScript -->
+<script>
+(function() {
+  let commandMode = false;
+  let lastKeyTime = 0;
+  const COMMAND_TIMEOUT = 1000; // 1 second for compound commands
+  const pathname = window.location.pathname || '';
+  const isBackend = pathname.startsWith('/backend') || pathname.includes('/authentication/backend');
+  const isManager = {{ request.public_host_kind == 'manager'|yesno:"true,false" }};
+
+  // Base URLs: when in backend context, navigation stays in backend; only 'a' goes to Configuration Engine
+  const nav = isManager ? {
+    home: '/super/',
+    admin: '/admin/',
+    backend: '/super/',
+    portal: '/super/',
+    users: '/authentication/rbac/',
+    students: '/super/create-school/',
+    teachers: '/super/command-center/',
+    invoice: '/super/billing/',
+    reports: '/ops/incidents/',
+    addUser: '/authentication/rbac/',
+    addStudent: '/super/create-school/',
+    addTeacher: '/super/command-center/',
+    addInvoice: '/super/billing/',
+  } : isBackend ? {
+    home: '/',
+    admin: '/admin/',
+    backend: '/authentication/backend/',
+    portal: '/portal/',
+    users: '/authentication/rbac/',
+    students: '/authentication/backend/students/',
+    teachers: '/authentication/backend/teachers/',
+    invoice: '/finance/',
+    reports: '/siteconfig/reports/',
+    addUser: '/authentication/rbac/',
+    addStudent: '/authentication/backend/students/create/',
+    addTeacher: '/authentication/backend/teachers/create/',
+    addInvoice: '/finance/',
+  } : {
+    home: '/',
+    admin: '/admin/',
+    backend: '/backend/',
+    portal: '/portal/',
+    users: '/admin/accounts/user/',
+    students: '/admin/people/studentprofile/',
+    teachers: '/admin/people/teacherprofile/',
+    invoice: '/admin/finance/invoice/',
+    reports: '/admin/reports/reportcard/',
+    addUser: '/admin/accounts/user/add/',
+    addStudent: '/admin/people/studentprofile/add/',
+    addTeacher: '/admin/people/teacherprofile/add/',
+    addInvoice: '/admin/finance/invoice/add/',
+  };
+
+  const shortcuts = {
+    'h': () => window.location.href = nav.home,
+    'a': () => window.location.href = nav.admin,
+    'b': () => window.location.href = (isBackend ? '/authentication/backend/' : '/backend/'),
+    'p': () => window.location.href = nav.portal,
+    'u': () => window.location.href = nav.users,
+    's': () => window.location.href = nav.students,
+    't': () => window.location.href = nav.teachers,
+    'i': () => window.location.href = nav.invoice,
+    'r': () => window.location.href = nav.reports,
+    '?': () => {
+      const modal = new bootstrap.Modal(document.getElementById('keyboardShortcutsModal'));
+      modal.show();
+    },
+    'f': () => {
+      const searchInput = document.querySelector('.nav-search, input[type="search"]');
+      if (searchInput) {
+        searchInput.focus();
+        searchInput.select();
+      }
+    }
+  };
+
+  const compoundShortcuts = {
+    'u': () => window.location.href = nav.addUser,
+    's': () => window.location.href = nav.addStudent,
+    't': () => window.location.href = nav.addTeacher,
+    'i': () => window.location.href = nav.addInvoice,
+  };
+  
+  document.addEventListener('keydown', (e) => {
+    // Ignore if user is typing in input/textarea
+    if (e.target.matches('input, textarea, select, [contenteditable]')) {
+      return;
+    }
+    
+    const key = e.key.toLowerCase();
+    const now = Date.now();
+    
+    // Handle Ctrl+K (command palette)
+    if ((e.ctrlKey || e.metaKey) && key === 'k') {
+      e.preventDefault();
+      const searchInput = document.querySelector('.nav-search, input[type="search"]');
+      if (searchInput) {
+        searchInput.focus();
+      }
+      return;
+    }
+    
+    // Handle Ctrl+R (refresh counts)
+    if ((e.ctrlKey || e.metaKey) && key === 'r') {
+      e.preventDefault();
+      // Clear cache and reload
+      if (typeof caches !== 'undefined') {
+        caches.keys().then(names => {
+          names.forEach(name => caches.delete(name));
+        });
+      }
+      location.reload();
+      return;
+    }
+    
+    // Handle ESC (close modals, clear search)
+    if (e.key === 'Escape') {
+      const modal = bootstrap.Modal.getInstance(document.querySelector('.modal.show'));
+      if (modal) {
+        modal.hide();
+      }
+      const searchInput = document.querySelector('.nav-search, input[type="search"]');
+      if (searchInput && searchInput === document.activeElement) {
+        searchInput.value = '';
+        searchInput.blur();
+      }
+      commandMode = false;
+      return;
+    }
+    
+    // Command mode (n + key)
+    if (key === 'n' && !commandMode) {
+      commandMode = true;
+      lastKeyTime = now;
+      showCommandIndicator('New...');
+      return;
+    }
+    
+    // Execute compound shortcut
+    if (commandMode && (now - lastKeyTime) < COMMAND_TIMEOUT) {
+      if (compoundShortcuts[key]) {
+        e.preventDefault();
+        compoundShortcuts[key]();
+        commandMode = false;
+        hideCommandIndicator();
+        return;
+      }
+    }
+    
+    // Reset command mode if timeout
+    if (commandMode && (now - lastKeyTime) >= COMMAND_TIMEOUT) {
+      commandMode = false;
+      hideCommandIndicator();
+    }
+    
+    // Execute simple shortcut
+    if (shortcuts[key] && !commandMode) {
+      e.preventDefault();
+      shortcuts[key]();
+    }
+  });
+  
+  // Visual indicator for command mode
+  function showCommandIndicator(text) {
+    let indicator = document.getElementById('command-indicator');
+    if (!indicator) {
+      indicator = document.createElement('div');
+      indicator.id = 'command-indicator';
+      indicator.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.9);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        z-index: 10000;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        animation: slideInUp 0.2s ease;
+      `;
+      document.body.appendChild(indicator);
+    }
+    indicator.textContent = text;
+    indicator.style.display = 'block';
+  }
+  
+  function hideCommandIndicator() {
+    const indicator = document.getElementById('command-indicator');
+    if (indicator) {
+      indicator.style.display = 'none';
+    }
+  }
+  
+  // Add animation CSS
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes slideInUp {
+      from {
+        transform: translateY(20px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+    
+    kbd {
+      display: inline-block;
+      padding: 3px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1;
+      color: #24292e;
+      vertical-align: middle;
+      background-color: #fafbfc;
+      border: solid 1px #d1d5da;
+      border-bottom-color: #c6cbd1;
+      border-radius: 3px;
+      box-shadow: inset 0 -1px 0 #c6cbd1;
+      font-family: monospace;
+    }
+  `;
+  document.head.appendChild(style);
+  
+  // Show hint on first load
+  if (!localStorage.getItem('keyboard-shortcuts-seen')) {
+    setTimeout(() => {
+      const toast = document.createElement('div');
+      toast.className = 'position-fixed bottom-0 end-0 p-3';
+      toast.style.zIndex = '11';
+      toast.innerHTML = `
+        <div class="toast show" role="alert">
+          <div class="toast-header">
+            <i class="fas fa-keyboard me-2 text-primary"></i>
+            <strong class="me-auto">Pro Tip</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+          </div>
+          <div class="toast-body">
+            Press <kbd>?</kbd> to see keyboard shortcuts
+          </div>
+        </div>
+      `;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 5000);
+      localStorage.setItem('keyboard-shortcuts-seen', 'true');
+    }, 2000);
+  }
+})();
+</script>
+
+<style>
+.table-sm td:first-child {
+  width: 140px;
+  font-weight: 600;
+}
+</style>

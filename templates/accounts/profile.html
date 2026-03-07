@@ -1,0 +1,317 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}My Profile - {{ SITE.site_name|default:"Portal" }}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/org-chart.css' %}">
+{% endblock %}
+
+{% block content %}
+  <div class="container py-4 profile-shell">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 profile-header">
+      <div>
+        <h1 class="h4 mb-1">My Profile</h1>
+        <div class="text-muted small">Account overview and shortcuts</div>
+        {% if profile_completion and profile_completion.percent < 100 %}
+          <div class="mt-2 small">
+            <div class="d-flex align-items-center gap-2">
+              <div class="progress flex-grow-1" style="height: 6px; max-width: 120px;">
+                <div class="progress-bar bg-primary" role="progressbar" style="width: {{ profile_completion.percent }}%;" aria-valuenow="{{ profile_completion.percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+              <span class="text-muted">Profile {{ profile_completion.percent }}% complete</span>
+            </div>
+            <a class="text-decoration-none small" href="{% url 'accounts:profile_edit' %}">Add {{ profile_completion.missing|join:", " }} -></a>
+          </div>
+        {% endif %}
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:profile_edit' %}">Edit profile</a>
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:password_change' %}">Change password</a>
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:user_preferences' %}">Preferences</a>
+        <a class="btn btn-sm btn-primary" href="{% url 'accounts:redirect' %}">Go to dashboard</a>
+      </div>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-lg-5">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <div class="d-flex align-items-center gap-3">
+              <div class="profile-avatar-wrap">
+                {% if request.user.profile_photo %}
+                  <img src="{{ request.user.profile_photo.url }}" alt="{{ request.user.get_full_name }}" width="56" height="56" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;">
+                {% else %}
+                  <strong style="font-size:18px;">
+                    {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+                  </strong>
+                {% endif %}
+              </div>
+              <div>
+                <div class="fw-semibold">{{ request.user.get_full_name|default:request.user.username }}</div>
+                <div class="text-muted small">{{ request.user.username }}</div>
+              </div>
+            </div>
+            <hr>
+            <div class="small">
+              <div class="d-flex justify-content-between"><span class="text-muted">Role</span><span class="fw-semibold">{{ request.user.role }}</span></div>
+              <div class="d-flex justify-content-between"><span class="text-muted">Email</span><span class="fw-semibold">{{ request.user.email|default:"-" }}</span></div>
+              <div class="d-flex justify-content-between"><span class="text-muted">Last login</span><span class="fw-semibold">{% if request.user.last_login %}{{ request.user.last_login }}{% else %}-{% endif %}</span></div>
+              <div class="d-flex justify-content-between"><span class="text-muted">Member since</span><span class="fw-semibold">{{ request.user.date_joined|date }}</span></div>
+              {% if request.user.role == 'TEACHER' %}
+                {% if staff_id %}
+                  <div class="d-flex justify-content-between align-items-center gap-2">
+                    <span class="text-muted">Staff ID</span>
+                    <span class="fw-semibold">{{ staff_id }}</span>
+                  </div>
+                {% endif %}
+                {% if digital_id_url %}
+                  <div class="mt-2 pt-2 border-top">
+                    <a class="btn btn-outline-primary btn-sm w-100" href="{{ digital_id_url }}"><i class="bi bi-person-badge me-1"></i>{% trans "View / Print my ID card" %}</a>
+                  </div>
+                {% endif %}
+              {% endif %}
+              {% if active_sessions_count is not None %}
+                <div class="d-flex justify-content-between"><span class="text-muted">Active sessions</span><span class="fw-semibold">{{ active_sessions_count }} device{{ active_sessions_count|pluralize }}</span></div>
+              {% endif %}
+              {% if mfa_enabled is not None %}
+                <div class="d-flex justify-content-between align-items-center gap-2">
+                  <span class="text-muted">MFA</span>
+                  <span>
+                    {% if mfa_enabled %}
+                      <span class="fw-semibold text-success">Enabled</span>
+                      <a class="btn btn-outline-secondary btn-sm py-0 ms-1" href="{% url 'accounts:mfa_setup' %}">Manage</a>
+                    {% else %}
+                      <span class="fw-semibold text-muted">Not set up</span>
+                      <a class="btn btn-outline-secondary btn-sm py-0 ms-1" href="{% url 'accounts:mfa_setup' %}">Set up</a>
+                    {% endif %}
+                  </span>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-7">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <div class="fw-semibold mb-2">Quick actions</div>
+            <div class="d-flex flex-wrap gap-2">
+              <a class="btn btn-outline-primary btn-sm" href="{% url 'accounts:user_notifications' %}">Notifications</a>
+              <a class="btn btn-outline-primary btn-sm" href="{% url 'kb:kb_home' %}">Knowledge base</a>
+              <a class="btn btn-outline-primary btn-sm" href="{% url 'accounts:my_delegations' %}">Out of Office / Delegation</a>
+              {% if request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' or request.user.role == 'IT_ADMIN' %}
+                <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:backend_dashboard' %}">Backend Console</a>
+              {% endif %}
+              {% if request.user.role == 'TEACHER' %}
+                <a class="btn btn-outline-primary btn-sm" href="{% url 'portal:teacher_dashboard_alias' %}">Teacher Dashboard</a>
+              {% endif %}
+              {% if request.user.role == 'PARENT' %}
+                <a class="btn btn-outline-primary btn-sm" href="{% url 'portal:parent_dashboard' %}">Parent Portal</a>
+              {% endif %}
+            </div>
+            <div class="text-muted small mt-3">
+              Tip: Use Preferences to set your theme, dashboard view, and widget visibility.
+            </div>
+          </div>
+        </div>
+        {% if request.user.role == 'TEACHER' and staff_badges %}
+        <div class="card shadow-sm mt-3">
+          <div class="card-header bg-transparent fw-semibold">Badges</div>
+          <div class="card-body">
+            <div class="d-flex flex-wrap gap-2" role="list" aria-label="Your badges">
+              {% for b in staff_badges %}
+              <span class="px-2 py-1 rounded-pill small" style="background: var(--school-primary, #6f42c1); color: var(--school-primary-inverse, #fff);" role="listitem">{{ b.badge_type.label }}</span>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if org_chain or request.user.role == 'TEACHER' and teacher_org_tree %}
+      <div class="row g-3 mt-0">
+        <div class="col-12">
+          <div class="card shadow-sm">
+            <div class="card-header bg-transparent fw-semibold">Organization</div>
+            <div class="card-body">
+              {% if request.user.role == 'TEACHER' and teacher_org_tree.diagram_levels %}
+                <p class="mb-2 small"><span class="text-muted">Org chart (top to bottom):</span></p>
+                <div class="org-chart-tree mt-2" role="list" aria-label="Organization chart">
+                  {% for level in teacher_org_tree.diagram_levels %}
+                  <div class="org-chart-level d-flex flex-wrap justify-content-start gap-3 mb-2" role="listitem">
+                    {% for node in level %}
+                    <div class="org-chart-card card border shadow-sm {% if node.is_self %}org-chart-card-self border-primary border-2{% endif %}" role="listitem">
+                      <div class="org-chart-photo-wrap">
+                        {% if node.photo_url %}
+                        <img src="{{ node.photo_url }}" alt="" class="org-chart-photo" loading="lazy">
+                        {% else %}
+                        <div class="org-chart-photo-placeholder" aria-hidden="true"><span class="org-chart-photo-placeholder-inner">{{ node.initials }}</span></div>
+                        {% endif %}
+                      </div>
+                      <div class="card-body p-2 text-center">
+                        <div class="org-chart-name fw-semibold text-truncate small">{% if node.is_self %}You{% else %}{{ node.name }}{% endif %}</div>
+                        <div class="org-chart-title text-muted text-truncate small">{{ node.title }}{% if node.department %} - {{ node.department }}{% endif %}</div>
+                      </div>
+                    </div>
+                    {% endfor %}
+                  </div>
+                  {% if not forloop.last %}
+                  <div class="org-chart-connector d-flex justify-content-start mb-1">
+                    <span class="org-chart-line" aria-hidden="true"></span>
+                  </div>
+                  {% endif %}
+                  {% endfor %}
+                </div>
+              {% elif org_chain %}
+                <p class="mb-2 small"><span class="text-muted">Your place in the organization:</span></p>
+                <p class="mb-3 small">
+                  {% for node in org_chain %}
+                    {% if not forloop.first %}<span class="text-muted mx-1">&#8594;</span>{% endif %}
+                    {% if node.user_id == request.user.id %}<strong>You</strong>{% else %}{{ node.user.get_full_name|default:node.user.username }}{% if node.position_title %} ({{ node.position_title }}){% endif %}{% endif %}
+                  {% endfor %}
+                </p>
+              {% endif %}
+              {% if request.user.role == 'TEACHER' and teacher_org_tree and not teacher_org_tree.diagram_levels %}
+              <ul class="list-unstyled mb-0 small">
+                <li><span class="text-muted">Department:</span> {{ teacher_org_tree.department.name|default:"-" }}</li>
+                <li><span class="text-muted">Position:</span> {{ teacher_org_tree.position_title }}</li>
+                {% if teacher_org_tree.reports_to %}
+                  <li><span class="text-muted">Reports to:</span> {{ teacher_org_tree.reports_to.user.get_full_name|default:teacher_org_tree.reports_to.user.username }}</li>
+                {% endif %}
+              </ul>
+              {% endif %}
+              {% if teacher_org_tree %}
+                {% if teacher_org_tree.assignments %}
+                  <div class="mt-3">
+                    <span class="text-muted">Classes ({{ teacher_org_tree.academic_year.name|default:"current year" }}):</span>
+                    <ul class="list-unstyled mt-1 mb-0">
+                      {% for item in teacher_org_tree.assignments %}
+                        <li class="mb-1">
+                          <strong>{{ item.classroom }}</strong>
+                          <span class="text-muted">-</span>
+                          {{ item.subjects|join:", " }}
+                        </li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                {% else %}
+                  <p class="text-muted small mt-2 mb-0">No class assignments for the current year.</p>
+                {% endif %}
+              {% endif %}
+              {% if approved_syllabi %}
+                <div class="mt-3 pt-3 border-top">
+                  <span class="text-muted small">Approved syllabi</span>
+                  <ul class="list-unstyled mt-1 mb-0 small">
+                    {% for s in approved_syllabi %}
+                      <li class="mb-1">
+                        {{ s.subject_assignment.classroom.name|default:"-" }}
+                        <span class="text-muted">-</span>
+                        {{ s.subject_assignment.subject.name|default:"-" }}
+                        {% if s.subject_assignment.specialty %}<span class="text-muted">({{ s.subject_assignment.specialty.name }})</span>{% endif %}
+                        <a href="{% url 'academics:syllabus_preview' s.subject_assignment_id %}" class="ms-1">View</a>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    {% if request.user.role == 'PARENT' and parent_children_tree %}
+      <div class="row g-3 mt-0">
+        <div class="col-12">
+          <div class="card shadow-sm">
+            <div class="card-header bg-transparent fw-semibold">My children</div>
+            <div class="card-body">
+              {% if parent_fees_summary %}
+                <div class="mb-3">
+                  {% if parent_fees_summary.unpaid_count %}
+                    <span class="text-muted small">{{ parent_fees_summary.unpaid_count }} unpaid invoice{{ parent_fees_summary.unpaid_count|pluralize }}</span>
+                    <a class="btn btn-outline-primary btn-sm ms-2" href="{{ parent_fees_summary.invoices_url }}">View Finance</a>
+                  {% else %}
+                    <span class="text-muted small">No outstanding fees.</span>
+                    <a class="btn btn-outline-secondary btn-sm ms-2" href="{{ parent_fees_summary.invoices_url }}">Finance</a>
+                  {% endif %}
+                </div>
+              {% endif %}
+              <ul class="list-unstyled mb-0">
+                {% for item in parent_children_tree.children %}
+                  <li class="d-flex flex-wrap align-items-center gap-2 py-2 border-bottom border-light">
+                    <span class="fw-semibold">{{ item.student }}</span>
+                    <span class="badge bg-secondary profile-chip">{{ item.relationship }}</span>
+                    <span class="text-muted small">{{ item.classroom }}{% if item.academic_year %} ({{ item.academic_year }}){% endif %}</span>
+                    {% if item.student.admission_number %}
+                      <span class="text-muted small">ID: {{ item.student.admission_number }}</span>
+                    {% endif %}
+                    <a class="btn btn-outline-primary btn-sm" href="{% url 'portal:child_digital_id' item.student.id %}"><i class="bi bi-person-badge me-1"></i>{% trans "ID card" %}</a>
+                    <a class="btn btn-outline-secondary btn-sm ms-auto" href="{% url 'portal:parent_dashboard' %}">View portal</a>
+                  </li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% elif request.user.role == 'PARENT' and parent_fees_summary %}
+      <div class="row g-3 mt-0">
+        <div class="col-12">
+          <div class="card shadow-sm">
+            <div class="card-header bg-transparent fw-semibold">Finance</div>
+            <div class="card-body">
+              {% if parent_fees_summary.unpaid_count %}
+                <span class="text-muted small">{{ parent_fees_summary.unpaid_count }} unpaid invoice{{ parent_fees_summary.unpaid_count|pluralize }}</span>
+                <a class="btn btn-outline-primary btn-sm ms-2" href="{{ parent_fees_summary.invoices_url }}">View Finance</a>
+              {% else %}
+                <span class="text-muted small">No outstanding fees.</span>
+                <a class="btn btn-outline-secondary btn-sm ms-2" href="{{ parent_fees_summary.invoices_url }}">Finance</a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    {% if admin_context %}
+      <div class="row g-3 mt-0">
+        <div class="col-12">
+          <div class="card shadow-sm">
+            <div class="card-header bg-transparent fw-semibold">Console &amp; settings</div>
+            <div class="card-body">
+              <div class="d-flex flex-wrap gap-2 mb-2">
+                {% if admin_context.site_settings_url %}
+                  <a class="btn btn-outline-primary btn-sm" href="{{ admin_context.site_settings_url }}">Site Settings</a>
+                {% endif %}
+                {% if admin_context.backend_url %}
+                  <a class="btn btn-outline-primary btn-sm" href="{{ admin_context.backend_url }}">Backend Console</a>
+                {% endif %}
+                {% if admin_context.admin_url %}
+                  <a class="btn btn-outline-primary btn-sm" href="{{ admin_context.admin_url }}">{% if is_backend_context %}{% trans "Configuration Engine" %}{% else %}Admin Panel{% endif %}</a>
+                {% endif %}
+                {% if admin_context.rbac_url %}
+                  <a class="btn btn-outline-primary btn-sm" href="{{ admin_context.rbac_url }}">User management (RBAC)</a>
+                {% endif %}
+              </div>
+              {% if admin_context.permissions_summary %}
+                <div class="mt-2">
+                  <span class="text-muted small">Feature permissions:</span>
+                  <div class="d-flex flex-wrap gap-1 mt-1">
+                    {% for code in admin_context.permissions_summary %}
+                      <span class="badge bg-light text-dark border">{{ code }}</span>
+                    {% endfor %}
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

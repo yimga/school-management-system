@@ -1,0 +1,44 @@
+<div class="card shadow-sm mt-4">
+  <div class="card-body">
+    <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
+      <div>
+        <h5 class="mb-1">Student View preview</h5>
+        <p class="text-muted small mb-0">
+          Open a sandboxed student view of the syllabus so you can verify lesson layouts, videos, and attachments without touching live data.
+        </p>
+      </div>
+      <span class="badge bg-info text-white">Sandbox only</span>
+    </div>
+
+    <div class="d-flex gap-2 flex-wrap">
+      <button type="button" class="btn btn-sm btn-outline-primary" id="previewSyllabusBtn">
+        Launch student preview
+      </button>
+      <button type="button" class="btn btn-sm btn-outline-secondary" id="previewSyllabusIframeBtn">
+        Embed inline preview
+      </button>
+    </div>
+
+    <div id="previewSyllabusFrame" class="mt-4 d-none">
+      <iframe src="{% url 'portal:preview_syllabus' %}?preview_cohort=synthetic"
+              title="Student syllabus preview"
+              style="width:100%;height:540px;border:none;border-radius:12px;box-shadow:0 20px 60px rgba(2,6,23,0.4);">
+      </iframe>
+      <div class="alert alert-info mt-2 mb-0 small">
+        Synthetic timetable and lesson content keep PII out of the preview. The banner above reaffirms the sandbox state.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const frame = document.getElementById("previewSyllabusFrame");
+    document.getElementById("previewSyllabusBtn").addEventListener("click", () => {
+      window.open("{% url 'portal:preview_syllabus' %}?preview_cohort=synthetic", "_blank");
+    });
+    document.getElementById("previewSyllabusIframeBtn").addEventListener("click", () => {
+      frame.classList.toggle("d-none");
+    });
+  });
+</script>

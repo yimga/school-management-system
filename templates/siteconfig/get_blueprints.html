@@ -1,0 +1,37 @@
+{% extends "portal_base.html" %}
+{% load static %}
+
+{% block title %}Blueprints{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 professional-page">
+  <div class="card shadow-sm border-0">
+    <div class="card-header bg-light border-bottom py-3 px-4">
+      <h1 class="h5 mb-1 fw-semibold">Blueprints</h1>
+      <p class="text-muted small mb-0">Policy blueprint packs for <strong>{{ school.name }}</strong>. Packs are applied by your platform administrator. <a href="{% url 'siteconfig:dashboard_hub' %}">Dashboard hub</a> · <a href="{% url 'siteconfig:workflow_hub' %}">Workflow hub</a>.</p>
+    </div>
+    <div class="card-body p-4">
+      {% if applied_pack %}
+        <p class="mb-3"><strong>Current pack:</strong> {{ applied_pack.name }} ({{ applied_pack.slug }}) — v{{ applied_pack.version }}</p>
+      {% endif %}
+
+      {% if packs %}
+        <p class="text-muted small mb-2">Available packs (catalog). To request or change a pack, contact your platform administrator.</p>
+        <ul class="list-group list-group-flush">
+          {% for p in packs %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span>{{ p.name }} <span class="text-muted">({{ p.category }})</span></span>
+              <span class="badge bg-secondary">v{{ p.version }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted mb-2">Blueprint packs are managed by your platform administrator. To request a pack or see what's available, contact your platform admin.</p>
+        {% if manager_blueprints_url %}
+          <p class="mb-0">Platform staff can manage blueprints at the <a href="{{ manager_blueprints_url }}" target="_blank" rel="noopener">Blueprint marketplace</a>.</p>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

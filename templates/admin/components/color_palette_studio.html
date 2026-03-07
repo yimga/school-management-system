@@ -1,0 +1,84 @@
+{% load i18n static %}
+{# Color & Harmony: single integrated studio (presets + harmonies + generated reference) #}
+
+<noscript>
+  <p class="alert alert-info mb-2">{% trans "Color Palette Studio requires JavaScript. Use the color inputs in the form above to change theme colors." %}</p>
+</noscript>
+<div id="color-palette-studio">
+  <div id="cps-header">
+    <div class="cps-header-title">
+      <span class="material-symbols-outlined">palette</span>
+      {% trans "Color & harmony" %}
+    </div>
+    <span id="cps-toggle-icon" class="material-symbols-outlined">expand_less</span>
+  </div>
+
+  <div id="cps-body" style="display: none;">
+    <div class="cps-base-section">
+      <span class="cps-base-label">{% trans "Base color:" %}</span>
+      <button type="button" id="cps-base-swatch" aria-label="{% trans 'Open color picker for base color' %}" title="{% trans 'Click to open color picker' %}"></button>
+      <input type="text" id="cps-base-color-input" placeholder="#000000" autocomplete="off">
+    </div>
+
+    <div class="cps-preset-picker-row">
+      <label for="cps-preset-select" class="cps-base-label">{% trans "Preset:" %}</label>
+      <select id="cps-preset-select" class="cps-preset-select">
+        <option value="">{% trans "Choose a preset..." %}</option>
+      </select>
+    </div>
+    <div id="cps-active-preset-note" class="cps-active-preset-note" aria-live="polite">
+      {% trans "No preset selected." %}
+    </div>
+    <div class="cps-pack-sync-row">
+      <label class="cps-pack-sync-check">
+        <input type="checkbox" id="cps-keep-theme-pack" checked>
+        <span>{% trans "Keep selected ThemePack assignments" %}</span>
+      </label>
+      <p class="cps-pack-sync-note mb-0">
+        {% trans "Disable this if you want preset colors to clear current Site/Admin ThemePack selections." %}
+      </p>
+    </div>
+
+    <div class="cps-presets-section">
+      <div class="cps-section-title">{% trans "Quick Presets" %}</div>
+      <div id="cps-presets"></div>
+    </div>
+
+    <div class="cps-harmonies-section">
+      <div class="cps-section-title">{% trans "Harmony Type" %}</div>
+      <div id="cps-harmonies"></div>
+    </div>
+
+    <div class="cps-swatches-section">
+      <div class="cps-section-title">{% trans "Generated Palette" %}</div>
+      <div id="cps-swatches"></div>
+    </div>
+
+    <div class="cps-info-section">
+      <div id="cps-harmony-description"></div>
+      <div id="cps-best-for"></div>
+    </div>
+
+    <div class="cps-actions-section">
+      <button type="button" id="cps-apply-palette" class="cps-btn cps-btn-primary">
+        {% trans "Apply Palette to Form" %}
+      </button>
+      <span class="cps-inline-hint">{% trans "Click any swatch to copy its hex value." %}</span>
+    </div>
+
+    <div class="cps-reference-section">
+      <div class="cps-section-title cps-section-title-row">
+        <span class="material-symbols-outlined">color_lens</span>
+        {% trans "Combination reference" %}
+      </div>
+      <p class="cps-reference-note">
+        {% trans "Generated from your current base color. Click a harmony card to use it, or click a swatch to copy the hex." %}
+      </p>
+      <div id="cps-combo-reference" class="cps-combo-grid"></div>
+    </div>
+  </div>
+</div>
+
+<link rel="stylesheet" href="{% static 'css/color-palette-studio.css' %}">
+<script src="{% static 'js/color-harmony-engine.js' %}"></script>
+<script src="{% static 'js/color-palette-studio.js' %}"></script>

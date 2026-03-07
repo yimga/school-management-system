@@ -1,0 +1,37 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+{% block title %}Executive Dashboard{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h4 class="mb-3">{% trans "Executive Dashboard" %}</h4>
+  <p class="text-muted small">Unified view: Finance + HR + student outcomes. Use the links below for detailed dashboards.</p>
+  <div class="row">
+    <div class="col-md-4">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h6>Finance</h6>
+          <a href="{% url 'finance:invoices' %}">Invoices &amp; payments</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h6>Analytics</h6>
+          <a href="{% url 'analytics:dashboard' %}">Analytics dashboard</a><br>
+          <a href="{% url 'analytics:at_risk_dashboard' %}">At-Risk dashboard</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h6>Reports</h6>
+          <a href="{% url 'reports:statistical_return' %}">Statistical return</a><br>
+          <a href="{% url 'reports:regulatory_export' %}">Regulatory export</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

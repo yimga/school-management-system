@@ -1,0 +1,37 @@
+{% extends "portal_base.html" %}
+
+{% block title %}Support Request{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h2 class="mb-0">Support & Feedback</h2>
+    <p class="text-muted small mb-1">
+      Send a request to the support team or share feedback about the platform.
+    </p>
+  </div>
+  <a class="btn btn-outline-secondary btn-sm" href="{{ next_url|default:'/' }}">Back</a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form method="post" id="support-request-form" data-draft-key="support_request" data-draft-max-age-hours="24" data-draft-pending-label="Unsynced message">
+      {% csrf_token %}
+      {{ form.as_p }}
+      {% if next_url %}
+        <input type="hidden" name="next" value="{{ next_url }}">
+      {% endif %}
+      <button class="btn btn-primary" type="submit">Send message</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extrajs %}
+<script>
+(function() {
+  var form = document.getElementById('support-request-form');
+  if (form && window.FormDraftSave) window.FormDraftSave.init(form);
+})();
+</script>
+{% endblock %}

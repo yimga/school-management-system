@@ -1,0 +1,438 @@
+/**
+ * Dashboard Crisp Polish – Light & Dark
+ * Reference: example images (Alexatel, BBE, Aacro, Schools Platform, etc.)
+ * Ensures ALL dashboards look slick, crisp, and clean: backend, parent, teacher,
+ * finance, analytics, payroll, EMIS, requests, compliance.
+ * Complements dashboard-high-contrast.css and dashboard-text-visibility.css.
+ */
+
+:root {
+  --crisp-card-radius: 12px;
+  --crisp-card-border: color-mix(in srgb, var(--vis-border, rgba(15, 23, 42, 0.14)) 88%, var(--school-primary, #3b82f6) 12%);
+  --crisp-card-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  --crisp-card-shadow-dark: 0 12px 26px rgba(2, 8, 23, 0.42);
+  --crisp-heading: var(--vis-heading-strong, var(--vis-text, #0f172a));
+  --crisp-muted: var(--vis-text-muted, #475569);
+}
+
+/* ===== Main content area – crisp background (all dashboard pages) ===== */
+body[data-dashboard-page] #main-content,
+body[data-dashboard-page] .portal-main-col,
+body[data-dashboard-page] .page-wrap {
+  min-height: 0;
+}
+html[data-bs-theme="light"] body[data-dashboard-page] #main-content,
+html[data-bs-theme="light"] body[data-dashboard-page] .portal-main-col,
+:root:not([data-theme="dark"]) body[data-dashboard-page] #main-content {
+  background: #f1f5f9;
+}
+html[data-bs-theme="dark"] body[data-dashboard-page] #main-content,
+html[data-bs-theme="dark"] body[data-dashboard-page] .portal-main-col,
+[data-theme="dark"] body[data-dashboard-page] #main-content {
+  background: #0f172a;
+}
+body.portal-backend-light #main-content,
+body.portal-backend-light .portal-main-col {
+  background: #f1f5f9;
+}
+body.portal-backend-dark #main-content,
+body.portal-backend-dark .portal-main-col {
+  background: #0f172a;
+}
+
+/* ===== Cards – consistent rounded corners, padding, borders (all dashboards) ===== */
+#dashboard-layout .card,
+.dashboard-layout-unified .card,
+[data-dashboard-page] .card,
+.finance-dashboard-widgets .card,
+.analytics-dashboard-widgets .card,
+.payroll-dashboard-widgets .card,
+.emis-dashboard-widgets .card,
+.compliance-dashboard .card,
+.parent-dashboard .card,
+.teacher-shell .card {
+  border-radius: var(--crisp-card-radius);
+  border-width: 1px;
+  border-color: var(--crisp-card-border);
+}
+#dashboard-layout .card .card-body,
+.dashboard-layout-unified .card .card-body,
+[data-dashboard-page] .card .card-body,
+.finance-dashboard-widgets .card .card-body,
+.analytics-dashboard-widgets .card .card-body,
+.payroll-dashboard-widgets .card .card-body,
+.emis-dashboard-widgets .card .card-body,
+.compliance-dashboard .card .card-body,
+.parent-dashboard .card .card-body,
+.teacher-shell .card .card-body {
+  padding: 1rem 1.25rem;
+}
+@media (min-width: 768px) {
+  #dashboard-layout .card .card-body,
+  .dashboard-layout-unified .card .card-body,
+  [data-dashboard-page] .card .card-body,
+  .finance-dashboard-widgets .card .card-body,
+  .analytics-dashboard-widgets .card .card-body,
+  .payroll-dashboard-widgets .card .card-body,
+  .emis-dashboard-widgets .card .card-body {
+    padding: 1.25rem 1.5rem;
+  }
+}
+
+/* Light: crisp card surface (all dashboards) */
+:root:not([data-theme="dark"]) #dashboard-layout .card,
+html[data-bs-theme="light"] #dashboard-layout .card,
+body.portal-backend-light #dashboard-layout .card,
+:root:not([data-theme="dark"]) [data-dashboard-page] .card,
+html[data-bs-theme="light"] [data-dashboard-page] .card,
+html[data-bs-theme="light"] .finance-dashboard-widgets .card,
+html[data-bs-theme="light"] .analytics-dashboard-widgets .card,
+html[data-bs-theme="light"] .payroll-dashboard-widgets .card,
+html[data-bs-theme="light"] .emis-dashboard-widgets .card,
+html[data-bs-theme="light"] .compliance-dashboard .card {
+  background: var(--admin-content-bg);
+  border-color: #e2e8f0;
+  color: var(--admin-content-text);
+  box-shadow: var(--crisp-card-shadow);
+}
+:root:not([data-theme="dark"]) .card .card-title,
+html[data-bs-theme="light"] .card .card-title,
+body.portal-backend-light #dashboard-layout .card-title,
+html[data-bs-theme="light"] [data-dashboard-page] .card-title {
+  color: #0f172a !important;
+}
+
+/* Dark: crisp card surface (all dashboards) */
+[data-theme="dark"] #dashboard-layout .card,
+html[data-bs-theme="dark"] #dashboard-layout .card,
+body.portal-backend-dark #dashboard-layout .card,
+[data-theme="dark"] [data-dashboard-page] .card,
+html[data-bs-theme="dark"] [data-dashboard-page] .card,
+html[data-bs-theme="dark"] .finance-dashboard-widgets .card,
+html[data-bs-theme="dark"] .analytics-dashboard-widgets .card,
+html[data-bs-theme="dark"] .payroll-dashboard-widgets .card,
+html[data-bs-theme="dark"] .emis-dashboard-widgets .card,
+html[data-bs-theme="dark"] .compliance-dashboard .card {
+  background: #1e293b;
+  border-color: #334155;
+  color: #f8fafc;
+  box-shadow: var(--crisp-card-shadow-dark);
+}
+[data-theme="dark"] .card .card-title,
+html[data-bs-theme="dark"] .card .card-title,
+body.portal-backend-dark #dashboard-layout .card-title,
+html[data-bs-theme="dark"] [data-dashboard-page] .card-title {
+  color: #f8fafc !important;
+}
+
+[data-dashboard-page] h1,
+[data-dashboard-page] h2,
+[data-dashboard-page] h3,
+[data-dashboard-page] h4,
+[data-dashboard-page] h5,
+[data-dashboard-page] h6,
+[data-dashboard-page] .card-title,
+[data-dashboard-page] .section-title {
+  color: var(--crisp-heading) !important;
+}
+
+[data-dashboard-page] .text-muted,
+[data-dashboard-page] .small.text-muted,
+[data-dashboard-page] .dashboard-eyebrow,
+[data-dashboard-page] .meta-tag {
+  color: var(--crisp-muted) !important;
+}
+
+[data-dashboard-page] a:not(.btn):not(.nav-link):not(.dropdown-item) {
+  color: color-mix(in srgb, var(--school-primary, #3b82f6) 72%, var(--crisp-heading) 28%);
+}
+
+[data-dashboard-page] a:not(.btn):not(.nav-link):not(.dropdown-item):hover {
+  color: color-mix(in srgb, var(--school-primary, #3b82f6) 84%, var(--crisp-heading) 16%);
+}
+
+/* ===== Status badges & pills – clearly visible (all dashboards) ===== */
+#dashboard-layout .badge,
+[data-dashboard-page] .badge,
+.finance-dashboard-widgets .badge,
+.analytics-dashboard-widgets .badge,
+.payroll-dashboard-widgets .badge,
+.emis-dashboard-widgets .badge,
+.compliance-dashboard .badge,
+.parent-dashboard .badge,
+.teacher-shell .badge,
+.card .badge,
+.portal-pill.badge {
+  font-weight: 600;
+  font-size: 0.75rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+  letter-spacing: 0.02em;
+}
+
+/* Success / Accepted / Active – green */
+.badge.bg-success,
+.badge.bg-success.text-dark,
+#dashboard-layout .badge.bg-success,
+[data-dashboard-page] .badge.bg-success {
+  background: #059669 !important;
+  color: var(--admin-content-accent-fg) !important;
+}
+body.portal-backend-dark .badge.bg-success,
+[data-theme="dark"] .badge.bg-success {
+  background: #10b981 !important;
+  color: var(--admin-content-accent-fg) !important;
+}
+
+/* Danger / Under revision / Rejected – red */
+.badge.bg-danger,
+#dashboard-layout .badge.bg-danger,
+[data-dashboard-page] .badge.bg-danger {
+  background: #dc2626 !important;
+  color: var(--admin-content-accent-fg) !important;
+}
+body.portal-backend-dark .badge.bg-danger,
+[data-theme="dark"] .badge.bg-danger {
+  background: #ef4444 !important;
+  color: var(--admin-content-accent-fg) !important;
+}
+
+/* Warning / For checking / Pending – orange */
+.badge.bg-warning,
+.badge.bg-warning.text-dark,
+#dashboard-layout .badge.bg-warning,
+[data-dashboard-page] .badge.bg-warning {
+  background: #d97706 !important;
+  color: var(--admin-content-accent-fg) !important;
+}
+body.portal-backend-dark .badge.bg-warning,
+[data-theme="dark"] .badge.bg-warning {
+  background: #f59e0b !important;
+  color: #0f172a !important;
+}
+
+/* Secondary / neutral – readable in both themes */
+body.portal-backend-light .badge.bg-secondary,
+html[data-bs-theme="light"] .badge.bg-secondary {
+  background: #64748b !important;
+  color: var(--admin-content-accent-fg) !important;
+}
+body.portal-backend-dark .badge.bg-secondary,
+[data-theme="dark"] .badge.bg-secondary {
+  background: #475569 !important;
+  color: #e2e8f0 !important;
+}
+
+/* Status with dot (e.g. "• Accepted") – ensure dot visible */
+.status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 0.35rem; vertical-align: middle; }
+.badge .status-dot { margin-right: 0.25rem; }
+
+/* ===== Nav active states – crisp active indicator ===== */
+/* Portal sidebar: active pill stands out */
+.portal-sidebar-wrapper .nav-link.nav-pill.active,
+.partial-sidebar .nav-link.nav-pill.active,
+.sidebar .nav-link.nav-pill.active {
+  font-weight: 600;
+}
+:root:not([data-theme="dark"]) .sidebar .nav-link.nav-pill.active,
+html[data-bs-theme="light"] .sidebar .nav-link.nav-pill.active,
+body.portal-backend-light .sidebar .nav-link.nav-pill.active {
+  background: rgba(13, 110, 253, 0.12) !important;
+  color: #0d6efd !important;
+  border-left: 3px solid #0d6efd;
+  padding-left: calc(0.875rem - 3px) !important;
+}
+[data-theme="dark"] .sidebar .nav-link.nav-pill.active,
+html[data-bs-theme="dark"] .sidebar .nav-link.nav-pill.active,
+body.portal-backend-dark .sidebar .nav-link.nav-pill.active {
+  background: rgba(99, 102, 241, 0.2) !important;
+  color: #a5b4fc !important;
+  border-left: 3px solid #818cf8;
+  padding-left: calc(0.875rem - 3px) !important;
+}
+
+/* Backend sidebar active already in backend-*-theme.css; reinforce visibility */
+body.portal-backend-dark .sidebar .nav-link.nav-pill.active {
+  box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.3);
+}
+
+/* Tab nav (e.g. Day to day / Monthly) – active tab crisp */
+.nav-tabs .nav-link.active,
+.nav-pills .nav-link.active {
+  font-weight: 600;
+}
+:root:not([data-theme="dark"]) .nav-tabs .nav-link.active,
+html[data-bs-theme="light"] .nav-tabs .nav-link.active {
+  color: #0d6efd;
+  border-bottom-color: #0d6efd;
+}
+[data-theme="dark"] .nav-tabs .nav-link.active,
+html[data-bs-theme="dark"] .nav-tabs .nav-link.active,
+body.portal-backend-dark .nav-tabs .nav-link.active {
+  color: #a5b4fc;
+  border-bottom-color: #818cf8;
+}
+
+/* ===== Tables – clean rows, readable text (all dashboards) ===== */
+#dashboard-layout .table,
+[data-dashboard-page] .table,
+.finance-dashboard-widgets .table,
+.analytics-dashboard-widgets .table,
+.payroll-dashboard-widgets .table,
+.emis-dashboard-widgets .table,
+.compliance-dashboard .table,
+.card .table {
+  border-radius: 8px;
+  overflow: hidden;
+}
+#dashboard-layout .table th,
+[data-dashboard-page] .table th,
+.finance-dashboard-widgets .table th,
+.analytics-dashboard-widgets .table th,
+.payroll-dashboard-widgets .table th,
+.emis-dashboard-widgets .table th,
+.compliance-dashboard .table th {
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.75rem 1rem;
+}
+#dashboard-layout .table td,
+[data-dashboard-page] .table td,
+.finance-dashboard-widgets .table td,
+.analytics-dashboard-widgets .table td,
+.payroll-dashboard-widgets .table td,
+.emis-dashboard-widgets .table td,
+.compliance-dashboard .table td {
+  padding: 0.75rem 1rem;
+  vertical-align: middle;
+}
+body.portal-backend-light #dashboard-layout .table th,
+html[data-bs-theme="light"] .table th,
+html[data-bs-theme="light"] [data-dashboard-page] .table th {
+  background: #f8fafc;
+  color: #334155;
+  border-color: #e2e8f0;
+}
+body.portal-backend-dark #dashboard-layout .table th,
+[data-theme="dark"] .table th,
+html[data-bs-theme="dark"] [data-dashboard-page] .table th {
+  background: #0f172a;
+  color: #e2e8f0;
+  border-color: #334155;
+}
+body.portal-backend-light #dashboard-layout .table td,
+html[data-bs-theme="light"] .table td,
+html[data-bs-theme="light"] [data-dashboard-page] .table td {
+  border-color: #e2e8f0;
+  color: #0f172a;
+}
+body.portal-backend-dark #dashboard-layout .table td,
+[data-theme="dark"] .table td,
+html[data-bs-theme="dark"] [data-dashboard-page] .table td {
+  border-color: #334155;
+  color: #f1f5f9;
+}
+
+/* ===== KPI / summary cards – crisp numbers (all dashboards) ===== */
+.backend-kpi-card .backend-kpi-value,
+.dashboard-kpi-value,
+[data-dashboard-page] .dashboard-kpi-value {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+body.portal-backend-light .backend-kpi-value,
+body.portal-backend-light .dashboard-kpi-value,
+html[data-bs-theme="light"] .dashboard-kpi-value,
+html[data-bs-theme="light"] [data-dashboard-page] .dashboard-kpi-value {
+  color: #0f172a !important;
+}
+body.portal-backend-dark .backend-kpi-value,
+body.portal-backend-dark .dashboard-kpi-value,
+html[data-bs-theme="dark"] .dashboard-kpi-value,
+[data-theme="dark"] .dashboard-kpi-value,
+html[data-bs-theme="dark"] [data-dashboard-page] .dashboard-kpi-value {
+  color: #f8fafc !important;
+}
+
+/* ===== Charts – axis/legend already in high-contrast; ensure container crisp ===== */
+.dashboard-chart-card,
+.dashboard-chart-wrapper {
+  border-radius: var(--crisp-card-radius);
+}
+.dashboard-chart-card .card-body {
+  padding: 1rem 1.25rem;
+}
+
+/* ===== Search / inputs – visible in both themes (all dashboards) ===== */
+#dashboard-layout .form-control,
+[data-dashboard-page] .form-control,
+.finance-dashboard-widgets .form-control,
+.analytics-dashboard-widgets .form-control,
+.payroll-dashboard-widgets .form-control,
+.emis-dashboard-widgets .form-control,
+.compliance-dashboard .form-control,
+.topbar .form-control {
+  border-radius: 8px;
+  border-width: 1px;
+}
+body.portal-backend-light .form-control,
+html[data-bs-theme="light"] [data-dashboard-page] .form-control,
+html[data-bs-theme="light"] .finance-dashboard-widgets .form-control,
+html[data-bs-theme="light"] .analytics-dashboard-widgets .form-control {
+  background: var(--admin-content-surface);
+  border-color: #e2e8f0;
+  color: var(--admin-content-text);
+}
+body.portal-backend-dark .form-control,
+html[data-bs-theme="dark"] [data-dashboard-page] .form-control,
+[data-theme="dark"] .form-control {
+  background: #0f172a;
+  border-color: #334155;
+  color: #f8fafc;
+}
+body.portal-backend-dark .form-control::placeholder,
+html[data-bs-theme="dark"] [data-dashboard-page] .form-control::placeholder {
+  color: #94a3b8;
+}
+
+/* Theme & Experience page: keep studio cards, headings, and controls legible in every palette */
+.theme-experience-page .card,
+body.app-siteconfig.model-sitesettings.change-form .card {
+  border-radius: var(--crisp-card-radius);
+  border-color: var(--crisp-card-border) !important;
+}
+
+.theme-experience-page h1,
+.theme-experience-page h2,
+.theme-experience-page h3,
+body.app-siteconfig.model-sitesettings.change-form h1,
+body.app-siteconfig.model-sitesettings.change-form h2,
+body.app-siteconfig.model-sitesettings.change-form h3 {
+  color: var(--crisp-heading) !important;
+}
+
+/* ===== List items (e.g. Current Partnerships, Messages) – clear separation (all dashboards) ===== */
+#dashboard-layout .list-group-item,
+[data-dashboard-page] .list-group-item,
+.finance-dashboard-widgets .list-group-item,
+.analytics-dashboard-widgets .list-group-item,
+.compliance-dashboard .list-group-item {
+  border-radius: 8px;
+  margin-bottom: 0.35rem;
+  padding: 0.75rem 1rem;
+}
+body.portal-backend-light .list-group-item,
+html[data-bs-theme="light"] [data-dashboard-page] .list-group-item {
+  background: var(--admin-content-bg);
+  border-color: #e2e8f0;
+  color: var(--admin-content-text);
+}
+body.portal-backend-dark .list-group-item,
+html[data-bs-theme="dark"] [data-dashboard-page] .list-group-item,
+[data-theme="dark"] .list-group-item {
+  background: #1e293b;
+  border-color: #334155;
+  color: #f8fafc;
+}

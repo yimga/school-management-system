@@ -1,0 +1,282 @@
+/* ============================================
+   ADMIN SIDEBAR - Comprehensive improvements
+   Scroll, active state, collapsed mode, sticky,
+   focus states, mobile, accessibility
+   ============================================ */
+
+/* ----- Force sidebar LEFT of dashboard (never on top) ----- */
+#page {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+}
+#page .admin-sidebar-column,
+#page > div:first-child {
+  flex: 0 0 288px !important;
+  width: 288px !important;
+  max-width: 288px !important;
+  min-width: 288px !important;
+}
+@media (max-width: 1279px) {
+  #page .admin-sidebar-column,
+  #page > div:first-child {
+    flex: 0 0 0 !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    overflow: hidden !important;
+  }
+}
+#page > #main {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+/* ----- Vertical scroll: only the main app list area scrolls (header + user stay fixed) ----- */
+#nav-sidebar-inner {
+  overflow: hidden;
+}
+#nav-sidebar-apps,
+.admin-sidebar-apps {
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.35) rgba(0, 0, 0, 0.06);
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.dark #nav-sidebar-apps,
+.dark .admin-sidebar-apps {
+  scrollbar-color: rgba(255, 255, 255, 0.35) rgba(255, 255, 255, 0.06);
+}
+
+#nav-sidebar-apps::-webkit-scrollbar,
+.admin-sidebar-apps::-webkit-scrollbar {
+  width: 8px;
+}
+
+#nav-sidebar-apps::-webkit-scrollbar-track,
+.admin-sidebar-apps::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 4px;
+}
+
+#nav-sidebar-apps::-webkit-scrollbar-thumb,
+.admin-sidebar-apps::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 4px;
+}
+
+#nav-sidebar-apps::-webkit-scrollbar-thumb:hover,
+.admin-sidebar-apps::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.dark #nav-sidebar-apps::-webkit-scrollbar-thumb,
+.dark .admin-sidebar-apps::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.dark #nav-sidebar-apps::-webkit-scrollbar-track,
+.dark .admin-sidebar-apps::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* ----- Sidebar: always on the left; flex so app list scrolls; no scroll on wrapper ----- */
+#nav-sidebar {
+  left: 0 !important;
+  right: auto !important;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+#nav-sidebar-inner {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+#nav-sidebar-inner .nav-search,
+.admin-sidebar-quick-access {
+  flex-shrink: 0;
+}
+
+.admin-sidebar-app-groups {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* ----- Quick access ----- */
+.admin-sidebar-quick-access {
+  padding: 0 0.75rem 0.5rem;
+  border-bottom: 1px solid var(--color-base-200, rgba(0, 0, 0, 0.08));
+}
+
+.dark .admin-sidebar-quick-access {
+  border-bottom-color: var(--color-base-800, rgba(255, 255, 255, 0.08));
+}
+
+.admin-sidebar-section-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-base-500, #64748b);
+  margin: 0.75rem 1rem 0.25rem 1rem;
+  padding: 0 0.5rem;
+}
+
+.admin-sidebar-quick-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.admin-sidebar-quick-list li {
+  margin: 0;
+}
+
+/* Link/hover/active styles delegated to admin-sidebar-backend-inspired.css (single source). */
+.admin-sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: var(--color-base-700, #334155);
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.admin-sidebar-icon {
+  font-size: 1.125rem;
+  flex-shrink: 0;
+}
+
+/* ----- App groups (collapsible) ----- */
+.admin-sidebar-app-group {
+  margin-bottom: 0.25rem;
+}
+
+.admin-sidebar-app-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+  padding: 0.25rem 0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.admin-sidebar-app-title a {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-sidebar-chevron {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  transition: transform 0.2s;
+  color: var(--color-base-400, #94a3b8);
+}
+
+.admin-sidebar-app-title:hover .admin-sidebar-chevron {
+  color: var(--color-primary-600, var(--color-primary));
+}
+
+/* ----- Active state (pill style, matches backend) ----- */
+#nav-sidebar .current-model a,
+#nav-sidebar .module li a[aria-current="page"] {
+  background: var(--color-primary-100, rgba(37, 99, 235, 0.12)) !important;
+  color: var(--color-primary-600, var(--color-primary)) !important;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+.dark #nav-sidebar .current-model a,
+.dark #nav-sidebar .module li a[aria-current="page"] {
+  background: rgba(96, 165, 250, 0.15) !important;
+  color: var(--color-primary-400, #60a5fa) !important;
+}
+
+#nav-sidebar .current-app h2 a,
+.admin-sidebar-app-group.current-app .admin-sidebar-app-title a {
+  color: var(--color-primary-600, var(--color-primary)) !important;
+}
+
+.dark #nav-sidebar .current-app h2 a,
+.dark .admin-sidebar-app-group.current-app .admin-sidebar-app-title a {
+  color: var(--color-primary-400, #60a5fa) !important;
+}
+
+/* ----- Focus states ----- */
+.admin-sidebar-link:focus-visible,
+.admin-sidebar-app-title:focus-visible,
+.admin-sidebar-model-link:focus-visible,
+#nav-sidebar a:focus-visible,
+#nav-sidebar button:focus-visible {
+  outline: 2px solid var(--color-primary-500, var(--color-primary));
+  outline-offset: 2px;
+}
+
+.admin-sidebar-app-title:focus {
+  outline: none;
+}
+
+.admin-sidebar-app-title:focus-visible {
+  outline: 2px solid var(--color-primary-500, var(--color-primary));
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ----- Collapsed sidebar ----- */
+#nav-sidebar.sidebar-collapsed .admin-sidebar-quick-access,
+#nav-sidebar.sidebar-collapsed .admin-sidebar-section-title,
+#nav-sidebar.sidebar-collapsed .admin-sidebar-quick-list span:not(.admin-sidebar-icon),
+#nav-sidebar.sidebar-collapsed .admin-sidebar-app-title .admin-sidebar-chevron {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
+}
+
+#nav-sidebar.sidebar-collapsed .admin-sidebar-link,
+#nav-sidebar.sidebar-collapsed .admin-sidebar-app-title a {
+  justify-content: center;
+  padding: 0.5rem;
+}
+
+#nav-sidebar.sidebar-collapsed .admin-sidebar-icon {
+  margin: 0;
+}
+
+/* ----- Mobile ----- */
+@media (max-width: 1279px) {
+  #nav-sidebar,
+  .admin-sidebar-apps {
+    max-height: 70vh;
+  }
+}
+
+/* ----- Skip link for sidebar ----- */
+.admin-sidebar-skip {
+  position: absolute;
+  left: -9999px;
+  z-index: 999;
+  padding: 0.5rem 1rem;
+  background: var(--color-primary-600, var(--color-primary));
+  color: white;
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+.admin-sidebar-skip:focus {
+  left: 0.5rem;
+  top: 0.5rem;
+}

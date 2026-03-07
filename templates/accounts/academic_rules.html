@@ -1,0 +1,86 @@
+{% extends "backend_base.html" %}
+{% load i18n static %}
+
+{% block title %}Academic rules{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="{% url 'accounts:backend_dashboard' %}">Backend</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'accounts:workflow_center' %}">Workflow Center</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Academic rules</li>
+    </ol>
+  </nav>
+
+  <div class="card shadow-sm mb-3">
+    <div class="card-body">
+      <h2 class="h5 mb-3">Academic rules</h2>
+      <p class="text-muted small mb-0">
+        Summary of promotion thresholds, grading defaults, and who can edit grades. Change promotion rules per year/class in Admin; site-wide defaults in Site settings.
+      </p>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-md-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header">Promotion & grading</div>
+        <div class="card-body">
+          <dl class="mb-0">
+            <dt>Active year</dt>
+            <dd>{{ active_year.name|default:"—" }}</dd>
+            <dt>Default pass mark (analytics)</dt>
+            <dd>{{ pass_mark|default:"10" }}</dd>
+            <dt>Use promotion rule for pass (analytics)</dt>
+            <dd>{{ use_promotion_rule_for_pass|yesno:"Yes,No" }}</dd>
+            <dt>Who can edit grades</dt>
+            <dd class="small">Teachers enter marks for their assigned classes. Grade approval (if enabled) is required before publishing. RBAC controls who can approve.</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header">Promotion rules (this year)</div>
+        <div class="card-body">
+          {% if rules %}
+          <p class="small text-muted">Promote ≥ promotion average; demote &lt; demotion average. Per-classroom overrides below; otherwise school default applies.</p>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Scope</th>
+                  <th>Promote ≥</th>
+                  <th>Demote &lt;</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for r in rules %}
+                <tr>
+                  <td>{{ r.classroom.name|default:"School default" }}</td>
+                  <td>{{ r.promotion_average }}</td>
+                  <td>{{ r.demotion_average }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <p class="text-muted small mb-0">No promotion rules for this year yet. Add in Admin → Reports → Promotion rules, or they will use defaults (e.g. 10/20).</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-3">
+    <a href="{% url 'accounts:workflow_center' %}" class="btn btn-outline-secondary btn-back-secondary"><i class="bi bi-arrow-left me-1"></i>Back to Workflow Center</a>
+    {% if is_backend_context %}
+    <a href="{% url 'admin:index' %}" class="btn btn-outline-primary" title="{% trans 'Promotion rules in Configuration Engine' %}">Promotion rules (Configuration Engine)</a>
+    {% else %}
+    <a href="{% url 'admin:reports_promotionrule_changelist' %}" class="btn btn-outline-primary">Promotion rules (admin)</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
