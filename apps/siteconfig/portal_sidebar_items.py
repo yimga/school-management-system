@@ -27,12 +27,12 @@ def _dashboard_layout_url(request, user):
         from apps.siteconfig.dashboard_views import _can_customize
         if not _can_customize(user):
             return None
-        return __safe_reverse("accounts:backend_dashboard") + "?customize=1"
+        return _safe_reverse("accounts:backend_dashboard") + "?customize=1"
     except Exception:
-        return __safe_reverse("accounts:backend_dashboard") + "?customize=1"
+        return _safe_reverse("accounts:backend_dashboard") + "?customize=1"
 
 
-def __safe_reverse(url_name, kwargs=None, args=None, default=None):
+def _safe_reverse(url_name, kwargs=None, args=None, default=None):
     try:
         if args is not None:
             return reverse(url_name, args=args)

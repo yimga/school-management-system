@@ -135,7 +135,7 @@ LTI_RATE_LIMIT_WINDOW = 60 * 15
 LTI_RATE_LIMIT_MAX = 240
 
 
-def __safe_reverse(name: str) -> str:
+def _safe_reverse(name: str) -> str:
     try:
         return reverse(name)
     except NoReverseMatch:

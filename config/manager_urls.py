@@ -15,6 +15,7 @@ from apps.billing.models import TenantSubscription
 from apps.observability import views as obs_views
 from apps.observability.models import PlatformIncident
 from apps.schools.models import School
+from apps.schools.marketing_views import marketing_page
 from apps.schools.tenant_url import build_public_absolute_url
 from config.admin import admin_site
 
@@ -312,6 +313,9 @@ urlpatterns = [
     path("analytics/", include((analytics_compat_patterns, "analytics"), namespace="analytics")),
     path("compliance/", include((compliance_compat_patterns, "compliance"), namespace="compliance")),
     path("payroll/", include((payroll_compat_patterns, "payroll"), namespace="payroll")),
+    path("privacy/", marketing_page, {"page_slug": "privacy"}, name="marketing_privacy"),
+    path("terms/", marketing_page, {"page_slug": "terms"}, name="marketing_terms"),
+    path("cookie-policy/", marketing_page, {"page_slug": "cookie-policy"}, name="marketing_cookie_policy"),
 ]
 
 if settings.DEBUG:
