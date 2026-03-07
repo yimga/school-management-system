@@ -10,9 +10,19 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='sitesettings',
-            name='meta_description',
-            field=models.CharField(blank=True, default='', help_text='Optional SEO meta description for pages (used in base/portal_base templates).', max_length=320),
+        migrations.SeparateDatabaseAndState(
+            state_operations=[
+                migrations.AddField(
+                    model_name='sitesettings',
+                    name='meta_description',
+                    field=models.CharField(blank=True, default='', help_text='Optional SEO meta description for pages (used in base/portal_base templates).', max_length=320),
+                ),
+            ],
+            database_operations=[
+                migrations.RunSQL(
+                    sql="ALTER TABLE siteconfig_sitesettings ADD COLUMN IF NOT EXISTS meta_description VARCHAR(320) NOT NULL DEFAULT '';",
+                    reverse_sql="ALTER TABLE siteconfig_sitesettings DROP COLUMN IF EXISTS meta_description;",
+                ),
+            ],
         ),
     ]
