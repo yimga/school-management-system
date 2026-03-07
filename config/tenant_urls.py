@@ -25,6 +25,7 @@ from apps.portal.views_ai_copilot import (
 from config.admin import admin_site
 from apps.schools.section8_views import frozen_account
 from apps.schools.views_domains import api_domains_list_or_create, api_domains_verify
+from apps.schools.marketing_views import marketing_page
 
 
 def home(request):
@@ -143,6 +144,9 @@ urlpatterns = [
     path("api/tenant/domains/", api_domains_list_or_create, name="api_domains_list_or_create"),
     path("api/tenant/domains/<uuid:school_domain_id>/verify/", api_domains_verify, name="api_domains_verify"),
     path("account-frozen/", frozen_account, name="account_frozen"),
+    path("privacy/", marketing_page, {"page_slug": "privacy"}, name="marketing_privacy"),
+    path("terms/", marketing_page, {"page_slug": "terms"}, name="marketing_terms"),
+    path("cookie-policy/", marketing_page, {"page_slug": "cookie-policy"}, name="marketing_cookie_policy"),
 ]
 
 if settings.DEBUG:

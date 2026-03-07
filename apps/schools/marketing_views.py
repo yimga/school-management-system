@@ -735,7 +735,7 @@ TOPICAL_LANDING_DEFINITIONS = {
 }
 
 
-def __safe_reverse(name: str, *, kwargs: dict | None = None) -> str:
+def _safe_reverse(name: str, *, kwargs: dict | None = None) -> str:
     try:
         return reverse(name, kwargs=kwargs)
     except NoReverseMatch:
