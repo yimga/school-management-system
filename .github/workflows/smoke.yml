@@ -1,0 +1,40 @@
+# Smoke test: pre-deploy gate (check, migrations, smoke URLs, theme matrix, phase checks).
+# Runs on push/PR to main so merges are validated.
+name: Smoke test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Pre-deploy gate (check, migrations, smoke, theme matrix, phase checks)
+        timeout-minutes: 25
+        env:
+          DEBUG: "0"
+          LOG_LEVEL: WARNING
+        run: bash scripts/pre_deploy_gate.sh
+
+      - name: i18n (makemessages + compilemessages)
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq gettext > /dev/null 2>&1 || true
+          if command -v xgettext > /dev/null 2>&1; then
+            python manage.py makemessages -l en -a --no-obsolete --no-wrap 2>/dev/null || true
+            python manage.py compilemessages 2>/dev/null || true
+          fi
