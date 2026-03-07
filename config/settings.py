@@ -913,6 +913,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.policies",
         "apps.events",
         "apps.marketplace",
+        "apps.customersuccess",
     ]
     TENANT_APPS = [
         "apps.academics",

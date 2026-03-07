@@ -97,6 +97,13 @@ evals_compat_patterns = [
 
 analytics_compat_patterns = [
     path("", manager_legacy_surface_redirect, {"surface": "reports"}, name="dashboard"),
+    path("master-sheet/", manager_legacy_surface_redirect, {"surface": "reports"}, name="master_sheet"),
+    path("deadlines/", manager_legacy_surface_redirect, {"surface": "reports"}, name="deadlines"),
+]
+
+reports_compat_patterns = [
+    path("", manager_legacy_surface_redirect, {"surface": "reports"}, name="reports_home"),
+    path("publish/", manager_legacy_surface_redirect, {"surface": "reports"}, name="publish_term_results"),
 ]
 
 compliance_compat_patterns = [
@@ -300,7 +307,7 @@ urlpatterns = [
     path("evals/", manager_legacy_surface_redirect, {"surface": "evals"}, name="manager_legacy_evals"),
     path("evals/<path:remaining>", manager_legacy_surface_redirect, {"surface": "evals"}),
     path("evals/", include((evals_compat_patterns, "evals"), namespace="evals")),
-    path("reports/", manager_legacy_surface_redirect, {"surface": "reports"}, name="manager_legacy_reports"),
+    path("reports/", include((reports_compat_patterns, "reports"), namespace="reports")),
     path("reports/<path:remaining>", manager_legacy_surface_redirect, {"surface": "reports"}),
     path("finance/", manager_legacy_surface_redirect, {"surface": "finance"}, name="manager_legacy_finance"),
     path("finance/<path:remaining>", manager_legacy_surface_redirect, {"surface": "finance"}),

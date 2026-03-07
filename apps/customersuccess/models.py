@@ -35,6 +35,7 @@ class BenchmarkCohort(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        app_label = "customersuccess"
         ordering = ["name"]
         verbose_name = "Benchmark cohort"
         verbose_name_plural = "Benchmark cohorts"
