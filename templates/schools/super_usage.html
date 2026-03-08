@@ -37,7 +37,7 @@
                   {% endfor %}
                 </td>
                 <td>
-                  {% for q in school.quota_limits %}
+                  {% for q in school.quota_limits_list %}
                   <span class="table-status-chip table-status-chip--info">{{ q.limit_type }}: {{ q.limit_value }}{% if q.period_days %}/{{ q.period_days }}d{% endif %}</span>
                   {% empty %}
                   <span class="text-muted">—</span>

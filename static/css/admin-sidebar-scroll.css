@@ -4,11 +4,14 @@
    focus states, mobile, accessibility
    ============================================ */
 
-/* ----- Force sidebar LEFT of dashboard (never on top) ----- */
+/* ----- Force sidebar LEFT of dashboard (never on top); single scroll in main ----- */
 #page {
   display: flex !important;
   flex-direction: row !important;
   flex-wrap: nowrap !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+  overflow: hidden !important;
 }
 #page .admin-sidebar-column,
 #page > div:first-child {
@@ -30,6 +33,9 @@
 #page > #main {
   flex: 1 1 auto !important;
   min-width: 0 !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
 }
 
 /* ----- Vertical scroll: only the main app list area scrolls (header + user stay fixed) ----- */

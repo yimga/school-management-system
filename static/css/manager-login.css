@@ -76,3 +76,33 @@ body { background: #0B0E14; }
 /* Admin-only: validation and error display */
 .admin-login-card .form-control.is-invalid { border-color: #dc3545; }
 .admin-login-card .invalid-feedback { color: #f87171; }
+
+/* Alerts on dark card: visible and readable */
+.admin-login-card .admin-login-alert,
+.manager-login-card .manager-login-alert,
+.admin-login-card .alert-danger,
+.admin-login-card .alert-warning,
+.manager-login-card .alert-danger,
+.manager-login-card .alert-warning {
+  background: rgba(220, 53, 69, 0.2);
+  border: 1px solid rgba(248, 113, 113, 0.5);
+  color: #fca5a5;
+}
+.admin-login-card .alert-warning,
+.manager-login-card .alert-warning {
+  background: rgba(212, 175, 55, 0.2);
+  border-color: rgba(212, 175, 55, 0.5);
+  color: #fcd34d;
+}
+
+/* Password reset link: visible, gold on hover */
+.admin-login-reset a,
+.admin-login-card .admin-login-reset a {
+  color: #9fb1cb;
+  text-decoration: none;
+}
+.admin-login-reset a:hover,
+.admin-login-card .admin-login-reset a:hover {
+  color: #d4af37;
+  text-decoration: underline;
+}

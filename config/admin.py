@@ -80,7 +80,7 @@ class RunMyCampusAdminSite(UnfoldAdminSite):
         return super().login(request, extra_context=extra_context)
 
     def index(self, request, extra_context=None):
-        """Render the custom admin dashboard at /admin/."""
+        """Render the custom admin dashboard at /admin/. Superadmin (manager host) and tenant get different structures."""
         context = build_admin_dashboard_context(
             request,
             base_context=self.each_context(request),
@@ -88,8 +88,9 @@ class RunMyCampusAdminSite(UnfoldAdminSite):
         )
         if extra_context:
             context.update(extra_context)
-
-        return TemplateResponse(request, "admin/index.html", context)
+        is_manager = getattr(request, "public_host_kind", None) == "manager"
+        template = "admin/index_superadmin.html" if is_manager else "admin/index_tenant.html"
+        return TemplateResponse(request, template, context)
 
     def dashboard_redirect(self, request):
         """Legacy /admin/dashboard/ route redirected to canonical /admin/."""

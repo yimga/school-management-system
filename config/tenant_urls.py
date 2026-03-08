@@ -5,6 +5,7 @@ Used when request.urlconf is set to this module by UrlConfSwitcherMiddleware.
 from django.conf import settings
 from django.conf.urls.static import static
 from django.shortcuts import redirect
+from django.templatetags.static import static
 from django.urls import include, path
 from django.views.decorators.cache import cache_page
 from rest_framework.schemas import get_schema_view
@@ -41,6 +42,11 @@ def home(request):
     if request.user.is_authenticated:
         return redirect("accounts:redirect")
     return redirect("accounts:login")
+
+
+def favicon_redirect(request):
+    """Serve favicon by redirecting to default static icon; avoids 500 when 404 pipeline runs for /favicon.ico."""
+    return redirect(static("images/runmycampus-icon.png"), permanent=False)
 
 
 def _is_schema_allowed(user):
@@ -109,6 +115,7 @@ handler500 = server_error
 
 urlpatterns = [
     path("", home, name="home"),
+    path("favicon.ico", favicon_redirect),
     path("admin/", admin_site.urls),
     path("api/schema/", schema_view, name="api-schema"),
     path("api/schema/ui/", api_schema_ui, name="api-schema-ui"),

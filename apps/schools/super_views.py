@@ -1275,7 +1275,7 @@ def super_usage(request):
         quotas.setdefault(q["school_id"], []).append(q)
     for school in schools:
         school.api_usage = {k: v for (sid, k), v in usage_agg.items() if sid == school.pk}
-        school.quota_limits = quotas.get(school.pk, [])
+        school.quota_limits_list = quotas.get(school.pk, [])
         school.admin_edit_url = _safe_school_admin_change_url(school.pk)
     return render(
         request,

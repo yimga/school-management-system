@@ -1,15 +1,16 @@
-{% extends "base.html" %}
+{% extends "control_plane_skeleton.html" %}
 {% load static i18n %}
 
 {% block title %}{% trans "Control plane sign-in" %} — RunMyCampus Manager{% endblock %}
 
 {% block extrastyle %}
+  {{ block.super }}
   <link rel="stylesheet" href="{% static 'css/manager-login.css' %}">
 {% endblock %}
 
 {% block content %}
-<section class="manager-login-landing" id="manager-login-page" aria-label="{% trans 'Control plane sign-in' %}">
-  <div class="container">
+<section class="manager-login-landing cp-surface" id="cp-main-content" aria-label="{% trans 'Control plane sign-in' %}">
+  <div class="container py-4">
     <div class="manager-login-hero">
       <div class="hero-logo" aria-hidden="true">
         {% if PUBLIC_BRAND_FAVICON_URL %}
@@ -33,11 +34,11 @@
 
             {% if messages %}
               {% for message in messages %}
-                <div class="alert alert-{{ message.tags|default:'danger' }} mb-3" role="alert">{{ message }}</div>
+                <div class="alert alert-{{ message.tags|default:'danger' }} mb-3 manager-login-alert" role="alert">{{ message }}</div>
               {% endfor %}
             {% endif %}
 
-            <form method="post" novalidate aria-labelledby="manager-login-heading" aria-describedby="manager-login-subtitle">
+            <form method="post" action="" novalidate aria-labelledby="manager-login-heading" aria-describedby="manager-login-subtitle">
               {% csrf_token %}
               {% if request.GET.next %}
                 <input type="hidden" name="next" value="{{ request.GET.next }}">
@@ -55,7 +56,7 @@
               <button class="btn btn-primary w-100" type="submit">{% trans "Log in" %}</button>
             </form>
 
-            <div class="manager-login-footer">
+            <div class="manager-login-footer mt-3">
               <a href="{{ public_site_url|default:'https://runmycampus.com' }}" target="_blank" rel="noopener noreferrer">{% trans "Back to public site" %}</a>
             </div>
           </div>

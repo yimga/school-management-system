@@ -4,6 +4,41 @@
  * Applied globally via portal_base.html.
  */
 
+/* ===== Viewport-fixed layout: single scroll in main (tenant + backend + workflows) ===== */
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+body > nav.topbar,
+body > .topbar {
+  flex-shrink: 0;
+}
+.portal-layout-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+@media (min-width: 992px) {
+  .portal-layout-wrap {
+    flex-direction: row;
+  }
+  .portal-layout-wrap .portal-layout-row {
+    flex: 0 0 auto;
+  }
+}
+.portal-layout-wrap .portal-main-col {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.portal-layout-wrap .portal-layout-row {
+  min-height: 0;
+}
+
 /* ===== Page & content containment ===== */
 .page-wrap {
   min-width: 0;

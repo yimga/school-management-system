@@ -17,12 +17,14 @@
   <link rel="stylesheet" href="{% static 'css/admin-surface-fixes.css' %}">
   <link rel="stylesheet" href="{% static 'css/theme-visibility-guard.css' %}">
   <link rel="stylesheet" href="{% static 'css/platform-high-end.css' %}">
+  <link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
+  <link rel="stylesheet" href="{% static 'css/admin-manager-shell.css' %}">
   <link rel="stylesheet" href="{% static 'css/surface-themes.css' %}">
   <link rel="stylesheet" href="{% static 'css/table-system.css' %}">
   <link rel="stylesheet" href="{% static 'css/form-system.css' %}">
   <link rel="stylesheet" href="{% static 'css/card-grammar.css' %}">
   <link rel="stylesheet" href="{% static 'css/chart-rules.css' %}">
-  <script>(function(){document.documentElement.setAttribute('data-surface','admin');})();</script>
+  <script>(function(){document.documentElement.setAttribute('data-surface','control-plane');})();</script>
     <style>
       #container, #content, .dashboard-container, .main-content, .content {
         position: relative;
@@ -99,23 +101,18 @@
       background: rgba(255, 255, 255, 0.08);
     }
   </style>
-  {# Single source for admin brand/semantic CSS variables (no conflicting settings). #}
-  {# On manager host use platform primary only (no tenant SITE). Else align with site accent. #}
+  {# Configuration Engine: same high-end navy/gold feel as /super/ on all hosts. #}
   <style>
     :root {
-      --brand-primary: {{ ADMIN_RESOLVED_PRIMARY|default:"#0d6efd" }};
-      --brand-accent: {{ ADMIN_RESOLVED_ACCENT|default:"#198754" }};
+      --platform-navy: #0B0E14;
+      --platform-gold: #d4af37;
+      --brand-primary: #d4af37;
+      --brand-accent: #d4af37;
       --brand-success: {{ ADMIN_RESOLVED_SUCCESS|default:"#22c55e" }};
       --brand-warning: {{ ADMIN_RESOLVED_WARNING|default:"#fbbf24" }};
       --brand-danger: {{ ADMIN_RESOLVED_DANGER|default:"#ef4444" }};
-      --surface-deep: {{ ADMIN_RESOLVED_BACKGROUND|default:"#1a1a1a" }};
-      {% if is_manager_host %}
-      --admin-sidebar-active-border: {{ ADMIN_RESOLVED_PRIMARY|default:"#0d6efd" }};
-      {% elif SITE and SITE.admin_use_site_primary %}
-      --admin-sidebar-active-border: {{ SITE.primary_color|default:"#0d6efd" }};
-      {% else %}
-      --admin-sidebar-active-border: {{ ADMIN_RESOLVED_PRIMARY|default:"#0d6efd" }};
-      {% endif %}
+      --surface-deep: #0B0E14;
+      --admin-sidebar-active-border: #d4af37;
     }
     body, #content {
       --color-primary: var(--brand-primary);
@@ -182,42 +179,21 @@
 {% block extrahead %}
   {{ block.super }}
   {% if SITE_FAVICON_URL %}<link rel="icon" href="{{ SITE_FAVICON_URL }}" type="image/x-icon">{% endif %}
-  {# Apply backend_console_theme to admin (black, charcoal, etc.) #}
+  {# Configuration Engine: same high-end control-plane shell as /super/ on all hosts #}
   <script>
     (function(){
-      function apply() {
-        var theme = '{{ RESOLVED_BACKEND_CONSOLE_THEME|default:"dark"|escapejs }}';
-        if (theme === 'system') {
-          theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        }
-        var darkThemes = ['dark', 'black', 'ink', 'onyx', 'charcoal', 'graphite', 'midnight', 'ocean', 'steel', 'slate', 'forest', 'indigo', 'amber'];
-        if (darkThemes.indexOf(theme) >= 0) {
-          document.documentElement.setAttribute('data-theme', 'dark');
-          document.documentElement.setAttribute('data-bs-theme', 'dark');
-          document.documentElement.classList.add('dark');
-          document.body.classList.add('portal-backend-dark', 'portal-backend-' + theme);
-        } else {
-          document.documentElement.setAttribute('data-theme', 'light');
-          document.documentElement.setAttribute('data-bs-theme', 'light');
-          document.body.classList.add('portal-backend-light', 'portal-backend-' + theme);
+      function applyAdminShell() {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.documentElement.setAttribute('data-bs-theme', 'dark');
+        document.documentElement.setAttribute('data-surface', 'control-plane');
+        document.documentElement.classList.add('dark');
+        if (document.body) {
+          document.body.classList.add('control-plane-shell', 'admin-manager-shell', 'cp-surface', 'portal-backend-dark');
         }
       }
-      if (document.body) apply(); else document.addEventListener('DOMContentLoaded', apply);
+      if (document.body) applyAdminShell(); else document.addEventListener('DOMContentLoaded', applyAdminShell);
     })();
   </script>
-  {# Set dark mode when black theme pack is active (Deep Space, midnight, dark palettes) #}
-  {% if SITE_ADMIN_THEME and SITE_ADMIN_THEME.slug %}
-  <script>
-    (function(){
-      var s = "{{ SITE_ADMIN_THEME.slug|escapejs }}";
-      if (s.indexOf("deep-space") >= 0 || s.indexOf("midnight") >= 0 || s.indexOf("-dark") >= 0 || s.indexOf("high-contrast-dark") >= 0) {
-        document.documentElement.setAttribute("data-theme", "dark");
-        document.documentElement.setAttribute("data-bs-theme", "dark");
-        document.documentElement.classList.add("dark");
-      }
-    })();
-  </script>
-  {% endif %}
   <script src="{% static 'js/admin-sidebar-nav.js' %}" defer></script>
 {% endblock %}
 

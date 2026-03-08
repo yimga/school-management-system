@@ -1,0 +1,112 @@
+/**
+ * Portal Premium Shell – Same high-end feel as /super/ for tenant backend and dashboards.
+ * Uses school primary/accent so tenant branding is kept; applies same elevation, radius, and panel grammar.
+ * Loaded from backend_base so all backend and dashboard pages get control-plane-level polish.
+ */
+
+/* Backend shell: premium card and panel styling (match control plane elevation) */
+body.backend-shell #main-content .card,
+body.backend-shell .portal-main-col .card,
+body[data-dashboard-page] #main-content .card,
+body[data-dashboard-page] .portal-main-col .card {
+  border-radius: var(--platform-premium-radius, 14px);
+  box-shadow: var(--platform-premium-shadow);
+  border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+body.portal-backend-dark.backend-shell #main-content .card,
+body.portal-backend-dark.backend-shell .portal-main-col .card,
+body.portal-backend-dark[data-dashboard-page] #main-content .card,
+body.portal-backend-dark[data-dashboard-page] .portal-main-col .card {
+  box-shadow: var(--platform-premium-shadow-dark);
+  border-color: rgba(148, 163, 184, 0.15);
+}
+body.backend-shell #main-content .card:hover,
+body.backend-shell .portal-main-col .card:hover,
+body[data-dashboard-page] #main-content .card:hover,
+body[data-dashboard-page] .portal-main-col .card:hover {
+  box-shadow: var(--platform-premium-shadow-hover);
+}
+body.portal-backend-dark.backend-shell #main-content .card:hover,
+body.portal-backend-dark[data-dashboard-page] #main-content .card:hover {
+  box-shadow: var(--platform-premium-shadow-dark-hover);
+}
+
+/* Section / hero blocks: same radius and elevation as cp-panel */
+body.backend-shell #main-content .dashboard-section,
+body.backend-shell #main-content section.card,
+body.backend-shell #main-content .workflow-hero,
+body.backend-shell #main-content .hub-card,
+body[data-dashboard-page] #main-content .dashboard-section,
+body[data-dashboard-page] #main-content section.card,
+body[data-dashboard-page] #main-content .workflow-hero,
+body[data-dashboard-page] #main-content .hub-card {
+  border-radius: var(--platform-premium-radius, 14px);
+  box-shadow: var(--platform-premium-shadow);
+  border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
+}
+body.portal-backend-dark.backend-shell #main-content .dashboard-section,
+body.portal-backend-dark.backend-shell #main-content .workflow-hero,
+body.portal-backend-dark.backend-shell #main-content .hub-card,
+body.portal-backend-dark[data-dashboard-page] #main-content .dashboard-section,
+body.portal-backend-dark[data-dashboard-page] #main-content .workflow-hero,
+body.portal-backend-dark[data-dashboard-page] #main-content .hub-card {
+  box-shadow: var(--platform-premium-shadow-dark);
+  border-color: rgba(148, 163, 184, 0.15);
+}
+
+/* Sidebar: same premium radius and shadow as control plane */
+body.backend-shell .portal-sidebar-col .sidebar,
+body[data-dashboard-page] .portal-sidebar-col .sidebar {
+  border-radius: var(--platform-premium-radius, 14px);
+  box-shadow: var(--platform-premium-shadow);
+}
+body.portal-backend-dark.backend-shell .portal-sidebar-col .sidebar,
+body.portal-backend-dark[data-dashboard-page] .portal-sidebar-col .sidebar {
+  box-shadow: var(--platform-premium-shadow-dark);
+}
+
+/* Primary buttons: pill shape and accent (match control plane .btn) */
+body.backend-shell #main-content .btn-primary,
+body.backend-shell .portal-main-col .btn-primary,
+body[data-dashboard-page] #main-content .btn-primary,
+body[data-dashboard-page] .portal-main-col .btn-primary {
+  border-radius: 999px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+body.backend-shell #main-content .btn-primary:hover,
+body[data-dashboard-page] #main-content .btn-primary:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+}
+
+/* Tables: same containment and header styling */
+body.backend-shell #main-content .table-responsive,
+body[data-dashboard-page] #main-content .table-responsive {
+  border-radius: var(--platform-premium-radius-sm, 10px);
+  overflow: hidden;
+  box-shadow: var(--platform-premium-shadow);
+}
+body.backend-shell #main-content .table thead th,
+body[data-dashboard-page] #main-content .table thead th {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+/* Page titles and section titles: same typography weight */
+body.backend-shell #main-content h1,
+body.backend-shell #main-content .page-header h1,
+body[data-dashboard-page] #main-content h1,
+body[data-dashboard-page] #main-content .page-header h1 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+body.backend-shell #main-content h2,
+body.backend-shell #main-content .section-title,
+body[data-dashboard-page] #main-content h2,
+body[data-dashboard-page] #main-content .section-title {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
