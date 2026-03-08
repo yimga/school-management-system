@@ -21,6 +21,18 @@ else:
     SUPERADMIN_ROLE_VALUE = None
 
 
+def _sync_superuser_flags(user_model, username):
+    """Ensure the user has is_staff, is_superuser, is_active so Configuration Engine access works."""
+    u = user_model.objects.filter(username=username).first()
+    if u and (not u.is_staff or not u.is_superuser or not u.is_active):
+        u.is_staff = True
+        u.is_superuser = True
+        u.is_active = True
+        u.save(update_fields=["is_staff", "is_superuser", "is_active"])
+        return True
+    return False
+
+
 class Command(BaseCommand):
     help = (
         "Ensure at least one superuser exists. Creates one or promotes an existing user. "
@@ -80,6 +92,7 @@ class Command(BaseCommand):
                 if SUPERADMIN_ROLE_VALUE is not None and hasattr(existing_admin, "role"):
                     existing_admin.role = SUPERADMIN_ROLE_VALUE
                 existing_admin.save()
+                _sync_superuser_flags(User, username)
                 self.stdout.write(
                     self.style.SUCCESS(
                         "Superuser '%s' password updated. Log in at /authentication/login/ or /admin/" % username
@@ -136,6 +149,7 @@ class Command(BaseCommand):
             if SUPERADMIN_ROLE_VALUE is not None and hasattr(existing, "role"):
                 existing.role = SUPERADMIN_ROLE_VALUE
             existing.save()
+            _sync_superuser_flags(User, username)
             self.stdout.write(
                 self.style.SUCCESS(
                     "Superuser '%s' updated. Log in at /authentication/login/ or /admin/"
@@ -153,6 +167,7 @@ class Command(BaseCommand):
         if SUPERADMIN_ROLE_VALUE is not None and hasattr(u, "role"):
             u.role = SUPERADMIN_ROLE_VALUE
             u.save(update_fields=["role"])
+        _sync_superuser_flags(User, username)
         self.stdout.write(
             self.style.SUCCESS(
                 "Superuser '%s' created. You can log in at:\n"
