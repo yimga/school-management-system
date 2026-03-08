@@ -75,7 +75,17 @@ def api_security_activity(request):
 def _user_has_mfa(user) -> bool:
     try:
         from django_otp import user_has_device
-        return user_has_device(user, confirmed=True)
+        try:
+            has_device = user_has_device(user, confirmed=True)
+        except TypeError:
+            has_device = user_has_device(user)
+        if has_device:
+            return True
+    except Exception:
+        pass
+    try:
+        from apps.accounts.models import UserPasskey
+        return UserPasskey.objects.filter(user=user).exists()
     except Exception:
         return False
 

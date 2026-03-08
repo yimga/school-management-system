@@ -16,6 +16,19 @@ def _request_host(request) -> str:
     return (h or "").lower()
 
 
+def _school_json_payload(school, primary_attr: str, legacy_attr: str) -> dict:
+    """Read the live School JSON field first, then fall back to legacy alias names."""
+    if school is None:
+        return {}
+    for attr_name in (primary_attr, legacy_attr):
+        if not hasattr(school, attr_name):
+            continue
+        value = getattr(school, attr_name)
+        if isinstance(value, dict):
+            return value
+    return {}
+
+
 def build_tenant_context_from_request(request) -> TenantContext:
     """Build TenantContext from request.school (RLS) or request.tenant (schema)."""
     host = _request_host(request)
@@ -35,12 +48,8 @@ def build_tenant_context_from_request(request) -> TenantContext:
                 timezone = (locale.get("timezone") or locale.get("default_timezone") or "").strip() or None
         except Exception:
             pass
-        feature_flags = getattr(school, "features_json", {}) if school and hasattr(school, "features_json") else {}
-        if not isinstance(feature_flags, dict):
-            feature_flags = {}
-        policy_overrides = getattr(school, "settings_json", {}) if school and hasattr(school, "settings_json") else {}
-        if not isinstance(policy_overrides, dict):
-            policy_overrides = {}
+        feature_flags = _school_json_payload(school, "features", "features_json")
+        policy_overrides = _school_json_payload(school, "settings", "settings_json")
         return TenantContext(
             tenant_id=str(tenant.id) if hasattr(tenant, "id") else getattr(tenant, "schema_name", "") or "",
             schema_name=getattr(tenant, "schema_name", None),
@@ -61,12 +70,8 @@ def build_tenant_context_from_request(request) -> TenantContext:
             timezone = (locale.get("timezone") or locale.get("default_timezone") or "").strip() or None
         except Exception:
             pass
-        feature_flags = getattr(school, "features_json", {}) if hasattr(school, "features_json") else {}
-        if not isinstance(feature_flags, dict):
-            feature_flags = {}
-        policy_overrides = getattr(school, "settings_json", {}) if hasattr(school, "settings_json") else {}
-        if not isinstance(policy_overrides, dict):
-            policy_overrides = {}
+        feature_flags = _school_json_payload(school, "features", "features_json")
+        policy_overrides = _school_json_payload(school, "settings", "settings_json")
         return TenantContext(
             tenant_id=str(school.id),
             schema_name=None,

@@ -271,13 +271,16 @@ class GlobalSearchAPI(View):
         
         elif config['model'] == 'Subject':
             from apps.academics.models import Subject
-            items = Subject.objects.filter(q_object)[:limit]
+            base = Subject.objects.filter(q_object)
+            if school is not None:
+                base = base.filter(school=school)
+            items = base[:limit]
             for item in items:
                 results.append({
                     'id': item.id,
                     'type': 'subject',
                     'title': item.name,
-                    'description': f"Code: {item.code}",
+                    'description': f"Category: {item.get_category_display()}",
                     'url': self._subject_url(user, item),
                     'icon': 'bi-book',
                 })
