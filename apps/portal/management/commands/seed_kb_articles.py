@@ -1067,6 +1067,7 @@ First of month: Full system backup</pre>
                     'author': admin_user,
                     'status': 'PUBLISHED',
                     'is_featured': article_data.get('is_featured', False),
+                    'target_roles': [],
                 }
             )
 

@@ -219,6 +219,12 @@ class KBArticle(models.Model):
         blank=True,
         help_text="Optional: restrict to plan slug (e.g. powerhouse).",
     )
+    target_roles = models.JSONField(
+        _("Target roles"),
+        default=list,
+        blank=True,
+        help_text=_("List of role codes that can see this article (empty = all)."),
+    )
 
     # Timestamps
     created_at = models.DateTimeField(_("Created At"), auto_now_add=True)
