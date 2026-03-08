@@ -52,6 +52,23 @@
   color: rgba(255, 255, 255, 0.6) !important;
 }
 
+/* Pinned section: same padding and list style as quick access */
+#nav-sidebar .admin-sidebar-pinned-section,
+#nav-sidebar-apps .admin-sidebar-pinned-section {
+  padding: 0 var(--sidebar-px) 12px !important;
+  margin-bottom: 4px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.dark #nav-sidebar-apps .admin-sidebar-pinned-section {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+#nav-sidebar-apps .admin-sidebar-pinned-item {
+  margin: 2px 0;
+}
+#nav-sidebar-apps .admin-sidebar-pin-this {
+  padding-left: var(--sidebar-px);
+}
+
 /* Quick access + app list: same horizontal padding, no double margins */
 #nav-sidebar .admin-sidebar-quick-access,
 #nav-sidebar-apps .admin-sidebar-quick-access {
@@ -286,19 +303,29 @@
   width: 20px;
   height: 20px;
 }
+body.admin-sidebar-compact .admin-sidebar-model-link .admin-sidebar-model-link-text {
+  display: none !important;
+}
+body.admin-sidebar-compact .admin-sidebar-model-link .admin-sidebar-model-icon {
+  display: inline-flex !important;
+}
 #nav-sidebar.admin-sidebar-compact .admin-sidebar-model-link,
 #nav-sidebar-inner.admin-sidebar-compact .admin-sidebar-model-link {
-  font-size: 0 !important;
-  overflow: hidden;
   padding: 8px 12px !important;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
 }
-body.admin-sidebar-compact #nav-sidebar,
-body.admin-sidebar-compact #nav-sidebar-inner {
-  max-width: 4.5rem;
-  min-width: 4.5rem;
+body.admin-sidebar-compact #nav-sidebar {
+  max-width: 4.5rem !important;
+  min-width: 4.5rem !important;
+  width: 4.5rem !important;
+}
+body.admin-sidebar-compact .admin-sidebar-column .fixed.w-\[288px\] {
+  width: 4.5rem !important;
+  max-width: 4.5rem !important;
+  min-width: 4.5rem !important;
 }
 body.admin-sidebar-compact .admin-sidebar-link,
 body.admin-sidebar-compact .admin-sidebar-model-link {
@@ -319,4 +346,95 @@ body.admin-sidebar-compact .admin-sidebar-app-title {
 }
 body.admin-sidebar-compact .admin-sidebar-app-title .admin-sidebar-chevron {
   display: none !important;
+}
+
+/* Compact toggle: show expand icon when sidebar is compact, grid when expanded */
+.admin-sidebar-compact-icon-collapse {
+  display: none !important;
+}
+body.admin-sidebar-compact .admin-sidebar-compact-icon-expand {
+  display: none !important;
+}
+body.admin-sidebar-compact .admin-sidebar-compact-icon-collapse {
+  display: inline-flex !important;
+}
+
+/* ----- RTL: admin sidebar (pinned, quick access, compact, sections) ----- */
+[dir="rtl"] #nav-sidebar,
+[dir="rtl"] #nav-sidebar-apps {
+  border-left: 1px solid var(--color-base-200, #e2e8f0);
+  border-right: none;
+}
+.dark[dir="rtl"] #nav-sidebar,
+.dark[dir="rtl"] #nav-sidebar-apps {
+  border-left-color: var(--color-base-800, rgba(255, 255, 255, 0.08));
+}
+[dir="rtl"] #nav-sidebar .admin-sidebar-section-title,
+[dir="rtl"] #nav-sidebar-apps .admin-sidebar-section-title,
+[dir="rtl"] #nav-sidebar .admin-sidebar-section-heading,
+[dir="rtl"] #nav-sidebar-apps .admin-sidebar-section-heading {
+  margin-left: 0;
+  margin-right: var(--sidebar-px);
+}
+[dir="rtl"] #nav-sidebar-apps .admin-sidebar-quick-group-title {
+  text-align: right;
+  flex-direction: row-reverse;
+}
+[dir="rtl"] #nav-sidebar-apps .admin-sidebar-quick-group-label {
+  margin-left: 0;
+  margin-right: 0.25rem;
+}
+[dir="rtl"] #nav-sidebar-apps .admin-sidebar-chevron {
+  transform: scaleX(-1);
+}
+[dir="rtl"] #nav-sidebar-apps .admin-sidebar-chevron.rotate-90 {
+  transform: scaleX(-1) rotate(-90deg);
+}
+[dir="rtl"] #nav-sidebar .admin-sidebar-link,
+[dir="rtl"] #nav-sidebar .admin-sidebar-model-link,
+[dir="rtl"] #nav-sidebar-apps .admin-sidebar-link,
+[dir="rtl"] #nav-sidebar-apps .admin-sidebar-model-link {
+  flex-direction: row-reverse;
+}
+[dir="rtl"] #nav-sidebar .admin-sidebar-link .admin-sidebar-icon,
+[dir="rtl"] #nav-sidebar-apps .admin-sidebar-link .admin-sidebar-icon,
+[dir="rtl"] #nav-sidebar .admin-sidebar-model-link .admin-sidebar-model-icon,
+[dir="rtl"] #nav-sidebar-apps .admin-sidebar-model-link .admin-sidebar-model-icon {
+  margin-left: 0.5rem;
+  margin-right: 0;
+}
+[dir="rtl"] #nav-sidebar .admin-sidebar-app-title,
+[dir="rtl"] #nav-sidebar-apps .admin-sidebar-app-title {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+[dir="rtl"] #nav-sidebar .admin-sidebar-app-title .admin-sidebar-chevron,
+[dir="rtl"] #nav-sidebar-apps .admin-sidebar-app-title .admin-sidebar-chevron {
+  margin-left: 0;
+  margin-right: 0.25rem;
+  transform: scaleX(-1);
+}
+[dir="rtl"] #nav-sidebar-apps .admin-sidebar-pinned-item {
+  flex-direction: row-reverse;
+}
+[dir="rtl"] #nav-sidebar-apps .admin-sidebar-pin-this {
+  padding-left: 0;
+  padding-right: var(--sidebar-px);
+}
+body.admin-sidebar-compact[dir="rtl"] .admin-sidebar-link,
+body.admin-sidebar-compact[dir="rtl"] .admin-sidebar-model-link {
+  flex-direction: row;
+  justify-content: center;
+}
+[dir="rtl"] .admin-sidebar-compact-toggle {
+  margin-left: 0;
+  margin-right: auto;
+}
+[dir="rtl"] #nav-sidebar.fixed {
+  left: auto;
+  right: 0;
+}
+[dir="rtl"] body.admin-sidebar-compact .admin-sidebar-column .fixed.w-\[288px\] {
+  right: 0;
+  left: auto;
 }

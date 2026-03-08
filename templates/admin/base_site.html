@@ -241,10 +241,20 @@
 
 {% block footer %}
   {{ block.super }}
+  <div id="admin-sidebar-live" aria-live="polite" aria-atomic="true" class="visually-hidden" role="status"></div>
   {% include 'components/ai_copilot.html' %}
   {% include 'components/toast_notifications.html' %}
   <script>
   (function() {
+    function announceAdminSidebar(msg) {
+      var el = document.getElementById('admin-sidebar-live');
+      if (el) {
+        el.textContent = '';
+        setTimeout(function() { el.textContent = msg || ''; }, 50);
+      }
+    }
+    window.announceAdminSidebar = announceAdminSidebar;
+
     var key = 'runmycampus-admin-sidebar-compact';
     var toggle = document.getElementById('admin-sidebar-compact-toggle');
     function applyCompact(compact) {
@@ -257,6 +267,86 @@
     try {
       if (localStorage.getItem(key) === '1') applyCompact(true);
     } catch (e) {}
+
+    window.getQuickAccessState = function() {
+      try {
+        return {
+          overviewOpen: localStorage.getItem('admin-qa-overview') !== '0',
+          configOpen: localStorage.getItem('admin-qa-config') !== '0',
+          contentOpen: localStorage.getItem('admin-qa-content') === '1'
+        };
+      } catch (e) {
+        return { overviewOpen: true, configOpen: true, contentOpen: false };
+      }
+    };
+
+    var PINNED_KEY = 'runmycampus-admin-pinned';
+    var PINNED_MAX = 5;
+    function getAdminPinned() {
+      try {
+        var raw = localStorage.getItem(PINNED_KEY);
+        if (!raw) return [];
+        var arr = JSON.parse(raw);
+        return Array.isArray(arr) ? arr.slice(0, PINNED_MAX) : [];
+      } catch (e) { return []; }
+    }
+    function setAdminPinned(arr) {
+      try {
+        localStorage.setItem(PINNED_KEY, JSON.stringify(arr.slice(0, PINNED_MAX)));
+      } catch (e) {}
+    }
+    function renderAdminPinned() {
+      var list = document.getElementById('admin-sidebar-pinned-list');
+      var wrap = document.getElementById('admin-sidebar-pinned-wrap');
+      if (!list || !wrap) return;
+      var items = getAdminPinned();
+      list.innerHTML = '';
+      items.forEach(function(item) {
+        var li = document.createElement('li');
+        li.className = 'admin-sidebar-pinned-item d-flex align-items-center gap-1';
+        var a = document.createElement('a');
+        a.href = item.url || '#';
+        a.className = 'admin-sidebar-link admin-sidebar-pinned-link flex-grow-1 text-truncate';
+        a.textContent = item.label || item.url || 'Page';
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn btn-link btn-sm p-0 text-muted admin-unpin';
+        btn.setAttribute('aria-label', 'Unpin');
+        btn.textContent = '\u00d7';
+        btn.dataset.url = (item.url || '');
+        li.appendChild(a);
+        li.appendChild(btn);
+        list.appendChild(li);
+      });
+      wrap.style.display = 'block';
+      announceAdminSidebar(items.length ? 'Pinned links updated, ' + items.length + ' item(s).' : 'Pinned links cleared.');
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+      renderAdminPinned();
+      var pinBtn = document.getElementById('admin-pin-this-page');
+      if (pinBtn) {
+        pinBtn.addEventListener('click', function() {
+          var url = window.location.pathname;
+          var label = (document.title || url).trim();
+          var items = getAdminPinned();
+          if (items.some(function(it) { return it.url === url; })) return;
+          items.push({ label: label, url: url });
+          setAdminPinned(items);
+          renderAdminPinned();
+        });
+      }
+      var pinnedList = document.getElementById('admin-sidebar-pinned-list');
+      if (pinnedList) {
+        pinnedList.addEventListener('click', function(e) {
+          var btn = e.target.closest('.admin-unpin');
+          if (!btn || !btn.dataset.url) return;
+          var url = btn.dataset.url;
+          var items = getAdminPinned().filter(function(it) { return it.url !== url; });
+          setAdminPinned(items);
+          renderAdminPinned();
+        });
+      }
+    });
   })();
   </script>
 {% endblock %}

@@ -1,6 +1,8 @@
 """
-Custom Admin Site Configuration
-Provides enhanced admin interface with logical app grouping and custom ordering
+Custom admin site configuration.
+
+The platform control plane and tenant admin now run on separate admin site
+instances so manager-host routes no longer behave like a tenant surface.
 """
 from apps.dashboard.admin_context import build_admin_dashboard_context
 
@@ -12,30 +14,32 @@ from django.utils.safestring import mark_safe
 from unfold.sites import UnfoldAdminSite
 
 
-class RunMyCampusAdminSite(UnfoldAdminSite):
-    """
-    Configuration engine: full model CRUD, raw settings, system config.
-    Access: superuser only. Superadmin-only; no tenant context or branding.
-    Extends UnfoldAdminSite for sidebar/app list.
-    """
-
+class BaseRunMyCampusAdminSite(UnfoldAdminSite):
     enable_nav_sidebar = True
     login_template = "auth/admin_login.html"
-    site_header = "Configuration Engine"
-    site_title = "Configuration Engine"
+    index_template_name = "admin/index_tenant.html"
+    site_header = "Tenant Administration"
+    site_title = "Tenant Administration"
     index_title = "Administration Dashboard"
 
     @staticmethod
-    def _is_platform_admin_request(request) -> bool:
-        host_kind = (getattr(request, "public_host_kind", None) or "").lower()
-        return host_kind in {"manager", "local", ""}
+    def _host_kind(request) -> str:
+        return (getattr(request, "public_host_kind", None) or "").lower()
+
+    @classmethod
+    def _is_platform_host(cls, request) -> bool:
+        return cls._host_kind(request) in {"manager", "local", ""}
+
+    def is_platform_site(self) -> bool:
+        return False
 
     def each_context(self, request):
         context = super().each_context(request)
-        context["is_manager_host"] = self._is_platform_admin_request(request)
-        if context["is_manager_host"]:
+        context["is_manager_host"] = self.is_platform_site()
+        if self.is_platform_site():
             try:
                 from apps.schools.tenant_url import build_public_absolute_url
+
                 context["public_site_url"] = build_public_absolute_url(request, "/")
             except Exception:
                 context["public_site_url"] = "https://runmycampus.com"
@@ -47,9 +51,9 @@ class RunMyCampusAdminSite(UnfoldAdminSite):
             )
         except Exception:
             context["extra_userlinks"] = ""
-        # MFA encouragement: show dismissible banner for staff without MFA
         try:
             from django_otp import user_has_device
+
             show = (
                 request.user.is_authenticated
                 and request.user.is_staff
@@ -63,17 +67,7 @@ class RunMyCampusAdminSite(UnfoldAdminSite):
             context["mfa_setup_url"] = ""
         return context
 
-    def has_permission(self, request):
-        """Restrict admin to platform superusers on manager/local hosts."""
-        return bool(
-            self._is_platform_admin_request(request)
-            and request.user.is_active
-            and request.user.is_staff
-            and request.user.is_superuser
-        )
-
     def login(self, request, extra_context=None):
-        """Add safe password_reset_url and public_site_url to context for high-end login template."""
         extra_context = extra_context or {}
         try:
             extra_context["password_reset_url"] = reverse("admin:password_reset")
@@ -84,13 +78,13 @@ class RunMyCampusAdminSite(UnfoldAdminSite):
                 extra_context["password_reset_url"] = None
         try:
             from apps.schools.tenant_url import build_public_absolute_url
+
             extra_context["public_site_url"] = build_public_absolute_url(request, "/")
         except Exception:
             extra_context["public_site_url"] = "https://runmycampus.com"
         return super().login(request, extra_context=extra_context)
 
     def index(self, request, extra_context=None):
-        """Render the platform admin dashboard at /admin/."""
         context = build_admin_dashboard_context(
             request,
             base_context=self.each_context(request),
@@ -98,82 +92,159 @@ class RunMyCampusAdminSite(UnfoldAdminSite):
         )
         if extra_context:
             context.update(extra_context)
-        return TemplateResponse(request, "admin/index_superadmin.html", context)
+        return TemplateResponse(request, self.index_template_name, context)
 
     def dashboard_redirect(self, request):
-        """Legacy /admin/dashboard/ route redirected to canonical /admin/."""
         return redirect("admin:index")
-    
+
+    def home_redirect(self, request):
+        if self.is_platform_site():
+            return redirect("super:dashboard")
+        return redirect("/")
+
+    def activity_logs_redirect(self, request):
+        if self.is_platform_site():
+            try:
+                return redirect("platform_incidents_console")
+            except NoReverseMatch:
+                return redirect("super:command_center")
+        return redirect("/compliance/access-logs/")
+
+    def system_health_redirect(self, request):
+        return redirect("healthz")
+
     def get_urls(self):
-        """Add custom URLs including 'home' for Unfold navigation."""
         urls = super().get_urls()
         custom_urls = [
-            path('dashboard/', self.admin_view(self.dashboard_redirect), name='dashboard'),
-            path('home/', lambda request: redirect('/'), name='home'),
-            # search/ is provided by UnfoldAdminSite for sidebar "Jump to model" - do not override
-            # Placeholder URLs for missing admin routes (prevent template errors)
-            path('activity-logs/', lambda request: redirect('/compliance/access-logs/'), name='activity_logs'),
-            path('system-health/', lambda request: redirect('/healthz/'), name='system_health'),
+            path("dashboard/", self.admin_view(self.dashboard_redirect), name="dashboard"),
+            path("home/", self.home_redirect, name="home"),
+            path("activity-logs/", self.activity_logs_redirect, name="activity_logs"),
+            path("system-health/", self.system_health_redirect, name="system_health"),
         ]
         return custom_urls + urls
-    
+
     def get_app_list(self, request, app_label=None):
-        """
-        Return a sorted list of all installed apps with models that have been registered.
-        Groups models logically by function rather than by Django app.
-        """
         app_dict = self._build_app_dict(request, app_label)
-        
-        # Define logical grouping with custom order.
-        # section: visual separator group in sidebar (people, academic, financial, operations, system)
+
         app_order = {
-            # Core Administration & People
-            "accounts": {"order": 1, "name": "👤 Accounts", "icon": "👤", "section": "people"},
-            "people": {"order": 2, "name": "👥 People Management", "icon": "👥", "section": "people"},
-            "auth": {"order": 2.1, "name": "🔐 Auth & Authorization", "icon": "🔐", "section": "people"},
-
-            # Academic Structure
-            "academics": {"order": 4, "name": "🎓 Academic Structure", "icon": "🎓", "section": "academic"},
-            "evals": {"order": 5, "name": "📊 Evaluations & Grading", "icon": "📊", "section": "academic"},
-            "reports": {"order": 6, "name": "📄 Reports & Transcripts", "icon": "📄", "section": "academic"},
-
-            # Financial
-            "finance": {"order": 7, "name": "💰 Finance & Billing", "icon": "💰", "section": "financial"},
-            "payroll": {"order": 8, "name": "💵 Payroll & Leave", "icon": "💵", "section": "financial"},
-
-            # Operations & Portals
-            "portal": {"order": 9, "name": "📢 Portal & Communication", "icon": "📢", "section": "operations"},
-            "analytics": {"order": 10, "name": "📈 Analytics & Insights", "icon": "📈", "section": "operations"},
-            "compliance": {"order": 11, "name": "🔒 Compliance & Audit", "icon": "🔒", "section": "operations"},
-            "automation": {"order": 12, "name": "🤖 Automation", "icon": "🤖", "section": "operations"},
-            "requests": {"order": 13, "name": "📋 Requests & Approvals", "icon": "📋", "section": "operations"},
-            "communication": {"order": 14, "name": "💬 Communication", "icon": "💬", "section": "operations"},
-            "emis": {"order": 15, "name": "📤 EMIS & Export", "icon": "📤", "section": "operations"},
-
-            # Django Built-ins (if any remain)
-            "sites": {"order": 998, "name": "🌐 Sites", "icon": "🌐", "section": "system"},
-
-            # Configuration (force last)
-            "siteconfig": {"order": 1000, "name": "⚙️ System Configuration", "icon": "⚙️", "section": "system"},
+            "accounts": {
+                "order": 1,
+                "name": "Accounts",
+                "icon": "accounts",
+                "section": "people",
+            },
+            "people": {
+                "order": 2,
+                "name": "People Management",
+                "icon": "people",
+                "section": "people",
+            },
+            "auth": {
+                "order": 2.1,
+                "name": "Auth & Authorization",
+                "icon": "auth",
+                "section": "people",
+            },
+            "academics": {
+                "order": 4,
+                "name": "Academic Structure",
+                "icon": "academics",
+                "section": "academic",
+            },
+            "evals": {
+                "order": 5,
+                "name": "Evaluations & Grading",
+                "icon": "evals",
+                "section": "academic",
+            },
+            "reports": {
+                "order": 6,
+                "name": "Reports & Transcripts",
+                "icon": "reports",
+                "section": "academic",
+            },
+            "finance": {
+                "order": 7,
+                "name": "Finance & Billing",
+                "icon": "finance",
+                "section": "financial",
+            },
+            "payroll": {
+                "order": 8,
+                "name": "Payroll & Leave",
+                "icon": "payroll",
+                "section": "financial",
+            },
+            "portal": {
+                "order": 9,
+                "name": "Portal & Communication",
+                "icon": "portal",
+                "section": "operations",
+            },
+            "analytics": {
+                "order": 10,
+                "name": "Analytics & Insights",
+                "icon": "analytics",
+                "section": "operations",
+            },
+            "compliance": {
+                "order": 11,
+                "name": "Compliance & Audit",
+                "icon": "compliance",
+                "section": "operations",
+            },
+            "automation": {
+                "order": 12,
+                "name": "Automation",
+                "icon": "automation",
+                "section": "operations",
+            },
+            "requests": {
+                "order": 13,
+                "name": "Requests & Approvals",
+                "icon": "requests",
+                "section": "operations",
+            },
+            "communication": {
+                "order": 14,
+                "name": "Communication",
+                "icon": "communication",
+                "section": "operations",
+            },
+            "emis": {
+                "order": 15,
+                "name": "EMIS & Export",
+                "icon": "emis",
+                "section": "operations",
+            },
+            "sites": {
+                "order": 998,
+                "name": "Sites",
+                "icon": "sites",
+                "section": "system",
+            },
+            "siteconfig": {
+                "order": 1000,
+                "name": "System Configuration",
+                "icon": "siteconfig",
+                "section": "system",
+            },
         }
-        
-        # Apply custom ordering, naming, and section grouping
+
         app_list = []
         for app_name, app_info in app_dict.items():
             if app_name in app_order:
                 cfg = app_order[app_name]
-                app_info['app_order'] = cfg['order']
-                app_info['app_label'] = app_name
-                app_info['name'] = cfg['name']
-                app_info['section'] = cfg.get('section', 'other')
+                app_info["app_order"] = cfg["order"]
+                app_info["app_label"] = app_name
+                app_info["name"] = cfg["name"]
+                app_info["section"] = cfg.get("section", "other")
             else:
-                app_info['app_order'] = 999
-                app_info['app_label'] = app_name
-                app_info['section'] = 'other'
-            
+                app_info["app_order"] = 999
+                app_info["app_label"] = app_name
+                app_info["section"] = "other"
             app_list.append(app_info)
 
-        # Model ordering within apps (prioritize the most-used items)
         model_order = {
             "siteconfig": [
                 "SiteSettings",
@@ -198,17 +269,63 @@ class RunMyCampusAdminSite(UnfoldAdminSite):
                 continue
             order_map = {name: idx for idx, name in enumerate(order_list)}
             app_info["models"].sort(
-                key=lambda m: (order_map.get(m.get("object_name"), 999), m.get("name", "").lower())
+                key=lambda model: (
+                    order_map.get(model.get("object_name"), 999),
+                    model.get("name", "").lower(),
+                )
             )
 
-        # RBAC: hide app groups with zero models (after permission filtering)
-        app_list = [app_info for app_info in app_list if (app_info.get('models') or [])]
+        app_list = [app_info for app_info in app_list if app_info.get("models")]
+        app_list.sort(key=lambda app_info: (app_info.get("app_order", 999), app_info["name"].lower()))
 
-        # Sort by custom order
-        app_list.sort(key=lambda x: (x.get('app_order', 999), x['name'].lower()))
+        if self.is_platform_site():
+            siteconfig = next(
+                (app for app in app_list if app.get("app_label") == "siteconfig"),
+                None,
+            )
+            if siteconfig:
+                app_list.remove(siteconfig)
+                app_list.insert(0, siteconfig)
 
         return app_list
 
 
-# Create custom admin site instance
-admin_site = RunMyCampusAdminSite(name='admin')
+class TenantAdminSite(BaseRunMyCampusAdminSite):
+    site_header = "Tenant Administration"
+    site_title = "Tenant Administration"
+    index_title = "Tenant Administration"
+    index_template_name = "admin/index_tenant.html"
+
+    def has_permission(self, request):
+        return bool(
+            not self._is_platform_host(request)
+            and request.user.is_active
+            and request.user.is_staff
+            and request.user.is_superuser
+        )
+
+
+class PlatformAdminSite(BaseRunMyCampusAdminSite):
+    site_header = "Platform Administration"
+    site_title = "Platform Administration"
+    index_title = "Platform Administration"
+    index_template_name = "admin/index_superadmin.html"
+
+    def is_platform_site(self) -> bool:
+        return True
+
+    def has_permission(self, request):
+        return bool(
+            self._is_platform_host(request)
+            and request.user.is_active
+            and request.user.is_staff
+            and request.user.is_superuser
+        )
+
+
+tenant_admin_site = TenantAdminSite(name="admin")
+platform_admin_site = PlatformAdminSite(name="admin")
+platform_admin_site._registry = tenant_admin_site._registry
+
+# Backward-compatible registration target used by app admin modules.
+admin_site = tenant_admin_site

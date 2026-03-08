@@ -1,12 +1,21 @@
 {% load i18n static %}
 
 <div id="nav-sidebar-apps" class="admin-sidebar-apps h-0 grow overflow-auto d-flex flex-column" role="navigation" aria-label="{% trans 'Applications' %}">
+  {% comment %}Pinned links (localStorage); populated and managed by JS. {% endcomment %}
+  <div class="admin-sidebar-pinned-section" id="admin-sidebar-pinned-wrap">
+    <h2 class="admin-sidebar-section-title">{% trans "Pinned" %}</h2>
+    <ul class="admin-sidebar-quick-list admin-sidebar-pinned-list" id="admin-sidebar-pinned-list" style="list-style: none; margin: 0; padding: 0;"></ul>
+    <p class="admin-sidebar-pin-this mb-0 mt-1">
+      <button type="button" class="btn btn-link btn-sm p-0 text-muted admin-pin-this-page" id="admin-pin-this-page" aria-label="{% trans 'Pin this page' %}">{% trans "Pin this page" %}</button>
+    </p>
+  </div>
+
   {% comment %}Quick access: grouped into Overview, Configuration, Content & tools (collapsible). {% endcomment %}
-  <div class="admin-sidebar-quick-access" x-data="{ overviewOpen: true, configOpen: true, contentOpen: false }">
+  <div class="admin-sidebar-quick-access" x-data="(window.getQuickAccessState && window.getQuickAccessState()) || { overviewOpen: true, configOpen: true, contentOpen: false }">
     <h2 class="admin-sidebar-section-title">{% trans "Quick access" %}</h2>
 
     <div class="admin-sidebar-quick-group" role="group" aria-label="{% trans 'Overview' %}">
-      <h3 class="admin-sidebar-quick-group-title" @click="overviewOpen = !overviewOpen" :aria-expanded="overviewOpen" role="button" tabindex="0" aria-label="{% trans 'Toggle Overview' %}" @keydown.enter.prevent="overviewOpen = !overviewOpen" @keydown.space.prevent="overviewOpen = !overviewOpen">
+      <h3 class="admin-sidebar-quick-group-title" @click="overviewOpen = !overviewOpen; try { localStorage.setItem('admin-qa-overview', overviewOpen ? '1' : '0'); } catch(e) {}; (window.announceAdminSidebar && window.announceAdminSidebar(overviewOpen ? 'Overview section expanded' : 'Overview section collapsed'))" :aria-expanded="overviewOpen" role="button" tabindex="0" aria-label="{% trans 'Toggle Overview' %}" @keydown.enter.prevent="overviewOpen = !overviewOpen; try { localStorage.setItem('admin-qa-overview', overviewOpen ? '1' : '0'); } catch(e) {}; (window.announceAdminSidebar && window.announceAdminSidebar(overviewOpen ? 'Overview section expanded' : 'Overview section collapsed'))" @keydown.space.prevent="overviewOpen = !overviewOpen; try { localStorage.setItem('admin-qa-overview', overviewOpen ? '1' : '0'); } catch(e) {}; (window.announceAdminSidebar && window.announceAdminSidebar(overviewOpen ? 'Overview section expanded' : 'Overview section collapsed'))">
         <span class="admin-sidebar-quick-group-label">{% trans "Overview" %}</span>
         <span class="admin-sidebar-chevron inline-flex items-center justify-center" :class="{ 'rotate-90': overviewOpen }" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></span>
       </h3>
@@ -37,7 +46,7 @@
 
     {% if CAN_MANAGE_SETTINGS %}
     <div class="admin-sidebar-quick-group" role="group" aria-label="{% trans 'Configuration' %}">
-      <h3 class="admin-sidebar-quick-group-title" @click="configOpen = !configOpen" :aria-expanded="configOpen" role="button" tabindex="0" aria-label="{% trans 'Toggle Configuration' %}" @keydown.enter.prevent="configOpen = !configOpen" @keydown.space.prevent="configOpen = !configOpen">
+      <h3 class="admin-sidebar-quick-group-title" @click="configOpen = !configOpen; try { localStorage.setItem('admin-qa-config', configOpen ? '1' : '0'); } catch(e) {}; (window.announceAdminSidebar && window.announceAdminSidebar(configOpen ? 'Configuration section expanded' : 'Configuration section collapsed'))" :aria-expanded="configOpen" role="button" tabindex="0" aria-label="{% trans 'Toggle Configuration' %}" @keydown.enter.prevent="configOpen = !configOpen; try { localStorage.setItem('admin-qa-config', configOpen ? '1' : '0'); } catch(e) {}; (window.announceAdminSidebar && window.announceAdminSidebar(configOpen ? 'Configuration section expanded' : 'Configuration section collapsed'))" @keydown.space.prevent="configOpen = !configOpen; try { localStorage.setItem('admin-qa-config', configOpen ? '1' : '0'); } catch(e) {}; (window.announceAdminSidebar && window.announceAdminSidebar(configOpen ? 'Configuration section expanded' : 'Configuration section collapsed'))">
         <span class="admin-sidebar-quick-group-label">{% trans "Configuration" %}</span>
         <span class="admin-sidebar-chevron inline-flex items-center justify-center" :class="{ 'rotate-90': configOpen }" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></span>
       </h3>
@@ -80,7 +89,7 @@
     </div>
 
     <div class="admin-sidebar-quick-group" role="group" aria-label="{% trans 'Content & tools' %}">
-      <h3 class="admin-sidebar-quick-group-title" @click="contentOpen = !contentOpen" :aria-expanded="contentOpen" role="button" tabindex="0" aria-label="{% trans 'Toggle Content & tools' %}" @keydown.enter.prevent="contentOpen = !contentOpen" @keydown.space.prevent="contentOpen = !contentOpen">
+      <h3 class="admin-sidebar-quick-group-title" @click="contentOpen = !contentOpen; try { localStorage.setItem('admin-qa-content', contentOpen ? '1' : '0'); } catch(e) {}; (window.announceAdminSidebar && window.announceAdminSidebar(contentOpen ? 'Content and tools section expanded' : 'Content and tools section collapsed'))" :aria-expanded="contentOpen" role="button" tabindex="0" aria-label="{% trans 'Toggle Content & tools' %}" @keydown.enter.prevent="contentOpen = !contentOpen; try { localStorage.setItem('admin-qa-content', contentOpen ? '1' : '0'); } catch(e) {}; (window.announceAdminSidebar && window.announceAdminSidebar(contentOpen ? 'Content and tools section expanded' : 'Content and tools section collapsed'))" @keydown.space.prevent="contentOpen = !contentOpen; try { localStorage.setItem('admin-qa-content', contentOpen ? '1' : '0'); } catch(e) {}; (window.announceAdminSidebar && window.announceAdminSidebar(contentOpen ? 'Content and tools section expanded' : 'Content and tools section collapsed'))">
         <span class="admin-sidebar-quick-group-label">{% trans "Content & tools" %}</span>
         <span class="admin-sidebar-chevron inline-flex items-center justify-center" :class="{ 'rotate-90': contentOpen }" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></span>
       </h3>
@@ -91,6 +100,20 @@
             <span class="admin-sidebar-link-text">{% trans "Report Library" %}</span>
           </a>
         </li>
+        {% if is_manager_host %}
+        <li>
+          <a href="{% url 'super:blueprint_marketplace' %}" class="admin-sidebar-link {% if '/super/blueprints' in request.path %}active{% endif %}">
+            <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h6l2 2h8v14H4z"/></svg></span>
+            <span class="admin-sidebar-link-text">{% trans "Blueprint Marketplace" %}</span>
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'manager_help' %}" class="admin-sidebar-link {% if '/help/' in request.path %}active{% endif %}">
+            <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z"/><path d="M8 4v16"/></svg></span>
+            <span class="admin-sidebar-link-text">{% trans "Operator Help" %}</span>
+          </a>
+        </li>
+        {% else %}
         <li>
           <a href="{% url 'portal:document_library_manage' %}" class="admin-sidebar-link {% if '/portal/backend/documents' in request.path %}active{% endif %}">
             <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h6l2 2h8v14H4z"/></svg></span>
@@ -103,6 +126,7 @@
             <span class="admin-sidebar-link-text">{% trans "Knowledge Base" %}</span>
           </a>
         </li>
+        {% endif %}
       </ul>
     </div>
     {% endif %}
@@ -156,7 +180,8 @@
              id="link-{{ app.app_label }}-{{ model.object_name|lower }}"
              class="admin-sidebar-model-link truncate {% if model.admin_url in request.path %}active{% endif %}"
              {% if model.admin_url in request.path %}aria-current="page"{% endif %}>
-            {{ model.name }}
+            <span class="admin-sidebar-icon admin-sidebar-model-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span>
+            <span class="admin-sidebar-model-link-text">{{ model.name }}</span>
           </a>
           {% else %}
           {{ model.name }}

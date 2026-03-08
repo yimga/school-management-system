@@ -3,6 +3,10 @@
   <div class="d-flex justify-content-end mb-1">
     <button type="button" class="btn btn-sm btn-outline-secondary cp-sidebar-compact-toggle" aria-label="{% trans 'Toggle compact sidebar' %}" title="{% trans 'Compact mode' %}"><i class="bi bi-layout-sidebar-inset-reverse"></i></button>
   </div>
+  <div class="cp-nav-recent mb-2" id="cpNavRecentWrap" style="display: none;">
+    <span class="text-uppercase small text-muted opacity-75">{% trans "Recent" %}</span>
+    <ul class="nav flex-column gap-1 ps-0 mt-1" id="cpNavRecentList" aria-label="{% trans 'Recently visited pages' %}"></ul>
+  </div>
   {% if PINNED_CONTROL_PLANE_ITEMS %}
   <div class="cp-nav-quick-access mb-2">
     <span class="text-uppercase small text-muted opacity-75">{% trans "Quick access" %}</span>

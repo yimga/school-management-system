@@ -24,7 +24,7 @@ from apps.portal.views_ai_copilot import (
     ai_copilot_config,
     ai_copilot_audit_feed,
 )
-from config.admin import admin_site
+from config.admin import tenant_admin_site
 from apps.schools.section8_views import frozen_account
 from apps.schools.parent_tenant_views import parent_tenant_dashboard
 from apps.schools.views_domains import api_domains_list_or_create, api_domains_verify
@@ -114,7 +114,7 @@ handler500 = server_error
 urlpatterns = [
     path("", home, name="home"),
     path("favicon.ico", favicon_redirect),
-    path("admin/", admin_site.urls),
+    path("admin/", tenant_admin_site.urls),
     path("api/schema/", schema_view, name="api-schema"),
     path("api/schema/ui/", api_schema_ui, name="api-schema-ui"),
     path("backend/", lambda request: redirect("accounts:backend_dashboard", permanent=False)),
