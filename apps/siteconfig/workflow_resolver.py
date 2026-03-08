@@ -62,8 +62,8 @@ def get_approval_workflow(school, workflow_key: str) -> dict[str, Any]:
             get_approval_roles_for_workflow,
             get_effective_approvers,
         )
-        role_codes = get_approval_roles_for_workflow(workflow_key)
-        approvers = list(get_effective_approvers(workflow_key)) if role_codes else []
+        role_codes = get_approval_roles_for_workflow(workflow_key, school=school)
+        approvers = list(get_effective_approvers(workflow_key, school=school)) if role_codes else []
         return {
             "type": "approval",
             "workflow_key": workflow_key,

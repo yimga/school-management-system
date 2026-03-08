@@ -33,6 +33,17 @@ from reportlab.lib import colors
 
 from apps.compliance.models_audit import AuditLog, UserActivitySession, AccessLog, ComplianceReport
 from apps.accounts.models import User
+from apps.compliance.tenant_scope import (
+    get_compliance_scope_school,
+    school_user_queryset,
+    scope_access_logs,
+    scope_audit_logs,
+    scope_sessions,
+)
+
+SUCCESS_ACCESS_FILTER = Q(status=AccessLog.Status.SUCCESS) | Q(status="200")
+FAILED_ACCESS_FILTER = ~SUCCESS_ACCESS_FILTER
+FORBIDDEN_ACCESS_FILTER = Q(status=AccessLog.Status.FORBIDDEN) | Q(status="403")
 
 
 @method_decorator(login_required, name='dispatch')
@@ -47,7 +58,8 @@ class AuditTrailReportView(ListView):
 
     def get_queryset(self):
         """Filter audit logs based on request parameters."""
-        queryset = AuditLog.objects.all().select_related('user')
+        school = get_compliance_scope_school(self.request)
+        queryset = scope_audit_logs(AuditLog.objects.all().select_related('user'), school)
 
         # Date range filter
         days = self.request.GET.get('days', 30)
@@ -82,7 +94,8 @@ class AuditTrailReportView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['users'] = User.objects.all()
+        school = get_compliance_scope_school(self.request)
+        context['users'] = school_user_queryset(school)
         context['actions'] = AuditLog.Action.choices
         context['sensitivities'] = AuditLog.Sensitivity.choices
         context['days'] = self.request.GET.get('days', 30)
@@ -104,18 +117,20 @@ class DataAccessReportView(View):
     """
 
     def get(self, request):
+        school = get_compliance_scope_school(request)
         days = int(request.GET.get('days', 30))
         start_date = timezone.now() - timedelta(days=days)
 
         # Get access logs for period
-        access_logs = AccessLog.objects.filter(
-            timestamp__gte=start_date
-        ).select_related('user')
+        access_logs = scope_access_logs(
+            AccessLog.objects.filter(timestamp__gte=start_date).select_related('user'),
+            school,
+        )
 
         # Aggregate data
         total_access = access_logs.count()
-        successful = access_logs.filter(status='200').count()
-        failed = access_logs.exclude(status='200').count()
+        successful = access_logs.filter(SUCCESS_ACCESS_FILTER).count()
+        failed = access_logs.filter(FAILED_ACCESS_FILTER).count()
         
         # By user
         by_user = access_logs.values('user__username').annotate(
@@ -129,7 +144,7 @@ class DataAccessReportView(View):
         # By resource
         by_resource = access_logs.values('resource').annotate(
             count=Count('id'),
-            failures=Count('id', filter=Q(status__gte=400))
+            failures=Count('id', filter=FAILED_ACCESS_FILTER)
         ).order_by('-count')[:20]
 
         context = {
@@ -156,25 +171,26 @@ class PermissionOverviewView(View):
     """
 
     def get(self, request):
-        users_by_role = User.objects.values('role').annotate(count=Count('id'))
+        school = get_compliance_scope_school(request)
+        users_by_role = school_user_queryset(school).values('role').annotate(count=Count('id'))
         
         # Access logs by role
-        access_by_role = AccessLog.objects.select_related('user').values(
+        access_by_role = scope_access_logs(AccessLog.objects.select_related('user'), school).values(
             'user__role'
         ).annotate(
             total_access=Count('id'),
-            failed=Count('id', filter=Q(status__gte=400))
+            failed=Count('id', filter=FAILED_ACCESS_FILTER)
         )
 
         # Most accessed resources
-        top_resources = AccessLog.objects.values('resource').annotate(
+        top_resources = scope_access_logs(AccessLog.objects.all(), school).values('resource').annotate(
             access_count=Count('id')
         ).order_by('-access_count')[:10]
 
         # Most denied resources (4xx errors)
-        denied_resources = AccessLog.objects.filter(
-            status__gte=400
-        ).values('resource').annotate(
+        denied_resources = scope_access_logs(AccessLog.objects.filter(
+            FORBIDDEN_ACCESS_FILTER
+        ), school).values('resource').annotate(
             denial_count=Count('id')
         ).order_by('-denial_count')[:10]
 
@@ -199,11 +215,12 @@ class IntegrityCheckReportView(View):
     """
 
     def get(self, request):
+        school = get_compliance_scope_school(request)
         issues = []
 
         # Check for users with no audit logs
-        users_without_audit = User.objects.exclude(
-            id__in=AuditLog.objects.values_list('user_id', flat=True)
+        users_without_audit = school_user_queryset(school).exclude(
+            id__in=scope_audit_logs(AuditLog.objects.all(), school).values_list('user_id', flat=True)
         ).exclude(is_superuser=True)
 
         if users_without_audit.exists():
@@ -215,9 +232,7 @@ class IntegrityCheckReportView(View):
             })
 
         # Check for orphaned sessions
-        orphaned_sessions = UserActivitySession.objects.filter(
-            user__isnull=True
-        ).count()
+        orphaned_sessions = UserActivitySession.objects.filter(user__isnull=True).count() if school is None else 0
 
         if orphaned_sessions > 0:
             issues.append({
@@ -228,9 +243,7 @@ class IntegrityCheckReportView(View):
             })
 
         # Check for access logs with missing models
-        access_no_model = AccessLog.objects.filter(
-            user__isnull=True
-        ).count()
+        access_no_model = AccessLog.objects.filter(user__isnull=True).count() if school is None else 0
 
         if access_no_model > 0:
             issues.append({
@@ -241,7 +254,7 @@ class IntegrityCheckReportView(View):
             })
 
         # Check suspicious activity
-        suspicious = UserActivitySession.objects.filter(is_suspicious=True).count()
+        suspicious = scope_sessions(UserActivitySession.objects.filter(is_suspicious=True), school).count()
         if suspicious > 0:
             issues.append({
                 'type': 'SUSPICIOUS_ACTIVITY',
@@ -271,16 +284,17 @@ class AnomalyDetectionView(View):
     """
 
     def get(self, request):
+        school = get_compliance_scope_school(request)
         days = int(request.GET.get('days', 7))
         start_date = timezone.now() - timedelta(days=days)
 
         anomalies = []
 
         # Find users with unusual number of failed accesses
-        access_logs = AccessLog.objects.filter(timestamp__gte=start_date)
+        access_logs = scope_access_logs(AccessLog.objects.filter(timestamp__gte=start_date), school)
         
         users_failed = access_logs.filter(
-            status__gte=400
+            FAILED_ACCESS_FILTER
         ).values('user__username').annotate(
             failures=Count('id')
         ).filter(failures__gte=10)
@@ -317,10 +331,10 @@ class AnomalyDetectionView(View):
 
         # Find suspicious sessions
         suspicious_sessions = (
-            UserActivitySession.objects.filter(
+            scope_sessions(UserActivitySession.objects.filter(
                 login_timestamp__gte=start_date,
                 is_suspicious=True
-            )
+            ), school)
             .select_related('user')
             .only('page_views', 'api_calls', 'notes', 'user__username')
             [:10]
@@ -351,6 +365,7 @@ class ExportComplianceReportView(View):
     """
 
     def get(self, request):
+        school = get_compliance_scope_school(request)
         report_type = request.GET.get('type', 'audit_trail')
         export_format = request.GET.get('format', 'json')
         days = int(request.GET.get('days', 30))
@@ -358,29 +373,25 @@ class ExportComplianceReportView(View):
         start_date = timezone.now() - timedelta(days=days)
 
         if export_format == 'json':
-            return self._export_json(report_type, start_date)
+            return self._export_json(report_type, start_date, school)
         elif export_format == 'csv':
-            return self._export_csv(report_type, start_date)
+            return self._export_csv(report_type, start_date, school)
         elif export_format == 'pdf':
-            return self._export_pdf(report_type, start_date)
+            return self._export_pdf(report_type, start_date, school)
         else:
             return JsonResponse({'error': 'Invalid format'}, status=400)
 
-    def _export_json(self, report_type, start_date):
+    def _export_json(self, report_type, start_date, school):
         """Export report as JSON."""
         max_rows = getattr(settings, "COMPLIANCE_EXPORT_MAX_ROWS", 5000)
         if report_type == 'audit_trail':
-            logs = AuditLog.objects.filter(
-                timestamp__gte=start_date
-            ).values(
+            logs = scope_audit_logs(AuditLog.objects.filter(timestamp__gte=start_date), school).values(
                 'timestamp', 'user__username', 'action', 'model_name',
                 'object_id', 'sensitivity'
             ).order_by('-timestamp')[:max_rows]
             data = list(logs)
         elif report_type == 'access_log':
-            logs = AccessLog.objects.filter(
-                timestamp__gte=start_date
-            ).values(
+            logs = scope_access_logs(AccessLog.objects.filter(timestamp__gte=start_date), school).values(
                 'timestamp', 'user__username', 'resource',
                 'request_method', 'status', 'response_time_ms'
             ).order_by('-timestamp')[:max_rows]
@@ -395,7 +406,7 @@ class ExportComplianceReportView(View):
         response['Content-Disposition'] = f'attachment; filename="compliance_report_{report_type}.json"'
         return response
 
-    def _export_csv(self, report_type, start_date):
+    def _export_csv(self, report_type, start_date, school):
         """Export report as CSV."""
         output = StringIO()
         writer = csv.writer(output)
@@ -405,9 +416,7 @@ class ExportComplianceReportView(View):
             writer.writerow([
                 'Timestamp', 'User', 'Action', 'Model', 'Object ID', 'Sensitivity'
             ])
-            logs = AuditLog.objects.filter(
-                timestamp__gte=start_date
-            ).values_list(
+            logs = scope_audit_logs(AuditLog.objects.filter(timestamp__gte=start_date), school).values_list(
                 'timestamp', 'user__username', 'action', 'model_name',
                 'object_id', 'sensitivity'
             ).order_by('-timestamp')[:max_rows]
@@ -416,9 +425,7 @@ class ExportComplianceReportView(View):
             writer.writerow([
                 'Timestamp', 'User', 'Resource', 'Method', 'Status', 'Response Time (ms)'
             ])
-            logs = AccessLog.objects.filter(
-                timestamp__gte=start_date
-            ).values_list(
+            logs = scope_access_logs(AccessLog.objects.filter(timestamp__gte=start_date), school).values_list(
                 'timestamp', 'user__username', 'resource',
                 'request_method', 'status', 'response_time_ms'
             ).order_by('-timestamp')[:max_rows]
@@ -430,7 +437,7 @@ class ExportComplianceReportView(View):
         response['Content-Disposition'] = f'attachment; filename="compliance_report_{report_type}.csv"'
         return response
 
-    def _export_pdf(self, report_type, start_date):
+    def _export_pdf(self, report_type, start_date, school):
         """Export report as PDF."""
         buffer = BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=letter)
@@ -457,9 +464,7 @@ class ExportComplianceReportView(View):
 
         # Data table
         if report_type == 'audit_trail':
-            logs = AuditLog.objects.filter(
-                timestamp__gte=start_date
-            ).values_list(
+            logs = scope_audit_logs(AuditLog.objects.filter(timestamp__gte=start_date), school).values_list(
                 'timestamp', 'user__username', 'action', 'model_name', 'sensitivity'
             )[:100]
 

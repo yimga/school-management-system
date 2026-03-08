@@ -17,6 +17,7 @@ from apps.accounts.models import User
 from apps.academics.models import Classroom, Subject
 from apps.people.models import StudentProfile, TeacherProfile, StudentGuardian
 from apps.reports.models import ReportCard
+from apps.siteconfig.global_catalog import GlobalGeoCatalog
 
 logger = logging.getLogger(__name__)
 
@@ -162,12 +163,12 @@ def default_footer_links():
 def default_header_weather_config():
     return {
         "header_weather_location_id": None,
-        "header_weather_country_code": "CMR",
-        "header_weather_city": "Buea",
-        "header_weather_label": "Buea, Cameroon",
-        "header_weather_latitude": 4.1527,
-        "header_weather_longitude": 9.2410,
-        "header_weather_timezone": "Africa/Douala",
+        "header_weather_country_code": "",
+        "header_weather_city": "",
+        "header_weather_label": "No location selected",
+        "header_weather_latitude": 0.0,
+        "header_weather_longitude": 0.0,
+        "header_weather_timezone": getattr(settings, "TIME_ZONE", "UTC") or "UTC",
         "header_weather_temperature_unit": "celsius",
     }
 
@@ -254,8 +255,12 @@ def default_backend_feature_flags():
         "marksheet_ocr_mobile_upload_enabled": True,
         "enable_api_center": False,
         "announcement_allow_submit_for_approval": False,
-        "announcement_submit_for_approval_roles": ["TEACHER", "COMMS_STAFF"],
+        "announcement_submit_for_approval_roles": default_announcement_submit_for_approval_roles(),
     }
+
+
+def default_announcement_submit_for_approval_roles():
+    return ["TEACHER", "COMMS_STAFF"]
 
 
 def default_grade_approval_roles():
@@ -528,8 +533,8 @@ class SiteSettings(models.Model):
     brand_font = models.CharField(max_length=120, default="Inter, system-ui, sans-serif")
     school_code = models.CharField(
         max_length=20,
-        default="GIL",
-        help_text="Short code used in admission numbers (e.g., GIL).",
+        default="SCH",
+        help_text="Short code used in admission numbers (e.g., SCH).",
     )
     class AdmissionNumberMode(models.TextChoices):
         AUTO = "AUTO", "Auto-generate (recommended)"
@@ -826,7 +831,7 @@ class SiteSettings(models.Model):
     footer_accreditation_text = models.CharField(
         max_length=255,
         blank=True,
-        default="Ministry of Education - Cameroon | UNESCO Standards 2026 Compliant",
+        default="Education platform ready for regional accreditation and global compliance",
         help_text="Footer accreditation text.",
     )
     footer_accreditation_subtext = models.CharField(
@@ -2396,16 +2401,16 @@ class RegionConfig(models.Model):
     
     @classmethod
     def get_default(cls):
-        """Get default region (Cameroon), creating if necessary."""
+        """Get the platform-neutral fallback region, creating it if necessary."""
         region, _ = cls.objects.get_or_create(
-            code='CMR',
+            code='GLOBAL',
             defaults={
-                'name': 'Cameroon',
+                'name': 'Global Default',
                 'default_language': 'en',
-                'timezone': 'Africa/Douala',
-                'date_format': 'DD/MM/YYYY',
-                'grading_scale': '0-20',
-                'default_currency': 'XAF',
+                'timezone': getattr(settings, "TIME_ZONE", "UTC") or "UTC",
+                'date_format': 'YYYY-MM-DD',
+                'grading_scale': '0-100',
+                'default_currency': 'USD',
                 'academic_year_start_month': 9,
                 'term_count_per_year': 3,
             }
@@ -2694,7 +2699,7 @@ class TenantAdmissionNumberPolicy(models.Model):
         blank=True,
         help_text="Regex to validate admission numbers. Leave blank for default.",
     )
-    school_code = models.CharField(max_length=20, default="GIL")
+    school_code = models.CharField(max_length=20, default="SCH")
     seq_width = models.PositiveSmallIntegerField(default=4, help_text="Padding width for sequence (e.g. 4 → 0001).")
     reset_frequency = models.CharField(
         max_length=20,
@@ -3806,6 +3811,16 @@ class WeatherLocation(models.Model):
     def _seed_rows(cls) -> list[dict]:
         return [
             {
+                "country_code": "GLOBAL",
+                "country_name": "Global Default",
+                "city": "UTC",
+                "label": "Global Default (UTC)",
+                "latitude": 0.0,
+                "longitude": 0.0,
+                "timezone": "UTC",
+                "sort_order": 0,
+            },
+            {
                 "country_code": "CMR",
                 "country_name": "Cameroon",
                 "city": "Buea",
@@ -3892,15 +3907,16 @@ class WeatherLocation(models.Model):
         if cls.objects.exists():
             return
         for row in cls._seed_rows():
+            country_defaults = GlobalGeoCatalog.country_defaults(row["country_code"])
             region, _ = RegionConfig.objects.get_or_create(
                 code=row["country_code"],
                 defaults={
                     "name": row["country_name"],
-                    "default_language": "en",
-                    "timezone": row["timezone"],
-                    "date_format": "DD/MM/YYYY",
+                    "default_language": country_defaults.get("default_language") or "en",
+                    "timezone": row["timezone"] or country_defaults.get("timezone") or "UTC",
+                    "date_format": "YYYY-MM-DD" if row["country_code"] == "GLOBAL" else "DD/MM/YYYY",
                     "grading_scale": "0-100",
-                    "default_currency": "USD",
+                    "default_currency": country_defaults.get("currency") or "USD",
                     "academic_year_start_month": 9,
                     "term_count_per_year": 3,
                 },
@@ -3920,9 +3936,11 @@ class WeatherLocation(models.Model):
     @classmethod
     def get_default(cls):
         cls.ensure_seed_data()
+        preferred_timezone = getattr(settings, "TIME_ZONE", "UTC") or "UTC"
         location = (
             cls.objects.select_related("region")
-            .filter(region_id="CMR", city__iexact="Buea")
+            .filter(is_active=True, timezone=preferred_timezone)
+            .order_by("sort_order", "city")
             .first()
         )
         if location:

@@ -1423,8 +1423,11 @@ class RegionConfigAdmin(ModelAdmin):
                 issues.append(f"❌ {region.name}: Invalid timezone '{region.timezone}'")
             
             # Check currency
-            valid_currencies = ['XAF', 'USD', 'EUR', 'GBP', 'KES', 'NGN', 'ZAR', 'GHS', 'TZS']
-            if region.default_currency not in valid_currencies:
+            try:
+                from apps.registries.services import is_known_currency_code
+            except Exception:
+                is_known_currency_code = lambda code: bool((code or "").strip())
+            if not is_known_currency_code(region.default_currency):
                 issues.append(f"⚠️  {region.name}: Unknown currency '{region.default_currency}'")
         
         if issues:

@@ -6,7 +6,7 @@ from decimal import Decimal
 from django.conf import settings
 from django.db import DatabaseError, connection, models, transaction
 from django.utils import timezone
-from apps.siteconfig.models import SiteSettings
+from apps.platform_runtime.helpers import get_effective_site_settings
 
 
 def _reset_db_state() -> None:
@@ -419,7 +419,9 @@ def site_settings_context(request):
     Caches the result to avoid repeated database queries.
     """
     try:
-        site = SiteSettings.get_solo()
+        site = get_effective_site_settings(request=request)
+        if site is None:
+            return {}
         return {
             'SITE': site,
             'SITE_THEME': site.get_theme_vars() if hasattr(site, 'get_theme_vars') else {},

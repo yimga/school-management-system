@@ -13,7 +13,8 @@ from django import forms
 from apps.accounts.models import User
 from apps.people.models import StudentProfile, TeacherProfile, StudentGuardian
 from apps.academics.models import AcademicYear
-from apps.siteconfig.models import SiteSettings, FormDraft
+from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.siteconfig.models import FormDraft
 from .runtime_helpers import get_policy_for_request
 from .forms import TeacherOnboardingForm, StudentOnboardingForm
 
@@ -37,7 +38,7 @@ def teacher_onboarding_wizard(request: HttpRequest):
         messages.info(request, "You already have a teacher profile. Contact admin to update it.")
         return redirect("portal:teacher_dashboard_alias")
     
-    site = SiteSettings.get_solo()
+    site = get_effective_site_settings(request=request)
     school = getattr(request, "school", None)
     session_key = "teacher_onboarding_wizard_data"
     wizard_data = request.session.get(session_key, {})
@@ -165,7 +166,7 @@ def student_onboarding_wizard(request: HttpRequest):
     
     Uses session to persist form data between steps. Save draft / Resume draft via FormDraft (26.5).
     """
-    site = SiteSettings.get_solo()
+    site = get_effective_site_settings(request=request)
     session_key = "student_onboarding_wizard_data"
     wizard_data = request.session.get(session_key, {})
     step = int(request.GET.get("step", "1"))

@@ -8,6 +8,8 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 from apps.compliance.models_audit import AccessLog, ThreatDetectionConfig
 from apps.compliance.threat_detection import detect_threats
+from apps.schools.models import School, SchoolMembership
+from apps.siteconfig.models import RegionConfig
 
 User = get_user_model()
 
@@ -27,6 +29,23 @@ class ThreatDetectionTestCase(TestCase):
             email="test2@example.com",
             password="testpass123"
         )
+        self.region = RegionConfig.get_default()
+        self.school = School.objects.create(
+            slug="threat-school",
+            subdomain="threat-school",
+            name="Threat School",
+            default_region=self.region,
+            timezone=self.region.timezone,
+        )
+        self.other_school = School.objects.create(
+            slug="threat-other",
+            subdomain="threat-other",
+            name="Threat Other",
+            default_region=self.region,
+            timezone=self.region.timezone,
+        )
+        SchoolMembership.objects.create(user=self.user1, school=self.school, role="ADMIN", is_primary=True)
+        SchoolMembership.objects.create(user=self.user2, school=self.other_school, role="ADMIN", is_primary=True)
         
         # Create threat detection config
         self.config = ThreatDetectionConfig.objects.create(
@@ -206,3 +225,32 @@ class ThreatDetectionTestCase(TestCase):
         findings = detect_threats(window_minutes=60)
         brute_force_findings = [f for f in findings if f['type'] == 'BRUTE_FORCE_USER']
         self.assertEqual(len(brute_force_findings), 1)
+
+    def test_school_scope_limits_findings_to_current_school_users(self):
+        now = timezone.now()
+        for i in range(6):
+            AccessLog.objects.create(
+                user=self.user1,
+                access_type=AccessLog.AccessType.WEB,
+                resource="/accounts/login/",
+                request_method="POST",
+                status="403",
+                ip_address=f"10.0.0.{i}",
+                timestamp=now - timedelta(minutes=i),
+            )
+        for i in range(6):
+            AccessLog.objects.create(
+                user=self.user2,
+                access_type=AccessLog.AccessType.WEB,
+                resource="/accounts/login/",
+                request_method="POST",
+                status="403",
+                ip_address=f"10.0.1.{i}",
+                timestamp=now - timedelta(minutes=i),
+            )
+
+        findings = detect_threats(window_minutes=60, school=self.school)
+        users = {finding.get("user") for finding in findings if finding.get("user")}
+
+        self.assertIn(self.user1.username, users)
+        self.assertNotIn(self.user2.username, users)

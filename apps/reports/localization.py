@@ -15,12 +15,13 @@ class RegionalReportGenerator:
 
     @staticmethod
     def generate_country_profile_report(country_code, language):
-        # Return a dict matching test expectations
+        normalized_country = _normalize_country_code(country_code)
+        region = Regionalizer.get_region_for_country(normalized_country)
         return {
-            'country_code': country_code,
-            'region': 'west_africa' if country_code == 'NG' else 'east_africa',
+            'country_code': normalized_country,
+            'region': region,
             'language': language,
-            'settings': {'currency': 'NGN' if country_code == 'NG' else 'KES'}
+            'settings': Regionalizer.get_region_settings(region),
         }
 
 
@@ -28,8 +29,7 @@ class CurrencyLocalization:
     """Stub for currency localization logic."""
     @staticmethod
     def get_regional_currency(region):
-        # Example: 'west_africa' -> 'NGN', 'east_africa' -> 'KES'
-        return 'NGN' if region == 'west_africa' else 'KES'
+        return Regionalizer.get_region_settings(region).get("currency", "USD")
 
     @staticmethod
     def convert_currency(amount, from_currency, to_currency):
@@ -49,11 +49,21 @@ Handles multi-language certificate generation and score conversion.
 """
 
 from django.utils import translation
-from apps.siteconfig.translations import TranslationManager, SUPPORTED_LANGUAGES
+from apps.siteconfig.global_catalog import GlobalGeoCatalog
+from apps.siteconfig.translations import Regionalizer, TranslationManager, SUPPORTED_LANGUAGES
 from apps.siteconfig.models import RegionConfig, GradingScaleConfig
 from apps.evals.grading import convert_score, get_grade_letter, format_score
 from decimal import Decimal
 from typing import Optional, Dict, Any
+
+
+def _normalize_country_code(country_code: str | None) -> str:
+    raw = (country_code or "").strip()
+    if not raw:
+        return ""
+    if len(raw) == 2:
+        return raw.upper()
+    return GlobalGeoCatalog.alpha2_for_country(raw) or raw.upper()[:2]
 
 
 class CertificateLocalizer:

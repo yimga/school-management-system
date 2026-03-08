@@ -1,0 +1,36 @@
+{
+  "label": "Product",
+  "seo_title": "RunMyCampus Product - Unified school operations platform",
+  "seo_description": "One platform for admissions, academics, finance, communication, and compliance across every campus.",
+  "headline": "One operating system for every school workflow.",
+  "subheadline": "Run admissions, academics, billing, communication, and compliance from a single tenant-first platform.",
+  "schema_type": "SoftwareApplication",
+  "segments": [
+    {"title": "AI Co-pilot", "body": "Smart assistance for workflows, reporting, and decision support across admissions, academics, and operations."},
+    {"title": "Real-time Analytics", "body": "Live dashboards, enrollment and attendance trends, and actionable insights for school leaders."},
+    {"title": "Customizable Workflows", "body": "Adapt processes, forms, and approval chains to your school's policies without custom code."},
+    {"title": "Unified data model", "body": "Students, staff, payments, reports, and interventions share one source of truth."},
+    {"title": "Role-ready portals", "body": "School admins, teachers, parents, and students get purpose-built workflows."},
+    {"title": "Global tenancy", "body": "Operate one campus or many with domain, policy, and branding isolation."}
+  ],
+  "extras": {
+    "trust_strip": ["Unified data model", "Role-ready portals", "Global tenancy", "FERPA aligned", "GDPR ready"],
+    "metrics": [
+      {"value": "1", "label": "unified data model", "detail": "Admissions, academics, finance, and communication stay in one platform."},
+      {"value": "4", "label": "core operator modules", "detail": "Enrollment, academics, operations, and support control surfaces."},
+      {"value": "3", "label": "role portals", "detail": "Parent, teacher, and student experiences stay role-specific and auditable."},
+      {"value": "24/7", "label": "operational continuity", "detail": "Manager-level workflows keep support and governance responsive."}
+    ],
+    "execution_blocks": [
+      {"title": "Admissions to enrollment continuity", "body": "Lead capture, qualification, and onboarding transitions run without disconnected tooling."},
+      {"title": "Intervention action center", "body": "Risk signals route into assignment-ready intervention workflows for fast follow-through."},
+      {"title": "Governed integration model", "body": "Connect LMS, messaging, and payment providers with operational safeguards and traceability."}
+    ],
+    "faqs": [
+      {"question": "What is RunMyCampus AI Co-pilot?", "answer": "AI Co-pilot provides smart assistance for workflows, reporting, and decision support across admissions, academics, and operations."},
+      {"question": "Does RunMyCampus offer real-time analytics?", "answer": "Yes. Live dashboards show enrollment and attendance trends, with actionable insights for school leaders."},
+      {"question": "Can we customize workflows to our school?", "answer": "Yes. Customizable Workflows let you adapt processes, forms, and approval chains to your policies without custom code."},
+      {"question": "How does the unified data model work?", "answer": "Students, staff, payments, reports, and interventions share one source of truth across the platform."}
+    ]
+  }
+}

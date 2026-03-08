@@ -8,6 +8,7 @@ from apps.siteconfig.global_catalog import GlobalGeoCatalog
 
 from .models import (
     CountryRegistry,
+    CurrencyRegistry,
     EducationLevelRegistry,
     EducationSystemTypeRegistry,
     SubdivisionRegistry,
@@ -242,6 +243,28 @@ def list_country_choices() -> list[dict[str, str]]:
         }
         for row in rows
     ]
+
+
+def list_currency_choices() -> list[dict[str, str | int]]:
+    ensure_currency_registry_seed()
+    rows = CurrencyRegistry.objects.filter(is_active=True).order_by("sort_order", "name")
+    return [
+        {
+            "code": row.code,
+            "name": row.name,
+            "symbol": row.symbol or "",
+            "decimal_places": int(row.decimal_places or 0),
+        }
+        for row in rows
+    ]
+
+
+def is_known_currency_code(currency_code: str | None) -> bool:
+    code = (currency_code or "").strip().upper()
+    if not code:
+        return False
+    ensure_currency_registry_seed()
+    return CurrencyRegistry.objects.filter(code=code, is_active=True).exists()
 
 
 def list_subdivision_choices(country_code: str | None) -> list[dict[str, str]]:

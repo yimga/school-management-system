@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.csrf import ensure_csrf_cookie
 
+from apps.platform_runtime.helpers import get_effective_site_settings
 from .models import PhotoUploadToken
 
 try:
@@ -32,16 +33,15 @@ def _token_expired(token_obj):
     return delta.total_seconds() > (TOKEN_EXPIRY_HOURS * 3600)
 
 
-def _photo_upload_remote_enabled():
-    from apps.siteconfig.models import SiteSettings
-    site = SiteSettings.get_solo()
+def _photo_upload_remote_enabled(request=None):
+    site = get_effective_site_settings(request=request)
     return bool((site.portal_features or {}).get("photo_upload_remote", True))
 
 
 @ratelimit(key="ip", rate="20/h", method="GET", block=True)
 @require_GET
 def photo_upload_generate(request):
-    if not _photo_upload_remote_enabled():
+    if not _photo_upload_remote_enabled(request):
         raise Http404("Photo upload from another device is disabled.")
     purpose = request.GET.get("purpose", PhotoUploadToken.Purpose.REGISTRATION)
     if purpose not in (PhotoUploadToken.Purpose.REGISTRATION, PhotoUploadToken.Purpose.PROFILE_UPDATE):
@@ -60,7 +60,7 @@ def photo_upload_generate(request):
 @login_required
 @require_POST
 def photo_upload_generate_for_profile(request):
-    if not _photo_upload_remote_enabled():
+    if not _photo_upload_remote_enabled(request):
         raise Http404("Photo upload from another device is disabled.")
     student_id = request.POST.get("student_id")
     teacher_id = request.POST.get("teacher_id")
@@ -94,7 +94,7 @@ def photo_upload_generate_for_profile(request):
 @login_required
 @require_GET
 def photo_upload_send_link_page(request, student_id=None, teacher_id=None):
-    if not _photo_upload_remote_enabled():
+    if not _photo_upload_remote_enabled(request):
         return render(request, "portal/photo_upload_disabled.html", status=404)
     if student_id and not request.user.has_perm("people.view_studentprofile"):
         raise PermissionDenied
@@ -137,7 +137,7 @@ def photo_upload_send_link_page(request, student_id=None, teacher_id=None):
 @require_GET
 @ensure_csrf_cookie
 def photo_upload_phone_page(request, token):
-    if not _photo_upload_remote_enabled():
+    if not _photo_upload_remote_enabled(request):
         return render(request, "portal/photo_upload_disabled.html", status=404)
     token_obj = get_object_or_404(PhotoUploadToken, token=token)
     if _token_expired(token_obj):
@@ -153,7 +153,7 @@ def photo_upload_phone_page(request, token):
 @ratelimit(key="ip", rate="30/h", method="POST", block=True)
 @require_POST
 def photo_upload_upload(request, token):
-    if not _photo_upload_remote_enabled():
+    if not _photo_upload_remote_enabled(request):
         raise Http404("Photo upload from another device is disabled.")
     token_obj = get_object_or_404(PhotoUploadToken, token=token)
     if _token_expired(token_obj):

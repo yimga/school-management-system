@@ -11,6 +11,7 @@ from django.urls import reverse
 from urllib.parse import quote_plus
 from apps.accounts.models import User
 from apps.people.models import StudentGuardian
+from apps.platform_runtime.helpers import get_site_display_name
 
 logger = __import__("logging").getLogger(__name__)
 
@@ -18,9 +19,7 @@ logger = __import__("logging").getLogger(__name__)
 def _staff_digital_id_payload(request):
     """Build staff digital ID dict for API (same data as portal my_digital_id)."""
     from apps.people.badge_services import get_signed_id_token
-    from apps.siteconfig.models import SiteSettings
 
-    site = SiteSettings.get_solo()
     profile = getattr(request.user, "teacher_profile", None)
     name = request.user.get_full_name() or request.user.username
     role_label = "Teacher"
@@ -35,7 +34,7 @@ def _staff_digital_id_payload(request):
     )
     return {
         "kind": "staff",
-        "site_name": getattr(site, "site_name", None) or "School",
+        "site_name": get_site_display_name(request) or "School",
         "name": name,
         "role": role_label,
         "photo_url": photo_url,
@@ -47,9 +46,7 @@ def _staff_digital_id_payload(request):
 def _child_digital_id_payload(request, student):
     """Build one child digital ID dict for API."""
     from apps.people.badge_services import get_signed_id_token
-    from apps.siteconfig.models import SiteSettings
 
-    site = SiteSettings.get_solo()
     classroom = getattr(student, "classroom", None)
     grade_label = (
         classroom.name
@@ -67,7 +64,7 @@ def _child_digital_id_payload(request, student):
     )
     return {
         "kind": "student",
-        "site_name": getattr(site, "site_name", None) or "School",
+        "site_name": get_site_display_name(request) or "School",
         "student_id": student.pk,
         "name": student.get_full_name(),
         "grade": grade_label,

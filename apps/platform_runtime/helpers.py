@@ -1,9 +1,14 @@
 """
 Phase 5: Runtime helper shims — use these instead of SiteSettings.get_solo() or School.settings/features
 for tenant behavior. All resolve from request.tenant_runtime with platform fallback where appropriate.
+
+Audit: Tenant-facing code must not call SiteSettings.get_solo() for tenant behavior; use
+get_effective_* helpers or request.tenant_runtime. See docs/PLATFORM_TRANSITION_AUDIT_REPORT.md
+and docs/PLATFORM_AUDIT_REMEDIATION_BACKLOG.md.
 """
 from __future__ import annotations
 
+from copy import copy
 from typing import Any, Optional
 
 
@@ -69,6 +74,7 @@ def get_effective_flags(request: Any) -> dict:
     Resolve backend feature flags from runtime when available; otherwise from SiteSettings.
     Use this instead of SiteSettings.get_solo().backend_feature_flags in tenant-facing views.
     """
+    school = getattr(request, "school", None) if request is not None else None
     rt = get_tenant_runtime(request)
     try:
         from apps.siteconfig.models import default_backend_feature_flags
@@ -80,10 +86,65 @@ def get_effective_flags(request: Any) -> dict:
     try:
         from apps.siteconfig.models import SiteSettings
         site = SiteSettings.get_solo()
-        overrides = getattr(site, "backend_feature_flags", None) or {}
-        return {**defaults, **overrides}
+        site_overrides = getattr(site, "backend_feature_flags", None) or {}
+        school_overrides = {}
+        school_settings = getattr(school, "settings", None) or {}
+        if isinstance(school_settings, dict):
+            maybe_flags = school_settings.get("backend_feature_flags") or school_settings.get("feature_flags") or {}
+            if isinstance(maybe_flags, dict):
+                school_overrides = maybe_flags
+        return {**defaults, **site_overrides, **school_overrides}
     except Exception:
         return defaults
+
+
+def get_effective_flags_for_school(school: Any = None) -> dict:
+    """School-aware flag resolution for services that do not have a request object."""
+
+    class _RequestShim:
+        def __init__(self, school_obj: Any):
+            self.school = school_obj
+            self.tenant_runtime = None
+
+    return get_effective_flags(_RequestShim(school))
+
+
+def get_effective_site_settings(request: Any = None, school: Any = None) -> Any:
+    """
+    Return a tenant-aware SiteSettings instance for read paths.
+
+    A shallow copy of the platform singleton is used so existing attribute reads
+    and helper methods still work while school-level JSON overrides are layered on
+    top without mutating the stored singleton.
+    """
+    if school is None and request is not None:
+        school = getattr(request, "school", None)
+    try:
+        from apps.siteconfig.models import SiteSettings
+
+        base = SiteSettings.get_solo()
+    except Exception:
+        return None
+    if school is None:
+        return base
+
+    school_settings = getattr(school, "settings", None) or {}
+    if not isinstance(school_settings, dict):
+        school_settings = {}
+
+    resolved = copy(base)
+    overrides = dict(school_settings)
+    school_name = getattr(school, "name", "") or ""
+    if school_name:
+        overrides.setdefault("site_name", school_name)
+        overrides.setdefault("company_name", school_name)
+
+    for key, value in overrides.items():
+        if hasattr(resolved, key):
+            setattr(resolved, key, value)
+
+    setattr(resolved, "_resolved_for_school_id", getattr(school, "id", None))
+    return resolved
 
 
 def get_site_display_name(request: Any) -> str:

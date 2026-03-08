@@ -12,9 +12,10 @@ from django.utils import timezone
 
 from apps.compliance.models_audit import AccessLog, ThreatDetectionConfig
 from apps.compliance.alerts import send_threat_alert
+from apps.compliance.tenant_scope import scope_access_logs
 
 
-def detect_threats(window_minutes: int | None = None) -> List[Dict]:
+def detect_threats(window_minutes: int | None = None, school=None) -> List[Dict]:
     # Get configuration from DB first, fall back to settings
     try:
         db_config = ThreatDetectionConfig.get_active()
@@ -40,10 +41,11 @@ def detect_threats(window_minutes: int | None = None) -> List[Dict]:
 
     since = timezone.now() - timedelta(minutes=window)
 
-    qs = AccessLog.objects.filter(timestamp__gte=since)
+    qs = scope_access_logs(AccessLog.objects.filter(timestamp__gte=since), school)
 
-    # Normalize failures (numeric status >=400 or textual status representing failure)
-    failed_filter = Q(status__gte=400) | Q(status__in=["FORBIDDEN", "NOT_FOUND", "ERROR"])
+    # Normalize legacy numeric-like status codes and current enum values.
+    success_filter = Q(status=AccessLog.Status.SUCCESS) | Q(status="200")
+    failed_filter = ~success_filter
 
     findings: List[Dict] = []
 

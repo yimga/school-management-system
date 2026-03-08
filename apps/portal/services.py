@@ -25,10 +25,12 @@ from apps.people.models import StudentGuardian, StudentProfile, TeacherProfile
 from apps.accounts.permissions import _guardian_finance_qs
 from apps.evals.models import TeacherAssignment
 from apps.payroll.models import LeaveRequest, Payslip, PayrollEmployee
+from apps.platform_runtime.helpers import get_effective_site_settings
 from apps.reports.services import term_report_context
 from apps.apicenter.gating import is_integration_allowed
-from apps.siteconfig.models import Integration, SiteSettings
+from apps.siteconfig.models import Integration
 from apps.siteconfig.cache_utils import get_tenant_cache_prefix
+from apps.siteconfig.integration_registry import resolve_active_integration
 from apps.communication.models import ClassAnnouncement, MessageThread, ThreadReadState
 
 
@@ -56,6 +58,22 @@ def guardian_student_links(user: User, finance_only: bool = False, results_only:
 def guardian_students(user: User, finance_only: bool = False, results_only: bool = False):
     """Convenience wrapper returning student instances for the guardian."""
     return [link.student for link in guardian_student_links(user, finance_only, results_only)]
+
+
+def _school_request_shim(school):
+    class _RequestShim:
+        def __init__(self, school_obj):
+            self.school = school_obj
+
+    return _RequestShim(school) if school is not None else None
+
+
+def _cache_prefix_for_school(school=None) -> str:
+    return get_tenant_cache_prefix(_school_request_shim(school))
+
+
+def _site_settings_for_school(school=None):
+    return get_effective_site_settings(school=school)
 
 
 def teacher_scope(user: User, academic_year=None):
@@ -221,10 +239,10 @@ def parent_dashboard_widget_data(
     students = list(students)
     school = school or (students[0].school if students else None)
     if not students:
-        return _empty_widget_data()
+        return _empty_widget_data(school=school)
     
     # Create cache key from sorted student IDs (tenant-scoped)
-    prefix = get_tenant_cache_prefix(None)
+    prefix = _cache_prefix_for_school(school)
     student_ids = sorted(s.id for s in students)
     cache_key = f"{prefix}:parent_dashboard_widgets:{':'.join(str(id) for id in student_ids)}"
     
@@ -237,7 +255,7 @@ def parent_dashboard_widget_data(
 
     widget_data = {
         "attendance": _attendance_snapshot(students, year, term),
-        "performance": _performance_overview(students, year, term),
+        "performance": _performance_overview(students, year, term, school=school),
         "attendance_trend": _attendance_trend(students, year, term),
         "grade_trend": _grade_trend(students, year, term),
         "subject_performance": _subject_performance(students, year, term),
@@ -248,8 +266,8 @@ def parent_dashboard_widget_data(
         "tasks": _task_tracker(students, year, term),
         "access": _portal_access_links(),
         "timetable": _timetable_overview(students, year, term),
-        "communication": _communication_center(),
-        "analytics": _analytics_insights(students, year, term),
+        "communication": _communication_center(school=school),
+        "analytics": _analytics_insights(students, year, term, school=school),
         "referral": _referral_overview(students),
     }
     
@@ -258,7 +276,7 @@ def parent_dashboard_widget_data(
     return widget_data
 
 
-def _empty_widget_data() -> dict[str, dict]:
+def _empty_widget_data(*, school=None) -> dict[str, dict]:
     """Return empty widget data structure when no students."""
     return {
         "attendance": {"today": 0, "overall": 0, "missing": 0, "late": 0, "label": "No students linked"},
@@ -268,13 +286,7 @@ def _empty_widget_data() -> dict[str, dict]:
         "tasks": {"description": "No tasks", "pending_evaluations": 0, "pending_payments": 0},
         "access": _portal_access_links(),
         "timetable": [],
-        "communication": {
-            "items": [],
-            "links": [],
-            "primary_action": None,
-            "cta": "Connect with us",
-            "note": "We also send reminders via SMS/email; update preferences in portal settings.",
-        },
+        "communication": _communication_center(school=school),
         "analytics": {"highlights": [], "lowlights": [], "label": "No data"},
         "referral": {"code": None, "total_codes": 0, "completeness_avg": 0, "note": "No referral data"},
     }
@@ -590,7 +602,7 @@ def _assignment_completion(students, year, term):
     return {"complete": complete, "pending": pending, "total": total, "percent": pct}
 
 
-def _performance_overview(students, year, term):
+def _performance_overview(students, year, term, *, school=None):
     """
     Get performance overview without N+1 queries.
     
@@ -609,10 +621,11 @@ def _performance_overview(students, year, term):
     - Total: 1-2 queries max
     """
     if not students or not year or not term:
-        return _empty_performance_data()
+        return _empty_performance_data(school=school)
     
     # Create cache key for this student cohort and term (tenant-scoped)
-    prefix = get_tenant_cache_prefix(None)
+    school = school or (students[0].school if students else None)
+    prefix = _cache_prefix_for_school(school)
     student_ids = sorted(s.id for s in students)
     cache_key = f"{prefix}:performance_overview:{':'.join(str(id) for id in student_ids)}:{year.id}:{term.id}"
     
@@ -622,7 +635,7 @@ def _performance_overview(students, year, term):
     
     pass_mark = cache.get_or_set(
         f"{prefix}:site_settings:pass_mark",
-        SiteSettings.get_solo().pass_mark,
+        _site_settings_for_school(school).pass_mark,
         3600  # Cache site settings for 1 hour
     )
     
@@ -634,7 +647,7 @@ def _performance_overview(students, year, term):
     ).select_related("subject_assignment__subject"))
     
     if not evals:
-        return _empty_performance_data()
+        return _empty_performance_data(school=school)
     
     # Compute summaries without additional queries
     summaries = []
@@ -659,7 +672,7 @@ def _performance_overview(students, year, term):
         })
     
     if not summaries:
-        result = _empty_performance_data()
+        result = _empty_performance_data(school=school)
     else:
         avg_scores = [s["average"] for s in summaries]
         top = max(summaries, key=lambda item: item["average"])
@@ -684,12 +697,12 @@ def _performance_overview(students, year, term):
     return result
 
 
-def _empty_performance_data() -> dict:
+def _empty_performance_data(*, school=None) -> dict:
     """Return empty performance data."""
-    prefix = get_tenant_cache_prefix(None)
+    prefix = _cache_prefix_for_school(school)
     pass_mark = cache.get_or_set(
         f"{prefix}:site_settings:pass_mark",
-        SiteSettings.get_solo().pass_mark,
+        _site_settings_for_school(school).pass_mark,
         3600
     )
     return {
@@ -928,8 +941,8 @@ def _normalize_phone(phone: str | None) -> str | None:
     return digits if digits else None
 
 
-def _communication_center():
-    site = SiteSettings.get_solo()
+def _communication_center(*, school=None):
+    site = _site_settings_for_school(school)
     items = []
     links: list[dict[str, str]] = []
 
@@ -957,19 +970,31 @@ def _communication_center():
             }
         )
 
-    whatsapp = (
-        Integration.objects.filter(enabled=True, name__icontains="whatsapp")
-        .order_by("updated_at")
-        .first()
-    )
+    whatsapp = None
+    record = resolve_active_integration(school, "whatsapp") if school is not None else None
     wa_digits = None
     wa_label = "WhatsApp"
-    if whatsapp and is_integration_allowed(whatsapp):
-        wa_number = whatsapp.config.get("phone") or whatsapp.config.get("whatsapp_number")
+    if record and record.is_active:
+        wa_number = (
+            record.config.get("phone")
+            or record.config.get("whatsapp_number")
+            or record.config.get("support_number")
+        )
         wa_digits = _normalize_phone(wa_number)
         if wa_number:
-            items.append({"type": "whatsapp", "label": whatsapp.name, "value": wa_number})
-        wa_label = whatsapp.name
+            items.append({"type": "whatsapp", "label": record.service_name or "WhatsApp", "value": wa_number})
+        wa_label = record.service_name or wa_label
+    if not wa_digits:
+        whatsapp = Integration.objects.filter(enabled=True)
+        if school is not None:
+            whatsapp = whatsapp.filter(Q(school__isnull=True) | Q(school=school))
+        whatsapp = whatsapp.filter(name__icontains="whatsapp").order_by("updated_at").first()
+        if whatsapp and is_integration_allowed(whatsapp):
+            wa_number = whatsapp.config.get("phone") or whatsapp.config.get("whatsapp_number")
+            wa_digits = _normalize_phone(wa_number)
+            if wa_number:
+                items.append({"type": "whatsapp", "label": whatsapp.name, "value": wa_number})
+            wa_label = whatsapp.name
     if not wa_digits and site.whatsapp_support_number:
         wa_digits = _normalize_phone(site.whatsapp_support_number)
         if wa_digits:
@@ -998,11 +1023,10 @@ def _communication_center():
             },
         )
 
-    other_integrations = (
-        Integration.objects.filter(enabled=True)
-        .exclude(pk=whatsapp.pk if whatsapp else None)
-        .order_by("-updated_at")
-    )
+    other_integrations = Integration.objects.filter(enabled=True)
+    if school is not None:
+        other_integrations = other_integrations.filter(Q(school__isnull=True) | Q(school=school))
+    other_integrations = other_integrations.exclude(pk=whatsapp.pk if whatsapp else None).order_by("-updated_at")
     for integration in other_integrations:
         if not is_integration_allowed(integration):
             continue
@@ -1028,7 +1052,7 @@ def _communication_center():
     }
 
 
-def _analytics_insights(students, year, term):
+def _analytics_insights(students, year, term, *, school=None):
     """
     Get analytics insights with optimized batch loading.
     
@@ -1044,7 +1068,8 @@ def _analytics_insights(students, year, term):
             "label": "Analytics populate as teachers publish evaluations.",
         }
 
-    prefix = get_tenant_cache_prefix(None)
+    school = school or (students[0].school if students else None)
+    prefix = _cache_prefix_for_school(school)
     cache_key = f"{prefix}:analytics_insights:{':'.join(str(s.id) for s in sorted(students, key=lambda s: s.id))}:{year.id}:{term.id}"
     cached = cache.get(cache_key)
     if cached:
@@ -1170,7 +1195,7 @@ def teacher_dashboard_widget_data(assignments, progress, year, term, teacher=Non
           "pending_evaluations": missing,
           "description": "Missing marks show what still needs entry.",
         },
-        "communication": _communication_center(),
+        "communication": _communication_center(school=getattr(teacher, "school", None)),
         "finance": _teacher_finance_block(teacher) if teacher else {},
         "attendance": attendance,
     }
@@ -1183,7 +1208,8 @@ def award_referral_reward(
 ) -> ReferralReward | None:
     if not guardian_link or not referral_code:
         return None
-    site = SiteSettings.get_solo()
+    school = getattr(getattr(guardian_link, "student", None), "school", None)
+    site = _site_settings_for_school(school)
     amount = site.referral_bonus_amount or Decimal("0.00")
     if amount <= Decimal("0.00"):
         return None

@@ -19,7 +19,7 @@ from apps.academics.services import get_active_year_and_term
 from apps.api.rate_limit import throttle_ip_request
 from apps.people.models import StudentGuardian, StudentProfile
 from apps.reports.models import ReportCard, ReportCardAudit, ReportDocumentHash, TermPublishStatus
-from apps.siteconfig.models import SiteSettings
+from apps.platform_runtime.helpers import get_effective_site_settings
 from apps.reports.services import (
     annual_report_context,
     are_terms_published,
@@ -39,9 +39,44 @@ from apps.reports.weasy import render_pdf_bytes
 from apps.siteconfig.models import ReportCardStyle, get_report_card_style_for_student
 
 
-def _reports_enabled() -> bool:
-    site = SiteSettings.get_solo()
+def _reports_enabled(request: HttpRequest | None = None) -> bool:
+    site = get_effective_site_settings(request=request)
     return bool(site.enable_reports_pdf and site.report_downloads_enabled)
+
+
+def _report_scope_school(request: HttpRequest):
+    from apps.schools.models import School, SchoolMembership
+
+    school = getattr(request, "school", None)
+    if school is not None:
+        return school
+    session = getattr(request, "session", None)
+    school_id = session.get("school_id") if session is not None else None
+    if school_id:
+        return School.objects.filter(pk=school_id, is_active=True).first()
+    if getattr(request.user, "is_authenticated", False):
+        membership = (
+            SchoolMembership.objects.filter(user=request.user, school__is_active=True)
+            .select_related("school")
+            .order_by("-is_primary", "id")
+            .first()
+        )
+        return membership.school if membership else None
+    return None
+
+
+def _active_year_and_term_for_school(school):
+    return get_active_year_and_term(school=school)
+
+
+def _active_year_and_term_for_student(student: StudentProfile):
+    return _active_year_and_term_for_school(getattr(student, "school", None))
+
+
+def _scoped_years_queryset(school):
+    if school is None:
+        return AcademicYear.objects.none()
+    return AcademicYear.objects.filter(school=school).order_by("-start_date")
 
 
 def _get_guardian_student(request: HttpRequest, student_id: int) -> StudentProfile | None:
@@ -80,7 +115,7 @@ def _sample_student() -> StudentProfile:
 
 def _build_preview_context(style: ReportCardStyle, report_type: str) -> dict:
     student = _sample_student()
-    year, term = get_active_year_and_term()
+    year, term = get_active_year_and_term(school=getattr(student, "school", None))
     result = {}
     if report_type == ReportCard.Type.TERM and year and term:
         context = term_report_context(student, year, term)
@@ -142,16 +177,15 @@ def _record_report_hash(user: User, report_card: ReportCard, pdf_bytes: bytes):
 @parent_portal_required
 @role_required(User.Role.PARENT)
 def parent_download_term_report(request: HttpRequest, student_id: int):
-    if not _reports_enabled():
+    if not _reports_enabled(request):
         return HttpResponseForbidden("Report downloads are disabled by the school.")
-
-    year, term = get_active_year_and_term()
-    if not year or not term:
-        return HttpResponseForbidden("No active academic year/term configured yet.")
 
     student = _get_guardian_student(request, student_id)
     if not student:
         return HttpResponseForbidden("Not authorized.")
+    year, term = _active_year_and_term_for_student(student)
+    if not year or not term:
+        return HttpResponseForbidden("No active academic year/term configured yet.")
 
     if getattr(term, "position", None) == 3 and not student.classroom.allows_third_term:
         return HttpResponseForbidden("Third term report is not available for this classroom.")
@@ -219,16 +253,15 @@ def _csv_response(filename: str, headers: list[str], rows: list[list]):
 @role_required(User.Role.PARENT)
 def parent_download_term_report_csv(request: HttpRequest, student_id: int):
     """CSV export of the active term report."""
-    if not _reports_enabled():
+    if not _reports_enabled(request):
         return HttpResponseForbidden("Report downloads are disabled by the school.")
-
-    year, term = get_active_year_and_term()
-    if not year or not term:
-        return HttpResponseForbidden("No active academic year/term configured yet.")
 
     student = _get_guardian_student(request, student_id)
     if not student:
         return HttpResponseForbidden("Not authorized.")
+    year, term = _active_year_and_term_for_student(student)
+    if not year or not term:
+        return HttpResponseForbidden("No active academic year/term configured yet.")
 
     if getattr(term, "position", None) == 3 and not student.classroom.allows_third_term:
         return HttpResponseForbidden("Third term report is not available for this classroom.")
@@ -272,16 +305,15 @@ def parent_download_term_report_csv(request: HttpRequest, student_id: int):
 @parent_portal_required
 @role_required(User.Role.PARENT)
 def parent_download_annual_report(request: HttpRequest, student_id: int):
-    if not _reports_enabled():
+    if not _reports_enabled(request):
         return HttpResponseForbidden("Report downloads are disabled by the school.")
-
-    year, _term = get_active_year_and_term()
-    if not year:
-        return HttpResponseForbidden("No active academic year configured yet.")
 
     student = _get_guardian_student(request, student_id)
     if not student:
         return HttpResponseForbidden("Not authorized.")
+    year, _term = _active_year_and_term_for_student(student)
+    if not year:
+        return HttpResponseForbidden("No active academic year configured yet.")
 
     terms = terms_for_student(year, student.classroom)
     if not are_terms_published(year.id, [t.id for t in terms], student.classroom_id):
@@ -385,16 +417,15 @@ def verify_report_hash(request: HttpRequest):
 @role_required(User.Role.PARENT)
 def parent_download_annual_report_csv(request: HttpRequest, student_id: int):
     """CSV export of annual report (all terms)."""
-    if not _reports_enabled():
+    if not _reports_enabled(request):
         return HttpResponseForbidden("Report downloads are disabled by the school.")
-
-    year, _term = get_active_year_and_term()
-    if not year:
-        return HttpResponseForbidden("No active academic year configured yet.")
 
     student = _get_guardian_student(request, student_id)
     if not student:
         return HttpResponseForbidden("Not authorized.")
+    year, _term = _active_year_and_term_for_student(student)
+    if not year:
+        return HttpResponseForbidden("No active academic year configured yet.")
 
     terms_annual = terms_for_student(year, student.classroom)
     if not are_terms_published(year.id, [t.id for t in terms_annual], student.classroom_id):
@@ -435,16 +466,15 @@ def parent_download_annual_report_csv(request: HttpRequest, student_id: int):
 @parent_portal_required
 @role_required(User.Role.PARENT)
 def parent_share_report(request: HttpRequest, student_id: int, report_type: str):
-    if not _reports_enabled():
+    if not _reports_enabled(request):
         return HttpResponseForbidden("Report downloads are disabled by the school.")
-
-    year, term = get_active_year_and_term()
-    if not year:
-        return HttpResponseForbidden("No active academic year configured yet.")
 
     student = _get_guardian_student(request, student_id)
     if not student:
         return HttpResponseForbidden("Not authorized.")
+    year, term = _active_year_and_term_for_student(student)
+    if not year:
+        return HttpResponseForbidden("No active academic year configured yet.")
 
     report_type = report_type.upper()
     term_id = None
@@ -496,7 +526,7 @@ def parent_share_report(request: HttpRequest, student_id: int, report_type: str)
             email.send(fail_silently=True)
             messages.success(request, "Share link emailed successfully.")
 
-    site = SiteSettings.get_solo()
+    site = get_effective_site_settings(request=request)
     enable_whatsapp_share = getattr(site, "enable_whatsapp_parent_portal", False)
     return render(request, "reports/share_link.html", {
         "student": student,
@@ -509,9 +539,10 @@ def parent_share_report(request: HttpRequest, student_id: int, report_type: str)
 
 
 def report_share(request: HttpRequest, token: str):
-    if not SiteSettings.get_solo().enable_parent_portal:
+    site = get_effective_site_settings(request=request)
+    if not site.enable_parent_portal:
         return HttpResponseForbidden("Parent portal is disabled.")
-    if not _reports_enabled():
+    if not _reports_enabled(request):
         return HttpResponseForbidden("Report downloads are disabled by the school.")
 
     payload = parse_share_token(token)
@@ -521,6 +552,8 @@ def report_share(request: HttpRequest, token: str):
     student = get_object_or_404(StudentProfile, id=payload["student_id"])
     year = get_object_or_404(AcademicYear, id=payload["academic_year_id"])
     report_type = payload["report_type"]
+    if getattr(student, "school_id", None) and getattr(year, "school_id", None) and student.school_id != year.school_id:
+        return HttpResponseForbidden("Invalid link.")
 
     if not student_has_financial_clearance(student, year):
         notify_parent_report_blocked_by_debt(student, year)
@@ -582,19 +615,23 @@ def report_share(request: HttpRequest, token: str):
 
 @staff_member_required
 def publish_term_results(request: HttpRequest):
-    year, active_term = get_active_year_and_term()
+    school = _report_scope_school(request)
+    if school is None:
+        return HttpResponseForbidden("School context required.")
+
+    year, active_term = _active_year_and_term_for_school(school)
     if not year or not active_term:
         return HttpResponseForbidden("No active academic year/term configured yet.")
 
     year_id = request.GET.get("year") or request.POST.get("year") or str(year.id)
     term_id = request.GET.get("term") or request.POST.get("term") or str(active_term.id)
 
-    year_obj = get_object_or_404(AcademicYear, id=year_id)
+    year_obj = get_object_or_404(AcademicYear, id=year_id, school=school)
     term_obj = get_object_or_404(Term, id=term_id, academic_year=year_obj)
 
-    classrooms = Classroom.objects.filter(academic_year=year_obj).order_by("name")
+    classrooms = Classroom.objects.filter(academic_year=year_obj, school=school).order_by("name")
 
-    site = SiteSettings.get_solo()
+    site = get_effective_site_settings(request=request)
     require_approved_before_publish = getattr(site, "reports_require_approved_grades_before_publish", False)
     grade_approval_enabled = getattr(site, "grade_approval_enabled", False)
     approval_state = grade_approval_publish_readiness(year_obj.id, term_obj.id)
@@ -691,6 +728,7 @@ def publish_term_results(request: HttpRequest):
                     for student in StudentProfile.objects.filter(
                         classroom=classroom,
                         academic_year=year_obj,
+                        school=school,
                         is_active=True,
                         deleted_at__isnull=True,
                     ):
@@ -722,7 +760,7 @@ def publish_term_results(request: HttpRequest):
     return render(request, "reports/publish_term.html", {
         "year": year_obj,
         "term": term_obj,
-        "years": AcademicYear.objects.order_by("-start_date"),
+        "years": _scoped_years_queryset(school),
         "terms": Term.objects.filter(academic_year=year_obj).order_by("start_date", "name"),
         "classrooms": classrooms,
         "school_published": bool(school_status),
@@ -746,16 +784,20 @@ def statistical_return(request: HttpRequest):
     from apps.reports.services import get_promotion_status, _annual_average_for_student
     from apps.people.models import TeacherProfile
 
-    years = list(AcademicYear.objects.all().order_by("-start_date"))
+    school = _report_scope_school(request)
+    if school is None:
+        return HttpResponseForbidden("School context required.")
+
+    years = list(_scoped_years_queryset(school))
     year_id = request.GET.get("year") or (years[0].id if years else None)
     export = request.GET.get("export") == "csv"
 
     if not year_id:
         return render(request, "reports/statistical_return.html", {"years": years, "year": None, "rows": [], "totals": None})
 
-    year_obj = get_object_or_404(AcademicYear, id=year_id)
+    year_obj = get_object_or_404(AcademicYear, id=year_id, school=school)
     terms = list(Term.objects.filter(academic_year=year_obj).order_by("position", "start_date"))
-    classrooms = list(Classroom.objects.filter(academic_year=year_obj).order_by("name"))
+    classrooms = list(Classroom.objects.filter(academic_year=year_obj, school=school).order_by("name"))
 
     rows = []
     total_students = 0
@@ -766,7 +808,7 @@ def statistical_return(request: HttpRequest):
     for classroom in classrooms:
         students = list(
             StudentProfile.objects.filter(
-                academic_year=year_obj, classroom=classroom, is_active=True
+                academic_year=year_obj, classroom=classroom, school=school, is_active=True
             ).select_related("classroom")
         )
         male = sum(1 for s in students if getattr(s, "gender", None) == "MALE")
@@ -791,7 +833,7 @@ def statistical_return(request: HttpRequest):
             "success_rate": round(success_rate, 1),
         })
 
-    teacher_count = TeacherProfile.objects.filter(is_active=True).count()
+    teacher_count = TeacherProfile.objects.filter(is_active=True, school=school).count()
     totals = {
         "students": total_students,
         "male": total_male,
@@ -837,7 +879,11 @@ def promotion_preview(request: HttpRequest):
         terms_for_student,
     )
 
-    years = list(AcademicYear.objects.all().order_by("-start_date"))
+    school = _report_scope_school(request)
+    if school is None:
+        return HttpResponseForbidden("School context required.")
+
+    years = list(_scoped_years_queryset(school))
     year_id = request.GET.get("year") or (years[0].id if years else None)
     export = request.GET.get("export") == "csv"
 
@@ -848,9 +894,9 @@ def promotion_preview(request: HttpRequest):
             {"years": years, "year": None, "by_classroom": [], "borderline_count": 0},
         )
 
-    year_obj = get_object_or_404(AcademicYear, id=year_id)
+    year_obj = get_object_or_404(AcademicYear, id=year_id, school=school)
     terms = list(Term.objects.filter(academic_year=year_obj).order_by("position", "start_date"))
-    classrooms_qs = Classroom.objects.filter(academic_year=year_obj).order_by("name")
+    classrooms_qs = Classroom.objects.filter(academic_year=year_obj, school=school).order_by("name")
     classroom_id = request.GET.get("classroom")
     if classroom_id:
         classrooms_qs = classrooms_qs.filter(id=classroom_id)
@@ -863,7 +909,7 @@ def promotion_preview(request: HttpRequest):
     for classroom in classrooms:
         students = list(
             StudentProfile.objects.filter(
-                academic_year=year_obj, classroom=classroom, is_active=True
+                academic_year=year_obj, classroom=classroom, school=school, is_active=True
             ).select_related("classroom")
         )
         student_rows = []
@@ -921,7 +967,7 @@ def promotion_preview(request: HttpRequest):
     q = request.GET.copy()
     q.pop("page", None)
     pagination_extra_query = q.urlencode()
-    all_classrooms = list(Classroom.objects.filter(academic_year=year_obj).order_by("name"))
+    all_classrooms = list(Classroom.objects.filter(academic_year=year_obj, school=school).order_by("name"))
 
     return render(
         request,
@@ -942,15 +988,7 @@ def promotion_preview(request: HttpRequest):
 
 def _regulatory_export_school(request: HttpRequest):
     """Resolve school for regulatory export: request.school, session, or first membership."""
-    from apps.schools.models import School, SchoolMembership
-    school = getattr(request, "school", None)
-    if school is not None:
-        return school
-    school_id = getattr(request, "session", {}).get("school_id")
-    if school_id:
-        return School.objects.filter(pk=school_id, is_active=True).first()
-    membership = SchoolMembership.objects.filter(user=request.user, school__is_active=True).select_related("school").first()
-    return membership.school if membership else None
+    return _report_scope_school(request)
 
 
 def regulatory_export(request: HttpRequest):
@@ -1006,8 +1044,6 @@ def regulatory_export(request: HttpRequest):
     years = []
     if school_for_years:
         years = list(AcademicYear.objects.filter(school=school_for_years).order_by("-start_date")[:20])
-    if not years:
-        years = list(AcademicYear.objects.all().order_by("-start_date")[:20])
     terms = list(Term.objects.filter(academic_year_id=years[0].id).order_by("start_date")) if years else []
     return render(request, "reports/regulatory_export.html", {
         "presets": presets,

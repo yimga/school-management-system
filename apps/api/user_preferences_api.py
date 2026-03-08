@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 
-from apps.siteconfig.models import SiteSettings
+from apps.platform_runtime.helpers import get_effective_site_settings
 from apps.siteconfig.models_dashboard import DashboardUserPreference
 from apps.siteconfig.portal_sidebar_items import build_portal_sidebar_items
 
@@ -26,7 +26,7 @@ class PortalPreferencesAPI(APIView):
                 getattr(request, "SITE", None) if hasattr(request, "SITE") else None
             )
             if site is None:
-                site = SiteSettings.get_solo()
+                site = get_effective_site_settings(request=request)
             items = build_portal_sidebar_items(request, site)
             return {str(item.get("id")) for item in items if item.get("id") and item.get("url")}
         except Exception:

@@ -15,6 +15,8 @@ from django.utils import timezone
 from datetime import timedelta
 import logging
 
+from apps.platform_runtime.helpers import get_effective_flags
+
 logger = logging.getLogger(__name__)
 
 
@@ -163,7 +165,6 @@ class ParentDashboardAPI(View):
         try:
             from apps.people.models import StudentGuardian
             from apps.finance.models import Invoice, Payment
-            from apps.siteconfig.models import SiteSettings, default_backend_feature_flags
             
             # Get parent's children
             children = StudentGuardian.objects.filter(
@@ -171,10 +172,10 @@ class ParentDashboardAPI(View):
                 student__is_active=True,
                 can_view_results=True,
             ).values_list('student_id', flat=True)
-            
+
             children_count = len(children)
 
-            flags = {**default_backend_feature_flags(), **(getattr(SiteSettings.get_solo(), "backend_feature_flags", {}) or {})}
+            flags = get_effective_flags(request)
             require_finance_opt_in = bool(flags.get("require_guardian_finance_opt_in"))
 
             finance_children = StudentGuardian.objects.filter(

@@ -14,15 +14,15 @@ from django.utils import timezone
 
 from apps.academics.models import SubjectAssignment
 from apps.automation.models import AutomationExecutionLog
+from apps.automation.helpers import get_cached_site_settings
 from apps.evals.models import TeacherAssignment
 from apps.evals.notifications import NotificationService
 from apps.schools.celery_tasks import _run_with_tenant_context
-from apps.siteconfig.models import SiteSettings
 
 logger = logging.getLogger(__name__)
 
 
-def run_deadline_reminders(days_str: str = "7,3,1,0.5", dry_run: bool = False) -> dict:
+def run_deadline_reminders(days_str: str = "7,3,1,0.5", dry_run: bool = False, school=None) -> dict:
     """
     Send grading deadline reminders to teachers. Returns summary for logging/CLI.
     """
@@ -31,7 +31,7 @@ def run_deadline_reminders(days_str: str = "7,3,1,0.5", dry_run: bool = False) -
     except ValueError:
         return {"sent": 0, "errors": 0, "dry_run": dry_run, "error": "Invalid days format"}
 
-    site_settings = SiteSettings.get_solo()
+    site_settings = get_cached_site_settings(school=school)
     notification_service = NotificationService()
     today = timezone.now().date()
     teachers_notified = set()
@@ -100,9 +100,9 @@ def run_deadline_reminders(days_str: str = "7,3,1,0.5", dry_run: bool = False) -
     return {"sent": reminder_count, "errors": error_count, "dry_run": dry_run}
 
 
-def _deadline_reminder_days_str() -> str:
+def _deadline_reminder_days_str(*, school=None) -> str:
     """Read reminder days from SiteSettings (config in Site Settings, not code)."""
-    site = SiteSettings.get_solo()
+    site = get_cached_site_settings(school=school)
     days = getattr(site, "teacher_deadline_reminder_days", None) or [7, 3, 1, 0.5]
     if isinstance(days, (list, tuple)):
         return ",".join(str(float(d)) for d in days)
@@ -113,16 +113,19 @@ def _deadline_reminder_days_str() -> str:
 def send_deadline_reminders_task(self, days_str: str | None = None, dry_run: bool = False, school_id: str | None = None) -> dict:
     """Celery task: send grading deadline reminders to teachers. Uses SiteSettings.teacher_deadline_reminder_days when days_str not provided."""
     def _run_for_school(current_school_id: str) -> dict:
+        from apps.schools.models import School
+
+        school = School.objects.filter(id=current_school_id).first()
         resolved_days = days_str
         if resolved_days is None or resolved_days == "":
-            resolved_days = _deadline_reminder_days_str()
+            resolved_days = _deadline_reminder_days_str(school=school)
         execution_log = AutomationExecutionLog.objects.create(
             task_name="analytics.send_deadline_reminders",
             execution_type=AutomationExecutionLog.ExecutionType.DRY_RUN if dry_run else AutomationExecutionLog.ExecutionType.SCHEDULED,
             status=AutomationExecutionLog.Status.PENDING,
         )
         try:
-            result = run_deadline_reminders(days_str=resolved_days, dry_run=dry_run)
+            result = run_deadline_reminders(days_str=resolved_days, dry_run=dry_run, school=school)
             sent = result.get("sent", 0)
             errors = result.get("errors", 0)
             execution_log.mark_completed(

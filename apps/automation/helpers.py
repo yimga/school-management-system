@@ -5,15 +5,16 @@ from typing import Optional
 from django.utils import timezone
 from django.core.cache import cache
 from apps.academics.models import AcademicYear, Term
-from apps.siteconfig.models import SiteSettings
+from apps.platform_runtime.helpers import get_effective_site_settings
 
 
-def get_cached_site_settings():
-    """Get SiteSettings with caching for automation tasks."""
-    cache_key = "site_settings_solo_automation"
+def get_cached_site_settings(*, school=None):
+    """Get school-aware SiteSettings with short-lived caching for automation tasks."""
+    school_id = getattr(school, "id", None)
+    cache_key = f"site_settings_automation:{school_id or 'platform'}"
     site = cache.get(cache_key)
     if site is None:
-        site = SiteSettings.get_solo()
+        site = get_effective_site_settings(school=school)
         cache.set(cache_key, site, timeout=300)  # 5 min cache
     return site
 

@@ -1,7 +1,7 @@
 """
 Gating: when API Center is enabled, Integration.enabled is the single kill switch.
 """
-from apps.siteconfig.models import SiteSettings, default_backend_feature_flags
+from apps.platform_runtime.helpers import get_effective_flags_for_school
 
 
 def is_integration_allowed(integration):
@@ -13,10 +13,7 @@ def is_integration_allowed(integration):
     """
     if integration is None:
         return False
-    flags = {
-        **(default_backend_feature_flags() or {}),
-        **(getattr(SiteSettings.get_solo(), "backend_feature_flags", None) or {}),
-    }
+    flags = get_effective_flags_for_school(getattr(integration, "school", None))
     if not flags.get("enable_api_center", False):
         return True
     return integration.enabled

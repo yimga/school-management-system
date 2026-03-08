@@ -173,7 +173,15 @@ def convert_quote_to_contract(quote: Quote):
     with transaction.atomic():
         account, _ = ensure_billing_account_for_school(quote.school)
         period_start = timezone.now()
-        period_end = period_start + timedelta(days=30)
+        billing_cycle = str((quote.metadata or {}).get("billing_cycle") or TenantSubscription.BillingCycle.MONTHLY).upper()
+        if billing_cycle not in {
+            TenantSubscription.BillingCycle.MONTHLY,
+            TenantSubscription.BillingCycle.ANNUAL,
+            TenantSubscription.BillingCycle.MANUAL,
+        }:
+            billing_cycle = TenantSubscription.BillingCycle.MONTHLY
+        cycle_delta = _cycle_delta(billing_cycle) or timedelta(days=30)
+        period_end = period_start + cycle_delta
         subscription = (
             TenantSubscription.objects.filter(
                 school=quote.school,
@@ -189,18 +197,53 @@ def convert_quote_to_contract(quote: Quote):
             .first()
         )
         amount = Decimal(str(quote.amount or "0"))
+        school_changed = []
+        if getattr(quote.school, "plan_id", None) != getattr(quote.plan, "pk", None):
+            quote.school.plan = quote.plan
+            school_changed.append("plan")
+        if getattr(quote.school, "billing_type", "") != getattr(quote.school.BillingType, "REGULAR", "REGULAR"):
+            quote.school.billing_type = quote.school.BillingType.REGULAR
+            school_changed.append("billing_type")
+        if getattr(quote.school, "trial_end_date", None) is not None:
+            quote.school.trial_end_date = None
+            school_changed.append("trial_end_date")
+        if school_changed:
+            quote.school.save(update_fields=school_changed + ["updated_at"])
         if subscription:
             subscription.plan = quote.plan
+            subscription.status = TenantSubscription.Status.ACTIVE
+            subscription.billing_cycle = billing_cycle
+            subscription.current_period_start = period_start
+            subscription.current_period_end = period_end
+            subscription.trial_end_date = None
             subscription.base_amount = amount
             subscription.billed_amount = amount
-            subscription.save(update_fields=["plan_id", "base_amount", "billed_amount", "updated_at"])
+            subscription.metadata = {
+                **(subscription.metadata or {}),
+                "source": "quote_to_contract",
+                "quote_id": quote.pk,
+            }
+            subscription.save(
+                update_fields=[
+                    "plan_id",
+                    "status",
+                    "billing_cycle",
+                    "current_period_start",
+                    "current_period_end",
+                    "trial_end_date",
+                    "base_amount",
+                    "billed_amount",
+                    "metadata",
+                    "updated_at",
+                ]
+            )
         else:
             subscription = TenantSubscription.objects.create(
                 billing_account=account,
                 school=quote.school,
                 plan=quote.plan,
                 status=TenantSubscription.Status.ACTIVE,
-                billing_cycle=TenantSubscription.BillingCycle.MONTHLY,
+                billing_cycle=billing_cycle,
                 starts_at=period_start,
                 current_period_start=period_start,
                 current_period_end=period_end,
@@ -211,7 +254,11 @@ def convert_quote_to_contract(quote: Quote):
         # Ensure account currency matches quote if needed
         if quote.currency_code and account.currency_code != quote.currency_code:
             account.currency_code = quote.currency_code
-            account.save(update_fields=["currency_code", "updated_at"])
+        if account.status != BillingAccount.Status.ACTIVE:
+            account.status = BillingAccount.Status.ACTIVE
+        account.save(update_fields=["currency_code", "status", "updated_at"])
+        reconcile_subscription_entitlements(subscription, as_of=period_start)
+        sync_billing_incident_state(subscription)
         quote.status = Quote.Status.ACCEPTED
         quote.save(update_fields=["status", "updated_at"])
     return account, subscription
@@ -976,7 +1023,10 @@ def convert_quote_to_subscription(quote_id: int):
         quote = Quote.objects.select_related("school", "plan").get(pk=quote_id)
     except Quote.DoesNotExist:
         return False, "Quote not found"
-    if quote.status != Quote.Status.ACCEPTED and quote.status != Quote.Status.SENT:
-        return False, "Quote must be SENT or ACCEPTED to convert"
-    # Stub: our part is the hook. Implement: create/update BillingAccount, create TenantSubscription from quote.
-    return False, "Stub: implement when product prioritises quote-to-contract (create TenantSubscription from quote)"
+
+    try:
+        convert_quote_to_contract(quote)
+    except ValueError as exc:
+        return False, str(exc)
+
+    return True, "Quote converted to subscription."

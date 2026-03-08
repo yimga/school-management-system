@@ -239,8 +239,8 @@ def get_guided_onboarding_steps(school):
     except Exception:
         pass
     try:
-        from apps.siteconfig.models import SiteSettings
-        site = SiteSettings.get_solo()
+        from apps.platform_runtime.helpers import get_effective_site_settings
+        site = get_effective_site_settings(school=school)
         has_grading = bool(getattr(site, "grading_scale", None) or getattr(site, "default_grading_scale", None))
         steps.append({
             "key": "grading",

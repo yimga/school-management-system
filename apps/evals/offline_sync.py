@@ -3,7 +3,7 @@
 from django.db import transaction
 from django.utils import timezone
 from apps.evals.models import Evaluation, OfflineMarkEntry, GradeAudit
-from apps.siteconfig.models import SiteSettings
+from apps.platform_runtime.helpers import get_effective_site_settings
 import logging
 
 logger = logging.getLogger(__name__)
@@ -30,7 +30,9 @@ class OfflineSyncService:
             )
             
             # CONFLICT EXISTS
-            site = SiteSettings.get_solo()
+            site = get_effective_site_settings(
+                school=getattr(getattr(offline_entry, "student", None), "school", None)
+            )
             resolution_mode = site.offline_sync_conflict_resolution
             
             if resolution_mode == 'reject':

@@ -8,6 +8,17 @@ import re
 from typing import Any, Dict, Optional
 
 
+def default_school_code_for(school=None, fallback: str = "SCH") -> str:
+    raw = (getattr(school, "slug", None) or getattr(school, "name", None) or "").strip().upper()
+    if not raw:
+        return fallback
+    parts = [part for part in re.split(r"[^A-Z0-9]+", raw) if part]
+    initials = "".join(part[0] for part in parts[:6])
+    if initials:
+        return initials[:6]
+    return "".join(parts)[:6] or fallback
+
+
 def get_admissions_policy(school) -> Dict[str, Any]:
     """
     Return merged admission number config for a school.
@@ -21,7 +32,7 @@ def get_admissions_policy(school) -> Dict[str, Any]:
         if policy_model:
             template = (getattr(policy_model, "template", None) or "").strip()
             return {
-                "school_code": (getattr(policy_model, "school_code", None) or "GIL").upper(),
+                "school_code": (getattr(policy_model, "school_code", None) or default_school_code_for(school)).upper(),
                 "admission_number_strategy": getattr(policy_model, "strategy", "FULL") or "FULL",
                 "admission_number_template": template,
                 "admission_number_pattern": (getattr(policy_model, "pattern", None) or "").strip(),
@@ -49,7 +60,7 @@ def preview_admission_number(
     Section 22.2: Return a sample admission number for the given policy (for setup preview).
     """
     policy = get_admissions_policy(school)
-    school_code = (school_code or policy.get("school_code") or "GIL").upper()
+    school_code = (school_code or policy.get("school_code") or default_school_code_for(school)).upper()
     template = (policy.get("admission_number_template") or "").strip()
     if template:
         try:

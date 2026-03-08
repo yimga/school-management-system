@@ -9,6 +9,7 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 
 from apps.accounts.utils import get_user_role
+from apps.platform_runtime.helpers import get_effective_site_settings
 from apps.siteconfig.models_dashboard import (
     DashboardLayout,
     DashboardLayoutAudit,
@@ -29,6 +30,26 @@ ALLOWED_CUSTOM_ROLES = {
 ALLOWED_LIGHT_CUSTOM_ROLES = {
     "PARENT",
 }
+
+
+def _school_for_user(user):
+    if not user or not getattr(user, "is_authenticated", False):
+        return None
+    teacher_profile = getattr(user, "teacher_profile", None)
+    if teacher_profile and getattr(teacher_profile, "school", None):
+        return teacher_profile.school
+    student_link = getattr(user, "guardian_links", None)
+    if student_link is not None:
+        link = student_link.select_related("student__school").first()
+        if link and getattr(link.student, "school", None):
+            return link.student.school
+    return None
+
+
+def _default_sidebar_collapsed(*, request=None, user=None) -> bool:
+    school = getattr(request, "school", None) if request is not None else _school_for_user(user)
+    site = get_effective_site_settings(request=request, school=school)
+    return bool(getattr(site, "default_sidebar_collapsed", False))
 
 
 def _can_customize(user) -> bool:
@@ -119,12 +140,9 @@ def _create_layout_from_legacy(user, page: str) -> DashboardLayout | None:
         return None
 
     try:
-        from apps.siteconfig.models import SiteSettings
-        site = SiteSettings.get_solo()
-        default_collapsed = getattr(site, "default_sidebar_collapsed", False)
         preferences, _ = DashboardUserPreference.objects.get_or_create(
             user=user,
-            defaults={"sidebar_collapsed": default_collapsed},
+            defaults={"sidebar_collapsed": _default_sidebar_collapsed(user=user)},
         )
     except DatabaseError:
         return None
@@ -224,12 +242,9 @@ def update_theme(request):
         if theme not in allowed:
             return JsonResponse({"success": False, "error": "Invalid theme"}, status=400)
         
-        from apps.siteconfig.models import SiteSettings
-        site = SiteSettings.get_solo()
-        default_collapsed = getattr(site, "default_sidebar_collapsed", False)
         preferences, _ = DashboardUserPreference.objects.get_or_create(
             user=request.user,
-            defaults={"sidebar_collapsed": default_collapsed},
+            defaults={"sidebar_collapsed": _default_sidebar_collapsed(request=request, user=request.user)},
         )
         preferences.theme_preference = theme
         preferences.save()
@@ -252,12 +267,9 @@ def update_accessibility_preferences(request):
     try:
         data = json.loads(request.body)
         
-        from apps.siteconfig.models import SiteSettings
-        site = SiteSettings.get_solo()
-        default_collapsed = getattr(site, "default_sidebar_collapsed", False)
         preferences, _ = DashboardUserPreference.objects.get_or_create(
             user=request.user,
-            defaults={"sidebar_collapsed": default_collapsed},
+            defaults={"sidebar_collapsed": _default_sidebar_collapsed(request=request, user=request.user)},
         )
         preferences.high_contrast = data.get('high_contrast', preferences.high_contrast)
         preferences.reduced_motion = data.get('reduced_motion', preferences.reduced_motion)

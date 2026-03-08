@@ -39,10 +39,57 @@
     </div>
     <div class="col-md-6">
       <div class="card shadow-sm border-secondary mb-3">
-        <div class="card-header">{% trans "Blueprint & policy" %}</div>
+        <div class="card-header">{% trans "Lifecycle & policy" %}</div>
         <div class="card-body">
-          <p class="mb-1"><strong>{% trans "Blueprint" %}:</strong> {{ blueprint_code|default:"—" }}</p>
-          <p class="mb-0"><strong>{% trans "Policy sections" %}:</strong> {{ policy_summary|default:"—" }}</p>
+          <p class="mb-1"><strong>{% trans "Lifecycle" %}:</strong> {{ lifecycle.state_label|default:"Unknown" }}</p>
+          <p class="mb-1"><strong>{% trans "Subscription" %}:</strong> {{ lifecycle.subscription_status|default:"-" }}</p>
+          <p class="mb-1"><strong>{% trans "Billing account" %}:</strong> {{ lifecycle.billing_account_status|default:"-" }}</p>
+          <p class="mb-1"><strong>{% trans "Billing type" %}:</strong> {{ lifecycle.billing_type|default:"-" }}</p>
+          <p class="mb-2"><strong>{% trans "Trial end" %}:</strong> {{ lifecycle.trial_end_date|date:"Y-m-d"|default:"-" }}</p>
+          <p class="mb-1"><strong>{% trans "Blueprint" %}:</strong> {{ blueprint_code|default:"-" }}</p>
+          <p class="mb-3"><strong>{% trans "Policy sections" %}:</strong> {{ policy_summary|default:"-" }}</p>
+          <div class="d-flex flex-wrap gap-2">
+            {% if not lifecycle.is_approved %}
+            <form method="post" action="{% url 'super:api_school_lifecycle' school.id %}">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="approve">
+              <input type="hidden" name="next" value="{% url 'super:tenant_360' school.id %}">
+              <button type="submit" class="btn btn-sm btn-outline-success">{% trans "Approve" %}</button>
+            </form>
+            {% endif %}
+            <form method="post" action="{% url 'super:api_school_lifecycle' school.id %}">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="{% if lifecycle.is_active %}deactivate{% else %}activate{% endif %}">
+              <input type="hidden" name="next" value="{% url 'super:tenant_360' school.id %}">
+              <button type="submit" class="btn btn-sm btn-outline-primary">
+                {% if lifecycle.is_active %}{% trans "Deactivate" %}{% else %}{% trans "Activate" %}{% endif %}
+              </button>
+            </form>
+            {% if lifecycle.is_frozen %}
+            <form method="post" action="{% url 'super:api_school_lifecycle' school.id %}">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="unfreeze">
+              <input type="hidden" name="next" value="{% url 'super:tenant_360' school.id %}">
+              <button type="submit" class="btn btn-sm btn-outline-warning">{% trans "Unfreeze" %}</button>
+            </form>
+            {% else %}
+            <form method="post" action="{% url 'super:api_school_lifecycle' school.id %}">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="freeze">
+              <input type="hidden" name="reason" value="STORAGE">
+              <input type="hidden" name="next" value="{% url 'super:tenant_360' school.id %}">
+              <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Freeze" %}</button>
+            </form>
+            {% endif %}
+            {% if lifecycle.billing_type == "FREE_TRIAL" %}
+            <form method="post" action="{% url 'super:api_school_lifecycle' school.id %}">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="clear_trial">
+              <input type="hidden" name="next" value="{% url 'super:tenant_360' school.id %}">
+              <button type="submit" class="btn btn-sm btn-outline-secondary">{% trans "Clear trial" %}</button>
+            </form>
+            {% endif %}
+          </div>
         </div>
       </div>
     </div>

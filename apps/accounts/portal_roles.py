@@ -5,6 +5,7 @@ Use these to decide if a user can act as Teacher or Parent in the portal.
 Effective portal role (session) drives sidebar and redirect; these helpers
 drive access control and UI visibility.
 """
+from apps.platform_runtime.helpers import get_effective_site_settings
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -80,8 +81,7 @@ def get_effective_portal_role(request) -> str:
                 request.session[ACTIVE_PORTAL_ROLE_KEY] = saved
                 return saved
             # No valid user preference: fall back to site-level default
-            from apps.siteconfig.models import SiteSettings
-            site = SiteSettings.get_solo()
+            site = get_effective_site_settings(request=request)
             default_role = (getattr(site, "default_portal_role_dual_role", "") or "").strip().upper()
             if default_role in ALLOWED_PORTAL_ROLES:
                 request.session[ACTIVE_PORTAL_ROLE_KEY] = default_role

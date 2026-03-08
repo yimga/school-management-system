@@ -7,7 +7,8 @@ from pathlib import Path
 
 from apps.reports.models import TermPublishStatus, ReportCard
 from apps.finance.models import Invoice, PaymentReminder
-from apps.siteconfig.models import SiteSettings, ReportTemplate, ThemePack
+from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.siteconfig.models import ReportTemplate, ThemePack
 from apps.people.models import StudentProfile, TeacherProfile, StudentGuardian
 from apps.academics.models import Classroom, Subject
 from apps.accounts.models import User
@@ -18,9 +19,10 @@ from apps.payroll.models import PayrollEmployee, PayrollRun
 register = template.Library()
 
 
-@register.simple_tag
-def admin_health():
+@register.simple_tag(takes_context=True)
+def admin_health(context):
     """Return a small dict of system health metrics for the admin hero/cards."""
+    request = context.get("request")
     metrics = {
         "pending_migrations": "N/A",
         "unpublished_terms": 0,
@@ -63,7 +65,7 @@ def admin_health():
 
     # Portal toggles
     try:
-        site = SiteSettings.get_solo()
+        site = get_effective_site_settings(request=request)
         metrics["portal_parent_enabled"] = getattr(site, "enable_parent_portal", True)
         metrics["portal_teacher_enabled"] = getattr(site, "enable_teacher_portal", True)
     except Exception:
@@ -97,9 +99,11 @@ def get_item(obj, key):
         return {}
 
 
-@register.simple_tag
-def admin_section_stats():
+@register.simple_tag(takes_context=True)
+def admin_section_stats(context):
     """Lightweight stats per major app section."""
+    request = context.get("request")
+    site = get_effective_site_settings(request=request)
     # Completion: percentage of evaluations that meet required components
     eval_total = Evaluation.objects.count()
     eval_complete = Evaluation.objects.filter().count()
@@ -140,14 +144,14 @@ def admin_section_stats():
         },
         "people": {},
         "portal": {
-            "Parent portal": "On" if SiteSettings.get_solo().enable_parent_portal else "Off",
-            "Teacher portal": "On" if SiteSettings.get_solo().enable_teacher_portal else "Off",
+            "Parent portal": "On" if site.enable_parent_portal else "Off",
+            "Teacher portal": "On" if site.enable_teacher_portal else "Off",
         },
         "reports": {
             "Templates": ReportTemplate.objects.filter(is_active=True).count(),
         },
         "siteconfig": {
             "Theme packs": ThemePack.objects.filter(is_active=True).count(),
-            "School code": SiteSettings.get_solo().school_code or "N/A",
+            "School code": site.school_code or "N/A",
         },
     }

@@ -1,0 +1,36 @@
+/**
+ * Marketing-only design tokens. Do not depend on dashboard or tenant tokens.
+ * Used only by the marketing shell (runmycampus.com).
+ */
+:root {
+  --mkt-primary: #0f172a;
+  --mkt-primary-light: #1e293b;
+  --mkt-accent: #2563eb;
+  --mkt-accent-hover: #1d4ed8;
+  --mkt-hero-bg: #0f172a;
+  --mkt-hero-bg-mid: #1e293b;
+  --mkt-hero-bg-end: #334155;
+  --mkt-text: #0f172a;
+  --mkt-text-muted: #64748b;
+  --mkt-text-inverse: #f8fafc;
+  --mkt-surface: #ffffff;
+  --mkt-border: rgba(15, 23, 42, 0.08);
+  --mkt-radius-sm: 8px;
+  --mkt-radius-md: 12px;
+  --mkt-radius-lg: 16px;
+  --mkt-radius-xl: 24px;
+  --mkt-shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
+  --mkt-shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08);
+  --mkt-shadow-lg: 0 18px 48px rgba(15, 23, 42, 0.12);
+  --mkt-spacing-xs: 0.5rem;
+  --mkt-spacing-sm: 1rem;
+  --mkt-spacing-md: 1.5rem;
+  --mkt-spacing-lg: 2.5rem;
+  --mkt-spacing-xl: 4rem;
+  --mkt-spacing-2xl: 5rem;
+  --mkt-font: Inter, system-ui, -apple-system, sans-serif;
+  --mkt-type-hero: clamp(2rem, 4vw, 3.25rem);
+  --mkt-type-section: clamp(1.75rem, 3vw, 2.25rem);
+  --mkt-type-body: 1.125rem;
+  --mkt-type-micro: 0.75rem;
+}

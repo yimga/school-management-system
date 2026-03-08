@@ -45,9 +45,9 @@ def render_welcome_email_html(
     """
     try:
         from apps.siteconfig.branding import resolve_brand_profile
-        from apps.siteconfig.models import SiteSettings
+        from apps.platform_runtime.helpers import get_effective_site_settings
 
-        brand = resolve_brand_profile(school=school, site=SiteSettings.get_solo())
+        brand = resolve_brand_profile(school=school, site=get_effective_site_settings(school=school))
     except Exception:
         brand = {}
     primary = brand.get("primary_color") or getattr(school, "primary_color", None) or "#0d6efd"

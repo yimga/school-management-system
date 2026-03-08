@@ -1,12 +1,12 @@
 /* ============================================
-   UNIFIED DESIGN SYSTEM - GILEAD ADMIN & PORTAL
+   UNIFIED DESIGN SYSTEM - RUNMYCAMPUS ADMIN & PORTAL
    Single source of truth for all styling
    Import this FIRST in all templates before any other CSS
    ============================================ */
 
 :root {
   /* ============================================
-     PRIMARY COLOR PALETTE - 2026 Gilead Colors
+     PRIMARY COLOR PALETTE - 2026 RunMyCampus Colors
      Prefer --school-primary from design-tokens.css (and SITE override) for brand/CTAs.
      ============================================ */
   

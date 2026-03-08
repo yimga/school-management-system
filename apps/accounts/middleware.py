@@ -10,6 +10,7 @@ from django.utils.functional import cached_property
 
 from apps.schools.host_routing import public_host_kind
 from apps.schools.tenant_url import build_manager_absolute_url
+from apps.platform_runtime.helpers import get_effective_site_settings
 
 from .permissions import can_access_module
 from .utils import get_user_role
@@ -399,11 +400,10 @@ class RequireMFAMiddleware:
             return self.get_response(request)
 
         try:
-            from apps.siteconfig.models import SiteSettings
             from django_otp import user_has_device
             from django_otp.plugins.otp_totp.models import TOTPDevice
 
-            site = SiteSettings.get_solo()
+            site = get_effective_site_settings(request=request)
             require_all_staff = getattr(site, "require_mfa_all_staff", False)
             required_roles = getattr(site, "require_mfa_roles", None) or []
 

@@ -8,6 +8,7 @@ from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 
 from apps.dashboard.action_registry import get_backend_dashboard_actions
+from apps.platform_runtime.helpers import get_effective_site_settings
 
 
 def __safe_reverse(name: str, fallback: str = "#") -> str:
@@ -203,13 +204,12 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
     site_id = "global"
     try:
         from apps.siteconfig.models import (
-            SiteSettings,
             default_header_weather_config,
             default_backend_feature_flags,
         )
         backend_defaults = default_backend_feature_flags()
         backend_flags = dict(backend_defaults)
-        site = SiteSettings.get_solo()
+        site = get_effective_site_settings(request=request)
         rt = getattr(request, "tenant_runtime", None)
         backend_flags.update(getattr(site, "backend_feature_flags", None) or {})
         if rt:

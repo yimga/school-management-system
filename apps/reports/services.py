@@ -5,8 +5,9 @@ from typing import Any, Dict, Iterable, Optional
 from django.conf import settings
 from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
 from django.urls import reverse
+from apps.platform_runtime.helpers import get_effective_site_settings
 from apps.policies.policy_registry import get_effective_policy
-from apps.siteconfig.models import SiteSettings, RegionConfig, EducationSystemProfile
+from apps.siteconfig.models import RegionConfig, EducationSystemProfile
 
 from apps.academics.models import Term
 from apps.evals.models import AssessmentWeights, Evaluation
@@ -37,6 +38,10 @@ def _approved_or_unrequested_subject_assignment_filter(
     }
     any_request_ids = set(latest_status_by_sa.keys())
     return approved_ids, any_request_ids
+
+
+def _site_settings_for_school(school=None):
+    return get_effective_site_settings(school=school)
 
 
 def _normalize_classroom_scope(
@@ -183,7 +188,7 @@ def _annual_subject_averages(student: StudentProfile, academic_year) -> list[tup
     terms = terms_for_student(academic_year, student.classroom)
     if not terms:
         return []
-    site = SiteSettings.get_solo()
+    site = _site_settings_for_school(getattr(student, "school", None))
     use_approved_only = getattr(site, "reports_use_approved_grades_only", False)
     acc = {}  # subject_id -> {"subject": Subject, "category": str, "scores": [float]}
     for term in terms:
@@ -276,7 +281,7 @@ def student_has_financial_clearance(student: StudentProfile, academic_year) -> b
     has no outstanding balance for this academic year. Used to block term/annual
     report download when block_report_download_if_outstanding_balance is True.
     """
-    site = SiteSettings.get_solo()
+    site = _site_settings_for_school(getattr(student, "school", None))
     flags = getattr(site, "backend_feature_flags", None) or {}
     if not flags.get("block_report_download_if_outstanding_balance", True):
         return True
@@ -297,7 +302,7 @@ def student_has_outstanding_returns(student: StudentProfile, academic_year) -> b
     True if the student has unreturned resources for this academic year.
     Used to block report download when block_report_download_if_outstanding_returns is True.
     """
-    site = SiteSettings.get_solo()
+    site = _site_settings_for_school(getattr(student, "school", None))
     flags = getattr(site, "backend_feature_flags", None) or {}
     if not flags.get("block_report_download_if_outstanding_returns", False):
         return False
@@ -531,8 +536,8 @@ def _auto_teacher_remark(average: Optional[float]) -> str:
     return "Unsatisfactory performance."
 
 
-def _school_report_metadata() -> dict:
-    site = SiteSettings.get_solo()
+def _school_report_metadata(school=None) -> dict:
+    site = _site_settings_for_school(school)
     return {
         "school_name": site.site_name,
         "school_code": site.school_code,
@@ -596,7 +601,8 @@ def _region_display_context(
 def term_report_context(student: StudentProfile, academic_year, term: Term) -> dict:
     from django.db.models import Q
     qs = Evaluation.objects.filter(student=student, term=term, academic_year=academic_year)
-    site = SiteSettings.get_solo()
+    school = getattr(student, "school", None)
+    site = _site_settings_for_school(school)
     if getattr(site, "reports_use_approved_grades_only", False):
         approved_ids, any_request_ids = _approved_or_unrequested_subject_assignment_filter(
             academic_year.id, term.id
@@ -695,9 +701,9 @@ def term_report_context(student: StudentProfile, academic_year, term: Term) -> d
         "weights": weights,
         "sequence_cues": _sequence_weight_cues(weights, labels),
         "labels": labels,
-        "metadata": _school_report_metadata(),
+        "metadata": _school_report_metadata(school),
     }
-    ctx.update(_region_display_context(getattr(student, "school", None)))
+    ctx.update(_region_display_context(school))
     ctx["transcript_track"] = getattr(student, "transcript_track", "") or "ACADEMIC"
     ctx["dual_transcript"] = (getattr(student, "transcript_track", "") or "").upper() == "DUAL"
     return ctx
@@ -705,7 +711,7 @@ def term_report_context(student: StudentProfile, academic_year, term: Term) -> d
 
 def _annual_average_for_student(student: StudentProfile, terms: Iterable[Term]) -> Optional[float]:
     from django.db.models import Q
-    site = SiteSettings.get_solo()
+    site = _site_settings_for_school(getattr(student, "school", None))
     use_approved_only = getattr(site, "reports_use_approved_grades_only", False)
     term_avgs = []
     for term in terms:

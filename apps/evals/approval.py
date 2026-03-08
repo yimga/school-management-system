@@ -10,8 +10,9 @@ from django.utils import timezone
 
 from apps.accounts.models import User
 from apps.academics.models import AcademicYear, Term, SubjectAssignment
+from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.siteconfig.models import default_grade_approval_roles, default_grade_post_roles
 from apps.people.models import StudentProfile, TeacherProfile
-from apps.siteconfig.models import SiteSettings
 
 from .models import GradeApprovalRequest, AssessmentWeights
 from .notifications import NotificationService
@@ -41,10 +42,10 @@ def get_grade_approval_policy(school=None, policy=None):
         except Exception:
             pass
     try:
-        site = SiteSettings.get_solo()
+        site = get_effective_site_settings(school=school)
         return {
-            "grade_post_roles": getattr(site, "grade_post_roles", None) or [],
-            "grade_approval_roles": getattr(site, "grade_approval_roles", None) or [],
+            "grade_post_roles": getattr(site, "grade_post_roles", None) or default_grade_post_roles(),
+            "grade_approval_roles": getattr(site, "grade_approval_roles", None) or default_grade_approval_roles(),
             "grade_approval_deadline_days": max(1, getattr(site, "grade_approval_deadline_days", 3) or 3),
             "grade_approval_deadline_note": (getattr(site, "grade_approval_deadline_note", None) or "").strip(),
             "grade_approval_auto_validate": getattr(site, "grade_approval_auto_validate", True),
@@ -52,8 +53,8 @@ def get_grade_approval_policy(school=None, policy=None):
         }
     except Exception:
         return {
-            "grade_post_roles": [],
-            "grade_approval_roles": ["DEAN", "HOD"],
+            "grade_post_roles": default_grade_post_roles(),
+            "grade_approval_roles": default_grade_approval_roles(),
             "grade_approval_deadline_days": 3,
             "grade_approval_deadline_note": "",
             "grade_approval_auto_validate": True,
@@ -209,7 +210,7 @@ def grade_approver_roles(school=None, policy=None) -> list[str]:
     roles = policy.get("grade_approval_roles") or []
     if roles:
         return [str(r).upper() for r in roles]
-    return ["DEAN", "HOD"]
+    return [str(role).upper() for role in default_grade_approval_roles()]
 
 
 def grade_approver_users(school=None, policy=None) -> Iterable[User]:

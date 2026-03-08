@@ -19,7 +19,6 @@ from django.views.decorators.http import require_POST, require_http_methods
 from apps.accounts.decorators import permission_required
 from apps.accounts.models import User
 from apps.people.models import StudentProfile, StudentGuardian
-from apps.siteconfig.models import SiteSettings
 from .models import PortalFeatureItem, FormSignature
 from .forms_documents import DocumentUploadForm, SignatureRequestForm
 from .document_conversion import convert_to_pdf
@@ -32,8 +31,6 @@ def document_library_manage(request):
     Backend UI for managing documents in the Document Library.
     Admin can upload, edit, delete documents.
     """
-    site = SiteSettings.get_solo()
-    
     # Get all documents
     qs = PortalFeatureItem.objects.filter(feature=PortalFeatureItem.Feature.DOCUMENTS)
     school = getattr(request, "school", None)

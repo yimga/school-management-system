@@ -1,0 +1,38 @@
+{
+  "label": "Compare",
+  "seo_title": "RunMyCampus Compare - Evaluate school management alternatives",
+  "seo_description": "Compare tenant architecture, admin controls, and parent/teacher experience before choosing your platform.",
+  "headline": "Compare on architecture, not just feature count.",
+  "subheadline": "Use objective criteria to evaluate tenancy, security, workflow depth, and long-term operational fit.",
+  "schema_type": "WebPage",
+  "segments": [
+    {"title": "Tenant isolation", "body": "Each school can run on dedicated domain, controls, and policy boundaries."},
+    {"title": "Operational depth", "body": "Finance, academics, support, and compliance are first-class modules, not bolt-ons."},
+    {"title": "Governance and scale", "body": "Manager command center and registry-driven defaults scale without per-tenant code."}
+  ],
+  "extras": {
+    "metrics": [
+      {"value": "1", "label": "canonical host contract", "detail": "Public, tenant, manager, API, and docs surfaces are explicitly separated."},
+      {"value": "100%", "label": "subdomain tenancy", "detail": "No path-based tenant rendering in production contract."},
+      {"value": "3", "label": "governance layers", "detail": "School-level control, manager oversight, and registry-based defaults."},
+      {"value": "Audit-ready", "label": "operator traceability", "detail": "Support and provisioning actions remain attributable and reviewable."}
+    ],
+    "execution_blocks": [
+      {"title": "Architecture fit assessment", "body": "Map your current operating model to strict host, tenancy, and governance requirements."},
+      {"title": "Migration risk reduction", "body": "Stage rollout with redirect compatibility and operational smoke checks before cutover."},
+      {"title": "Support readiness validation", "body": "Confirm manager workflow coverage for provisioning, escalation, and impersonation audit trails."}
+    ],
+    "comparison_rows": [
+      {"criterion": "Tenant isolation", "runmycampus": "Strict subdomain tenancy, isolated auth and data context.", "legacy": "Path-based tenancy increases cross-tenant risk and routing complexity."},
+      {"criterion": "Operations governance", "runmycampus": "Dedicated manager host for support, approvals, and health visibility.", "legacy": "Mixed admin routes on public host dilute control boundaries."},
+      {"criterion": "Localization strategy", "runmycampus": "Registry-driven hydration for terminology and compliance defaults.", "legacy": "Country-specific forks and hardcoded strings create maintenance debt."},
+      {"criterion": "Growth path", "runmycampus": "Plan-based scale from single campus to white-label enterprise.", "legacy": "Feature sprawl without operational stage alignment."}
+    ],
+    "migration_narrative": [
+      "Assess your current stack against host, tenancy, and governance criteria above.",
+      "Plan data migration and redirect strategy with dry-run and parity checks before cutover.",
+      "Use RunMyCampus migration tools and templates to move students, staff, and historical data.",
+      "Go live with phased rollout and dedicated support; validate with smoke tests and rollback readiness."
+    ]
+  }
+}

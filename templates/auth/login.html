@@ -307,28 +307,58 @@
           <div class="card shadow-sm info-card">
             <div>
               <p class="text-uppercase small text-muted mb-1">{% trans "Families & guardians" %}</p>
-              <h3 class="h5 mb-2">{% trans "Link your children securely" %}</h3>
+              <h3 class="h5 mb-2">
+                {% if is_manager_host %}
+                  {% trans "Use your school login" %}
+                {% else %}
+                  {% trans "Link your children securely" %}
+                {% endif %}
+              </h3>
               <p class="text-muted mb-3">
-                {% trans "Use the invite email, SMS, or WhatsApp token sent by the school to claim your learner and unlock attendance, marks, and open invoices." %}
+                {% if is_manager_host %}
+                  {% trans "The manager host is reserved for platform operators. Families and school staff should sign in through their own school workspace or claim an invite first." %}
+                {% else %}
+                  {% trans "Use the invite email, SMS, or WhatsApp token sent by the school to claim your learner and unlock attendance, marks, and open invoices." %}
+                {% endif %}
               </p>
-              <a class="btn btn-outline-primary" href="{% url 'portal:link_child' %}">{% trans "Claim an invite" %}</a>
+              {% if is_manager_host %}
+                <a class="btn btn-outline-primary" href="https://runmycampus.com/discover/">{% trans "Find your school" %}</a>
+              {% else %}
+                <a class="btn btn-outline-primary" href="{% url 'portal:link_child' %}">{% trans "Claim an invite" %}</a>
+              {% endif %}
             </div>
 
             <div>
               <p class="text-uppercase small text-muted mb-2">{% trans "Quick links" %}</p>
               <div class="d-flex flex-wrap gap-2">
-                <a class="quick-link" href="{% url 'portal:parent_dashboard' %}">{% trans "Parent portal" %}</a>
-                <a class="quick-link" href="{% url 'siteconfig:user_preferences' %}">{% trans "Preferences" %}</a>
-                <a
-                  class="quick-link quick-link-muted"
-                  href="{% url 'siteconfig:customizer' %}"
-                  title="{% trans "Admins only: Site Settings & theme packs" %}"
-                >
-                  {% trans "Site Settings (admin only)" %}
-                </a>
+                {% if is_manager_host %}
+                  <a class="quick-link" href="{% url 'accounts:claim_invite' %}">{% trans "Claim an invite" %}</a>
+                  <a class="quick-link" href="{% url 'manager_help' %}">{% trans "Operator help" %}</a>
+                  <a
+                    class="quick-link quick-link-muted"
+                    href="{% url 'super:dashboard' %}"
+                    title="{% trans "Platform operators only" %}"
+                  >
+                    {% trans "Control plane" %}
+                  </a>
+                {% else %}
+                  <a class="quick-link" href="{% url 'portal:parent_dashboard' %}">{% trans "Parent portal" %}</a>
+                  <a class="quick-link" href="{% url 'siteconfig:user_preferences' %}">{% trans "Preferences" %}</a>
+                  <a
+                    class="quick-link quick-link-muted"
+                    href="{% url 'siteconfig:customizer' %}"
+                    title="{% trans "Admins only: Site Settings & theme packs" %}"
+                  >
+                    {% trans "Site Settings (admin only)" %}
+                  </a>
+                {% endif %}
               </div>
               <p class="small text-muted mt-3 mb-0">
-                {% trans "Customizer controls now live inside Site Settings or your Preferences so you can always control how the dashboard looks." %}
+                {% if is_manager_host %}
+                  {% trans "Control-plane operators can manage tenants from the manager host. Everyone else should continue through their tenant login or invite flow." %}
+                {% else %}
+                  {% trans "Customizer controls now live inside Site Settings or your Preferences so you can always control how the dashboard looks." %}
+                {% endif %}
               </p>
             </div>
           </div>

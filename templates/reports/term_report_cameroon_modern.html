@@ -67,7 +67,7 @@
     <div style="display:flex; justify-content:space-between; align-items:center;">
       <div>
         <p class="subtitle mb-1 text-uppercase">MINISTRY OF SECONDARY EDUCATION</p>
-        <p class="title mb-0">GILEAD TECHNICAL HIGH SCHOOL</p>
+        <p class="title mb-0">{{ SITE.site_name|default:SITE.company_name|default:"RUNMYCAMPUS SCHOOL" }}</p>
         <p class="sub text-muted">{{ SITE.region|default:"" }} | {{ SITE.country|default:"" }}</p>
         {% if report_style and report_style.header_tagline %}
           <p class="sub text-uppercase small">{{ report_style.header_tagline }}</p>
@@ -97,7 +97,7 @@
       <div><strong>Academic Year / Annee</strong><br>{{ year.name }}</div>
       <div><strong>{{ labels.term|default:"Term / Trimestre" }}</strong><br>{{ term.get_name_display }}</div>
       <div><strong>Pass mark</strong><br>{{ weights.pass_mark|default_if_none:10 }}</div>
-      <div><strong>School code</strong><br>{{ SITE.school_code|default:"GIL" }}</div>
+      <div><strong>School code</strong><br>{{ SITE.school_code|default:"SCH" }}</div>
     </div>
   </div>
 

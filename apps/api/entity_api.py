@@ -13,7 +13,7 @@ from apps.academics.models import AcademicYear, Classroom, Specialty
 from apps.people.models import StudentGuardian, StudentProfile, TeacherProfile
 from apps.evals.models import TeacherAssignment
 from apps.schools.models import School
-from apps.siteconfig.models import SiteSettings
+from apps.platform_runtime.helpers import get_effective_flags
 
 from .serializers import (
     ClassroomSerializer,
@@ -41,9 +41,15 @@ def _is_admin_like(user: User) -> bool:
     return bool(user.is_staff or user.is_superuser or role in ADMIN_ROLES)
 
 
-def _backend_flags() -> dict:
-    site = SiteSettings.get_solo()
-    return getattr(site, "backend_feature_flags", {}) or {}
+def _backend_flags(request=None, school=None) -> dict:
+    if request is None and school is not None:
+        class _RequestShim:
+            def __init__(self, school_obj):
+                self.school = school_obj
+                self.tenant_runtime = None
+
+        request = _RequestShim(school)
+    return get_effective_flags(request)
 
 
 def _request_school(request):
@@ -185,7 +191,7 @@ class StudentProfileViewSet(viewsets.ModelViewSet):
         denied = self._require_admin(request)
         if denied:
             return denied
-        flags = _backend_flags()
+        flags = _backend_flags(request)
         max_rows = int(flags.get("max_bulk_import_rows", 500))
 
         csv_text = request.data.get("csv")
@@ -221,7 +227,7 @@ class StudentProfileViewSet(viewsets.ModelViewSet):
         denied = self._require_admin(request)
         if denied:
             return denied
-        flags = _backend_flags()
+        flags = _backend_flags(request)
         if not flags.get("allow_bulk_commit", True):
             return Response({"error": "Bulk commit disabled by admin."}, status=status.HTTP_403_FORBIDDEN)
         max_rows = int(flags.get("max_bulk_import_rows", 500))
@@ -326,7 +332,7 @@ class StudentGuardianViewSet(viewsets.ModelViewSet):
         """Dry-run parse of guardian CSV data."""
         if not _is_admin_like(request.user):
             return Response({"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
-        flags = _backend_flags()
+        flags = _backend_flags(request)
         max_rows = int(flags.get("max_bulk_import_rows", 500))
 
         csv_text = request.data.get("csv")
@@ -359,7 +365,7 @@ class StudentGuardianViewSet(viewsets.ModelViewSet):
         if not _is_admin_like(request.user):
             return Response({"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
 
-        flags = _backend_flags()
+        flags = _backend_flags(request)
         if not flags.get("allow_bulk_commit", True):
             return Response({"error": "Bulk commit disabled by admin."}, status=status.HTTP_403_FORBIDDEN)
         max_rows = int(flags.get("max_bulk_import_rows", 500))

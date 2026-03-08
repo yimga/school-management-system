@@ -26,6 +26,17 @@ from django.conf import settings
 from apps.compliance.models_audit import AuditLog, UserActivitySession, AccessLog
 from apps.accounts.models import User
 from apps.compliance.auth_utils import is_admin_or_staff
+from apps.compliance.tenant_scope import (
+    get_compliance_scope_school,
+    school_user_queryset,
+    scope_access_logs,
+    scope_audit_logs,
+    scope_sessions,
+)
+
+SUCCESS_ACCESS_FILTER = Q(status=AccessLog.Status.SUCCESS) | Q(status="200")
+FAILED_ACCESS_FILTER = ~SUCCESS_ACCESS_FILTER
+FORBIDDEN_ACCESS_FILTER = Q(status=AccessLog.Status.FORBIDDEN) | Q(status="403")
 
 
 @method_decorator(login_required, name='dispatch')
@@ -37,6 +48,7 @@ class ComplianceDashboardView(View):
 
     def get(self, request):
         from apps.siteconfig.cache_utils import get_tenant_cache_prefix
+        self.scope_school = get_compliance_scope_school(request)
         cache_ttl = getattr(settings, "COMPLIANCE_DASHBOARD_CACHE_SECONDS", 60)
         prefix = get_tenant_cache_prefix(request)
         cache_key = f"{prefix}:compliance:dashboard:v1"
@@ -69,29 +81,29 @@ class ComplianceDashboardView(View):
         now = timezone.now()
         week_ago = now - timedelta(days=7)
         month_ago = now - timedelta(days=30)
+        school = getattr(self, "scope_school", None)
 
-        total_users = User.objects.count()
-        active_users_week = UserActivitySession.objects.filter(
+        total_users = school_user_queryset(school).count()
+        active_users_week = scope_sessions(UserActivitySession.objects.filter(
             login_timestamp__gte=week_ago
-        ).values('user').distinct().count()
+        ), school).values('user').distinct().count()
 
-        total_logins = UserActivitySession.objects.filter(
+        total_logins = scope_sessions(UserActivitySession.objects.filter(
             login_timestamp__gte=month_ago
-        ).count()
+        ), school).count()
 
-        total_audits = AuditLog.objects.filter(
+        total_audits = scope_audit_logs(AuditLog.objects.filter(
             timestamp__gte=month_ago
-        ).count()
+        ), school).count()
 
-        failed_accesses = AccessLog.objects.filter(
+        failed_accesses = scope_access_logs(AccessLog.objects.filter(
             timestamp__gte=week_ago,
-            status__gte=400
-        ).count()
+        ), school).filter(FAILED_ACCESS_FILTER).count()
 
-        suspicious_sessions = UserActivitySession.objects.filter(
+        suspicious_sessions = scope_sessions(UserActivitySession.objects.filter(
             is_suspicious=True,
             login_timestamp__gte=week_ago
-        ).count()
+        ), school).count()
 
         return {
             'total_users': total_users,
@@ -107,12 +119,13 @@ class ComplianceDashboardView(View):
         """Get audit activity trend for last 30 days."""
         data = []
         labels = []
+        school = getattr(self, "scope_school", None)
 
         for i in range(29, -1, -1):
             date = (timezone.now() - timedelta(days=i)).date()
-            count = AuditLog.objects.filter(
+            count = scope_audit_logs(AuditLog.objects.filter(
                 timestamp__date=date
-            ).count()
+            ), school).count()
             data.append(count)
             labels.append(date.strftime('%m-%d'))
 
@@ -128,11 +141,12 @@ class ComplianceDashboardView(View):
         """
         now = timezone.now()
         week_ago = now - timedelta(days=7)
+        school = getattr(self, "scope_school", None)
 
         # Get login times from last week
-        sessions = UserActivitySession.objects.filter(
+        sessions = scope_sessions(UserActivitySession.objects.filter(
             login_timestamp__gte=week_ago
-        ).values_list('login_timestamp')
+        ), school).values_list('login_timestamp')
 
         # Create hour counter
         hour_counts = Counter()
@@ -154,10 +168,11 @@ class ComplianceDashboardView(View):
         """Get summary of model changes."""
         now = timezone.now()
         week_ago = now - timedelta(days=7)
+        school = getattr(self, "scope_school", None)
 
-        model_stats = AuditLog.objects.filter(
+        model_stats = scope_audit_logs(AuditLog.objects.filter(
             timestamp__gte=week_ago
-        ).values('model_name', 'action').annotate(
+        ), school).values('model_name', 'action').annotate(
             count=Count('id')
         ).order_by('-count')[:20]
 
@@ -181,22 +196,23 @@ class ComplianceDashboardView(View):
 
     def _get_permission_overview(self):
         """Get permission and access overview."""
+        school = getattr(self, "scope_school", None)
         # Users by role
-        by_role = User.objects.values('role').annotate(
+        by_role = school_user_queryset(school).values('role').annotate(
             count=Count('id')
         ).order_by('-count')
 
         # Access by role
-        access_by_role = AccessLog.objects.select_related('user').values(
+        access_by_role = scope_access_logs(AccessLog.objects.select_related('user'), school).values(
             'user__role'
         ).annotate(
             total=Count('id'),
-            successful=Count('id', filter=Q(status='200')),
-            failed=Count('id', filter=Q(status__gte=400)),
+            successful=Count('id', filter=SUCCESS_ACCESS_FILTER),
+            failed=Count('id', filter=FAILED_ACCESS_FILTER),
         )
 
         # Most accessed resources
-        top_resources = AccessLog.objects.values('resource').annotate(
+        top_resources = scope_access_logs(AccessLog.objects.all(), school).values('resource').annotate(
             count=Count('id')
         ).order_by('-count')[:5]
 
@@ -211,7 +227,8 @@ class ComplianceDashboardView(View):
 
     def _get_recent_audits(self):
         """Get recent audit log entries."""
-        audits = AuditLog.objects.select_related('user').order_by(
+        school = getattr(self, "scope_school", None)
+        audits = scope_audit_logs(AuditLog.objects.select_related('user'), school).order_by(
             '-timestamp'
         )[:10].values(
             'timestamp', 'user__username', 'action', 'model_name',
@@ -224,6 +241,7 @@ class ComplianceDashboardView(View):
         """Get security-related metrics."""
         now = timezone.now()
         week_ago = now - timedelta(days=7)
+        school = getattr(self, "scope_school", None)
 
         # Failed logins
         failed_logins = AuditLog.objects.filter(
@@ -233,22 +251,21 @@ class ComplianceDashboardView(View):
         ).count()
 
         # Failed accesses
-        failed_accesses = AccessLog.objects.filter(
+        failed_accesses = scope_access_logs(AccessLog.objects.filter(
             timestamp__gte=week_ago,
-            status__gte=400
-        ).count()
+        ), school).filter(FAILED_ACCESS_FILTER).count()
 
         # Suspicious sessions
-        suspicious = UserActivitySession.objects.filter(
+        suspicious = scope_sessions(UserActivitySession.objects.filter(
             is_suspicious=True,
             login_timestamp__gte=week_ago
-        ).count()
+        ), school).count()
 
         # Permission denials
-        denials = AuditLog.objects.filter(
+        denials = scope_audit_logs(AuditLog.objects.filter(
             timestamp__gte=week_ago,
             action='ACCESS_DENIED'
-        ).count()
+        ), school).count()
 
         return {
             'failed_accesses': failed_accesses,
@@ -263,10 +280,11 @@ class ComplianceDashboardView(View):
         """Get data integrity status."""
         # Quick checks for common issues
         issues = []
+        school = getattr(self, "scope_school", None)
 
         # Check for orphaned records
         from apps.people.models import TeacherProfile
-        orphaned_teachers = TeacherProfile.objects.filter(user__isnull=True).count()
+        orphaned_teachers = TeacherProfile.objects.filter(user__isnull=True, **({"school": school} if school is not None else {})).count()
         if orphaned_teachers > 0:
             issues.append({
                 'type': 'ORPHANED_RECORD',
@@ -275,7 +293,7 @@ class ComplianceDashboardView(View):
             })
 
         # Check for users without names
-        users_no_name = User.objects.filter(
+        users_no_name = school_user_queryset(school).filter(
             Q(first_name='') | Q(first_name__isnull=True)
         ).count()
         if users_no_name > 0:
@@ -308,7 +326,7 @@ class ComplianceDashboardView(View):
         from apps.compliance.models_audit import ThreatDetectionConfig
 
         # Run detection for last 24 hours
-        findings = detect_threats(window_minutes=1440)  # 24 hours
+        findings = detect_threats(window_minutes=1440, school=getattr(self, "scope_school", None))
 
         # Get mute status
         try:
@@ -338,12 +356,13 @@ class ComplianceDashboardView(View):
         """Get recent blocked IPs and countries (403 responses)."""
         now = timezone.now()
         last_24h = now - timedelta(days=1)
+        school = getattr(self, "scope_school", None)
 
         # Get recent 403 responses
-        blocked = AccessLog.objects.filter(
+        blocked = scope_access_logs(AccessLog.objects.filter(
+            FORBIDDEN_ACCESS_FILTER,
             timestamp__gte=last_24h,
-            status=403
-        ).select_related('user').order_by('-timestamp')
+        ), school).select_related('user').order_by('-timestamp')
 
         # Aggregate by IP
         by_ip = {}

@@ -9,6 +9,16 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 
+def get_active_school_ids():
+    """Return list of active school IDs for iterating tenant-scoped tasks. Uses public/schools table."""
+    try:
+        from apps.schools.models import School
+        return list(School.objects.filter(is_active=True).values_list("id", flat=True))
+    except Exception as e:
+        logger.warning("get_active_school_ids: %s", e)
+        return []
+
+
 def _resolve_client(schema_name=None, client_id=None, school_id=None):
     """Resolve django_tenants Client from schema_name, client_id, or school_id. Returns None if not USE_DJANGO_TENANTS."""
     if not getattr(settings, "USE_DJANGO_TENANTS", False):

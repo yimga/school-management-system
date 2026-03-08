@@ -23,6 +23,7 @@ from django.views.decorators.clickjacking import xframe_options_exempt, xframe_o
 from apps.academics.models import Classroom
 from apps.academics.services import get_active_year_and_term
 from apps.people.models import StudentProfile
+from apps.platform_runtime.helpers import get_effective_site_settings
 from apps.policies.policy_registry import get_effective_policy
 from apps.reports.models import ReportCard
 from apps.reports.services import (
@@ -66,6 +67,13 @@ logger = logging.getLogger(__name__)
 CACHE_KEY = "site_settings_v1"
 SESSION_KEY = "site_preview_settings"
 PORTAL_PREF_PREVIOUS_PAGE = "portal_pref_previous_page"
+
+
+_GRADE_SCALE_CODE_ALIASES = {
+    "LETTER": "a-f",
+    "GPA_4": "gpa",
+    "PASS_FAIL": "pass_fail",
+}
 
 # Fields that can be applied to session for "preview before save" (theme + branding + semantic colors).
 PREVIEW_FROM_FORM_KEYS = [
@@ -142,6 +150,83 @@ def _safe_next_url(request, candidate, fallback):
     ):
         return value
     return fallback
+
+
+def _registry_grade_scale_choices(country_code: str | None = None) -> list[tuple[str, str]]:
+    try:
+        from apps.registries.services import get_grade_scale_families
+
+        choices = []
+        seen = set()
+        for row in get_grade_scale_families(country_code):
+            raw_code = str(row.get("code") or "").strip()
+            if not raw_code:
+                continue
+            code = _GRADE_SCALE_CODE_ALIASES.get(raw_code.upper(), raw_code).lower()
+            if code in seen:
+                continue
+            seen.add(code)
+            choices.append((code, str(row.get("name") or code)))
+        return choices
+    except Exception:
+        return []
+
+
+def _language_choices_for_school(school) -> list[tuple[str, str]]:
+    country_code = ""
+    if school is not None:
+        try:
+            policy = get_effective_policy(school)
+            raw_country = policy.get("country_code") or ""
+            from apps.siteconfig.global_catalog import GlobalGeoCatalog
+
+            country_code = GlobalGeoCatalog.alpha2_for_country(raw_country) or str(raw_country or "").upper()[:2]
+        except Exception:
+            country_code = ""
+    try:
+        from apps.registries.services import get_locales_for_country
+
+        choices = []
+        seen = set()
+        for row in get_locales_for_country(country_code):
+            locale_code = str(row.get("code") or "").strip()
+            if not locale_code:
+                continue
+            language_code = locale_code.split("_", 1)[0].split("-", 1)[0].lower()
+            if not language_code or language_code in seen:
+                continue
+            seen.add(language_code)
+            choices.append((language_code, str(row.get("name") or language_code.upper())))
+        if choices:
+            return choices
+    except Exception:
+        pass
+    try:
+        from apps.siteconfig.translations import SUPPORTED_LANGUAGES
+
+        return [(code, label) for code, label in SUPPORTED_LANGUAGES.items()]
+    except Exception:
+        return [("en", "English"), ("fr", "Français")]
+
+
+def _is_known_currency_code(currency_code: str | None) -> bool:
+    try:
+        from apps.registries.services import is_known_currency_code
+
+        return is_known_currency_code(currency_code)
+    except Exception:
+        return bool((currency_code or "").strip())
+
+
+def _known_scale_types() -> list[str]:
+    scale_types = list(
+        GradingScaleConfig.objects.order_by("scale_type")
+        .values_list("scale_type", flat=True)
+        .distinct()
+    )
+    if not scale_types:
+        scale_types = [code for code, _label in _registry_grade_scale_choices()]
+    return list(dict.fromkeys([str(scale_type).strip() for scale_type in scale_types if str(scale_type).strip()]))
 
 
 def _snapshot_theme_field_values(instance, field_names):
@@ -233,7 +318,7 @@ def maintenance_view(request):
 
 @permission_required("settings.manage")
 def customizer(request):
-    settings_obj = SiteSettings.get_solo()
+    settings_obj = get_effective_site_settings(request=request)
     messages.info(
         request,
         "Customizer now lives inside Site Settings (admin-only) and Preferences (staff).",
@@ -259,6 +344,19 @@ GRADING_SCALE_CHOICES_NEUTRAL = [
 
 def get_grading_scale_choices_for_school(school):
     """Phase 2: Policy/registry-driven grading choices; no hardcoded country labels in tenant UX."""
+    country_code = ""
+    if school is not None:
+        try:
+            policy = get_effective_policy(school)
+            raw_country = policy.get("country_code") or ""
+            from apps.siteconfig.global_catalog import GlobalGeoCatalog
+
+            country_code = GlobalGeoCatalog.alpha2_for_country(raw_country) or str(raw_country or "").upper()[:2]
+        except Exception:
+            country_code = ""
+    registry_choices = _registry_grade_scale_choices(country_code)
+    if registry_choices:
+        return registry_choices
     if school and getattr(school, "default_region_id", None):
         try:
             from apps.siteconfig.models import GradingScaleConfig
@@ -318,7 +416,7 @@ def grading_settings(request):
         "current_grading": current_grading,
         "current_language": current_language,
         "grading_choices": grading_choices,
-        "language_choices": [("en", "English"), ("fr", "Français")],
+        "language_choices": _language_choices_for_school(school),
     })
 
 
@@ -376,7 +474,9 @@ def module_market(request):
 
 @permission_required("settings.manage")
 def reportcard_builder(request):
-    settings_obj = SiteSettings.get_solo()
+    settings_obj = get_effective_site_settings(request=request)
+    if settings_obj is None:
+        settings_obj = SiteSettings()
     styles = list(ReportCardStyle.objects.order_by("name"))
     style_assignment_counts = {
         row["style_id"]: row["total"]
@@ -506,7 +606,7 @@ def _resolve_preview_student(request):
 
 
 def _build_report_context_for_pdf(style: ReportCardStyle, report_type: str, student):
-    site = SiteSettings.get_solo()
+    site = get_effective_site_settings(school=getattr(student, "school", None))
     metadata = _build_style_metadata(site)
     year, term = get_active_year_and_term()
     labels = resolve_report_labels(student=student)
@@ -580,7 +680,7 @@ def _build_report_context_for_pdf(style: ReportCardStyle, report_type: str, stud
 @xframe_options_sameorigin
 def reportcard_style_preview(request, slug: str):
     style = get_object_or_404(ReportCardStyle, slug=slug)
-    site = SiteSettings.get_solo()
+    site = get_effective_site_settings(request=request)
     year, term = get_active_year_and_term()
     student = _resolve_preview_student(request)
     metadata = _build_style_metadata(site)
@@ -924,7 +1024,9 @@ def bulk_letters(request):
 @permission_required("settings.manage")
 def theme_colors_page(request):
     """Standalone Color & harmony page: palette studio, presets, preview; save colors to SiteSettings."""
-    site = SiteSettings.get_solo()
+    site = get_effective_site_settings(request=request)
+    if site is None:
+        site = SiteSettings()
     all_packs = list(
         ThemePack.objects.filter(is_active=True).order_by("-applies_to_admin", "-is_default", "name")
     )
@@ -1315,8 +1417,7 @@ def region_validation_dashboard(request):
             issues_count += 1
         
         # Check currency
-        valid_currencies = ['XAF', 'USD', 'EUR', 'GBP', 'KES', 'NGN', 'ZAR', 'GHS', 'TZS']
-        if region.default_currency not in valid_currencies:
+        if not _is_known_currency_code(region.default_currency):
             issues.append({
                 'icon': '⚠️',
                 'type': 'warning',
@@ -1417,7 +1518,7 @@ def region_grading_scales_view(request):
         scales_by_region[region] = region.gradingscaleconfig_set.all().order_by('scale_type')
     
     # Prepare comparison matrix
-    scale_types = ['0-20', '0-100', '0-10', 'a-f', 'gpa']
+    scale_types = _known_scale_types()
     
     context = {
         'scales_by_region': scales_by_region,
@@ -1435,7 +1536,7 @@ def branding_api(request):
     school = getattr(request, "school", None)
     from .branding import resolve_brand_profile
 
-    brand = resolve_brand_profile(school=school, site=SiteSettings.get_solo())
+    brand = resolve_brand_profile(school=school, site=get_effective_site_settings(request=request))
     return JsonResponse(
         {
             "logo_url": brand.get("logo_url") or "",
@@ -1488,14 +1589,14 @@ def admission_number_preview_api(request):
     school = getattr(request, "school", None)
     if not school:
         return JsonResponse({"error": "No tenant context"}, status=400)
-    from .identifier_policy_service import get_admissions_policy, preview_admission_number
+    from .identifier_policy_service import default_school_code_for, get_admissions_policy, preview_admission_number
     policy = get_admissions_policy(school)
     from datetime import datetime
     year_2digit = (request.GET.get("year_2digit") or str(datetime.now().year % 100))[:2].zfill(2)
     seq_4digit = (request.GET.get("seq_4digit") or "0001")[:4].zfill(4)
     spec_code = (request.GET.get("spec_code") or "XX")[:10]
     class_segment = (request.GET.get("class_segment") or "00")[:10]
-    school_code = (request.GET.get("school_code") or policy.get("school_code") or "GIL").upper()
+    school_code = (request.GET.get("school_code") or policy.get("school_code") or default_school_code_for(school)).upper()
     preview = preview_admission_number(
         school,
         year_2digit=year_2digit,

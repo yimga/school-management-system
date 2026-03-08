@@ -1343,20 +1343,38 @@ class PaymentReminder(models.Model):
         return f"Reminder for {self.invoice}"
 
     def get_reminder_days(self):
-        """Get reminder days, falling back to SiteSettings if empty."""
+        """Get reminder days from instance, then policy, then platform default (no SiteSettings.get_solo in tenant code)."""
         if self.reminder_days_before:
             return self.reminder_days_before
-        from apps.siteconfig.models import SiteSettings
-        site = SiteSettings.get_solo()
-        return getattr(site, "finance_payment_reminder_default_days", None) or [7, 3, 1]
-    
+        school = getattr(self.invoice, "school", None)
+        if school:
+            try:
+                from apps.policies.policy_registry import get_effective_policy
+                policy = get_effective_policy(school)
+                finance = (policy.get("finance") or {}) if isinstance(policy, dict) else {}
+                days = finance.get("payment_reminder_default_days")
+                if isinstance(days, list) and days:
+                    return days
+            except Exception:
+                pass
+        return [7, 3, 1]
+
     def get_reminder_channels(self):
-        """Get reminder channels, falling back to SiteSettings if empty."""
+        """Get reminder channels from instance, then policy, then platform default (no SiteSettings.get_solo in tenant code)."""
         if self.reminder_channels:
             return self.reminder_channels
-        from apps.siteconfig.models import SiteSettings
-        site = SiteSettings.get_solo()
-        return getattr(site, "finance_payment_reminder_default_channels", None) or ["email"]
+        school = getattr(self.invoice, "school", None)
+        if school:
+            try:
+                from apps.policies.policy_registry import get_effective_policy
+                policy = get_effective_policy(school)
+                finance = (policy.get("finance") or {}) if isinstance(policy, dict) else {}
+                channels = finance.get("payment_reminder_default_channels")
+                if isinstance(channels, list) and channels:
+                    return channels
+            except Exception:
+                pass
+        return ["email"]
     
     def get_message_template(self, channel: str) -> str:
         """Get message template for a specific channel."""

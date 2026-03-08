@@ -1,0 +1,31 @@
+{
+  "label": "Pricing",
+  "seo_title": "RunMyCampus Pricing - Transparent plans for growing schools",
+  "seo_description": "Transparent school management pricing with plan tiers, add-ons, and enterprise deployment options.",
+  "headline": "Pricing that scales with your campus.",
+  "subheadline": "Choose a plan by operating model, unlock add-ons, and keep billing visibility across every tenant.",
+  "schema_type": "OfferCatalog",
+  "segments": [
+    {"title": "Plan clarity", "body": "Map plans to usage, student volume, and feature needs without hidden complexity."},
+    {"title": "Add-on flexibility", "body": "Enable advanced modules as your school grows, from integrations to analytics."},
+    {"title": "Super-admin oversight", "body": "Track trial status, usage, and billing posture in one command center."}
+  ],
+  "extras": {
+    "metrics": [
+      {"value": "3", "label": "clear plan bands", "detail": "Starter, Growth, and Enterprise White-label framing."},
+      {"value": "0", "label": "migration guesswork", "detail": "Plan boundaries map to growth stages and governance requirements."},
+      {"value": "1", "label": "billing oversight layer", "detail": "Manager workflows provide trial and usage visibility across tenants."},
+      {"value": "Flexible", "label": "add-on model", "detail": "Activate advanced modules as schools scale operational complexity."}
+    ],
+    "faqs": [
+      {"question": "What plans does RunMyCampus offer?", "answer": "Starter for single-campus schools, Growth for multi-campus networks, and Enterprise White-label for operators at national scale."},
+      {"question": "Can I try RunMyCampus before committing?", "answer": "Yes. Start a free trial from the signup flow; you can also book a demo for a guided walkthrough."},
+      {"question": "How does billing work for multiple schools?", "answer": "Manager workflows provide visibility into trial status, usage, and billing across all tenants in one command center."}
+    ],
+    "execution_blocks": [
+      {"title": "Transparent growth path", "body": "Schools can start lean, then add modules for analytics, integrations, and operator workflows."},
+      {"title": "Enterprise white-label readiness", "body": "High-scale operators get dedicated governance, compliance posture, and branding control."},
+      {"title": "Cost aligned to operations", "body": "Plans are designed around actual usage and institutional operating models, not feature sprawl."}
+    ]
+  }
+}

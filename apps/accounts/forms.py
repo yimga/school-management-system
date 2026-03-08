@@ -5,8 +5,8 @@ from django.utils import timezone
 
 from .models import AccessRole, Permission, User, UserPreference
 from .delegation import get_allowed_delegate_queryset, SCOPE_CHOICES
+from apps.platform_runtime.helpers import get_effective_site_settings
 from apps.portal.models import PendingGuardianInvite
-from apps.siteconfig.models import SiteSettings
 
 
 # User preference form for background logo and opacity
@@ -280,7 +280,10 @@ class DelegationForm(forms.Form):
         if start and end and end <= start:
             raise ValidationError("End date must be after start date.")
         if start and end and self.delegator:
-            max_days = getattr(SiteSettings.get_solo(), "delegation_max_days", 14) or 14
+            teacher_profile = getattr(self.delegator, "teacher_profile", None)
+            school = getattr(teacher_profile, "school", None)
+            site = get_effective_site_settings(school=school)
+            max_days = getattr(site, "delegation_max_days", 14) or 14
             from datetime import timedelta
             if (end - start).days > max_days:
                 raise ValidationError(f"Duration cannot exceed {max_days} days (admin setting).")

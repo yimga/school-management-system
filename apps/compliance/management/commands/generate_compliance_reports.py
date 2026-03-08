@@ -25,6 +25,16 @@ from apps.compliance.models_audit import (
 )
 from apps.accounts.models import User
 from apps.compliance.alerts import send_compliance_report_email
+from apps.compliance.tenant_scope import (
+    school_user_queryset,
+    scope_access_logs,
+    scope_audit_logs,
+    scope_sessions,
+)
+from apps.schools.models import School
+
+SUCCESS_ACCESS_FILTER = Q(status=AccessLog.Status.SUCCESS) | Q(status="200")
+FAILED_ACCESS_FILTER = ~SUCCESS_ACCESS_FILTER
 
 
 class Command(BaseCommand):
@@ -51,10 +61,21 @@ class Command(BaseCommand):
             action='store_true',
             help='Generate all report types'
         )
+        parser.add_argument(
+            '--school-id',
+            help='Optional school UUID for tenant-scoped report generation.',
+        )
 
     def handle(self, *args, **options):
         self.stdout.write("Phase 4: Generating Compliance Reports")
         self.stdout.write("=" * 60)
+        self.scope_school = None
+        school_id = options.get("school_id")
+        if school_id:
+            self.scope_school = School.objects.filter(pk=school_id, is_active=True).first()
+            if self.scope_school is None:
+                self.stdout.write(self.style.ERROR(f"School not found: {school_id}"))
+                return
 
         created_reports = []
 
@@ -86,10 +107,10 @@ class Command(BaseCommand):
         end_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
 
         # Collect daily audit statistics
-        audit_logs = AuditLog.objects.filter(
+        audit_logs = scope_audit_logs(AuditLog.objects.filter(
             timestamp__gte=start_of_day,
             timestamp__lt=end_of_day
-        )
+        ), self.scope_school)
 
         stats = {
             'total_actions': audit_logs.count(),
@@ -132,13 +153,13 @@ class Command(BaseCommand):
         week_ago = now - timedelta(days=7)
 
         # Collect access statistics
-        access_logs = AccessLog.objects.filter(
+        access_logs = scope_access_logs(AccessLog.objects.filter(
             timestamp__gte=week_ago
-        )
+        ), self.scope_school)
 
         total_access = access_logs.count()
-        successful = access_logs.filter(status='200').count()
-        failed = access_logs.exclude(status='200').count()
+        successful = access_logs.filter(SUCCESS_ACCESS_FILTER).count()
+        failed = access_logs.filter(FAILED_ACCESS_FILTER).count()
 
         success_rate = (successful/total_access*100) if total_access > 0 else 0
         failure_rate = (failed/total_access*100) if total_access > 0 else 0
@@ -188,8 +209,8 @@ class Command(BaseCommand):
 
         # Check for users with no audit logs
         users_without_audit = list(
-            User.objects.exclude(
-                id__in=AuditLog.objects.values_list('user_id', flat=True)
+            school_user_queryset(self.scope_school).exclude(
+                id__in=scope_audit_logs(AuditLog.objects.all(), self.scope_school).values_list('user_id', flat=True)
             ).exclude(is_superuser=True).values_list('username', flat=True)
         )
 
@@ -201,7 +222,7 @@ class Command(BaseCommand):
             })
 
         # Check for orphaned sessions
-        orphaned_sessions = UserActivitySession.objects.filter(user__isnull=True).count()
+        orphaned_sessions = UserActivitySession.objects.filter(user__isnull=True).count() if self.scope_school is None else 0
         if orphaned_sessions > 0:
             issues.append({
                 'type': 'ORPHANED_SESSIONS',
@@ -215,10 +236,10 @@ class Command(BaseCommand):
                 fixes.append(f"Failed to delete orphaned sessions: {e}")
 
         # Check suspicious activities
-        suspicious = UserActivitySession.objects.filter(
+        suspicious = scope_sessions(UserActivitySession.objects.filter(
             is_suspicious=True,
             login_timestamp__gte=month_ago
-        ).count()
+        ), self.scope_school).count()
 
         if suspicious > 0:
             issues.append({

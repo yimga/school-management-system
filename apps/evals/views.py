@@ -59,8 +59,8 @@ from apps.portal.models import PortalFeatureItem
 from .services import ews_students_needing_attention
 from apps.communication.models import MessageThread
 from apps.communication.views_announcements import _can_create_department_announcement
-from apps.platform_runtime.helpers import get_effective_flags
-from apps.siteconfig.models import SiteSettings, default_backend_feature_flags
+from apps.platform_runtime.helpers import get_effective_flags, get_effective_site_settings
+from apps.siteconfig.models import default_backend_feature_flags
 from apps.siteconfig.dashboard_resolver import for_role as dashboard_for_role
 from apps.siteconfig.workflow_resolver import get_approval_workflow as workflow_get_approval
 from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata
@@ -1097,11 +1097,11 @@ def teacher_marks_entry(request: HttpRequest):
     if policy:
         flags = {**default_backend_feature_flags(), **(policy.get("features") or {})}
         grade_approval_enabled = (policy.get("grade_approval") or {}).get("grade_approval_enabled", False)
+        site_settings = get_effective_site_settings(request=request)
     else:
-        site_settings = SiteSettings.get_solo()
+        site_settings = get_effective_site_settings(request=request)
         flags = {**default_backend_feature_flags(), **(getattr(site_settings, "backend_feature_flags", None) or {})}
         grade_approval_enabled = getattr(site_settings, "grade_approval_enabled", False)
-    site_settings = SiteSettings.get_solo()
     custom_cmd = (site_settings.marksheet_ocr_command or "").strip()
     env_cmd = getattr(settings, "MARKSHEET_OCR_COMMAND", "") or ""
     resolved_cmd = (custom_cmd or env_cmd or "").strip()

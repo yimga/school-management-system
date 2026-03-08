@@ -8,6 +8,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
+from django.contrib.auth import get_user_model
 from django.db.models import Q, Count
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -17,7 +18,28 @@ from apps.api.permissions import IsAdminUser, IsTeacherOrAdmin
 from apps.accounts.permissions import api_user_has_any_role
 
 
-def _can_message_user(sender, recipient):
+def _school_user_queryset(school):
+    User = get_user_model()
+    if school is None:
+        return User.objects.none()
+    return User.objects.filter(
+        Q(school_memberships__school=school)
+        | Q(teacher_profile__school=school)
+        | Q(student_profile__school=school)
+    ).distinct()
+
+
+def _tenant_school_or_response(request):
+    school = getattr(request, "school", None)
+    if school is not None:
+        return school, None
+    return None, Response(
+        {"error": "School context required."},
+        status=status.HTTP_403_FORBIDDEN,
+    )
+
+
+def _can_message_user(sender, recipient, school=None):
     """
     Enforce recipient policy: staff/admin/leadership can message anyone;
     parents can message teachers (of their children) and staff; teachers can message parents (of their students) and staff.
@@ -26,6 +48,10 @@ def _can_message_user(sender, recipient):
         return False
     if sender.id == recipient.id:
         return False
+    if school is not None:
+        school_users = _school_user_queryset(school)
+        if not school_users.filter(pk=sender.pk).exists() or not school_users.filter(pk=recipient.pk).exists():
+            return False
     # Staff / admin / leadership can message anyone
     if getattr(sender, "is_staff", False) or getattr(sender, "is_superuser", False):
         return True
@@ -42,8 +68,18 @@ def _can_message_user(sender, recipient):
             return True
         if recipient_role == "PARENT":
             from apps.people.models import StudentGuardian
-            sender_children = set(StudentGuardian.objects.filter(guardian_user=sender).values_list("student_id", flat=True))
-            recip_children = set(StudentGuardian.objects.filter(guardian_user=recipient).values_list("student_id", flat=True))
+            sender_children = set(
+                StudentGuardian.objects.filter(
+                    guardian_user=sender,
+                    **({"student__school": school} if school is not None else {}),
+                ).values_list("student_id", flat=True)
+            )
+            recip_children = set(
+                StudentGuardian.objects.filter(
+                    guardian_user=recipient,
+                    **({"student__school": school} if school is not None else {}),
+                ).values_list("student_id", flat=True)
+            )
             if sender_children & recip_children:
                 return True
         return False
@@ -58,15 +94,25 @@ def _can_message_user(sender, recipient):
             if not teacher_profile:
                 return False
             my_classroom_ids = set(
-                TeacherAssignment.objects.filter(teacher=teacher_profile, is_active=True)
+                TeacherAssignment.objects.filter(
+                    teacher=teacher_profile,
+                    is_active=True,
+                    **({"subject_assignment__classroom__school": school} if school is not None else {}),
+                )
                 .values_list("subject_assignment__classroom_id", flat=True)
             )
             parent_student_ids = set(
-                StudentGuardian.objects.filter(guardian_user=recipient).values_list("student_id", flat=True)
+                StudentGuardian.objects.filter(
+                    guardian_user=recipient,
+                    **({"student__school": school} if school is not None else {}),
+                ).values_list("student_id", flat=True)
             )
             from apps.people.models import StudentProfile
             parent_classroom_ids = set(
-                StudentProfile.objects.filter(id__in=parent_student_ids).values_list("classroom_id", flat=True)
+                StudentProfile.objects.filter(
+                    id__in=parent_student_ids,
+                    **({"school": school} if school is not None else {}),
+                ).values_list("classroom_id", flat=True)
             )
             if my_classroom_ids & parent_classroom_ids:
                 return True
@@ -93,8 +139,12 @@ class MessageViewSet(viewsets.ModelViewSet):
         from apps.communication.models import Message
         
         user = self.request.user
+        school = getattr(self.request, "school", None)
+        if school is None:
+            return Message.objects.none()
         return Message.objects.filter(
-            Q(sender=user) | Q(recipient=user)
+            Q(sender=user) | Q(recipient=user),
+            school=school,
         ).select_related('sender', 'recipient')
     
     def list(self, request, *args, **kwargs):
@@ -107,6 +157,10 @@ class MessageViewSet(viewsets.ModelViewSet):
         - from_user: filter by sender
         - search: search in subject/body
         """
+        school, error = _tenant_school_or_response(request)
+        if error is not None:
+            return error
+
         queryset = self.get_queryset()
         
         folder = request.query_params.get('folder', 'inbox')
@@ -147,7 +201,9 @@ class MessageViewSet(viewsets.ModelViewSet):
         Send a new message. Recipient must be allowed by policy (role/relationship).
         """
         from apps.communication.models import Message
-        from django.contrib.auth import get_user_model
+        school, error = _tenant_school_or_response(request)
+        if error is not None:
+            return error
         User = get_user_model()
 
         recipient_id = request.data.get('recipient')
@@ -159,8 +215,8 @@ class MessageViewSet(viewsets.ModelViewSet):
                 {'error': 'recipient, subject, and body are required'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        recipient = get_object_or_404(User, pk=recipient_id)
-        if not _can_message_user(request.user, recipient):
+        recipient = get_object_or_404(_school_user_queryset(school), pk=recipient_id)
+        if not _can_message_user(request.user, recipient, school=school):
             return Response(
                 {'error': 'You are not allowed to send messages to this recipient.'},
                 status=status.HTTP_403_FORBIDDEN
@@ -169,6 +225,7 @@ class MessageViewSet(viewsets.ModelViewSet):
         message = Message.objects.create(
             sender=request.user,
             recipient=recipient,
+            school=school,
             subject=subject,
             body=body
         )
@@ -183,9 +240,11 @@ class MessageViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def mark_read(self, request, pk=None):
         """Mark a message as read. Returns 404 for invalid or non-existent pk."""
-        from apps.communication.models import Message
+        school, error = _tenant_school_or_response(request)
+        if error is not None:
+            return error
 
-        message = get_object_or_404(Message, pk=pk)
+        message = get_object_or_404(self.get_queryset(), pk=pk, school=school)
         if message.recipient != request.user:
             return Response(
                 {'error': 'Permission denied'},
@@ -200,9 +259,11 @@ class MessageViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def archive(self, request, pk=None):
         """Archive a message"""
-        from apps.communication.models import Message
-        
-        message = get_object_or_404(Message, pk=pk)
+        school, error = _tenant_school_or_response(request)
+        if error is not None:
+            return error
+
+        message = get_object_or_404(self.get_queryset(), pk=pk, school=school)
         if message.recipient != request.user and message.sender != request.user:
             return Response(
                 {'error': 'Permission denied'},
@@ -217,10 +278,13 @@ class MessageViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def mark_all_read(self, request):
         """Mark all unread messages as read"""
-        from apps.communication.models import Message
+        school, error = _tenant_school_or_response(request)
+        if error is not None:
+            return error
         
-        count = Message.objects.filter(
+        count = self.get_queryset().filter(
             recipient=request.user,
+            school=school,
             is_read=False
         ).update(is_read=True)
         
@@ -232,10 +296,13 @@ class MessageViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def unread_count(self, request):
         """Get count of unread messages"""
-        from apps.communication.models import Message
+        school, error = _tenant_school_or_response(request)
+        if error is not None:
+            return error
         
-        count = Message.objects.filter(
+        count = self.get_queryset().filter(
             recipient=request.user,
+            school=school,
             is_read=False
         ).count()
         
@@ -244,9 +311,13 @@ class MessageViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def conversations(self, request):
         """Get list of unique conversations"""
+        school, error = _tenant_school_or_response(request)
+        if error is not None:
+            return error
+
         from apps.communication.models import Message
-        from django.contrib.auth.models import User
-        
+        User = get_user_model()
+
         messages = self.get_queryset()
         
         conversation_users = set()
@@ -256,23 +327,25 @@ class MessageViewSet(viewsets.ModelViewSet):
             else:
                 conversation_users.add(msg.sender_id)
         
-        users = User.objects.filter(id__in=conversation_users).values(
+        users = _school_user_queryset(school).filter(id__in=conversation_users).values(
             'id', 'first_name', 'last_name'
         )
         
         conversations = []
         for user_data in users:
             user_id = user_data['id']
-            user_messages = Message.objects.filter(
+            user_messages = self.get_queryset().filter(
                 Q(sender=request.user, recipient_id=user_id) |
-                Q(sender_id=user_id, recipient=request.user)
+                Q(sender_id=user_id, recipient=request.user),
+                school=school,
             ).order_by('-created_at')
             
             if user_messages.exists():
                 latest = user_messages.first()
-                unread_count = Message.objects.filter(
+                unread_count = self.get_queryset().filter(
                     sender_id=user_id,
                     recipient=request.user,
+                    school=school,
                     is_read=False
                 ).count()
                 
@@ -308,8 +381,12 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         from apps.communication.models import Announcement
+        school = getattr(self.request, "school", None)
+        if school is None:
+            return Announcement.objects.none()
 
         return Announcement.objects.filter(
+            school=school,
             is_active=True,
             status=Announcement.Status.PUBLISHED,
             expiry_date__gte=timezone.now()
@@ -331,6 +408,9 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
         """
         from apps.communication.models import Announcement
         from apps.communication.views_announcements import _can_create_school_wide_announcement
+        school, error = _tenant_school_or_response(request)
+        if error is not None:
+            return error
 
         if not _can_create_school_wide_announcement(request.user):
             return Response(
@@ -346,6 +426,7 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
             announcement_type=request.data.get('announcement_type', 'general'),
             audience=request.data.get('audience', 'all'),
             created_by=request.user,
+            school=school,
             status=Announcement.Status.PUBLISHED,
         )
 
@@ -365,15 +446,13 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def active(self, request):
         """Get active, published announcements for current user."""
-        from apps.communication.models import Announcement
+        school, error = _tenant_school_or_response(request)
+        if error is not None:
+            return error
 
         user = request.user
         now = timezone.now()
-        announcements = Announcement.objects.filter(
-            is_active=True,
-            status=Announcement.Status.PUBLISHED,
-            expiry_date__gte=now
-        ).order_by('-created_at')
+        announcements = self.get_queryset().filter(expiry_date__gte=now).order_by('-created_at')
         
         if user.role == 'STUDENT':
             announcements = announcements.filter(
@@ -395,15 +474,16 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def deactivate(self, request, pk=None):
         """Deactivate an announcement"""
+        school, error = _tenant_school_or_response(request)
+        if error is not None:
+            return error
         if not request.user.is_staff:
             return Response(
                 {'error': 'Permission denied'},
                 status=status.HTTP_403_FORBIDDEN
             )
-        
-        from apps.communication.models import Announcement
-        
-        announcement = get_object_or_404(Announcement, pk=pk)
+
+        announcement = get_object_or_404(self.get_queryset(), pk=pk, school=school)
         announcement.is_active = False
         announcement.save()
         
@@ -429,8 +509,12 @@ class BroadcastAPI(APIView):
             "recipient_group": "all_teachers"  # Alternative to recipients list
         }
         """
+        school, error = _tenant_school_or_response(request)
+        if error is not None:
+            return error
+
         from apps.communication.models import Message
-        from django.contrib.auth.models import User
+        users = _school_user_queryset(school)
         
         recipient_ids = request.data.get('recipients', [])
         recipient_group = request.data.get('recipient_group')
@@ -445,17 +529,19 @@ class BroadcastAPI(APIView):
         
         if recipient_group:
             if recipient_group == 'all_teachers':
-                users = User.objects.filter(role='TEACHER')
+                users = users.filter(role='TEACHER')
             elif recipient_group == 'all_students':
-                users = User.objects.filter(role='STUDENT')
+                users = users.filter(role='STUDENT')
             elif recipient_group == 'all_parents':
-                users = User.objects.filter(role='PARENT')
+                users = users.filter(role='PARENT')
             elif recipient_group == 'all':
-                users = User.objects.all()
+                users = users.all()
             else:
-                users = User.objects.none()
+                users = users.none()
             
-            recipient_ids = users.values_list('id', flat=True)
+            recipient_ids = list(users.values_list('id', flat=True))
+        else:
+            recipient_ids = list(users.filter(id__in=recipient_ids).values_list('id', flat=True))
         
         messages_created = 0
         for recipient_id in recipient_ids:
@@ -463,6 +549,7 @@ class BroadcastAPI(APIView):
                 Message.objects.create(
                     sender=request.user,
                     recipient_id=recipient_id,
+                    school=school,
                     subject=subject,
                     body=body
                 )
@@ -486,24 +573,30 @@ class CommunicationAnalyticsAPI(APIView):
     def get(self, request):
         """Get communication analytics"""
         from apps.communication.models import Message, Announcement
+        school, error = _tenant_school_or_response(request)
+        if error is not None:
+            return error
         
         now = timezone.now()
         week_ago = now - timedelta(days=7)
         month_ago = now - timedelta(days=30)
         
-        messages_total = Message.objects.count()
-        messages_this_week = Message.objects.filter(created_at__gte=week_ago).count()
-        messages_this_month = Message.objects.filter(created_at__gte=month_ago).count()
+        message_queryset = Message.objects.filter(school=school)
+        announcement_queryset = Announcement.objects.filter(school=school)
+
+        messages_total = message_queryset.count()
+        messages_this_week = message_queryset.filter(created_at__gte=week_ago).count()
+        messages_this_month = message_queryset.filter(created_at__gte=month_ago).count()
         
-        unread_messages = Message.objects.filter(is_read=False).count()
+        unread_messages = message_queryset.filter(is_read=False).count()
         
-        active_announcements = Announcement.objects.filter(
+        active_announcements = announcement_queryset.filter(
             is_active=True,
             status=Announcement.Status.PUBLISHED,
             expiry_date__gte=now
         ).count()
         
-        most_active_users = Message.objects.values('sender__first_name', 'sender__last_name').annotate(
+        most_active_users = message_queryset.values('sender__first_name', 'sender__last_name').annotate(
             message_count=Count('id')
         ).order_by('-message_count')[:10]
         

@@ -9,6 +9,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.http import HttpResponseForbidden
 
+from apps.platform_runtime.helpers import get_effective_site_settings
 from .models import Delegation, DelegationActionLog
 from .forms import DelegationForm
 from .delegation import (
@@ -63,8 +64,7 @@ def delegation_add(request):
                 except Exception:
                     pass
                 try:
-                    from apps.siteconfig.models import SiteSettings
-                    site = SiteSettings.get_solo()
+                    site = get_effective_site_settings(request=request)
                     notify = getattr(site, "delegation_notify_delegate_on_start", "off")
                     if notify in ("email", "both") and d.delegate.email:
                         from django.core.mail import send_mail

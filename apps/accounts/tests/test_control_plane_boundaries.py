@@ -1,7 +1,9 @@
-from django.test import RequestFactory, TestCase
+from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
+from django.urls import NoReverseMatch, resolve, reverse
 
 from apps.accounts.models import User
 from apps.accounts.permissions import can_access_module
+from config.admin import platform_admin_site, tenant_admin_site
 from config.schema import schema
 
 
@@ -43,3 +45,20 @@ class ControlPlaneBoundaryTests(TestCase):
         tenant_result = schema.execute(query, context_value=tenant_request)
         self.assertIsNone(tenant_result.data["schoolCount"])
         self.assertEqual(tenant_result.data["schools"], [])
+
+
+class AdminPlaneUrlConfTests(SimpleTestCase):
+    @override_settings(ROOT_URLCONF="config.manager_urls")
+    def test_manager_urlconf_uses_platform_admin_site_without_tenant_namespaces(self):
+        match = resolve("/admin/")
+        self.assertIs(match.func.admin_site, platform_admin_site)
+        with self.assertRaises(NoReverseMatch):
+            reverse("portal:parent_dashboard")
+        with self.assertRaises(NoReverseMatch):
+            reverse("kb:kb_home")
+
+    @override_settings(ROOT_URLCONF="config.tenant_urls")
+    def test_tenant_urlconf_uses_tenant_admin_site_with_tenant_namespaces(self):
+        match = resolve("/admin/")
+        self.assertIs(match.func.admin_site, tenant_admin_site)
+        self.assertTrue(reverse("portal:parent_dashboard").startswith("/portal/"))

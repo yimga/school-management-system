@@ -31,10 +31,12 @@ from apps.finance.receipt_verification import ReceiptVerificationService
 from apps.finance.fraud_detection import ReceiptFraudDetector
 from apps.apicenter.gating import is_integration_allowed
 from apps.people.models import StudentGuardian
-from apps.siteconfig.models import Integration, SiteSettings
+from apps.platform_runtime.helpers import get_effective_flags_for_school
+from apps.siteconfig.models import Integration
 from apps.automation.models import AutomationExecutionLog, AutomationApprovalQueue
 from apps.automation.helpers import get_cached_site_settings, get_current_academic_year, get_current_term, get_notification_channels
 from apps.evals.notifications import NotificationService
+from apps.schools.celery_tasks import _run_with_tenant_context, get_active_school_ids
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +51,26 @@ ALPHA2_TO_ALPHA3_COUNTRY_CODE = {
     "CI": "CIV",
     "SN": "SEN",
 }
+
+
+def _resolve_school(*objects):
+    for obj in objects:
+        if obj is None:
+            continue
+        school = getattr(obj, "school", None)
+        if school is not None:
+            return school
+        invoice = getattr(obj, "invoice", None)
+        if invoice is not None:
+            school = getattr(invoice, "school", None) or getattr(getattr(invoice, "student", None), "school", None)
+            if school is not None:
+                return school
+        student = getattr(obj, "student", None)
+        if student is not None:
+            school = getattr(student, "school", None)
+            if school is not None:
+                return school
+    return None
 
 
 def _get_payment_instructions(invoice: Invoice) -> dict:
@@ -128,15 +150,11 @@ def _send_payment_email(to_email: str, subject: str, body: str, integration: Int
     email.send(fail_silently=True)
 
 
-def _split_late_fee_policy() -> dict:
+def _split_late_fee_policy(*, school=None) -> dict:
     """
     Config lives in SiteSettings.backend_feature_flags to avoid hardcoding.
     """
-    flags = {}
-    try:
-        flags = (SiteSettings.get_solo().backend_feature_flags or {}).copy()
-    except Exception:
-        flags = {}
+    flags = get_effective_flags_for_school(school)
     return {
         "enabled": bool(flags.get("finance_split_late_fee_enabled", False)),
         "grace_days": max(int(flags.get("finance_split_late_fee_grace_days", 3) or 0), 0),
@@ -173,25 +191,31 @@ def run_split_late_fees(dry_run: bool = False) -> dict:
     """
     now = timezone.now()
     today = timezone.localdate()
-    policy = _split_late_fee_policy()
-    if not policy["enabled"]:
-        return {"status": "disabled", "applied": 0, "total_fee": Decimal("0.00"), "dry_run": dry_run}
-
-    threshold = today - timedelta(days=policy["grace_days"])
     shares = list(
         InvoicePayerShare.objects.filter(
             is_active=True,
-            due_date__lt=threshold,
+            due_date__lt=today,
         )
         .exclude(status=InvoicePayerShare.Status.PAID)
-        .select_related("invoice", "guardian", "guardian__guardian_user")
+        .select_related("invoice", "invoice__school", "invoice__student", "guardian", "guardian__guardian_user")
     )
     if not shares:
         return {"status": "ok", "applied": 0, "total_fee": Decimal("0.00"), "checked": 0, "dry_run": dry_run}
 
     applied = 0
+    checked = 0
     total_fee = Decimal("0.00")
+    any_enabled = False
     for share in shares:
+        school = _resolve_school(share, share.invoice)
+        policy = _split_late_fee_policy(school=school)
+        if not policy["enabled"]:
+            continue
+        any_enabled = True
+        threshold = today - timedelta(days=policy["grace_days"])
+        if not share.due_date or share.due_date >= threshold:
+            continue
+        checked += 1
         if share.outstanding_amount <= Decimal("0.00"):
             share.refresh_status()
             continue
@@ -224,19 +248,14 @@ def run_split_late_fees(dry_run: bool = False) -> dict:
         applied += 1
         total_fee += fee
 
+    if not any_enabled:
+        return {"status": "disabled", "applied": 0, "total_fee": Decimal("0.00"), "dry_run": dry_run}
     return {
         "status": "ok",
         "applied": applied,
-        "checked": len(shares),
+        "checked": checked,
         "total_fee": total_fee.quantize(Decimal("0.01")),
         "dry_run": dry_run,
-        "policy": {
-            "mode": policy["mode"],
-            "grace_days": policy["grace_days"],
-            "percent": str(policy["percent"]),
-            "fixed_amount": str(policy["fixed_amount"]),
-            "cap_percent": str(policy["cap_percent"]),
-        },
     }
 
 
@@ -268,6 +287,8 @@ def run_payment_reminders(dry_run: bool = False) -> dict:
             continue
         try:
             invoice = reminder.invoice
+            invoice_school = _resolve_school(invoice)
+            site = get_cached_site_settings(school=invoice_school)
             guardian_share_map = {}
             invoice_shares = list(
                 invoice.payer_shares.filter(is_active=True)
@@ -330,7 +351,7 @@ def run_payment_reminders(dry_run: bool = False) -> dict:
                 )
                 if not has_contact:
                     no_contact_action = getattr(
-                        SiteSettings.get_solo(),
+                        site,
                         "finance_reminder_no_contact_action",
                         "warn_only",
                     )
@@ -459,9 +480,8 @@ def run_payment_reminders(dry_run: bool = False) -> dict:
     return {"sent": sent_count, "count": len(reminders), "channels": channel_counts}
 
 
-@shared_task(bind=True, name="finance.send_payment_reminders")
-def send_payment_reminders_task(self, dry_run: bool = False) -> dict:
-    """Celery task: send payment reminders for upcoming invoice due dates. Set dry_run=True to log what would be sent without sending."""
+def _send_payment_reminders_body(dry_run: bool) -> dict:
+    """Inner body: run inside tenant context."""
     execution_log = AutomationExecutionLog.objects.create(
         task_name="finance.send_payment_reminders",
         execution_type=AutomationExecutionLog.ExecutionType.DRY_RUN if dry_run else AutomationExecutionLog.ExecutionType.SCHEDULED,
@@ -487,6 +507,21 @@ def send_payment_reminders_task(self, dry_run: bool = False) -> dict:
         raise
 
 
+@shared_task(bind=True, name="finance.send_payment_reminders")
+def send_payment_reminders_task(self, dry_run: bool = False, school_id: str | None = None) -> dict:
+    """Celery task: send payment reminders for upcoming invoice due dates. Runs in tenant context (per school_id or all active schools)."""
+    if school_id:
+        return _run_with_tenant_context(school_id=school_id, runnable=lambda: _send_payment_reminders_body(dry_run))
+    totals = {"sent": 0, "count": 0, "channels": {}, "dry_run": dry_run}
+    for sid in get_active_school_ids():
+        result = _run_with_tenant_context(school_id=sid, runnable=lambda d=dry_run: _send_payment_reminders_body(d))
+        totals["sent"] += result.get("sent", 0)
+        totals["count"] += result.get("count", 0)
+        for k, v in (result.get("channels") or {}).items():
+            totals["channels"][k] = totals["channels"].get(k, 0) + v
+    return totals
+
+
 @shared_task(bind=True, name="finance.retry_failed_payment_reminders")
 def retry_failed_payment_reminders_task(self, dry_run: bool = False) -> dict:
     """
@@ -502,27 +537,26 @@ def retry_failed_payment_reminders_task(self, dry_run: bool = False) -> dict:
         status=AutomationExecutionLog.Status.PENDING,
     )
     try:
-        site = SiteSettings.get_solo()
-        retry_hours = getattr(site, "finance_reminder_retry_failed_hours", 24) or 0
-        max_retries = getattr(site, "finance_reminder_max_retries", 2) or 0
-        if retry_hours <= 0:
-            execution_log.mark_completed(
-                AutomationExecutionLog.Status.SUCCESS,
-                summary={"message": "Retry disabled (retry_hours <= 0)", "dry_run": dry_run},
-            )
-            return {"reset": 0, "dry_run": dry_run}
-
-        cutoff = timezone.now() - timedelta(hours=retry_hours)
         reminder_ids_with_old_failure = set(
-            PaymentReminderLog.objects.filter(status="FAILED", sent_at__lte=cutoff)
+            PaymentReminderLog.objects.filter(status="FAILED")
             .values_list("reminder_id", flat=True)
             .distinct()
         )
         reset_count = 0
         for reminder_id in reminder_ids_with_old_failure:
-            reminder = PaymentReminder.objects.filter(id=reminder_id, is_active=True).first()
+            reminder = (
+                PaymentReminder.objects.filter(id=reminder_id, is_active=True)
+                .select_related("invoice", "invoice__school", "invoice__student")
+                .first()
+            )
             if not reminder:
                 continue
+            site = get_cached_site_settings(school=_resolve_school(reminder))
+            retry_hours = getattr(site, "finance_reminder_retry_failed_hours", 24) or 0
+            max_retries = getattr(site, "finance_reminder_max_retries", 2) or 0
+            if retry_hours <= 0:
+                continue
+            cutoff = timezone.now() - timedelta(hours=retry_hours)
             last_log = reminder.logs.order_by("-sent_at").first()
             if not last_log or last_log.status != "FAILED" or last_log.sent_at > cutoff:
                 continue
@@ -1026,7 +1060,7 @@ def process_payment_receipt_upload_task(self, proof_upload_id: int) -> dict:
         proof_upload.save(update_fields=["status"])
         
         # Get SiteSettings
-        site_settings = get_cached_site_settings()
+        site_settings = get_cached_site_settings(school=_resolve_school(proof_upload))
         verification_method = getattr(site_settings, "finance_receipt_verification_method", "pattern")
         auto_apply_threshold = float(getattr(site_settings, "finance_receipt_auto_apply_threshold", 0.9))
         auto_apply_enabled = getattr(site_settings, "finance_receipt_auto_apply_enabled", True)
@@ -1090,8 +1124,7 @@ def process_payment_receipt_upload_task(self, proof_upload_id: int) -> dict:
         )
 
         # Run bank deposit verification (if enabled)
-        from apps.siteconfig.models import SiteSettings
-        site_settings = SiteSettings.get_solo()
+        site_settings = get_cached_site_settings(school=_resolve_school(proof_upload))
         if getattr(site_settings, "finance_bank_verification_enabled", True):
             from apps.finance.bank_verification import BankDepositVerifier
             verifier = BankDepositVerifier()
@@ -1399,11 +1432,7 @@ def retry_bank_verification_task(self, days_old: int = 30) -> dict:
     try:
         from apps.finance.bank_verification import BankDepositVerifier
         from apps.finance.models import BankAccount, BankStatementEntry
-        from apps.siteconfig.models import SiteSettings
-
         verifier = BankDepositVerifier()
-        site_settings = SiteSettings.get_solo()
-        tolerance_days = int(getattr(site_settings, "finance_bank_verification_tolerance_days", 7))
 
         # Get receipts that failed bank verification and are old enough
         cutoff_date = timezone.now() - timedelta(days=days_old)
@@ -1424,6 +1453,8 @@ def retry_bank_verification_task(self, days_old: int = 30) -> dict:
 
         for receipt_upload in pending_receipts:
             try:
+                site_settings = get_cached_site_settings(school=_resolve_school(receipt_upload))
+                tolerance_days = int(getattr(site_settings, "finance_bank_verification_tolerance_days", 7))
                 # Get relevant bank accounts
                 if receipt_upload.payment_method == "BANK":
                     accounts = BankAccount.objects.filter(

@@ -3,8 +3,8 @@ from django.utils.translation import gettext_lazy as _
 import re
 
 from apps.people.models import StudentGuardian, StudentProfile, TeacherLeaveRequest
+from apps.platform_runtime.helpers import get_effective_site_settings
 from .models import LessonPlan, LessonPlanAttachment, TeacherTrainingEntry, AttendanceJustification, CahierDeTexteEntry
-from apps.siteconfig.models import SiteSettings
 from apps.academics.models import Term, AcademicYear
 
 
@@ -127,11 +127,13 @@ class LinkChildForm(forms.Form):
         self.guardian_user = kwargs.pop("guardian_user", None)
         policy = kwargs.pop("policy", None)
         school = kwargs.pop("school", None)
+        self.school = school
         school_code = kwargs.pop("school_code", None)
         if not school_code and policy:
             school_code = (policy.get("admissions") or {}).get("school_code")
         if not school_code:
-            school_code = _default_school_code(school) or getattr(SiteSettings.get_solo(), "school_code", None) or "SCH"
+            site = get_effective_site_settings(school=school)
+            school_code = _default_school_code(school) or getattr(site, "school_code", None) or "SCH"
         super().__init__(*args, **kwargs)
         # Populate dynamic term choices from active academic year
         active_year = AcademicYear.objects.filter(is_active=True).first()
@@ -627,7 +629,7 @@ class StudentOnboardingForm(forms.Form):
 
             admissions = self._admissions_policy
             if not admissions:
-                site = SiteSettings.get_solo()
+                site = get_effective_site_settings(school=getattr(self, "school", None))
                 admissions = {
                     "admission_number_mode": getattr(site, "admission_number_mode", "AUTO_OR_MANUAL"),
                     "admission_number_pattern": (getattr(site, "admission_number_pattern", None) or "") or "",

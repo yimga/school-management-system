@@ -13,12 +13,12 @@ def on_attendance_saved(sender, instance, created, **kwargs):
     if instance.status != Attendance.Status.ABSENT:
         return
     try:
-        from apps.siteconfig.models import SiteSettings
+        from apps.platform_runtime.helpers import get_effective_flags_for_school
         from apps.people.models import StudentGuardian
         from apps.finance.models import Notification as FinanceNotification
 
-        site = SiteSettings.get_solo()
-        flags = getattr(site, "backend_feature_flags", None) or {}
+        school = getattr(instance.student, "school", None)
+        flags = get_effective_flags_for_school(school) or {}
         if not flags.get("notify_parent_on_absence", False):
             return
 

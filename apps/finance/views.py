@@ -41,8 +41,7 @@ from django.template.loader import render_to_string
 
 from apps.academics.models import AcademicYear
 from apps.payroll.models import Payslip
-from apps.platform_runtime.helpers import get_effective_flags
-from apps.siteconfig.models import SiteSettings, default_backend_feature_flags
+from apps.platform_runtime.helpers import get_effective_flags, get_effective_site_settings
 from apps.accounts.utils import get_dashboard_context
 from apps.evals.notifications import NotificationService
 
@@ -93,26 +92,25 @@ from apps.communication.models import Message
 logger = logging.getLogger(__name__)
 
 
-def _active_profile() -> ComplianceProfile | None:
-    site = SiteSettings.get_solo()
+def _active_profile(request: HttpRequest | None = None) -> ComplianceProfile | None:
+    site = get_effective_site_settings(request=request)
     if getattr(site, "compliance_profile", None):
         return site.compliance_profile
     return ComplianceProfile.objects.filter(is_active=True).first()
 
 
-def _backend_flags() -> dict:
+def _backend_flags(request: HttpRequest | None = None) -> dict:
     """
     Convenience wrapper to merge default backend flags with saved settings.
     Safe for use in early request handling where DB might be missing values.
     """
     try:
-        site = SiteSettings.get_solo()
-        return {**default_backend_feature_flags(), **(site.backend_feature_flags or {})}
+        return get_effective_flags(request)
     except Exception:
-        return default_backend_feature_flags()
+        return {}
 
 
-def _finance_access_state(user) -> dict:
+def _finance_access_state(user, request: HttpRequest | None = None) -> dict:
     """
     Snapshot of finance access for a guardian user.
     Returns counts, whether opt-in is required, and whether requests are allowed.
@@ -120,7 +118,7 @@ def _finance_access_state(user) -> dict:
     from apps.accounts.permissions import _guardian_finance_qs
     from apps.people.models import StudentGuardian
 
-    flags = _backend_flags()
+    flags = _backend_flags(request)
     guardian_qs = StudentGuardian.objects.filter(guardian_user=user)
     finance_qs = _guardian_finance_qs(user) if getattr(user, "is_authenticated", False) else StudentGuardian.objects.none()
     return {
@@ -166,7 +164,7 @@ def _create_finance_request_notification(
 
 @staff_member_required
 def dashboard(request: HttpRequest):
-    profile = _active_profile()
+    profile = _active_profile(request)
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
 
@@ -268,8 +266,8 @@ def invoice_list(request: HttpRequest):
     """
     from apps.accounts.models import User
     from apps.accounts.permissions import _guardian_finance_qs
-    access_state = _finance_access_state(request.user)
-    profile = _active_profile()
+    access_state = _finance_access_state(request.user, request)
+    profile = _active_profile(request)
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
 
@@ -364,7 +362,7 @@ def invoice_list(request: HttpRequest):
             f"<td>{_d(inv.issued_date)}</td></tr>"
             for inv in ordered_qs[:500]
         )
-        site = SiteSettings.get_solo()
+        site = get_effective_site_settings(request=request)
         title = getattr(site, "site_name", None) or "Invoices"
         html = f"""<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Invoices</title>
 <style>body{{font-family:system-ui,sans-serif;font-size:10pt;margin:12mm;}}
@@ -445,7 +443,7 @@ th{{background:#f5f5f5;}} .header{{margin-bottom:12px;}}</style></head>
 
 @staff_member_required
 def payment_list(request: HttpRequest):
-    profile = _active_profile()
+    profile = _active_profile(request)
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
 
@@ -513,7 +511,7 @@ def payment_list(request: HttpRequest):
             f"<td>{pay.receipt_number or ''}</td></tr>"
             for pay in ordered_qs[:500]
         )
-        site = SiteSettings.get_solo()
+        site = get_effective_site_settings(request=request)
         title = getattr(site, "site_name", None) or "Payments"
         html = f"""<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Payments</title>
 <style>body{{font-family:system-ui,sans-serif;font-size:10pt;margin:12mm;}}
@@ -569,7 +567,7 @@ def cash_office_closure(request: HttpRequest):
     - Recomputes cash collected from completed CASH payments for the selected day.
     - Stores opening cash, deposited amount, physical cash on hand, and discrepancy.
     """
-    profile = _active_profile()
+    profile = _active_profile(request)
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
 
@@ -656,7 +654,7 @@ def split_allocation(request: HttpRequest):
     """
     from apps.people.models import StudentProfile, StudentGuardian
 
-    profile = _active_profile()
+    profile = _active_profile(request)
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
 
@@ -757,15 +755,15 @@ def scan_teller_placeholder(request: HttpRequest):
     OCR scan helper for physical teller / receipt uploads.
     Extracts amount/reference/date and suggests matching suspense transactions.
     """
-    flags = _backend_flags()
+    flags = _backend_flags(request)
     if not flags.get("enable_ocr_scan_teller"):
         return HttpResponseForbidden("Scan Teller is disabled in Feature Control.")
 
-    profile = _active_profile()
+    profile = _active_profile(request)
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
 
-    site = SiteSettings.get_solo()
+    site = get_effective_site_settings(request=request)
     verification_method = getattr(site, "finance_receipt_verification_method", "pattern") or "pattern"
     ocr_runtime_status = get_ocr_runtime_status(
         verification_method,
@@ -855,7 +853,7 @@ SESSION_KEY_LAST_GENERATED_INVOICE_IDS = "finance_last_generated_invoice_ids"
 
 @staff_member_required
 def generate_fees(request: HttpRequest):
-    profile = _active_profile()
+    profile = _active_profile(request)
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
 
@@ -893,7 +891,7 @@ def notify_guardians_new_invoices(request: HttpRequest):
     total = notify_guardians_new_invoices_bulk(
         invoice_ids,
         created_by=request.user,
-        send_email=getattr(SiteSettings.get_solo(), "finance_notify_new_invoice_email", False),
+        send_email=getattr(get_effective_site_settings(request=request), "finance_notify_new_invoice_email", False),
     )
     messages.success(request, f"Notifications sent to {total} guardian(s) for the new invoices.")
     return redirect("finance:invoices")
@@ -901,7 +899,7 @@ def notify_guardians_new_invoices(request: HttpRequest):
 
 @staff_member_required
 def trial_balance(request: HttpRequest):
-    profile = _active_profile()
+    profile = _active_profile(request)
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
 
@@ -943,8 +941,8 @@ def invoice_detail(request: HttpRequest, invoice_id: int):
     from apps.accounts.models import User
     from apps.people.models import StudentGuardian
 
-    access_state = _finance_access_state(request.user)
-    profile = _active_profile()
+    access_state = _finance_access_state(request.user, request)
+    profile = _active_profile(request)
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
 
@@ -1088,9 +1086,8 @@ def upload_payment_receipt(request: HttpRequest, invoice_id: int):
     from apps.accounts.permissions import can_view_invoice
     from apps.accounts.models import User
     from apps.people.models import StudentGuardian
-    from apps.siteconfig.models import SiteSettings
     
-    profile = _active_profile()
+    profile = _active_profile(request)
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
     
@@ -1117,7 +1114,7 @@ def upload_payment_receipt(request: HttpRequest, invoice_id: int):
         return redirect("finance:invoice_detail", invoice_id=invoice.id)
     
     # Get SiteSettings for receipt upload configuration
-    site_settings = SiteSettings.get_solo()
+    site_settings = get_effective_site_settings(request=request)
     if not getattr(site_settings, "finance_receipt_upload_enabled", True):
         messages.error(request, "Receipt upload is currently disabled.")
         return redirect("finance:invoice_detail", invoice_id=invoice.id)
@@ -1347,7 +1344,7 @@ def request_finance_access(request: HttpRequest, invoice_id: int | None = None):
     from apps.accounts.models import User
     from apps.people.models import StudentGuardian, StudentProfile
 
-    flags = _backend_flags()
+    flags = _backend_flags(request)
     if not flags.get("allow_finance_access_requests", True):
         return HttpResponseForbidden("Finance access requests are disabled by the administrator.")
 
@@ -1395,7 +1392,7 @@ def request_finance_access(request: HttpRequest, invoice_id: int | None = None):
         )
 
         notifier = NotificationService()
-        site = SiteSettings.get_solo()
+        site = get_effective_site_settings(request=request)
         channels = getattr(site, "notification_channels", []) or []
         from_email = getattr(site, "email_from_address", None) or getattr(settings, "DEFAULT_FROM_EMAIL", None)
 
@@ -1540,7 +1537,7 @@ def request_finance_access(request: HttpRequest, invoice_id: int | None = None):
         )
 
     # Optional email/SMS alerts based on site notification channels
-    site = SiteSettings.get_solo()
+    site = get_effective_site_settings(request=request)
     channels = getattr(site, "notification_channels", []) or []
     from_email = getattr(site, "email_from_address", None) or getattr(settings, "DEFAULT_FROM_EMAIL", None)
     if "email" in channels and from_email:
@@ -1616,8 +1613,8 @@ def finance_access_bulk(request: HttpRequest):
     pending_count = pending_qs.count()
     granted = 0
 
-    flags = _backend_flags()
-    site = SiteSettings.get_solo()
+    flags = _backend_flags(request)
+    site = get_effective_site_settings(request=request)
     channels = getattr(site, "notification_channels", []) or []
     from_email = getattr(site, "email_from_address", None) or getattr(settings, "DEFAULT_FROM_EMAIL", None)
     notifier = NotificationService()
@@ -1699,7 +1696,7 @@ def finance_access_bulk(request: HttpRequest):
 
 @staff_member_required
 def invoice_receipt(request: HttpRequest, invoice_id: int, payment_id: int | None = None):
-    profile = _active_profile()
+    profile = _active_profile(request)
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
 
@@ -2066,7 +2063,7 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
 
 @staff_member_required
 def finance_reports(request: HttpRequest):
-    profile = _active_profile()
+    profile = _active_profile(request)
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
     start = parse_date(request.GET.get("start") or "")
@@ -2120,7 +2117,7 @@ def finance_reports(request: HttpRequest):
 
 @staff_member_required
 def submit_report_request(request: HttpRequest):
-    profile = _active_profile()
+    profile = _active_profile(request)
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
 
@@ -2154,7 +2151,7 @@ def submit_report_request(request: HttpRequest):
 
 @staff_member_required
 def notifications(request: HttpRequest):
-    profile = _active_profile()
+    profile = _active_profile(request)
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
 

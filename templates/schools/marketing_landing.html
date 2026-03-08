@@ -1,6 +1,6 @@
 {% extends "schools/marketing_base.html" %}
 {% load static i18n %}
-{% block title %}{{ seo_title|default:"RunMyCampus - The Operating System for Modern Schools" }}{% endblock %}
+{% block title %}{{ seo_title|default:"RunMyCampus - The Global Operating System for Education" }}{% endblock %}
 {% block extrahead %}
   <meta name="description" content="{{ seo_description|default:'One platform for admissions, academics, finance, communication, and compliance. Run your campus with clarity and scale.' }}">
   {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
@@ -19,11 +19,13 @@
     <div class="container d-flex align-items-center justify-content-between gap-2 flex-wrap py-2">
       <span class="text-white small fw-medium">{% trans "Ready to run your campus?" %}</span>
       <div class="d-flex gap-2">
-        <a href="{% url 'signup_school' %}" class="btn btn-sm btn-primary">{% trans "Start Free Trial" %}</a>
-        <a href="{% url 'marketing_book_demo' %}" class="btn btn-sm btn-outline-light">{% trans "Book a demo" %}</a>
+        <a href="{% url 'signup_school' %}" class="btn btn-sm btn-primary" data-cta="primary" data-page="home">{% trans "Start Free Trial" %}</a>
+        <a href="{% url 'marketing_book_demo' %}" class="btn btn-sm btn-outline-light" data-cta="demo" data-page="home">{% trans "Book a demo" %}</a>
       </div>
     </div>
   </div>
+
+  {# 1. Hero #}
   <section id="hero" class="mkt-hero" tabindex="-1">
     <div class="mkt-hero-inner">
       <div>
@@ -34,7 +36,7 @@
         {% endif %}
         <div class="mkt-hero-ctas">
           {% for cta in hero_ctas %}
-            <a href="{{ cta.url }}" class="btn {% if cta.primary %}btn-primary{% else %}btn-outline-light{% endif %}">{% trans cta.label %}</a>
+            <a href="{{ cta.url }}" class="btn {% if cta.primary %}btn-primary{% else %}btn-outline-light{% endif %}" data-cta="{% if cta.primary %}primary{% else %}secondary{% endif %}" data-page="home">{% trans cta.label %}</a>
           {% endfor %}
           {% if demo_tenant_url %}
             <a href="{{ demo_tenant_url }}" class="btn btn-outline-light" target="_blank" rel="noopener">{% trans "Try demo" %}</a>
@@ -42,27 +44,27 @@
         </div>
       </div>
       <div class="mkt-hero-visual">
-        {% static 'images/runmycampus-logo.png' as hero_image %}
         <img src="{% if hero_dashboard_image_url %}{{ hero_dashboard_image_url }}{% else %}{% static 'images/runmycampus-logo.png' %}{% endif %}" alt="RunMyCampus dashboard overview" width="800" height="450" decoding="async" fetchpriority="high">
       </div>
     </div>
   </section>
 
-  <section id="social-proof" class="mkt-trust-band" aria-label="Trusted by schools">
-    <p class="mkt-trust-band-heading">{% trans "Trusted by schools worldwide" %}</p>
-    <div class="mkt-trust-logos">
-      {% for logo in trust_logos %}
-        <div class="mkt-trust-logo" aria-hidden="true">
-          {% if logo.image_url %}
-            <img src="{{ logo.image_url }}" alt="" width="120" height="32" loading="lazy" decoding="async">
-          {% else %}
-            <span class="text-muted small">{{ logo.name }}</span>
-          {% endif %}
-        </div>
+  {# 2. Institutional coverage #}
+  <section id="institutional-coverage" class="mkt-section" aria-label="{% trans 'Institutional coverage' %}">
+    <h2 class="mkt-section-heading">{% trans "Built for every type of institution" %}</h2>
+    <p class="mkt-section-lead">{% trans "K-12, higher ed, technical, private, and government education—one platform." %}</p>
+    <div class="mkt-modules-grid">
+      {% for inst in institution_types %}
+        <article class="mkt-module-card">
+          <h3>{{ inst.label }}</h3>
+          <p>{{ inst.summary }}</p>
+          <a href="{{ inst.path }}" class="btn btn-sm btn-outline-primary">{% trans "Explore" %}</a>
+        </article>
       {% endfor %}
     </div>
   </section>
 
+  {# 3. Platform modules #}
   <section id="platform-overview" class="mkt-section">
     <h2 class="mkt-section-heading">{% trans "Everything you need to run your school" %}</h2>
     <p class="mkt-section-lead">{% trans "Admissions, academics, finance, communication, and compliance in one platform." %}</p>
@@ -79,29 +81,32 @@
     </div>
   </section>
 
-  <section id="product-demo" class="mkt-section">
-    <h2 class="mkt-section-heading">{% trans "See the platform in action" %}</h2>
-    <p class="mkt-section-lead">{% trans "One place for admins, teachers, parents, and students." %}</p>
-    <div class="mkt-product-demo">
-      <div class="mkt-product-demo-visual">
-        <img src="{% if product_demo_image_url %}{{ product_demo_image_url }}{% else %}{% static 'images/runmycampus-logo.png' %}{% endif %}" alt="Product overview" width="960" height="540" loading="lazy" decoding="async">
-      </div>
-    </div>
-  </section>
-
-  <section id="platform-architecture" class="mkt-section">
-    <h2 class="mkt-section-heading">{% trans "Built for how schools actually work" %}</h2>
-    <p class="mkt-section-lead">{% trans "Workflows, dashboards, and extensions in one coherent system." %}</p>
+  {# 4. Workflow automation #}
+  <section id="workflow-automation" class="mkt-section" aria-label="{% trans 'Workflow automation' %}">
+    <h2 class="mkt-section-heading">{% trans "Workflow automation" %}</h2>
+    <p class="mkt-section-lead">{% trans "From enquiry to graduation—configurable flows without custom code." %}</p>
     <div class="mkt-platform-grid">
-      {% for card in platform_cards %}
+      {% for item in workflow_automation %}
         <article class="mkt-platform-card">
-          <h3>{{ card.title }}</h3>
-          <p>{{ card.summary }}</p>
+          <h3>{{ item.title }}</h3>
+          <p>{{ item.body }}</p>
         </article>
       {% endfor %}
     </div>
   </section>
 
+  {# 5. Global compliance #}
+  <section id="global-compliance" class="mkt-section" aria-label="{% trans 'Global compliance' %}">
+    <h2 class="mkt-section-heading">{% trans "Global compliance" %}</h2>
+    <p class="mkt-section-lead">{% trans "Regional defaults, audit trails, and role-based access—ready for FERPA, GDPR, and local regulations." %}</p>
+    <ul class="mkt-migration-list">
+      {% for item in trust_controls %}
+        <li>{{ item }}</li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  {# 6. Migration angle #}
   <section id="migration" class="mkt-section">
     <h2 class="mkt-section-heading">{% trans "Migrate with confidence" %}</h2>
     <p class="mkt-section-lead">{% trans "Move from spreadsheets or legacy systems with guided setup and support. 195+ country-ready profiles, multi-currency, and data residency options." %}</p>
@@ -119,6 +124,7 @@
     </div>
   </section>
 
+  {# 7. Marketplace ecosystem #}
   <section id="ecosystem" class="mkt-section">
     <h2 class="mkt-section-heading">{% trans "Ecosystem & integrations" %}</h2>
     <p class="mkt-section-lead">{% trans "Connect your LMS, payments, messaging, and identity providers." %}</p>
@@ -136,6 +142,16 @@
     </p>
   </section>
 
+  {# 8. Developer platform #}
+  <section id="developer-platform" class="mkt-section" aria-label="{% trans 'Developer platform' %}">
+    <h2 class="mkt-section-heading">{{ developer_platform_card.title }}</h2>
+    <p class="mkt-section-lead">{{ developer_platform_card.summary }}</p>
+    <p class="text-center">
+      <a href="{{ developer_platform_card.cta_path }}" class="btn btn-outline-primary">{{ developer_platform_card.cta_label }}</a>
+    </p>
+  </section>
+
+  {# 9. Customer stories / testimonials #}
   <section id="customer-stories" class="mkt-section">
     <h2 class="mkt-section-heading">{% trans "What schools say about RunMyCampus" %}</h2>
     <p class="mkt-section-lead">{% trans "Outcomes from real operations teams." %}</p>
@@ -154,6 +170,27 @@
     </p>
   </section>
 
+  {# 10. Pricing snapshot #}
+  <section id="pricing-snapshot" class="mkt-section" aria-label="{% trans 'Pricing' %}">
+    <h2 class="mkt-section-heading">{% trans "Plans that scale with you" %}</h2>
+    <p class="mkt-section-lead">{% trans "From single-campus to enterprise white-label." %}</p>
+    <div class="mkt-platform-grid">
+      {% for plan in pricing_snapshot %}
+        <article class="mkt-platform-card">
+          <h3>{{ plan.plan }}</h3>
+          <p class="text-muted small mb-2">{{ plan.tagline }}</p>
+          <ul class="small mb-2">
+            {% for bullet in plan.highlights %}
+              <li>{{ bullet }}</li>
+            {% endfor %}
+          </ul>
+          <a href="{{ plan.cta_path }}" class="btn btn-sm btn-primary">{{ plan.cta_label }}</a>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  {# 11. Trust + security #}
   <section id="security-compliance" class="mkt-section">
     <h2 class="mkt-section-heading">{% trans "Security & compliance" %}</h2>
     <p class="mkt-section-lead">{% trans "Enterprise-grade safeguards and regional compliance readiness." %}</p>
@@ -168,25 +205,15 @@
     </p>
   </section>
 
+  {# 12. Final CTA #}
   <section id="final-cta" class="mkt-final-cta" aria-label="{% trans 'Call to action' %}">
     <h2 class="mkt-section-heading">{{ final_cta_headline }}</h2>
     <div class="mkt-hero-ctas">
-      <a href="{% url 'signup_school' %}" class="btn btn-primary mkt-cta-focus">{% trans "Start Free Trial" %}</a>
-      <a href="{% url 'marketing_book_demo' %}" class="btn btn-outline-light mkt-cta-focus">{% trans "Book a Demo" %}</a>
+      <a href="{% url 'signup_school' %}" class="btn btn-primary mkt-cta-focus" data-cta="primary" data-page="home">{% trans "Start Free Trial" %}</a>
+      <a href="{% url 'marketing_book_demo' %}" class="btn btn-outline-light mkt-cta-focus" data-cta="demo" data-page="home">{% trans "Book a Demo" %}</a>
       <a href="{% url 'global_login_discovery' %}" class="btn btn-outline-light mkt-cta-focus">{% trans "Login" %}</a>
     </div>
   </section>
-
-  <footer class="mkt-section border-top pt-4 mt-4 text-center text-muted small">
-    <p class="mb-1">
-      <a href="{% url 'marketing_privacy' %}">{% trans "Privacy Policy" %}</a>
-      <span class="mx-2">|</span>
-      <a href="{% url 'marketing_terms' %}">{% trans "Terms of Service" %}</a>
-      <span class="mx-2">|</span>
-      <a href="{% url 'marketing_cookie_policy' %}">{% trans "Cookie Policy" %}</a>
-    </p>
-    <p class="mb-0">{% trans "Made with ❤️ by RunMyCampus" %} · © {% now "Y" %} RunMyCampus</p>
-  </footer>
 </div>
 <script>
 (function () {

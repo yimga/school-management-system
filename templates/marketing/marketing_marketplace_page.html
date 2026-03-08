@@ -1,0 +1,44 @@
+{% extends "marketing/base_marketing.html" %}
+{% load i18n %}
+{% block title %}{{ seo_title|default:"Marketplace" }}{% endblock %}
+{% block extrahead %}
+  <meta name="description" content="{{ seo_description|default:'' }}">
+  {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
+  {% if structured_data_json %}<script type="application/ld+json">{{ structured_data_json|safe }}</script>{% endif %}
+{% endblock %}
+{% block content %}
+<section class="container py-4 py-lg-5 page-stack">
+  <h1 class="display-6 fw-bold mb-3">{{ page.headline }}</h1>
+  <p class="lead text-muted mb-4">{{ page.subheadline }}</p>
+
+  {% if page.apps_copy %}
+  <section class="section-shell" aria-label="{% trans 'Apps' %}">
+    <h2 class="section-heading">{% trans "Apps" %}</h2>
+    <p class="section-lead mb-0">{{ page.apps_copy }}</p>
+    <a href="{% url 'marketing_app_marketplace' %}" class="btn btn-sm btn-outline-primary mt-2">{% trans "App marketplace" %}</a>
+  </section>
+  {% endif %}
+
+  {% if page.integrations_copy %}
+  <section class="section-shell" aria-label="{% trans 'Integrations' %}">
+    <h2 class="section-heading">{% trans "Integrations" %}</h2>
+    <p class="section-lead mb-0">{{ page.integrations_copy }}</p>
+    <a href="{% url 'marketing_integrations' %}" class="btn btn-sm btn-outline-primary mt-2">{% trans "Integrations" %}</a>
+  </section>
+  {% endif %}
+
+  {% if page.partners_copy %}
+  <section class="section-shell" aria-label="{% trans 'Partners' %}">
+    <h2 class="section-heading">{% trans "Partners" %}</h2>
+    <p class="section-lead mb-0">{{ page.partners_copy }}</p>
+  </section>
+  {% endif %}
+
+  <section class="section-shell border-0 bg-transparent pt-0">
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{% url 'signup_school' %}" class="btn btn-primary" data-cta="primary" data-page="marketplace">{% trans "Start free trial" %}</a>
+      <a href="{% url 'marketing_book_demo' %}" class="btn btn-outline-primary" data-cta="demo" data-page="marketplace">{% trans "Book demo" %}</a>
+    </div>
+  </section>
+</section>
+{% endblock %}

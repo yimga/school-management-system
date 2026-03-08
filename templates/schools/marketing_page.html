@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "marketing/base_marketing.html" %}
 {% load i18n static %}
 {% block body_class %}marketing-surface{% endblock %}
 {% block title %}{{ seo_title|default:"RunMyCampus" }}{% endblock %}
@@ -12,7 +12,6 @@
 {% endblock %}
 {% block extrastyle %}
   {{ block.super }}
-  <link rel="stylesheet" href="{% static 'css/marketing-home.css' %}">
   <style>
     .page-stack {
       display: grid;
@@ -303,14 +302,14 @@
       <h1 class="detail-headline">{{ page.headline }}</h1>
       <p class="detail-subheadline">{{ page.subheadline }}</p>
       <div class="hero-cta">
-        <a href="{% url 'marketing_book_demo' %}" class="btn btn-light">{% trans "Book demo" %}</a>
-        <a href="{% url 'signup_school' %}" class="btn btn-outline-light">{% trans "Start free trial" %}</a>
+        <a href="{% url 'signup_school' %}" class="btn btn-light" data-cta="primary" data-page="{{ active_nav_slug|default:page.slug }}">{% trans "Start Free Trial" %}</a>
+        <a href="{% url 'marketing_book_demo' %}" class="btn btn-outline-light" data-cta="demo" data-page="{{ active_nav_slug|default:page.slug }}">{% trans "Book demo" %}</a>
         <a href="{% url 'global_login_discovery' %}" class="btn btn-outline-light">{% trans "Self-guided tour" %}</a>
       </div>
     </section>
 
     <div class="trust-strip">
-      {% for item in trust_badges %}
+      {% for item in page_extras.trust_strip|default:trust_badges %}
         <span class="trust-pill">{{ item }}</span>
       {% endfor %}
     </div>
@@ -598,8 +597,8 @@
       <h2 class="h4 mb-2">{% trans "Move from evaluation to activation" %}</h2>
       <p>{% trans "Validate architecture, run a guided walkthrough, and onboard your first school with the right operating model." %}</p>
       <div class="d-flex flex-wrap gap-2">
-        <a href="{% url 'marketing_book_demo' %}" class="btn btn-primary">{% trans "Book demo" %}</a>
-        <a href="{% url 'signup_school' %}" class="btn btn-outline-secondary">{% trans "Start onboarding" %}</a>
+        <a href="{% url 'signup_school' %}" class="btn btn-primary" data-cta="primary" data-page="{{ active_nav_slug|default:page.slug }}">{% trans "Start Free Trial" %}</a>
+        <a href="{% url 'marketing_book_demo' %}" class="btn btn-outline-secondary" data-cta="demo" data-page="{{ active_nav_slug|default:page.slug }}">{% trans "Book demo" %}</a>
       </div>
     </section>
   </div>

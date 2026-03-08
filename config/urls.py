@@ -20,7 +20,7 @@ from apps.portal.views_ai_copilot import (
     ai_copilot_config,
     ai_copilot_audit_feed,
 )
-from config.admin import admin_site
+from config.admin import platform_admin_site
 from apps.schools.marketing_views import marketing_landing, regional_marketing_landing, marketing_page, topical_marketing_landing, blog_post_detail, buyer_toolkit_download, marketing_funnel_dashboard
 from apps.schools.signup_views import signup_school, verify_signup, api_trial_school, onboarding_wizard
 from apps.schools.section8_views import (
@@ -146,7 +146,7 @@ urlpatterns = [
     path('i18n/setlang/', set_language, name='set_language'),
 
     # Admin interfaces - /admin/ only for superuser/staff
-    path('admin/', admin_site.urls),
+    path('admin/', platform_admin_site.urls),
 
     # API schema (RBAC-protected; same as schema UI)
     path('api/schema/', schema_view, name='api-schema'),

@@ -1,0 +1,52 @@
+{% extends "marketing/base_marketing.html" %}
+{% load i18n %}
+{% block title %}{{ seo_title|default:"RunMyCampus" }}{% endblock %}
+{% block extrahead %}
+  <meta name="description" content="{{ seo_description|default:'' }}">
+  {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
+  <script type="application/ld+json">{{ structured_data_json|safe }}</script>
+  {% if breadcrumb_schema_json %}<script type="application/ld+json">{{ breadcrumb_schema_json|safe }}</script>{% endif %}
+{% endblock %}
+{% block content %}
+<section class="container py-4 py-lg-5 page-stack">
+  <p class="text-uppercase small text-muted mb-2">RunMyCampus Solutions</p>
+  <h1 class="display-6 fw-bold mb-3">{{ page.headline }}</h1>
+  <p class="lead text-muted mb-4">{{ page.subheadline }}</p>
+
+  {% if page.workflow_examples %}
+  <section class="section-shell" aria-label="{% trans 'Workflow examples' %}">
+    <h2 class="section-heading">{% trans "Workflow examples" %}</h2>
+    <div class="mkt-platform-grid">
+      {% for item in page.workflow_examples %}
+        <article class="mkt-platform-card">
+          <h3>{{ item.title }}</h3>
+          <p class="mb-0 text-muted">{{ item.body }}</p>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if page.compliance_angle %}
+  <section class="section-shell" aria-label="{% trans 'Compliance' %}">
+    <h2 class="section-heading">{% trans "Compliance" %}</h2>
+    <p class="section-lead mb-0">{{ page.compliance_angle }}</p>
+  </section>
+  {% endif %}
+
+  {% if page.migration_pathway %}
+  <section class="section-shell" aria-label="{% trans 'Migration pathway' %}">
+    <h2 class="section-heading">{% trans "Migration pathway" %}</h2>
+    <p class="section-lead mb-0">{{ page.migration_pathway }}</p>
+  </section>
+  {% endif %}
+
+  <section class="section-shell border-0 bg-transparent pt-0">
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{% url 'signup_school' %}" class="btn btn-primary" data-cta="primary" data-page="institution">{{ page.cta_primary }}</a>
+      <a href="{% url 'marketing_book_demo' %}" class="btn btn-outline-primary" data-cta="demo" data-page="institution">{{ page.cta_secondary }}</a>
+      <a href="{% url 'marketing_solutions' %}" class="btn btn-outline-secondary">{% trans "Back to solutions" %}</a>
+    </div>
+  </section>
+</section>
+{% endblock %}

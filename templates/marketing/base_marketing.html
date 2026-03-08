@@ -1,0 +1,46 @@
+{% load static i18n %}
+<!DOCTYPE html>
+<html lang="{{ request.LANGUAGE_CODE|default:'en' }}"{% if is_rtl %} dir="rtl"{% endif %}
+      data-surface="marketing"
+      data-theme="{% if PUBLIC_BRAND_MODE %}system{% else %}light{% endif %}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
+  {% block meta_description %}
+  {% if seo_description %}<meta name="description" content="{{ seo_description|truncatewords:50 }}">{% endif %}
+  {% endblock %}
+  <title>{% block title %}{% if PUBLIC_BRAND_MODE %}{{ PUBLIC_BRAND_NAME }}{% else %}RunMyCampus{% endif %}{% endblock %}</title>
+  <link rel="icon" href="{% if PUBLIC_BRAND_MODE and PUBLIC_BRAND_FAVICON_URL %}{{ PUBLIC_BRAND_FAVICON_URL }}{% else %}{% static 'images/runmycampus-icon.png' %}{% endif %}" type="image/png">
+  {% block extrahead %}{% endblock %}
+
+  <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
+  <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'marketing/css/tokens-marketing.css' %}">
+  <link rel="stylesheet" href="{% static 'marketing/css/marketing-shell.css' %}">
+  {% block extrastyle %}{% endblock %}
+</head>
+{# data-cta (primary|demo|secondary) and data-page (page slug or home|footer) on CTAs are for GTM/analytics conversion tracking. #}
+<body class="{% block body_class %}marketing-surface{% endblock %}">
+  <a href="#main-content" class="mkt-skip-link">{% trans "Skip to main content" %}</a>
+  {% include 'marketing/marketing_header.html' %}
+
+  <main id="main-content" class="mkt-main container py-4" role="main">
+    {% if messages %}
+      <div class="mb-3">
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags|default:'info' }} mb-2">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+
+  {% include 'marketing/marketing_footer.html' %}
+
+  <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}" defer></script>
+  <script src="{% static 'marketing/js/marketing-shell.js' %}" defer></script>
+  {% block extrajs %}{% endblock %}
+</body>
+</html>

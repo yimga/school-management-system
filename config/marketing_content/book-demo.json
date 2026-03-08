@@ -1,0 +1,32 @@
+{
+  "label": "Book Demo",
+  "seo_title": "Book a RunMyCampus Demo - See tenant operations live",
+  "seo_description": "Schedule a platform demo focused on public experience, tenant access, and super-admin command workflows.",
+  "headline": "Book a focused platform walkthrough.",
+  "subheadline": "See public discovery, tenant login flow, and super-admin command center in one guided demo.",
+  "schema_type": "Service",
+  "segments": [
+    {"title": "Public growth flow", "body": "Review SEO pages, discovery UX, and conversion paths from first visit to trial."},
+    {"title": "Tenant experience", "body": "Validate portal access journeys for school admins, teachers, and parents."},
+    {"title": "Super-admin control", "body": "Inspect mission-control workflows for approvals, billing visibility, and support governance."}
+  ],
+  "extras": {
+    "metrics": [
+      {"value": "45 min", "label": "guided walkthrough", "detail": "Structured review of public, tenant, and manager experiences."},
+      {"value": "3", "label": "live surface demonstrations", "detail": "Marketing conversion, tenant login, and manager operations in one session."},
+      {"value": "1", "label": "architecture recommendation", "detail": "You receive a clear operating model fit summary."},
+      {"value": "Next-day", "label": "follow-up package", "detail": "Implementation notes and rollout guidance after demo completion."}
+    ],
+    "execution_blocks": [
+      {"title": "Discovery alignment", "body": "Capture your institution profile, constraints, and target operating outcomes before the walkthrough."},
+      {"title": "Live platform scenario", "body": "Run real workflows across public acquisition, tenant identity, and manager operations."},
+      {"title": "Actionable next-step plan", "body": "Receive a deployment sequence with conversion, governance, and onboarding priorities."}
+    ],
+    "demo_agenda": [
+      "Public authority flow: homepage, discovery, and conversion paths.",
+      "Tenant experience: branded login, role portals, and workflow continuity.",
+      "Manager control: provisioning, support desk, and audit traces.",
+      "Implementation roadmap: phased rollout and success criteria."
+    ]
+  }
+}

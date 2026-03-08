@@ -24,6 +24,7 @@ from django.utils import timezone
 
 from apps.dashboard.action_registry import get_admin_header_actions
 from apps.finance.models import Notification
+from apps.platform_runtime.helpers import get_effective_site_settings
 from apps.siteconfig.models import SiteSettings, default_header_weather_config
 
 logger = logging.getLogger(__name__)
@@ -721,7 +722,7 @@ def build_admin_dashboard_context(
         expire_date__gte=now - datetime.timedelta(hours=24)
     ).count()
 
-    site = SiteSettings.get_solo()
+    site = get_effective_site_settings(request=request)
     admin_theme = site.get_admin_theme()
     admin_palette: dict[str, Any] = {}
     if (

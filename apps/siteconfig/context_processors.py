@@ -10,6 +10,7 @@ from django.utils import translation
 from django.utils.translation import gettext as _
 from apps.accounts.models import User
 from apps.finance.models import Notification
+from apps.platform_runtime.helpers import get_effective_site_settings
 from .preview_state import PREVIEW_MODE_SESSION_KEY, ACT_AS_ROLE_SESSION_KEY
 from .portal_sidebar_items import build_portal_sidebar_items
 from apps.policies.policy_registry import get_effective_policy
@@ -173,7 +174,9 @@ def site_settings(request):
     if connection.needs_rollback:
         _reset_db_state()
     try:
-        site = SiteSettings.get_solo()
+        site = get_effective_site_settings(request=request)
+        if site is None:
+            site = SiteSettings()
     except DatabaseError:
         _reset_db_state()
         site = SiteSettings()
@@ -577,7 +580,7 @@ def region_settings(request):
             grading_scale = getattr(region, "grading_scale", "default")
             default_language = getattr(region, "default_language", "en")
     except RegionConfig.DoesNotExist:
-        # Fallback to default region (Cameroon)
+        # Fallback to the platform-neutral default region.
         region = RegionConfig.get_default()
         grading_scale = getattr(region, "grading_scale", "default")
         default_language = getattr(region, "default_language", "en")

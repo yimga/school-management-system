@@ -1,0 +1,57 @@
+{% extends "marketing/base_marketing.html" %}
+{% load i18n %}
+{% block title %}{{ seo_title|default:"RunMyCampus" }}{% endblock %}
+{% block extrahead %}
+  <meta name="description" content="{{ seo_description|default:'' }}">
+  {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
+  <script type="application/ld+json">{{ structured_data_json|safe }}</script>
+  {% if breadcrumb_schema_json %}<script type="application/ld+json">{{ breadcrumb_schema_json|safe }}</script>{% endif %}
+{% endblock %}
+{% block content %}
+<section class="container py-4 py-lg-5 page-stack">
+  <p class="text-uppercase small text-muted mb-2">RunMyCampus Roles</p>
+  <h1 class="display-6 fw-bold mb-3">{{ page.headline }}</h1>
+  <p class="lead text-muted mb-4">{{ page.subheadline }}</p>
+
+  {% if page.workflows %}
+  <section class="section-shell" aria-label="{% trans 'Workflows' %}">
+    <h2 class="section-heading">{% trans "Workflows" %}</h2>
+    <ul class="mb-0">
+      {% for w in page.workflows %}
+        <li>{{ w }}</li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  {% if page.dashboards %}
+  <section class="section-shell" aria-label="{% trans 'Dashboards' %}">
+    <h2 class="section-heading">{% trans "Dashboards" %}</h2>
+    <ul class="mb-0">
+      {% for d in page.dashboards %}
+        <li>{{ d }}</li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  {% if page.outcomes %}
+  <section class="section-shell" aria-label="{% trans 'Outcomes' %}">
+    <h2 class="section-heading">{% trans "Outcomes" %}</h2>
+    <ul class="mb-0">
+      {% for o in page.outcomes %}
+        <li>{{ o }}</li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  <section class="section-shell border-0 bg-transparent pt-0">
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{% url 'signup_school' %}" class="btn btn-primary" data-cta="primary" data-page="role">{% trans "Start free trial" %}</a>
+      <a href="{% url 'marketing_book_demo' %}" class="btn btn-outline-primary" data-cta="demo" data-page="role">{% trans "Book demo" %}</a>
+      <a href="{% url 'marketing_solutions' %}" class="btn btn-outline-secondary">{% trans "Back to solutions" %}</a>
+    </div>
+  </section>
+</section>
+{% endblock %}

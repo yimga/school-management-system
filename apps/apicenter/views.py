@@ -38,9 +38,14 @@ def api_center_dashboard(request):
     if not _api_center_allowed(request):
         return HttpResponseForbidden("API Center is disabled or you do not have permission.")
     school = getattr(request, "school", None)
+    if school is None and getattr(request, "public_host_kind", None) != "manager":
+        return HttpResponseForbidden("School context required.")
     integrations = Integration.objects.filter(Q(school__isnull=True) | Q(school=school)) if school else Integration.objects.all()
     integrations = integrations.order_by("provider", "name")
-    audit_logs = APIAuditLog.objects.select_related("integration", "changed_by").order_by("-created_at")[:50]
+    audit_logs = APIAuditLog.objects.select_related("integration", "changed_by")
+    if school is not None:
+        audit_logs = audit_logs.filter(Q(integration__school__isnull=True) | Q(integration__school=school))
+    audit_logs = audit_logs.order_by("-created_at")[:50]
     return render(
         request,
         "apicenter/dashboard.html",
@@ -58,7 +63,13 @@ def api_center_toggle(request, slug):
     """Toggle Integration.enabled; require reason. Write to APIAuditLog."""
     if not _api_center_allowed(request):
         return HttpResponseForbidden("You do not have permission to manage the API Center.")
-    integration = get_object_or_404(Integration, slug=slug)
+    school = getattr(request, "school", None)
+    if school is None and getattr(request, "public_host_kind", None) != "manager":
+        return HttpResponseForbidden("School context required.")
+    integrations = Integration.objects.all()
+    if school is not None:
+        integrations = integrations.filter(Q(school__isnull=True) | Q(school=school))
+    integration = get_object_or_404(integrations, slug=slug)
     reason = (request.POST.get("reason") or "").strip()
     if not reason:
         messages.error(request, "A reason is required when enabling or disabling an integration.")

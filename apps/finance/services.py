@@ -16,7 +16,8 @@ from django.utils import timezone
 
 from apps.apicenter.gating import is_integration_allowed
 from apps.people.models import StudentProfile, StudentGuardian
-from apps.siteconfig.models import Integration, SiteSettings
+from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.siteconfig.models import Integration
 
 from .models import (
     ComplianceProfile,
@@ -58,6 +59,10 @@ PROVIDER_SLUG_TO_METHOD = {
 }
 DEFAULT_SIGNATURE_FORMAT = "{invoice_id}:{amount}"
 DEFAULT_SIGNATURE_HEADER = "X-Signature"
+
+
+def _site_settings_for_school(school=None):
+    return get_effective_site_settings(school=school)
 
 
 def normalize_provider_slug(slug: str | None) -> str:
@@ -433,7 +438,8 @@ def post_scholarship_disbursement_to_ledger(
     elif payment and payment.invoice_id:
         profile = payment.invoice.profile
     else:
-        site = SiteSettings.get_solo()
+        school = getattr(getattr(application, "school", None), "school", None) or getattr(application, "school", None)
+        site = _site_settings_for_school(school)
         profile = getattr(site, "compliance_profile", None) or ComplianceProfile.objects.filter(is_active=True).first()
     if not profile:
         return None
@@ -782,7 +788,7 @@ def create_payment_from_receipt(
     if not amount:
         raise ValueError("Cannot create payment: amount not found in receipt")
 
-    site = SiteSettings.get_solo()
+    site = _site_settings_for_school(getattr(invoice, "school", None) or getattr(getattr(invoice, "student", None), "school", None))
     overpayment_handling = getattr(site, "finance_overpayment_handling", "allow_with_refund")
     tolerance = Decimal(str(getattr(site, "finance_overpayment_tolerance_xaf", "1000")))
 
@@ -1085,14 +1091,19 @@ def get_parent_fees_summary(user):
     try:
         from apps.accounts.permissions import _guardian_finance_qs
 
-        site = SiteSettings.get_solo()
+        parent_students = list(_guardian_finance_qs(user).values_list("student_id", flat=True))
+        if not parent_students:
+            return None
+        school = (
+            StudentProfile.objects.filter(id__in=parent_students)
+            .values_list("school", flat=True)
+            .first()
+        )
+        site = _site_settings_for_school(school)
         profile = getattr(site, "compliance_profile", None)
         if not profile:
             profile = ComplianceProfile.objects.filter(is_active=True).first()
         if not profile:
-            return None
-        parent_students = list(_guardian_finance_qs(user).values_list("student_id", flat=True))
-        if not parent_students:
             return None
         unpaid = Invoice.objects.filter(
             profile=profile,

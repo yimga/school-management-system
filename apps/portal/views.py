@@ -56,8 +56,6 @@ from apps.reports.services import (
 import json
 
 from apps.siteconfig.models import (
-    Integration,
-    SiteSettings,
     default_portal_features,
     filter_portal_items,
     default_backend_feature_flags,
@@ -65,7 +63,7 @@ from apps.siteconfig.models import (
 from apps.siteconfig.dashboard_resolver import for_role as dashboard_for_role
 from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata
 from apps.siteconfig.dashboard_views import load_dashboard_layout_settings
-from apps.platform_runtime.helpers import get_effective_flags, get_site_display_name
+from apps.platform_runtime.helpers import get_effective_flags, get_effective_site_settings, get_site_display_name
 from .runtime_helpers import get_policy_for_request
 from apps.siteconfig.dashboard_views import _can_customize
 from apps.analytics.services import (
@@ -148,8 +146,8 @@ PORTAL_FEATURES_META = {
 }
 
 
-def _portal_features_status() -> list[dict]:
-    site = SiteSettings.get_solo()
+def _portal_features_status(request=None) -> list[dict]:
+    site = get_effective_site_settings(request=request)
     features = site.portal_features or default_portal_features()
     return [
         {
@@ -186,7 +184,7 @@ def parent_dashboard(request: HttpRequest):
     guardian_link_count = links.count()
     can_request_finance_access = require_finance_opt_in and guardian_link_count > finance_link_count
 
-    portal_features = _portal_features_status()
+    portal_features = _portal_features_status(request)
     students = [link.student for link in links]
     finance_students = [link.student for link in finance_links]
     can_view_results = bool(students)
@@ -416,7 +414,7 @@ def parent_dashboard(request: HttpRequest):
                 },
             }
 
-    site = SiteSettings.get_solo()
+    site = get_effective_site_settings(request=request)
     role = get_user_role(request.user)
     portal_quick_actions = filter_portal_items(site.portal_quick_actions, role)
     portal_announcements = filter_portal_items(site.portal_announcements, role)
@@ -530,7 +528,7 @@ def parent_dashboard(request: HttpRequest):
         {"id": "parent-finance", "label": "Finance", "url": reverse("portal:parent_finance"), "icon": "bi-cash-stack"},
         {"id": "parent-stats", "label": "Portal Stats", "url": reverse("portal:portal_stats"), "icon": "bi-graph-up"},
     ]
-    site = SiteSettings.get_solo()
+    site = get_effective_site_settings(request=request)
 
     # First-time hint: show when no children and not dismissed (session)
     if request.GET.get("dismiss_hint") == "parent_link_child":
@@ -1049,7 +1047,7 @@ def portal_feature_page(request: HttpRequest, feature: str):
     if perm_code and not request.user.has_feature_permission(perm_code):
         return HttpResponseForbidden("You do not have access to this portal feature.")
 
-    available = _portal_features_status()
+    available = _portal_features_status(request)
     entry = next((item for item in available if item["key"] == feature), None)
     if not entry:
         raise Http404("Feature not found.")
@@ -1080,7 +1078,7 @@ def portal_feature_page(request: HttpRequest, feature: str):
 
 @role_required(User.Role.PARENT, User.Role.TEACHER)
 def portal_syllabus(request: HttpRequest):
-    site = SiteSettings.get_solo()
+    site = get_effective_site_settings(request=request)
     role = get_user_role(request.user)
     if role == User.Role.PARENT and not site.enable_parent_portal:
         return HttpResponseForbidden("Parent portal is disabled.")
@@ -1240,7 +1238,7 @@ def unified_calendar(request: HttpRequest):
     role = get_user_role(request.user)
     return render(request, "portal/unified_calendar.html", {
         "events": events,
-        "site": SiteSettings.get_solo(),
+        "site": get_effective_site_settings(request=request),
         "is_teacher": role == User.Role.TEACHER,
         "is_parent": role == User.Role.PARENT,
     })
@@ -1299,7 +1297,7 @@ def child_digital_id(request: HttpRequest, student_id: int):
     if not link:
         return HttpResponseForbidden("You are not authorized to view this student's ID.")
     student = link.student
-    site = SiteSettings.get_solo()
+    site = get_effective_site_settings(request=request)
     classroom = getattr(student, "classroom", None)
     grade_label = classroom.name if classroom else (getattr(student, "academic_year", None) and str(student.academic_year) or "—")
     photo = getattr(student, "profile_photo", None) and student.profile_photo or None
@@ -1382,7 +1380,7 @@ def portal_stats(request: HttpRequest):
         if idx > 0:
             prev_term = terms[idx - 1]
 
-    site = SiteSettings.get_solo()
+    site = get_effective_site_settings(request=request)
     pass_mark = site.pass_mark
     weak_threshold = site.weak_subject_threshold
     improvement_delta = site.improvement_delta_threshold
@@ -2154,14 +2152,23 @@ def parent_child_results(request: HttpRequest, student_id: int):
 
 
 def _whatsapp_invite_link(request: HttpRequest) -> str | None:
-    whatsapp = (
-        Integration.objects.filter(enabled=True, name__icontains="whatsapp")
-        .order_by("-updated_at")
-        .first()
-    )
-    if not whatsapp:
-        return None
-    number = whatsapp.config.get("phone") or whatsapp.config.get("whatsapp_number")
+    school = getattr(request, "school", None)
+    number = None
+    try:
+        from apps.siteconfig.integration_registry import resolve_active_integration
+
+        record = resolve_active_integration(school, "whatsapp") if school is not None else None
+        if record and record.is_active:
+            number = (
+                record.config.get("phone")
+                or record.config.get("whatsapp_number")
+                or record.config.get("support_number")
+            )
+    except Exception:
+        number = None
+    if not number:
+        site = get_effective_site_settings(request=request)
+        number = getattr(site, "whatsapp_admissions_number", None) or getattr(site, "whatsapp_support_number", None)
     if not number:
         return None
     digits = "".join(ch for ch in number if ch.isdigit())
@@ -2179,7 +2186,7 @@ def link_child(request: HttpRequest):
     Legacy single-page form view (kept for backwards compatibility).
     New users should use link_child_wizard for a better experience.
     """
-    site = SiteSettings.get_solo()
+    site = get_effective_site_settings(request=request)
     policy = get_policy_for_request(request)
     form = LinkChildForm(
         request.POST or None,
@@ -2246,7 +2253,7 @@ def link_child_wizard(request: HttpRequest):
     
     Uses session to persist form data between steps.
     """
-    site = SiteSettings.get_solo()
+    site = get_effective_site_settings(request=request)
     session_key = "link_child_wizard_data"
     wizard_data = request.session.get(session_key, {})
     step = int(request.GET.get("step", "1"))

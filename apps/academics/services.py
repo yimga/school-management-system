@@ -16,10 +16,17 @@ from .models import AcademicYear, Term
 from .models import DegreeProgram, TransferCourseEquivalency, TransferCredit
 
 
-def get_active_year_and_term() -> Tuple[Optional[AcademicYear], Optional[Term]]:
-    """Return (active_year, active_term) if configured, otherwise (None, None)."""
-    year = AcademicYear.objects.filter(is_active=True).first()
-    term = Term.objects.filter(is_active=True, academic_year=year).first() if year else None
+def get_active_year_and_term(*, school=None) -> Tuple[Optional[AcademicYear], Optional[Term]]:
+    """Return (active_year, active_term) if configured, optionally scoped to one school."""
+    years = AcademicYear.objects.filter(is_active=True)
+    if school is not None and hasattr(AcademicYear, "school_id"):
+        years = years.filter(school=school)
+    year = years.order_by("id").first()
+    term = (
+        Term.objects.filter(is_active=True, academic_year=year).order_by("id").first()
+        if year
+        else None
+    )
     return year, term
 
 

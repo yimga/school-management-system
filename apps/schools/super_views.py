@@ -7,6 +7,7 @@ import json
 from datetime import timedelta
 from io import StringIO
 
+from django.contrib import messages
 from django.db.models import Count, OuterRef, Q, Subquery, Sum
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import NoReverseMatch, reverse
@@ -33,6 +34,7 @@ from apps.siteconfig.education_profile_engine import (
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
 from apps.siteconfig.models import EducationSystemProfile
 from apps.siteconfig.tenant_config import apply_tenant_settings_overrides
+from .control_plane_lifecycle import apply_school_lifecycle_action, get_lifecycle_snapshot
 from .models import School, SchoolProvisioningEvent, TenantApiUsage, TenantQuotaLimit
 
 
@@ -1285,8 +1287,87 @@ def super_usage(request):
 
 
 def super_migration_cloud(request):
-    """Migration cloud pillar: control-plane entry for migration tooling and docs (phase5/phase8)."""
-    return render(request, "schools/super_migration_cloud.html", {})
+    """Migration cloud pillar: control-plane governance for profiles, runs, parity, and rollback."""
+    from apps.accounts.migration_services import compute_parity
+    from apps.automation.models import MigrationProfile, MigrationRun
+    from apps.siteconfig.migration_services import dry_run_import
+
+    profile_slug = (request.GET.get("profile") or "").strip()
+    school_id = (request.GET.get("school_id") or "").strip()
+    selected_school = None
+    if school_id:
+        try:
+            selected_school = School.objects.filter(id=school_id).first()
+        except (TypeError, ValueError):
+            selected_school = None
+    selected_profile = MigrationProfile.objects.filter(slug=profile_slug, is_active=True).first() if profile_slug else None
+
+    profiles = list(MigrationProfile.objects.filter(is_active=True).order_by("sort_order", "slug"))
+    recent_runs = list(
+        MigrationRun.objects.select_related("school", "triggered_by")
+        .order_by("-started_at")[:40]
+    )
+    for run in recent_runs:
+        run.parity = compute_parity(run)
+
+    rollback_candidates = [run for run in recent_runs if run.can_rollback]
+    preview = None
+    if selected_profile is not None:
+        preview = dry_run_import(selected_profile, {"rows": [], "mapping": {}}, school=selected_school)
+
+    summary = {
+        "profiles_total": len(profiles),
+        "runs_total": MigrationRun.objects.count(),
+        "runs_last_30d": MigrationRun.objects.filter(started_at__gte=timezone.now() - timedelta(days=30)).count(),
+        "failed_last_30d": MigrationRun.objects.filter(
+            started_at__gte=timezone.now() - timedelta(days=30),
+            status=MigrationRun.Status.FAILED,
+        ).count(),
+        "rollback_ready": MigrationRun.objects.filter(
+            dry_run=False,
+            rolled_back_by_run__isnull=True,
+            rollback_snapshot__isnull=False,
+        ).exclude(rollback_snapshot={}).count(),
+    }
+
+    return render(
+        request,
+        "schools/super_migration_cloud.html",
+        {
+            "summary": summary,
+            "profiles": profiles,
+            "recent_runs": recent_runs,
+            "rollback_candidates": rollback_candidates[:10],
+            "selected_school": selected_school,
+            "selected_profile": selected_profile,
+            "preview": preview,
+            "dashboard_url": reverse("super:dashboard"),
+        },
+    )
+
+
+@require_POST
+def super_migration_rollback(request, run_id):
+    from apps.automation.models import MigrationRun
+
+    run = get_object_or_404(MigrationRun.objects.select_related("school"), pk=run_id)
+    rollback_run, result = run.trigger_rollback(user=getattr(request, "user", None))
+    if str(request.content_type or "").startswith("application/json"):
+        status = 200 if result.get("success") else 400
+        return JsonResponse(
+            {
+                "ok": bool(result.get("success")),
+                "run_id": run.pk,
+                "rollback_run_id": getattr(rollback_run, "pk", None),
+                **result,
+            },
+            status=status,
+        )
+    if result.get("success"):
+        messages.success(request, result.get("message") or "Rollback completed.")
+    else:
+        messages.error(request, result.get("message") or "Rollback failed.")
+    return redirect("super:migration_cloud")
 
 
 def super_pulse(request):
@@ -1332,10 +1413,10 @@ def super_tenant_health(request):
         School.objects.all()
         .annotate(student_count=Count("student_profiles", distinct=True))
         .order_by("name")
-        .values("id", "name", "slug", "is_active", "is_approved", "last_activity", "student_count")
     )
-    for s in schools:
-        s["admin_edit_url"] = _safe_school_admin_change_url(s["id"])
+    for school in schools:
+        school.admin_edit_url = _safe_school_admin_change_url(school.id)
+        school.lifecycle = get_lifecycle_snapshot(school)
     return render(
         request,
         "schools/super_tenant_health.html",
@@ -1390,6 +1471,7 @@ def super_tenant_360(request, school_id):
         "schools/super_tenant_360.html",
         {
             "school": school,
+            "lifecycle": get_lifecycle_snapshot(school),
             "identity": identity,
             "blueprint_code": blueprint_code,
             "policy_summary": policy_summary,
@@ -2093,9 +2175,7 @@ def api_approve_school(request, school_id):
     from apps.compliance.models_audit import AuditLog
 
     school = get_object_or_404(School, id=school_id)
-    old_approved = school.is_approved
-    school.is_approved = True
-    school.save(update_fields=["is_approved", "updated_at"])
+    outcome = apply_school_lifecycle_action(school, action="approve")
     log_control_plane_action(
         request,
         AuditLog.Action.APPROVE,
@@ -2104,10 +2184,65 @@ def api_approve_school(request, school_id):
         object_repr=getattr(school, "name", "") or str(school.id),
         reason="School approved",
         sensitivity=AuditLog.Sensitivity.HIGH,
-        old_values={"is_approved": old_approved},
-        new_values={"is_approved": True},
+        old_values=outcome["old_values"],
+        new_values=outcome["new_values"],
+        changed_fields=outcome["changed_fields"],
     )
-    return JsonResponse({"ok": True, "school_id": str(school.id), "message": "School approved."})
+    return JsonResponse({"ok": True, "school_id": str(school.id), "message": outcome["message"]})
+
+
+@require_http_methods(["POST"])
+def school_lifecycle_action(request, school_id):
+    import json
+
+    from apps.compliance.models_audit import AuditLog
+    from apps.schools.control_plane import log_control_plane_action
+
+    school = get_object_or_404(School, id=school_id)
+    payload = {}
+    if request.body:
+        try:
+            payload = json.loads(request.body.decode("utf-8"))
+        except (TypeError, ValueError, json.JSONDecodeError):
+            payload = {}
+
+    action = str(payload.get("action") or request.POST.get("action") or "").strip()
+    reason = str(payload.get("reason") or request.POST.get("reason") or "").strip()
+    trial_end_date = payload.get("trial_end_date") or request.POST.get("trial_end_date")
+    next_url = str(request.POST.get("next") or reverse("super:tenant_360", args=[school.id])).strip()
+    expects_json = str(request.content_type or "").startswith("application/json")
+
+    try:
+        outcome = apply_school_lifecycle_action(
+            school,
+            action=action,
+            reason=reason,
+            trial_end_date=trial_end_date,
+        )
+    except ValueError as exc:
+        if expects_json:
+            return JsonResponse({"ok": False, "error": str(exc)}, status=400)
+        messages.error(request, str(exc))
+        return redirect(next_url)
+
+    audit_action = AuditLog.Action.APPROVE if str(action).strip().lower() == "approve" else AuditLog.Action.UPDATE
+    log_control_plane_action(
+        request,
+        audit_action,
+        "School",
+        str(school.id),
+        object_repr=getattr(school, "name", "") or str(school.id),
+        reason=f"School lifecycle action: {action}",
+        sensitivity=AuditLog.Sensitivity.HIGH,
+        old_values=outcome["old_values"],
+        new_values=outcome["new_values"],
+        changed_fields=outcome["changed_fields"],
+    )
+    if expects_json:
+        return JsonResponse({"ok": True, "school_id": str(school.id), **outcome})
+
+    messages.success(request, outcome["message"])
+    return redirect(next_url)
 
 
 def _slug_from_name(name: str) -> str:

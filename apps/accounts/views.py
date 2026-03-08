@@ -33,6 +33,7 @@ from apps.siteconfig.templatetags.admin_kpis import admin_kpis
 from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata, DashboardWidget
 from apps.siteconfig.dashboard_views import effective_chart_types
 from apps.accounts.utils import get_dashboard_context
+from apps.platform_runtime.helpers import get_effective_flags, get_effective_site_settings
 
 from .forms import (
     ClaimInviteAccountForm,
@@ -226,7 +227,7 @@ def _admin_context(user):
     site_settings_url = None
     if getattr(user, "has_feature_permission", lambda _: False)("settings.manage"):
         try:
-            site = SiteSettings.get_solo()
+            site = get_effective_site_settings(request=request)
             site_settings_url = reverse("admin:siteconfig_sitesettings_change", args=[site.pk])
         except Exception:
             try:
@@ -658,8 +659,8 @@ def user_documentation(request):
 @user_passes_test(lambda u: u.is_authenticated and (u.is_staff or u.is_superuser or getattr(u, "role", None) == User.Role.ADMIN))
 def backend_entity_import(request):
     """Admin-only page to stage CSV imports (students/guardians) against new APIs."""
-    site = SiteSettings.get_solo()
-    flags = getattr(site, "backend_feature_flags", {}) or {}
+    site = get_effective_site_settings(request=request)
+    flags = get_effective_flags(request)
     allowed_roles = [r.upper() for r in flags.get("allowed_roles_entity_import", [])]
     if not flags.get("enable_entity_import", True):
         return HttpResponseForbidden("Entity import is disabled by admin.")
@@ -680,8 +681,8 @@ def backend_entity_import(request):
 @user_passes_test(lambda u: u.is_authenticated and (u.is_staff or u.is_superuser or getattr(u, "role", None) == User.Role.ADMIN))
 def backend_entity_console(request):
     """Admin-only page for EntityForm/Table beta UI."""
-    site = SiteSettings.get_solo()
-    flags = getattr(site, "backend_feature_flags", {}) or {}
+    site = get_effective_site_settings(request=request)
+    flags = get_effective_flags(request)
     allowed_roles = [r.upper() for r in flags.get("allowed_roles_entity_console", [])]
     if not flags.get("enable_entity_console", True):
         return HttpResponseForbidden("Entity console is disabled by admin.")
@@ -1095,7 +1096,7 @@ def backend_dashboard(request):
 
     from .activity_helper import get_recent_activity
 
-    site = SiteSettings.get_solo()
+    site = get_effective_site_settings(request=request)
     year, term = get_active_year_and_term()
 
     backend_defaults = default_backend_feature_flags()
@@ -1803,7 +1804,7 @@ def backend_dashboard_status_fragment(request):
     offline_queue_metrics = None
     try:
         from apps.siteconfig.models import SiteSettings
-        site = SiteSettings.get_solo()
+        site = get_effective_site_settings(request=request)
         enable_offline_mode = getattr(site, "enable_offline_mode", False)
         if enable_offline_mode:
             from apps.siteconfig.cache_utils import tenant_cache_key
@@ -1844,7 +1845,7 @@ def dismiss_first_login_checklist(request):
 @user_passes_test(_is_admin_user)
 def backend_ops_watch_data(request):
     """Lightweight JSON payload for live Ops Watch refresh."""
-    site = SiteSettings.get_solo()
+    site = get_effective_site_settings(request=request)
     backend_defaults = default_backend_feature_flags()
     backend_flags = dict(getattr(site, "backend_feature_flags", {}) or {})
     for key, default_val in backend_defaults.items():
@@ -1967,7 +1968,7 @@ def automation_hub(request):
     except NoReverseMatch:
         pass
     try:
-        site = SiteSettings.get_solo()
+        site = get_effective_site_settings(request=request)
         site_settings_url = reverse("admin:siteconfig_sitesettings_change", args=[site.pk])
     except Exception:
         pass
@@ -2294,7 +2295,7 @@ def workflow_center(request):
     Keeps admins out of scattered menus and makes the Cameroon-first lifecycle discoverable.
     Every link is resolved defensively so one broken URL does not 500 the page.
     """
-    site = SiteSettings.get_solo()
+    site = get_effective_site_settings(request=request)
     year, term = get_active_year_and_term()
     progress = _workflow_progress(year)
 
@@ -2557,8 +2558,8 @@ def rollover_year(request):
         students = list(StudentProfile.objects.filter(
             academic_year=source_year, is_active=True
         ).select_related("classroom"))
-        site = SiteSettings.get_solo()
-        flags = getattr(site, "backend_feature_flags", None) or {}
+        site = get_effective_site_settings(request=request)
+        flags = get_effective_flags(request)
         block_if_outstanding = flags.get("block_promotion_if_outstanding_returns", False)
         from django.db.models import Count
         from apps.people.models import StudentResourceReturn
@@ -2706,9 +2707,9 @@ def rollover_year(request):
                 .annotate(count=Count("id"))
                 .values_list("student_id", "count")
             )
-            site = SiteSettings.get_solo()
+            site = get_effective_site_settings(request=request)
             context["block_promotion_if_outstanding_returns"] = (
-                (getattr(site, "backend_feature_flags", None) or {}).get("block_promotion_if_outstanding_returns", False)
+                get_effective_flags(request).get("block_promotion_if_outstanding_returns", False)
             )
             context["carry_forward_arrears_on_rollover"] = (
                 (getattr(site, "backend_feature_flags", None) or {}).get("carry_forward_arrears_on_rollover", True)
@@ -2860,7 +2861,7 @@ def academic_rules(request):
     """
     from apps.reports.models import PromotionRule
 
-    site = SiteSettings.get_solo()
+    site = get_effective_site_settings(request=request)
     year, _ = get_active_year_and_term()
     rules = []
     if year:
@@ -3050,7 +3051,7 @@ def login_view(request):
                 from django_otp import user_has_device
                 from django_otp.plugins.otp_totp.models import TOTPDevice
 
-                site = SiteSettings.get_solo()
+                site = get_effective_site_settings(request=request)
                 require_all_staff = getattr(site, "require_mfa_all_staff", False)
                 required_roles = getattr(site, "require_mfa_roles", None) or []
 

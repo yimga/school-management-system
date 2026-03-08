@@ -347,9 +347,14 @@ def _guardian_finance_qs(user):
     from apps.people.models import StudentGuardian
     _logger = logging.getLogger(__name__)
     try:
-        from apps.siteconfig.models import SiteSettings
+        from apps.platform_runtime.helpers import get_effective_flags_for_school
         with transaction.atomic():
-            flags = getattr(SiteSettings.get_solo(), "backend_feature_flags", {}) or {}
+            school = (
+                StudentGuardian.objects.filter(guardian_user=user)
+                .values_list("student__school", flat=True)
+                .first()
+            )
+            flags = get_effective_flags_for_school(school) or {}
             require_opt_in = bool(flags.get("require_guardian_finance_opt_in"))
     except DatabaseError:
         _logger.warning("SiteSettings unavailable for guardian finance opt-in; failing closed (require_opt_in=True).")

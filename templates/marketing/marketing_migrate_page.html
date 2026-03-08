@@ -1,0 +1,42 @@
+{% extends "marketing/base_marketing.html" %}
+{% load i18n %}
+{% block title %}{{ seo_title|default:"Migrate to RunMyCampus" }}{% endblock %}
+{% block extrahead %}
+  <meta name="description" content="{{ seo_description|default:'' }}">
+  {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
+  <script type="application/ld+json">{{ structured_data_json|safe }}</script>
+  {% if breadcrumb_schema_json %}<script type="application/ld+json">{{ breadcrumb_schema_json|safe }}</script>{% endif %}
+{% endblock %}
+{% block content %}
+<section class="container py-4 py-lg-5 page-stack">
+  <h1 class="display-6 fw-bold mb-3">{{ page.headline }}</h1>
+  <p class="lead text-muted mb-4">{{ page.subheadline }}</p>
+
+  <section class="section-shell" aria-label="{% trans 'Migration cloud' %}">
+    <h2 class="section-heading">{% trans "Migration cloud" %}</h2>
+    <p class="section-lead mb-0">{{ page.migration_cloud_copy }}</p>
+  </section>
+
+  <section class="section-shell" aria-label="{% trans 'Field mapping' %}">
+    <h2 class="section-heading">{% trans "Field mapping" %}</h2>
+    <p class="section-lead mb-0">{{ page.field_mapping_copy }}</p>
+  </section>
+
+  <section class="section-shell" aria-label="{% trans 'Validation' %}">
+    <h2 class="section-heading">{% trans "Validation" %}</h2>
+    <p class="section-lead mb-0">{{ page.validation_copy }}</p>
+  </section>
+
+  <section class="section-shell" aria-label="{% trans 'Rollback' %}">
+    <h2 class="section-heading">{% trans "Rollback" %}</h2>
+    <p class="section-lead mb-0">{{ page.rollback_copy }}</p>
+  </section>
+
+  <section class="section-shell border-0 bg-transparent pt-0">
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{% url 'marketing_book_demo' %}" class="btn btn-primary" data-cta="demo" data-page="migrate">{{ page.cta }}</a>
+      <a href="{% url 'migrate_marketing_page' %}" class="btn btn-outline-secondary">{% trans "Migration overview" %}</a>
+    </div>
+  </section>
+</section>
+{% endblock %}

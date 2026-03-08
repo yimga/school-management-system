@@ -5,9 +5,9 @@ Read-only deep health check for a single tenant.
 
 Usage examples:
 
-    python manage.py tenant_health_check --slug gilead-school
-    python manage.py tenant_health_check --domain gilead-school.runmycampus.com
-    python manage.py tenant_health_check --schema gilead_school
+    python manage.py tenant_health_check --slug sample-school
+    python manage.py tenant_health_check --domain sample-school.runmycampus.com
+    python manage.py tenant_health_check --schema sample_school
 
 This command does NOT mutate any data. It:
   - Resolves the tenant Client + School
@@ -29,15 +29,15 @@ class Command(BaseCommand):
         group = parser.add_mutually_exclusive_group(required=True)
         group.add_argument(
             "--slug",
-            help="School.slug for the tenant (e.g. gilead-school).",
+            help="School.slug for the tenant (e.g. sample-school).",
         )
         group.add_argument(
             "--domain",
-            help="Full tenant domain (e.g. gilead-school.runmycampus.com).",
+            help="Full tenant domain (e.g. sample-school.runmycampus.com).",
         )
         group.add_argument(
             "--schema",
-            help="Client.schema_name (PostgreSQL schema, e.g. gilead_school).",
+            help="Client.schema_name (PostgreSQL schema, e.g. sample_school).",
         )
 
     def handle(self, *args, **options):

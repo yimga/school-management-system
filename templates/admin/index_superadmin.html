@@ -5,7 +5,7 @@
 {{ block.super }}
 {% with ADMIN_THEME=SITE_ADMIN_THEME|default:SITE %}
 <style>
-  /* Superadmin / Configuration Engine: platform navy & gold, system-wide feel */
+  /* Platform admin console: platform navy & gold, system-wide feel */
   :root {
     --brand-primary: #d4af37;
     --brand-accent: #d4af37;
@@ -121,13 +121,27 @@
   {% endif %}
 
   <header class="cp-admin-hero">
-    <div class="cp-admin-eyebrow">RunMyCampus Manager</div>
-    <h1>Configuration Engine</h1>
-    <p class="cp-admin-hero-sub">{% trans "System configuration, platform data, and administrative controls. Use the control plane for tenant operations and billing." %}</p>
+    <div class="cp-admin-eyebrow">RunMyCampus Platform Admin</div>
+    <h1>Platform Administration</h1>
+    <p class="cp-admin-hero-sub">{% trans "Platform configuration, operator workflows, and governed administrative controls. Use the control plane for tenant operations and billing." %}</p>
     <div class="cp-admin-hero-actions">
-      <a href="{% url 'super:dashboard' %}" class="cp-admin-btn-primary">🎛️ Control plane</a>
-      <a href="{% url 'super:command_center' %}" class="cp-admin-btn-secondary">📋 Command center</a>
-      <a href="{% url 'super:billing_dashboard' %}" class="cp-admin-btn-secondary">💰 Billing</a>
+      <a href="{% url 'super:dashboard' %}" class="cp-admin-btn-primary">🎛️ {% trans "Control plane" %}</a>
+      <a href="{% url 'super:command_center' %}" class="cp-admin-btn-secondary">📋 {% trans "Command center" %}</a>
+      <a href="{% url 'super:billing_dashboard' %}" class="cp-admin-btn-secondary">💰 {% trans "Billing" %}</a>
+    </div>
+    <div class="cp-admin-config-hub mt-3 pt-3" style="border-top: 1px solid rgba(212,175,55,0.25);">
+      <span class="cp-admin-eyebrow d-block mb-2">{% trans "Quick config" %}</span>
+      <div class="d-flex flex-wrap gap-2">
+        {% if SITE.pk %}
+        <a href="{% url 'admin:siteconfig_sitesettings_change' SITE.pk %}" class="cp-admin-btn-secondary text-nowrap">⚙️ {% trans "Site settings" %}</a>
+        {% else %}
+        <a href="{% url 'admin:siteconfig_sitesettings_changelist' %}" class="cp-admin-btn-secondary text-nowrap">⚙️ {% trans "Site settings" %}</a>
+        {% endif %}
+        <a href="{% url 'siteconfig:feature_control_panel' %}" class="cp-admin-btn-secondary text-nowrap">🔘 {% trans "Feature Control" %}</a>
+        <a href="{% url 'siteconfig:theme_colors' %}" class="cp-admin-btn-secondary text-nowrap">🎨 {% trans "Theme & Experience" %}</a>
+        <a href="{% url 'admin:siteconfig_regionconfig_changelist' %}" class="cp-admin-btn-secondary text-nowrap">📍 {% trans "Region Config" %}</a>
+        <a href="{% url 'admin:siteconfig_integration_changelist' %}" class="cp-admin-btn-secondary text-nowrap">🔌 {% trans "Integrations" %}</a>
+      </div>
     </div>
   </header>
 

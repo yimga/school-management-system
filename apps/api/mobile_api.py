@@ -413,11 +413,11 @@ class OfflineSyncViewSet(viewsets.ModelViewSet):
         return {"status": sync_item.status, "message": message, "offline_entry_id": offline_entry.id}
 
     def _process_attendance_sync(self, sync_item, user):
-        """Process attendance sync items with conflict handling based on SiteSettings."""
+        """Process attendance sync items with conflict handling based on tenant-aware settings."""
         from apps.academics.models import Attendance
         from apps.evals.models import TeacherAssignment
         from apps.people.models import TeacherProfile, StudentProfile
-        from apps.siteconfig.models import SiteSettings
+        from apps.platform_runtime.helpers import get_effective_site_settings
 
         payload = sync_item.data or {}
         teacher = TeacherProfile.objects.filter(user=user).first()
@@ -484,7 +484,7 @@ class OfflineSyncViewSet(viewsets.ModelViewSet):
             date=local_date,
         ).first()
         client_ts = self._parse_client_timestamp(sync_item.client_timestamp)
-        site = SiteSettings.get_solo()
+        site = get_effective_site_settings(school=getattr(sync_item, "school", None))
         mode = (site.offline_sync_conflict_resolution or "show_both").lower()
 
         if existing and self._is_server_newer(existing.updated_at, client_ts):
@@ -576,9 +576,9 @@ class OfflineSyncViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def sync_batch(self, request):
         """Sync batch of offline changes. Multi-tenant: school must have offline_mode module when request.school is set."""
-        from apps.siteconfig.models import SiteSettings
+        from apps.platform_runtime.helpers import get_effective_site_settings
 
-        site = SiteSettings.get_solo()
+        site = get_effective_site_settings(request=request)
         flags = site.backend_feature_flags or {}
         if not site.enable_offline_mode:
             return Response(

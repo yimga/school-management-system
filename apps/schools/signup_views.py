@@ -82,6 +82,7 @@ def signup_school(request: HttpRequest):
     school_settings = {}
     if term_preset and term_preset.upper() in ("UK", "GB"):
         school_settings["term_preset"] = "UK"
+    country_defaults = GlobalGeoCatalog.country_defaults(country_code)
     school = School.objects.create(
         name=name,
         slug=slug,
@@ -89,7 +90,7 @@ def signup_school(request: HttpRequest):
         is_active=False,
         is_approved=True,
         country_code=country_code,
-        timezone=getattr(settings, "DEFAULT_SCHOOL_TIMEZONE", "Africa/Douala"),
+        timezone=str(country_defaults.get("timezone") or getattr(settings, "DEFAULT_SCHOOL_TIMEZONE", "UTC")),
         settings=school_settings,
     )
     from datetime import timedelta
@@ -143,12 +144,15 @@ def onboarding_wizard(request: HttpRequest):
     Public onboarding shell at /onboard/.
     Keeps provisioning entry-point stable while trial API and signup flow evolve.
     """
+    countries = GlobalGeoCatalog.list_countries()
     return render(
         request,
         "schools/onboard_wizard.html",
         {
             "trial_endpoint": reverse("api_trial_school"),
             "signup_url": reverse("signup_school"),
+            "countries": countries[:120],
+            "default_country_code": GlobalGeoCatalog.normalize_country_code(request.GET.get("country_code")) or "USA",
         },
     )
 

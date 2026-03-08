@@ -107,8 +107,8 @@ def backend_student_create(request):
                                 from apps.platform_runtime.helpers import get_site_display_name, get_effective_flags
                                 notify = get_effective_flags(request).get("notify_parent_welcome_email")
                                 if notify is None:
-                                    from apps.siteconfig.models import SiteSettings
-                                    notify = getattr(SiteSettings.get_solo(), "notify_parent_welcome_email", False)
+                                    from apps.platform_runtime.helpers import get_effective_site_settings
+                                    notify = getattr(get_effective_site_settings(request=request), "notify_parent_welcome_email", False)
                                 if notify:
                                     from django.core.mail import send_mail
                                     from django.conf import settings

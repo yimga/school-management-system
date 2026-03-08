@@ -16,6 +16,7 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.cache import never_cache
 
 from apps.accounts.decorators import permission_required
+from apps.platform_runtime.helpers import get_effective_site_settings
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
 from apps.siteconfig.models import (
     SiteSettings,
@@ -104,8 +105,8 @@ FEATURE_CATEGORIES = {
         ("backend_flags.allow_bulk_commit", "Bulk Import Commit", False, "Allow commit step in entity import", "Bulk commit disabled", []),
         ("backend_flags.enable_api_schema_ui", "API Schema UI", False, "API documentation for staff", "API docs hidden", []),
         ("backend_flags.enable_ocr_scan_teller", "OCR Scan Teller", False, "Scan payment receipts (OCR) for matching and data entry", "Scan Teller hidden", []),
-        ("backend_flags.enable_ministry_api_cartescolaire", "Ministry API (Cartescolaire)", False, "Placeholder for Cartescolaire / school map integration", "Ministry API disabled", []),
-        ("backend_flags.enable_ministry_api_dgi", "Ministry API (DGI)", False, "Placeholder for DGI / tax integration", "DGI API disabled", []),
+        ("backend_flags.enable_ministry_api_cartescolaire", "Ministry API: Student Registry", False, "Placeholder for a national student-registry integration", "Student-registry integration disabled", []),
+        ("backend_flags.enable_ministry_api_dgi", "Ministry API: Revenue / Tax", False, "Placeholder for a government revenue or tax integration", "Revenue/tax integration disabled", []),
         ("backend_flags.enable_ministry_live_sync", "Ministry Live Sync", True, "Allow outbound sync to configured ministry APIs when sync=1 is requested", "Only local payload preview available", ["backend_flags.enable_ministry_api_cartescolaire", "backend_flags.enable_ministry_api_dgi"]),
         ("backend_flags.enable_analytics_dashboard_cache", "Analytics Dashboard Cache", False, "Cache analytics dashboard HTML to reduce load (TTL from analytics_dashboard_cache_seconds or 60s)", "Analytics dashboard uncached", []),
         ("backend_flags.enable_super_admin_ui", "Super Admin / Schools", True, "Show Super Admin dashboard and Create School; when off, /super/ is hidden and Schools link removed.", "Super Admin hidden", []),
@@ -483,7 +484,7 @@ def _log_audit(request, action: str, changes: dict) -> None:
 @require_http_methods(["GET"])
 def feature_control_export(request):
     """Export current feature configuration as JSON."""
-    site = SiteSettings.get_solo()
+    site = get_effective_site_settings(request=request)
     current = _get_site_features(site)
     weather = _get_weather_selector_state(site)
     defaults = default_backend_feature_flags()
@@ -523,7 +524,9 @@ def feature_control_export(request):
 @require_http_methods(["GET", "POST"])
 def feature_control_panel(request):
     """Feature Control Panel - toggle modules system-wide."""
-    site = SiteSettings.get_solo()
+    site = get_effective_site_settings(request=request)
+    if site is None:
+        site = SiteSettings()
     current = _get_site_features(site)
 
     if request.method == "POST":
@@ -772,7 +775,7 @@ def feature_control_weather_cities(request):
 @require_http_methods(["GET"])
 def feature_control_api(request):
     """REST API: GET returns current feature state as JSON."""
-    site = SiteSettings.get_solo()
+    site = get_effective_site_settings(request=request)
     current = _get_site_features(site)
     weather_state = _get_weather_selector_state(site)
     defaults = default_backend_feature_flags()

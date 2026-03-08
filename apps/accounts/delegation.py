@@ -9,13 +9,28 @@ from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.utils import timezone
 
-from apps.siteconfig.models import SiteSettings
+from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.siteconfig.models import default_grade_approval_roles, default_syllabus_approval_roles
 
 User = get_user_model()
 
 # Workflow keys used in scope and in get_effective_approvers
 WORKFLOW_SYLLABUS_APPROVAL = "syllabus_approval"
 WORKFLOW_GRADE_APPROVAL = "grade_approval"
+
+
+def _school_for_user(user: User | None):
+    if not user or not getattr(user, "is_authenticated", False):
+        return None
+    teacher_profile = getattr(user, "teacher_profile", None)
+    if teacher_profile and getattr(teacher_profile, "school", None):
+        return teacher_profile.school
+    guardian_links = getattr(user, "guardian_links", None)
+    if guardian_links is not None:
+        link = guardian_links.select_related("student__school").first()
+        if link and getattr(link.student, "school", None):
+            return link.student.school
+    return None
 
 
 def _normalize_roles(raw_roles) -> list[str]:
@@ -40,13 +55,13 @@ def _user_has_any_role(user: User, roles: list[str]) -> bool:
     return False
 
 
-def get_approval_roles_for_workflow(workflow_key: str) -> list[str]:
+def get_approval_roles_for_workflow(workflow_key: str, school=None) -> list[str]:
     """Return list of role codes that can approve for this workflow (from SiteSettings)."""
-    site = SiteSettings.get_solo()
+    site = get_effective_site_settings(school=school)
     if workflow_key == WORKFLOW_SYLLABUS_APPROVAL:
-        roles = getattr(site, "syllabus_approval_roles", None)
+        roles = getattr(site, "syllabus_approval_roles", None) or default_syllabus_approval_roles()
     elif workflow_key == WORKFLOW_GRADE_APPROVAL:
-        roles = getattr(site, "grade_approval_roles", None)
+        roles = getattr(site, "grade_approval_roles", None) or default_grade_approval_roles()
     else:
         return []
     return _normalize_roles(roles)
@@ -85,14 +100,14 @@ def get_active_delegations_for_delegators(delegator_user_ids: list[int], workflo
     return qs
 
 
-def get_effective_approvers(workflow_key: str):
+def get_effective_approvers(workflow_key: str, school=None):
     """
     Return list of User objects who can approve for this workflow:
     - Users with an approval role for this workflow (from SiteSettings)
     - Plus delegates who are currently acting for any of those users (when they are OOO)
     So if the Dean is away and delegated to the HOD, the HOD appears in the result.
     """
-    role_codes = get_approval_roles_for_workflow(workflow_key)
+    role_codes = get_approval_roles_for_workflow(workflow_key, school=school)
     if not role_codes:
         return list(User.objects.none())
 
@@ -134,11 +149,11 @@ def user_is_acting_for(user: User, delegator: User) -> bool:
     return d is not None and d.delegator_id == delegator.id
 
 
-def can_user_approve_for_workflow(user: User, workflow_key: str) -> bool:
+def can_user_approve_for_workflow(user: User, workflow_key: str, school=None) -> bool:
     """True if user can approve (has role or is acting delegate for someone who has role)."""
     if not user or not user.is_authenticated:
         return False
-    approvers = get_effective_approvers(workflow_key)
+    approvers = get_effective_approvers(workflow_key, school=school)
     return user in approvers
 
 
@@ -158,20 +173,21 @@ def log_delegation_action(delegation, actor, action_taken, object_repr="", objec
     )
 
 
-def get_delegation_role_mapping():
+def get_delegation_role_mapping(school=None):
     """Return who can delegate to whom from SiteSettings (dict: delegator_role -> [delegate_roles])."""
-    site = SiteSettings.get_solo()
+    site = get_effective_site_settings(school=school)
     mapping = getattr(site, "delegation_role_mapping", None) or {}
     if isinstance(mapping, dict):
         return mapping
     return {}
 
 
-def get_allowed_delegate_role_codes(delegator_user: User) -> list[str]:
+def get_allowed_delegate_role_codes(delegator_user: User, school=None) -> list[str]:
     """Return role codes the delegator is allowed to choose as delegate (from SiteSettings role mapping)."""
     if not delegator_user or not delegator_user.is_authenticated:
         return []
-    mapping = get_delegation_role_mapping()
+    school = school or _school_for_user(delegator_user)
+    mapping = get_delegation_role_mapping(school=school)
     role_upper = (getattr(delegator_user, "role", "") or "").upper()
     if not role_upper:
         return []
@@ -183,7 +199,7 @@ def get_allowed_delegate_role_codes(delegator_user: User) -> list[str]:
 
 def get_allowed_delegate_queryset(delegator_user: User):
     """Return queryset of users the delegator can assign as delegate (excluding self)."""
-    role_codes = get_allowed_delegate_role_codes(delegator_user)
+    role_codes = get_allowed_delegate_role_codes(delegator_user, school=_school_for_user(delegator_user))
     if not role_codes:
         return User.objects.none()
     return get_users_with_roles(role_codes).exclude(pk=delegator_user.pk).filter(is_active=True).order_by("username")
@@ -191,7 +207,7 @@ def get_allowed_delegate_queryset(delegator_user: User):
 
 def user_can_create_delegation(user: User) -> bool:
     """True if the user's role appears in delegation_role_mapping (can assign a delegate)."""
-    return len(get_allowed_delegate_role_codes(user)) > 0
+    return len(get_allowed_delegate_role_codes(user, school=_school_for_user(user))) > 0
 
 
 # Scope choices for delegation UI (workflow keys)

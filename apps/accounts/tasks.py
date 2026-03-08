@@ -6,8 +6,23 @@ from __future__ import annotations
 import logging
 from django.utils import timezone
 from celery import shared_task
+from apps.platform_runtime.helpers import get_effective_site_settings
 
 logger = logging.getLogger(__name__)
+
+
+def _school_for_user(user):
+    if not user:
+        return None
+    teacher_profile = getattr(user, "teacher_profile", None)
+    if teacher_profile and getattr(teacher_profile, "school", None):
+        return teacher_profile.school
+    guardian_links = getattr(user, "guardian_links", None)
+    if guardian_links is not None:
+        link = guardian_links.select_related("student__school").first()
+        if link and getattr(link.student, "school", None):
+            return link.student.school
+    return None
 
 
 @shared_task(name="accounts.expire_past_delegations")
@@ -17,27 +32,21 @@ def expire_past_delegations():
     Respects SiteSettings.delegation_auto_revoke; when True, deactivates automatically.
     """
     from apps.accounts.models import Delegation
-    from apps.siteconfig.models import SiteSettings
-
-    try:
-        site = SiteSettings.get_solo()
-        if not getattr(site, "delegation_auto_revoke", True):
-            return {"expired": 0, "skipped": "auto_revoke disabled"}
-    except Exception as e:
-        logger.warning("expire_past_delegations: could not load SiteSettings: %s", e)
-        return {"expired": 0, "error": str(e)}
 
     now = timezone.now()
     # Delegations that are still active but past their effective end
-    qs = Delegation.objects.filter(is_active=True)
+    qs = Delegation.objects.filter(is_active=True).select_related("delegator")
     to_expire = []
     for d in qs:
+        site = get_effective_site_settings(school=_school_for_user(d.delegator))
+        if not getattr(site, "delegation_auto_revoke", True):
+            continue
         end = d.extended_end_date or d.end_date
         if end and end < now:
-            to_expire.append(d.pk)
+            to_expire.append((d.pk, site))
 
     if to_expire:
-        for pk in to_expire:
+        for pk, site in to_expire:
             try:
                 from apps.people.badge_services import revoke_acting_badges_for_delegation
                 d = Delegation.objects.get(pk=pk)
@@ -60,7 +69,7 @@ def expire_past_delegations():
                         logger.warning("expire_past_delegations: summary email for %s: %s", pk, e)
             except Exception as e:
                 logger.warning("expire_past_delegations: revoke badge for delegation %s: %s", pk, e)
-        Delegation.objects.filter(pk__in=to_expire).update(is_active=False)
+        Delegation.objects.filter(pk__in=[pk for pk, _site in to_expire]).update(is_active=False)
         logger.info("expire_past_delegations: deactivated %d delegation(s)", len(to_expire))
 
     return {"expired": len(to_expire)}
@@ -172,8 +181,7 @@ def apply_rollover_proposal(proposal_id, lock_source=False, notify_parents=False
 
     source_year = proposal.source_year
     target_year = proposal.target_year
-    from apps.siteconfig.models import SiteSettings
-    site = SiteSettings.get_solo()
+    site = get_effective_site_settings(school=getattr(proposal, "school", None))
     flags = getattr(site, "backend_feature_flags", None) or {}
     block_outstanding = flags.get("block_promotion_if_outstanding_returns", False)
 

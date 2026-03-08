@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "marketing/base_marketing.html" %}
 {% load static i18n %}
 {% block body_class %}marketing-surface{% endblock %}
 {% block extrahead %}
@@ -7,49 +7,5 @@
 {% endblock %}
 {% block extrastyle %}
   {{ block.super }}
-  <link rel="stylesheet" href="{% static 'css/marketing-home.css' %}">
-  <style>
-    .marketing-navbar {
-      position: sticky; top: 0; z-index: 1020;
-      background: #0f172a;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.18), 0 0 0 1px rgba(255,255,255,0.04);
-      font-weight: 500;
-    }
-    .marketing-navbar .navbar-brand { color: #f8fafc !important; font-size: var(--type-section, 1.125rem); }
-    .marketing-navbar .nav-link { color: rgba(248, 250, 252, 0.92) !important; padding: 0.5rem 0.75rem !important; border-radius: 8px; transition: color 0.2s ease, background 0.2s ease; }
-    .marketing-navbar .nav-link:hover { color: #fff !important; background: rgba(255,255,255,0.06); }
-    .marketing-navbar .btn-cta-primary { background: #2563eb; color: #fff; border-radius: 10px; font-weight: 600; padding: 0.5rem 1.25rem; box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35); transition: transform 0.15s ease, box-shadow 0.2s ease; }
-    .marketing-navbar .btn-cta-primary:hover { background: #1d4ed8; color: #fff; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4); }
-    .marketing-main { padding: 0; max-width: none; }
-  </style>
 {% endblock %}
-{% block navbar %}
-<nav class="navbar navbar-expand-lg navbar-dark marketing-navbar">
-  <div class="container">
-    <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{% url 'home' %}">
-      {% if PUBLIC_BRAND_MODE and PUBLIC_BRAND_LOGO_URL %}
-        <img src="{{ PUBLIC_BRAND_LOGO_URL }}" alt="" width="32" height="32" decoding="async" loading="lazy" style="object-fit: contain;">
-      {% else %}
-        <img src="{% static 'images/runmycampus-icon.png' %}" alt="" width="32" height="32" decoding="async" loading="lazy" style="object-fit: contain;">
-      {% endif %}
-      <span>{% if PUBLIC_BRAND_MODE %}{{ PUBLIC_BRAND_NAME }}{% else %}RunMyCampus{% endif %}</span>
-    </a>
-    <button class="navbar-toggler border-light" type="button" data-bs-toggle="collapse" data-bs-target="#marketingNav" aria-controls="marketingNav" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="marketingNav">
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-1">
-        {% for item in marketing_navbar_primary %}
-          <li class="nav-item">
-            <a class="nav-link px-2" href="{{ item.path }}">{{ item.label }}</a>
-          </li>
-        {% endfor %}
-      </ul>
-      <div class="d-flex align-items-center gap-2">
-        <a class="btn btn-outline-light btn-sm" href="{% url 'global_login_discovery' %}">{% trans "Login" %}</a>
-        <a class="btn btn-cta-primary btn-sm" href="{% url 'signup_school' %}">{% trans "Start Free Trial" %}</a>
-      </div>
-    </div>
-  </div>
-</nav>
-{% endblock %}
+{% comment %}Nav and footer are in base_marketing (marketing_header.html, marketing_footer.html). No navbar block override.{% endcomment %}

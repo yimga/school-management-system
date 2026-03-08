@@ -18,12 +18,14 @@ from apps.billing.models import (
     PlatformBillingProcessorConfig,
     BillingProcessorSyncEvent,
     PlatformLedgerEntry,
+    Quote,
     RevenueSharePayout,
     TenantSubscription,
 )
 from apps.billing.services import (
     execute_revenue_share_payout,
     apply_processor_snapshot,
+    convert_quote_to_subscription,
     ensure_subscription_for_school,
     record_platform_charge,
     run_revenue_share_payout_execution,
@@ -197,6 +199,31 @@ class PlatformBillingServicesTests(TestCase):
         self.assertIsNone(account.delinquent_since)
         self.assertFalse(self.school.is_frozen)
         self.assertEqual(self.school.frozen_reason, "")
+
+    def test_convert_quote_to_subscription_creates_live_contract(self):
+        quote = Quote.objects.create(
+            school=self.school,
+            plan=self.plan,
+            status=Quote.Status.SENT,
+            amount=Decimal("249.00"),
+            currency_code="EUR",
+            metadata={"billing_cycle": TenantSubscription.BillingCycle.ANNUAL},
+        )
+
+        success, message = convert_quote_to_subscription(quote.pk)
+
+        self.assertTrue(success, message)
+        quote.refresh_from_db()
+        self.school.refresh_from_db()
+        account = BillingAccount.objects.get(school=self.school)
+        subscription = TenantSubscription.objects.get(school=self.school)
+        self.assertEqual(quote.status, Quote.Status.ACCEPTED)
+        self.assertEqual(self.school.billing_type, School.BillingType.REGULAR)
+        self.assertEqual(account.status, BillingAccount.Status.ACTIVE)
+        self.assertEqual(account.currency_code, "EUR")
+        self.assertEqual(subscription.status, TenantSubscription.Status.ACTIVE)
+        self.assertEqual(subscription.billing_cycle, TenantSubscription.BillingCycle.ANNUAL)
+        self.assertEqual(subscription.base_amount, Decimal("249.00"))
 
     def test_schedule_revenue_share_payout_creates_scheduled_payout(self):
         payout = schedule_revenue_share_payout(

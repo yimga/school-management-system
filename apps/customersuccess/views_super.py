@@ -10,6 +10,14 @@ from django.utils import timezone
 from apps.schools.models import School
 
 
+def _bounded_limit(raw_value, default: int, maximum: int) -> int:
+    try:
+        parsed = int(raw_value)
+    except (TypeError, ValueError):
+        parsed = default
+    return max(1, min(parsed, maximum))
+
+
 # ---------- 11.3 Benchmark intelligence ----------
 
 
@@ -160,10 +168,16 @@ def api_tenant_health(request):
             s["score"] = str(s["score"])
         return JsonResponse({"school_id": str(school.id), "health_scores": scores})
 
-    # All tenants: ensure and return latest
-    schools = School.objects.filter(is_active=True)
+    # All tenants: page through active schools instead of silently truncating at 200.
+    limit = _bounded_limit(request.GET.get("limit"), 200, 1000)
+    try:
+        offset = max(0, int(request.GET.get("offset", 0)))
+    except (TypeError, ValueError):
+        offset = 0
+    schools = School.objects.filter(is_active=True).order_by("name")
+    total_count = schools.count()
     out = []
-    for school in schools[:200]:
+    for school in schools[offset:offset + limit]:
         ensure_health_score_record(school)
         latest = TenantHealthScore.objects.filter(school=school).order_by("-computed_at").first()
         if latest:
@@ -175,7 +189,15 @@ def api_tenant_health(request):
                 "dimensions": latest.dimensions,
                 "computed_at": latest.computed_at.isoformat(),
             })
-    return JsonResponse({"tenants": out})
+    return JsonResponse(
+        {
+            "tenants": out,
+            "total_count": total_count,
+            "offset": offset,
+            "limit": limit,
+            "has_more": offset + limit < total_count,
+        }
+    )
 
 
 @require_GET
@@ -233,8 +255,9 @@ def customer_success_dashboard(request):
     from .models import TenantRiskAlert, TenantInterventionSuggestion, WorkflowFailureEvent, TenantHealthScore
     from .services import ensure_health_score_record
 
-    # Ensure latest health for active schools (sample)
-    for school in School.objects.filter(is_active=True)[:50]:
+    dashboard_limit = _bounded_limit(request.GET.get("limit"), 50, 200)
+    active_schools = list(School.objects.filter(is_active=True).order_by("name")[:dashboard_limit])
+    for school in active_schools:
         try:
             ensure_health_score_record(school)
         except Exception:
@@ -243,7 +266,7 @@ def customer_success_dashboard(request):
     alerts = TenantRiskAlert.objects.filter(acknowledged_at__isnull=True).select_related("school").order_by("-created_at")[:20]
     suggestions = TenantInterventionSuggestion.objects.filter(dismissed_at__isnull=True).select_related("school").order_by("priority", "-created_at")[:20]
     failures = WorkflowFailureEvent.objects.select_related("school").order_by("-created_at")[:20]
-    health_scores = TenantHealthScore.objects.filter(school__is_active=True).order_by("school", "-computed_at")
+    health_scores = TenantHealthScore.objects.filter(school__in=active_schools).order_by("school", "-computed_at")
     # Latest per school
     seen_schools = set()
     health_list = []
@@ -260,6 +283,7 @@ def customer_success_dashboard(request):
             "suggestions": suggestions,
             "workflow_failures": failures,
             "health_scores": health_list,
+            "dashboard_limit": dashboard_limit,
             "dashboard_url": "/super/",
         },
     )

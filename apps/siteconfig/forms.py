@@ -7,6 +7,7 @@ from django.conf import settings
 from django.db.models import Q
 
 from apps.academics.models import Classroom
+from apps.platform_runtime.helpers import get_effective_site_settings
 
 from .models import (
     DashboardView,
@@ -24,6 +25,20 @@ from .models import (
 from .translations import SUPPORTED_LANGUAGES
 from .models_dashboard import DashboardUserPreference
 from .widgets import ColorInputWithPreview
+
+
+def _school_for_user(user):
+    if not user or not getattr(user, "is_authenticated", False):
+        return None
+    teacher_profile = getattr(user, "teacher_profile", None)
+    if teacher_profile and getattr(teacher_profile, "school", None):
+        return teacher_profile.school
+    guardian_links = getattr(user, "guardian_links", None)
+    if guardian_links is not None:
+        link = guardian_links.select_related("student__school").first()
+        if link and getattr(link.student, "school", None):
+            return link.student.school
+    return None
 
 
 def _hex_to_rgb(value: str) -> tuple[int, int, int]:
@@ -555,8 +570,7 @@ class UserPreferenceForm(forms.ModelForm):
             selected = default_dashboard_widgets(role)
         self.initial["dashboard_widgets"] = selected
         if self.user:
-            from .models import SiteSettings
-            site = SiteSettings.get_solo()
+            site = get_effective_site_settings(school=_school_for_user(self.user))
             default_collapsed = getattr(site, "default_sidebar_collapsed", False)
             dashboard_pref, _ = DashboardUserPreference.objects.get_or_create(
                 user=self.user,
@@ -599,8 +613,7 @@ class UserPreferenceForm(forms.ModelForm):
         if commit:
             preference.save()
             try:
-                from .models import SiteSettings
-                site = SiteSettings.get_solo()
+                site = get_effective_site_settings(school=_school_for_user(preference.user))
                 default_collapsed = getattr(site, "default_sidebar_collapsed", False)
                 dashboard_pref, _ = DashboardUserPreference.objects.get_or_create(
                     user=preference.user,

@@ -4,7 +4,6 @@ Dedicated for super-admin and operations access.
 """
 from django.conf import settings
 from django.conf.urls.static import static
-from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
@@ -19,7 +18,7 @@ from apps.schools.models import School
 from apps.schools.marketing_views import marketing_page
 from apps.schools.control_plane import require_control_plane_access, user_has_control_plane_access
 from apps.schools.tenant_url import build_public_absolute_url
-from config.admin import admin_site
+from config.admin import platform_admin_site
 
 # Reuse main urlconf error handlers so 500/404/403 pages get user in context.
 from config.urls import (
@@ -65,58 +64,6 @@ def manager_legacy_surface_redirect(request, surface: str, remaining: str = ""):
     del remaining
     destination = "super:billing_dashboard" if surface == "finance" else "super:dashboard"
     return redirect(destination)
-
-
-def _portal_link_child_redirect(request):
-    """Manager has no portal link-child flow; send to claim-invite so login page URL resolves."""
-    return redirect("accounts:claim_invite")
-
-
-portal_compat_patterns = [
-    path("", manager_legacy_surface_redirect, {"surface": "portal"}, name="home"),
-    path("parent/", manager_legacy_surface_redirect, {"surface": "portal"}, name="parent_dashboard"),
-    path("parent/link-child/", _portal_link_child_redirect, name="link_child"),
-    path("teacher/", manager_legacy_surface_redirect, {"surface": "portal"}, name="teacher_dashboard_alias"),
-    path("support/request/", manager_legacy_surface_redirect, {"surface": "portal"}, name="support_request"),
-    # Document library and other portal backend routes: resolve for admin sidebar / shared templates; redirect to control plane
-    path("backend/documents/", manager_legacy_surface_redirect, {"surface": "portal"}, name="document_library_manage"),
-]
-
-kb_compat_patterns = [
-    path("", manager_legacy_surface_redirect, {"surface": "kb"}, name="kb_home"),
-    path("faq/", manager_legacy_surface_redirect, {"surface": "kb"}, name="faq_list"),
-]
-
-finance_compat_patterns = [
-    path("", manager_legacy_surface_redirect, {"surface": "finance"}, name="dashboard"),
-    path("invoices/", manager_legacy_surface_redirect, {"surface": "finance"}, name="invoices"),
-]
-
-evals_compat_patterns = [
-    path("", manager_legacy_surface_redirect, {"surface": "evals"}, name="home"),
-    path("teacher/", manager_legacy_surface_redirect, {"surface": "evals"}, name="teacher_dashboard"),
-    path("marks-entry/", manager_legacy_surface_redirect, {"surface": "evals"}, name="teacher_marks_entry"),
-    path("admin/", manager_legacy_surface_redirect, {"surface": "evals"}, name="evaluation_admin"),
-]
-
-analytics_compat_patterns = [
-    path("", manager_legacy_surface_redirect, {"surface": "reports"}, name="dashboard"),
-    path("master-sheet/", manager_legacy_surface_redirect, {"surface": "reports"}, name="master_sheet"),
-    path("deadlines/", manager_legacy_surface_redirect, {"surface": "reports"}, name="deadlines"),
-]
-
-reports_compat_patterns = [
-    path("", manager_legacy_surface_redirect, {"surface": "reports"}, name="reports_home"),
-    path("publish/", manager_legacy_surface_redirect, {"surface": "reports"}, name="publish_term_results"),
-]
-
-compliance_compat_patterns = [
-    path("", manager_legacy_surface_redirect, {"surface": "reports"}, name="dashboard"),
-]
-
-payroll_compat_patterns = [
-    path("", manager_legacy_surface_redirect, {"surface": "reports"}, name="dashboard"),
-]
 
 
 def _subscription_plan_label(subscription: TenantSubscription) -> str:
@@ -278,7 +225,7 @@ urlpatterns = [
     path("support/", manager_support_request, name="manager_support_request"),
     path("feedback/", manager_feedback, name="manager_feedback"),
     path("notifications/", manager_notifications, name="manager_notifications"),
-    path("admin/", admin_site.urls),
+    path("admin/", platform_admin_site.urls),
     path("authentication/", include(("apps.accounts.urls", "accounts"), namespace="accounts")),
     path("super/", include(("apps.schools.super_urls", "super"), namespace="super")),
     path("siteconfig/", include(("apps.siteconfig.urls", "siteconfig"), namespace="siteconfig")),
@@ -306,25 +253,24 @@ urlpatterns = [
     path("api/weather/context/", obs_views.api_weather_context, name="api_weather_context"),
     path("portal/", manager_legacy_surface_redirect, {"surface": "portal"}, name="manager_legacy_portal"),
     path("portal/<path:remaining>", manager_legacy_surface_redirect, {"surface": "portal"}),
-    path("portal/", include((portal_compat_patterns, "portal"), namespace="portal")),
     path("academics/", manager_legacy_surface_redirect, {"surface": "academics"}, name="manager_legacy_academics"),
     path("academics/<path:remaining>", manager_legacy_surface_redirect, {"surface": "academics"}),
     path("evals/", manager_legacy_surface_redirect, {"surface": "evals"}, name="manager_legacy_evals"),
     path("evals/<path:remaining>", manager_legacy_surface_redirect, {"surface": "evals"}),
-    path("evals/", include((evals_compat_patterns, "evals"), namespace="evals")),
-    path("reports/", include((reports_compat_patterns, "reports"), namespace="reports")),
+    path("reports/", manager_legacy_surface_redirect, {"surface": "reports"}, name="manager_legacy_reports"),
     path("reports/<path:remaining>", manager_legacy_surface_redirect, {"surface": "reports"}),
     path("finance/", manager_legacy_surface_redirect, {"surface": "finance"}, name="manager_legacy_finance"),
     path("finance/<path:remaining>", manager_legacy_surface_redirect, {"surface": "finance"}),
-    path("finance/", include((finance_compat_patterns, "finance"), namespace="finance")),
     path("communication/", manager_legacy_surface_redirect, {"surface": "communication"}, name="manager_legacy_communication"),
     path("communication/<path:remaining>", manager_legacy_surface_redirect, {"surface": "communication"}),
     path("kb/", manager_legacy_surface_redirect, {"surface": "kb"}, name="manager_legacy_kb"),
     path("kb/<path:remaining>", manager_legacy_surface_redirect, {"surface": "kb"}),
-    path("kb/", include((kb_compat_patterns, "kb"), namespace="kb")),
-    path("analytics/", include((analytics_compat_patterns, "analytics"), namespace="analytics")),
-    path("compliance/", include((compliance_compat_patterns, "compliance"), namespace="compliance")),
-    path("payroll/", include((payroll_compat_patterns, "payroll"), namespace="payroll")),
+    path("analytics/", manager_legacy_surface_redirect, {"surface": "analytics"}, name="manager_legacy_analytics"),
+    path("analytics/<path:remaining>", manager_legacy_surface_redirect, {"surface": "analytics"}),
+    path("compliance/", manager_legacy_surface_redirect, {"surface": "compliance"}, name="manager_legacy_compliance"),
+    path("compliance/<path:remaining>", manager_legacy_surface_redirect, {"surface": "compliance"}),
+    path("payroll/", manager_legacy_surface_redirect, {"surface": "payroll"}, name="manager_legacy_payroll"),
+    path("payroll/<path:remaining>", manager_legacy_surface_redirect, {"surface": "payroll"}),
     path("privacy/", marketing_page, {"page_slug": "privacy"}, name="marketing_privacy"),
     path("terms/", marketing_page, {"page_slug": "terms"}, name="marketing_terms"),
     path("cookie-policy/", marketing_page, {"page_slug": "cookie-policy"}, name="marketing_cookie_policy"),

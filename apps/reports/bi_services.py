@@ -25,6 +25,12 @@ from apps.siteconfig.admin_dashboard import AdminDashboardService
 from apps.siteconfig.cache_utils import get_tenant_cache_prefix
 
 
+def _report_cache_prefix(school_id: Optional[str] = None) -> str:
+    if school_id is not None:
+        return f"school:{school_id}"
+    return get_tenant_cache_prefix(None)
+
+
 class ExecutiveReportingService:
     """
     Executive-level reports and dashboards
@@ -42,7 +48,7 @@ class ExecutiveReportingService:
         """
         from apps.finance.models import Invoice, Payment
         
-        prefix = get_tenant_cache_prefix(None)
+        prefix = _report_cache_prefix(school_id)
         cache_key = f'{prefix}:exec_finance_{school_id or "global"}_{start_date.date()}_{end_date.date()}'
         cached = cache.get(cache_key)
         if cached:
@@ -88,7 +94,7 @@ class ExecutiveReportingService:
         from apps.people.models import Student
         from apps.academics.models import Classroom
         
-        prefix = get_tenant_cache_prefix(None)
+        prefix = _report_cache_prefix(school_id)
         cache_key = f'{prefix}:exec_academic_{school_id or "global"}_{academic_year_id}_{term_id}'
         cached = cache.get(cache_key)
         if cached:
@@ -139,7 +145,7 @@ class ExecutiveReportingService:
         """Enrollment trends over time"""
         from apps.people.models import Student
         
-        prefix = get_tenant_cache_prefix(None)
+        prefix = _report_cache_prefix(school_id)
         cache_key = f'{prefix}:enrollment_trends_{school_id or "global"}_{months}'
         cached = cache.get(cache_key)
         if cached:
@@ -265,7 +271,8 @@ class ReportCacheManager:
     @staticmethod
     def _build_cache_key(report_type: str, parameters: Dict) -> str:
         """Build unique cache key (tenant-scoped)."""
-        prefix = get_tenant_cache_prefix(None)
+        school_id = parameters.get("school_id") or parameters.get("tenant_id")
+        prefix = _report_cache_prefix(school_id)
         params_str = json.dumps(parameters, sort_keys=True)
         return f'{prefix}:report:{report_type}:{hash(params_str)}'
     
@@ -289,18 +296,22 @@ class ReportCacheManager:
         )
     
     @staticmethod
-    def invalidate_report_cache(report_type: str):
+    def invalidate_report_cache(report_type: str, school_id: Optional[str] = None):
         """Invalidate all caches for a report type (tenant-scoped keys)."""
         from apps.reports.bi_models import MaterializedReportCache
 
-        MaterializedReportCache.objects.filter(report_type=report_type).delete()
-        prefix = get_tenant_cache_prefix(None)
+        prefix = _report_cache_prefix(school_id)
+        cache_key_prefix = f'{prefix}:report:{report_type}:'
+        cache_queryset = MaterializedReportCache.objects.filter(report_type=report_type)
+        if school_id is not None:
+            cache_queryset = cache_queryset.filter(cache_key__startswith=cache_key_prefix)
+        cache_queryset.delete()
         pattern = f'{prefix}:report:{report_type}:*'
         if hasattr(cache, 'delete_pattern'):
             cache.delete_pattern(pattern)
         else:
             for key in list(cache._cache.keys()):
-                if key.startswith(f'{prefix}:report:{report_type}:'):
+                if key.startswith(cache_key_prefix):
                     cache.delete(key)
 
 

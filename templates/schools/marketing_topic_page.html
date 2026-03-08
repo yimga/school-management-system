@@ -1,5 +1,5 @@
-{% extends "base.html" %}
-{% load i18n %}
+{% extends "marketing/base_marketing.html" %}
+{% load i18n static %}
 {% block title %}{{ seo_title|default:"RunMyCampus" }}{% endblock %}
 {% block extrahead %}
   <meta name="description" content="{{ seo_description|default:'RunMyCampus topical solution landing.' }}">
@@ -8,28 +8,74 @@
   {% if breadcrumb_schema_json %}<script type="application/ld+json">{{ breadcrumb_schema_json|safe }}</script>{% endif %}
 {% endblock %}
 {% block content %}
-<section class="container py-4 py-lg-5">
-  <div class="row justify-content-center">
-    <div class="col-lg-9">
-      <p class="text-uppercase small text-muted mb-2">RunMyCampus Solutions</p>
-      <h1 class="display-6 fw-bold mb-3">{{ topic.headline }}</h1>
-      <p class="lead text-muted mb-4">{{ topic.subheadline }}</p>
-      <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
-          <h2 class="h5 mb-3">{% trans "Why this solution" %}</h2>
-          <ul class="mb-0">
-            {% for point in topic.focus_points %}
-            <li>{{ point }}</li>
-            {% endfor %}
-          </ul>
-        </div>
+<section class="container py-4 py-lg-5 page-stack">
+  <p class="text-uppercase small text-muted mb-2">RunMyCampus Solutions</p>
+  <h1 class="display-6 fw-bold mb-3">{{ topic.headline }}</h1>
+  <p class="lead text-muted mb-4">{{ topic.subheadline }}</p>
+
+  {% if topic.role_pain %}
+  <section class="section-shell" aria-label="{% trans 'Who this is for' %}">
+    <h2 class="section-heading">{% trans "Who this is for" %}</h2>
+    <p class="section-lead">{{ topic.role_pain }}</p>
+  </section>
+  {% endif %}
+
+  <section class="section-shell">
+    <h2 class="section-heading">{% trans "Why this solution" %}</h2>
+    <ul class="mb-0">
+      {% for point in topic.focus_points %}
+        <li>{{ point }}</li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  {% if topic.proof_points %}
+  <section class="section-shell" aria-label="{% trans 'Proof points' %}">
+    <h2 class="section-heading">{% trans "Proof points" %}</h2>
+    <ul class="mb-0">
+      {% for point in topic.proof_points %}
+        <li>{{ point }}</li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  <section class="section-shell" aria-label="{% trans 'Product in context' %}">
+    <h2 class="section-heading">{% trans "Product in context" %}</h2>
+    <p class="section-lead">{% trans "This solution is delivered through RunMyCampus modules: admissions, academics, finance, communication, and compliance—all in one platform." %}</p>
+    {% if topic.product_image_url %}
+      <div class="mb-3">
+        <img src="{{ topic.product_image_url }}" alt="" width="800" height="450" loading="lazy" decoding="async" class="img-fluid rounded">
       </div>
-      <div class="d-flex flex-wrap gap-2">
-        <a href="{% url 'marketing_solutions' %}" class="btn btn-outline-secondary">{% trans "Back to solutions" %}</a>
-        <a href="{% url 'marketing_book_demo' %}" class="btn btn-primary">{% trans "Book demo" %}</a>
-        <a href="{% url 'global_login_discovery' %}" class="btn btn-outline-primary">{% trans "Existing tenant login" %}</a>
-      </div>
+    {% endif %}
+  </section>
+
+  {% if topic.migration_angle %}
+  <section class="section-shell" aria-label="{% trans 'Migration' %}">
+    <h2 class="section-heading">{% trans "Migration path" %}</h2>
+    <p class="section-lead">{{ topic.migration_angle }}</p>
+  </section>
+  {% endif %}
+
+  {% if topic.related_topics %}
+  <section class="section-shell" aria-label="{% trans 'Related solutions' %}">
+    <h2 class="section-heading">{% trans "Related solutions" %}</h2>
+    <p class="section-lead">{% trans "Explore other solution pages that complement this one." %}</p>
+    <div class="d-flex flex-wrap gap-2">
+      {% for item in topic.related_topics %}
+        <a href="{% url 'marketing_topic' topic_slug=item.slug %}" class="btn btn-outline-primary">{{ item.label }}</a>
+      {% endfor %}
     </div>
-  </div>
+  </section>
+  {% endif %}
+
+  <section class="section-shell border-0 bg-transparent pt-0">
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{% url 'marketing_book_demo' %}" class="btn btn-primary" data-cta="demo" data-page="topic">{% trans "Book demo" %}</a>
+      <a href="{% url 'signup_school' %}" class="btn btn-outline-primary" data-cta="primary" data-page="topic">{% trans "Start free trial" %}</a>
+      <a href="{% url 'marketing_solutions' %}" class="btn btn-outline-secondary">{% trans "Back to solutions" %}</a>
+      <a href="{% url 'global_login_discovery' %}" class="btn btn-outline-secondary">{% trans "Existing tenant login" %}</a>
+    </div>
+  </section>
 </section>
 {% endblock %}

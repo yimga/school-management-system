@@ -1,0 +1,29 @@
+{% load static i18n %}
+<nav class="navbar navbar-expand-lg navbar-dark mkt-navbar" aria-label="{% trans 'Main navigation' %}">
+  <div class="container">
+    <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{% url 'home' %}">
+      {% if PUBLIC_BRAND_MODE and PUBLIC_BRAND_LOGO_URL %}
+        <img src="{{ PUBLIC_BRAND_LOGO_URL }}" alt="" width="32" height="32" decoding="async" loading="lazy" style="object-fit: contain;">
+      {% else %}
+        <img src="{% static 'images/runmycampus-icon.png' %}" alt="" width="32" height="32" decoding="async" loading="lazy" style="object-fit: contain;">
+      {% endif %}
+      <span>{% if PUBLIC_BRAND_MODE %}{{ PUBLIC_BRAND_NAME }}{% else %}RunMyCampus{% endif %}</span>
+    </a>
+    <button class="navbar-toggler border-light" type="button" data-bs-toggle="collapse" data-bs-target="#marketingNav" aria-controls="marketingNav" aria-expanded="false" aria-label="{% trans 'Toggle navigation' %}">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="marketingNav">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-1">
+        {% for item in marketing_navbar_primary %}
+          <li class="nav-item">
+            <a class="nav-link px-2" href="{{ item.path }}">{{ item.label }}</a>
+          </li>
+        {% endfor %}
+      </ul>
+      <div class="d-flex align-items-center gap-2">
+        <a class="btn btn-outline-light btn-sm" href="{% url 'global_login_discovery' %}">{% trans "Login" %}</a>
+        <a class="btn btn-cta-primary btn-sm" href="{% url 'signup_school' %}" data-cta="primary" data-page="header">{% trans "Start Free Trial" %}</a>
+      </div>
+    </div>
+  </div>
+</nav>

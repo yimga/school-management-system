@@ -505,14 +505,15 @@ class StudentProfile(models.Model):
             adm = policy.get("admissions") or {}
             if adm:
                 return adm
-        SiteSettings = django_apps.get_model("siteconfig", "SiteSettings")
-        site = SiteSettings.get_solo()
+        from apps.siteconfig.identifier_policy_service import default_school_code_for
+        # Platform default when policy has no admissions; tenant reads via policy/runtime only.
+        school_code = default_school_code_for(school) if school else "SCH"
         return {
-            "school_code": (getattr(site, "school_code", None) or "GIL") or "GIL",
-            "admission_number_template": (getattr(site, "admission_number_template", None) or "") or "",
-            "admission_number_strategy": (getattr(site, "admission_number_strategy", None) or "FULL") or "FULL",
-            "admission_number_mode": getattr(site, "admission_number_mode", "AUTO_OR_MANUAL") or "AUTO_OR_MANUAL",
-            "admission_number_pattern": (getattr(site, "admission_number_pattern", None) or "") or "",
+            "school_code": school_code,
+            "admission_number_template": "",
+            "admission_number_strategy": "FULL",
+            "admission_number_mode": "AUTO_OR_MANUAL",
+            "admission_number_pattern": "",
         }
 
     @classmethod
@@ -529,7 +530,8 @@ class StudentProfile(models.Model):
         """
         school = school or getattr(academic_year, "school", None)
         admissions = cls._get_admissions_policy(school)
-        school_code = (admissions.get("school_code") or "GIL").upper()
+        from apps.siteconfig.identifier_policy_service import default_school_code_for
+        school_code = (admissions.get("school_code") or default_school_code_for(school)).upper()
 
         year_str = (academic_year.name or "")[:4]
         yy = year_str[-2:] if year_str and year_str[:4].isdigit() else "00"

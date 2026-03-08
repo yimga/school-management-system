@@ -33,6 +33,16 @@ TENANT_APPS = (
 SKIP_DIRS = {"migrations", "node_modules", ".git", "__pycache__", "venv", ".venv", "scripts", "docs"}
 SKIP_FILES = {"lint_tenant_settings.py"}
 
+# Paths where SiteSettings.get_solo() is allowed (platform-default layer, control-plane, or shims).
+ALLOWED_GET_SOLO_PREFIXES = (
+    "apps/siteconfig/models.py",
+    "apps/platform_runtime/helpers.py",
+    "apps/policies/resolver.py",
+    "apps/siteconfig/management/",
+    "apps/finance/management/",
+    "apps/reports/management/",
+)
+
 # Patterns: (regex, description)
 SITESETTINGS_PATTERN = (re.compile(r"SiteSettings\.get_solo\s*\(\s*\)"), "SiteSettings.get_solo() (use runtime/helpers)")
 HARDCODED_PATTERNS = [
@@ -47,6 +57,7 @@ HARDCODED_PATTERNS = [
 def main() -> int:
     ap = argparse.ArgumentParser(description="Flag SiteSettings.get_solo() and hardcoded region/currency in tenant apps.")
     ap.add_argument("--exit-zero", action="store_true", help="Always exit 0 (report only).")
+    ap.add_argument("--check-get-solo-only", action="store_true", help="Only check get_solo(); ignore hardcoded (for CI).")
     ap.add_argument("--base", default=".", help="Base directory (default: .)")
     args = ap.parse_args()
     base = Path(args.base).resolve()
@@ -62,19 +73,28 @@ def main() -> int:
             continue
         if py.name in SKIP_FILES:
             continue
+        # Skip test files (tests may seed SiteSettings for fixtures).
+        if "/tests/" in path_str or path_str.startswith("apps/") and "/test_" in path_str or rel.name.startswith("test_"):
+            continue
         # Only tenant-facing apps for SiteSettings check; for hardcoded literals scan apps and config
         in_tenant_app = any(path_str.startswith(app) for app in TENANT_APPS)
+        allowed_for_get_solo = any(path_str.startswith(p) for p in ALLOWED_GET_SOLO_PREFIXES)
         try:
             text = py.read_text(encoding="utf-8", errors="replace")
         except Exception:
             continue
         for i, line in enumerate(text.splitlines(), 1):
-            if in_tenant_app and SITESETTINGS_PATTERN[0].search(line):
+            if in_tenant_app and not allowed_for_get_solo and SITESETTINGS_PATTERN[0].search(line):
                 hits.append((path_str, i, line.strip()[:90], SITESETTINGS_PATTERN[1]))
-            for pat, label in HARDCODED_PATTERNS:
-                if pat.search(line) and "settings.py" not in path_str and "env.example" not in path_str:
-                    hits.append((path_str, i, line.strip()[:90], label))
-                    break
+            if not getattr(args, "check_get_solo_only", False):
+                for pat, label in HARDCODED_PATTERNS:
+                    if pat.search(line) and "settings.py" not in path_str and "env.example" not in path_str:
+                        hits.append((path_str, i, line.strip()[:90], label))
+                        break
+
+    get_solo_hits = [(p, ln, sn, lb) for p, ln, sn, lb in hits if "get_solo" in lb]
+    if args.check_get_solo_only:
+        hits = get_solo_hits
 
     if not hits:
         print("lint_tenant_settings: No SiteSettings.get_solo() or hardcoded region/currency in tenant paths.")
@@ -82,7 +102,8 @@ def main() -> int:
     print("Phase 12 CI: Prefer request.tenant_runtime / platform_runtime.helpers (see SITESETTINGS_AUDIT.md):\n")
     for path, line_no, snippet, label in hits:
         print(f"  {path}:{line_no}  {label}")
-        print(f"    {snippet}")
+        safe_snippet = (snippet or "").encode("utf-8", errors="replace").decode("utf-8")[:90]
+        print(f"    {safe_snippet}")
     print(f"\nTotal: {len(hits)} hit(s).")
     return 0 if args.exit_zero else 1
 

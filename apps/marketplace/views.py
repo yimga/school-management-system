@@ -43,6 +43,20 @@ def _tenant_marketplace_allowed(user):
     return role in ("ADMIN", "IT_ADMIN", "LEADERSHIP")
 
 
+def _control_plane_school_options(request, *, default_limit: int = 200) -> tuple[list, str, int]:
+    from apps.schools.models import School
+
+    school_query = str(request.GET.get("school_q") or "").strip()
+    try:
+        limit = max(25, min(int(request.GET.get("limit", default_limit)), 1000))
+    except (TypeError, ValueError):
+        limit = default_limit
+    qs = School.objects.filter(is_active=True)
+    if school_query:
+        qs = qs.filter(Q(name__icontains=school_query) | Q(slug__icontains=school_query))
+    return list(qs.order_by("name")[:limit]), school_query, limit
+
+
 @login_required
 @user_passes_test(_control_plane_access)
 def governance_console(request):
@@ -189,7 +203,7 @@ def blueprint_marketplace(request):
     from apps.schools.models import School
 
     packs = list(BlueprintPack.objects.filter(is_active=True).order_by("category", "name"))
-    schools = list(School.objects.filter(is_active=True).order_by("name")[:200])
+    schools, school_query, school_limit = _control_plane_school_options(request)
 
     # For rollback: schools with PolicyBundles or TenantBlueprint (so we can revert or clear)
     school_bundles = {}
@@ -264,6 +278,8 @@ def blueprint_marketplace(request):
     return render(request, "marketplace/blueprint_marketplace.html", {
         "packs": packs,
         "schools": schools,
+        "school_query": school_query,
+        "school_limit": school_limit,
         "school_bundles": school_bundles,
         "preview": preview,
     })
@@ -284,7 +300,7 @@ def app_catalog(request):
         .order_by("app__name")
     )
     installable_listings = [lst for lst in listings if getattr(lst, "installable", False)]
-    schools = list(School.objects.filter(is_active=True).order_by("name")[:200])
+    schools, school_query, school_limit = _control_plane_school_options(request)
     installed = set()
     if schools:
         for inst in AppInstallation.objects.filter(
@@ -311,6 +327,8 @@ def app_catalog(request):
     return render(request, "marketplace/app_catalog.html", {
         "listings": installable_listings,
         "schools": schools,
+        "school_query": school_query,
+        "school_limit": school_limit,
         "installed": installed,
     })
 

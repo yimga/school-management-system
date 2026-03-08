@@ -4,6 +4,10 @@ Phase 1: runtime contract shape, strict compilation order, precedence, job helpe
 """
 from django.test import TestCase
 
+from apps.platform_runtime.helpers import (
+    get_effective_flags_for_school,
+    get_effective_site_settings,
+)
 from apps.tenancy.context import TenantContext
 from apps.platform_runtime.contracts import (
     TenantRuntime,
@@ -18,6 +22,8 @@ from apps.platform_runtime.runtime_resolver import (
     build_tenant_runtime,
     build_tenant_runtime_for_tenant,
 )
+from apps.schools.models import School
+from apps.siteconfig.models import SiteSettings
 
 
 class TenantRuntimeContractTests(TestCase):
@@ -116,3 +122,47 @@ class TenantRuntimeContractTests(TestCase):
         self.assertIsInstance(runtime, TenantRuntime)
         self.assertIsNotNone(runtime.debug)
         self.assertEqual(runtime.debug.applied_overrides, ["mode"])
+
+
+class RuntimeHelperResolutionTests(TestCase):
+    def test_get_effective_site_settings_uses_school_overrides(self):
+        site = SiteSettings.get_solo()
+        site.site_name = "Platform Default"
+        site.enable_offline_mode = False
+        site.save(update_fields=["site_name", "enable_offline_mode"])
+
+        school = School.objects.create(
+            name="Tenant Override Academy",
+            slug="tenant-override-academy",
+            subdomain="tenant-override-academy",
+            is_active=True,
+            settings={
+                "site_name": "Tenant Override Academy Portal",
+                "enable_offline_mode": True,
+            },
+        )
+
+        resolved = get_effective_site_settings(school=school)
+
+        self.assertEqual(resolved.site_name, "Tenant Override Academy Portal")
+        self.assertTrue(resolved.enable_offline_mode)
+        self.assertEqual(site.site_name, "Platform Default")
+        self.assertFalse(site.enable_offline_mode)
+
+    def test_get_effective_flags_for_school_merges_school_backend_flags(self):
+        site = SiteSettings.get_solo()
+        site.backend_feature_flags = {"enable_api_center": False, "require_guardian_finance_opt_in": False}
+        site.save(update_fields=["backend_feature_flags"])
+
+        school = School.objects.create(
+            name="Flag Override Academy",
+            slug="flag-override-academy",
+            subdomain="flag-override-academy",
+            is_active=True,
+            settings={"backend_feature_flags": {"enable_api_center": True}},
+        )
+
+        flags = get_effective_flags_for_school(school)
+
+        self.assertTrue(flags["enable_api_center"])
+        self.assertFalse(flags["require_guardian_finance_opt_in"])

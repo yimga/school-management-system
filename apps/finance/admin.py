@@ -3,6 +3,7 @@ from decimal import Decimal
 from django.contrib import admin
 from django.contrib.admin.sites import AlreadyRegistered
 from config.admin import admin_site
+from apps.platform_runtime.helpers import get_effective_site_settings
 
 from unfold.admin import ModelAdmin
 
@@ -124,10 +125,10 @@ class FeePlanAdmin(ModelAdmin):
         """Copy selected fee plans to the next academic year."""
         from apps.academics.models import AcademicYear
         from apps.finance.services import copy_fee_plan_to_year
-        from apps.siteconfig.models import SiteSettings
         from django.contrib import messages
         
-        site = SiteSettings.get_solo()
+        school = getattr(queryset.select_related("school").first(), "school", None)
+        site = get_effective_site_settings(school=school)
         increase_pct = getattr(site, "finance_fee_plan_copy_increase_percentage", Decimal("0.00"))
         
         # Find next academic year
@@ -544,9 +545,9 @@ class PaymentProofUploadAdmin(ModelAdmin):
         """Approve selected receipt uploads and create payments."""
         from apps.finance.services import create_payment_from_receipt
         from apps.finance.receipt_verification import ReceiptVerificationService
-        from apps.siteconfig.models import SiteSettings
 
-        site = SiteSettings.get_solo()
+        school = getattr(queryset.select_related("school").first(), "school", None)
+        site = get_effective_site_settings(school=school)
         require_reason = getattr(site, "finance_receipt_require_verification_reason", True)
         approved_count = 0
         for proof_upload in queryset.filter(status=PaymentProofUpload.Status.DISCREPANCY):
@@ -572,9 +573,9 @@ class PaymentProofUploadAdmin(ModelAdmin):
     
     def reject_selected(self, request, queryset):
         """Reject selected receipt uploads (reason in verification_reason or verification_notes). Audited."""
-        from apps.siteconfig.models import SiteSettings
         from apps.compliance.models_audit import AuditLog
-        site = SiteSettings.get_solo()
+        school = getattr(queryset.select_related("school").first(), "school", None)
+        site = get_effective_site_settings(school=school)
         require_reason = getattr(site, "finance_receipt_require_verification_reason", True)
         to_reject = queryset.filter(
             status__in=[PaymentProofUpload.Status.PENDING, PaymentProofUpload.Status.DISCREPANCY]

@@ -350,8 +350,9 @@ class StudentProfileAdmin(ModelAdmin):
     create_guardian_invites.short_description = _("Create guardian invites")
 
     def issue_referral_rewards(self, request, queryset):
-        site = SiteSettings.get_solo()
-        amount = site.referral_bonus_amount or Decimal("0.00")
+        from apps.platform_runtime.helpers import get_effective_site_settings
+        site = get_effective_site_settings(request=request)
+        amount = (getattr(site, "referral_bonus_amount", None) or Decimal("0.00")) if site else Decimal("0.00")
         created = 0
         for student in queryset:
             guardian = student.guardian_links.first()
@@ -448,8 +449,9 @@ class StudentGuardianAdmin(ModelAdmin):
     guardian_display_with_photo.short_description = "Guardian"
 
     def finance_access_state(self, obj):
-        from apps.siteconfig.models import SiteSettings
-        flags = getattr(SiteSettings.get_solo(), "backend_feature_flags", {}) or {}
+        from apps.platform_runtime.helpers import get_effective_flags_for_school
+        school = getattr(getattr(obj, "student", None), "school", None)
+        flags = get_effective_flags_for_school(school) or {}
         require = bool(flags.get("require_guardian_finance_opt_in"))
         if require:
             return "Granted" if obj.can_view_finance else "Blocked (opt-in required)"

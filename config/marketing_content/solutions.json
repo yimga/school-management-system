@@ -1,0 +1,32 @@
+{
+  "label": "Solutions",
+  "seo_title": "RunMyCampus Solutions - K12, multi-campus, and private schools",
+  "seo_description": "Purpose-built deployment patterns for private schools, district networks, and multi-campus operators.",
+  "headline": "Solutions aligned to your school model.",
+  "subheadline": "Deploy fast with templates for private schools, district groups, and multi-entity education organizations.",
+  "schema_type": "CollectionPage",
+  "segments": [
+    {"title": "Single-campus schools", "body": "Launch quickly with ready workflows for onboarding, grading, fee management, and reporting."},
+    {"title": "Multi-campus networks", "body": "Standardize operations while preserving campus-level autonomy and identity."},
+    {"title": "Regional operators", "body": "Use localization controls for language, compliance profiles, terms, and grading systems."}
+  ],
+  "extras": {
+    "metrics": [
+      {"value": "3", "label": "deployment archetypes", "detail": "Single-campus, multi-campus, and regional operator models."},
+      {"value": "195+", "label": "country-ready design", "detail": "Localization logic aligns terminology and compliance defaults by region."},
+      {"value": "1", "label": "manager command center", "detail": "Central oversight with school-level autonomy across tenants."},
+      {"value": "100%", "label": "subdomain isolation", "detail": "Tenant boundaries remain explicit and secure for every school."}
+    ],
+    "execution_blocks": [
+      {"title": "Single-campus launch packs", "body": "Pre-configured patterns reduce setup time for school leads and operations teams."},
+      {"title": "Multi-campus governance rails", "body": "Standardize shared policy while preserving school identity, workflows, and ownership."},
+      {"title": "Regional adaptation without forks", "body": "Global registry hydration keeps language and compliance variants out of core business logic."}
+    ],
+    "faqs": [
+      {"question": "What deployment options does RunMyCampus support?", "answer": "Single-campus, multi-campus networks, and regional operator models with templates for each."},
+      {"question": "Is RunMyCampus available in our country?", "answer": "RunMyCampus is designed for 195+ country-ready profiles with localization for language, compliance, and terms."},
+      {"question": "How does multi-campus governance work?", "answer": "Manager command center provides central oversight while preserving school-level autonomy and identity."},
+      {"question": "Can each school keep its own domain?", "answer": "Yes. Subdomain isolation gives each tenant explicit, secure boundaries and dedicated branding."}
+    ]
+  }
+}

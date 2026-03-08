@@ -661,11 +661,11 @@
       colors: ['#000000', '#ffffff', '#2563eb'],
       bestFor: 'Accessibility, readability'
     },
-    'gilead-blue': {
-      name: 'Gilead Blue',
+    'platform-blue': {
+      name: 'Platform Blue',
       type: 'Classic',
       colors: ['#1e3a8a', '#3b82f6', '#93c5fd'],
-      bestFor: 'School identity, trust'
+      bestFor: 'Platform identity, trust'
     },
     'primary-school': {
       name: 'Primary School',
@@ -702,7 +702,7 @@
     'sunrise-warm',
     'emerald-focus',
     'high-contrast',
-    'gilead-blue',
+    'platform-blue',
     'indigo-amber',
     'twilight',
     'deep-navy-gold'

@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.api.sync_services import apply_changes
-from apps.siteconfig.models import SiteSettings
+from apps.platform_runtime.helpers import get_effective_site_settings
 
 
 class DeltaSyncAPI(APIView):
@@ -25,7 +25,7 @@ class DeltaSyncAPI(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        site = SiteSettings.get_solo()
+        site = get_effective_site_settings(request=request)
         if not getattr(site, "enable_offline_mode", False):
             return Response({"error": "Offline sync is disabled."}, status=status.HTTP_403_FORBIDDEN)
         items = request.data.get("items") or []

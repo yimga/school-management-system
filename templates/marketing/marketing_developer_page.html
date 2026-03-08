@@ -1,0 +1,31 @@
+{% extends "marketing/base_marketing.html" %}
+{% load i18n %}
+{% block title %}{{ seo_title|default:"Developers" }}{% endblock %}
+{% block extrahead %}
+  <meta name="description" content="{{ seo_description|default:'' }}">
+  {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
+  <script type="application/ld+json">{{ structured_data_json|safe }}</script>
+{% endblock %}
+{% block content %}
+<section class="container py-4 py-lg-5 page-stack">
+  <p class="text-uppercase small text-muted mb-2">Developers</p>
+  <h1 class="display-6 fw-bold mb-3">{{ page.headline }}</h1>
+  <p class="lead text-muted mb-4">{{ page.subheadline }}</p>
+
+  {% if page.sections %}
+  {% for sec in page.sections %}
+  <section class="section-shell" aria-label="{{ sec.title }}">
+    <h2 class="section-heading">{{ sec.title }}</h2>
+    <p class="section-lead mb-0">{{ sec.body }}</p>
+  </section>
+  {% endfor %}
+  {% endif %}
+
+  <section class="section-shell border-0 bg-transparent pt-0">
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{% url 'developer_portal' %}" class="btn btn-outline-primary">{% trans "Developer portal" %}</a>
+      <a href="{% url 'marketing_developers' %}" class="btn btn-outline-secondary">{% trans "Developers overview" %}</a>
+    </div>
+  </section>
+</section>
+{% endblock %}

@@ -15,6 +15,8 @@ from django.views.decorators.http import require_http_methods
 from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
 
+from apps.platform_runtime.helpers import get_effective_flags
+
 logger = logging.getLogger(__name__)
 
 
@@ -38,14 +40,9 @@ def _get_school_from_request(request):
     return getattr(request, "school", None)
 
 
-def _backend_flag_enabled(flag_name: str, *, default: bool = False) -> bool:
+def _backend_flag_enabled(flag_name: str, request=None, *, default: bool = False) -> bool:
     try:
-        from apps.siteconfig.models import SiteSettings, default_backend_feature_flags
-
-        flags = {
-            **default_backend_feature_flags(),
-            **(SiteSettings.get_solo().backend_feature_flags or {}),
-        }
+        flags = get_effective_flags(request)
         return bool(flags.get(flag_name, default))
     except Exception:
         return default
@@ -577,7 +574,7 @@ class InterventionGenerateRoadmapView(View):
     """POST /api/v1/intervention/generate-roadmap - Generate recovery roadmap for student (LLM)."""
 
     def post(self, request):
-        if not _backend_flag_enabled("enable_intervention_llm_roadmap"):
+        if not _backend_flag_enabled("enable_intervention_llm_roadmap", request=request):
             return JsonResponse({"error": "Intervention roadmap is not enabled."}, status=404)
         school = _get_school_from_request(request)
         if not school:
@@ -1189,7 +1186,7 @@ class EnrollmentForecastView(View):
     """GET /api/v1/enrollment/forecast - Projected enrollment by term/class (stub)."""
 
     def get(self, request):
-        if not _backend_flag_enabled("enable_enrollment_forecast_api"):
+        if not _backend_flag_enabled("enable_enrollment_forecast_api", request=request):
             return JsonResponse({"error": "Enrollment forecast is not enabled."}, status=404)
         school = _get_school_from_request(request)
         if not school:

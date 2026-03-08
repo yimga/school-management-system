@@ -12,7 +12,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.siteconfig.models import SiteSettings
+from apps.platform_runtime.helpers import get_effective_site_settings
 from apps.siteconfig.cache_utils import tenant_cache_key
 
 QUEUE_METRICS_CACHE_KEY = "sms_offline_queue_metrics"
@@ -38,7 +38,7 @@ class OfflineReplayBatchAPI(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        site = SiteSettings.get_solo()
+        site = get_effective_site_settings(request=request)
         if not getattr(site, "enable_offline_mode", False):
             return Response(
                 {"error": "Offline sync is disabled by system configuration."},
@@ -125,7 +125,7 @@ class PrefetchUrlsAPI(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        site = SiteSettings.get_solo()
+        site = get_effective_site_settings(request=request)
         if not getattr(site, "enable_offline_mode", False):
             return Response({"urls": []})
         role = (getattr(request.user, "role", "") or "").upper()
@@ -166,7 +166,7 @@ class QueueMetricsAPI(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        site = SiteSettings.get_solo()
+        site = get_effective_site_settings(request=request)
         if not getattr(site, "enable_offline_mode", False):
             return Response({"total": 0, "by_type": {}})
         key = tenant_cache_key(QUEUE_METRICS_CACHE_KEY, request)
@@ -176,7 +176,7 @@ class QueueMetricsAPI(APIView):
         return Response(data)
 
     def post(self, request):
-        site = SiteSettings.get_solo()
+        site = get_effective_site_settings(request=request)
         if not getattr(site, "enable_offline_mode", False):
             return Response({"ok": False}, status=status.HTTP_403_FORBIDDEN)
         total = request.data.get("total")

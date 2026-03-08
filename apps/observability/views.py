@@ -20,6 +20,7 @@ from django.utils import timezone
 from django.db.models import Count, Q, Sum, Avg
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 from django.core.cache import cache
+from apps.platform_runtime.helpers import get_effective_site_settings
 
 logger = logging.getLogger(__name__)
 
@@ -73,10 +74,10 @@ def _p95(values: list[float]) -> float | None:
     return round(ordered[index], 2)
 
 
-def _build_admin_weather_config() -> dict:
-    from apps.siteconfig.models import SiteSettings, default_header_weather_config
+def _build_admin_weather_config(request=None) -> dict:
+    from apps.siteconfig.models import default_header_weather_config
 
-    site = SiteSettings.get_solo()
+    site = get_effective_site_settings(request=request)
     flags = getattr(site, "backend_feature_flags", None) or {}
     weather_defaults = default_header_weather_config()
     raw_unit = str(

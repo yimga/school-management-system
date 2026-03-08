@@ -19,7 +19,7 @@ from apps.academics.models import AcademicYear
 from apps.api.rate_limit import throttle_ip_request
 from apps.finance.models import Invoice, Payment
 from apps.people.models import StudentProfile
-from apps.siteconfig.models import SiteSettings, default_backend_feature_flags
+from apps.platform_runtime.helpers import get_effective_flags, get_effective_site_settings
 from apps.api.ministry_connectors import (
     ministry_runtime_status,
     submit_cartescolaire,
@@ -50,9 +50,8 @@ def _require_staff(request):
     return None
 
 
-def _feature_enabled(flag_key: str) -> bool:
-    site = SiteSettings.get_solo()
-    flags = {**default_backend_feature_flags(), **(site.backend_feature_flags or {})}
+def _feature_enabled(request, flag_key: str) -> bool:
+    flags = get_effective_flags(request)
     return bool(flags.get(flag_key))
 
 
@@ -86,7 +85,7 @@ def cartescolaire_placeholder(request):
     denied = _require_staff(request)
     if denied:
         return denied
-    if not _feature_enabled("enable_ministry_api_cartescolaire"):
+    if not _feature_enabled(request, "enable_ministry_api_cartescolaire"):
         return JsonResponse(
             {"status": "disabled", "message": "Cartescolaire integration is disabled in Feature Control."},
             status=503,
@@ -139,11 +138,11 @@ def cartescolaire_placeholder(request):
         row["classroom__name"] or "Unassigned": row["count"]
         for row in students_qs.values("classroom__name").annotate(count=Count("id")).order_by("classroom__name")
     }
-    site = SiteSettings.get_solo()
+    site = get_effective_site_settings(request=request)
     runtime = ministry_runtime_status()
     sync = {
         "attempted": False,
-        "enabled": bool(_feature_enabled("enable_ministry_live_sync")),
+        "enabled": bool(_feature_enabled(request, "enable_ministry_live_sync")),
         "result": None,
     }
     if _wants_sync(request) and sync["enabled"]:
@@ -188,7 +187,7 @@ def dgi_placeholder(request):
     denied = _require_staff(request)
     if denied:
         return denied
-    if not _feature_enabled("enable_ministry_api_dgi"):
+    if not _feature_enabled(request, "enable_ministry_api_dgi"):
         return JsonResponse(
             {"status": "disabled", "message": "DGI integration is disabled in Feature Control."},
             status=503,
@@ -233,7 +232,7 @@ def dgi_placeholder(request):
     runtime = ministry_runtime_status()
     sync = {
         "attempted": False,
-        "enabled": bool(_feature_enabled("enable_ministry_live_sync")),
+        "enabled": bool(_feature_enabled(request, "enable_ministry_live_sync")),
         "result": None,
     }
     if _wants_sync(request) and sync["enabled"]:

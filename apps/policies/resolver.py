@@ -5,6 +5,8 @@ Optional per-tenant policy caching when POLICY_CACHE_TTL (seconds) is set in set
 """
 from typing import Any, Dict, Optional
 
+from apps.siteconfig.identifier_policy_service import default_school_code_for
+
 
 def _policy_cache_key(school) -> str:
     sid = getattr(school, "id", None)
@@ -222,12 +224,12 @@ def get_effective_policy(
                 "admission_number_strategy": getattr(site, "admission_number_strategy", "FULL") or "FULL",
                 "admission_number_template": (getattr(site, "admission_number_template", None) or "") or "",
                 "admission_number_pattern": (getattr(site, "admission_number_pattern", None) or "") or "",
-                "school_code": (getattr(site, "school_code", None) or "GIL") or "GIL",
+                "school_code": (getattr(site, "school_code", None) or default_school_code_for(school)) or default_school_code_for(school),
             }
         except Exception:
             out["admissions"].setdefault("admission_number_mode", "AUTO_OR_MANUAL")
             out["admissions"].setdefault("admission_number_strategy", "FULL")
-            out["admissions"].setdefault("school_code", "GIL")
+            out["admissions"].setdefault("school_code", default_school_code_for(school))
     # Section 22: TenantAdmissionNumberPolicy overrides when present for this school
     if school is not None:
         try:
@@ -239,7 +241,7 @@ def get_effective_policy(
                     "admission_number_strategy": getattr(policy_model, "strategy", "FULL") or "FULL",
                     "admission_number_template": (getattr(policy_model, "template", None) or "").strip(),
                     "admission_number_pattern": (getattr(policy_model, "pattern", None) or "").strip(),
-                    "school_code": (getattr(policy_model, "school_code", None) or "GIL") or "GIL",
+                    "school_code": (getattr(policy_model, "school_code", None) or default_school_code_for(school)) or default_school_code_for(school),
                     "seq_width": getattr(policy_model, "seq_width", 4),
                     "reset_frequency": getattr(policy_model, "reset_frequency", "YEARLY"),
                 }
@@ -251,20 +253,22 @@ def get_effective_policy(
         out["grade_approval"] = out.get("grade_approval") or {}
     if not any(k in out["grade_approval"] for k in ("grade_post_roles", "grade_approval_roles")):
         try:
-            from apps.siteconfig.models import SiteSettings
+            from apps.siteconfig.models import SiteSettings, default_grade_approval_roles, default_grade_post_roles
             site = SiteSettings.get_solo()
             out["grade_approval"] = {
                 **out["grade_approval"],
-                "grade_post_roles": getattr(site, "grade_post_roles", None) or [],
-                "grade_approval_roles": getattr(site, "grade_approval_roles", None) or [],
+                "grade_post_roles": getattr(site, "grade_post_roles", None) or default_grade_post_roles(),
+                "grade_approval_roles": getattr(site, "grade_approval_roles", None) or default_grade_approval_roles(),
                 "grade_approval_deadline_days": max(1, getattr(site, "grade_approval_deadline_days", 3) or 3),
                 "grade_approval_deadline_note": (getattr(site, "grade_approval_deadline_note", None) or "").strip(),
                 "grade_approval_auto_validate": getattr(site, "grade_approval_auto_validate", True),
                 "grade_approval_enabled": getattr(site, "grade_approval_enabled", False),
             }
         except Exception:
-            out["grade_approval"].setdefault("grade_post_roles", [])
-            out["grade_approval"].setdefault("grade_approval_roles", ["DEAN", "HOD"])
+            from apps.siteconfig.models import default_grade_approval_roles, default_grade_post_roles
+
+            out["grade_approval"].setdefault("grade_post_roles", default_grade_post_roles())
+            out["grade_approval"].setdefault("grade_approval_roles", default_grade_approval_roles())
             out["grade_approval"].setdefault("grade_approval_deadline_days", 3)
             out["grade_approval"].setdefault("grade_approval_deadline_note", "")
             out["grade_approval"].setdefault("grade_approval_auto_validate", True)

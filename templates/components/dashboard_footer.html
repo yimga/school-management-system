@@ -47,14 +47,17 @@
         <details class="footer-details" open>
           <summary class="segment-title footer-accordion-summary">Support &amp; Help</summary>
           <div class="segment-links">
-            <a href="{% if request.public_host_kind == 'manager' %}{% url 'manager_help' %}{% else %}{% url 'kb:kb_home' %}{% endif %}"><i class="bi bi-book"></i> Knowledge Base</a>
-            {% if request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' %}
-            {% if is_backend_context %}
-            <a href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-shield-lock"></i> Backend Dashboard</a>
-            {% else %}
-            <a href="{% url 'admin:index' %}"><i class="bi bi-shield-lock"></i> Admin Documentation</a>
-            {% endif %}
-            <a href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-activity"></i> Activity Logs</a>
+            <a href="{% if request.public_host_kind == 'manager' %}{% url 'manager_help' %}{% else %}{% url 'kb:kb_home' %}{% endif %}"><i class="bi bi-book"></i> {% if request.public_host_kind == 'manager' %}Operator Help{% else %}Knowledge Base{% endif %}</a>
+            {% if request.public_host_kind == 'manager' %}
+            <a href="{% url 'admin:index' %}"><i class="bi bi-shield-lock"></i> Platform Admin</a>
+            <a href="{% url 'super:command_center' %}"><i class="bi bi-activity"></i> Command Center</a>
+            {% elif request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' %}
+              {% if is_backend_context %}
+              <a href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-shield-lock"></i> Backend Dashboard</a>
+              {% else %}
+              <a href="{% url 'admin:index' %}"><i class="bi bi-shield-lock"></i> Admin Documentation</a>
+              {% endif %}
+              <a href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-activity"></i> Activity Logs</a>
             {% endif %}
             <a href="{% if request.public_host_kind == 'manager' %}{% url 'manager_help' %}{% else %}{% url 'kb:faq_list' %}{% endif %}"><i class="bi bi-patch-question"></i> FAQs</a>
           </div>
@@ -64,19 +67,23 @@
         <details class="footer-details" open>
           <summary class="segment-title footer-accordion-summary">Quick Links</summary>
           <div class="segment-links">
-            {% if can_settings or can_data_access %}
+            {% if request.public_host_kind == 'manager' %}
+              <a href="{% url 'super:dashboard' %}"><i class="bi bi-kanban"></i> Control Plane</a>
+              <a href="{% url 'super:billing_dashboard' %}"><i class="bi bi-receipt"></i> Platform Billing</a>
+              <a href="{% url 'super:create_school_wizard' %}"><i class="bi bi-building-add"></i> Provision Tenant</a>
+            {% elif can_settings or can_data_access %}
               <a href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-kanban"></i> Backend Dashboard</a>
             {% endif %}
-            {% if request.user|has_role:"TEACHER" and can_reports %}
+            {% if request.public_host_kind != 'manager' and request.user|has_role:"TEACHER" and can_reports %}
               <a href="{% url 'evals:teacher_dashboard' %}"><i class="bi bi-mortarboard"></i> Teacher Portal</a>
               <a href="{% url 'evals:teacher_marks_entry' %}"><i class="bi bi-pen"></i> Marks Entry</a>
             {% endif %}
-            {% if request.user|has_role:"PARENT" %}
+            {% if request.public_host_kind != 'manager' and request.user|has_role:"PARENT" %}
               {% if can_finance_view or can_finance_manage %}
                 <a href="{% url 'finance:invoices' %}"><i class="bi bi-receipt"></i> Invoices</a>
               {% endif %}
             {% endif %}
-            {% if can_reports and not request.user|has_role:"PARENT" %}
+            {% if request.public_host_kind != 'manager' and can_reports and not request.user|has_role:"PARENT" %}
               <a href="{% url 'accounts:backend_dashboard' %}#reports"><i class="bi bi-graph-up"></i> Reports</a>
             {% endif %}
           </div>

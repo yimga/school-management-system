@@ -7,6 +7,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Count
 import pytz
 
+from apps.registries.services import is_known_currency_code
 from apps.siteconfig.models import RegionConfig, GradingScaleConfig, HolidayCalendar
 from apps.academics.models import AcademicYear
 
@@ -80,7 +81,6 @@ class Command(BaseCommand):
     def _validate_region(self, region):
         """Validate a single region."""
         issues = []
-        valid_currencies = ['XAF', 'USD', 'EUR', 'GBP', 'KES', 'NGN', 'ZAR', 'GHS', 'TZS']
 
         # Check grading scales
         if region.gradingscaleconfig_set.count() < 5:
@@ -103,7 +103,7 @@ class Command(BaseCommand):
             })
 
         # Check currency
-        if region.default_currency not in valid_currencies:
+        if not is_known_currency_code(region.default_currency):
             issues.append({
                 'code': 'UNKNOWN_CURRENCY',
                 'message': f'Unknown currency: {region.default_currency}',

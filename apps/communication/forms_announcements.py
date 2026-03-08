@@ -18,7 +18,7 @@ class AnnouncementCreateForm(forms.ModelForm):
     """Enhanced announcement form with department selection and optional status/approval."""
 
     send_to_department = forms.ModelChoiceField(
-        queryset=Department.objects.all(),
+        queryset=Department.objects.none(),
         required=False,
         widget=forms.Select(attrs={'class': 'form-select'}),
         help_text="Optional: Send this announcement to all teachers in a department"
@@ -37,9 +37,15 @@ class AnnouncementCreateForm(forms.ModelForm):
             'expiry_date': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
         }
 
-    def __init__(self, *args, user=None, **kwargs):
+    def __init__(self, *args, user=None, school=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = user
+        self.school = school or getattr(getattr(self.instance, "school", None), "pk", None) and getattr(self.instance, "school", None)
+
+        if self.school is not None:
+            self.fields['send_to_department'].queryset = Department.objects.filter(school=self.school).order_by("name")
+        else:
+            self.fields['send_to_department'].queryset = Department.objects.none()
 
         if user and hasattr(user, 'teacher_profile') and user.teacher_profile.department:
             self.fields['send_to_department'].queryset = Department.objects.filter(
@@ -110,9 +116,17 @@ class ClassAnnouncementForm(forms.ModelForm):
             'is_pinned': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
     
-    def __init__(self, *args, user=None, **kwargs):
+    def __init__(self, *args, user=None, school=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = user
+        self.school = school or getattr(getattr(self.instance, "school", None), "pk", None) and getattr(self.instance, "school", None)
+
+        if self.school is not None:
+            self.fields['department'].queryset = Department.objects.filter(school=self.school).order_by("name")
+            self.fields['classroom'].queryset = Classroom.objects.filter(school=self.school).order_by("name")
+        else:
+            self.fields['department'].queryset = Department.objects.none()
+            self.fields['classroom'].queryset = Classroom.objects.none()
         
         # If user is a teacher, limit department choices
         if user and hasattr(user, 'teacher_profile') and user.teacher_profile.department:

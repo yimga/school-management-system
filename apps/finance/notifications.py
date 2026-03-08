@@ -14,7 +14,7 @@ _skip_new_invoice_notify: contextvars.ContextVar[bool] = contextvars.ContextVar(
 
 from apps.finance.models import Invoice, Payment, Notification
 from apps.people.models import StudentGuardian
-from apps.siteconfig.models import SiteSettings
+from apps.platform_runtime.helpers import get_effective_site_settings
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +54,7 @@ def notify_guardians_new_invoice(
     """
     if not force and _skip_new_invoice_notify.get():
         return 0
-    site = SiteSettings.get_solo()
+    site = get_effective_site_settings(school=getattr(invoice, "school", None) or getattr(getattr(invoice, "student", None), "school", None))
     if not getattr(site, "finance_notify_guardians_new_invoice", True):
         return 0
     guardians = _guardians_with_finance_access(invoice)
@@ -119,11 +119,11 @@ def notify_guardians_payment_received(
     Send in-app notification (and optionally email) to guardians when a payment is recorded.
     Phase 2.4. Returns number of notifications created.
     """
-    site = SiteSettings.get_solo()
-    if not getattr(site, "finance_notify_guardians_payment_received", True):
-        return 0
     invoice = payment.invoice
     if not invoice:
+        return 0
+    site = get_effective_site_settings(school=getattr(invoice, "school", None) or getattr(getattr(invoice, "student", None), "school", None))
+    if not getattr(site, "finance_notify_guardians_payment_received", True):
         return 0
     guardians = _guardians_with_finance_access(invoice)
     if not guardians:

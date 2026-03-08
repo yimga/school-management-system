@@ -190,10 +190,10 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
         term_labels = profile.normalized_term_labels()
     # UK/British term preset at signup (RUNMYCAMPUS_ROADMAP_TASKS); override term labels for GB
     term_preset = (_policy.get("term_preset") or "").strip()
-    if profile and (term_preset == "UK" or str(school.country_code or "").upper() == "GB"):
+    if term_preset == "UK":
         start_month = 9
         term_count = 3
-        term_labels = ["Michaelmas", "Lent", "Trinity"]
+        term_labels = term_labels or ["Michaelmas", "Lent", "Trinity"]
     # Apply resolved profile to school.settings for all schools that have a profile (not only UK/GB)
     if profile:
         profile_config = {
