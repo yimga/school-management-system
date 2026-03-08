@@ -1,0 +1,6 @@
+{% load i18n %}
+{# Page family: loading state (skeleton or spinner). #}
+<div class="page-family-loading-state text-center py-5 px-3" aria-live="polite" aria-busy="true">
+  <div class="spinner-border text-primary" role="status"><span class="visually-hidden">{% trans "Loading…" %}</span></div>
+  <p class="text-muted small mt-2 mb-0">{% trans "Loading…" %}</p>
+</div>

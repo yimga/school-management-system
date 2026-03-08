@@ -1,0 +1,64 @@
+{% extends "control_plane_base.html" %}
+{% load static %}
+
+{% block cp_title %}Sandbox inspector{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-4 control-plane-shell">
+  <section class="cp-hero cp-hero-compact mb-4">
+    <div class="cp-hero-grid">
+      <div>
+        <div class="cp-eyebrow">RunMyCampus Manager</div>
+        <h1 class="cp-hero-title">Sandbox inspector</h1>
+        <p class="cp-hero-copy">
+          Installations in sandbox (pre-activation). Activate to make the app visible in tenant runtime.
+        </p>
+      </div>
+      <div class="cp-hero-actions">
+        <a href="{% url 'super:marketplace_governance' %}" class="btn btn-outline-light btn-sm">Governance</a>
+        <a href="{% url 'super:marketplace_installation_health' %}" class="btn btn-outline-light btn-sm">Health</a>
+        <a href="{% url 'super:dashboard' %}" class="btn btn-outline-light btn-sm">Control plane</a>
+      </div>
+    </div>
+  </section>
+
+  {% if messages %}
+  <div class="mb-3">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <section class="cp-panel">
+    <div class="cp-panel-header">
+      <span class="cp-panel-eyebrow">install_phase = sandbox</span>
+      <h2 class="cp-panel-title">Sandbox installations</h2>
+    </div>
+    <div class="cp-list">
+      {% for inst in installations %}
+      <div class="cp-list-row d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div>
+          <strong>{{ inst.app.name }}</strong>
+          <span class="text-muted small ms-1">({{ inst.app.slug }})</span>
+          <span class="badge bg-secondary ms-1">@ {{ inst.school.name }}</span>
+          <span class="small text-muted">installed {{ inst.installed_at|timesince }} ago</span>
+        </div>
+        <form method="post" action="{% url 'super:marketplace_activate_sandbox' %}" class="d-inline">
+          {% csrf_token %}
+          <input type="hidden" name="installation_id" value="{{ inst.pk }}">
+          <button type="submit" class="btn btn-primary btn-sm">Activate</button>
+        </form>
+      </div>
+      {% empty %}
+      <div class="cp-list-row text-muted">No sandbox installations.</div>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

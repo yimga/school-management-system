@@ -1,0 +1,71 @@
+{% extends "control_plane_base.html" %}
+{% load static %}
+
+{% block cp_title %}Installation health{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-4 control-plane-shell">
+  <section class="cp-hero cp-hero-compact mb-4">
+    <div class="cp-hero-grid">
+      <div>
+        <div class="cp-eyebrow">RunMyCampus Manager</div>
+        <h1 class="cp-hero-title">Installation health</h1>
+        <p class="cp-hero-copy">
+          Last health check and status for active app installations. Use record_installation_health in services to update.
+        </p>
+      </div>
+      <div class="cp-hero-actions">
+        <a href="{% url 'super:marketplace_sandbox_inspector' %}" class="btn btn-outline-light btn-sm">Sandbox</a>
+        <a href="{% url 'super:marketplace_incident_dashboard' %}" class="btn btn-outline-light btn-sm">Incidents</a>
+        <a href="{% url 'super:dashboard' %}" class="btn btn-outline-light btn-sm">Control plane</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="cp-panel">
+    <div class="cp-panel-header">
+      <span class="cp-panel-eyebrow">Phase 11</span>
+      <h2 class="cp-panel-title">Health status</h2>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-sm table-hover mb-0">
+        <thead>
+          <tr>
+            <th>App</th>
+            <th>School</th>
+            <th>Phase</th>
+            <th>Health status</th>
+            <th>Last health at</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for inst in installations %}
+          <tr>
+            <td><strong>{{ inst.app.name }}</strong> <span class="text-muted small">({{ inst.app.slug }})</span></td>
+            <td>{{ inst.school.name }}</td>
+            <td><span class="badge bg-{% if inst.install_phase == 'sandbox' %}warning{% else %}success{% endif %}">{{ inst.get_install_phase_display }}</span></td>
+            <td>{{ inst.health_status|default:"—" }}</td>
+            <td>{% if inst.last_health_at %}{{ inst.last_health_at|timesince }} ago{% else %}—{% endif %}</td>
+            <td>
+              <form method="post" action="{% url 'super:marketplace_refresh_installation' %}" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="installation_id" value="{{ inst.pk }}">
+                <button type="submit" class="btn btn-sm btn-outline-secondary">Refresh</button>
+              </form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="text-muted">No active installations.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

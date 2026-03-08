@@ -1,0 +1,37 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Policy diff" %}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Tenant Mission Control" %}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'super:policies_catalog' %}">{% trans "Policies" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Policy diff" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-2">
+  <h5 class="mb-3">{% trans "Policy diff viewer" %}</h5>
+  <p class="text-secondary small">{% trans "Compare platform default, country/region, blueprint, tenant override, temporary override." %}</p>
+  {% if school %}
+  <p class="mb-2">{% trans "Tenant" %}: <strong>{{ school.name }}</strong></p>
+  {% for layer in layers %}
+  <div class="card shadow-sm border-secondary mb-2">
+    <div class="card-header">{{ layer.label }}</div>
+    <div class="card-body">
+      <pre class="mb-0 small" style="max-height: 200px; overflow: auto;">{{ layer.data }}</pre>
+      <p class="text-muted small mt-1 mb-0">Source: {{ layer.source }}</p>
+    </div>
+  </div>
+  {% empty %}
+  <p class="text-muted">{% trans "No policy layers to display." %}</p>
+  {% endfor %}
+  {% else %}
+  <p class="text-muted">{% trans "Add ?school_id=&lt;uuid&gt; to compare policy layers for a tenant." %}</p>
+  {% endif %}
+</div>
+{% endblock %}

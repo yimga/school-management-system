@@ -4,7 +4,7 @@ Populates database with comprehensive how-to guides and tutorials
 """
 from django.core.management.base import BaseCommand
 from django.utils.text import slugify
-from apps.portal.models_kb import KBCategory, KBArticle, Tag
+from apps.portal.models_kb import KBCategory, KBArticle
 from django.contrib.auth.models import User
 
 
@@ -74,7 +74,7 @@ class Command(BaseCommand):
                     'name': data['name'],
                     'description': data['description'],
                     'icon': data['icon'],
-                    'ordering': data['ordering'],
+                    'display_order': data['ordering'],
                     'parent': None,
                 }
             )
@@ -1046,6 +1046,7 @@ First of month: Full system backup</pre>
                 self.stdout.write(self.style.WARNING(f"  ! Category not found: {article_data['category']}"))
                 continue
 
+            tags_str = ', '.join(article_data.get('tags', []))
             article, created = KBArticle.objects.get_or_create(
                 slug=article_data['slug'],
                 defaults={
@@ -1054,19 +1055,15 @@ First of month: Full system backup</pre>
                     'content': article_data['content'],
                     'category': category,
                     'difficulty': article_data['difficulty'],
-                    'read_time': article_data['read_time'],
+                    'estimated_read_time': article_data.get('read_time', 5),
+                    'tags': tags_str,
                     'author': admin_user,
-                    'status': 'APPROVED',
-                    'is_featured': article_data['is_featured'],
+                    'status': 'PUBLISHED',
+                    'is_featured': article_data.get('is_featured', False),
                 }
             )
 
             if created:
-                # Add tags
-                for tag_name in article_data['tags']:
-                    tag, _ = Tag.objects.get_or_create(name=tag_name)
-                    article.tags.add(tag)
-
                 created_count += 1
                 self.stdout.write(f"  ✓ Article: {article_data['title']}")
             else:

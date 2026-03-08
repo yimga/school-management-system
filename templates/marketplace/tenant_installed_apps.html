@@ -1,0 +1,55 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Installed apps" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+  <h4 class="mb-3">{% trans "Installed apps" %}</h4>
+  {% if not school %}
+  <p class="text-muted">{% trans "No school context." %}</p>
+  {% else %}
+  <p class="text-muted small">{% trans "Apps installed for this school. Widgets can be opened from the app sandbox." %}</p>
+  {% if pending_scope_grants_count %}
+  <div class="alert alert-warning mb-3">
+    <a href="{% url 'tenant_scope_consent' %}">{% trans "Approve pending scopes" %}</a> ({{ pending_scope_grants_count }})
+  </div>
+  {% endif %}
+  <div class="card shadow-sm mb-3">
+    <div class="card-body p-0">
+      <ul class="list-group list-group-flush">
+        {% for i in installations %}
+        <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div>
+            <strong>{{ i.app.name }}</strong>
+            <span class="text-muted small ms-1">({{ i.app.slug }})</span>
+            {% if i.app.version %}<span class="badge bg-secondary ms-1">{{ i.app.version }}</span>{% endif %}
+            {% if i.install_phase == 'sandbox' %}<span class="badge bg-warning text-dark ms-1">{% trans "Sandbox" %}</span>{% endif %}
+          </div>
+          <div class="d-flex align-items-center gap-1">
+            <a href="{% url 'siteconfig:marketplace_sandbox_embed' %}?app_slug={{ i.app.slug }}" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener">{% trans "Open sandbox" %}</a>
+            {% if i.install_phase == 'sandbox' %}
+            <form method="post" action="{% url 'tenant_activate_installation' %}" class="d-inline">
+              {% csrf_token %}
+              <input type="hidden" name="installation_id" value="{{ i.pk }}">
+              <button type="submit" class="btn btn-sm btn-success">{% trans "Activate" %}</button>
+            </form>
+            {% endif %}
+            <form method="post" action="{% url 'tenant_uninstall_app' %}" class="d-inline" onsubmit="return confirm('{% trans "Uninstall this app?" %}');">
+              {% csrf_token %}
+              <input type="hidden" name="installation_id" value="{{ i.pk }}">
+              <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Uninstall" %}</button>
+            </form>
+          </div>
+        </li>
+        {% empty %}
+        <li class="list-group-item text-muted">{% trans "No apps installed." %}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <a href="{% url 'tenant_app_catalog' %}" class="btn btn-outline-primary">{% trans "Browse app catalog" %}</a>
+  <a href="{% url 'tenant_scope_consent' %}" class="btn btn-outline-secondary">{% trans "Scope consent" %}</a>
+  {% endif %}
+</div>
+{% endblock %}

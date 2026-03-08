@@ -1,0 +1,67 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Tenant 360" %}: {{ school.name }}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Tenant Mission Control" %}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'super:tenant_health' %}">{% trans "Tenant Health" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "360" %} — {{ school.name }}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block breadcrumb_actions %}
+<a href="{{ dashboard_url }}" class="btn btn-sm btn-outline-light">{% trans "Back to Dashboard" %}</a>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-2">
+  <h5 class="mb-3">{{ school.name }}</h5>
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card shadow-sm border-secondary mb-3">
+        <div class="card-header">{% trans "Identity" %}</div>
+        <div class="card-body">
+          {% if identity %}
+          <dl class="mb-0">
+            <dt>ID</dt><dd>{{ identity.id }}</dd>
+            <dt>Slug</dt><dd>{{ identity.slug|default:"—" }}</dd>
+            <dt>Schema</dt><dd>{{ identity.schema_name|default:"—" }}</dd>
+          </dl>
+          {% else %}
+          <p class="text-secondary mb-0">{% trans "Runtime not built (no identity)." %}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card shadow-sm border-secondary mb-3">
+        <div class="card-header">{% trans "Blueprint & policy" %}</div>
+        <div class="card-body">
+          <p class="mb-1"><strong>{% trans "Blueprint" %}:</strong> {{ blueprint_code|default:"—" }}</p>
+          <p class="mb-0"><strong>{% trans "Policy sections" %}:</strong> {{ policy_summary|default:"—" }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card shadow-sm border-secondary mb-3">
+    <div class="card-header">{% trans "Runtime inspector" %}</div>
+    <div class="card-body">
+      <p class="small text-secondary">{% trans "Compilation trace (order of resolution steps):" %}</p>
+      <ol class="small mb-2">
+        {% for step in runtime_trace %}
+        <li>{{ step }}</li>
+        {% empty %}
+        <li>{% trans "No trace (runtime not built)." %}</li>
+        {% endfor %}
+      </ol>
+      {% if runtime_warnings %}
+      <p class="small text-warning mb-0">{% trans "Warnings" %}: {{ runtime_warnings }}</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

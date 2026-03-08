@@ -1,0 +1,43 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "App catalog" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+  <h4 class="mb-3">{% trans "App catalog" %}</h4>
+  {% if not school %}
+  <p class="text-muted">{% trans "No school context." %}</p>
+  {% else %}
+  <p class="text-muted small">{% trans "Browse and install apps for this school. Sensitive scopes require approval after install." %}</p>
+  <div class="card shadow-sm mb-4">
+    <div class="card-body p-0">
+      <ul class="list-group list-group-flush">
+        {% for listing in listings %}
+        <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div>
+            <strong>{{ listing.app.name }}</strong>
+            <span class="text-muted small ms-1">({{ listing.app.slug }})</span>
+            {% if listing.app.version %}<span class="badge bg-secondary ms-1">v{{ listing.app.version }}</span>{% endif %}
+            {% if listing.app.description %}<p class="small text-muted mb-0 mt-1">{{ listing.app.description|truncatewords:20 }}</p>{% endif %}
+          </div>
+          {% if listing.app.slug in installed_slugs %}
+          <span class="badge bg-success">{% trans "Installed" %}</span>
+          {% else %}
+          <form method="post" action="{% url 'tenant_install_app' %}" class="d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="app_id" value="{{ listing.app.pk }}">
+            <button type="submit" class="btn btn-primary btn-sm">{% trans "Install" %}</button>
+          </form>
+          {% endif %}
+        </li>
+        {% empty %}
+        <li class="list-group-item text-muted">{% trans "No installable apps available." %}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <a href="{% url 'tenant_installed_apps' %}" class="btn btn-outline-secondary">{% trans "Back to installed apps" %}</a>
+  {% endif %}
+</div>
+{% endblock %}

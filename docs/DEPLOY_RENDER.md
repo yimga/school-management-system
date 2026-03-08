@@ -46,6 +46,8 @@ If you do **not** set `DATABASE_URL`, the app uses SQLite on the server disk. Re
 - `SECRET_KEY` – Required in production.
 - `RUN_INTEGRATION_PREFLIGHT=1` – Recommended. Fails deploy only when enabled integration features are missing runtime credentials.
 - `ADMIN_PASSWORD` – Recommended. Enables automatic `seed_render_users` during predeploy.
+- `RUN_BOOTSTRAP_PLATFORM_CATALOG=1` – Optional. Runs `bootstrap_platform_catalog` so Blueprint marketplace and App catalog have active packs and installable apps. See [BOOTSTRAP_PLATFORM_CATALOG.md](./BOOTSTRAP_PLATFORM_CATALOG.md).
+- `RUN_FULL_BOOTSTRAP=1` – Optional. When `RUN_BOOTSTRAP_PLATFORM_CATALOG=1`, runs `bootstrap_platform_catalog --all` to seed every applicable catalog (global data, registries, workflow/dashboard packs, portal FAQs/KB, finance defaults, compliance baseline). Use for first-time or full environment setup.
 
 ## Start command (do not override without binding to PORT)
 
@@ -64,4 +66,5 @@ That script runs Gunicorn with `config/gunicorn.conf.py`, which sets `bind = "0.
 3. Optional UI fixture import (when `APPLY_UI_FIXTURE_ON_DEPLOY=1`)
 4. `normalize_ui_config`
 5. `integration_preflight` (when `RUN_INTEGRATION_PREFLIGHT=1`)
-6. `seed_render_users` (when `ADMIN_PASSWORD` is set)
+6. `seed_render_users` (always; tenant demo users only when `ADMIN_PASSWORD` is set)
+7. `bootstrap_platform_catalog` (when `RUN_BOOTSTRAP_PLATFORM_CATALOG=1`) — seeds blueprint packs and marketplace apps; use `RUN_FULL_BOOTSTRAP=1` to run with `--all` (every applicable seed). See [BOOTSTRAP_PLATFORM_CATALOG.md](./BOOTSTRAP_PLATFORM_CATALOG.md).

@@ -1,0 +1,25 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Compliance & Audit" %}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Tenant Mission Control" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Compliance" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-2">
+  <h5 class="mb-3">{% trans "Compliance & Audit" %}</h5>
+  <p class="text-secondary small">{% trans "Policy pack, country compliance, audit review, export risk. Enforcement via runtime.compliance." %}</p>
+  <div class="card shadow-sm border-secondary">
+    <div class="card-body">
+      <p class="mb-0">{% trans "Placeholder: link to audit search, export jobs, retention, consent, and compliance policy from control plane." %}</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

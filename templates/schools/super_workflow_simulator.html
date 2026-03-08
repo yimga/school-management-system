@@ -1,0 +1,57 @@
+{% extends "control_plane_base.html" %}
+{% load i18n static %}
+
+{% block cp_title %}{% trans "Workflow Simulator" %}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Tenant Mission Control" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Workflow simulator" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-4">
+  {% include "partials/page_families/title_block.html" with title="Workflow simulator" subtitle="Simulate workflow/pack resolution for a selected school and role." %}
+  <div class="card shadow-sm border-0 page-family-content-card card-grammar mb-3">
+    <div class="card-body">
+      <form method="get" class="row g-3 align-items-end">
+        <div class="col-auto">
+          <label for="school_id" class="form-label">{% trans "School ID" %}</label>
+          <input type="text" id="school_id" name="school_id" class="form-control" value="{{ school.id|default:'' }}" placeholder="UUID">
+        </div>
+        <div class="col-auto">
+          <label for="role" class="form-label">{% trans "Role" %}</label>
+          <select id="role" name="role" class="form-select">
+            <option value="ADMIN" {% if workflow_summary.role == "ADMIN" %}selected{% endif %}>ADMIN</option>
+            <option value="TEACHER" {% if workflow_summary.role == "TEACHER" %}selected{% endif %}>TEACHER</option>
+            <option value="PARENT" {% if workflow_summary.role == "PARENT" %}selected{% endif %}>PARENT</option>
+            <option value="STAFF" {% if workflow_summary.role == "STAFF" %}selected{% endif %}>STAFF</option>
+          </select>
+        </div>
+        <div class="col-auto">
+          <button type="submit" class="btn btn-primary">{% trans "Simulate" %}</button>
+        </div>
+      </form>
+      {% if school %}
+        <p class="mt-3 mb-0"><strong>{% trans "School" %}:</strong> {{ school.name }} ({{ school.slug }})</p>
+      {% endif %}
+    </div>
+  </div>
+  {% if workflow_summary %}
+  <div class="card shadow-sm border-0 page-family-content-card card-grammar">
+    <div class="card-body">
+      <h6 class="card-title">{% trans "Workflow resolution" %}</h6>
+      <ul class="list-unstyled mb-0">
+        <li><strong>{% trans "Role" %}:</strong> {{ workflow_summary.role }}</li>
+        <li><strong>{% trans "Workflow ID" %}:</strong> {{ workflow_summary.workflow_id|default:"—" }}</li>
+        <li><strong>{% trans "Workflow slug" %}:</strong> {{ workflow_summary.workflow_slug|default:"—" }}</li>
+        {% if workflow_summary.note %}<li class="text-muted">{{ workflow_summary.note }}</li>{% endif %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

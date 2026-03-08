@@ -1,0 +1,74 @@
+{% extends "control_plane_base.html" %}
+{% load static %}
+
+{% block cp_title %}Marketplace incidents{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-4 control-plane-shell">
+  <section class="cp-hero cp-hero-compact mb-4">
+    <div class="cp-hero-grid">
+      <div>
+        <div class="cp-eyebrow">RunMyCampus Manager</div>
+        <h1 class="cp-hero-title">Marketplace incidents</h1>
+        <p class="cp-hero-copy">
+          Central place for marketplace-related incidents. Use the support dashboard for full incident queue.
+        </p>
+      </div>
+      <div class="cp-hero-actions">
+        <a href="{{ support_url }}" class="btn btn-outline-light btn-sm">Support dashboard</a>
+        <a href="{% url 'super:marketplace_installation_health' %}" class="btn btn-outline-light btn-sm">Installation health</a>
+        <a href="{% url 'super:dashboard' %}" class="btn btn-outline-light btn-sm">Control plane</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="cp-panel mb-4">
+    <div class="cp-panel-header">
+      <span class="cp-panel-eyebrow">Phase 11</span>
+      <h2 class="cp-panel-title">Incident console</h2>
+    </div>
+    <div class="p-4">
+      <p class="mb-3">Marketplace app failures, kill-switch events, and compatibility issues can be tracked in the support queue and health views.</p>
+      <a href="{{ support_url }}" class="btn btn-primary">Open support dashboard</a>
+    </div>
+  </section>
+
+  <section class="cp-panel">
+    <div class="cp-panel-header">
+      <span class="cp-panel-eyebrow">Audit trail</span>
+      <h2 class="cp-panel-title">Recent marketplace events</h2>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-sm table-hover mb-0">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Action</th>
+            <th>App</th>
+            <th>School</th>
+            <th>Actor</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in recent_events %}
+          <tr>
+            <td>{{ e.created_at|date:"Y-m-d H:i" }}</td>
+            <td><span class="badge bg-secondary">{{ e.action }}</span></td>
+            <td>{% if e.app %}{{ e.app.name }} ({{ e.app.slug }}){% else %}—{% endif %}</td>
+            <td>{% if e.school %}{{ e.school.name }}{% else %}—{% endif %}</td>
+            <td>{% if e.actor %}{{ e.actor.get_full_name|default:e.actor.email }}{% else %}—{% endif %}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="text-muted">No recent marketplace audit events.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

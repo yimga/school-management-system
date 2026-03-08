@@ -1,0 +1,64 @@
+{% extends "control_plane_base.html" %}
+{% load static %}
+
+{% block cp_title %}Compatibility matrix{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-4 control-plane-shell">
+  <section class="cp-hero cp-hero-compact mb-4">
+    <div class="cp-hero-grid">
+      <div>
+        <div class="cp-eyebrow">RunMyCampus Manager</div>
+        <h1 class="cp-hero-title">Compatibility matrix</h1>
+        <p class="cp-hero-copy">
+          Which apps are compatible with which country, blueprint family, and plan tier. Used at install time to allow or block installs.
+        </p>
+      </div>
+      <div class="cp-hero-actions">
+        <a href="{% url 'super:marketplace_governance' %}" class="btn btn-outline-light btn-sm">Governance</a>
+        <a href="{% url 'super:app_catalog' %}" class="btn btn-outline-light btn-sm">App catalog</a>
+        <a href="{% url 'super:dashboard' %}" class="btn btn-outline-light btn-sm">Control plane</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="cp-panel">
+    <div class="cp-panel-header">
+      <span class="cp-panel-eyebrow">Phase 11</span>
+      <h2 class="cp-panel-title">App × compatibility</h2>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-sm table-hover mb-0">
+        <thead>
+          <tr>
+            <th>App</th>
+            <th>Countries</th>
+            <th>Blueprint families</th>
+            <th>Plan tiers</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+          <tr>
+            <td>
+              <strong>{{ row.app.name }}</strong>
+              <span class="text-muted small">({{ row.app.slug }})</span>
+            </td>
+            <td>{% if row.countries %}{{ row.countries|join:", " }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+            <td>{% if row.blueprint_families %}{{ row.blueprint_families|join:", " }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+            <td>{% if row.plan_tiers %}{{ row.plan_tiers|join:", " }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="text-muted">No listings with compatibility data. Edit listing compatibility in admin.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

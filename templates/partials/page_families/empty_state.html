@@ -1,0 +1,7 @@
+{% load i18n %}
+{# Page family: empty state. Expects: message (optional), icon (optional, Bootstrap Icon class). #}
+<div class="page-family-empty-state text-center py-5 px-3">
+  {% if icon %}<i class="bi {{ icon }} display-4 text-muted mb-2"></i>{% endif %}
+  <p class="text-muted mb-0">{% if message %}{{ message }}{% else %}{% trans "No items to show." %}{% endif %}</p>
+  {% block empty_state_actions %}{% endblock %}
+</div>

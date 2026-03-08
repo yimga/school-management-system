@@ -1,0 +1,51 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Blueprint Packs" %}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Tenant Mission Control" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Blueprint Packs" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block breadcrumb_actions %}
+<a href="{{ dashboard_url }}" class="btn btn-sm btn-outline-light">{% trans "Back to Dashboard" %}</a>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-2">
+  <p class="text-secondary small mb-4">{% trans "Institution archetypes: assign to tenants for default structure, workflow and dashboard recommendations." %}</p>
+  <div class="card shadow-sm border-secondary">
+    <div class="card-body p-0">
+      <table class="table table-dark table-hover mb-0">
+        <thead>
+          <tr>
+            <th>{% trans "Name" %}</th>
+            <th>{% trans "Family" %}</th>
+            <th>{% trans "Category" %}</th>
+            <th>{% trans "Version" %}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in packs %}
+          <tr>
+            <td>{{ p.name }}</td>
+            <td>{{ p.family|default:"—" }}</td>
+            <td>{{ p.category|default:"—" }}</td>
+            <td>{{ p.version }}</td>
+            <td>{% if p.admin_url %}<a href="{{ p.admin_url }}" class="btn btn-sm btn-outline-light">{% trans "Edit" %}</a>{% endif %}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="text-secondary">{% trans "No blueprint packs. Run seed_blueprint_policy_packs." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

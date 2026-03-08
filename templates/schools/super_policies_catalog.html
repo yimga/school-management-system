@@ -1,0 +1,53 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Policy Bundles" %}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Tenant Mission Control" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Policy Bundles" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block breadcrumb_actions %}
+<a href="{{ dashboard_url }}" class="btn btn-sm btn-outline-light">{% trans "Back to Dashboard" %}</a>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-2">
+  <p class="text-secondary small mb-4">{% trans "Behavioral rules by country/region. Platform bundles (no school) and per-tenant bundles." %}</p>
+  <div class="card shadow-sm border-secondary">
+    <div class="card-body p-0">
+      <table class="table table-dark table-hover mb-0">
+        <thead>
+          <tr>
+            <th>{% trans "Code" %}</th>
+            <th>{% trans "Name" %}</th>
+            <th>{% trans "Country scope" %}</th>
+            <th>{% trans "Version" %}</th>
+            <th>{% trans "Precedence" %}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in bundles %}
+          <tr>
+            <td>{{ b.code|default:"—" }}</td>
+            <td>{{ b.name }}</td>
+            <td>{{ b.country_scope|default:"*" }}</td>
+            <td>{{ b.version }}</td>
+            <td>{{ b.precedence_weight }}</td>
+            <td>{% if b.admin_url %}<a href="{{ b.admin_url }}" class="btn btn-sm btn-outline-light">{% trans "Edit" %}</a>{% endif %}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="text-secondary">{% trans "No policy bundles." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

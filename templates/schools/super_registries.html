@@ -1,0 +1,53 @@
+{% extends "control_plane_base.html" %}
+{% load static i18n %}
+
+{% block cp_title %}{% trans "Global Registries" %}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Tenant Mission Control" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Global Registries" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block breadcrumb_actions %}
+<a href="{{ dashboard_url }}" class="btn btn-sm btn-outline-light">{% trans "Back to Dashboard" %}</a>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-2">
+  <p class="text-secondary small mb-4">{% trans "Canonical source of world facts: countries, subdivisions, education levels, document types, fee categories, grade scales. Manage via Admin for CRUD and activation." %}</p>
+  <div class="card shadow-sm border-secondary" style="background: var(--cp-panel-bg, rgba(8,16,30,0.6)); border-color: var(--cp-panel-border) !important;">
+    <div class="card-body p-0">
+      <table class="table table-dark table-hover mb-0">
+        <thead>
+          <tr>
+            <th>{% trans "Registry" %}</th>
+            <th class="text-end">{% trans "Count" %}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in registry_rows %}
+          <tr>
+            <td>{{ row.label }}</td>
+            <td class="text-end">{{ row.count }}</td>
+            <td>
+              {% if row.admin_url %}
+              <a href="{{ row.admin_url }}" class="btn btn-sm btn-outline-light">{% trans "Manage" %}</a>
+              {% else %}
+              <span class="text-secondary small">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" class="text-secondary">{% trans "No registries." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
