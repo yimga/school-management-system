@@ -57,6 +57,14 @@ This document summarizes the responsive and clickability work done so the platfo
 - Control plane sidebar and portal sidebar use `<a href="{% url ... %}">` throughout.  
 - Base templates (base.html, portal_base.html, backend_base.html, control_plane_base.html, control_plane_skeleton.html) exist and are extended correctly.
 
+### Tenant vs superadmin link alignment (verified)
+
+- **URLConf routing:** `UrlConfSwitcherMiddleware` sets `request.urlconf` by host: base/verify/support → `config.public_urls`, manager → `config.manager_urls`, tenant subdomain/custom → `config.tenant_urls`. The `super` namespace exists only in manager_urls; tenant urlconf has no `super:`.
+- **Templates that use `super:`** are either (1) only rendered on manager (control_plane_base, control_plane_sidebar, super_*.html, marketplace/*.html, error 403/404/500_control_plane), or (2) guard the link with `{% if request.public_host_kind == 'manager' %}` (portal_base sidebar URLs, admin index/extra_user_links, global_search, dashboard_footer, user_dropdown), or (3) **fixed:** `siteconfig/feature_control_panel.html` — "Schools" link and copy now only rendered when `request.public_host_kind == 'manager'` so `{% url 'super:dashboard' %}` is never resolved on tenant (avoids NoReverseMatch).
+- **"Back to public site"** links (manager login, admin login, admin extra_user_links) now use a dynamic URL: `public_site_url` is set in admin `each_context` and `login()` and in accounts login view via `build_public_absolute_url(request, "/")`, with fallback `https://runmycampus.com` in templates. This keeps local dev (e.g. manager.localhost → localhost) correct.
+- **Admin index** tenant branch uses `analytics:master_sheet`, `analytics:deadlines`, `reports:publish_term_results` — all exist in tenant urlconf. Manager branch uses `super:dashboard`, `super:command_center`, `super:billing_dashboard` — only rendered when `is_manager_host`.
+- **Cross-host helpers:** `build_tenant_backend_url`, `build_public_absolute_url`, `build_manager_absolute_url` in `apps.schools.tenant_url.py` are used for redirects and links that cross host boundaries; middleware uses them for /t/<slug>/ and manager-only path redirects.
+
 ### Views logic (permissions, redirects)
 
 - **Auth:** Views use `@login_required`, `@user_passes_test` (e.g. control plane access, schema allowed, admin/staff) where appropriate. Marketplace, apicenter, portal (support, contact requests, AI copilot), siteconfig, compliance, accounts (certification) use login and/or permission checks.

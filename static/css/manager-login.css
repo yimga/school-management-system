@@ -1,0 +1,78 @@
+/**
+ * Shared high-end login styles for manager (control plane) and admin (Configuration Engine).
+ * Dark theme, gold accent (#d4af37), hero strip + card. Used by auth/manager_login.html and auth/admin_login.html.
+ * Only loaded on those two templates, so body background is safe.
+ */
+body { background: #0B0E14; }
+
+.manager-login-landing,
+.admin-login-landing { min-height: 100vh; padding: 2rem 0 4rem; }
+
+.manager-login-hero,
+.admin-login-hero {
+  border-radius: 0 0 18px 18px;
+  padding: 1.5rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: linear-gradient(135deg, #0B0E14, #1a2332);
+  color: white;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.manager-login-hero .hero-logo,
+.admin-login-hero .hero-logo {
+  width: 48px; height: 48px; border-radius: 12px;
+  background: rgba(212, 175, 55, 0.2);
+  display: grid; place-items: center; font-size: 1.4rem; font-weight: 700; color: #d4af37;
+}
+
+.manager-login-hero strong,
+.admin-login-hero strong { font-size: 1.15rem; }
+
+.manager-login-hero small,
+.admin-login-hero small { display: block; color: rgba(255,255,255,0.8); font-size: 0.85rem; margin-top: 0.25rem; }
+
+.manager-login-card,
+.admin-login-card {
+  border-radius: 18px;
+  border: 1px solid rgba(125, 152, 187, 0.18);
+  background: rgba(8, 16, 30, 0.92);
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.manager-login-card .form-control,
+.admin-login-card .form-control {
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.6);
+  border-color: rgba(125, 152, 187, 0.25);
+  color: #e7eefc;
+}
+
+.manager-login-card .form-control::placeholder,
+.admin-login-card .form-control::placeholder { color: rgba(231, 238, 252, 0.5); }
+
+.manager-login-card .form-label,
+.admin-login-card .form-label { color: var(--cp-muted, #9fb1cb); }
+
+.manager-login-card .btn-primary,
+.admin-login-card .btn-primary { background: #d4af37; border-color: #d4af37; color: #0B0E14; }
+
+.manager-login-card .btn-primary:hover,
+.admin-login-card .btn-primary:hover { background: #e0bc48; border-color: #e0bc48; color: #0B0E14; }
+
+.manager-login-footer,
+.admin-login-footer { margin-top: 1.5rem; text-align: center; }
+
+.manager-login-footer a,
+.admin-login-footer a { color: #9fb1cb; text-decoration: none; }
+
+.manager-login-footer a:hover,
+.admin-login-footer a:hover { color: #d4af37; }
+
+/* Admin-only: validation and error display */
+.admin-login-card .form-control.is-invalid { border-color: #dc3545; }
+.admin-login-card .invalid-feedback { color: #f87171; }

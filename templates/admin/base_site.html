@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="{% static 'css/admin-sidebar-polish.css' %}">
   <link rel="stylesheet" href="{% static 'css/admin-surface-fixes.css' %}">
   <link rel="stylesheet" href="{% static 'css/theme-visibility-guard.css' %}">
+  <link rel="stylesheet" href="{% static 'css/platform-high-end.css' %}">
     <style>
       #container, #content, .dashboard-container, .main-content, .content {
         position: relative;
@@ -93,7 +94,7 @@
     }
   </style>
   {# Single source for admin brand/semantic CSS variables (no conflicting settings). #}
-  {# Align Tailwind-style primary (dropdowns, focus, buttons) with site accent so admin doesn't show blue. #}
+  {# On manager host use platform primary only (no tenant SITE). Else align with site accent. #}
   <style>
     :root {
       --brand-primary: {{ ADMIN_RESOLVED_PRIMARY|default:"#0d6efd" }};
@@ -102,7 +103,9 @@
       --brand-warning: {{ ADMIN_RESOLVED_WARNING|default:"#fbbf24" }};
       --brand-danger: {{ ADMIN_RESOLVED_DANGER|default:"#ef4444" }};
       --surface-deep: {{ ADMIN_RESOLVED_BACKGROUND|default:"#1a1a1a" }};
-      {% if SITE and SITE.admin_use_site_primary %}
+      {% if is_manager_host %}
+      --admin-sidebar-active-border: {{ ADMIN_RESOLVED_PRIMARY|default:"#0d6efd" }};
+      {% elif SITE and SITE.admin_use_site_primary %}
       --admin-sidebar-active-border: {{ SITE.primary_color|default:"#0d6efd" }};
       {% else %}
       --admin-sidebar-active-border: {{ ADMIN_RESOLVED_PRIMARY|default:"#0d6efd" }};

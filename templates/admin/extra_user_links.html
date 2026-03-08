@@ -1,3 +1,7 @@
 {% load i18n %}
+{% if is_manager_host %}
+<a class="block px-4 py-2 text-sm text-base-700 hover:bg-base-100 dark:text-base-300 dark:hover:bg-base-700 rounded-default transition-colors" href="{% url 'super:dashboard' %}">{% trans "Control plane" %}</a>
+<a class="block px-4 py-2 text-sm text-base-700 hover:bg-base-100 dark:text-base-300 dark:hover:bg-base-700 rounded-default transition-colors" href="{{ public_site_url|default:'https://runmycampus.com' }}" target="_blank" rel="noopener noreferrer">{% trans "Back to public site" %}</a>
+{% endif %}
 <a class="block px-4 py-2 text-sm text-base-700 hover:bg-base-100 dark:text-base-300 dark:hover:bg-base-700 rounded-default transition-colors" href="{% url 'accounts:user_profile' %}">{% trans "My Profile" %}</a>
 <a class="block px-4 py-2 text-sm text-base-700 hover:bg-base-100 dark:text-base-300 dark:hover:bg-base-700 rounded-default transition-colors" href="{% url 'accounts:password_change' %}">{% trans "Change password" %}</a>

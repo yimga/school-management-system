@@ -107,11 +107,12 @@
   --token-radius-sm: 8px;
   --token-radius-md: 12px;
 
-  /* Dashboard tokens (radius, spacing, shadow, type scale) – used by backend/admin/parent/teacher dashboards */
+  /* Dashboard tokens (radius, spacing, shadow, type scale) – used by backend/admin/parent/teacher dashboards.
+     Premium feel: platform-high-end.css overrides with --platform-* tokens where loaded. */
   --dashboard-space-unit: 8px;
-  --dashboard-card-radius: 12px;
-  --dashboard-card-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-  --dashboard-card-border: 1px solid rgba(0, 0, 0, 0.06);
+  --dashboard-card-radius: 14px;
+  --dashboard-card-shadow: 0 12px 28px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(15, 23, 42, 0.04);
+  --dashboard-card-border: 1px solid rgba(15, 23, 42, 0.08);
   --dashboard-gap-sm: 12px;
   --dashboard-gap-md: 16px;
   --dashboard-gap-lg: 24px;
@@ -240,8 +241,8 @@ body.portal-backend-dark {
   --overlay-text: #e2e8f0;
   --overlay-text-muted: #94a3b8;
 
-  /* Dashboard tokens – dark */
-  --dashboard-card-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  /* Dashboard tokens – dark (premium elevation) */
+  --dashboard-card-shadow: 0 12px 28px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.06);
   --dashboard-card-border: 1px solid rgba(148, 163, 184, 0.2);
 
   /* Semantic role/stat colors – dark (slightly lighter for contrast on dark bg) */

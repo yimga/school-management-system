@@ -105,6 +105,19 @@ Manager (manager.runmycampus.com) and tenant (school subdomain / custom domain) 
 
 ---
 
+## 8.6 — High-end admin experience and platform-wide premium styling (implemented)
+
+| Area | Implementation |
+|------|----------------|
+| **Admin (Configuration Engine) login** | Same high-end feel as /super: dark background (#0B0E14), hero strip, gold accent (#d4af37). Template: `auth/admin_login.html`; copy: “Configuration Engine sign-in”, “superuser account”; “Back to public site”. No tenant wording. `config.admin.RunMyCampusAdminSite.login_template` = `auth/admin_login.html`. |
+| **Admin: no tenant in UI** | Unfold `dashboard_callback` does not inject school/tenant branding when path is `/admin/` (platform primary/accent only). Context processor overrides admin colors on manager to gold. Admin index subtitle and header actions on manager: superadmin-only copy and links (Control plane, Command center, Billing). |
+| **Platform-wide premium feel** | `static/css/platform-high-end.css`: premium tokens (radius, shadows), sidebar polish (portal, control plane, admin), card/chart/dashboard elevation, tables, buttons, alerts. Loaded from: `portal_base`, `control_plane_skeleton`, `admin/base_site`, `base.html` — so every page (tenant, super, admin, auth, marketing, errors) gets consistent high-end styling. |
+| **Shared login styles** | `static/css/manager-login.css`: shared dark/gold login layout for manager and admin login. Design tokens: `--dashboard-card-radius` and shadow updated for premium elevation (light/dark). |
+
+**Touchpoints:** `templates/auth/admin_login.html`, `config/admin.py`, `apps/siteconfig/unfold_dashboard.py`, `apps/siteconfig/context_processors.py`, `templates/admin/index.html`, `templates/admin/base_site.html`, `templates/admin/extra_user_links.html`, `static/css/platform-high-end.css`, `static/css/manager-login.css`, `static/css/design-tokens.css`. **Tests:** `apps.siteconfig.tests.test_admin_high_end` — admin login template, no-tenant copy, unfold callback no tenant branding. Run: `python manage.py test apps.siteconfig.tests.test_admin_high_end`.
+
+---
+
 ## Checklist summary
 
 | Id | Status | Notes |

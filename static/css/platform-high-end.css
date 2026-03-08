@@ -1,0 +1,279 @@
+/**
+ * Platform High-End – One place for premium feel across the entire product.
+ * Applied to: tenant portal, tenant backend, superadmin (control plane + Configuration Engine),
+ * every sidebar, every dashboard, every card, every chart and data visualization.
+ *
+ * Uses CSS variables so theme (tenant school vs platform) can override where needed.
+ * Load after design-tokens.css and theme-specific sheets.
+ */
+
+/* ========== Premium design tokens (used by all surfaces) ========== */
+:root {
+  --platform-premium-radius: 14px;
+  --platform-premium-radius-sm: 10px;
+  --platform-premium-shadow: 0 12px 28px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(15, 23, 42, 0.04);
+  --platform-premium-shadow-hover: 0 20px 40px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(15, 23, 42, 0.06);
+  --platform-premium-shadow-dark: 0 12px 28px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --platform-premium-shadow-dark-hover: 0 20px 44px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  --platform-sidebar-radius: 12px;
+  --platform-sidebar-padding: 1rem 1.25rem;
+  --platform-card-radius: var(--platform-premium-radius);
+  --platform-chart-radius: var(--platform-premium-radius);
+}
+
+/* Dark / backend dark: use elevated dark shadows */
+html[data-theme="dark"],
+html[data-bs-theme="dark"],
+body.portal-backend-dark {
+  --platform-premium-shadow: var(--platform-premium-shadow-dark);
+  --platform-premium-shadow-hover: var(--platform-premium-shadow-dark-hover);
+}
+
+/* ========== Sidebars – every sidebar on the platform ========== */
+
+/* Portal / tenant backend sidebar (partials/portal_sidebar) */
+.portal-sidebar-col .sidebar {
+  border-radius: var(--platform-sidebar-radius);
+  border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+}
+html[data-bs-theme="dark"] .portal-sidebar-col .sidebar,
+body.portal-backend-dark .portal-sidebar-col .sidebar {
+  border-color: rgba(148, 163, 184, 0.2);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+.sidebar-header,
+[data-sidebar-nav="true"] {
+  padding-inline: 0.5rem;
+}
+.sidebar-header {
+  border-radius: var(--platform-sidebar-radius);
+  padding-block: 0.875rem;
+}
+.sidebar-section-title {
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: var(--portal-text-muted);
+}
+.nav-link.nav-pill {
+  border-radius: var(--platform-premium-radius-sm);
+  padding: 0.6rem 0.875rem !important;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+.nav-link.nav-pill:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+.nav-link.nav-pill.active,
+.nav-link.nav-pill[aria-current="page"] {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+.sidebar-avatar {
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Control plane sidebar (partials/control_plane_sidebar) */
+.cp-sidebar-inner {
+  border-radius: var(--platform-premium-radius) !important;
+  box-shadow: var(--platform-premium-shadow-dark);
+  overflow: hidden;
+}
+.cp-sidebar-nav .nav-link {
+  border-radius: var(--platform-premium-radius-sm);
+  padding: 0.55rem 0.75rem;
+  transition: background 0.2s ease, color 0.2s ease, padding-left 0.2s ease;
+}
+.cp-sidebar-nav .nav-link:hover {
+  background: rgba(212, 175, 55, 0.12);
+  color: #f1f5f9;
+}
+.cp-sidebar-nav .nav-link:focus-visible {
+  outline: 2px solid var(--platform-gold, #d4af37);
+  outline-offset: 2px;
+}
+.control-plane-shell .cp-sidebar-nav .nav-item .border-top {
+  border-color: rgba(125, 152, 187, 0.25) !important;
+}
+
+/* Admin (Unfold) sidebar – use premium radius for logo and nav items */
+#nav-sidebar .admin-sidebar-link,
+#nav-sidebar .admin-sidebar-model-link,
+#nav-sidebar .admin-sidebar-app-title a {
+  border-radius: var(--platform-premium-radius-sm);
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* ========== Dashboards – all dashboard pages and cards ========== */
+
+/* Cards: consistent premium radius and shadow (all dashboards) */
+#dashboard-layout .card,
+.dashboard-layout-unified .card,
+[data-dashboard-page] .card,
+.dashboard-chart-card,
+.finance-dashboard-widgets .card,
+.analytics-dashboard-widgets .card,
+.payroll-dashboard-widgets .card,
+.emis-dashboard-widgets .card,
+.compliance-dashboard .card,
+.parent-dashboard .card,
+.teacher-shell .card,
+.control-plane-shell .card,
+.cp-panel,
+.stat-card,
+.app-card {
+  border-radius: var(--platform-card-radius) !important;
+  box-shadow: var(--platform-premium-shadow);
+  transition: box-shadow 0.25s ease, transform 0.2s ease;
+}
+#dashboard-layout .card:hover,
+.dashboard-layout-unified .card:hover,
+[data-dashboard-page] .card:hover,
+.dashboard-chart-card:hover,
+.finance-dashboard-widgets .card:hover,
+.analytics-dashboard-widgets .card:hover,
+.control-plane-shell .card:hover,
+.stat-card:hover,
+.app-card:hover {
+  box-shadow: var(--platform-premium-shadow-hover);
+}
+html[data-bs-theme="dark"] #dashboard-layout .card:hover,
+[data-theme="dark"] .card:hover,
+body.portal-backend-dark .card:hover,
+.control-plane-shell .card:hover {
+  box-shadow: var(--platform-premium-shadow-dark-hover);
+}
+
+/* Dashboard chart cards and data visualization containers */
+.dashboard-chart-card,
+.dashboard-chart-container {
+  overflow: hidden;
+}
+.dashboard-chart-card .card-body,
+.dashboard-chart-container {
+  padding: 1.25rem 1.5rem;
+}
+.dashboard-chart-wrapper {
+  border-radius: var(--platform-premium-radius-sm);
+  overflow: hidden;
+  background: var(--admin-content-bg, #f8fafc);
+}
+.dashboard-chart-container {
+  border-radius: var(--platform-card-radius);
+  box-shadow: var(--platform-premium-shadow);
+}
+html[data-bs-theme="dark"] .dashboard-chart-wrapper,
+[data-theme="dark"] .dashboard-chart-wrapper,
+body.portal-backend-dark .dashboard-chart-wrapper {
+  background: var(--admin-content-surface, #1e293b);
+}
+
+/* Control plane panels and hero blocks */
+.cp-hero {
+  border-radius: var(--platform-premium-radius) !important;
+  box-shadow: var(--platform-premium-shadow-dark);
+}
+.cp-panel,
+.control-plane-shell [class^="cp-"] .card {
+  border-radius: var(--platform-card-radius);
+}
+.cp-overview-card {
+  border-radius: var(--platform-premium-radius-sm);
+  border: 1px solid rgba(125, 152, 187, 0.2);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.cp-overview-card:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  border-color: rgba(212, 175, 55, 0.35);
+}
+
+/* Admin index and tenant dashboard headers */
+.dashboard-header {
+  border-radius: var(--platform-premium-radius);
+  box-shadow: var(--platform-premium-shadow);
+}
+body.portal-backend-dark .dashboard-header,
+html[data-bs-theme="dark"] .dashboard-header {
+  box-shadow: var(--platform-premium-shadow-dark);
+}
+
+/* Stat cards and app cards (admin index, tenant dashboards) */
+.stat-card,
+.app-card {
+  border-radius: var(--platform-card-radius) !important;
+}
+.stat-item,
+.app-card .app-actions .app-btn {
+  border-radius: var(--platform-premium-radius-sm);
+}
+
+/* ========== Tables and data lists – premium feel ========== */
+#dashboard-layout .table,
+[data-dashboard-page] .table,
+.dashboard-layout-unified .table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+#dashboard-layout .table thead th,
+[data-dashboard-page] .table thead th {
+  border-radius: var(--platform-premium-radius-sm) var(--platform-premium-radius-sm) 0 0;
+  padding: 0.875rem 1rem;
+}
+.control-plane-shell .table thead th {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(125, 152, 187, 0.2);
+}
+
+/* ========== Buttons and form controls – consistent radius ========== */
+.control-plane-shell .btn {
+  border-radius: var(--platform-premium-radius-sm);
+}
+.control-plane-shell .btn-primary {
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.35);
+}
+.control-plane-shell .btn-primary:hover {
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+}
+.form-control,
+.form-select {
+  border-radius: var(--platform-premium-radius-sm);
+}
+
+/* ========== Page headers and section titles ========== */
+[data-dashboard-page] h1,
+#dashboard-layout h1,
+.dashboard-layout-unified h1,
+.control-plane-shell h1 {
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+[data-dashboard-page] .dashboard-subtitle,
+[data-dashboard-page] .section-title,
+.cp-hero-copy {
+  color: var(--portal-text-muted, var(--cp-muted));
+  max-width: 60ch;
+}
+
+/* ========== Alerts and badges – subtle elevation ========== */
+.alert {
+  border-radius: var(--platform-premium-radius-sm);
+  border-width: 1px;
+}
+.badge.rounded-pill {
+  border-radius: 999px;
+  padding: 0.35rem 0.65rem;
+  font-weight: 600;
+}
+
+/* ========== Main content area – consistent padding ========== */
+#main-content,
+.portal-main-col,
+.cp-main-col {
+  padding-block: 1.25rem;
+}
+@media (min-width: 992px) {
+  #main-content,
+  .portal-main-col,
+  .cp-main-col {
+    padding-block: 1.5rem;
+  }
+}

@@ -316,11 +316,23 @@
   <!-- Header -->
   <header class="dashboard-header">
     <h1>Administration Dashboard</h1>
-    <p class="dashboard-subtitle">Manage your school operations, monitor system health, and access all administrative functions from this central hub.</p>
+    <p class="dashboard-subtitle">
+      {% if is_manager_host %}
+        {% trans "Manage system configuration, monitor health, and access all administrative functions from this hub." %}
+      {% else %}
+        {% trans "Manage your school operations, monitor system health, and access all administrative functions from this central hub." %}
+      {% endif %}
+    </p>
     <div class="header-actions">
-      <a href="{% url 'analytics:master_sheet' %}" class="btn-orange">📊 Master Sheet</a>
-      <a href="{% url 'analytics:deadlines' %}" class="btn-green">⏰ Deadlines</a>
-      <a href="{% url 'reports:publish_term_results' %}" class="btn-outline">📄 Publish Reports</a>
+      {% if is_manager_host %}
+        <a href="{% url 'super:dashboard' %}" class="btn-orange">🎛️ Control plane</a>
+        <a href="{% url 'super:command_center' %}" class="btn-green">📋 Command center</a>
+        <a href="{% url 'super:billing_dashboard' %}" class="btn-outline">💰 Billing</a>
+      {% else %}
+        <a href="{% url 'analytics:master_sheet' %}" class="btn-orange">📊 Master Sheet</a>
+        <a href="{% url 'analytics:deadlines' %}" class="btn-green">⏰ Deadlines</a>
+        <a href="{% url 'reports:publish_term_results' %}" class="btn-outline">📄 Publish Reports</a>
+      {% endif %}
     </div>
   </header>
 

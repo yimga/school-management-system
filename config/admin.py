@@ -7,7 +7,7 @@ from apps.dashboard.admin_context import build_admin_dashboard_context
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
-from django.urls import path
+from django.urls import NoReverseMatch, path, reverse
 from django.utils.safestring import mark_safe
 from unfold.sites import UnfoldAdminSite
 
@@ -15,27 +15,35 @@ from unfold.sites import UnfoldAdminSite
 class RunMyCampusAdminSite(UnfoldAdminSite):
     """
     Configuration engine: full model CRUD, raw settings, system config.
-    Access: superuser only.
+    Access: superuser only. Superadmin-only; no tenant context or branding.
     Extends UnfoldAdminSite for sidebar/app list.
     """
 
     enable_nav_sidebar = True
-    site_header = "RunMyCampus - Configuration"
-    site_title = "Platform Admin"
-
+    login_template = "auth/admin_login.html"
+    site_header = "Configuration Engine"
+    site_title = "Configuration Engine"
     index_title = "Administration Dashboard"
 
     def each_context(self, request):
         context = super().each_context(request)
+        context["is_manager_host"] = getattr(request, "public_host_kind", None) == "manager"
+        if context["is_manager_host"]:
+            try:
+                from apps.schools.tenant_url import build_public_absolute_url
+                context["public_site_url"] = build_public_absolute_url(request, "/")
+            except Exception:
+                context["public_site_url"] = "https://runmycampus.com"
+        else:
+            context["public_site_url"] = None
         try:
             context["extra_userlinks"] = mark_safe(
-                render_to_string("admin/extra_user_links.html", {"request": request})
+                render_to_string("admin/extra_user_links.html", context)
             )
         except Exception:
             context["extra_userlinks"] = ""
         # MFA encouragement: show dismissible banner for staff without MFA
         try:
-            from django.urls import reverse
             from django_otp import user_has_device
             show = (
                 request.user.is_authenticated
@@ -53,6 +61,23 @@ class RunMyCampusAdminSite(UnfoldAdminSite):
     def has_permission(self, request):
         """Restrict admin to superusers only (configuration engine)."""
         return request.user.is_active and request.user.is_staff and request.user.is_superuser
+
+    def login(self, request, extra_context=None):
+        """Add safe password_reset_url and public_site_url to context for high-end login template."""
+        extra_context = extra_context or {}
+        try:
+            extra_context["password_reset_url"] = reverse("admin:password_reset")
+        except NoReverseMatch:
+            try:
+                extra_context["password_reset_url"] = reverse("admin:admin_password_reset")
+            except NoReverseMatch:
+                extra_context["password_reset_url"] = None
+        try:
+            from apps.schools.tenant_url import build_public_absolute_url
+            extra_context["public_site_url"] = build_public_absolute_url(request, "/")
+        except Exception:
+            extra_context["public_site_url"] = "https://runmycampus.com"
+        return super().login(request, extra_context=extra_context)
 
     def index(self, request, extra_context=None):
         """Render the custom admin dashboard at /admin/."""

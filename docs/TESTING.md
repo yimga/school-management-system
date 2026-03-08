@@ -33,6 +33,28 @@ python manage.py test apps.siteconfig.tests --verbosity=2
 python manage.py test apps.finance.tests --verbosity=2
 ```
 
+High-end admin and platform styling (login template, no-tenant copy, unfold callback):
+
+```bash
+python manage.py test apps.siteconfig.tests.test_admin_high_end --verbosity=2
+```
+
+## Pre-commit (run before commit)
+
+With your **virtualenv activated** and dependencies installed (`pip install -r requirements.txt`):
+
+```powershell
+# Windows (from repo root)
+.\scripts\run_tests_pre_commit.ps1
+```
+
+Or manually:
+
+```bash
+python manage.py check
+python manage.py test --verbosity=1 --parallel 4
+```
+
 ## Django check
 
 Always safe to run; no tests, no DB writes:

@@ -286,6 +286,11 @@ def site_settings(request):
     admin_success = getattr(site, "success_color", None) or "#22c55e"
     admin_warning = getattr(site, "warning_color", None) or "#fbbf24"
     admin_danger = getattr(site, "danger_color", None) or "#ef4444"
+    # Superadmin-only: when in /admin/ on manager host, use platform branding (gold) so admin matches high-end login.
+    path = (getattr(request, "path", "") or "").strip()
+    if path.startswith("/admin/") and getattr(request, "public_host_kind", None) == "manager":
+        admin_primary = "#d4af37"
+        admin_accent = "#0d6efd"
     # Backend console theme: pack overrides site when set (ThemePack.backend_console_theme)
     _pack_console = getattr(admin_theme, "backend_console_theme", None) or ""
     resolved_backend_console_theme = _pack_console.strip() or getattr(site, "backend_console_theme", None) or "dark"

@@ -1,52 +1,52 @@
 # Python
 __pycache__/
 *.py[cod]
-*.pyd
-*.pyo
-*.pkl
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Virtual environments
 .venv/
 venv/
+env/
+
+# Environment and secrets
 .env
+.env.local
+*.pem
 
 # Django
 *.log
 local_settings.py
-staticfiles/
-media/
-celerybeat-schedule
-celerybeat.pid
+db.sqlite3
+db.sqlite3-journal
+/media
+/staticfiles
 
-# DB
-*.sqlite3
-*.sqlite3.corrupted
-*.sqlite3.malformed
-*.sqlite3.bak
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
 
 # OS
 .DS_Store
 Thumbs.db
-nul
-# Cursor / worktrees
-.cursor/
 
-# IDE
-.vscode/
-.idea/
-
-# Local release artifacts
-.tmp/
-.tmp_test_artifacts/
-tmp/
-backups/
-
-# Local ad-hoc dev utilities
-scripts/dev/capture_backend_screenshot.py
-
-# Frontend build artifacts
+# Node (if used)
 node_modules/
-package-lock.json
+npm-debug.log*
 
-# Playwright E2E
-test-results/
-playwright-report/
-playwright/.cache/
+# Testing / coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Backups and temp
+*.bak
+*.tmp
+/logs/

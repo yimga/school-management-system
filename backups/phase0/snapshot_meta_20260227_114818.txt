@@ -1,0 +1,5 @@
+﻿timestamp=20260227_114818
+project_root=C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system
+python_path=python
+db_path=C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\db_working.sqlite3
+ui_config_path=C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\backups\phase0\ui_config\ui_config_20260227_114818.json

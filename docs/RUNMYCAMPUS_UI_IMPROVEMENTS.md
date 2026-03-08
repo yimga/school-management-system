@@ -2,7 +2,7 @@
 
 Backlog of improvements and visual upgrades for the RunMyCampus platform (manager/super-admin) and tenant surfaces, including optional "powerhouse" upgrades.
 
-**Status:** All previously backlog items in this doc are **Done**. Command palette (Ctrl+K), PDF export, and per-user saved layout (DB) are implemented. Use the sections below as design guidance for future polish.
+**Status:** All previously backlog items in this doc are **Done**. Command palette (Ctrl+K), PDF export, and per-user saved layout (DB) are implemented. **High-end admin experience and platform-wide premium styling are in place:** Configuration Engine login matches /super (dark, gold, superadmin-only copy); `platform-high-end.css` is loaded on portal_base, control_plane_skeleton, admin base_site, and base.html so every sidebar, dashboard, card, and chart has consistent premium elevation and polish. See `docs/architecture/phase10_superadmin_vs_tenant_ui.md` § 8.6. Use the sections below as design guidance for future polish.
 
 ---
 

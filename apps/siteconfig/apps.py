@@ -22,4 +22,7 @@ class SiteconfigConfig(AppConfig):
             from . import signals  # noqa: F401
         except Exception:
             pass
+        # Default Django admin site only; manager and tenant urlconfs use config.admin.admin_site
+        # (RunMyCampusAdminSite), which has login_template = "auth/admin_login.html" for the high-end
+        # superadmin login. This assignment affects django.contrib.admin.site if used elsewhere.
         admin.site.login_template = "auth/login.html"

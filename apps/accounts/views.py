@@ -3106,6 +3106,14 @@ def login_view(request):
         "LOGIN_SSO_INTEGRATIONS": _get_login_sso_integrations(request),
         "is_manager_host": getattr(request, "public_host_kind", None) == "manager",
     }
+    if getattr(request, "public_host_kind", None) == "manager":
+        try:
+            from apps.schools.tenant_url import build_public_absolute_url
+            context["public_site_url"] = build_public_absolute_url(request, "/")
+        except Exception:
+            context["public_site_url"] = "https://runmycampus.com"
+    else:
+        context["public_site_url"] = None
     template = "auth/manager_login.html" if getattr(request, "public_host_kind", None) == "manager" else "auth/login.html"
     return render(request, template, context)
 
