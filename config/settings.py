@@ -620,6 +620,11 @@ CELERY_BEAT_SCHEDULE = {
         "options": {"expires": 600},
         "kwargs": {"days": 60},
     },
+    "marketplace-health-check": {
+        "task": "marketplace.marketplace_health_check",
+        "schedule": 21600.0,  # Every 6 hours; Phase 11 optional
+        "options": {"expires": 600},
+    },
 }
 
 # --- Logging Configuration ---
@@ -824,9 +829,10 @@ LOCALE_PATHS = [
 ]
 
 # --- Multi-Region Configuration ---
-REGION_CODE = os.getenv('REGION_CODE', 'CMR')  # Default to Cameroon
-DEFAULT_GRADING_SCALE = os.getenv('DEFAULT_GRADING_SCALE', '0-20')
-DEFAULT_CURRENCY = os.getenv('DEFAULT_CURRENCY', 'XAF')
+# Phase 12: no hardcoded region/currency/grading; bootstrap from registries. Set in .env if needed.
+REGION_CODE = os.getenv('REGION_CODE', '')
+DEFAULT_GRADING_SCALE = os.getenv('DEFAULT_GRADING_SCALE', '')
+DEFAULT_CURRENCY = os.getenv('DEFAULT_CURRENCY', '')
 # When True: region switcher can be shown in UI and users can switch region in session.
 # When False: single region per deployment (use REGION_CODE). Used in context as enable_multi_region.
 ENABLE_MULTI_REGION = os.getenv('ENABLE_MULTI_REGION', 'False').lower() == 'true'

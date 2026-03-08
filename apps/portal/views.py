@@ -65,6 +65,7 @@ from apps.siteconfig.models import (
 from apps.siteconfig.dashboard_resolver import for_role as dashboard_for_role
 from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata
 from apps.siteconfig.dashboard_views import load_dashboard_layout_settings
+from apps.platform_runtime.helpers import get_effective_flags, get_site_display_name
 from .runtime_helpers import get_policy_for_request
 from apps.siteconfig.dashboard_views import _can_customize
 from apps.analytics.services import (
@@ -179,7 +180,7 @@ def parent_dashboard(request: HttpRequest):
 
     finance_links = guardian_student_links(request.user, finance_only=True)
 
-    flags = {**default_backend_feature_flags(), **(SiteSettings.get_solo().backend_feature_flags or {})}
+    flags = get_effective_flags(request)
     require_finance_opt_in = bool(flags.get("require_guardian_finance_opt_in"))
     finance_link_count = finance_links.count()
     guardian_link_count = links.count()
@@ -660,7 +661,7 @@ def parent_workflow_center(request: HttpRequest):
     finance_balance = widget_data.get("finance", {}).get("balance") or Decimal("0.00")
     finance_overdue = widget_data.get("finance", {}).get("overdue", 0)
 
-    flags = {**default_backend_feature_flags(), **(SiteSettings.get_solo().backend_feature_flags or {})}
+    flags = get_effective_flags(request)
     require_finance_opt_in = bool(flags.get("require_guardian_finance_opt_in"))
     can_request_finance_access = require_finance_opt_in and links.exists() and not can_view_finance
 
@@ -762,7 +763,7 @@ def parent_finance(request: HttpRequest):
         messages.info(request, "Link a student first to view finance details.")
         return redirect("portal:link_child")
 
-    flags = {**default_backend_feature_flags(), **(SiteSettings.get_solo().backend_feature_flags or {})}
+    flags = get_effective_flags(request)
     require_finance_opt_in = bool(flags.get("require_guardian_finance_opt_in"))
     finance_link_count = finance_links.count()
     guardian_link_count = all_links.count()
@@ -1265,7 +1266,6 @@ def _qr_png_data_uri(value: str) -> str:
 def my_digital_id(request: HttpRequest):
     """Phase 4: Staff digital ID card (My ID) – school branding, photo, name, role, STAFF ID bar, QR."""
     from apps.people.badge_services import get_signed_id_token
-    site = SiteSettings.get_solo()
     profile = getattr(request.user, "teacher_profile", None)
     name = request.user.get_full_name() or request.user.username
     role_label = "Teacher"
@@ -1276,7 +1276,7 @@ def my_digital_id(request: HttpRequest):
     verify_url = request.build_absolute_uri(reverse("portal:badge_verify") + "?token=" + quote_plus(qr_token))
     qr_image_url = _qr_png_data_uri(verify_url)
     return render(request, "portal/digital_id_staff.html", {
-        "site_name": getattr(site, "site_name", None) or "School",
+        "site_name": get_site_display_name(request),
         "name": name,
         "role_label": role_label,
         "photo": photo,
@@ -1745,7 +1745,7 @@ def record_teacher_attendance(request: HttpRequest):
 @login_required
 def seating_chart_view(request: HttpRequest):
     """W4-2: Seating chart placeholder — view or link for class layout. Optional ?classroom=id."""
-    flags = {**default_backend_feature_flags(), **(SiteSettings.get_solo().backend_feature_flags or {})}
+    flags = get_effective_flags(request)
     if not flags.get("enable_seating_chart_beta"):
         raise Http404("Seating chart is not enabled.")
     if not getattr(request.user, "has_feature_permission", lambda _: False)("attendance.manage"):
@@ -1766,7 +1766,7 @@ def seating_chart_view(request: HttpRequest):
 
 
 def _cahier_enabled(request=None):
-    flags = getattr(SiteSettings.get_solo(), "backend_feature_flags", None) or {}
+    flags = get_effective_flags(request)
     if not flags.get("enable_cahier_de_texte"):
         return False
     # Feature gate via Policy Registry (runtime constitution)
@@ -1807,7 +1807,7 @@ def cahier_list(request: HttpRequest):
         obj.save()
         messages.success(request, "Entry submitted for visa.")
         return redirect("portal:cahier_list")
-    flags = getattr(SiteSettings.get_solo(), "backend_feature_flags", None) or {}
+    flags = get_effective_flags(request)
     curriculum_nodes = []
     if flags.get("cahier_syllabus_integration") == "national_progression":
         from apps.academics.models import CurriculumNode
@@ -2153,7 +2153,7 @@ def parent_child_results(request: HttpRequest, student_id: int):
     return render(request, "parent/results.html", context)
 
 
-def _whatsapp_invite_link() -> str | None:
+def _whatsapp_invite_link(request: HttpRequest) -> str | None:
     whatsapp = (
         Integration.objects.filter(enabled=True, name__icontains="whatsapp")
         .order_by("-updated_at")
@@ -2167,7 +2167,7 @@ def _whatsapp_invite_link() -> str | None:
     digits = "".join(ch for ch in number if ch.isdigit())
     if not digits:
         return None
-    site_name = SiteSettings.get_solo().site_name or "School System"
+    site_name = get_site_display_name(request)
     message = quote_plus(f"Hi, I'd like to claim a portal invite for {site_name}.")
     return f"https://wa.me/{digits}?text={message}"
 
@@ -2228,7 +2228,7 @@ def link_child(request: HttpRequest):
             "referral_bonus": site.referral_bonus_amount,
             "support_email": site.company_email,
             "support_phone": site.company_phone,
-            "whatsapp_invite_link": _whatsapp_invite_link(),
+            "whatsapp_invite_link": _whatsapp_invite_link(request),
         },
     )
 
@@ -2415,6 +2415,6 @@ def link_child_wizard(request: HttpRequest):
             "referral_bonus": site.referral_bonus_amount,
             "support_email": site.company_email,
             "support_phone": site.company_phone,
-            "whatsapp_invite_link": _whatsapp_invite_link(),
+            "whatsapp_invite_link": _whatsapp_invite_link(request),
         },
     )

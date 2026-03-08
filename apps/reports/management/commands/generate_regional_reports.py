@@ -229,7 +229,7 @@ class Command(BaseCommand):
             'academic_year': report_data['academic_year'],
             'term_name': report_data['term'],
             'average_score': report_data['average_score'],
-            'class_rank': report_data.get('class_rank', 'TBD'),
+            'class_rank': report_data.get('class_rank', '—'),
             'report_url': report_data.get('report_url', 'https://schoolmanagement.local/reports/view/'),
             'school_name': getattr(site, 'site_name', None) or 'School Management System',
             'primary_color': getattr(site, 'primary_color', None) or '#0d6efd',

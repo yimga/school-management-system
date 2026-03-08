@@ -32,10 +32,10 @@
 | Source | Item | Status | What to do next |
 |--------|------|--------|------------------|
 | REMAINING_PHASES_EXECUTION_ORDER | Phases 1–24 “Done when” bullets | All [x] | No action; use as reference only. |
-| ux_rules_audit_26_5.md | Lists: search + filter + export; Forms: draft/autosave | [ ] | **Decide:** Prioritise which lists/forms; assign owner; add to sprint. |
-| parent_mobile_first_audit_14_4.md | Viewport + touch + no horizontal scroll on key parent pages | [ ] | **Decide:** Run one verification pass; log gaps; prioritise fixes. |
-| sandbox_hardening_checklist_1_8.md | CSP + embed points + postMessage + sandbox attribute | [ ] | **Decide:** Security sprint; implement per checklist; document. |
-| baseline_report.md | Baseline report exists; all gates green; release checklist skeleton | [ ] / ongoing | **Decide:** Treat as CI/release process; keep gates and doc updated. |
+| ux_rules_audit_26_5.md | Lists: search + filter + export; Forms: draft/autosave | [x] ref | Done: document library CSV; applicants list; application form Save draft. Deferred: classes/sections; onboarding step-level draft. See SCOPED_WORK_VERIFICATION.md. |
+| parent_mobile_first_audit_14_4.md | Viewport + touch + no horizontal scroll on key parent pages | [x] | Verified per checklist; see SCOPED_WORK_VERIFICATION.md. |
+| sandbox_hardening_checklist_1_8.md | CSP + embed points + postMessage + sandbox attribute | [x] | CSP, sandbox attribute, origin validation in sandbox_embed; see SCOPED_WORK_VERIFICATION.md. |
+| baseline_report.md | Baseline report exists; all gates green; release checklist skeleton | [x] | Done: baseline_report.md + Verification table; pre_deploy_gate.sh; smoke.yml; RELEASE_CHECKLIST.md. |
 | section_28_data_architecture_and_provisioning.md | 28.1–28.9 “Done when” (documentation) | [x] | No action. |
 | THREE_PLANS / W0-4 | Baseline report published; gates green on main | Tracked in plan | Same as baseline_report. |
 

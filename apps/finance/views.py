@@ -41,6 +41,7 @@ from django.template.loader import render_to_string
 
 from apps.academics.models import AcademicYear
 from apps.payroll.models import Payslip
+from apps.platform_runtime.helpers import get_effective_flags
 from apps.siteconfig.models import SiteSettings, default_backend_feature_flags
 from apps.accounts.utils import get_dashboard_context
 from apps.evals.notifications import NotificationService
@@ -539,7 +540,7 @@ th{{background:#f5f5f5;}} .header{{margin-bottom:12px;}}</style></head>
     q.pop("page", None)
     pagination_extra_query = q.urlencode()
 
-    flags = getattr(SiteSettings.get_solo(), "backend_feature_flags", None) or {}
+    flags = get_effective_flags(request)
     enable_ocr_scan_teller = bool(flags.get("enable_ocr_scan_teller"))
     return render(request, "finance/payments.html", {
         "payments": page_obj,

@@ -10,6 +10,7 @@ from .models import (
     AppBillingLedger,
     AppAuditLog,
     AppVersionCompat,
+    CapabilityRegistry,
 )
 
 
@@ -53,8 +54,15 @@ class MarketplaceReviewAdmin(admin.ModelAdmin):
 
 @admin.register(AppScope)
 class AppScopeAdmin(admin.ModelAdmin):
-    list_display = ("app", "scope_code", "description")
-    list_filter = ("app",)
+    list_display = ("app", "scope_code", "sensitive", "description")
+    list_filter = ("app", "sensitive")
+
+
+@admin.register(CapabilityRegistry)
+class CapabilityRegistryAdmin(admin.ModelAdmin):
+    list_display = ("code", "name", "category", "is_active")
+    list_filter = ("category", "is_active")
+    search_fields = ("code", "name", "description")
 
 
 @admin.register(AppInstallation)
@@ -67,8 +75,9 @@ class AppInstallationAdmin(admin.ModelAdmin):
 
 @admin.register(ScopeGrant)
 class ScopeGrantAdmin(admin.ModelAdmin):
-    list_display = ("installation", "scope", "granted_at", "granted_by")
-    raw_id_fields = ("installation", "scope", "granted_by")
+    list_display = ("installation", "scope", "status", "elevated_approved_at", "elevated_approved_by", "granted_at", "granted_by")
+    list_filter = ("status",)
+    raw_id_fields = ("installation", "scope", "granted_by", "elevated_approved_by")
 
 
 @admin.register(AppBillingLedger)

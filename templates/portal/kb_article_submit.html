@@ -353,9 +353,40 @@ function formatFileSize(bytes) {
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
 }
 
+var DRAFT_KEY = 'kb_article_draft';
 function saveDraft() {
-    alert('Draft saved locally! Your article is not yet submitted.');
-    // TODO: Implement local storage draft saving
+    var titleEl = document.querySelector('[name="title"]');
+    var summaryEl = document.querySelector('[name="summary"]');
+    var contentEl = document.querySelector('[name="content"]');
+    var categoryEl = document.querySelector('[name="category"]');
+    var draft = {
+        title: titleEl ? titleEl.value : '',
+        summary: summaryEl ? summaryEl.value : '',
+        content: contentEl ? contentEl.value : '',
+        category: categoryEl ? categoryEl.value : ''
+    };
+    try {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+        alert('Draft saved locally! Your article is not yet submitted.');
+    } catch (e) {
+        alert('Could not save draft (storage full or disabled).');
+    }
 }
+function restoreDraft() {
+    try {
+        var raw = localStorage.getItem(DRAFT_KEY);
+        if (!raw) return;
+        var draft = JSON.parse(raw);
+        var titleEl = document.querySelector('[name="title"]');
+        var summaryEl = document.querySelector('[name="summary"]');
+        var contentEl = document.querySelector('[name="content"]');
+        var categoryEl = document.querySelector('[name="category"]');
+        if (draft.title && titleEl) titleEl.value = draft.title;
+        if (draft.summary && summaryEl) summaryEl.value = draft.summary;
+        if (draft.content && contentEl) contentEl.value = draft.content;
+        if (draft.category && categoryEl) categoryEl.value = draft.category;
+    } catch (e) {}
+}
+document.addEventListener('DOMContentLoaded', restoreDraft);
 </script>
 {% endblock %}

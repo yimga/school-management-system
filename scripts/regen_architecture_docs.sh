@@ -22,5 +22,7 @@ with open('docs/architecture/apps.txt', 'w') as f:
 echo "[regen] Writing URL map to docs/architecture/urls.txt"
 python manage.py show_urls 2>/dev/null > docs/architecture/urls.txt || true
 
-echo "[regen] Done. Optional: python manage.py graph_models -a -o docs/architecture/models.png (requires django-extensions + graphviz)"
+echo "[regen] Optional: generating models.png if django-extensions + graphviz available..."
+python scripts/gen_models_png.py 2>/dev/null || true
+echo "[regen] Done."
 exit 0

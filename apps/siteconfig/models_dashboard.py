@@ -83,6 +83,8 @@ class DashboardUserPreference(models.Model):
     sidebar_collapsed = models.BooleanField(default=False)
     # Phase 16: Quick access / pinned sidebar (list of sidebar item ids, e.g. ["dashboard", "kb", "finance_dashboard"])
     pinned_sidebar_items = models.JSONField(default=list, blank=True, help_text="Sidebar item IDs to show in Quick access.")
+    # Phase 8: Control plane Quick access (list of control plane nav item ids, e.g. ["super_dashboard", "super_command_center"])
+    control_plane_pinned_items = models.JSONField(default=list, blank=True, help_text="Control plane sidebar item IDs to show in Quick access.")
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -437,12 +439,65 @@ class FeatureControlAudit(models.Model):
 # --- Part 2b: Dashboard catalog (public/control schema) ---
 
 
+class DashboardPack(models.Model):
+    """
+    Phase 4: Reusable dashboard pack (e.g. School Admin Executive, Teacher Command Center).
+    Groups templates; assignable by role to a school.
+    """
+    code = models.CharField(max_length=80, unique=True)
+    name = models.CharField(max_length=120)
+    description = models.TextField(blank=True)
+    family = models.CharField(max_length=64, blank=True, db_index=True)
+    version = models.CharField(max_length=32, default="1.0")
+    is_active = models.BooleanField(default=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Dashboard Pack"
+        verbose_name_plural = "Dashboard Packs"
+        ordering = ["family", "name"]
+
+    def __str__(self) -> str:
+        return f"{self.name} [{self.code}]"
+
+
+class DashboardPackAssignment(models.Model):
+    """Assign a DashboardPack to a school for a given role."""
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="dashboard_pack_assignments",
+    )
+    dashboard_pack = models.ForeignKey(
+        DashboardPack,
+        on_delete=models.PROTECT,
+        related_name="assignments",
+    )
+    role = models.CharField(max_length=20, db_index=True, help_text="e.g. admin, teacher, parent")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Dashboard pack assignment"
+        verbose_name_plural = "Dashboard pack assignments"
+        unique_together = [["school", "role"]]
+        ordering = ["school", "role"]
+
+
 class DashboardTemplate(models.Model):
     """
     Master dashboard template (public/control schema).
     Schools assign a template per role via TenantLayoutAssignment.
     """
 
+    dashboard_pack = models.ForeignKey(
+        DashboardPack,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="templates",
+    )
     name = models.CharField(max_length=120)
     description = models.TextField(blank=True)
     thumbnail = models.URLField(max_length=512, blank=True, help_text="Preview image URL")

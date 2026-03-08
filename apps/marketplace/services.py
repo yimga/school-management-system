@@ -47,6 +47,63 @@ def ensure_marketplace_listing(app, *, publisher=None):
     return listing
 
 
+def check_app_compatibility(school, app, *, warn_only=False):
+    """
+    Check app/listing compatibility with school (country, blueprint, plan).
+    Returns (ok: bool, warnings: list, errors: list).
+    If warn_only=True, incompatible returns ok=True with errors in warnings.
+    """
+    from apps.marketplace.models import MarketplaceApp, MarketplaceListing
+
+    if not isinstance(app, MarketplaceApp):
+        app = MarketplaceApp.objects.select_related("listing").get(slug=app) if isinstance(app, str) else MarketplaceApp.objects.select_related("listing").get(pk=app)
+    listing = getattr(app, "listing", None)
+    if not listing:
+        return True, [], []
+    compat = getattr(listing, "compatibility", None) or {}
+    if not compat:
+        return True, [], []
+    warnings = []
+    errors = []
+    # Countries
+    countries = compat.get("countries") or compat.get("country_codes")
+    if countries and isinstance(countries, (list, tuple)):
+        school_country = getattr(school, "country", None) or getattr(school, "country_code", None)
+        if school_country and str(school_country).upper() not in [str(c).upper() for c in countries]:
+            msg = f"App not declared for country {school_country}"
+            if warn_only:
+                warnings.append(msg)
+            else:
+                errors.append(msg)
+    # Blueprint families
+    blueprint_families = compat.get("blueprint_families")
+    if blueprint_families and isinstance(blueprint_families, (list, tuple)):
+        try:
+            from apps.policies.policy_registry import get_effective_policy
+            policy = get_effective_policy(school)
+            bp = (policy or {}).get("blueprint") or (policy or {}).get("blueprint_family")
+            if bp and str(bp) not in [str(b) for b in blueprint_families]:
+                msg = f"App not declared for blueprint family {bp}"
+                if warn_only:
+                    warnings.append(msg)
+                else:
+                    errors.append(msg)
+        except Exception:
+            pass
+    # Plan tiers
+    plan_tiers = compat.get("plan_tiers")
+    if plan_tiers and isinstance(plan_tiers, (list, tuple)):
+        school_plan = getattr(school, "plan", None) or getattr(school, "plan_tier", None)
+        if school_plan and str(school_plan) not in [str(p) for p in plan_tiers]:
+            msg = f"App not declared for plan tier {school_plan}"
+            if warn_only:
+                warnings.append(msg)
+            else:
+                errors.append(msg)
+    ok = len(errors) == 0
+    return ok, warnings, errors
+
+
 def _assert_app_installable(app):
     from apps.marketplace.models import MarketplaceApp
 
@@ -280,24 +337,28 @@ def run_schema_patches_for_installation(installation):
         logger.warning("Schema patch failed for installation %s (app=%s): %s", installation.id, app_label, e)
 
 
-def install_app(school, app, *, installed_by=None, config=None, run_schema_patches=True):
+def install_app(school, app, *, installed_by=None, config=None, run_schema_patches=True, install_phase="active", skip_compatibility=False):
     """
     Install an app for a school. Creates AppInstallation, optionally runs schema patches,
     logs audit, returns installation.
-    If the app manifest has "migrations_app" or "schema_patch_app" (Django app label),
-    and run_schema_patches is True, migrations for that app are run in the current
-    connection context (tenant schema in schema-per-tenant mode; single schema in RLS).
+    install_phase: "sandbox" or "active". Compatibility is checked unless skip_compatibility=True.
     """
     from apps.marketplace.models import AppInstallation, AppAuditLog, MarketplaceApp
 
     if not isinstance(app, MarketplaceApp):
         app = MarketplaceApp.objects.get(slug=app) if isinstance(app, str) else MarketplaceApp.objects.get(pk=app)
+    if not skip_compatibility:
+        ok, _warnings, errors = check_app_compatibility(school, app, warn_only=False)
+        if not ok and errors:
+            raise ValueError(f"App incompatible: {'; '.join(errors)}")
     listing = _assert_app_installable(app)
+    phase = install_phase if install_phase in ("sandbox", "active") else "active"
     installation, created = AppInstallation.objects.get_or_create(
         school=school,
         app=app,
         defaults={
             "status": AppInstallation.Status.ACTIVE,
+            "install_phase": phase,
             "installed_by": installed_by,
             "config": config or {},
             "widget_config": app.manifest.get("widgets", {}),
@@ -305,9 +366,10 @@ def install_app(school, app, *, installed_by=None, config=None, run_schema_patch
     )
     if not created:
         installation.status = AppInstallation.Status.ACTIVE
+        installation.install_phase = phase
         installation.config = config or installation.config
         installation.widget_config = app.manifest.get("widgets", {})
-        installation.save(update_fields=["status", "config", "widget_config"])
+        installation.save(update_fields=["status", "install_phase", "config", "widget_config"])
     if run_schema_patches:
         run_schema_patches_for_installation(installation)
     AppAuditLog.objects.create(
@@ -331,21 +393,30 @@ def install_app(school, app, *, installed_by=None, config=None, run_schema_patch
     return installation
 
 
-def uninstall_app(school, app, *, uninstalled_by=None):
-    """Mark app as uninstalled for the school; audit log."""
+def uninstall_app(school, app, *, uninstalled_by=None, run_cleanup=True):
+    """
+    Mark app as uninstalled for the school; set uninstalled_at; audit log.
+    If run_cleanup and app manifest has uninstall_cleanup (e.g. retention_days), log for async cleanup.
+    """
     from apps.marketplace.models import AppInstallation, AppAuditLog, MarketplaceApp
 
     if not isinstance(app, MarketplaceApp):
         app = MarketplaceApp.objects.get(slug=app) if isinstance(app, str) else MarketplaceApp.objects.get(pk=app)
     installation = AppInstallation.objects.get(school=school, app=app)
     installation.status = AppInstallation.Status.UNINSTALLED
-    installation.save(update_fields=["status"])
+    installation.uninstalled_at = timezone.now()
+    installation.save(update_fields=["status", "uninstalled_at"])
+    cleanup_policy = (app.manifest or {}).get("uninstall_cleanup") or {}
+    payload = {"uninstalled_at": str(installation.uninstalled_at)}
+    if run_cleanup and cleanup_policy:
+        payload["cleanup_policy"] = cleanup_policy
+        payload["cleanup_deferred"] = True
     AppAuditLog.objects.create(
         installation=installation,
         school=school,
         app=app,
         action="uninstall",
-        payload={},
+        payload=payload,
         actor=uninstalled_by,
     )
     return installation
@@ -397,7 +468,7 @@ def unsuspend_app(school, app, *, unsuspended_by=None):
 def grant_scopes(installation, scope_codes_or_scope_objects, granted_by=None):
     """
     Grant one or more scopes to an installation (tenant-approved). Creates ScopeGrant records.
-    scope_codes_or_scope_objects: list of scope_code strings or AppScope instances for this app.
+    Sensitive scopes get status=pending until elevated_approved_by is set.
     """
     from apps.marketplace.models import AppScope, ScopeGrant
 
@@ -406,11 +477,63 @@ def grant_scopes(installation, scope_codes_or_scope_objects, granted_by=None):
             scope = item
         else:
             scope = AppScope.objects.get(app=installation.app, scope_code=item)
+        status = ScopeGrant.GrantStatus.PENDING if getattr(scope, "sensitive", False) else ScopeGrant.GrantStatus.GRANTED
         ScopeGrant.objects.get_or_create(
             installation=installation,
             scope=scope,
-            defaults={"granted_by": granted_by},
+            defaults={"granted_by": granted_by, "status": status},
         )
+
+
+def approve_sensitive_scope(scope_grant, approved_by):
+    """Set scope grant to granted and set elevated_approved_at/by. Idempotent."""
+    from apps.marketplace.models import ScopeGrant
+
+    if not isinstance(scope_grant, ScopeGrant):
+        scope_grant = ScopeGrant.objects.select_related("scope").get(pk=scope_grant)
+    scope_grant.status = ScopeGrant.GrantStatus.GRANTED
+    scope_grant.elevated_approved_at = timezone.now()
+    scope_grant.elevated_approved_by = approved_by
+    scope_grant.save(update_fields=["status", "elevated_approved_at", "elevated_approved_by"])
+    return scope_grant
+
+
+def activate_sandbox_installation(installation, activated_by=None):
+    """Move installation from sandbox to active so it appears in runtime."""
+    from apps.marketplace.models import AppInstallation, AppAuditLog
+
+    installation.install_phase = AppInstallation.InstallPhase.ACTIVE
+    installation.save(update_fields=["install_phase"])
+    AppAuditLog.objects.create(
+        installation=installation,
+        school=installation.school,
+        app=installation.app,
+        action="activate_sandbox",
+        payload={},
+        actor=activated_by,
+    )
+    return installation
+
+
+def record_installation_health(installation, status: str = "ok"):
+    """Update last_health_at and health_status for monitoring."""
+    installation.last_health_at = timezone.now()
+    installation.health_status = status
+    installation.save(update_fields=["last_health_at", "health_status"])
+
+
+def refresh_installation(installation):
+    """
+    Re-apply app manifest to installation (e.g. widget_config from app.manifest).
+    Use after app version update to sync widget_config and other manifest-derived fields.
+    """
+    app = installation.app
+    manifest = getattr(app, "manifest", None) or {}
+    widgets = manifest.get("widgets") or {}
+    if isinstance(widgets, dict):
+        installation.widget_config = widgets
+        installation.save(update_fields=["widget_config"])
+    return installation
 
 
 def get_installed_widgets(school):

@@ -43,7 +43,8 @@ class CountryProfile(models.Model):
 class PolicyBundle(models.Model):
     """
     Snapshot of merged policy (settings + features) for a school at a point in time.
-    Used for versioning and audit; resolver can optionally use latest bundle when POLICY_USE_BUNDLES.
+    policy_snapshot should contain typed module sections: admissions_policy, gradebook_policy,
+    finance_policy, attendance_policy, communication_policy, compliance_policy, portal_policy, payroll_policy.
     """
     school = models.ForeignKey(
         "schools.School",
@@ -53,14 +54,21 @@ class PolicyBundle(models.Model):
         blank=True,
         help_text="Null = platform/country-level bundle.",
     )
+    code = models.CharField(max_length=80, blank=True, db_index=True)
     name = models.CharField(max_length=255, blank=True)
-    policy_snapshot = models.JSONField(default=dict, help_text="Merged policy dict (terminology, grading, features, etc.).")
+    description = models.TextField(blank=True)
+    policy_snapshot = models.JSONField(default=dict, help_text="Merged policy dict with typed module sections.")
     version = models.PositiveIntegerField(default=1)
     applied_pack_version = models.CharField(
         max_length=32,
         blank=True,
         help_text="When created from a BlueprintPack, store pack.version for update detection.",
     )
+    country_scope = models.CharField(max_length=64, blank=True, db_index=True, help_text="Country code or '*' for global.")
+    blueprint_compatibility = models.JSONField(default=list, blank=True, help_text="List of blueprint pack slugs this bundle is compatible with.")
+    precedence_weight = models.PositiveIntegerField(default=0, help_text="Higher = overrides lower when multiple apply.")
+    migration_notes = models.TextField(blank=True)
+    deprecated_replacement_reference = models.CharField(max_length=80, blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(
@@ -122,25 +130,42 @@ class TenantBlueprint(models.Model):
 
 class BlueprintPack(models.Model):
     """
-    Catalog entry for a blueprint pack (Phase 6 marketplace).
-    Packs define policy_snapshot templates (terminology, grading, admissions, etc.)
-    that can be applied to a school; applying creates a PolicyBundle and sets
-    TenantBlueprint.active_bundle.
+    Catalog entry for a blueprint pack. Defines institution archetype and policy_snapshot template.
+    Applying creates a PolicyBundle and sets TenantBlueprint.active_bundle.
     """
     slug = models.SlugField(max_length=80, unique=True)
+    code = models.CharField(max_length=80, blank=True, db_index=True, help_text="Alias for slug/code.")
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
+    family = models.CharField(max_length=64, blank=True, db_index=True)
     category = models.CharField(
         max_length=64,
         blank=True,
         db_index=True,
         help_text="e.g. Cameroon Francophone, UAE MoE+IB, UK GCSE/A-Level, US charter",
     )
+    institution_type = models.ForeignKey(
+        "registries.InstitutionTypeRegistry",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    supported_country_scope = models.JSONField(default=list, blank=True, help_text="List of country codes or [] for all.")
+    supported_education_system_types = models.JSONField(default=list, blank=True, help_text="List of education system type codes.")
+    recommended_education_levels = models.JSONField(default=list, blank=True, help_text="List of education level codes.")
+    default_terminology_pack = models.CharField(max_length=48, blank=True)
+    default_calendar_family = models.CharField(max_length=48, blank=True)
+    default_grade_scale_family_hints = models.JSONField(default=list, blank=True)
+    default_dashboard_pack_id = models.PositiveIntegerField(null=True, blank=True)
+    default_workflow_pack_id = models.PositiveIntegerField(null=True, blank=True)
+    branding_family_hint = models.CharField(max_length=48, blank=True)
     policy_snapshot = models.JSONField(
         default=dict,
         help_text="Merged policy dict (terminology, grading, features, admissions, etc.).",
     )
     version = models.CharField(max_length=32, default="1.0")
+    deprecated_replacement_reference = models.CharField(max_length=80, blank=True)
     is_active = models.BooleanField(default=True, db_index=True)
     country_code = models.CharField(max_length=10, blank=True, db_index=True)
     metadata = models.JSONField(default=dict, blank=True)
@@ -169,3 +194,78 @@ class BlueprintPack(models.Model):
         ).exclude(
             tenant_blueprint__active_bundle__applied_pack_version=self.version,
         ).distinct()
+
+
+class BlueprintCompatibilityRule(models.Model):
+    """Rule linking blueprint packs to compatible policy bundles or constraints."""
+    blueprint_pack = models.ForeignKey(
+        BlueprintPack,
+        on_delete=models.CASCADE,
+        related_name="compatibility_rules",
+    )
+    compatible_policy_slugs = models.JSONField(default=list, blank=True)
+    compatible_country_codes = models.JSONField(default=list, blank=True)
+    min_version = models.CharField(max_length=32, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Blueprint compatibility rule"
+        verbose_name_plural = "Blueprint compatibility rules"
+
+
+class PolicyCompatibilityRule(models.Model):
+    """Rule for which blueprints/countries a policy bundle applies to."""
+    policy_bundle = models.ForeignKey(
+        PolicyBundle,
+        on_delete=models.CASCADE,
+        related_name="compatibility_rules",
+        null=True,
+        blank=True,
+    )
+    blueprint_slug = models.CharField(max_length=80, blank=True, db_index=True)
+    country_code = models.CharField(max_length=10, blank=True, db_index=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Policy compatibility rule"
+        verbose_name_plural = "Policy compatibility rules"
+
+
+class TenantPolicyOverride(models.Model):
+    """Tenant-level override for a specific policy key (stored per school)."""
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="policy_overrides",
+    )
+    policy_key = models.CharField(max_length=120, db_index=True, help_text="e.g. admissions.numbering_strategy")
+    value = models.JSONField(default=dict)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Tenant policy override"
+        verbose_name_plural = "Tenant policy overrides"
+        unique_together = [("school", "policy_key")]
+
+
+class ScheduledPolicyOverride(models.Model):
+    """Temporary policy override active between start_at and end_at."""
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="scheduled_policy_overrides",
+    )
+    policy_key = models.CharField(max_length=120, db_index=True)
+    value = models.JSONField(default=dict)
+    start_at = models.DateTimeField()
+    end_at = models.DateTimeField()
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Scheduled policy override"
+        verbose_name_plural = "Scheduled policy overrides"

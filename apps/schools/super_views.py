@@ -1343,6 +1343,63 @@ def super_tenant_health(request):
     )
 
 
+def super_tenant_360(request, school_id):
+    """Phase 9: Tenant 360 — identity, domain, blueprint, policy, plan, workflow/dashboard packs, runtime inspector."""
+    school = get_object_or_404(School, id=school_id)
+    from apps.platform_runtime.runtime_resolver import build_tenant_runtime
+    from apps.tenancy.context import TenantContext
+
+    tenant_ctx = TenantContext(
+        tenant_id=str(getattr(school, "id", "") or ""),
+        schema_name=getattr(school, "schema_name", None),
+        school_id=getattr(school, "id", None),
+        country=getattr(school, "country", None),
+        timezone=getattr(school, "timezone", None),
+        feature_flags={},
+        policy_overrides={},
+        host=request.get_host() if request else "",
+    )
+    try:
+        runtime = build_tenant_runtime(tenant_ctx, request=None, school=school)
+    except Exception:
+        runtime = None
+
+    identity = None
+    blueprint_code = None
+    policy_summary = {}
+    trace = []
+    warnings = []
+    if runtime:
+        identity = {
+            "id": getattr(getattr(runtime, "tenant", None), "id", None),
+            "slug": getattr(getattr(runtime, "tenant", None), "slug", None),
+            "schema_name": getattr(getattr(runtime, "tenant", None), "schema_name", None),
+        }
+        bp = getattr(runtime, "blueprint", None)
+        blueprint_code = getattr(bp, "code", None) or getattr(bp, "family", None)
+        if getattr(runtime, "policy_typed", None):
+            pt = runtime.policy_typed
+            policy_summary = {"admissions": bool(getattr(pt, "admissions", None)), "finance": bool(getattr(pt, "finance", None)), "gradebook": bool(getattr(pt, "gradebook", None))}
+        debug = getattr(runtime, "debug", None)
+        if debug:
+            trace = getattr(debug, "compilation_trace", []) or []
+            warnings = getattr(debug, "warnings", []) or []
+
+    return render(
+        request,
+        "schools/super_tenant_360.html",
+        {
+            "school": school,
+            "identity": identity,
+            "blueprint_code": blueprint_code,
+            "policy_summary": policy_summary,
+            "runtime_trace": trace,
+            "runtime_warnings": warnings,
+            "dashboard_url": reverse("super:dashboard"),
+        },
+    )
+
+
 def super_control_health_dashboard(request):
     """
     Control plane health hub: single entry for runbooks, SLOs, incidents, tenant health.
@@ -1360,8 +1417,8 @@ def super_control_health_dashboard(request):
     except Exception:
         pass
     try:
-        url = reverse("api_operational_slo_dashboard")
-        links.append({"label": "SLO dashboard (API)", "url": url, "description": "Operational SLO metrics"})
+        url = reverse("api_operational_slo_dashboard") + "?format=html"
+        links.append({"label": "SLO dashboard", "url": url, "description": "Operational SLO metrics (webhook & sync)"})
     except Exception:
         pass
     runbooks_url = getattr(settings, "CONTROL_PLANE_RUNBOOKS_URL", None) or ""
@@ -1371,6 +1428,159 @@ def super_control_health_dashboard(request):
         request,
         "schools/super_control_health.html",
         {"links": links, "dashboard_url": reverse("super:dashboard")},
+    )
+
+
+def super_workflow_packs_catalog(request):
+    """Phase 4: Control-plane workflow pack catalog."""
+    from apps.siteconfig.models_workflow import WorkflowPack
+
+    packs = list(WorkflowPack.objects.filter(is_active=True).order_by("family", "name").values("id", "code", "name", "family", "version"))
+    try:
+        admin_url = reverse("admin:siteconfig_workflowpack_changelist")
+    except Exception:
+        admin_url = None
+    return render(
+        request,
+        "schools/super_workflow_packs.html",
+        {"packs": packs, "admin_url": admin_url, "dashboard_url": reverse("super:dashboard")},
+    )
+
+
+def super_dashboard_packs_catalog(request):
+    """Phase 4: Control-plane dashboard pack catalog."""
+    from apps.siteconfig.models_dashboard import DashboardPack
+
+    packs = list(DashboardPack.objects.filter(is_active=True).order_by("family", "name").values("id", "code", "name", "family", "version"))
+    try:
+        admin_url = reverse("admin:siteconfig_dashboardpack_changelist")
+    except Exception:
+        admin_url = None
+    return render(
+        request,
+        "schools/super_dashboard_packs.html",
+        {"packs": packs, "admin_url": admin_url, "dashboard_url": reverse("super:dashboard")},
+    )
+
+
+def super_blueprints_catalog(request):
+    """Phase 3: Control-plane blueprint pack catalog."""
+    from apps.policies.models import BlueprintPack
+
+    try:
+        from config.admin import admin_site
+        admin_site_to_use = admin_site
+    except Exception:
+        from django.contrib.admin.sites import site as admin_site_to_use
+
+    packs = list(BlueprintPack.objects.filter(is_active=True).order_by("category", "name").values("id", "slug", "name", "family", "category", "version"))
+    for p in packs:
+        try:
+            p["admin_url"] = reverse(
+                f"{admin_site_to_use.name}:policies_blueprintpack_change",
+                args=[p["id"]],
+            )
+        except Exception:
+            p["admin_url"] = None
+    return render(
+        request,
+        "schools/super_blueprints_catalog.html",
+        {"packs": packs, "dashboard_url": reverse("super:dashboard")},
+    )
+
+
+def super_policies_catalog(request):
+    """Phase 3: Control-plane policy bundle catalog."""
+    from apps.policies.models import PolicyBundle
+
+    bundles = list(
+        PolicyBundle.objects.filter(is_active=True)
+        .order_by("country_scope", "name")
+        .values("id", "code", "name", "country_scope", "version", "precedence_weight")[:200]
+    )
+    try:
+        from config.admin import admin_site
+        admin_site_to_use = admin_site
+    except Exception:
+        from django.contrib.admin.sites import site as admin_site_to_use
+    for b in bundles:
+        try:
+            b["admin_url"] = reverse(f"{admin_site_to_use.name}:policies_policybundle_change", args=[b["id"]])
+        except Exception:
+            b["admin_url"] = None
+    return render(
+        request,
+        "schools/super_policies_catalog.html",
+        {"bundles": bundles, "dashboard_url": reverse("super:dashboard")},
+    )
+
+
+def super_registries_overview(request):
+    """Phase 2: Control-plane registry governance — list registry types and counts with links to admin."""
+    from django.contrib.admin.sites import site as default_admin_site
+    from apps.registries.models import (
+        CountryRegistry,
+        SubdivisionRegistry,
+        EducationLevelRegistry,
+        EducationSystemTypeRegistry,
+        InstitutionTypeRegistry,
+        CurrencyRegistry,
+        TimeZoneRegistry,
+        LocaleRegistry,
+        CalendarSystemRegistry,
+        AcademicTerminologyRegistry,
+        DocumentTypeRegistry,
+        FeeCategoryRegistry,
+        GradeScaleRegistry,
+    )
+
+    try:
+        from config.admin import admin_site
+        admin_site_to_use = admin_site
+    except Exception:
+        admin_site_to_use = default_admin_site
+
+    def _count(model):
+        return model.objects.count()
+
+    def _admin_changelist_url(model, model_name):
+        try:
+            return reverse(
+                f"{admin_site_to_use.name}:{model._meta.app_label}_{model_name}_changelist"
+            )
+        except Exception:
+            return None
+
+    registries = [
+        ("Countries", CountryRegistry, _count(CountryRegistry)),
+        ("Subdivisions", SubdivisionRegistry, _count(SubdivisionRegistry)),
+        ("Education Levels", EducationLevelRegistry, _count(EducationLevelRegistry)),
+        ("Education System Types", EducationSystemTypeRegistry, _count(EducationSystemTypeRegistry)),
+        ("Institution Types", InstitutionTypeRegistry, _count(InstitutionTypeRegistry)),
+        ("Currencies", CurrencyRegistry, _count(CurrencyRegistry)),
+        ("Time Zones", TimeZoneRegistry, _count(TimeZoneRegistry)),
+        ("Locales", LocaleRegistry, _count(LocaleRegistry)),
+        ("Calendar Systems", CalendarSystemRegistry, _count(CalendarSystemRegistry)),
+        ("Terminology Packs", AcademicTerminologyRegistry, _count(AcademicTerminologyRegistry)),
+        ("Document Types", DocumentTypeRegistry, _count(DocumentTypeRegistry)),
+        ("Fee Categories", FeeCategoryRegistry, _count(FeeCategoryRegistry)),
+        ("Grade Scale Families", GradeScaleRegistry, _count(GradeScaleRegistry)),
+    ]
+    rows = []
+    for label, model, count in registries:
+        rows.append({
+            "label": label,
+            "count": count,
+            "admin_url": _admin_changelist_url(model, model._meta.model_name),
+        })
+
+    return render(
+        request,
+        "schools/super_registries.html",
+        {
+            "registry_rows": rows,
+            "dashboard_url": reverse("super:dashboard"),
+        },
     )
 
 
@@ -2324,13 +2534,54 @@ def sync_repair(request, school_id):
     )
 
 
+def super_policy_diff(request):
+    """Phase 9: Policy diff viewer — compare platform default, country/region, blueprint, tenant override."""
+    school_id = request.GET.get("school_id")
+    school = None
+    layers = []
+    if school_id:
+        try:
+            school = School.objects.get(id=school_id)
+            from apps.policies.policy_registry import get_effective_policy
+            policy = get_effective_policy(school, user=getattr(request, "user", None))
+            import json
+            layers = [
+                {"label": "Effective (tenant)", "data": json.dumps(policy or {}, indent=2), "source": "tenant + blueprint + country"},
+            ]
+        except School.DoesNotExist:
+            pass
+    return render(
+        request,
+        "schools/super_policy_diff.html",
+        {"school": school, "layers": layers, "dashboard_url": reverse("super:dashboard")},
+    )
+
+
+def super_compliance_overview(request):
+    """Phase 13: Control-plane compliance governance — policy pack, audit review, export risk."""
+    return render(
+        request,
+        "schools/super_compliance_overview.html",
+        {"dashboard_url": reverse("super:dashboard")},
+    )
+
+
+def super_analytics_overview(request):
+    """Phase 13: Analytics and observability — tenant health, adoption, feature usage, workflow success."""
+    return render(
+        request,
+        "schools/super_analytics_overview.html",
+        {"dashboard_url": reverse("super:dashboard")},
+    )
+
+
 def super_support_dashboard(request):
     """Global support ticket command center: list tickets with filters; HTMX refreshes queue."""
     from apps.siteconfig.models import GlobalSupportTicket
 
     status_filter = request.GET.get("status", "").strip()
     priority_filter = request.GET.get("priority", "").strip()
-    qs = GlobalSupportTicket.objects.select_related("school", "user").order_by("-created_at")[:100]
+    qs = GlobalSupportTicket.objects.select_related("school", "user", "assigned_to").order_by("-created_at")[:100]
     if status_filter:
         qs = qs.filter(status=status_filter)
     if priority_filter:
@@ -2372,9 +2623,12 @@ def support_queue_fragment(request):
     from apps.siteconfig.models import GlobalSupportTicket
 
     status_filter = request.GET.get("status", "").strip()
-    qs = GlobalSupportTicket.objects.select_related("school", "user").order_by("-created_at")[:50]
+    priority_filter = request.GET.get("priority", "").strip()
+    qs = GlobalSupportTicket.objects.select_related("school", "user", "assigned_to").order_by("-created_at")[:50]
     if status_filter:
         qs = qs.filter(status=status_filter)
+    if priority_filter:
+        qs = qs.filter(priority=priority_filter)
     tickets = list(qs)
     now = timezone.now()
     for ticket in tickets:
@@ -2382,8 +2636,48 @@ def support_queue_fragment(request):
     return render(
         request,
         "schools/super_support_queue_fragment.html",
-        {"tickets": tickets},
+        {"tickets": tickets, "request_user_id": getattr(request.user, "id", None)},
     )
+
+
+def support_assign_ticket(request):
+    """POST: assign ticket to current user or unassign. Redirects to support dashboard or returns fragment for HTMX."""
+    from django.shortcuts import redirect
+    from apps.siteconfig.models import GlobalSupportTicket
+
+    if request.method != "POST":
+        return redirect("super:support_dashboard")
+    ticket_id = request.POST.get("ticket_id", "").strip()
+    action = request.POST.get("action", "").strip().lower()
+    if not ticket_id or action not in ("assign_me", "unassign"):
+        return redirect("super:support_dashboard")
+    try:
+        ticket = GlobalSupportTicket.objects.get(pk=ticket_id)
+    except GlobalSupportTicket.DoesNotExist:
+        return redirect("super:support_dashboard")
+    if action == "assign_me":
+        ticket.assigned_to_id = getattr(request.user, "id", None)
+    else:
+        ticket.assigned_to = None
+    ticket.save(update_fields=["assigned_to_id"])
+    if request.headers.get("HX-Request"):
+        status_filter = request.GET.get("status", "").strip()
+        priority_filter = request.GET.get("priority", "").strip()
+        qs = GlobalSupportTicket.objects.select_related("school", "user", "assigned_to").order_by("-created_at")[:50]
+        if status_filter:
+            qs = qs.filter(status=status_filter)
+        if priority_filter:
+            qs = qs.filter(priority=priority_filter)
+        tickets = list(qs)
+        now = timezone.now()
+        for t in tickets:
+            t.age_hours = round(max(0.0, (now - t.created_at).total_seconds() / 3600.0), 1)
+        return render(
+            request,
+            "schools/super_support_queue_fragment.html",
+            {"tickets": tickets, "request_user_id": getattr(request.user, "id", None)},
+        )
+    return redirect("super:support_dashboard")
 
 
 # -----------------------------------------------------------------------------
@@ -2556,6 +2850,57 @@ def switch_to_tenant(request):
     sep = "&" if "?" in url else "?"
     redirect_to = f"{url}{sep}impersonate={token}&next={next_url}"
     return redirect(redirect_to)
+
+
+def super_runtime_inspector(request):
+    """Control plane: inspect tenant_runtime for a selected school (policy, entitlements, flags)."""
+    school_id = (request.GET.get("school_id") or "").strip()
+    school = None
+    runtime_summary = None
+    if school_id:
+        try:
+            school = School.objects.get(id=school_id)
+            from apps.platform_runtime.runtime_resolver import build_tenant_runtime_for_tenant
+            rt = build_tenant_runtime_for_tenant(school, user=getattr(request, "user", None))
+            if rt:
+                runtime_summary = {
+                    "surface": getattr(rt, "surface", ""),
+                    "policy_keys": list((rt.policy or {}).keys())[:30],
+                    "entitlements_modules": list(getattr(getattr(rt, "entitlements", None), "modules", []) or [])[:20],
+                    "flags_keys": list(getattr(rt, "flags", {}).keys())[:20],
+                }
+        except (School.DoesNotExist, ValueError):
+            pass
+    return render(
+        request,
+        "schools/super_runtime_inspector.html",
+        {"school": school, "runtime_summary": runtime_summary, "dashboard_url": reverse("super:dashboard")},
+    )
+
+
+def super_workflow_simulator(request):
+    """Control plane: simulate workflow/pack resolution for a selected school and role."""
+    school_id = (request.GET.get("school_id") or "").strip()
+    role = (request.GET.get("role") or "ADMIN").strip().upper()
+    school = None
+    workflow_summary = None
+    if school_id:
+        try:
+            school = School.objects.get(id=school_id)
+            from apps.platform_runtime.runtime_resolver import build_tenant_runtime_for_tenant
+            rt = build_tenant_runtime_for_tenant(school, user=getattr(request, "user", None))
+            if rt and hasattr(rt, "workflow_for"):
+                wf = rt.workflow_for(role)
+                workflow_summary = {"role": role, "workflow_id": getattr(wf, "id", None), "workflow_slug": getattr(wf, "slug", None)}
+            elif rt and hasattr(rt, "policy"):
+                workflow_summary = {"role": role, "workflow_id": None, "workflow_slug": None, "note": "workflow_for not available"}
+        except (School.DoesNotExist, ValueError):
+            pass
+    return render(
+        request,
+        "schools/super_workflow_simulator.html",
+        {"school": school, "workflow_summary": workflow_summary, "dashboard_url": reverse("super:dashboard")},
+    )
 
 
 def _get_client_ip(request):

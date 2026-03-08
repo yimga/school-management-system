@@ -26,6 +26,15 @@ from config.admin import admin_site
 from apps.schools.section8_views import frozen_account
 from apps.schools.views_domains import api_domains_list_or_create, api_domains_verify
 from apps.schools.marketing_views import marketing_page
+from apps.marketplace.views import (
+    tenant_installed_apps,
+    tenant_app_catalog,
+    tenant_install_app,
+    tenant_uninstall_app,
+    tenant_scope_consent,
+    tenant_approve_scope,
+    tenant_activate_installation,
+)
 
 
 def home(request):
@@ -42,7 +51,11 @@ def _is_schema_allowed(user):
 @login_required
 @user_passes_test(_is_schema_allowed)
 def api_schema_ui(request):
-    flags = getattr(SiteSettings.get_solo(), "backend_feature_flags", {}) or {}
+    rt = getattr(request, "tenant_runtime", None)
+    if rt and getattr(rt, "flags", None) and getattr(rt.flags, "flags", None):
+        flags = dict(rt.flags.flags)
+    else:
+        flags = getattr(SiteSettings.get_solo(), "backend_feature_flags", {}) or {}
     allowed_roles = [str(r).upper() for r in flags.get("allowed_roles_api_schema", [])]
     if not flags.get("enable_api_schema_ui", True):
         return HttpResponseForbidden("API schema UI disabled by admin.")
@@ -125,6 +138,13 @@ urlpatterns = [
     path("api/", include(("apps.api.urls", "api"), namespace="api")),
     path("api/v1/", include(("apps.api.urls_v1", "api_v1"), namespace="api_v1")),
     path("siteconfig/", include(("apps.siteconfig.urls", "siteconfig"), namespace="siteconfig")),
+    path("settings/installed-apps/", login_required(tenant_installed_apps), name="tenant_installed_apps"),
+    path("settings/app-catalog/", login_required(tenant_app_catalog), name="tenant_app_catalog"),
+    path("settings/install-app/", login_required(tenant_install_app), name="tenant_install_app"),
+    path("settings/uninstall-app/", login_required(tenant_uninstall_app), name="tenant_uninstall_app"),
+    path("settings/scope-consent/", login_required(tenant_scope_consent), name="tenant_scope_consent"),
+    path("settings/approve-scope/", login_required(tenant_approve_scope), name="tenant_approve_scope"),
+    path("settings/activate-installation/", login_required(tenant_activate_installation), name="tenant_activate_installation"),
     path("api-center/", include(("apps.apicenter.urls", "apicenter"), namespace="apicenter")),
     path("authentication/", include(("apps.accounts.urls", "accounts"), namespace="accounts")),
     path("evals/", include(("apps.evals.urls", "evals"), namespace="evals")),

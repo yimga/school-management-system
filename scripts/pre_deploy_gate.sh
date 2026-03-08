@@ -6,6 +6,10 @@ set -euo pipefail
 echo "[pre_deploy_gate] Django check"
 python manage.py check
 
+echo "[pre_deploy_gate] Architecture laws (no hardcoding; lint reports SiteSettings usage)"
+python scripts/check_no_hardcoding.py --allow-tests
+python scripts/lint_tenant_settings.py --exit-zero
+
 echo "[pre_deploy_gate] Migrations (no unapplied changes)"
 python manage.py makemigrations --check --dry-run
 

@@ -80,18 +80,24 @@
   }
 }
 .marketing-home .mkt-hero-headline {
-  font-size: clamp(2rem, 4vw, 3.25rem);
+  font-size: var(--type-hero, clamp(2rem, 4vw, 3.25rem));
   font-weight: 700;
   line-height: 1.15;
   letter-spacing: -0.02em;
   margin-bottom: var(--mkt-spacing-sm);
 }
 .marketing-home .mkt-hero-subheadline {
-  font-size: 1.125rem;
+  font-size: var(--type-body, 1.125rem);
   line-height: 1.6;
-  color: rgba(248, 250, 252, 0.9);
+  color: rgba(248, 250, 252, 0.92);
   margin-bottom: var(--mkt-spacing-lg);
   max-width: 42ch;
+}
+.marketing-home .mkt-hero-trusted {
+  font-size: var(--type-micro, 0.75rem);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(248, 250, 252, 0.75);
 }
 .marketing-home .mkt-hero-ctas {
   display: flex;
@@ -167,11 +173,12 @@
   background: var(--admin-content-bg, #fff);
 }
 .marketing-home .mkt-trust-band-heading {
-  font-size: 0.875rem;
+  font-size: var(--type-micro, 0.75rem);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   color: var(--admin-content-text-muted, #64748b);
   margin-bottom: var(--mkt-spacing-md);
+  font-weight: 600;
 }
 .marketing-home .mkt-trust-logos {
   display: flex;
@@ -195,19 +202,20 @@
 
 /* ----- Section common ----- */
 .marketing-home .mkt-section {
-  padding: var(--mkt-spacing-2xl) var(--mkt-spacing-md);
+  padding: var(--mkt-spacing-section, var(--mkt-spacing-2xl)) var(--mkt-spacing-md);
   max-width: 1200px;
   margin: 0 auto;
 }
 .marketing-home .mkt-section-heading {
-  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-size: var(--type-section, clamp(1.75rem, 3vw, 2.25rem));
   font-weight: 700;
   text-align: center;
   margin-bottom: var(--mkt-spacing-sm);
   color: var(--admin-content-text, #0f172a);
+  letter-spacing: -0.01em;
 }
 .marketing-home .mkt-section-lead {
-  font-size: 1.125rem;
+  font-size: var(--type-body, 1.125rem);
   color: var(--admin-content-text-muted, #64748b);
   text-align: center;
   max-width: 60ch;

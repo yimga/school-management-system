@@ -87,3 +87,5 @@ Any doc that states an item is for “Year 1”, “Year 2”, … or “5-year 
 ---
 
 **References:** RUNMYCAMPUS_CONSOLIDATED_ARCHITECTURE_AND_REFACTOR.md (Part A, B), REMAINING_PHASES_EXECUTION_ORDER.md, REMAINING_PLAN_AUDIT_GAPS.md, REFINEMENT_AND_IMPLEMENTATION_ORDER.md, PLATFORM_ROADMAP_5Y_AND_MODULE_ROLLOUT.md.
+
+**Current verification:** For up-to-date done vs deferred status of every scoped item, see [SCOPED_WORK_VERIFICATION.md](SCOPED_WORK_VERIFICATION.md). Nothing is left partially done.

@@ -3,6 +3,7 @@ Document Library Management Views
 Backend UI for admins to upload and manage documents
 """
 
+import csv
 import os
 import tempfile
 
@@ -52,6 +53,26 @@ def document_library_manage(request):
             Q(title__icontains=search_query) |
             Q(description__icontains=search_query)
         )
+    
+    # Export CSV (26.5 list standards)
+    if request.GET.get("format") == "csv":
+        response = HttpResponse(content_type="text/csv; charset=utf-8")
+        response["Content-Disposition"] = (
+            f'attachment; filename="document_library_export_{timezone.now().strftime("%Y%m%d_%H%M%S")}.csv"'
+        )
+        w = csv.writer(response)
+        w.writerow(["title", "document_type", "has_file", "has_link", "requires_signature", "is_active", "created_at"])
+        for doc in documents[:10000]:
+            w.writerow([
+                doc.title or "",
+                doc.get_document_type_display() if doc.document_type else "",
+                "yes" if doc.file else "no",
+                "yes" if doc.link else "no",
+                "yes" if doc.requires_signature else "no",
+                "yes" if doc.is_active else "no",
+                doc.created_at.strftime("%Y-%m-%d %H:%M") if doc.created_at else "",
+            ])
+        return response
     
     # Stats
     stats = {

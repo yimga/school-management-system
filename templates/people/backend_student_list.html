@@ -7,17 +7,10 @@
 <div class="container-fluid py-4">
   <div class="row">
     <div class="col-12">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h2 class="fw-bold mb-1">Students</h2>
-          <p class="text-muted mb-0">Manage student records</p>
-        </div>
-        <a href="{% url 'accounts:backend_student_create' %}" class="btn btn-primary">
-          <i class="bi bi-plus-circle me-2"></i>Add Student
-        </a>
-      </div>
+      {% url 'accounts:backend_student_create' as create_url %}
+      {% include "partials/page_families/title_block.html" with title="Students" subtitle="Manage student records" action_url=create_url action_label="Add Student" action_primary=True %}
 
-      <form method="get" class="card card-body bg-light mb-3" role="search">
+      <form method="get" class="card card-body bg-light mb-3 page-family-filter-row" role="search">
         <div class="row g-2 align-items-end">
           <div class="col-md-4">
             <label for="student-q" class="form-label small">Search</label>
@@ -56,7 +49,7 @@
         </div>
       </form>
 
-      <div class="card shadow-sm">
+      <div class="card shadow-sm border-0 page-family-content-card">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
             <span class="small text-muted">{% if students %}{{ page_obj.paginator.count }} student(s){% else %}No students{% endif %}</span>
@@ -105,7 +98,7 @@
                     {% endfor %}
                   </td>
                   <td>
-                    <span class="badge bg-{% if student.status == 'ACTIVE' %}success{% elif student.status == 'NEW' %}info{% else %}warning{% endif %}">
+                    <span class="table-status-chip table-status-chip--{% if student.status == 'ACTIVE' %}success{% elif student.status == 'NEW' %}info{% else %}warning{% endif %}">
                       {{ student.get_status_display|default:student.status }}
                     </span>
                   </td>

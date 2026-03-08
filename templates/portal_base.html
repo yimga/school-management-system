@@ -1,6 +1,6 @@
 {% load static i18n %}
 <!doctype html>
-<html lang="{{ LANGUAGE_CODE|default:default_language|default:'en' }}"{% if is_rtl %} dir="rtl"{% endif %}>
+<html lang="{{ LANGUAGE_CODE|default:default_language|default:'en' }}"{% if is_rtl %} dir="rtl"{% endif %} data-surface="tenant">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -77,6 +77,11 @@
     <link rel="stylesheet" href="{% static 'css/dashboard-text-visibility.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard-crisp-polish.css' %}">
     <link rel="stylesheet" href="{% static 'css/platform-high-end.css' %}">
+    <link rel="stylesheet" href="{% static 'css/surface-themes.css' %}">
+    <link rel="stylesheet" href="{% static 'css/table-system.css' %}">
+    <link rel="stylesheet" href="{% static 'css/form-system.css' %}">
+    <link rel="stylesheet" href="{% static 'css/card-grammar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/chart-rules.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-everywhere-dark.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-visibility-guard.css' %}">
     <link rel="stylesheet" href="{% static 'css/platform-responsive-touch.css' %}">

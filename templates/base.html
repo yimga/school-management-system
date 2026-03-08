@@ -91,6 +91,11 @@
     <link rel="stylesheet" href="{% static 'css/theme-everywhere-dark.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-visibility-guard.css' %}">
     <link rel="stylesheet" href="{% static 'css/platform-high-end.css' %}">
+    <link rel="stylesheet" href="{% static 'css/surface-themes.css' %}">
+    <link rel="stylesheet" href="{% static 'css/table-system.css' %}">
+    <link rel="stylesheet" href="{% static 'css/form-system.css' %}">
+    <link rel="stylesheet" href="{% static 'css/card-grammar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/chart-rules.css' %}">
     <link rel="stylesheet" href="{% static 'css/platform-responsive-touch.css' %}">
     <script src="{% static 'js/htmx.min.js' %}" defer></script>
 
@@ -320,7 +325,7 @@
     {% block extrastyle %}{% endblock %}
   </head>
 
-  <body class="layout-{{ LAYOUT_STYLE|default:'fluid' }} host-kind-{{ request.public_host_kind|default:'tenant'|lower }}">
+  <body class="layout-{{ LAYOUT_STYLE|default:'fluid' }} host-kind-{{ request.public_host_kind|default:'tenant'|lower }} {% block body_class %}{% endblock %}">
     <a href="#main-content" class="skip-link" aria-label="Skip to main content">Skip to main content</a>
     <!--
       .app-container wraps all content for background logo/video/svg effect.

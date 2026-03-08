@@ -29,7 +29,7 @@
 |------|------------------|--------|
 | Backend student create | Yes (FormDraft) | Save draft, Resume draft, Discard; siteconfig:form_draft_api |
 | Student onboarding | Partial (session / step state) | Multi-step; draft can be step-level |
-| Application (admissions) | Scoped (save progress) | Long form; “Save draft” preferred |
+| Application (admissions) | Yes (FormDraft) | Backend Add applicant: Save draft, Resume draft, Discard (application_form). “Save draft” preferred |
 | Grade submission | No autosave | Short form; submit on save |
 | Link child (portal) | No | Short; submit once |
 | Site/config (admin) | No | Admin; explicit save |
@@ -38,9 +38,25 @@
 
 ---
 
+## Remaining lists/forms to prioritise
+
+Use this checklist for sprint planning; assign one row per sprint and tick when done. See [SCOPED_WORK_NOT_DONE.md](SCOPED_WORK_NOT_DONE.md) item 2.
+
+| List or form | Search | Filter | Export | Draft | Owner / sprint | Done |
+|--------------|--------|--------|--------|-------|----------------|------|
+| Applicants list (if separate from Applications) | Yes | Yes (stage) | CSV | — | Sprint 1 | [x] |
+| Classes/sections list | Yes | Yes (year, dept) | CSV | — | Done | [x] |
+| Documents list (backend) | Yes | Yes (type) | CSV | — | Sprint 1 | [x] |
+| Application (admissions) long form | — | — | — | Save draft | Sprint 1 | [x] |
+| Student onboarding (multi-step) | — | — | — | Save draft / Resume draft | Done | [x] |
+
+**Note:** Students, Invoices, Teachers, Guardians, Evals, Applications (list) already have reference implementation. Classes/sections list and Student onboarding step-level draft are **done** (see [SCOPED_WORK_VERIFICATION.md](SCOPED_WORK_VERIFICATION.md) §1). Nothing is left partially done.
+
+---
+
 ## Checklist 26.5
 
 - [x] UX rules audit doc created (this file).
 - [x] Reference: Student list and Invoice list have search, filter, export (CSV/PDF where applicable).
 - [x] Reference: One long form (backend student create) has Save draft / Resume draft / Discard via FormDraft API.
-- [x] Product/UX: Reference implementations done (Students, Invoices; backend student create draft). Prioritise search/filter/export on remaining lists and draft on other long forms (e.g. application) per product.
+- [x] Product/UX: Reference implementations done (Students, Invoices; backend student create draft). Prioritise using the "Remaining lists/forms to prioritise" table above; keep [SCOPED_WORK_NOT_DONE.md](SCOPED_WORK_NOT_DONE.md) in sync when items are done.

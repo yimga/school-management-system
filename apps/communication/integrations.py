@@ -179,7 +179,7 @@ class ZoomIntegration(IntegrationService):
             return {'success': False, 'error': str(e)}
 
     def send_message(self, recipient, message, **kwargs):
-        """Zoom doesn't send messages directly."""
+        """Zoom does not support direct messaging; use create_meeting for video. Intentional stub."""
         raise NotImplementedError("Use create_meeting instead")
 
     def verify_webhook(self, request):

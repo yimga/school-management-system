@@ -472,6 +472,32 @@ def site_settings(request):
     ctx["PUBLIC_BRAND_MODE"] = public_brand_mode
     path = (request.path or "").strip()
     ctx["CONTROL_PLANE_SHELL"] = public_host_kind == "manager" and path.startswith("/super/")
+    if ctx["CONTROL_PLANE_SHELL"]:
+        try:
+            from apps.schools.control_plane_nav import build_control_plane_nav
+            ctx["CONTROL_PLANE_NAV"] = build_control_plane_nav(request)
+            # Phase 8: Pinned control plane items (Quick access)
+            pinned_cp_ids = []
+            try:
+                from apps.siteconfig.models_dashboard import DashboardUserPreference
+                prefs = DashboardUserPreference.objects.filter(user=request.user).only("control_plane_pinned_items").first()
+                if prefs and isinstance(prefs.control_plane_pinned_items, list):
+                    pinned_cp_ids = [str(x).strip() for x in prefs.control_plane_pinned_items if str(x).strip()]
+            except Exception:
+                pass
+            by_id = {}
+            for grp in ctx["CONTROL_PLANE_NAV"]:
+                for it in grp.get("items") or []:
+                    iid = it.get("id")
+                    if iid and it.get("url"):
+                        by_id[iid] = it
+            ctx["PINNED_CONTROL_PLANE_ITEMS"] = [by_id[pid] for pid in pinned_cp_ids if pid in by_id]
+        except Exception:
+            ctx["CONTROL_PLANE_NAV"] = []
+            ctx["PINNED_CONTROL_PLANE_ITEMS"] = []
+    else:
+        ctx["CONTROL_PLANE_NAV"] = []
+        ctx["PINNED_CONTROL_PLANE_ITEMS"] = []
     ctx["PUBLIC_BRAND_NAME"] = "RunMyCampus"
     ctx["PUBLIC_BRAND_DOMAIN"] = "runmycampus.com"
     ctx["PUBLIC_BRAND_TAGLINE"] = "THE POWERHOUSE OF SCHOOL MANAGEMENT"

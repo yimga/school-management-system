@@ -3,6 +3,7 @@ Teacher and Student Onboarding Views
 Separated for better organization
 """
 from django.shortcuts import render, redirect
+from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -12,9 +13,11 @@ from django import forms
 from apps.accounts.models import User
 from apps.people.models import StudentProfile, TeacherProfile, StudentGuardian
 from apps.academics.models import AcademicYear
-from apps.siteconfig.models import SiteSettings
+from apps.siteconfig.models import SiteSettings, FormDraft
 from .runtime_helpers import get_policy_for_request
 from .forms import TeacherOnboardingForm, StudentOnboardingForm
+
+FORM_DRAFT_KEY_STUDENT_ONBOARDING = "student_onboarding"
 
 
 def teacher_onboarding_wizard(request: HttpRequest):
@@ -159,16 +162,45 @@ def student_onboarding_wizard(request: HttpRequest):
     3. Parent/Guardian Information (parent details)
     4. Payment & Referral (payment method, referral code)
     
-    Uses session to persist form data between steps.
+    Uses session to persist form data between steps. Save draft / Resume draft via FormDraft (26.5).
     """
     site = SiteSettings.get_solo()
     session_key = "student_onboarding_wizard_data"
     wizard_data = request.session.get(session_key, {})
     step = int(request.GET.get("step", "1"))
-    
+    school = getattr(request, "school", None)
+    has_draft_restored = False
+
+    # Load draft when GET step 1 and no session data (26.5 step-level draft)
+    if request.method == "GET" and step == 1 and not wizard_data and school and request.user.is_authenticated:
+        draft = FormDraft.objects.filter(
+            school=school,
+            user=request.user,
+            form_key=FORM_DRAFT_KEY_STUDENT_ONBOARDING,
+        ).first()
+        if draft and draft.data:
+            wizard_data = dict(draft.data)
+            request.session[session_key] = wizard_data
+            has_draft_restored = True
+
     # Handle step navigation
     if request.method == "POST":
         action = request.POST.get("action", "next")
+
+        # Save draft: merge POST into session, persist to FormDraft, redirect back
+        if action == "save_draft" and school and request.user.is_authenticated:
+            for key, value in request.POST.items():
+                if key not in ("csrfmiddlewaretoken", "action", "step"):
+                    wizard_data[key] = value
+            request.session[session_key] = wizard_data
+            FormDraft.objects.update_or_create(
+                school=school,
+                user=request.user,
+                form_key=FORM_DRAFT_KEY_STUDENT_ONBOARDING,
+                defaults={"data": wizard_data},
+            )
+            messages.success(request, "Draft saved. You can resume later from this page.")
+            return redirect(f"{request.path}?step={step}")
         
         if action == "back":
             step = max(1, step - 1)
@@ -275,6 +307,12 @@ def student_onboarding_wizard(request: HttpRequest):
                 )
                 if session_key in request.session:
                     del request.session[session_key]
+                if school and request.user.is_authenticated:
+                    FormDraft.objects.filter(
+                        school=school,
+                        user=request.user,
+                        form_key=FORM_DRAFT_KEY_STUDENT_ONBOARDING,
+                    ).delete()
                 return redirect("portal:home")
     
     # Build form with session data (so re-renders after validation errors show data)
@@ -291,6 +329,7 @@ def student_onboarding_wizard(request: HttpRequest):
     total_steps = 5
     progress_pct = int((step / total_steps) * 100)
 
+    form_draft_url = reverse("siteconfig:form_draft_api", kwargs={"form_key": FORM_DRAFT_KEY_STUDENT_ONBOARDING}) if school and request.user.is_authenticated else None
     return render(
         request,
         "student/onboarding_wizard.html",
@@ -303,5 +342,7 @@ def student_onboarding_wizard(request: HttpRequest):
             "admission_number_mode": getattr(site, "admission_number_mode", "AUTO_OR_MANUAL"),
             "support_email": site.company_email,
             "support_phone": site.company_phone,
+            "has_draft_restored": has_draft_restored,
+            "form_draft_url": form_draft_url,
         },
     )

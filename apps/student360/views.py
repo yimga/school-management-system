@@ -180,15 +180,15 @@ def transcript_freeze(request, student_id):
     year_id = request.POST.get("academic_year_id")
     if not year_id:
         messages.error(request, "Please select an academic year.")
-        return redirect("student_360_page", student_id=student_id)
+        return redirect("portal:student_360_page", student_id=student_id)
     from apps.academics.models import AcademicYear
     academic_year = AcademicYear.objects.filter(pk=year_id, school=school).first()
     if not academic_year:
         messages.error(request, "Invalid academic year.")
-        return redirect("student_360_page", student_id=student_id)
+        return redirect("portal:student_360_page", student_id=student_id)
     obj = create_immutable_transcript(student, academic_year, created_by=user)
     if obj:
         messages.success(request, f"Transcript for {academic_year.name} frozen successfully.")
     else:
         messages.error(request, "Could not freeze transcript; check that report data is available for this year.")
-    return redirect("transcript_archive", student_id=student_id)
+    return redirect("portal:transcript_archive", student_id=student_id)

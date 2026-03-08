@@ -716,7 +716,7 @@ Every optional or deferred sub-item is listed here so nothing is untracked. Main
 | **6.3** | Tenant app billing (wire app installs to billing) | Deferred refinement | Install pipeline, AppAuditLog, can/limits done; per-school charge for installed app (proration, invoice line) to be wired. | REMAINING_PLAN_AUDIT_GAPS.md § 6.3 |
 | **29.10** | Commercial — tenant app billing wiring | Deferred refinement | Same as 6.3; commercial platform trials/signup/billing done; app-level billing wiring deferred. | REMAINING_PLAN_AUDIT_GAPS.md § 6.3 |
 
-All of the above are either **optional by decision** (13.2 models.png) or **deferred refinements** with a clear next step and a single tracking doc (**REMAINING_PLAN_AUDIT_GAPS.md**). No item is left without a reference.
+All of the above are either **optional by decision** (13.2 models.png) or **deferred refinements** with a clear next step and a single tracking doc (**REMAINING_PLAN_AUDIT_GAPS.md**). **Current status:** See [SCOPED_WORK_VERIFICATION.md](SCOPED_WORK_VERIFICATION.md) — 6.3/29.10 (ledger + invoice_lines_from_app_ledger) and 11.2 (tenant get_blueprints entry + pack versioning minimal) are done; remaining refinements are explicitly deferred.
 
 ---
 

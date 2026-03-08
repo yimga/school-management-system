@@ -6,7 +6,7 @@ from __future__ import annotations
 import json
 import random
 from copy import deepcopy
-from datetime import datetime, timezone
+from datetime import datetime, timezone as dt_timezone
 from urllib.parse import urlparse
 
 from django.conf import settings
@@ -1866,7 +1866,7 @@ def marketing_sitemap_xml(request):
     """
     Lightweight sitemap for global marketing routes with priority and changefreq.
     """
-    now = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    now = datetime.now(dt_timezone.utc).strftime("%Y-%m-%d")
     entries = _sitemap_entries(request)
     chunks = ["<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">"]
     for loc, priority, changefreq in entries:

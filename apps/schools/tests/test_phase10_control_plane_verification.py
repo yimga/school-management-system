@@ -3,10 +3,12 @@ Phase 10 verification checklist (control plane shell and manager login).
 Automated tests for items that can be asserted without a live manager host.
 See docs/architecture/phase10_superadmin_vs_tenant_ui.md § Verification checklist.
 """
+from django.contrib.auth.models import AnonymousUser
 from django.http import HttpRequest
 from django.test import RequestFactory, TestCase, override_settings
 from django.urls import resolve, reverse
 
+from apps.accounts.models import User
 from apps.accounts.views import login_view
 from config.urls import permission_denied, page_not_found, server_error
 
@@ -21,8 +23,7 @@ class Phase10ManagerLoginVerificationTests(TestCase):
     def test_manager_host_gets_manager_login_template(self):
         request = self.factory.get("/authentication/login/", HTTP_HOST="manager.runmycampus.com")
         request.session = {}
-        request.user = __import__("apps.accounts.models", fromlist=["User"]).User()
-        request.user.is_authenticated = False
+        request.user = AnonymousUser()
         request.public_host_kind = "manager"
         response = login_view(request)
         self.assertEqual(response.status_code, 200)
@@ -33,8 +34,7 @@ class Phase10ManagerLoginVerificationTests(TestCase):
     def test_non_manager_host_gets_standard_login_template(self):
         request = self.factory.get("/authentication/login/", HTTP_HOST="school.runmycampus.com")
         request.session = {}
-        request.user = __import__("apps.accounts.models", fromlist=["User"]).User()
-        request.user.is_authenticated = False
+        request.user = AnonymousUser()
         request.public_host_kind = None
         response = login_view(request)
         self.assertEqual(response.status_code, 200)
@@ -50,10 +50,7 @@ class Phase10ErrorPagesVerificationTests(TestCase):
 
     def test_manager_403_uses_control_plane_template(self):
         request = self.factory.get("/admin/")
-        request.user = __import__("apps.accounts.models", fromlist=["User"]).User()
-        request.user.is_authenticated = True
-        request.user.is_staff = True
-        request.user.is_superuser = False
+        request.user = User(is_staff=True, is_superuser=False)
         request.public_host_kind = "manager"
         response = permission_denied(request, None)
         self.assertEqual(response.status_code, 403)
@@ -78,10 +75,7 @@ class Phase10ErrorPagesVerificationTests(TestCase):
 
     def test_tenant_403_uses_standard_template(self):
         request = self.factory.get("/admin/")
-        request.user = __import__("apps.accounts.models", fromlist=["User"]).User()
-        request.user.is_authenticated = True
-        request.user.is_staff = True
-        request.user.is_superuser = False
+        request.user = User(is_staff=True, is_superuser=False)
         request.public_host_kind = None
         response = permission_denied(request, None)
         self.assertEqual(response.status_code, 403)

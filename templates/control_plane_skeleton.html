@@ -1,6 +1,6 @@
 {% load static i18n %}
 <!doctype html>
-<html lang="en" data-theme="dark" data-bs-theme="dark">
+<html lang="en" data-theme="dark" data-bs-theme="dark" data-surface="control-plane">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,6 +15,11 @@
     <link rel="stylesheet" href="{% static 'css/theme-visibility-guard.css' %}">
     <link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
     <link rel="stylesheet" href="{% static 'css/platform-high-end.css' %}">
+    <link rel="stylesheet" href="{% static 'css/surface-themes.css' %}">
+    <link rel="stylesheet" href="{% static 'css/table-system.css' %}">
+    <link rel="stylesheet" href="{% static 'css/form-system.css' %}">
+    <link rel="stylesheet" href="{% static 'css/card-grammar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/chart-rules.css' %}">
     <link rel="stylesheet" href="{% static 'css/platform-responsive-touch.css' %}">
     <style>
       :root {
@@ -26,7 +31,7 @@
     </style>
     {% block extrastyle %}{% endblock %}
   </head>
-  <body class="control-plane-shell">
+  <body class="control-plane-shell cp-surface">
     <a href="#cp-main-content" class="skip-link visually-hidden-focusable" aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>
     {% block content %}{% endblock %}
     <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>

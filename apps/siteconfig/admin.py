@@ -16,6 +16,8 @@ from django.urls import reverse
 from urllib.parse import quote
 
 from .models import (
+    DynamicFieldDefinition,
+    DynamicFieldValue,
     Integration,
     OfficialReportTemplate,
     ReportCardStyle,
@@ -60,6 +62,8 @@ from .models import (
     BlogPost,
 )
 from .models_dashboard import (
+    DashboardPack,
+    DashboardPackAssignment,
     DashboardUserPreference,
     SuperAdminDashboardPreference,
     DashboardWidget,
@@ -68,7 +72,7 @@ from .models_dashboard import (
     TenantLayoutAssignment,
     FeatureControlAudit,
 )
-from .models_workflow import WorkflowTemplate, TenantWorkflow, WorkflowRunLog
+from .models_workflow import WorkflowPack, WorkflowPackAssignment, WorkflowTemplate, TenantWorkflow, WorkflowRunLog
 from .context_processors import SESSION_KEY
 from .theme_palette_groups import THEME_PALETTE_GROUPS, build_theme_pack_groups
 from apps.academics.models import AcademicYear
@@ -2281,6 +2285,10 @@ admin_site.register(TenantLayoutAssignment)
 admin_site.register(WorkflowTemplate)
 admin_site.register(TenantWorkflow)
 admin_site.register(WorkflowRunLog)
+admin_site.register(WorkflowPack)
+admin_site.register(WorkflowPackAssignment)
+admin_site.register(DashboardPack)
+admin_site.register(DashboardPackAssignment)
 
 
 class FeatureControlAuditAdmin(ModelAdmin):
@@ -2310,6 +2318,27 @@ class ServiceIntegrationAdmin(ModelAdmin):
 
 
 admin_site.register(ServiceIntegration, ServiceIntegrationAdmin)
+
+
+# Section 15.2: DynamicFieldDefinition, DynamicFieldValue (custom attributes per entity)
+class DynamicFieldDefinitionAdmin(ModelAdmin):
+    list_display = ("entity_type", "field_key", "label", "data_type", "required", "is_active", "school", "created_at")
+    list_filter = ("entity_type", "data_type", "is_active")
+    search_fields = ("entity_type", "field_key", "label")
+    raw_id_fields = ("school",)
+    ordering = ("school", "entity_type", "field_key")
+
+
+class DynamicFieldValueAdmin(ModelAdmin):
+    list_display = ("entity_type", "object_id", "field_key", "school", "value_text", "value_number", "value_date")
+    list_filter = ("entity_type",)
+    search_fields = ("entity_type", "object_id", "field_key")
+    raw_id_fields = ("school",)
+    ordering = ("school", "entity_type", "object_id", "field_key")
+
+
+admin_site.register(DynamicFieldDefinition, DynamicFieldDefinitionAdmin)
+admin_site.register(DynamicFieldValue, DynamicFieldValueAdmin)
 
 
 # World Engine: GlobalSyllabus, LearningPassport, BreakGlassOverride, BroadcastCampaign

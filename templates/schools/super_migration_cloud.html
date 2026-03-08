@@ -1,16 +1,13 @@
 {% extends "control_plane_base.html" %}
-{% load static %}
+{% load static i18n %}
 
 {% block cp_title %}Migration Cloud{% endblock %}
 
 {% block cp_content %}
   <div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
-      <h1 class="h4 mb-0">Migration cloud</h1>
-      <a href="{% url 'super:dashboard' %}" class="btn btn-outline-secondary">Back to dashboard</a>
-    </div>
-    <p class="text-muted">First-class platform pillar for onboarding and data growth: import studio, field mapping, dry-run, scorecard, parity checker, rollback.</p>
-    <div class="card shadow-sm border-0">
+    {% url 'super:dashboard' as super_dashboard_url %}
+    {% include "partials/page_families/title_block.html" with title="Migration cloud" subtitle="First-class platform pillar for onboarding and data growth: import studio, field mapping, dry-run, scorecard, parity checker, rollback." action_url=super_dashboard_url action_label="Back to dashboard" %}
+    <div class="card shadow-sm border-0 page-family-content-card card-grammar">
       <div class="card-body">
         <h5 class="card-title">Control plane</h5>
         <ul class="mb-0">

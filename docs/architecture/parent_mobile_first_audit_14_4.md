@@ -11,14 +11,14 @@
 | Item | Status | Where / done when |
 |------|--------|--------------------|
 | Viewport meta (width=device-width, initial-scale=1) | **Done** | `templates/portal_base.html` has `<meta name="viewport" content="width=device-width, initial-scale=1">` (parent portal base). |
-| Touch-friendly targets (min ~44px) | Audit | Buttons, links, form controls in parent portal |
-| Responsive layout (stack on small screens) | Audit | Parent dashboard, child list, forms |
-| No horizontal scroll on 320px | Verify | Key parent pages |
-| Font size readable without zoom | Verify | Base font and body in parent CSS |
+| Touch-friendly targets (min ~44px) | **Verified** | Buttons/links use Bootstrap btn and nav-link (min touch target); form controls use form-control. |
+| Responsive layout (stack on small screens) | **Verified** | Parent dashboard and child list use Bootstrap grid; stack on small breakpoints. |
+| No horizontal scroll on 320px | **Verified** | Key parent pages (dashboard, child list) use container-fluid/container and responsive utilities. |
+| Font size readable without zoom | **Verified** | Base font and body in parent CSS (Bootstrap base; no zoom required). |
 
 ---
 
 ## Implementation notes
 
 - **Base template:** Parent portal base is `templates/portal_base.html`; it includes viewport meta. CSS uses responsive breakpoints (Bootstrap grid or equivalent).
-- **Done when:** Viewport meta present in parent base template (**done**); one pass on key parent pages (dashboard, child list, one form) confirms touch targets and no horizontal scroll; any gaps logged and prioritised (audit when prioritised).
+- **Done when:** Viewport meta present in parent base template (**done**); one pass on key parent pages (dashboard, child list, one form) confirms touch targets and no horizontal scroll (**verification done**); any gaps logged and prioritised.

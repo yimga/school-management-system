@@ -1,5 +1,6 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
+{% block body_class %}marketing-surface{% endblock %}
 {% block title %}{{ seo_title|default:"RunMyCampus" }}{% endblock %}
 {% block extrahead %}
   <meta name="description" content="{{ seo_description|default:'RunMyCampus school management platform.' }}">
@@ -11,6 +12,7 @@
 {% endblock %}
 {% block extrastyle %}
   {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/marketing-home.css' %}">
   <style>
     .page-stack {
       display: grid;

@@ -37,6 +37,9 @@
             {% else %}
             <span class="text-muted">—</span>
             {% endif %}
+            {% if run.can_rollback %}
+            <form method="post" action="{% url 'accounts:migration_rollback' run.id %}" class="d-inline ms-1">{% csrf_token %}<button type="submit" class="btn btn-sm btn-outline-warning">{% trans "Rollback" %}</button></form>
+            {% endif %}
           </td>
         </tr>
         {% empty %}

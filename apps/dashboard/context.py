@@ -207,10 +207,16 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
             default_header_weather_config,
             default_backend_feature_flags,
         )
-        site = SiteSettings.get_solo()
-        site_id = str(site.pk)
         backend_defaults = default_backend_feature_flags()
         backend_flags = dict(backend_defaults)
+        site = SiteSettings.get_solo()
+        rt = getattr(request, "tenant_runtime", None)
+        if rt:
+            site_id = str(getattr(getattr(rt, "tenant", None), "id", None) or site.pk)
+            if getattr(rt, "flags", None) and getattr(rt.flags, "flags", None):
+                backend_flags.update(rt.flags.flags)
+        else:
+            site_id = str(site.pk)
         backend_flags.update(getattr(site, "backend_feature_flags", None) or {})
         weather_defaults = default_header_weather_config()
         weather_cfg.update({

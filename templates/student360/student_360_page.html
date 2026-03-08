@@ -10,6 +10,7 @@
       <p class="text-muted mb-0">{{ student.admission_number|default:"" }}{% if student.classroom %} · {{ student.classroom.name }}{% endif %}{% if student.academic_year %} · {{ student.academic_year.name }}{% endif %}</p>
     </div>
     <div class="d-flex gap-2">
+      <a href="{% url 'portal:transcript_archive' student.pk %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-journal-text me-1"></i>{% trans "Transcript & archive" %}</a>
       {% if summary.export_pack_available %}
       <a href="{% url 'portal:student_360_export' student.pk %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-download me-1"></i>Export pack (JSON)</a>
       {% endif %}
@@ -55,7 +56,7 @@
         <div class="col-md-6 col-lg-8">
           <div class="card">
             <div class="card-body">
-              <p class="text-muted mb-0">Use the tabs above to view Academic, Finance, Attendance, and Timeline details. Export pack (JSON) is available for data portability.</p>
+              <p class="text-muted mb-0">Use the tabs above to view Academic, Finance, Attendance, and Timeline details. <a href="{% url 'portal:transcript_archive' student.pk %}">Transcript &amp; archive</a> shows frozen transcripts by year. Export pack (JSON) is available for data portability.</p>
             </div>
           </div>
         </div>

@@ -2201,7 +2201,7 @@ def migration_wizard(request):
 @user_passes_test(_is_admin_user)
 @require_http_methods(["GET"])
 def migration_run_list(request):
-    """Section 11.1: List migration runs for this school with links to read-only legacy view."""
+    """Section 11.1: List migration runs for this school with links to read-only legacy view and rollback UI."""
     school = getattr(request, "school", None)
     if not school:
         messages.warning(request, "No school context.")
@@ -2212,6 +2212,30 @@ def migration_run_list(request):
         "runs": runs,
         "school": school,
     })
+
+
+@permission_required("settings.manage")
+@user_passes_test(_is_admin_user)
+@require_http_methods(["POST"])
+def migration_rollback(request, run_id):
+    """Section 11.1: Trigger rollback for a migration run (UI for MigrationRun.trigger_rollback)."""
+    if request.method != "POST":
+        return redirect("accounts:migration_run_list")
+    school = getattr(request, "school", None)
+    if not school:
+        messages.warning(request, "No school context.")
+        return redirect("accounts:backend_dashboard")
+    from apps.automation.models import MigrationRun
+    run = get_object_or_404(MigrationRun, pk=run_id, school=school)
+    if not run.can_rollback:
+        messages.error(request, "This run cannot be rolled back (dry run, already rolled back, or no snapshot).")
+        return redirect("accounts:migration_run_list")
+    rollback_run, result = run.trigger_rollback(user=request.user)
+    if result.get("success"):
+        messages.success(request, f"Rollback created (run #{rollback_run.pk}). {result.get('message', '')} Reverted: {result.get('reverted_count', 0)}.")
+    else:
+        messages.error(request, result.get("message", "Rollback failed."))
+    return redirect("accounts:migration_run_list")
 
 
 @permission_required("settings.manage")

@@ -25,6 +25,7 @@ Tenant staging/sandbox schema, config diff viewer, and canary by tenant/country/
 
 - **Pattern:** Use existing `is_feature_enabled(school, "CANARY_FEATURE_X")` or plan/addon to enable a feature for a subset of tenants (by country, plan, or explicit allowlist).
 - **Document:** Canary rollout = enable feature for one school/country/plan; monitor; then expand. No code change required; use feature flags and policy.
+- **Ops:** Set `CONTROL_PLANE_RUNBOOKS_URL` in env so the health dashboard links operators to incident runbooks (see REMAINING_PLAN_AUDIT_GAPS § Control plane runbooks and canary).
 
 ---
 

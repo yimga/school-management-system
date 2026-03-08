@@ -27,6 +27,9 @@ class CountryRegistry(models.Model):
         blank=True,
         help_text="Registry-driven configuration such as academic/compliance defaults.",
     )
+    default_calendar_family = models.CharField(max_length=48, blank=True, help_text="Default calendar system code.")
+    default_terminology_pack = models.CharField(max_length=48, blank=True, help_text="Default terminology pack code.")
+    writing_direction = models.CharField(max_length=8, default="ltr", blank=True, help_text="ltr or rtl.")
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -154,6 +157,7 @@ class CurrencyRegistry(models.Model):
     name = models.CharField(max_length=80)
     symbol = models.CharField(max_length=16, blank=True)
     decimal_places = models.PositiveSmallIntegerField(default=2)
+    thousands_separator_style = models.CharField(max_length=16, blank=True, help_text="e.g. comma, space, none.")
     metadata = models.JSONField(default=dict, blank=True)
     is_active = models.BooleanField(default=True)
     sort_order = models.PositiveIntegerField(default=0)
@@ -256,6 +260,77 @@ class AcademicTerminologyRegistry(models.Model):
         ordering = ["sort_order", "name"]
         verbose_name = "Academic terminology registry entry"
         verbose_name_plural = "Academic terminology registry"
+
+    def __str__(self):
+        return self.name
+
+
+class DocumentTypeRegistry(models.Model):
+    """Admission/compliance document categories (e.g. Birth Certificate, National ID, Passport)."""
+    code = models.CharField(max_length=48, primary_key=True)
+    name = models.CharField(max_length=120)
+    description = models.TextField(blank=True)
+    category = models.CharField(max_length=48, blank=True, help_text="e.g. identity, academic, health.")
+    country_code = models.CharField(max_length=2, blank=True, db_index=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    is_active = models.BooleanField(default=True)
+    sort_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["sort_order", "name"]
+        verbose_name = "Document type registry entry"
+        verbose_name_plural = "Document type registry"
+
+    def __str__(self):
+        return self.name
+
+
+class FeeCategoryRegistry(models.Model):
+    """Finance billing categories (e.g. Tuition, Application Fee, Transport, Lab Fee)."""
+    code = models.CharField(max_length=48, primary_key=True)
+    name = models.CharField(max_length=120)
+    description = models.TextField(blank=True)
+    category = models.CharField(max_length=48, blank=True)
+    country_code = models.CharField(max_length=2, blank=True, db_index=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    is_active = models.BooleanField(default=True)
+    sort_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["sort_order", "name"]
+        verbose_name = "Fee category registry entry"
+        verbose_name_plural = "Fee category registry"
+
+    def __str__(self):
+        return self.name
+
+
+class GradeScaleRegistry(models.Model):
+    """Grading families and scale templates (e.g. 0-20, 0-100, 4.0 GPA, letter grades)."""
+    code = models.CharField(max_length=48, primary_key=True)
+    name = models.CharField(max_length=120)
+    description = models.TextField(blank=True)
+    family = models.CharField(max_length=48, blank=True, help_text="e.g. numeric, letter, gpa, competency.")
+    range_definition = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Min/max, pass threshold, scale steps.",
+    )
+    country_code = models.CharField(max_length=2, blank=True, db_index=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    is_active = models.BooleanField(default=True)
+    sort_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["sort_order", "name"]
+        verbose_name = "Grade scale registry entry"
+        verbose_name_plural = "Grade scale registry"
 
     def __str__(self):
         return self.name

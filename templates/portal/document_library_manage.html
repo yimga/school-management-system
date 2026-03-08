@@ -103,10 +103,13 @@
           <label class="form-label">Search</label>
           <input type="text" name="q" class="form-control" placeholder="Search documents..." value="{{ search_query }}">
         </div>
-        <div class="col-md-2 d-flex align-items-end">
-          <button type="submit" class="btn btn-primary w-100">
+        <div class="col-md-2 d-flex align-items-end gap-2">
+          <button type="submit" class="btn btn-primary flex-grow-1">
             <i class="bi bi-search me-1"></i>Filter
           </button>
+          <a href="?{% if search_query %}q={{ search_query|urlencode }}&{% endif %}{% if current_type %}type={{ current_type|urlencode }}&{% endif %}format=csv" class="btn btn-outline-secondary" title="Export list as CSV">
+            <i class="bi bi-download me-1"></i>Export CSV
+          </a>
         </div>
       </form>
     </div>

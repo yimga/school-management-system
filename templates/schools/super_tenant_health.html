@@ -1,19 +1,17 @@
 {% extends "control_plane_base.html" %}
-{% load static %}
+{% load static i18n %}
 
 {% block cp_title %}Tenant Health Monitor{% endblock %}
 
 {% block cp_content %}
   <div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
-      <h1 class="h4 mb-0">Tenant Health Monitor</h1>
-      <a href="{% url 'super:dashboard' %}" class="btn btn-outline-secondary">Back to Schools</a>
-    </div>
-    <p class="text-muted small">Last activity and status per school. API: <code>GET /api/v1/super/tenant-health</code></p>
-    <div class="card shadow-sm border-0">
+    {% url 'super:dashboard' as super_dashboard_url %}
+    {% include "partials/page_families/title_block.html" with title="Tenant Health Monitor" subtitle="Last activity and status per school. API: GET /api/v1/super/tenant-health" action_url=super_dashboard_url action_label="Back to Schools" %}
+    <div class="card shadow-sm border-0 page-family-content-card">
       <div class="card-body p-0">
-        <div class="table-responsive">
-          <table class="table table-hover mb-0">
+        {% if tenants %}
+        <div class="table-responsive table-density-comfortable">
+          <table class="table table-hover mb-0 table-family">
             <thead class="table-light">
               <tr>
                 <th>School</th>
@@ -32,32 +30,34 @@
                 <td><code>{{ t.slug }}</code></td>
                 <td>
                   {% if t.is_active %}
-                  <span class="badge bg-success">Active</span>
+                  <span class="table-status-chip table-status-chip--success">Active</span>
                   {% else %}
-                  <span class="badge bg-secondary">Inactive</span>
+                  <span class="table-status-chip table-status-chip--muted">Inactive</span>
                   {% endif %}
                 </td>
                 <td>
                   {% if t.is_approved %}
-                  <span class="badge bg-success">Yes</span>
+                  <span class="table-status-chip table-status-chip--success">Yes</span>
                   {% else %}
-                  <span class="badge bg-warning text-dark">No</span>
+                  <span class="table-status-chip table-status-chip--warning">No</span>
                   {% endif %}
                 </td>
                 <td>{{ t.student_count|default:0 }}</td>
                 <td class="text-muted small">{{ t.last_activity|date:"Y-m-d H:i"|default:"—" }}</td>
                 <td>
+                  <a href="{% url 'super:tenant_360' t.id %}" class="btn btn-sm btn-outline-primary me-1">360</a>
                   {% if t.admin_edit_url %}
                   <a href="{{ t.admin_edit_url }}" class="btn btn-sm btn-outline-secondary">Edit</a>
                   {% endif %}
                 </td>
               </tr>
-              {% empty %}
-              <tr><td colspan="7" class="text-muted">No schools.</td></tr>
               {% endfor %}
             </tbody>
           </table>
         </div>
+        {% else %}
+        {% include "partials/page_families/empty_state.html" with message="No schools." icon="bi-building" %}
+        {% endif %}
       </div>
     </div>
   </div>

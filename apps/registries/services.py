@@ -11,6 +11,13 @@ from .models import (
     EducationLevelRegistry,
     EducationSystemTypeRegistry,
     SubdivisionRegistry,
+    DocumentTypeRegistry,
+    FeeCategoryRegistry,
+    GradeScaleRegistry,
+    InstitutionTypeRegistry,
+    AcademicTerminologyRegistry,
+    LocaleRegistry,
+    CalendarSystemRegistry,
 )
 from .currency_seed import ensure_currency_registry_seed
 
@@ -146,11 +153,80 @@ def sync_subdivisions_from_legacy_provinces() -> int:
     return created
 
 
+def ensure_document_type_seed() -> None:
+    """Idempotent seed for document types (admissions/compliance)."""
+    defaults = [
+        {"code": "BIRTH_CERTIFICATE", "name": "Birth Certificate", "category": "identity", "sort_order": 10},
+        {"code": "NATIONAL_ID", "name": "National ID", "category": "identity", "sort_order": 20},
+        {"code": "PASSPORT", "name": "Passport", "category": "identity", "sort_order": 30},
+        {"code": "VACCINATION_CARD", "name": "Vaccination Card", "category": "health", "sort_order": 40},
+        {"code": "PREVIOUS_REPORT_CARD", "name": "Previous Report Card", "category": "academic", "sort_order": 50},
+        {"code": "TRANSFER_CERTIFICATE", "name": "Transfer Certificate", "category": "academic", "sort_order": 60},
+        {"code": "PROOF_OF_ADDRESS", "name": "Proof of Address", "category": "identity", "sort_order": 70},
+        {"code": "GUARDIAN_CONSENT", "name": "Guardian Consent Form", "category": "compliance", "sort_order": 80},
+        {"code": "VISA_RESIDENCY", "name": "Visa / Residency", "category": "identity", "sort_order": 90},
+    ]
+    for row in defaults:
+        DocumentTypeRegistry.objects.update_or_create(
+            code=row["code"],
+            defaults={
+                "name": row["name"],
+                "category": row.get("category", ""),
+                "sort_order": row.get("sort_order", 0),
+                "is_active": True,
+            },
+        )
+
+
+def ensure_fee_category_seed() -> None:
+    """Idempotent seed for fee categories."""
+    defaults = [
+        {"code": "TUITION", "name": "Tuition", "sort_order": 10},
+        {"code": "APPLICATION_FEE", "name": "Application Fee", "sort_order": 20},
+        {"code": "TRANSPORT", "name": "Transport", "sort_order": 30},
+        {"code": "LAB_FEE", "name": "Lab Fee", "sort_order": 40},
+        {"code": "HOSTEL_FEE", "name": "Hostel Fee", "sort_order": 50},
+        {"code": "EXAMINATION_FEE", "name": "Examination Fee", "sort_order": 60},
+        {"code": "LIBRARY_FEE", "name": "Library Fee", "sort_order": 70},
+        {"code": "GRADUATION_FEE", "name": "Graduation Fee", "sort_order": 80},
+    ]
+    for row in defaults:
+        FeeCategoryRegistry.objects.update_or_create(
+            code=row["code"],
+            defaults={"name": row["name"], "sort_order": row.get("sort_order", 0), "is_active": True},
+        )
+
+
+def ensure_grade_scale_seed() -> None:
+    """Idempotent seed for grade scale families."""
+    defaults = [
+        {"code": "0-20", "name": "0-20 scale", "family": "numeric", "sort_order": 10, "range_definition": {"min": 0, "max": 20}},
+        {"code": "0-100", "name": "0-100 percentage", "family": "numeric", "sort_order": 20, "range_definition": {"min": 0, "max": 100}},
+        {"code": "GPA_4", "name": "4.0 GPA", "family": "gpa", "sort_order": 30, "range_definition": {"min": 0, "max": 4}},
+        {"code": "LETTER", "name": "Letter grades", "family": "letter", "sort_order": 40},
+        {"code": "PASS_FAIL", "name": "Pass/Fail", "family": "binary", "sort_order": 50},
+    ]
+    for row in defaults:
+        GradeScaleRegistry.objects.update_or_create(
+            code=row["code"],
+            defaults={
+                "name": row["name"],
+                "family": row.get("family", ""),
+                "range_definition": row.get("range_definition", {}),
+                "sort_order": row.get("sort_order", 0),
+                "is_active": True,
+            },
+        )
+
+
 def ensure_registry_baseline() -> None:
     ensure_country_registry_seed()
     ensure_currency_registry_seed()  # Part F 16.1: 195 currencies
     ensure_taxonomy_seed()
     sync_subdivisions_from_legacy_provinces()
+    ensure_document_type_seed()
+    ensure_fee_category_seed()
+    ensure_grade_scale_seed()
 
 
 def list_country_choices() -> list[dict[str, str]]:
@@ -188,3 +264,93 @@ def list_subdivision_choices(country_code: str | None) -> list[dict[str, str]]:
         }
         for row in rows
     ]
+
+
+def get_education_levels_for_country(country_code: str | None) -> list[dict]:
+    """Education levels for onboarding; optional filter by country (country_labels)."""
+    qs = EducationLevelRegistry.objects.filter(is_active=True).order_by("sort_order", "global_name")
+    return [
+        {
+            "code": row.code,
+            "global_name": row.global_name,
+            "local_label": (row.country_labels or {}).get((country_code or "").upper(), row.global_name),
+            "country_labels": row.country_labels or {},
+        }
+        for row in qs[:80]
+    ]
+
+
+def get_education_system_types_for_country(country_code: str | None) -> list[dict]:
+    """Education system types for onboarding."""
+    qs = EducationSystemTypeRegistry.objects.filter(is_active=True).order_by("sort_order", "name")
+    return [
+        {
+            "code": row.code,
+            "name": row.name,
+            "category": row.category,
+            "local_label": (row.country_labels or {}).get((country_code or "").upper(), row.name),
+        }
+        for row in qs[:50]
+    ]
+
+
+def get_institution_types_for_country(country_code: str | None) -> list[dict]:
+    """Institution types for onboarding."""
+    qs = InstitutionTypeRegistry.objects.filter(is_active=True).order_by("sort_order", "name")
+    return [
+        {
+            "code": row.code,
+            "name": row.name,
+            "local_label": (row.country_labels or {}).get((country_code or "").upper(), row.name),
+        }
+        for row in qs[:40]
+    ]
+
+
+def get_document_types(country_code: str | None = None) -> list[dict]:
+    """Document types for admissions/compliance (optional country filter)."""
+    qs = DocumentTypeRegistry.objects.filter(is_active=True).order_by("sort_order", "name")
+    if country_code:
+        qs = qs.filter(country_code__in=[(country_code or "").upper()[:2], ""])
+    return [{"code": row.code, "name": row.name, "category": row.category} for row in qs[:60]]
+
+
+def get_fee_categories(country_code: str | None = None) -> list[dict]:
+    """Fee categories for finance (optional country filter)."""
+    qs = FeeCategoryRegistry.objects.filter(is_active=True).order_by("sort_order", "name")
+    if country_code:
+        qs = qs.filter(country_code__in=[(country_code or "").upper()[:2], ""])
+    return [{"code": row.code, "name": row.name, "category": row.category} for row in qs[:60]]
+
+
+def get_grade_scale_families(country_code: str | None = None) -> list[dict]:
+    """Grade scale families for gradebook (optional country filter)."""
+    qs = GradeScaleRegistry.objects.filter(is_active=True).order_by("sort_order", "name")
+    if country_code:
+        qs = qs.filter(country_code__in=[(country_code or "").upper()[:2], ""])
+    return [
+        {"code": row.code, "name": row.name, "family": row.family, "range_definition": row.range_definition or {}}
+        for row in qs[:40]
+    ]
+
+
+def get_locales_for_country(country_code: str | None = None) -> list[dict]:
+    """Locales for tenant setup."""
+    qs = LocaleRegistry.objects.filter(is_active=True).order_by("sort_order", "name")
+    return [{"code": row.code, "name": row.name, "is_rtl": row.is_rtl} for row in qs[:50]]
+
+
+def get_calendar_systems_for_country(country_code: str | None = None) -> list[dict]:
+    """Calendar systems for onboarding."""
+    qs = CalendarSystemRegistry.objects.filter(is_active=True).order_by("sort_order", "name")
+    if country_code:
+        qs = qs.filter(country_code__in=[(country_code or "").upper()[:2], ""])
+    return [{"code": row.code, "name": row.name, "term_count_per_year": row.term_count_per_year} for row in qs[:30]]
+
+
+def get_terminology_packs_for_country(country_code: str | None = None) -> list[dict]:
+    """Terminology packs for tenant setup."""
+    qs = AcademicTerminologyRegistry.objects.filter(is_active=True).order_by("sort_order", "name")
+    if country_code:
+        qs = qs.filter(country_code__in=[(country_code or "").upper()[:2], ""])
+    return [{"code": row.code, "name": row.name, "terminology": row.terminology or {}} for row in qs[:30]]

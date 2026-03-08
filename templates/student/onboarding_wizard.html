@@ -211,6 +211,12 @@
       {% csrf_token %}
       <input type="hidden" name="step" value="{{ step }}">
 
+      {% if has_draft_restored %}
+      <div class="alert alert-info mb-3">
+        <i class="bi bi-file-earmark-check me-2"></i>Draft restored. You can continue below or save again to update.
+      </div>
+      {% endif %}
+
       {% if form.non_field_errors %}
         <div class="alert alert-danger mb-3">
           {{ form.non_field_errors }}
@@ -452,6 +458,11 @@
             Continue <i class="bi bi-arrow-right ms-1"></i>
           {% endif %}
         </button>
+        {% if form_draft_url %}
+        <button type="submit" name="action" value="save_draft" class="btn btn-outline-secondary">
+          <i class="bi bi-cloud-arrow-up me-1"></i> Save draft
+        </button>
+        {% endif %}
       </div>
     </form>
   </div>

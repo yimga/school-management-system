@@ -13,6 +13,10 @@
     <div class="card-body p-4">
       {% if applied_pack %}
         <p class="mb-3"><strong>Current pack:</strong> {{ applied_pack.name }} ({{ applied_pack.slug }}) — v{{ applied_pack.version }}</p>
+        {% if pack_update_available and manager_blueprints_url %}
+          <p class="mb-3 text-warning"><strong>Newer version available.</strong> Your platform administrator can update your pack from the <a href="{{ manager_blueprints_url }}" target="_blank" rel="noopener">Blueprint marketplace</a>.</p>
+          <p class="mb-0"><a href="{% url 'portal:support_request' %}" class="btn btn-sm btn-outline-primary">Request update</a></p>
+        {% endif %}
       {% endif %}
 
       {% if packs %}

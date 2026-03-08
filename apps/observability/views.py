@@ -1098,22 +1098,22 @@ def api_operational_slo_dashboard(request):
 
     summary["regions"] = len(region_rows)
 
-    return JsonResponse(
-        {
-            "status": "success",
-            "generated_at": now.isoformat(),
-            "window_hours": window_hours,
-            "window_start": window_start.isoformat(),
-            "slo_targets": {
-                "webhook_success_percent": webhook_success_target,
-                "webhook_p95_latency_ms": webhook_latency_target_ms,
-                "pending_sync_conflicts_max": pending_conflict_target,
-            },
-            "summary": summary,
-            "regions": region_rows,
-            "webhook_stack": _webhook_stack_summary(),
-        }
-    )
+    data = {
+        "generated_at": now.isoformat(),
+        "window_hours": window_hours,
+        "window_start": window_start.isoformat(),
+        "slo_targets": {
+            "webhook_success_percent": webhook_success_target,
+            "webhook_p95_latency_ms": webhook_latency_target_ms,
+            "pending_sync_conflicts_max": pending_conflict_target,
+        },
+        "summary": summary,
+        "regions": region_rows,
+        "webhook_stack": _webhook_stack_summary(),
+    }
+    if request.GET.get("format") == "html" or (request.META.get("HTTP_ACCEPT") or "").strip().split(",")[0].strip().startswith("text/html"):
+        return render(request, "observability/slo_dashboard.html", data)
+    return JsonResponse({"status": "success", **data})
 
 
 # ============================================

@@ -4,7 +4,7 @@ User-friendly forms for /backend interface (separate from Django Admin)
 """
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import StudentProfile, TeacherProfile
+from .models import StudentProfile, TeacherProfile, Applicant
 from apps.academics.models import AcademicYear, Classroom, Specialty, Department
 
 
@@ -194,3 +194,23 @@ class ClassroomCreateForm(forms.ModelForm):
         self.fields['department'].queryset = Department.objects.all().order_by('name')
         self.fields['department'].empty_label = "Select department"
         self.fields['allows_third_term'].initial = True
+
+
+class ApplicantCreateForm(forms.ModelForm):
+    """Backend form for adding an applicant/lead (26.5: long form with Save draft)."""
+
+    class Meta:
+        model = Applicant
+        fields = ["first_name", "last_name", "email", "lead_source", "stage"]
+        widgets = {
+            "first_name": forms.TextInput(attrs={"class": "form-control", "placeholder": "First name"}),
+            "last_name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Last name"}),
+            "email": forms.EmailInput(attrs={"class": "form-control", "placeholder": "email@example.com"}),
+            "lead_source": forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. Website, Referral"}),
+            "stage": forms.Select(attrs={"class": "form-select"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["lead_source"].required = False
+        self.fields["stage"].initial = Applicant.Stage.LEAD

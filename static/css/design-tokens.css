@@ -152,6 +152,40 @@
   --heading-h3: clamp(1.125rem, 2.2vw, 1.25rem); /* ~18px */
   --heading-h4: 1rem;                           /* 16px */
 
+  /* Experience architecture: full typography scale (Display, Section, Table, Micro, Metric, Mono) */
+  --type-display: clamp(2rem, 5vw, 3rem);
+  --type-hero: clamp(1.5rem, 3.5vw, 2.25rem);
+  --type-section: clamp(1.125rem, 2.5vw, 1.375rem);
+  --type-body: clamp(0.9rem, 2vw, 1rem);
+  --type-body-secondary: clamp(0.8rem, 1.8vw, 0.9375rem);
+  --type-table: clamp(0.8rem, 1.6vw, 0.875rem);
+  --type-micro: 0.75rem;
+  --type-metric: clamp(1.25rem, 2.5vw, 1.5rem);
+  --type-mono: 0.875em/1.4 ui-monospace, "Cascadia Code", "SF Mono", monospace;
+
+  /* Shell elevations and surface backgrounds (surface-aware themes override per plane) */
+  --shell-elevation-1: 0 2px 8px rgba(15, 23, 42, 0.06);
+  --shell-elevation-2: 0 4px 16px rgba(15, 23, 42, 0.08);
+  --shell-elevation-3: 0 12px 28px rgba(15, 23, 42, 0.1);
+  --surface-bg-base: #ffffff;
+  --surface-bg-subtle: #f8fafc;
+  --surface-bg-muted: #f1f5f9;
+
+  /* Table densities (compact / comfortable / spacious) */
+  --table-density-compact: 0.35rem 0.5rem;
+  --table-density-comfortable: 0.5rem 0.75rem;
+  --table-density-spacious: 0.75rem 1rem;
+
+  /* Chart tokens */
+  --chart-stroke-default: 1.5px;
+  --chart-legend-text: var(--text-sm);
+  --chart-axis-muted: #94a3b8;
+
+  /* Motion */
+  --motion-fast: 150ms ease;
+  --motion-normal: 250ms ease;
+  --motion-slow: 350ms ease;
+
   /* Content-based breakpoints (use in media queries: max-width: var(--bp-mobile) etc.) */
   --bp-narrow: 360px;
   --bp-content-sm: 480px;

@@ -4146,6 +4146,14 @@ class GlobalSupportTicket(models.Model):
         choices=Status.choices,
         default=Status.OPEN,
     )
+    assigned_to = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="assigned_support_tickets",
+        help_text="Super-admin or support agent assigned to this ticket.",
+    )
     tags = models.JSONField(default=list, blank=True)
     metadata = models.JSONField(
         default=dict,

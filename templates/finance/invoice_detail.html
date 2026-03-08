@@ -79,7 +79,7 @@
             <span>Status</span><strong>{{ invoice.get_status_display }}</strong>
           </div>
           <div class="d-flex justify-content-between">
-            <span>Due</span><strong>{{ invoice.due_date|format_date|default:"TBD" }}</strong>
+            <span>Due</span><strong>{{ invoice.due_date|format_date|default:"—" }}</strong>
           </div>
           {% if guardian_share %}
           <div class="border-top mt-2 pt-2">

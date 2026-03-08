@@ -5,7 +5,16 @@ Admin for Policy Registry v2 models (CountryProfile, PolicyBundle, TenantBluepri
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 
-from .models import BlueprintPack, CountryProfile, PolicyBundle, TenantBlueprint
+from .models import (
+    BlueprintPack,
+    BlueprintCompatibilityRule,
+    CountryProfile,
+    PolicyBundle,
+    PolicyCompatibilityRule,
+    TenantBlueprint,
+    TenantPolicyOverride,
+    ScheduledPolicyOverride,
+)
 
 
 @admin.register(CountryProfile)
@@ -46,3 +55,32 @@ class BlueprintPackAdmin(admin.ModelAdmin):
             total += len(updated)
         self.message_user(request, f"Updated bundle for {total} school(s).")
     update_bundle_for_schools_needing_update.short_description = "Update bundle for schools needing this version"
+
+
+@admin.register(BlueprintCompatibilityRule)
+class BlueprintCompatibilityRuleAdmin(admin.ModelAdmin):
+    list_display = ("blueprint_pack", "is_active", "created_at")
+    list_filter = ("is_active",)
+    raw_id_fields = ("blueprint_pack",)
+
+
+@admin.register(PolicyCompatibilityRule)
+class PolicyCompatibilityRuleAdmin(admin.ModelAdmin):
+    list_display = ("policy_bundle", "blueprint_slug", "country_code", "is_active")
+    list_filter = ("is_active",)
+    raw_id_fields = ("policy_bundle",)
+
+
+@admin.register(TenantPolicyOverride)
+class TenantPolicyOverrideAdmin(admin.ModelAdmin):
+    list_display = ("school", "policy_key", "is_active", "updated_at")
+    list_filter = ("is_active",)
+    search_fields = ("policy_key",)
+    raw_id_fields = ("school",)
+
+
+@admin.register(ScheduledPolicyOverride)
+class ScheduledPolicyOverrideAdmin(admin.ModelAdmin):
+    list_display = ("school", "policy_key", "start_at", "end_at", "is_active")
+    list_filter = ("is_active",)
+    raw_id_fields = ("school",)

@@ -655,3 +655,32 @@
 #cpSearchResults.dropdown-menu .dropdown-item:focus {
   background-color: rgba(255, 255, 255, 0.1);
 }
+
+/* ========== Control plane sidebar: section collapse + compact mode ========== */
+.cp-nav-group-toggle[aria-expanded="false"] .cp-nav-group-chevron {
+  transform: rotate(-90deg);
+}
+.cp-nav-group-chevron {
+  transition: transform 0.2s ease;
+}
+.cp-sidebar-compact-toggle {
+  color: var(--cp-muted);
+  border-color: var(--cp-panel-border);
+}
+.cp-sidebar-compact-toggle:hover {
+  color: var(--cp-text);
+  border-color: var(--cp-muted);
+}
+/* Compact mode: hide labels, show only icons */
+.cp-sidebar-nav.cp-sidebar-compact .cp-nav-label {
+  display: none;
+}
+.cp-sidebar-nav.cp-sidebar-compact .nav-link {
+  justify-content: center;
+}
+.cp-sidebar-nav.cp-sidebar-compact .cp-nav-icon {
+  margin-right: 0 !important;
+}
+.cp-sidebar-col.cp-sidebar-compact {
+  max-width: 4rem;
+}

@@ -27,6 +27,6 @@ Use `--allow-tests` to ignore test files, `--exit-zero` to report but not fail.
 
 ## References
 
-- `RUNMYCAMPUS_CONSOLIDATED_ARCHITECTURE_AND_REFACTOR.md` Part C (Core Architectural Rule).
-- `docs/architecture/phase2_hardcoding_sweep.md` (historical).
-- `apps/platform_runtime/` — `request.tenant_runtime.policy`.
+- [ARCHITECTURE_LAWS.md](ARCHITECTURE_LAWS.md) — Law 1 (no new hardcoding), Law 2 (runtime source of truth).
+- `apps/platform_runtime/` — `request.tenant_runtime.policy`, `platform_runtime.helpers`.
+- `scripts/check_no_hardcoding.py` — run in CI (pre_deploy_gate.sh).

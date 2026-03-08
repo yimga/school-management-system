@@ -13,6 +13,7 @@ from .views import (
     import_hub,
     migration_wizard,
     migration_run_list,
+    migration_rollback,
     migration_legacy_view,
     legacy_data_cleaner_view,
     backend_entity_import,
@@ -76,16 +77,18 @@ try:
         backend_student_create,
         backend_teacher_list,
         backend_teacher_create,
+        backend_classroom_list,
         backend_classroom_create,
         backend_guardian_list,
         backend_applicant_list,
+        backend_applicant_create,
         alumni_list,
     )
     BACKEND_PEOPLE_AVAILABLE = True
 except ImportError:
     BACKEND_PEOPLE_AVAILABLE = False
     backend_student_list = backend_student_create = alumni_list = None
-    backend_teacher_list = backend_teacher_create = backend_classroom_create = backend_guardian_list = backend_applicant_list = None
+    backend_teacher_list = backend_teacher_create = backend_classroom_list = backend_classroom_create = backend_guardian_list = backend_applicant_list = None
 
 app_name = "accounts"
 
@@ -127,6 +130,7 @@ urlpatterns = [
     path("backend/import-hub/", import_hub, name="import_hub"),
     path("backend/migration-wizard/", migration_wizard, name="migration_wizard"),
     path("backend/migration-runs/", migration_run_list, name="migration_run_list"),
+    path("backend/migration-runs/<int:run_id>/rollback/", migration_rollback, name="migration_rollback"),
     path("backend/migration-runs/<int:run_id>/legacy/", migration_legacy_view, name="migration_legacy_view"),
     path("backend/legacy-data-cleaner/", legacy_data_cleaner_view, name="legacy_data_cleaner"),
     path("backend/entities/", backend_entity_console, name="backend_entity_console"),
@@ -170,6 +174,8 @@ urlpatterns = [
     path("backend/teachers/create/", backend_teacher_create, name="backend_teacher_create") if BACKEND_PEOPLE_AVAILABLE else None,
     path("backend/guardians/", backend_guardian_list, name="backend_guardian_list") if BACKEND_PEOPLE_AVAILABLE else None,
     path("backend/applicants/", backend_applicant_list, name="backend_applicant_list") if BACKEND_PEOPLE_AVAILABLE else None,
+    path("backend/applicants/create/", backend_applicant_create, name="backend_applicant_create") if BACKEND_PEOPLE_AVAILABLE else None,
+    path("backend/classrooms/", backend_classroom_list, name="backend_classroom_list") if BACKEND_PEOPLE_AVAILABLE else None,
     path("backend/classrooms/create/", backend_classroom_create, name="backend_classroom_create") if BACKEND_PEOPLE_AVAILABLE else None,
 ]
 # Filter out None values

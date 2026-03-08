@@ -30,3 +30,4 @@
 
 - [x] Sandbox hardening checklist doc created (this file).
 - [x] CSP and sandbox attribute implemented for live embed: `apps/marketplace/views.sandbox_embed` (app-sandbox). Embed points and postMessage contract documented in this doc. Origin checks: frame-ancestors set from widget URL origin when iframe_src is external.
+- [x] Origin validation: sandbox_embed validates HTTP_ORIGIN/HTTP_REFERER against ALLOWED_HOSTS; returns 403 if request comes from a disallowed origin.

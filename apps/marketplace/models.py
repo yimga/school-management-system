@@ -56,6 +56,9 @@ class MarketplaceApp(models.Model):
     class AppKind(models.TextChoices):
         FIRST_PARTY = "first_party", "First-party"
         THIRD_PARTY = "third_party", "Third-party"
+        PREMIUM = "premium", "Premium"
+        TENANT_PRIVATE = "tenant_private", "Tenant-private"
+        CONNECTOR = "connector", "Connector"
 
     publisher = models.ForeignKey(
         PublisherOrganization,
@@ -148,6 +151,11 @@ class MarketplaceListing(models.Model):
         related_name="+",
     )
     metadata = models.JSONField(default=dict, blank=True)
+    compatibility = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Optional: countries (list), blueprint_families (list), plan_tiers (list), workflow_families (list).",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -246,6 +254,10 @@ class AppScope(models.Model):
     app = models.ForeignKey(MarketplaceApp, on_delete=models.CASCADE, related_name="scopes")
     scope_code = models.CharField(max_length=80)
     description = models.CharField(max_length=255, blank=True)
+    sensitive = models.BooleanField(
+        default=False,
+        help_text="If True, scope requires elevated approval before grant.",
+    )
 
     class Meta:
         app_label = "marketplace"
@@ -266,6 +278,10 @@ class AppInstallation(models.Model):
         SUSPENDED = "suspended", "Suspended"
         UNINSTALLED = "uninstalled", "Uninstalled"
 
+    class InstallPhase(models.TextChoices):
+        SANDBOX = "sandbox", "Sandbox (pre-activation)"
+        ACTIVE = "active", "Active"
+
     school = models.ForeignKey(
         "schools.School",
         on_delete=models.CASCADE,
@@ -282,6 +298,16 @@ class AppInstallation(models.Model):
         default=Status.ACTIVE,
         db_index=True,
     )
+    install_phase = models.CharField(
+        max_length=20,
+        choices=InstallPhase.choices,
+        default=InstallPhase.ACTIVE,
+        db_index=True,
+        help_text="Sandbox = pre-activation; Active = fully active.",
+    )
+    last_health_at = models.DateTimeField(null=True, blank=True)
+    health_status = models.CharField(max_length=32, blank=True, db_index=True)
+    uninstalled_at = models.DateTimeField(null=True, blank=True)
     installed_at = models.DateTimeField(auto_now_add=True)
     installed_by = models.ForeignKey(
         AUTH_USER_MODEL,
@@ -312,7 +338,12 @@ class ScopeGrant(models.Model):
     """
     Tenant-approved scope for an installation: which permissions this app has at this school.
     Tenant admin must approve; least-privilege (RunMyCampus blueprint).
+    Sensitive scopes use status=pending until elevated_approved_by is set.
     """
+
+    class GrantStatus(models.TextChoices):
+        PENDING = "pending", "Pending approval"
+        GRANTED = "granted", "Granted"
 
     installation = models.ForeignKey(
         AppInstallation,
@@ -324,6 +355,12 @@ class ScopeGrant(models.Model):
         on_delete=models.CASCADE,
         related_name="grants",
     )
+    status = models.CharField(
+        max_length=16,
+        choices=GrantStatus.choices,
+        default=GrantStatus.GRANTED,
+        db_index=True,
+    )
     granted_at = models.DateTimeField(auto_now_add=True)
     granted_by = models.ForeignKey(
         AUTH_USER_MODEL,
@@ -331,6 +368,14 @@ class ScopeGrant(models.Model):
         null=True,
         blank=True,
         related_name="+",
+    )
+    elevated_approved_at = models.DateTimeField(null=True, blank=True)
+    elevated_approved_by = models.ForeignKey(
+        AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="marketplace_scope_grant_elevated_set",
     )
 
     class Meta:
@@ -452,3 +497,38 @@ class AppVersionCompat(models.Model):
 
     def __str__(self):
         return f"{self.app.slug} {self.app_version_min or '*'}->{self.app_version_max or '*'}"
+
+
+class CapabilityRegistry(models.Model):
+    """
+    Central registry of app capability codes (dashboard_widget, workflow_action, etc.).
+    Apps declare these in manifest; platform uses this for compatibility and governance.
+    """
+
+    class Category(models.TextChoices):
+        DASHBOARD_WIDGET = "dashboard_widget", "Dashboard widget"
+        WORKFLOW_ACTION = "workflow_action", "Workflow action"
+        WORKFLOW_CONDITION = "workflow_condition", "Workflow condition"
+        INTEGRATION_ADAPTER = "integration_adapter", "Integration adapter"
+
+    code = models.CharField(max_length=80, unique=True, db_index=True)
+    name = models.CharField(max_length=120)
+    category = models.CharField(max_length=32, choices=Category.choices, db_index=True)
+    description = models.CharField(max_length=255, blank=True)
+    compatibility_metadata = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Optional: required_roles, supported_pages, etc.",
+    )
+    is_active = models.BooleanField(default=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "marketplace"
+        verbose_name = "Capability (registry)"
+        verbose_name_plural = "Capabilities (registry)"
+        ordering = ["category", "code"]
+
+    def __str__(self):
+        return f"{self.code} ({self.get_category_display()})"

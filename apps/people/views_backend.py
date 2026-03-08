@@ -15,9 +15,10 @@ from django.urls import reverse
 from django.http import HttpResponse
 from django.utils import timezone
 from .models import StudentProfile, TeacherProfile, StudentGuardian, Applicant
-from .forms_backend import StudentCreateForm, TeacherCreateForm, ClassroomCreateForm
+from .forms_backend import StudentCreateForm, TeacherCreateForm, ClassroomCreateForm, ApplicantCreateForm
 from apps.academics.models import AcademicYear, Classroom, Department
-from apps.siteconfig.models import SiteSettings, FormDraft
+from apps.siteconfig.models import FormDraft
+from apps.siteconfig.admissions_services import get_admissions_config, get_required_documents
 
 User = get_user_model()
 
@@ -38,6 +39,23 @@ def _student_create_draft_initial(request):
     if not draft or not draft.data:
         return None, None, None
     form = StudentCreateForm()
+    initial = {k: draft.data[k] for k in form.fields if k in draft.data}
+    return initial, draft.updated_at, True
+
+
+def _application_form_draft_initial(request):
+    """Load draft for application_form (backend add applicant); return initial dict and draft meta or (None, None, None)."""
+    school = getattr(request, "school", None)
+    if not school:
+        return None, None, None
+    draft = FormDraft.objects.filter(
+        school=school,
+        user=request.user,
+        form_key=FORM_DRAFT_KEY_APPLICATION_FORM,
+    ).first()
+    if not draft or not draft.data:
+        return None, None, None
+    form = ApplicantCreateForm()
     initial = {k: draft.data[k] for k in form.fields if k in draft.data}
     return initial, draft.updated_at, True
 
@@ -84,13 +102,17 @@ def backend_student_create(request):
                                 request,
                                 f"Parent account created. Please send login credentials to {parent_email}"
                             )
-                            # Phase 2.1: Optional welcome email when parent account is created
+                            # Phase 2.1: Optional welcome email when parent account is created (runtime flags or SiteSettings fallback)
                             try:
-                                site = SiteSettings.get_solo()
-                                if getattr(site, "notify_parent_welcome_email", False):
+                                from apps.platform_runtime.helpers import get_site_display_name, get_effective_flags
+                                notify = get_effective_flags(request).get("notify_parent_welcome_email")
+                                if notify is None:
+                                    from apps.siteconfig.models import SiteSettings
+                                    notify = getattr(SiteSettings.get_solo(), "notify_parent_welcome_email", False)
+                                if notify:
                                     from django.core.mail import send_mail
                                     from django.conf import settings
-                                    site_name = getattr(site, "site_name", None) or "School"
+                                    site_name = get_site_display_name(request)
                                     login_url = request.build_absolute_uri(reverse("accounts:login"))
                                     send_mail(
                                         subject=f"Your {site_name} parent portal account",
@@ -197,6 +219,61 @@ def backend_teacher_create(request):
 
 
 @login_required
+@permission_required("academics.view_classroom", raise_exception=True)
+def backend_classroom_list(request):
+    """List classrooms (classes/sections) with search, filter by year/department, export CSV (26.5)."""
+    school = getattr(request, "school", None)
+    if not school:
+        return render(request, "people/backend_classroom_list.html", {"classrooms": [], "page_obj": None, "title": "Classrooms", "search": "", "academic_years": [], "departments": [], "selected_year": "", "selected_department": "", "pagination_extra_query": ""})
+    qs = Classroom.objects.filter(school=school).select_related("academic_year", "department").order_by("academic_year__start_date", "name")
+    search = (request.GET.get("q") or "").strip()
+    if search:
+        qs = qs.filter(Q(name__icontains=search) | Q(code__icontains=search))
+    year_id = request.GET.get("academic_year")
+    if year_id:
+        qs = qs.filter(academic_year_id=year_id)
+    dept_id = request.GET.get("department")
+    if dept_id:
+        qs = qs.filter(department_id=dept_id)
+    if request.GET.get("format") == "csv":
+        response = HttpResponse(content_type="text/csv; charset=utf-8")
+        response["Content-Disposition"] = f'attachment; filename="classrooms_export_{timezone.now().strftime("%Y%m%d_%H%M%S")}.csv"'
+        w = csv.writer(response)
+        w.writerow(["name", "code", "academic_year", "department", "allows_third_term"])
+        for c in qs[:10000]:
+            w.writerow([
+                c.name or "",
+                c.code or "",
+                c.academic_year.name if c.academic_year else "",
+                c.department.name if c.department else "",
+                "Yes" if c.allows_third_term else "No",
+            ])
+        return response
+    per_page = min(100, max(10, int(request.GET.get("page_size", 25))))
+    paginator = Paginator(qs, per_page)
+    try:
+        page_obj = paginator.get_page(request.GET.get("page", 1))
+    except (PageNotAnInteger, EmptyPage):
+        page_obj = paginator.get_page(1)
+    academic_years = list(AcademicYear.objects.filter(school=school).order_by("-start_date")[:20])
+    departments = list(Department.objects.filter(school=school).order_by("name"))
+    return render(request, "people/backend_classroom_list.html", {
+        "classrooms": page_obj.object_list,
+        "page_obj": page_obj,
+        "title": "Classrooms",
+        "search": search,
+        "academic_years": academic_years,
+        "departments": departments,
+        "selected_year": year_id or "",
+        "selected_department": dept_id or "",
+        "pagination_extra_query": _pagination_extra_query(request),
+        "page_size": per_page,
+        "page_size_options": [20, 50, 100],
+        "show_page_size": True,
+    })
+
+
+@login_required
 @permission_required('academics.add_classroom', raise_exception=True)
 def backend_classroom_create(request):
     """Create classroom via user-friendly backend UI"""
@@ -206,7 +283,7 @@ def backend_classroom_create(request):
             try:
                 classroom = form.save()
                 messages.success(request, f"Classroom '{classroom.name}' created successfully!")
-                return redirect('academics:backend_classroom_list')
+                return redirect('accounts:backend_classroom_list')
             except Exception as e:
                 messages.error(request, f"Error creating classroom: {str(e)}")
     else:
@@ -395,6 +472,50 @@ def backend_teacher_list(request):
 
 
 @login_required
+@permission_required("people.add_applicant", raise_exception=True)
+def backend_applicant_create(request):
+    """Add applicant/lead via backend UI. Section 26.5: Save draft / Resume draft via FormDraft (application_form)."""
+    school = getattr(request, "school", None)
+    if not school:
+        messages.warning(request, "No school context.")
+        return redirect(reverse("accounts:backend_dashboard"))
+    if request.method == "POST":
+        form = ApplicantCreateForm(request.POST)
+        if form.is_valid():
+            try:
+                applicant = form.save(commit=False)
+                applicant.school = school
+                applicant.save()
+                FormDraft.objects.filter(
+                    school=school,
+                    user=request.user,
+                    form_key=FORM_DRAFT_KEY_APPLICATION_FORM,
+                ).delete()
+                messages.success(request, f"Applicant '{applicant.first_name} {applicant.last_name}' added.")
+                return redirect("accounts:backend_applicant_list")
+            except Exception as e:
+                messages.error(request, str(e))
+    else:
+        initial, draft_updated_at, has_draft = _application_form_draft_initial(request)
+        form = ApplicantCreateForm(initial=initial) if initial else ApplicantCreateForm()
+    if request.method == "POST":
+        has_draft, draft_updated_at = False, None
+    form_draft_url = reverse("siteconfig:form_draft_api", kwargs={"form_key": FORM_DRAFT_KEY_APPLICATION_FORM})
+    return render(
+        request,
+        "people/backend_applicant_create.html",
+        {
+            "form": form,
+            "title": "Add applicant",
+            "form_draft_key": FORM_DRAFT_KEY_APPLICATION_FORM,
+            "form_draft_url": form_draft_url,
+            "has_draft": has_draft if request.method != "POST" else False,
+            "draft_updated_at": draft_updated_at if request.method != "POST" else None,
+        },
+    )
+
+
+@login_required
 @permission_required("people.view_studentprofile", raise_exception=True)
 def backend_applicant_list(request):
     """List applicants (admissions funnel) with search, filter by stage, export CSV (26.5 / applications list)."""
@@ -456,6 +577,7 @@ def backend_applicant_list(request):
         page_obj = paginator.get_page(1)
 
     form_draft_url = reverse("siteconfig:form_draft_api", kwargs={"form_key": FORM_DRAFT_KEY_APPLICATION_FORM})
+    runtime = getattr(request, "tenant_runtime", None)
     return render(
         request,
         "people/backend_applicant_list.html",
@@ -471,6 +593,8 @@ def backend_applicant_list(request):
             "page_size_options": [20, 50, 100],
             "show_page_size": True,
             "form_draft_url": form_draft_url,
+            "admissions_config": get_admissions_config(runtime),
+            "required_documents": get_required_documents(runtime),
         },
     )
 

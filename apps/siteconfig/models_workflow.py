@@ -8,6 +8,52 @@ Level 1 = locked global default, Level 2 = configurable template, Level 3 = cons
 from django.db import models
 
 
+class WorkflowPack(models.Model):
+    """
+    Phase 4: Reusable workflow pack (e.g. Admissions Standard, Finance Dual Approval).
+    Groups WorkflowTemplates; assignable by module to a school.
+    """
+    code = models.CharField(max_length=80, unique=True)
+    name = models.CharField(max_length=120)
+    description = models.TextField(blank=True)
+    family = models.CharField(max_length=64, blank=True, db_index=True)
+    version = models.CharField(max_length=32, default="1.0")
+    is_active = models.BooleanField(default=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Workflow Pack"
+        verbose_name_plural = "Workflow Packs"
+        ordering = ["family", "name"]
+
+    def __str__(self):
+        return f"{self.name} [{self.code}]"
+
+
+class WorkflowPackAssignment(models.Model):
+    """Assign a WorkflowPack to a school for a given module (e.g. admissions, fee_approval)."""
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="workflow_pack_assignments",
+    )
+    workflow_pack = models.ForeignKey(
+        WorkflowPack,
+        on_delete=models.PROTECT,
+        related_name="assignments",
+    )
+    module_slug = models.CharField(max_length=80, db_index=True, help_text="e.g. admissions, fee_approval, grade_publish")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Workflow pack assignment"
+        verbose_name_plural = "Workflow pack assignments"
+        unique_together = [["school", "module_slug"]]
+        ordering = ["school", "module_slug"]
+
+
 class WorkflowTemplate(models.Model):
     """
     Master workflow definition (public/control schema). Trigger, conditions, actions (JSON).
@@ -21,6 +67,13 @@ class WorkflowTemplate(models.Model):
         CONSTRAINED_CUSTOM = 3, "Level 3: Constrained custom (tenant customizes within safe boundaries)"
 
     code = models.CharField(max_length=80, unique=True, help_text="Unique code (e.g. safety_net_absent_3d)")
+    workflow_pack = models.ForeignKey(
+        WorkflowPack,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="templates",
+    )
     name = models.CharField(max_length=120)
     description = models.TextField(blank=True)
     level = models.PositiveSmallIntegerField(

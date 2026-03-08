@@ -8,15 +8,23 @@ from django.views.decorators.http import require_GET, require_http_methods, requ
 from apps.billing.models import RevenueSharePayout
 from apps.marketplace.models import (
     AppInstallation,
+    AppScope,
     MarketplaceApp,
     MarketplaceListing,
     MarketplaceReview,
     PublisherOrganization,
+    ScopeGrant,
 )
 from apps.marketplace.services import (
+    activate_sandbox_installation,
+    approve_sensitive_scope,
+    check_app_compatibility,
     finalize_marketplace_review,
+    grant_scopes,
     install_app,
+    refresh_installation,
     submit_marketplace_review,
+    uninstall_app,
 )
 
 
@@ -24,6 +32,16 @@ def _control_plane_access(user):
     if not getattr(user, "is_authenticated", False):
         return False
     return bool(user.is_superuser or user.is_staff or (getattr(user, "role", "") or "").upper() == "SUPERADMIN")
+
+
+def _tenant_marketplace_allowed(user):
+    """Tenant: only ADMIN, IT_ADMIN, LEADERSHIP, or staff/superuser can manage apps and scopes."""
+    if not getattr(user, "is_authenticated", False):
+        return False
+    if user.is_superuser or user.is_staff:
+        return True
+    role = (getattr(user, "role", "") or "").upper()
+    return role in ("ADMIN", "IT_ADMIN", "LEADERSHIP")
 
 
 @login_required
@@ -299,6 +317,299 @@ def app_catalog(request):
 
 
 @login_required
+@user_passes_test(_control_plane_access)
+@require_GET
+def compatibility_matrix(request):
+    """Control plane: which apps are compatible with which country/blueprint/plan."""
+    listings = (
+        MarketplaceListing.objects.select_related("app", "publisher")
+        .filter(app__is_active=True)
+        .order_by("app__name")
+    )
+    rows = []
+    for lst in listings:
+        compat = getattr(lst, "compatibility", None) or {}
+        rows.append({
+            "listing": lst,
+            "app": lst.app,
+            "countries": compat.get("countries") or compat.get("country_codes") or [],
+            "blueprint_families": compat.get("blueprint_families") or [],
+            "plan_tiers": compat.get("plan_tiers") or [],
+        })
+    return render(request, "marketplace/compatibility_matrix.html", {"rows": rows})
+
+
+@login_required
+@user_passes_test(_control_plane_access)
+@require_GET
+def sandbox_inspector(request):
+    """Control plane: list installations with install_phase=sandbox."""
+    installations = (
+        AppInstallation.objects.filter(
+            status=AppInstallation.Status.ACTIVE,
+            install_phase=AppInstallation.InstallPhase.SANDBOX,
+        )
+        .select_related("app", "school", "installed_by")
+        .order_by("-installed_at")
+    )
+    return render(request, "marketplace/sandbox_inspector.html", {"installations": installations})
+
+
+@login_required
+@user_passes_test(_control_plane_access)
+@require_GET
+def installation_health(request):
+    """Control plane: list installations with last_health_at / health_status."""
+    installations = (
+        AppInstallation.objects.filter(status=AppInstallation.Status.ACTIVE)
+        .select_related("app", "school")
+        .order_by("-last_health_at")
+    )
+    return render(request, "marketplace/installation_health.html", {"installations": installations})
+
+
+@login_required
+@user_passes_test(_control_plane_access)
+@require_GET
+def marketplace_incident_dashboard(request):
+    """Control plane: marketplace incidents; links to support/incident console; recent audit events."""
+    from django.urls import reverse
+    from apps.marketplace.models import AppAuditLog
+
+    support_url = reverse("super:support_dashboard") if hasattr(request, "resolver_match") else "/super/support/"
+    recent_events = list(
+        AppAuditLog.objects.filter(
+            action__in=("install", "uninstall", "activate_sandbox", "schema_patch", "suspend", "unsuspend"),
+        )
+        .select_related("school", "app", "actor")
+        .order_by("-created_at")[:50]
+    )
+    return render(request, "marketplace/incident_dashboard.html", {
+        "support_url": support_url,
+        "recent_events": recent_events,
+    })
+
+
+@login_required
+@user_passes_test(_control_plane_access)
+@require_POST
+def super_refresh_installation(request):
+    """Control plane: re-apply app manifest to installation (e.g. widget_config)."""
+    installation_id = request.POST.get("installation_id")
+    if not installation_id:
+        messages.error(request, "Select an installation.")
+        return redirect("super:marketplace_installation_health")
+    inst = get_object_or_404(AppInstallation, pk=installation_id, status=AppInstallation.Status.ACTIVE)
+    refresh_installation(inst)
+    messages.success(request, f"“{inst.app.name}” at “{inst.school.name}” refreshed from manifest.")
+    return redirect("super:marketplace_installation_health")
+
+
+@login_required
+@user_passes_test(_control_plane_access)
+@require_POST
+def super_activate_sandbox(request):
+    """Control plane: move installation from sandbox to active."""
+    installation_id = request.POST.get("installation_id")
+    if not installation_id:
+        messages.error(request, "Select an installation.")
+        return redirect("super:marketplace_sandbox_inspector")
+    inst = get_object_or_404(
+        AppInstallation,
+        pk=installation_id,
+        install_phase=AppInstallation.InstallPhase.SANDBOX,
+        status=AppInstallation.Status.ACTIVE,
+    )
+    activate_sandbox_installation(inst, activated_by=request.user)
+    messages.success(request, f"“{inst.app.name}” at “{inst.school.name}” is now active.")
+    return redirect("super:marketplace_sandbox_inspector")
+
+
+@login_required
+@user_passes_test(_tenant_marketplace_allowed)
+@require_GET
+def tenant_installed_apps(request):
+    """
+    Tenant-side: list installed apps for the current school.
+    Excludes uninstalled; passes full installation objects for uninstall/activate.
+    """
+    school = getattr(request, "school", None)
+    if not school:
+        return render(request, "marketplace/tenant_installed_apps.html", {
+            "installations": [], "school": None, "pending_scope_grants_count": 0,
+        })
+    installations = list(
+        AppInstallation.objects.filter(
+            school=school,
+            status=AppInstallation.Status.ACTIVE,
+            uninstalled_at__isnull=True,
+        )
+        .select_related("app")
+        .order_by("-installed_at")
+    )
+    pending_scope_grants_count = ScopeGrant.objects.filter(
+        installation__school=school,
+        status=ScopeGrant.GrantStatus.PENDING,
+    ).count()
+    return render(
+        request,
+        "marketplace/tenant_installed_apps.html",
+        {
+            "installations": installations,
+            "school": school,
+            "pending_scope_grants_count": pending_scope_grants_count,
+        },
+    )
+
+
+@login_required
+@user_passes_test(_tenant_marketplace_allowed)
+@require_GET
+def tenant_app_catalog(request):
+    """Tenant: browse installable apps for current school and install with scope consent."""
+    school = getattr(request, "school", None)
+    if not school:
+        return render(request, "marketplace/tenant_app_catalog.html", {"listings": [], "school": None, "installed_slugs": set()})
+    listings = (
+        MarketplaceListing.objects.select_related("app", "publisher")
+        .filter(app__is_active=True, status=MarketplaceListing.Status.APPROVED)
+        .order_by("app__name")
+    )
+    installable = []
+    for lst in listings:
+        if getattr(lst, "kill_switch_active", False):
+            continue
+        installable.append(lst)
+    installed_slugs = set(
+        AppInstallation.objects.filter(
+            school=school,
+            status=AppInstallation.Status.ACTIVE,
+            uninstalled_at__isnull=True,
+        ).values_list("app__slug", flat=True)
+    )
+    return render(request, "marketplace/tenant_app_catalog.html", {
+        "listings": installable,
+        "school": school,
+        "installed_slugs": installed_slugs,
+    })
+
+
+@login_required
+@user_passes_test(_tenant_marketplace_allowed)
+@require_POST
+def tenant_install_app(request):
+    """Tenant: install app for current school with scope consent (sensitive scopes → pending)."""
+    school = getattr(request, "school", None)
+    if not school:
+        messages.error(request, "No school context.")
+        return redirect("tenant_installed_apps")
+    app_id = request.POST.get("app_id") or request.POST.get("app")
+    if not app_id:
+        messages.error(request, "Select an app.")
+        return redirect("tenant_app_catalog")
+    app = get_object_or_404(MarketplaceApp, pk=app_id, is_active=True)
+    try:
+        install_app(school, app, installed_by=request.user, install_phase="active", skip_compatibility=False)
+        messages.success(request, f"App “{app.name}” has been installed.")
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect("tenant_installed_apps")
+
+
+@login_required
+@user_passes_test(_tenant_marketplace_allowed)
+@require_POST
+def tenant_uninstall_app(request):
+    """Tenant: uninstall app for current school."""
+    school = getattr(request, "school", None)
+    if not school:
+        messages.error(request, "No school context.")
+        return redirect("tenant_installed_apps")
+    installation_id = request.POST.get("installation_id")
+    if not installation_id:
+        messages.error(request, "Select an installation.")
+        return redirect("tenant_installed_apps")
+    inst = get_object_or_404(AppInstallation, pk=installation_id, school=school, uninstalled_at__isnull=True)
+    try:
+        uninstall_app(school, inst.app, uninstalled_by=request.user)
+        messages.success(request, f"App “{inst.app.name}” has been uninstalled.")
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect("tenant_installed_apps")
+
+
+@login_required
+@user_passes_test(_tenant_marketplace_allowed)
+@require_GET
+def tenant_scope_consent(request):
+    """Tenant: list pending scope grants and approve (elevated approval for sensitive scopes)."""
+    school = getattr(request, "school", None)
+    if not school:
+        return render(request, "marketplace/tenant_scope_consent.html", {"pending_grants": [], "school": None})
+    pending_grants = list(
+        ScopeGrant.objects.filter(
+            installation__school=school,
+            status=ScopeGrant.GrantStatus.PENDING,
+        )
+        .select_related("installation", "installation__app", "scope")
+        .order_by("installation__app__name", "scope__scope_code")
+    )
+    return render(request, "marketplace/tenant_scope_consent.html", {
+        "pending_grants": pending_grants,
+        "school": school,
+    })
+
+
+@login_required
+@user_passes_test(_tenant_marketplace_allowed)
+@require_POST
+def tenant_approve_scope(request):
+    """Tenant: approve a pending (sensitive) scope grant."""
+    school = getattr(request, "school", None)
+    if not school:
+        messages.error(request, "No school context.")
+        return redirect("tenant_installed_apps")
+    grant_id = request.POST.get("grant_id")
+    if not grant_id:
+        messages.error(request, "Select a scope grant.")
+        return redirect("tenant_scope_consent")
+    grant = get_object_or_404(
+        ScopeGrant,
+        pk=grant_id,
+        installation__school=school,
+        status=ScopeGrant.GrantStatus.PENDING,
+    )
+    approve_sensitive_scope(grant, request.user)
+    messages.success(request, f"Scope “{grant.scope.scope_code}” has been approved.")
+    return redirect("tenant_scope_consent")
+
+
+@login_required
+@user_passes_test(_tenant_marketplace_allowed)
+@require_POST
+def tenant_activate_installation(request):
+    """Tenant: move a sandbox installation to active so it appears in runtime."""
+    school = getattr(request, "school", None)
+    if not school:
+        messages.error(request, "No school context.")
+        return redirect("tenant_installed_apps")
+    installation_id = request.POST.get("installation_id")
+    if not installation_id:
+        messages.error(request, "Select an installation.")
+        return redirect("tenant_installed_apps")
+    inst = get_object_or_404(
+        AppInstallation,
+        pk=installation_id,
+        school=school,
+        install_phase=AppInstallation.InstallPhase.SANDBOX,
+        status=AppInstallation.Status.ACTIVE,
+    )
+    activate_sandbox_installation(inst, activated_by=request.user)
+    messages.success(request, f"“{inst.app.name}” is now active.")
+    return redirect("tenant_installed_apps")
+
+
+@login_required
 @require_GET
 def sandbox_embed(request):
     """
@@ -345,6 +656,23 @@ def sandbox_embed(request):
             parsed = urlparse(iframe_src)
             origin = f"{parsed.scheme}://{parsed.netloc}"
             frame_ancestors = f"'self' {origin}"
+        except Exception:
+            pass
+    # Origin check: only allow embed to be loaded from our own origins (Referer/Origin)
+    request_origin = request.META.get("HTTP_ORIGIN") or request.META.get("HTTP_REFERER", "")
+    if request_origin:
+        from urllib.parse import urlparse
+        from django.conf import settings
+        try:
+            parsed = urlparse(request_origin)
+            host = (parsed.netloc or "").split(":")[0]
+            allowed = list(getattr(settings, "ALLOWED_HOSTS", [])) or ["localhost", "127.0.0.1"]
+            if host and host not in allowed and not any(host == h.lstrip(".") or host.endswith("." + h.lstrip(".")) for h in allowed if isinstance(h, str) and h.startswith(".")):
+                return HttpResponse(
+                    "<p>Embed not allowed from this origin.</p>",
+                    content_type="text/html",
+                    status=403,
+                )
         except Exception:
             pass
     safe_src = (iframe_src or "about:blank").replace('"', "&quot;").replace("<", "&lt;").replace(">", "&gt;")

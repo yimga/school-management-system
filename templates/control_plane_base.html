@@ -166,5 +166,23 @@
     }
   });
 })();
+(function () {
+  var nav = document.getElementById('cpSidebarNav');
+  var col = document.getElementById('cp-sidebar-col');
+  var key = 'runmycampus-cp-sidebar-compact';
+  var toggle = document.querySelector('.cp-sidebar-compact-toggle');
+  if (!nav || !toggle) return;
+  function applyCompact(compact) {
+    nav.classList.toggle('cp-sidebar-compact', compact);
+    if (col) col.classList.toggle('cp-sidebar-compact', compact);
+    try { localStorage.setItem(key, compact ? '1' : '0'); } catch (e) {}
+  }
+  toggle.addEventListener('click', function () {
+    applyCompact(!nav.classList.contains('cp-sidebar-compact'));
+  });
+  try {
+    if (localStorage.getItem(key) === '1') applyCompact(true);
+  } catch (e) {}
+})();
 </script>
 {% endblock %}

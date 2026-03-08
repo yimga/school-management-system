@@ -963,3 +963,20 @@ def run_revenue_share_payout_execution(
         elif payout.status == RevenueSharePayout.Status.FAILED:
             summary["failed"] += 1
     return summary
+
+
+def convert_quote_to_subscription(quote_id: int):
+    """
+    Commercial platform (29.10): convert an accepted Quote to TenantSubscription.
+    Connection point: when external sign/contract flow is ready, implement this to create
+    BillingAccount (if needed), TenantSubscription from quote.plan/amount, and set quote.status = ACCEPTED.
+    Returns (success: bool, message: str).
+    """
+    try:
+        quote = Quote.objects.select_related("school", "plan").get(pk=quote_id)
+    except Quote.DoesNotExist:
+        return False, "Quote not found"
+    if quote.status != Quote.Status.ACCEPTED and quote.status != Quote.Status.SENT:
+        return False, "Quote must be SENT or ACCEPTED to convert"
+    # Stub: our part is the hook. Implement: create/update BillingAccount, create TenantSubscription from quote.
+    return False, "Stub: implement when product prioritises quote-to-contract (create TenantSubscription from quote)"

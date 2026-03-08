@@ -167,16 +167,27 @@ def _cached_sidebar_badge_counts(user, role, staff_like, request=None):
     return counts
 
 
+def _backend_flags_for_sidebar(request, site):
+    """Resolve backend feature flags for sidebar visibility. Prefer request.tenant_runtime.flags when available."""
+    try:
+        from apps.platform_runtime.helpers import get_effective_flags
+        return get_effective_flags(request) or getattr(site, "backend_feature_flags", None) or {}
+    except Exception:
+        return getattr(site, "backend_feature_flags", None) or {}
+
+
 def build_portal_sidebar_items(request, site):
     """
     Return a list of sidebar items {id, label, url, icon, section, badge} for the current user.
     If site.portal_sidebar_order is non-empty, sort items so that IDs in that list come first in that order,
     then append any remaining items in their original order.
     Uses effective portal role (session) when user has both teacher and parent hats.
+    Visibility is runtime-aware: when request.tenant_runtime is present, entitlements.modules and flags govern item visibility.
     """
     if not request or not request.user.is_authenticated:
         return []
     user = request.user
+    backend_flags = _backend_flags_for_sidebar(request, site)
     from apps.accounts.portal_roles import get_effective_portal_role
     primary_role = (getattr(user, "role", "") or "").upper()
     role = get_effective_portal_role(request) or primary_role
@@ -233,7 +244,7 @@ def build_portal_sidebar_items(request, site):
             items.append({"id": "take_student_attendance", "label": "Take student attendance", "url": _safe_reverse("portal:take_student_attendance"), "icon": "bi-clipboard-check", "section": "Learning Management", "badge": None})
             items.append({"id": "take_teacher_attendance", "label": "Take teacher attendance", "url": _safe_reverse("portal:record_teacher_attendance"), "icon": "bi-person-check", "section": "Learning Management", "badge": None})
         items.append({"id": "timetable", "label": "My Timetable", "url": _safe_reverse("portal:teacher_timetable"), "icon": "bi-calendar-week", "section": "Learning Management", "badge": None})
-        if (getattr(site, "backend_feature_flags", None) or {}).get("enable_cahier_de_texte"):
+        if backend_flags.get("enable_cahier_de_texte"):
             items.append({"id": "cahier", "label": "Cahier de Texte", "url": _safe_reverse("portal:cahier_list"), "icon": "bi-journal-text", "section": "Learning Management", "badge": None, "feature": "cahier_de_texte"})
         items.append({"id": "payslips", "label": "Payslips", "url": _safe_reverse("payroll:employee_payslips"), "icon": "bi-wallet2", "section": "Human Resources", "badge": None})
         items.append({"id": "leave", "label": "Leave Requests", "url": _safe_reverse("payroll:employee_leave"), "icon": "bi-calendar-check", "section": "Human Resources", "badge": None})
@@ -277,7 +288,7 @@ def build_portal_sidebar_items(request, site):
             items.append({"id": "portal_documents", "label": "Documents", "url": _safe_reverse("portal:portal_feature", kwargs={"feature": "documents"}), "icon": "bi-file-earmark-text", "section": "Content & Documents", "badge": None})
         # Certification & Exams (GCE): admins get quick access; certification home handles disabled state.
         items.append({"id": "certification", "label": "Certification & Exams", "url": _safe_reverse("accounts:certification_home"), "icon": "bi-award", "section": "Academic Management", "badge": None})
-        if (getattr(site, "backend_feature_flags", None) or {}).get("enable_cahier_de_texte") and (getattr(user, "has_feature_permission", lambda _: False)("cahier.verify") or role == "CENSOR"):
+        if backend_flags.get("enable_cahier_de_texte") and (getattr(user, "has_feature_permission", lambda _: False)("cahier.verify") or role == "CENSOR"):
             items.append({"id": "cahier_verify", "label": "Cahier verification", "url": _safe_reverse("portal:cahier_verify_list"), "icon": "bi-journal-check", "section": "Academic Management", "badge": None})
         if getattr(user, "has_feature_permission", lambda _: False)("attendance.manage"):
             items.append({"id": "take_student_attendance", "label": "Take student attendance", "url": _safe_reverse("portal:take_student_attendance"), "icon": "bi-clipboard-check", "section": "Academic Management", "badge": None})
@@ -320,7 +331,7 @@ def build_portal_sidebar_items(request, site):
         if is_superuser or getattr(user, "has_feature_permission", lambda _: False)("settings.feature_control"):
             items.append({"id": "feature_control", "label": "Feature Control", "url": _safe_reverse("siteconfig:feature_control_panel"), "icon": "bi-toggle-on", "section": "Admin Panel", "badge": None})
             items.append({"id": "feature_control_audit", "label": "Feature Control Audit", "url": _safe_reverse("siteconfig:feature_control_audit"), "icon": "bi-clock-history", "section": "Admin Panel", "badge": None})
-        if (getattr(site, "backend_feature_flags", None) or {}).get("enable_api_center") and (getattr(user, "has_feature_permission", lambda _: False)("api_center.manage") or role in ("ADMIN", "IT_ADMIN", "SUPERADMIN")):
+        if backend_flags.get("enable_api_center") and (getattr(user, "has_feature_permission", lambda _: False)("api_center.manage") or role in ("ADMIN", "IT_ADMIN", "SUPERADMIN")):
             items.append({"id": "api_center", "label": "Integrations & API Center", "url": _safe_reverse("apicenter:dashboard"), "icon": "bi-plug", "section": "Admin Panel", "badge": None})
         items.append({"id": "backend", "label": "Backend Console", "url": _safe_reverse("accounts:backend_dashboard"), "icon": "bi-gear-fill", "section": "Admin Panel", "badge": None})
         items.append({"id": "workflow_center", "label": "Workflow Center", "url": _safe_reverse("accounts:workflow_center"), "icon": "bi-diagram-3", "section": "Admin Panel", "badge": workflow_badge})
@@ -391,9 +402,21 @@ def build_portal_sidebar_items(request, site):
         deduped.append(item)
     items = deduped
 
-    # Multi-tenant: hide items for modules the school has not enabled (Policy Registry / is_feature_enabled).
+    # Multi-tenant: hide items for modules the school has not enabled.
+    # Prefer request.tenant_runtime (entitlements.modules, flags) when available; else Policy Registry / is_feature_enabled.
     school = getattr(request, "school", None)
-    if school:
+    runtime = getattr(request, "tenant_runtime", None)
+    if runtime and getattr(runtime, "entitlements", None) and getattr(runtime.entitlements, "modules", None):
+        allowed_modules = set(m.lower() if isinstance(m, str) else str(m).lower() for m in runtime.entitlements.modules)
+        # Feature-gated items: show only if feature key is in entitlements or flags
+        flags = getattr(getattr(runtime, "flags", None), "flags", None) or {}
+        def _item_visible(it):
+            feat = it.get("feature")
+            if feat is None:
+                return True
+            return flags.get(feat, False) or feat.replace("_", ".") in allowed_modules or any(feat in m for m in allowed_modules)
+        items = [it for it in items if _item_visible(it)]
+    elif school:
         from apps.schools.models import is_feature_enabled
         items = [
             it for it in items

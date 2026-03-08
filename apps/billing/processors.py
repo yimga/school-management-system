@@ -123,10 +123,22 @@ class BasePlatformBillingProcessor:
         return True, ""
 
     def normalize(self, payload: dict) -> list[dict]:
+        """Subclasses must implement; converts provider webhook payload to normalized list of billing snapshots."""
         raise NotImplementedError
 
     def execute_payout(self, payout, *, http_post_json=None, http_post_form=None) -> dict:
+        """Subclasses must implement; executes a payout via the provider API."""
         raise NotImplementedError
+
+
+class NoOpPlatformBillingProcessor(BasePlatformBillingProcessor):
+    """No-op processor for unconfigured or placeholder provider; never raises."""
+
+    def normalize(self, payload: dict) -> list[dict]:
+        return []
+
+    def execute_payout(self, payout, *, http_post_json=None, http_post_form=None) -> dict:
+        return {"status": "noop", "message": "Processor not implemented."}
 
 
 class GenericRelayProcessor(BasePlatformBillingProcessor):

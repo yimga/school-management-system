@@ -59,6 +59,7 @@ from apps.portal.models import PortalFeatureItem
 from .services import ews_students_needing_attention
 from apps.communication.models import MessageThread
 from apps.communication.views_announcements import _can_create_department_announcement
+from apps.platform_runtime.helpers import get_effective_flags
 from apps.siteconfig.models import SiteSettings, default_backend_feature_flags
 from apps.siteconfig.dashboard_resolver import for_role as dashboard_for_role
 from apps.siteconfig.workflow_resolver import get_approval_workflow as workflow_get_approval
@@ -510,7 +511,7 @@ def teacher_dashboard(request: HttpRequest):
                 "role": getattr(user, "role", ""),
             })
 
-    flags = {**default_backend_feature_flags(), **(getattr(SiteSettings.get_solo(), "backend_feature_flags", {}) or {})}
+    flags = get_effective_flags(request)
     finance_banner = None
     if flags.get("require_guardian_finance_opt_in"):
         finance_banner = (

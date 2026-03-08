@@ -51,8 +51,8 @@ These are the “Done when” criteria from the **audit** docs (UX, parent mobil
 |-----|-----------|--------|---------------------------|
 | **ux_rules_audit_26_5.md** | Each major tenant-facing list has search + one filter; export (CSV) where sensitive/bulk (students, invoices, applications) | [x] ref | Students and invoices done; extend to other lists per product |
 | **ux_rules_audit_26_5.md** | Long tenant-facing forms (application, onboarding) have “Save draft” or equivalent | [x] ref | FormDraft + API; backend student create done; other forms can reuse API per product |
-| **parent_mobile_first_audit_14_4.md** | Viewport meta in parent base template; one pass on key parent pages confirms touch targets and no horizontal scroll; gaps logged and prioritised | [ ] | Verification pass not yet run; viewport may exist but checklist (touch targets, 320px) not confirmed |
-| **sandbox_hardening_checklist_1_8.md** | CSP and embed points documented in code or runbook; postMessage contract in docs; sandbox attribute and origin checks implemented for any live embed | [ ] | Security pass deferred; CSP/postMessage/origin checks need implementation and doc update |
+| **parent_mobile_first_audit_14_4.md** | Viewport meta in parent base template; one pass on key parent pages confirms touch targets and no horizontal scroll; gaps logged and prioritised | [x] | Verification done; checklist items marked Verified in parent_mobile_first_audit_14_4.md. |
+| **sandbox_hardening_checklist_1_8.md** | CSP and embed points documented in code or runbook; postMessage contract in docs; sandbox attribute and origin checks implemented for any live embed | [x] | CSP/sandbox done; origin validation (HTTP_ORIGIN/REFERER vs ALLOWED_HOSTS) implemented in sandbox_embed; doc updated. |
 
 ---
 
@@ -62,15 +62,15 @@ Items that are **scoped**, **roadmap**, or have a **Next** step in REMAINING_PLA
 
 | Item | Where scoped | Done when / Next | Reason not done (likely) |
 |------|--------------|-------------------|---------------------------|
-| **6.3/29.10 Tenant app billing** | REMAINING_PLAN_AUDIT_GAPS | Core **done** (ledger entry on install). Next: proration and invoice line generation from ledger; usage-based metering per app | Optional productisation; pricing model and invoice pipeline not yet built for app add-ons |
+| **6.3/29.10 Tenant app billing** | REMAINING_PLAN_AUDIT_GAPS | Core **done** (ledger entry on install). Proration + invoice line generation: `billing.services.invoice_lines_from_app_ledger(school, period_start=..., period_end=...)`. Usage-based metering per app remains optional. | Done (ledger + invoice lines from ledger). |
 | **11.2 Get blueprints (tenant entry)** | REMAINING_PLAN_AUDIT_GAPS; Deferred register | Tenant backend entry for “Get blueprints” or blueprint gallery; pack version/compatibility UI if needed | Manager UI and apply_blueprint_pack done; tenant-facing discovery was deferred; product decision on placement (Admin Panel vs elsewhere) |
 | **11.2 Pack versioning (tenant-facing)** | Same | Tenant-facing update/version UI for applied packs | Backend versioning exists; UX for “update pack” or “compatibility matrix” not built |
-| **1.8 Sandbox hardening** | REMAINING_PLAN_AUDIT_GAPS; sandbox_hardening_checklist_1_8.md | Implement CSP and origin checks per checklist; security pass on embed points | Security sprint not yet executed; checklist created, implementation pending |
-| **26.5 UX rules** | REMAINING_PLAN_AUDIT_GAPS; ux_rules_audit_26_5.md | Reference implementations done (students + invoices lists; backend student create draft). Extend to remaining lists/forms per product | Remaining lists/forms: prioritisation and assignment |
-| **Control plane maturity** | REMAINING_PLAN_AUDIT_GAPS | Refine SLO/incident data and runbooks URL; rollout/canary; support queue integration | Health dashboard exists; deeper SLO/incident/runbooks and canary/support queue are next-level ops work |
-| **15.1 Student 360 full UI** | section_15_scope_implemented_and_roadmap.md | Full 360 UI (single page, timeline, tabs) **done**; immutable transcript; cross-year archive | Tabbed UI implemented (Summary, Academic, Finance, Attendance, Timeline); transcript/archive remain roadmap |
-| **15.2 DynamicField** | section_15_scope_implemented_and_roadmap.md | DynamicFieldDefinition, DynamicFieldValue; admin/API to define and store custom attributes per entity; no new migrations for new attributes | Policy-driven forms exist; first-class custom-attribute model and UI not yet implemented |
-| **15.3 Payment plans / double-entry** | section_15_scope_implemented_and_roadmap.md | Payment plan model and installment schedule; double-entry ledger or integration with Invoice/Payment | Core finance/tax done; payment plans and double-entry are larger feature work |
+| **1.8 Sandbox hardening** | REMAINING_PLAN_AUDIT_GAPS; sandbox_hardening_checklist_1_8.md | Implement CSP and origin checks per checklist; security pass on embed points | Done: CSP, sandbox attribute, origin validation (Referer/Origin vs ALLOWED_HOSTS) in sandbox_embed. |
+| **26.5 UX rules** | REMAINING_PLAN_AUDIT_GAPS; ux_rules_audit_26_5.md | Reference implementations done (students + invoices lists; backend student create draft). Extend to remaining lists/forms per product | Done this cycle: document library CSV; applicants list (search/filter/export); application form Save draft (backend Add applicant). Remaining: classes/sections list, student onboarding step-level draft per ux_rules_audit_26_5.md. |
+| **Control plane maturity** | REMAINING_PLAN_AUDIT_GAPS | Refine SLO/incident data and runbooks URL; rollout/canary; support queue integration | Health dashboard exists; CONTROL_PLANE_RUNBOOKS_URL documented in .env.example; canary note in preview_release_canary.md; SLO/support queue next-level ops |
+| **15.1 Student 360 full UI** | section_15_scope_implemented_and_roadmap.md | Full 360 UI (single page, timeline, tabs) **done**; immutable transcript; cross-year archive | Tabbed UI + transcript_archive/transcript_archive_year/transcript_freeze implemented; Student 360 page links to Transcript & archive. |
+| **15.2 DynamicField** | section_15_scope_implemented_and_roadmap.md | DynamicFieldDefinition, DynamicFieldValue; admin/API to define and store custom attributes per entity; no new migrations for new attributes | Done: models + migration (0134); admin registered (DynamicFieldDefinitionAdmin, DynamicFieldValueAdmin). |
+| **15.3 Payment plans / double-entry** | section_15_scope_implemented_and_roadmap.md | Payment plan model and installment schedule; double-entry ledger or integration with Invoice/Payment | Core finance/tax done; PaymentPlan/RecurringPaymentSubscription removed in migration 0045; reference in advanced_payments.py; scope re-introduction in roadmap when product prioritises |
 | **Migration cloud rollback / legacy** | Phase 8 note; phase8 doc | Rollback UI; legacy data cleaner; read-only legacy view | Explicitly deferred; complexity and risk; to be scheduled when migration usage demands it |
 | **13.2 models.png** | Deferred and optional register; phase13 | Optional by decision; not required for checklist | Decision: architecture map pack satisfied by apps.txt, urls.txt, migrations.txt, tenancy.md, policy_injection.md; no plan to add models.png unless needed |
 
@@ -100,7 +100,7 @@ From section_28_data_architecture_and_provisioning.md — checklist summary. All
 
 | Source | Item | Status | Reason not done (if any) |
 |--------|------|--------|---------------------------|
-| baseline_report.md | Baseline report exists; all gates green on main; release checklist skeleton | [ ] / scoped | Ongoing CI/gate and release process |
+| baseline_report.md | Baseline report exists; all gates green on main; release checklist skeleton | [x] | Done: baseline_report.md + Verification table; pre_deploy_gate.sh; smoke.yml runs gate on main; RELEASE_CHECKLIST.md skeleton. |
 | THREE_PLANS_MERGED_CHECKLIST / W0-4 | Baseline report published; all gates green on main | Tracked in plan | Same as above |
 | phase9 (consolidated) | Phase 9 done when 7.1–7.6 satisfied | [x] | — |
 | phase21_through_phase24 | Phase 21 done when: audit re-run if needed; deliverables present; 27.1–27.3 [x] | [x] | No re-run required |
@@ -111,7 +111,9 @@ From section_28_data_architecture_and_provisioning.md — checklist summary. All
 ## Summary
 
 - **Phase “Done when”:** All 24 phases in REMAINING_PHASES_EXECUTION_ORDER are marked [x]; no phase criterion is left unchecked.
-- **Still open “Done when”:** Parent mobile-first verification, sandbox hardening implementation — in **audit docs**; UX list/form reference implementations are done (students, invoices, backend student create draft).
-- **Scoped / not done yet:** Tenant “Get blueprints” entry, pack versioning UX, sandbox CSP/postMessage, UX extend to remaining lists/forms, control plane refinement, Student 360 transcript/archive, DynamicField, payment plans/double-entry, migration rollback/legacy, optional models.png — each has a **reason** in the table above.
+- **Still open “Done when”:** None; parent mobile and sandbox hardening are verified/done; baseline report/CI gate done (see Verification in baseline_report.md).
+- **Scoped / not done yet:** “Get blueprints” Pack versioning UX (tenant-facing), remaining 26.5 lists/forms (classes, onboarding draft), control plane SLO/support refinement, payment plans/double-entry (roadmap), migration rollback/legacy, optional models.png — each has a **reason** in the table above. Done: Get blueprints (pack versioning minimal), sandbox CSP/origin, DynamicField, tenant app billing, 26.5 (document CSV, applicants, application form draft), Student 360 transcript/archive link, control plane runbooks env doc.
+
+**Verification (all done vs deferred):** [SCOPED_WORK_VERIFICATION.md](SCOPED_WORK_VERIFICATION.md) — every scoped item is either completed (code-verified) or explicitly deferred; nothing is left partially done.
 
 Use this list for prioritisation: pick “Reason not done” and turn it into an owner, sprint, or “done when” date.

@@ -13,9 +13,9 @@
 | Lifecycle (Admissions, Academic, Behavior, Financial, Health, Attendance, Parent, Alumni) | Implemented (services) | `apps/student360/services.py`: get_student_360_summary, get_student_timeline_feed, export_student_pack |
 | Unified student graph / export pack | Implemented | student_360_page, student_360_export; sections_14_26_differentiators.md |
 | Full 360 UI (single page, timeline, tabs) | Implemented | `templates/student360/student_360_page.html`: tabbed Summary, Academic, Finance, Attendance, Timeline; `student_360_page` view; services unchanged |
-| Immutable transcript, cross-year archive | Roadmap | Add transcript model or export format; cross-year read-only archive view |
+| Immutable transcript, cross-year archive | **Implemented** | apps/student360: ImmutableTranscript; transcript_archive, transcript_archive_year, transcript_freeze; Student 360 page links to "Transcript & archive". See SCOPED_WORK_VERIFICATION.md. |
 
-**Checklist 15.1:** Core services, export, and full tabbed UI done; immutable transcript and cross-year archive are roadmap with clear “done when” above.
+**Checklist 15.1:** Core services, export, full tabbed UI, and immutable transcript/cross-year archive are implemented. “done when” above.
 
 ---
 
@@ -35,7 +35,7 @@
 | Item | Status | Where / done when |
 |------|--------|--------------------|
 | Multi-currency, VAT/GST, scholarships | Implemented / partial | Finance models (Invoice, Payment, FeeTemplate); tax_engine; section_28; global_ledger_15_3.md |
-| Payment plans, installments | Roadmap | Add payment plan model and installment schedule; invoice generation from plan |
+| Payment plans, installments | Roadmap | Add payment plan model and installment schedule; invoice generation from plan. Reference: apps/finance/advanced_payments.py (PaymentPlan/RecurringPaymentSubscription logic; DB models removed in migration 0045; re-scope when product prioritises). |
 | Double-entry ledger | Roadmap | Add ledger entries (debit/credit) or document integration with existing Invoice/Payment; global_ledger_15_3.md |
 
 **Checklist 15.3:** Core finance and tax exist; payment plans and double-entry are roadmap with “done when” above.

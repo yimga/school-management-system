@@ -102,11 +102,14 @@ def get_blueprints(request):
         return redirect(reverse("accounts:backend_dashboard"))
     packs = []
     applied_pack = None
+    pack_update_available = False
     try:
         from apps.policies.models import BlueprintPack, TenantBlueprint
         packs = list(BlueprintPack.objects.filter(is_active=True).order_by("category", "name")[:50])
         tb = TenantBlueprint.objects.filter(school=school).select_related("applied_pack").first()
         applied_pack = tb.applied_pack if tb else None
+        if applied_pack:
+            pack_update_available = applied_pack.schools_with_outdated_bundle().filter(pk=school.pk).exists()
     except Exception:
         pass
     try:
@@ -121,6 +124,7 @@ def get_blueprints(request):
             "school": school,
             "packs": packs,
             "applied_pack": applied_pack,
+            "pack_update_available": pack_update_available,
             "manager_blueprints_url": manager_blueprints_url,
         },
     )

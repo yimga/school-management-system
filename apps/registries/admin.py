@@ -7,8 +7,11 @@ from .models import (
     CalendarSystemRegistry,
     CountryRegistry,
     CurrencyRegistry,
+    DocumentTypeRegistry,
     EducationLevelRegistry,
     EducationSystemTypeRegistry,
+    FeeCategoryRegistry,
+    GradeScaleRegistry,
     InstitutionTypeRegistry,
     LocaleRegistry,
     SubdivisionRegistry,
@@ -83,4 +86,25 @@ class InstitutionTypeRegistryAdmin(admin.ModelAdmin):
 class AcademicTerminologyRegistryAdmin(admin.ModelAdmin):
     list_display = ("code", "name", "country_code", "sort_order", "is_active")
     list_filter = ("is_active", "country_code")
+    search_fields = ("code", "name")
+
+
+@admin.register(DocumentTypeRegistry, site=admin_site)
+class DocumentTypeRegistryAdmin(admin.ModelAdmin):
+    list_display = ("code", "name", "category", "country_code", "sort_order", "is_active")
+    list_filter = ("is_active", "category")
+    search_fields = ("code", "name")
+
+
+@admin.register(FeeCategoryRegistry, site=admin_site)
+class FeeCategoryRegistryAdmin(admin.ModelAdmin):
+    list_display = ("code", "name", "category", "country_code", "sort_order", "is_active")
+    list_filter = ("is_active", "category")
+    search_fields = ("code", "name")
+
+
+@admin.register(GradeScaleRegistry, site=admin_site)
+class GradeScaleRegistryAdmin(admin.ModelAdmin):
+    list_display = ("code", "name", "family", "country_code", "sort_order", "is_active")
+    list_filter = ("is_active", "family")
     search_fields = ("code", "name")

@@ -408,12 +408,45 @@ class TimetableGenerator:
             key = (teacher_id, day)
             teacher_workload[key] = teacher_workload.get(key, 0) + 1
         
-        # Identify teachers with unbalanced workload
-        for (teacher_id, day), count in teacher_workload.items():
-            if count > 6:  # More than 6 classes per day
-                # Optional: attempt to redistribute entries to balance workload (future enhancement)
-                pass
-        
+        # Redistribute: for teachers with >6 classes on a day, move entries to lighter days (same time, different day)
+        overloaded = [(tid, d) for (tid, d), c in teacher_workload.items() if c > 6]
+        for teacher_id, from_day in overloaded:
+            day_entries = [
+                e for e in entries
+                if e.teacher_id == teacher_id and e.time_slot.day_of_week == from_day
+            ]
+            if not day_entries:
+                continue
+            # Find another day with same start_time/end_time where this teacher has fewer classes
+            for entry in day_entries[:2]:  # Move at most 2 per teacher-day to avoid thrashing
+                slot = entry.time_slot
+                candidates = list(
+                    TimeSlot.objects.filter(
+                        is_active=True,
+                        start_time=slot.start_time,
+                        end_time=slot.end_time,
+                    ).exclude(day_of_week=from_day).order_by("day_of_week")
+                )
+                for target_slot in candidates:
+                    target_day = target_slot.day_of_week
+                    target_count = teacher_workload.get((teacher_id, target_day), 0)
+                    if target_count >= 6:
+                        continue
+                    # Check room free on target_slot
+                    if ScheduleEntry.objects.filter(
+                        schedule=schedule,
+                        room=entry.room,
+                        time_slot=target_slot,
+                        is_cancelled=False,
+                    ).exists():
+                        continue
+                    # Move entry to target_slot
+                    entry.time_slot = target_slot
+                    entry.save()
+                    teacher_workload[(teacher_id, from_day)] = teacher_workload.get((teacher_id, from_day), 0) - 1
+                    teacher_workload[(teacher_id, target_day)] = target_count + 1
+                    break
+
         return schedule
 
 
