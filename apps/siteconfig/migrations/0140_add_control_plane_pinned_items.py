@@ -1,7 +1,8 @@
 # Phase 8: Control plane Quick access (pinned sidebar items)
 # Idempotent: try ADD COLUMN and ignore "column already exists" (safe for re-run on tenant schemas).
+# Use a savepoint so that on "already exists" we roll back only the ALTER and leave the txn clean.
 
-from django.db import migrations, models
+from django.db import connection, migrations, models
 from django.db.utils import OperationalError, ProgrammingError
 
 
@@ -10,6 +11,7 @@ def add_control_plane_pinned_items_if_missing(apps, schema_editor):
     conn = schema_editor.connection
     vendor = conn.vendor
     if vendor == "postgresql":
+        sid = connection.savepoint()
         try:
             with conn.cursor() as cursor:
                 cursor.execute(
@@ -19,8 +21,12 @@ def add_control_plane_pinned_items_if_missing(apps, schema_editor):
                     """
                 )
         except ProgrammingError as e:
-            if "already exists" not in str(e):
+            if "already exists" in str(e):
+                connection.savepoint_rollback(sid)
+            else:
                 raise
+        else:
+            connection.savepoint_commit(sid)
     elif vendor == "sqlite":
         try:
             with conn.cursor() as cursor:
