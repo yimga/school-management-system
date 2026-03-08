@@ -113,6 +113,12 @@ class KBCategory(models.Model):
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='subcategories', verbose_name=_("Parent Category"))
     display_order = models.PositiveIntegerField(_("Display Order"), default=0)
     is_active = models.BooleanField(_("Is Active"), default=True)
+    target_roles = models.JSONField(
+        _("Target roles"),
+        default=list,
+        blank=True,
+        help_text=_("List of role codes that can see this category (empty = all)."),
+    )
     created_at = models.DateTimeField(_("Created At"), auto_now_add=True)
     updated_at = models.DateTimeField(_("Updated At"), auto_now=True)
 

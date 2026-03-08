@@ -82,6 +82,7 @@ class Command(BaseCommand):
                     'icon': data['icon'],
                     'display_order': data['ordering'],
                     'parent': None,
+                    'target_roles': [],
                 }
             )
             categories[slug] = cat

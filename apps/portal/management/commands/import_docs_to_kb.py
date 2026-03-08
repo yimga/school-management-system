@@ -100,6 +100,7 @@ class Command(BaseCommand):
                 "icon": "fa-book",
                 "display_order": 1,
                 "is_active": True,
+                "target_roles": [],
             },
         )
         if created:
@@ -129,6 +130,7 @@ class Command(BaseCommand):
                     "display_order": order,
                     "parent": operator_root,
                     "is_active": True,
+                    "target_roles": [],
                 },
             )
         
@@ -203,6 +205,7 @@ class Command(BaseCommand):
                         'display_order': file_metadata.get('order', 10),
                         "parent": operator_root,
                         "is_active": True,
+                        "target_roles": [],
                     }
                 )
             else:
