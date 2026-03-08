@@ -1,0 +1,54 @@
+/**
+ * Surface themes – plane-specific overrides of design tokens.
+ * Marketing: brighter, spacious, editorial. Control Plane: darker, dense. Admin: neutral, clean. Tenant: branding-aware.
+ * Use data-surface on html or main container to apply. Default (no attribute) = tenant/portal.
+ */
+
+/* ========== Marketing plane (runmycampus.com) ========== */
+html[data-surface="marketing"],
+body.marketing-surface {
+  --surface-bg-base: #ffffff;
+  --surface-bg-subtle: #f8fafc;
+  --surface-bg-muted: #f1f5f9;
+  --type-hero: clamp(1.75rem, 4vw, 2.75rem);
+  --type-section: clamp(1.25rem, 2.8vw, 1.5rem);
+  --shell-elevation-1: 0 2px 12px rgba(15, 23, 42, 0.06);
+  --shell-elevation-2: 0 8px 24px rgba(15, 23, 42, 0.08);
+  --mkt-spacing-section: clamp(3rem, 6vw, 5rem);
+  --mkt-spacing-block: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+/* ========== Control plane (manager.runmycampus.com/super/) ========== */
+html[data-surface="control-plane"],
+body.cp-surface,
+.cp-layout {
+  --surface-bg-base: #0f172a;
+  --surface-bg-subtle: #1e293b;
+  --surface-bg-muted: #334155;
+  --shell-elevation-1: 0 2px 8px rgba(0, 0, 0, 0.25);
+  --shell-elevation-2: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --shell-elevation-3: 0 12px 28px rgba(0, 0, 0, 0.35);
+  --table-density-comfortable: 0.35rem 0.6rem;
+  --type-table: 0.8125rem;
+}
+
+/* ========== Admin backoffice (manager.runmycampus.com/admin) ========== */
+html[data-surface="admin"],
+body.admin-ops-surface {
+  --surface-bg-base: #ffffff;
+  --surface-bg-subtle: #f8fafc;
+  --surface-bg-muted: #f1f5f9;
+  --shell-elevation-1: 0 2px 8px rgba(15, 23, 42, 0.06);
+  --shell-elevation-2: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --type-table: 0.875rem;
+  --table-density-comfortable: 0.5rem 0.75rem;
+}
+
+/* ========== Tenant plane (school.runmycampus.com) ========== */
+html[data-surface="tenant"],
+body.tenant-surface {
+  /* Uses design-tokens defaults + portal/school theme overrides from base templates */
+  --surface-bg-base: var(--portal-bg, #f7fbff);
+  --surface-bg-subtle: rgba(255, 255, 255, 0.8);
+  --surface-bg-muted: rgba(15, 23, 42, 0.04);
+}

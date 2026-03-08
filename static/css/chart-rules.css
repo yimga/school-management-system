@@ -1,0 +1,39 @@
+/**
+ * Chart discipline – blueprint Phase 8.
+ * Consistent legends, color meaning, density difference between control plane and tenant/marketing.
+ */
+
+/* Chart container (use with your chart library wrapper) */
+.chart-container {
+  font-family: var(--portal-font, inherit);
+}
+.chart-container svg {
+  overflow: visible;
+}
+
+/* Legend text from tokens */
+.chart-legend {
+  font-size: var(--chart-legend-text, var(--text-sm));
+  color: var(--portal-text, #111827);
+}
+.chart-legend--muted {
+  color: var(--chart-axis-muted, #94a3b8);
+}
+
+/* Axis labels */
+.chart-axis-label {
+  font-size: var(--type-micro, 0.75rem);
+  fill: var(--chart-axis-muted, #94a3b8);
+}
+
+/* Stroke default for line charts */
+.chart-line {
+  stroke-width: var(--chart-stroke-default, 1.5px);
+}
+
+/* Semantic series colors (use as CSS vars or classes for chart config) */
+.chart-color--primary { color: var(--school-primary, #0d6efd); }
+.chart-color--success { color: #22c55e; }
+.chart-color--warning { color: #f59e0b; }
+.chart-color--danger  { color: #ef4444; }
+.chart-color--muted   { color: var(--chart-axis-muted, #94a3b8); }

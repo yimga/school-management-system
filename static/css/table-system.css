@@ -1,0 +1,73 @@
+/**
+ * One table system – blueprint Phase 8.
+ * Sticky columns, density modes, status chips, expansion, mobile fallback.
+ * Use .table-family on <table>; .table-density-compact|comfortable|spacious on wrapper or table.
+ */
+
+/* Density: apply padding from design tokens */
+.table-density-compact th,
+.table-density-compact td {
+  padding: var(--table-density-compact, 0.35rem 0.5rem);
+  font-size: var(--type-table, 0.875rem);
+}
+.table-density-comfortable th,
+.table-density-comfortable td {
+  padding: var(--table-density-comfortable, 0.5rem 0.75rem);
+  font-size: var(--type-table, 0.875rem);
+}
+.table-density-spacious th,
+.table-density-spacious td {
+  padding: var(--table-density-spacious, 0.75rem 1rem);
+  font-size: var(--type-table, 0.875rem);
+}
+
+/* Table family: consistent thead and borders */
+.table-family {
+  font-size: var(--type-table);
+}
+.table-family thead th {
+  font-weight: 600;
+  background: var(--surface-bg-muted, #f1f5f9);
+  border-bottom: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
+  white-space: nowrap;
+}
+.table-family tbody tr:hover {
+  background: var(--surface-bg-subtle, rgba(15, 23, 42, 0.03));
+}
+
+/* Status chips (semantic; replace ad-hoc badge colors where possible) */
+.table-status-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2em 0.5em;
+  border-radius: var(--token-radius-sm, 6px);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+.table-status-chip--success { background: rgba(34, 197, 94, 0.15); color: #15803d; }
+.table-status-chip--warning { background: rgba(245, 158, 11, 0.15); color: #b45309; }
+.table-status-chip--danger  { background: rgba(239, 68, 68, 0.15); color: #b91c1c; }
+.table-status-chip--info    { background: rgba(59, 130, 246, 0.15); color: #1d4ed8; }
+.table-status-chip--muted   { background: var(--surface-bg-muted); color: var(--portal-text-muted, #6b7280); }
+
+/* Sticky first column (optional: add .table-sticky-col to <th>/<td>) */
+.table-responsive.table-sticky-first .table-family th:first-child,
+.table-responsive.table-sticky-first .table-family td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: inherit;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.04);
+}
+.table-responsive.table-sticky-first .table-family thead th:first-child {
+  z-index: 2;
+  background: var(--surface-bg-muted, #f1f5f9);
+}
+
+/* Mobile: horizontal scroll hint */
+@media (max-width: 767px) {
+  .table-responsive {
+    -webkit-overflow-scrolling: touch;
+  }
+  .table-family { min-width: 600px; }
+}

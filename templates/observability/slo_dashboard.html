@@ -1,0 +1,103 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "SLO dashboard" %}{% endblock %}
+
+{% block cp_content %}
+<div class="container py-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div>
+      <h1 class="h4 mb-1">{% trans "Operational SLO dashboard" %}</h1>
+      <p class="text-muted mb-0">{% trans "Regional webhook delivery and sync conflict SLOs." %}</p>
+    </div>
+    <div class="text-end small text-muted">
+      {% trans "Window" %}: {{ window_hours }}h · {% trans "Generated" %}: {{ generated_at }}
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-2">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <div class="text-muted small text-uppercase">{% trans "Regions" %}</div>
+          <div class="display-6">{{ summary.regions|default:0 }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <div class="text-muted small text-uppercase">{% trans "Healthy" %}</div>
+          <div class="display-6 text-success">{{ summary.healthy_regions|default:0 }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <div class="text-muted small text-uppercase">{% trans "Warning" %}</div>
+          <div class="display-6 text-warning">{{ summary.warning_regions|default:0 }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <div class="text-muted small text-uppercase">{% trans "Critical" %}</div>
+          <div class="display-6 text-danger">{{ summary.critical_regions|default:0 }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <div class="text-muted small text-uppercase">{% trans "Active schools" %}</div>
+          <div class="display-6">{{ summary.active_schools|default:0 }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>{% trans "Region" %}</th>
+              <th>{% trans "Status" %}</th>
+              <th>{% trans "Schools" %}</th>
+              <th>{% trans "Webhook success %" %}</th>
+              <th>{% trans "P95 latency (ms)" %}</th>
+              <th>{% trans "Sync pending" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in regions %}
+            <tr>
+              <td><strong>{{ row.region_name }}</strong> <span class="text-muted">({{ row.region_code }})</span></td>
+              <td>
+                {% if row.status == "healthy" %}<span class="badge bg-success">{% trans "Healthy" %}</span>
+                {% elif row.status == "warning" %}<span class="badge bg-warning text-dark">{% trans "Warning" %}</span>
+                {% else %}<span class="badge bg-danger">{% trans "Critical" %}</span>{% endif %}
+              </td>
+              <td>{{ row.active_schools }}</td>
+              <td>{{ row.webhook.success_rate_percent|floatformat:1 }}%</td>
+              <td>{{ row.webhook.p95_latency_ms|floatformat:0 }}</td>
+              <td>{{ row.sync_conflicts.pending }} / {{ row.sync_conflicts.pending_target_max }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-muted">{% trans "No regional data in window." %}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-3 small text-muted">
+    {% trans "Targets" %}: webhook success ≥ {{ slo_targets.webhook_success_percent }}%, P95 latency ≤ {{ slo_targets.webhook_p95_latency_ms }}ms, sync pending ≤ {{ slo_targets.pending_sync_conflicts_max }}.
+    <a href="?format=json">{% trans "View as JSON" %}</a>
+  </div>
+</div>
+{% endblock %}

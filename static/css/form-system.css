@@ -1,0 +1,56 @@
+/**
+ * One form system – blueprint Phase 8.
+ * Section grouping, progressive disclosure, validation clarity, multi-step.
+ */
+
+/* Form sections */
+.form-section {
+  margin-bottom: var(--token-space-xl, 1.5rem);
+  padding-bottom: var(--token-space-lg, 1rem);
+  border-bottom: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
+}
+.form-section:last-child {
+  border-bottom: 0;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+.form-section__title {
+  font-size: var(--type-section, 1.125rem);
+  font-weight: 600;
+  margin-bottom: var(--token-space-md, 1rem);
+  color: var(--portal-text, #111827);
+}
+.form-section__subtitle {
+  font-size: var(--type-body-secondary, 0.875rem);
+  color: var(--portal-text-muted, #6b7280);
+  margin-bottom: var(--token-space-md, 1rem);
+}
+
+/* Validation state (use .is-invalid / .was-validated from Bootstrap where applicable) */
+.form-system .form-control.is-invalid,
+.form-system .form-select.is-invalid {
+  border-color: var(--admin-content-danger, #dc2626);
+}
+.form-system .invalid-feedback {
+  font-size: var(--type-micro, 0.75rem);
+  color: var(--admin-content-danger, #dc2626);
+}
+
+/* Dense form row for list filters */
+.form-system--dense .row.g-2 {
+  gap: 0.35rem;
+}
+.form-system--dense .form-label {
+  font-size: var(--type-micro, 0.75rem);
+  margin-bottom: 0.15rem;
+}
+
+/* Action row (submit / cancel) */
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--token-space-sm, 0.5rem);
+  margin-top: var(--token-space-lg, 1rem);
+  padding-top: var(--token-space-md, 1rem);
+  border-top: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
+}
