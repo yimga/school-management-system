@@ -74,6 +74,14 @@
           {% trans "Document Library" %}
         </a>
       </li>
+      {% if is_manager_host %}
+      <li>
+        <a href="{% url 'super:dashboard' %}" class="admin-sidebar-link" target="_self">
+          <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
+          {% trans "Control plane" %}
+        </a>
+      </li>
+      {% else %}
       <li>
         <a href="{% url 'accounts:backend_dashboard' %}" class="admin-sidebar-link {% if '/authentication/backend' in request.path %}active{% endif %}"
            aria-current="{% if '/authentication/backend' in request.path %}page{% endif %}">
@@ -81,6 +89,7 @@
           {% trans "Backend Console" %}
         </a>
       </li>
+      {% endif %}
       {% endif %}
     </ul>
   </div>

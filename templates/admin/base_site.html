@@ -178,7 +178,7 @@
 
 {% block extrahead %}
   {{ block.super }}
-  {% if SITE_FAVICON_URL %}<link rel="icon" href="{{ SITE_FAVICON_URL }}" type="image/x-icon">{% endif %}
+  {% if is_manager_host %}<link rel="icon" href="{% static 'images/runmycampus-icon.png' %}" type="image/png">{% elif SITE_FAVICON_URL %}<link rel="icon" href="{{ SITE_FAVICON_URL }}" type="image/x-icon">{% endif %}
   {# Configuration Engine: same high-end control-plane shell as /super/ on all hosts #}
   <script>
     (function(){

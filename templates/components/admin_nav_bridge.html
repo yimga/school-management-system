@@ -1,6 +1,5 @@
-{% load static %}
-<!-- Admin Navigation Bridge Component -->
-<!-- Provides seamless switching between Django Admin and Backend Dashboard -->
+{% load static i18n %}
+<!-- Admin Navigation Bridge: platform-only on manager host; tenant switching on tenant host -->
 
 <style>
 .admin-nav-bridge {
@@ -220,9 +219,11 @@
                 {% endif %}
             </div>
             <div>
-                <div class="admin-nav-bridge__title">Admin Portal</div>
+                <div class="admin-nav-bridge__title">{% if is_manager_host %}{% trans "Configuration Engine" %}{% else %}Admin Portal{% endif %}</div>
                 <div class="admin-nav-bridge__location">
-                    {% if request.resolver_match.url_name == 'admin:index' or '/admin/' in request.path %}
+                    {% if is_manager_host %}
+                        RunMyCampus Manager — {% trans "System &amp; data" %}
+                    {% elif request.resolver_match.url_name == 'admin:index' or '/admin/' in request.path %}
                         Configuration Engine - System &amp; Data
                     {% else %}
                         Backend - Operations &amp; Workflows
@@ -232,23 +233,22 @@
         </div>
         
         <div class="admin-nav-bridge__actions">
-            <a href="{{ portal_home_url|default:'/' }}" class="admin-nav-bridge__home-btn">
-                Portal Home
-            </a>
-            
-            {% if request.resolver_match.url_name == 'admin:index' or '/admin/' in request.path %}
-                <!-- Currently in Configuration Engine (Admin), show Back to Backend -->
-                <a href="{% url 'accounts:backend_dashboard' %}" class="admin-nav-bridge__switch-btn btn btn-sm btn-back-outline">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                    <span>Back to Backend</span>
-                </a>
+            {% if is_manager_host %}
+                <a href="{% url 'super:dashboard' %}" class="admin-nav-bridge__home-btn">{% trans "Control plane" %}</a>
+                <a href="{{ public_site_url|default:'https://runmycampus.com' }}" class="admin-nav-bridge__switch-btn" target="_blank" rel="noopener noreferrer">{% trans "Public site" %}</a>
+            {% else %}
+                <a href="{{ portal_home_url|default:'/' }}" class="admin-nav-bridge__home-btn">{% trans "Portal Home" %}</a>
+                {% if request.resolver_match.url_name == 'admin:index' or '/admin/' in request.path %}
+                    <a href="{% url 'accounts:backend_dashboard' %}" class="admin-nav-bridge__switch-btn btn btn-sm btn-back-outline">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                        <span>{% trans "Back to Backend" %}</span>
+                    </a>
+                {% endif %}
             {% endif %}
         </div>
     </div>
 
-    {% if admin_portal_stats %}
+    {% if admin_portal_stats and not is_manager_host %}
     <div class="admin-nav-bridge__stats">
         {% for section, stats in admin_portal_stats.items %}
         <div class="admin-nav-bridge__stat-card">

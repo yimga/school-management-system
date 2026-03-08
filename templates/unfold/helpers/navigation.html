@@ -1,7 +1,7 @@
 {% load i18n unfold %}
 
 <nav id="nav-sidebar-inner" class="bg-base-50 flex flex-col min-h-screen dark:text-font-default-dark dark:bg-base-950/20 {% element_classes 'navigation_inner' %}">
-    {% comment %}Brand (logo + school name) ABOVE search – always shown for consistent sidebar {% endcomment %}
+    {% comment %}Brand (logo + title): platform on manager, site on tenant {% endcomment %}
     <div class="flex-shrink-0 border-b border-base-200 dark:border-base-800 px-3 py-3">
         <a href="{% url 'admin:index' %}" class="admin-sidebar-brand-link-header admin-unfold-sidebar-brand flex items-center gap-3 min-w-0 text-decoration-none">
             <div class="admin-sidebar-logo-wrap admin-unfold-sidebar-logo-wrap flex items-center justify-center shrink-0 rounded-lg">
