@@ -1730,6 +1730,7 @@ def evaluation_admin(request: HttpRequest):
     filter_form = EvaluationFilterForm(
         data=request.GET or None,
         academic_year=year_obj,
+        school=getattr(request, "school", None),
     )
 
     current_weights = AssessmentWeights.get_for(
@@ -1753,6 +1754,7 @@ def evaluation_admin(request: HttpRequest):
         data=request.POST or None,
         academic_year=year_obj,
         term=term_obj,
+        school=getattr(request, "school", None),
         prefix="create",
     )
     weights_form = AssessmentWeightsForm(

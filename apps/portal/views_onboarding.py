@@ -38,6 +38,7 @@ def teacher_onboarding_wizard(request: HttpRequest):
         return redirect("portal:teacher_dashboard_alias")
     
     site = SiteSettings.get_solo()
+    school = getattr(request, "school", None)
     session_key = "teacher_onboarding_wizard_data"
     wizard_data = request.session.get(session_key, {})
     step = int(request.GET.get("step", "1"))
@@ -60,7 +61,7 @@ def teacher_onboarding_wizard(request: HttpRequest):
         
         # Validate: use merged wizard_data on steps 2+ so step 1 required fields are present
         data_to_validate = wizard_data if step >= 2 else request.POST
-        form = TeacherOnboardingForm(data=data_to_validate)
+        form = TeacherOnboardingForm(data=data_to_validate, school=school)
         
         if step == 1:
             # Step 1: Validate basic information
@@ -118,7 +119,7 @@ def teacher_onboarding_wizard(request: HttpRequest):
     
     # Build form with session data (so re-renders after validation errors show data)
     form_data = dict(wizard_data) if wizard_data else {}
-    form = TeacherOnboardingForm(data=form_data)
+    form = TeacherOnboardingForm(data=form_data, school=school)
     
     # Pre-populate form from session
     if wizard_data:
@@ -217,7 +218,7 @@ def student_onboarding_wizard(request: HttpRequest):
         # Validate: use merged wizard_data so step 1 required fields are present on steps 2+
         data_to_validate = wizard_data if step >= 2 else request.POST
         policy = get_policy_for_request(request)
-        form = StudentOnboardingForm(data=data_to_validate, policy=policy)
+        form = StudentOnboardingForm(data=data_to_validate, policy=policy, school=school)
         
         if step == 1:
             # Step 1: Basic information - validate required fields
@@ -318,7 +319,7 @@ def student_onboarding_wizard(request: HttpRequest):
     # Build form with session data (so re-renders after validation errors show data)
     form_data = dict(wizard_data) if wizard_data else {}
     policy = get_policy_for_request(request)
-    form = StudentOnboardingForm(data=form_data, policy=policy)
+    form = StudentOnboardingForm(data=form_data, policy=policy, school=school)
     
     # Pre-populate form from session for GET or when re-rendering after POST
     if wizard_data:

@@ -243,4 +243,20 @@
   {{ block.super }}
   {% include 'components/ai_copilot.html' %}
   {% include 'components/toast_notifications.html' %}
+  <script>
+  (function() {
+    var key = 'runmycampus-admin-sidebar-compact';
+    var toggle = document.getElementById('admin-sidebar-compact-toggle');
+    function applyCompact(compact) {
+      if (compact) document.body.classList.add('admin-sidebar-compact'); else document.body.classList.remove('admin-sidebar-compact');
+      try { localStorage.setItem(key, compact ? '1' : '0'); } catch (e) {}
+    }
+    if (toggle) {
+      toggle.addEventListener('click', function() { applyCompact(!document.body.classList.contains('admin-sidebar-compact')); });
+    }
+    try {
+      if (localStorage.getItem(key) === '1') applyCompact(true);
+    } catch (e) {}
+  })();
+  </script>
 {% endblock %}

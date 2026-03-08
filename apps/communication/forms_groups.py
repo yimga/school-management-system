@@ -3,11 +3,32 @@ Forms for group/thread creation and management.
 """
 from django import forms
 from django.contrib.auth import get_user_model
-from apps.communication.models import MessageThread
-from apps.academics.models import Department, Classroom
+from apps.academics.models import Classroom, Department
 from apps.accounts.models import User
+from apps.communication.models import MessageThread
 
 User = get_user_model()
+
+
+def _school_departments(school):
+    if school is None:
+        return Department.objects.none()
+    return Department.objects.filter(school=school).order_by("name")
+
+
+def _school_classrooms(school):
+    if school is None:
+        return Classroom.objects.none()
+    return Classroom.objects.filter(school=school).order_by("name")
+
+
+def _school_members(school):
+    if school is None:
+        return User.objects.none()
+    return User.objects.filter(
+        is_active=True,
+        school_memberships__school=school,
+    ).distinct()
 
 
 class MessageThreadCreateForm(forms.ModelForm):
@@ -20,14 +41,14 @@ class MessageThreadCreateForm(forms.ModelForm):
     )
     
     department = forms.ModelChoiceField(
-        queryset=Department.objects.all(),
+        queryset=Department.objects.none(),
         required=False,
         widget=forms.Select(attrs={'class': 'form-select'}),
         help_text="Required if scope is DEPARTMENT"
     )
     
     classroom = forms.ModelChoiceField(
-        queryset=Classroom.objects.all(),
+        queryset=Classroom.objects.none(),
         required=False,
         widget=forms.Select(attrs={'class': 'form-select'}),
         help_text="Required if scope is CLASSROOM"
@@ -47,7 +68,7 @@ class MessageThreadCreateForm(forms.ModelForm):
     )
     
     members = forms.ModelMultipleChoiceField(
-        queryset=User.objects.filter(is_active=True),
+        queryset=User.objects.none(),
         required=False,
         widget=forms.SelectMultiple(attrs={'class': 'form-select', 'size': '10'}),
         help_text="Select members for this group (optional - can add later)"
@@ -61,12 +82,24 @@ class MessageThreadCreateForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Optional description of this group'}),
         }
     
-    def __init__(self, *args, user=None, **kwargs):
+    def __init__(self, *args, user=None, school=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = user
+        self.school = school
+        self.fields['department'].queryset = _school_departments(self.school)
+        self.fields['classroom'].queryset = _school_classrooms(self.school)
+        self.fields['members'].queryset = _school_members(self.school)
         
         # If user is a teacher, limit department choices to their department
-        if user and hasattr(user, 'teacher_profile') and user.teacher_profile.department:
+        if (
+            user
+            and hasattr(user, 'teacher_profile')
+            and user.teacher_profile.department
+            and (
+                self.school is None
+                or getattr(user.teacher_profile.department, "school_id", None) == getattr(self.school, "id", None)
+            )
+        ):
             self.fields['department'].queryset = Department.objects.filter(
                 id=user.teacher_profile.department.id
             )
@@ -82,9 +115,10 @@ class MessageThreadCreateForm(forms.ModelForm):
                 dept_id = self.data.get('department')
                 if dept_id:
                     from apps.people.models import TeacherProfile
-                    teachers = TeacherProfile.objects.filter(
-                        department_id=dept_id, is_active=True
-                    ).select_related('user')
+                    teachers = TeacherProfile.objects.filter(department_id=dept_id, is_active=True)
+                    if self.school is not None:
+                        teachers = teachers.filter(school=self.school)
+                    teachers = teachers.select_related('user')
                     self.fields['members'].queryset = User.objects.filter(
                         id__in=[t.user_id for t in teachers]
                     )
@@ -92,9 +126,10 @@ class MessageThreadCreateForm(forms.ModelForm):
                 classroom_id = self.data.get('classroom')
                 if classroom_id:
                     from apps.people.models import StudentProfile
-                    students = StudentProfile.objects.filter(
-                        classroom_id=classroom_id
-                    ).select_related('user')
+                    students = StudentProfile.objects.filter(classroom_id=classroom_id)
+                    if self.school is not None:
+                        students = students.filter(school=self.school)
+                    students = students.select_related('user')
                     self.fields['members'].queryset = User.objects.filter(
                         id__in=[s.user_id for s in students if s.user_id]
                     )
@@ -132,7 +167,7 @@ class MessageThreadUpdateForm(forms.ModelForm):
     """Form for updating thread details and managing members."""
     
     members = forms.ModelMultipleChoiceField(
-        queryset=User.objects.filter(is_active=True),
+        queryset=User.objects.none(),
         required=False,
         widget=forms.SelectMultiple(attrs={'class': 'form-select', 'size': '10'}),
         help_text="Group members"
@@ -149,7 +184,10 @@ class MessageThreadUpdateForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user", None)
+        self.school = kwargs.pop("school", None)
         super().__init__(*args, **kwargs)
+        effective_school = self.school or getattr(self.instance, "school", None)
+        self.fields['members'].queryset = _school_members(effective_school)
         if self.instance and self.instance.pk:
             # Pre-populate members
             self.fields['members'].initial = self.instance.members.all()
@@ -157,17 +195,19 @@ class MessageThreadUpdateForm(forms.ModelForm):
             # Filter members based on scope
             if self.instance.scope == MessageThread.Scope.DEPARTMENT and self.instance.department:
                 from apps.people.models import TeacherProfile
-                teachers = TeacherProfile.objects.filter(
-                    department=self.instance.department, is_active=True
-                ).select_related('user')
+                teachers = TeacherProfile.objects.filter(department=self.instance.department, is_active=True)
+                if effective_school is not None:
+                    teachers = teachers.filter(school=effective_school)
+                teachers = teachers.select_related('user')
                 self.fields['members'].queryset = User.objects.filter(
                     id__in=[t.user_id for t in teachers]
                 )
             elif self.instance.scope == MessageThread.Scope.CLASSROOM and self.instance.classroom:
                 from apps.people.models import StudentProfile
-                students = StudentProfile.objects.filter(
-                    classroom=self.instance.classroom
-                ).select_related('user')
+                students = StudentProfile.objects.filter(classroom=self.instance.classroom)
+                if effective_school is not None:
+                    students = students.filter(school=effective_school)
+                students = students.select_related('user')
                 self.fields['members'].queryset = User.objects.filter(
                     id__in=[s.user_id for s in students if s.user_id]
                 )

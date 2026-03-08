@@ -78,7 +78,7 @@ class ThemeManager {
  */
 class AccessibilityManager {
     constructor() {
-        this.STORAGE_KEY = 'gilead-a11y-prefs';
+        this.STORAGE_KEY = 'runmycampus-a11y-prefs';
         this.prefs = this.loadPreferences();
         this.init();
     }
@@ -236,13 +236,13 @@ document.addEventListener('DOMContentLoaded', () => {
 /**
  * Public API for other scripts
  */
-window.Gilead = window.Gilead || {};
-window.Gilead.Theme = {
+window.RunMyCampus = window.RunMyCampus || {};
+window.RunMyCampus.Theme = {
     toggle: () => window.themeManager?.toggleTheme(),
     set: (theme) => window.themeManager?.setTheme(theme),
 };
 
-window.Gilead.A11y = {
+window.RunMyCampus.A11y = {
     toggleContrast: () => window.a11yManager?.toggleHighContrast(),
     toggleMotion: () => window.a11yManager?.toggleReducedMotion(),
     setFontSize: (size) => window.a11yManager?.setFontSize(size),

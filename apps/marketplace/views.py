@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from apps.billing.models import RevenueSharePayout
+from apps.schools.control_plane import user_has_control_plane_access
 from apps.marketplace.models import (
     AppInstallation,
     AppScope,
@@ -29,9 +30,7 @@ from apps.marketplace.services import (
 
 
 def _control_plane_access(user):
-    if not getattr(user, "is_authenticated", False):
-        return False
-    return bool(user.is_superuser or user.is_staff or (getattr(user, "role", "") or "").upper() == "SUPERADMIN")
+    return user_has_control_plane_access(user)
 
 
 def _tenant_marketplace_allowed(user):

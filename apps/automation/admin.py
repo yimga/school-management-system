@@ -4,7 +4,7 @@ Admin configuration for automation models.
 from django.contrib import admin
 from config.admin import admin_site
 from unfold.admin import ModelAdmin
-from .models import AutomationExecutionLog, AutomationApprovalQueue, MigrationRun
+from .models import AutomationExecutionLog, AutomationApprovalQueue, MigrationProfile, MigrationRun
 
 
 @admin.register(AutomationExecutionLog, site=admin_site)
@@ -70,6 +70,14 @@ class AutomationApprovalQueueAdmin(ModelAdmin):
             count += 1
         self.message_user(request, f"Rejected {count} automation request(s).")
     reject_selected.short_description = "Reject selected automation requests"
+
+
+@admin.register(MigrationProfile, site=admin_site)
+class MigrationProfileAdmin(ModelAdmin):
+    list_display = ("slug", "name", "format", "domain", "is_active", "sort_order")
+    list_filter = ("format", "domain", "is_active")
+    search_fields = ("slug", "name", "description")
+    ordering = ("sort_order", "slug")
 
 
 @admin.register(MigrationRun, site=admin_site)

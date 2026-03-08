@@ -2,12 +2,22 @@
 
 The Manager **Blueprint marketplace** and **App catalog** show "No active blueprint packs" and "No installable apps" until platform data is seeded. Other surfaces (registries, workflow/dashboard packs, portal FAQs/KB, super policies catalog, etc.) can also be empty until their seeds are run. This document describes how to populate **all applicable** catalogs.
 
+## First-time setup (run this and you're live)
+
+After running migrations, run **one** of the following so the platform is not a ghost town:
+
+- `python manage.py bootstrap_runmycampus_platform`
+- `python manage.py bootstrap_platform_catalog --all`
+
+That populates all catalogs (blueprint packs, marketplace apps, registries, workflow/dashboard packs, provider registry, migration profiles, portal FAQs/KB, finance defaults, compliance baseline). Idempotent; safe for local, staging, and production.
+
 ## One-command bootstrap
 
 | Command | Purpose |
 |--------|--------|
+| `python manage.py bootstrap_runmycampus_platform` | **Umbrella:** Runs full bootstrap (same as `bootstrap_platform_catalog --all`). Use for first-time platform setup. Idempotent. |
 | `python manage.py bootstrap_platform_catalog` | Runs **blueprint packs** and **marketplace apps** only (default; backward compatible). |
-| `python manage.py bootstrap_platform_catalog --all` | Runs **every applicable platform seed** in dependency order (global data, registries, palettes, blueprint, workflow/dashboard, capability registry, marketplace, finance defaults, FAQs, KB articles, compliance baseline). Idempotent. |
+| `python manage.py bootstrap_platform_catalog --all` | Runs **every applicable platform seed** in dependency order (global data, registries, palettes, blueprint, workflow/dashboard, capability registry, marketplace, provider registry, migration profiles, finance defaults, FAQs, KB articles, compliance baseline). Idempotent. |
 
 Use `--all` for a full first-time setup so no catalog surface is left empty. Use default (no `--all`) when you only want Blueprint + App catalog filled (e.g. existing deploy that already has global data).
 
@@ -35,11 +45,14 @@ Every seed listed here is idempotent unless noted. Run individually or via `boot
 | `seed_country_profiles` | Education system profiles for global country packs. |
 | `seed_global_brand_registry` | GlobalBrandRegistry for all countries (optional UNESCO enrichment). |
 | `seed_platform_registries` | Countries, subdivisions, education levels, education system types, currencies, etc. (registries app). |
+| `seed_terminology_registry` | Terminology/registry data (delegates to seed_platform_registries). |
 | `seed_admin_dashboard_palettes` | Preset admin dashboard color palettes (Unfold design system). |
 | `seed_blueprint_policy_packs` | Active BlueprintPack rows (institution + regional) and PolicyBundle rows. |
 | `seed_workflow_dashboard_packs` | Workflow packs and dashboard packs (Phase 4). |
 | `seed_capability_registry` | CapabilityRegistry codes (dashboard_widget, workflow_action, etc.). |
-| `seed_marketplace_apps` | First-party publisher and approved marketplace apps/listings. |
+| `seed_marketplace_apps` | First-party publisher and approved marketplace apps/listings (includes AI Grading, Executive Insights, Compliance Export, SSO/Identity, Advanced Workflow Builder). |
+| `seed_provider_registry` | Platform provider registry (payment, email, SMS, document AI, identity, storage). |
+| `seed_migration_profiles` | Migration connector profiles (students, grades, finance_import, attendance_import, generic_sis). |
 | `seed_finance_defaults` | Finance compliance profiles (e.g. Cameroon OHADA, Generic) and chart of accounts. |
 | `seed_faqs` | Portal FAQ categories and curated questions. |
 | `seed_kb_articles` | Portal Knowledge Base articles and categories. |
@@ -59,9 +72,9 @@ Every seed listed here is idempotent unless noted. Run individually or via `boot
 
 ## When to run
 
-- **First deploy or new environment:** Run `python manage.py bootstrap_platform_catalog --all` once so every applicable catalog is populated. On Render, set `RUN_BOOTSTRAP_PLATFORM_CATALOG=1`; optionally set `RUN_FULL_BOOTSTRAP=1` (see below) to use `--all`.
-- **Render (Blueprint + App catalog only):** Set `RUN_BOOTSTRAP_PLATFORM_CATALOG=1`; `render_predeploy.sh` runs `bootstrap_platform_catalog` (no `--all`) after `seed_render_users`.
-- **Manual:** After migrations, run `bootstrap_platform_catalog` or `bootstrap_platform_catalog --all` (or individual seed commands).
+- **First deploy or new environment:** Run `python manage.py bootstrap_runmycampus_platform` or `bootstrap_platform_catalog --all` once so every applicable catalog is populated. On Render, set `RUN_BOOTSTRAP_PLATFORM_CATALOG=1`; predeploy runs full bootstrap (`--all`) by default.
+- **Render (minimal bootstrap):** Set `RUN_BOOTSTRAP_PLATFORM_CATALOG=1` and `RUN_MINIMAL_BOOTSTRAP=1` to seed only blueprint packs and marketplace apps.
+- **Manual:** After migrations, run `bootstrap_runmycampus_platform` or `bootstrap_platform_catalog --all` (or individual seed commands).
 
 ## What gets seeded (default bootstrap)
 

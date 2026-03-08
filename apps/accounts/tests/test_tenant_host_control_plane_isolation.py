@@ -1,0 +1,58 @@
+from unittest.mock import patch
+
+from django.contrib.sessions.middleware import SessionMiddleware
+from django.http import HttpResponse
+from django.test import RequestFactory, TestCase, override_settings
+
+from apps.accounts.middleware import TenantHostControlPlaneIsolationMiddleware
+from apps.accounts.models import User
+from apps.schools.models import School
+
+
+@override_settings(ALLOWED_HOSTS=["*"])
+class TenantHostControlPlaneIsolationMiddlewareTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.school = School.objects.create(
+            name="Tenant Alpha",
+            slug="tenant-alpha",
+            subdomain="tenant-alpha",
+            is_active=True,
+        )
+        self.superadmin = User.objects.create_user(
+            username="tenant_host_superadmin",
+            password="testpass123",
+            role=User.Role.SUPERADMIN,
+            is_staff=True,
+            is_superuser=False,
+        )
+
+    def _request(self, path="/portal/teacher/"):
+        request = self.factory.get(path, HTTP_HOST="tenant-alpha.runmycampus.com")
+        SessionMiddleware(lambda req: HttpResponse("ok")).process_request(request)
+        request.session.save()
+        request.user = self.superadmin
+        request.school = self.school
+        request.public_host_kind = "tenant"
+        return request
+
+    def test_superadmin_without_impersonation_is_redirected_to_manager_host(self):
+        middleware = TenantHostControlPlaneIsolationMiddleware(lambda request: HttpResponse("ok"))
+        request = self._request()
+
+        with patch.dict("os.environ", {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False):
+            response = middleware(request)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], "https://manager.runmycampus.com/super/")
+
+    def test_superadmin_with_matching_impersonation_session_is_allowed(self):
+        middleware = TenantHostControlPlaneIsolationMiddleware(lambda request: HttpResponse("ok"))
+        request = self._request()
+        request.session["impersonation"] = {"school_id": str(self.school.id), "actor_id": self.superadmin.id}
+        request.session.save()
+
+        response = middleware(request)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, b"ok")

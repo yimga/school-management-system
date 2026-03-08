@@ -14,6 +14,7 @@ from apps.communication.models import (
     MessageThread,
     ThreadMessage,
 )
+from apps.communication.forms_groups import MessageThreadCreateForm
 from apps.people.models import StudentProfile, TeacherProfile
 from apps.schools.models import School, SchoolMembership
 from apps.siteconfig.models import RegionConfig
@@ -29,6 +30,13 @@ class CommunicationTenantScopeTests(TestCase):
             default_region=self.region,
             timezone=self.region.timezone,
         )
+        self.other_school = School.objects.create(
+            slug="tenant-scope-other",
+            subdomain="tenant-scope-other",
+            name="Tenant Scope Other",
+            default_region=self.region,
+            timezone=self.region.timezone,
+        )
 
         self.year = AcademicYear.objects.create(
             name="2025/2026",
@@ -41,6 +49,11 @@ class CommunicationTenantScopeTests(TestCase):
             name="Science",
             code="SCI-TENANT",
             school=self.school,
+        )
+        self.other_department = Department.objects.create(
+            name="Arts",
+            code="ART-TENANT",
+            school=self.other_school,
         )
         self.classroom = Classroom.objects.create(
             academic_year=self.year,
@@ -60,11 +73,18 @@ class CommunicationTenantScopeTests(TestCase):
             password="pass12345",
             role=User.Role.PARENT,
         )
+        self.other_staff = User.objects.create_user(
+            username="other_tenant_staff",
+            password="pass12345",
+            role=User.Role.TEACHER,
+        )
 
         SchoolMembership.objects.create(user=self.staff, school=self.school, role=User.Role.TEACHER, is_primary=True)
         SchoolMembership.objects.create(user=self.parent, school=self.school, role=User.Role.PARENT, is_primary=True)
+        SchoolMembership.objects.create(user=self.other_staff, school=self.other_school, role=User.Role.TEACHER, is_primary=True)
 
         TeacherProfile.objects.create(user=self.staff, school=self.school)
+        TeacherProfile.objects.create(user=self.other_staff, school=self.other_school)
         self.student = StudentProfile.objects.create(
             first_name="Tenant",
             last_name="Student",
@@ -130,3 +150,16 @@ class CommunicationTenantScopeTests(TestCase):
         )
         self.assertEqual(conversation.school_id, self.school.id)
         self.assertEqual(alert_rule.school_id, self.school.id)
+
+    def test_group_form_querysets_are_tenant_scoped(self):
+        form = MessageThreadCreateForm(user=self.staff, school=self.school)
+
+        self.assertQuerySetEqual(
+            form.fields["department"].queryset.order_by("id"),
+            Department.objects.filter(school=self.school).order_by("id"),
+            transform=lambda obj: obj,
+        )
+        self.assertIn(self.staff, form.fields["members"].queryset)
+        self.assertIn(self.parent, form.fields["members"].queryset)
+        self.assertNotIn(self.other_staff, form.fields["members"].queryset)
+        self.assertNotIn(self.other_department, form.fields["department"].queryset)

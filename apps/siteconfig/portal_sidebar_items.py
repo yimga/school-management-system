@@ -331,7 +331,7 @@ def build_portal_sidebar_items(request, site):
         if is_superuser or getattr(user, "has_feature_permission", lambda _: False)("settings.feature_control"):
             items.append({"id": "feature_control", "label": "Feature Control", "url": _safe_reverse("siteconfig:feature_control_panel"), "icon": "bi-toggle-on", "section": "Admin Panel", "badge": None})
             items.append({"id": "feature_control_audit", "label": "Feature Control Audit", "url": _safe_reverse("siteconfig:feature_control_audit"), "icon": "bi-clock-history", "section": "Admin Panel", "badge": None})
-        if backend_flags.get("enable_api_center") and (getattr(user, "has_feature_permission", lambda _: False)("api_center.manage") or role in ("ADMIN", "IT_ADMIN", "SUPERADMIN")):
+        if backend_flags.get("enable_api_center") and (getattr(user, "has_feature_permission", lambda _: False)("api_center.manage") or role in ("ADMIN", "IT_ADMIN")):
             items.append({"id": "api_center", "label": "Integrations & API Center", "url": _safe_reverse("apicenter:dashboard"), "icon": "bi-plug", "section": "Admin Panel", "badge": None})
         items.append({"id": "backend", "label": "Backend Console", "url": _safe_reverse("accounts:backend_dashboard"), "icon": "bi-gear-fill", "section": "Admin Panel", "badge": None})
         items.append({"id": "workflow_center", "label": "Workflow Center", "url": _safe_reverse("accounts:workflow_center"), "icon": "bi-diagram-3", "section": "Admin Panel", "badge": workflow_badge})

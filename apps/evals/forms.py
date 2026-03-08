@@ -1,13 +1,25 @@
 from django import forms
+from django.core.exceptions import FieldError
 
 from apps.academics.models import AcademicYear, Term, Subject, SubjectAssignment
 from apps.people.models import TeacherProfile
 from .models import GradeApprovalRequest, TeacherAssignment, EvaluationEvidence, Evaluation, AssessmentWeights
 
 
+def _scope_queryset_by_school(queryset, school):
+    if school is None:
+        return queryset
+    for lookup in ("school", "academic_year__school", "classroom__school"):
+        try:
+            return queryset.filter(**{lookup: school})
+        except FieldError:
+            continue
+    return queryset
+
+
 class EvaluationFilterForm(forms.Form):
     year = forms.ModelChoiceField(
-        queryset=AcademicYear.objects.all(),
+        queryset=AcademicYear.objects.none(),
         required=True,
         widget=forms.Select(attrs={"class": "form-select"}),
     )
@@ -22,7 +34,7 @@ class EvaluationFilterForm(forms.Form):
         widget=forms.Select(attrs={"class": "form-select"}),
     )
     subject = forms.ModelChoiceField(
-        queryset=Subject.objects.all(),
+        queryset=Subject.objects.none(),
         required=False,
         widget=forms.Select(attrs={"class": "form-select"}),
     )
@@ -30,7 +42,16 @@ class EvaluationFilterForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         academic_year = kwargs.pop("academic_year", None)
+        school = kwargs.pop("school", None)
         super().__init__(*args, **kwargs)
+        self.fields["year"].queryset = _scope_queryset_by_school(
+            AcademicYear.objects.all().order_by("-start_date"),
+            school,
+        )
+        self.fields["subject"].queryset = _scope_queryset_by_school(
+            Subject.objects.all().order_by("name"),
+            school,
+        )
         if academic_year:
             self.fields["term"].queryset = Term.objects.filter(academic_year=academic_year).order_by("start_date")
             self.fields["classroom"].queryset = academic_year.classrooms.order_by("name")
@@ -39,7 +60,7 @@ class EvaluationFilterForm(forms.Form):
 
 class BulkEvaluationCreateForm(forms.Form):
     academic_year = forms.ModelChoiceField(
-        queryset=AcademicYear.objects.all(),
+        queryset=AcademicYear.objects.none(),
         widget=forms.Select(attrs={"class": "form-select"}),
     )
     term = forms.ModelChoiceField(
@@ -51,14 +72,19 @@ class BulkEvaluationCreateForm(forms.Form):
         widget=forms.Select(attrs={"class": "form-select"}),
     )
     teacher = forms.ModelChoiceField(
-        queryset=TeacherProfile.objects.all(),
+        queryset=TeacherProfile.objects.none(),
         widget=forms.Select(attrs={"class": "form-select"}),
     )
 
     def __init__(self, *args, **kwargs):
         academic_year = kwargs.pop("academic_year", None)
         term = kwargs.pop("term", None)
+        school = kwargs.pop("school", None)
         super().__init__(*args, **kwargs)
+        self.fields["academic_year"].queryset = _scope_queryset_by_school(
+            AcademicYear.objects.all().order_by("-start_date"),
+            school,
+        )
 
         if academic_year:
             self.fields["academic_year"].initial = academic_year
@@ -74,6 +100,7 @@ class BulkEvaluationCreateForm(forms.Form):
             "specialty",
             "subject",
         )
+        subject_qs = _scope_queryset_by_school(subject_qs, school)
         if academic_year:
             subject_qs = subject_qs.filter(academic_year=academic_year)
         if term:
@@ -84,7 +111,10 @@ class BulkEvaluationCreateForm(forms.Form):
             "subject__name",
         )
 
-        teacher_qs = TeacherProfile.objects.all().select_related("user").order_by("user__last_name", "user__first_name")
+        teacher_qs = _scope_queryset_by_school(
+            TeacherProfile.objects.all().select_related("user"),
+            school,
+        ).order_by("user__last_name", "user__first_name")
         self.fields["teacher"].queryset = teacher_qs
 
     def clean(self):

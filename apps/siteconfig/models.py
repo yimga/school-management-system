@@ -1091,7 +1091,7 @@ class SiteSettings(models.Model):
         default='console'
     )
     sms_api_key = models.CharField(max_length=255, blank=True)
-    sms_sender_id = models.CharField(max_length=50, default='GILEAD')
+    sms_sender_id = models.CharField(max_length=50, default="RUNMYCAMPUS")
     email_from_address = models.EmailField(default='noreply@school.example.com')
     
     # ===== NEW: DEADLINE REMINDERS =====

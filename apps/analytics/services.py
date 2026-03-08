@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 from decimal import Decimal
 from typing import Iterable, Optional
 
+from django.db.models import Avg
 from django.utils import timezone
 
 from apps.academics.models import AcademicYear, Term, Classroom, Specialty, Subject, SubjectAssignment
@@ -616,52 +617,69 @@ class AdvancedAnalyticsService:
     """Advanced analytics and performance tracking"""
     
     @staticmethod
-    def identify_at_risk_students(threshold=50):
-        """Identify students at risk of failing"""
+    def identify_at_risk_students(threshold=50, school_id=None, school=None):
+        """Identify students at risk of failing within a tenant context."""
         from apps.evals.models import Evaluation
         
         at_risk = []
-        
-        for student in StudentProfile.objects.all():
+        students = StudentProfile.objects.filter(is_active=True).select_related("user")
+        if school_id is not None:
+            students = students.filter(school_id=school_id)
+        elif school is not None:
+            students = students.filter(school=school)
+
+        cutoff = timezone.now() - timedelta(days=30)
+        for student in students:
             recent_evals = Evaluation.objects.filter(
-                student=student.student,
-                created_at__gte=timezone.now() - __import__('datetime').timedelta(days=30)
+                student=student,
+                created_at__gte=cutoff,
             )
+            if student.school_id:
+                recent_evals = recent_evals.filter(school_id=student.school_id)
             
             if recent_evals.exists():
-                avg_score = recent_evals.aggregate(
-                    avg=__import__('django.db.models').Avg('score')
-                )['avg']
+                avg_score = recent_evals.aggregate(avg=Avg("final_score"))["avg"]
                 
                 if avg_score and avg_score < threshold:
+                    student_name = (
+                        student.user.get_full_name()
+                        if getattr(student, "user", None)
+                        else f"{student.first_name} {student.last_name}".strip()
+                    )
+                    risk_score = round(min(100, max(50, threshold + (threshold - float(avg_score)))), 2)
                     at_risk.append({
-                        'student': student.student.get_full_name(),
+                        'id': student.id,
+                        'student': student_name,
                         'average': round(avg_score, 2),
                         'count': recent_evals.count(),
-                        'action': 'Intervention needed'
+                        'action': 'Intervention needed',
+                        'risk_score': risk_score,
+                        'risk_reason_summary': f"Average score over the last 30 days is {round(avg_score, 2)}",
                     })
         
         return at_risk
     
     @staticmethod
-    def get_performance_trends(student, days=90):
+    def get_performance_trends(student, days=90, school_id=None):
         """Get performance trend data"""
         from apps.evals.models import Evaluation
         
-        start_date = timezone.now() - __import__('datetime').timedelta(days=days)
+        start_date = timezone.now() - timedelta(days=days)
         
         evals = Evaluation.objects.filter(
             student=student,
             created_at__gte=start_date
         ).order_by('created_at')
+        if school_id is not None:
+            evals = evals.filter(school_id=school_id)
         
         return [{
             'date': e.created_at.isoformat(),
-            'score': e.score,
+            'score': e.final_score,
         } for e in evals]
     
     @staticmethod
-    def generate_performance_alerts(student):
+    def generate_performance_alerts(student, school_id=None):
         """Generate alerts for student performance issues"""
         from apps.evals.models import Evaluation
         
@@ -669,12 +687,16 @@ class AdvancedAnalyticsService:
         
         recent = Evaluation.objects.filter(
             student=student,
-            created_at__gte=timezone.now() - __import__('datetime').timedelta(days=7)
+            created_at__gte=timezone.now() - timedelta(days=7)
         )
+        if school_id is not None:
+            recent = recent.filter(school_id=school_id)
         
         if recent.exists():
             import statistics
-            scores = [e.score for e in recent]
+            scores = [float(e.final_score) for e in recent if e.final_score is not None]
+            if not scores:
+                return alerts
             avg = statistics.mean(scores)
             
             if avg < 50:

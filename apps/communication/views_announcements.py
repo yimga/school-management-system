@@ -33,14 +33,13 @@ from apps.accounts.decorators import role_required
 from apps.accounts.models import User
 from apps.people.models import TeacherProfile
 from apps.academics.models import Department
+from apps.platform_runtime.helpers import get_effective_flags
 
 
-def _get_announcement_feature_flags():
+def _get_announcement_feature_flags(request=None):
     """Get announcement-related flags from site settings (backend_feature_flags)."""
     try:
-        from apps.siteconfig.models import SiteSettings
-        site = SiteSettings.get_solo()
-        flags = getattr(site, "backend_feature_flags", None) or {}
+        flags = get_effective_flags(request)
         return {
             "allow_submit_for_approval": flags.get("announcement_allow_submit_for_approval", False),
             "submit_for_approval_roles": flags.get("announcement_submit_for_approval_roles") or ["TEACHER", "COMMS_STAFF"],
@@ -70,11 +69,11 @@ def _can_create_school_wide_announcement(user) -> bool:
     )
 
 
-def _can_submit_for_approval(user) -> bool:
+def _can_submit_for_approval(user, request=None) -> bool:
     """When site flag is on, teachers/comms can submit school-wide announcements for approval."""
     if not user or not getattr(user, "is_authenticated", True):
         return False
-    flags = _get_announcement_feature_flags()
+    flags = _get_announcement_feature_flags(request)
     if not flags.get("allow_submit_for_approval"):
         return False
     roles = [r.upper() for r in (flags.get("submit_for_approval_roles") or [])]
@@ -82,9 +81,9 @@ def _can_submit_for_approval(user) -> bool:
     return role in roles
 
 
-def _can_access_school_wide_announcement_create(user) -> bool:
+def _can_access_school_wide_announcement_create(user, request=None) -> bool:
     """Can open the create form: either publish directly or submit for approval."""
-    return _can_create_school_wide_announcement(user) or _can_submit_for_approval(user)
+    return _can_create_school_wide_announcement(user) or _can_submit_for_approval(user, request)
 
 
 def _can_approve_announcements(user) -> bool:
@@ -98,14 +97,14 @@ def announcement_create(request: HttpRequest):
     Create a school-wide announcement. Allowed for admins/leadership (publish or draft)
     or, when optional workflow is enabled, teachers/comms can submit for approval or save as draft.
     """
-    if not _can_access_school_wide_announcement_create(request.user):
+    if not (_can_create_school_wide_announcement(request.user) or _can_submit_for_approval(request.user, request)):
         return HttpResponseForbidden(
             "You cannot create school-wide announcements. "
             "Use Class announcement or Department announcement (if HOD) from your dashboard."
         )
     can_publish = _can_create_school_wide_announcement(request.user)
-    can_submit = _can_submit_for_approval(request.user)
-    flags = _get_announcement_feature_flags()
+    can_submit = _can_submit_for_approval(request.user, request)
+    flags = _get_announcement_feature_flags(request)
 
     if request.method == 'POST':
         form = AnnouncementCreateForm(request.POST, user=request.user)

@@ -16,7 +16,13 @@ User = get_user_model()
 class Command(BaseCommand):
     help = "Seed curated FAQs for operators/teachers/parents."
 
+    def add_arguments(self, parser):
+        parser.add_argument("--dry-run", action="store_true", help="Show what would be created without writing.")
+
     def handle(self, *args, **options):
+        if options.get("dry_run"):
+            self.stdout.write(self.style.SUCCESS("Dry run: would ensure FAQ categories and curated questions."))
+            return
         admin_user = User.objects.filter(is_superuser=True).first() or User.objects.filter(is_staff=True).first()
 
         categories = {

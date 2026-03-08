@@ -887,23 +887,27 @@ def _geo_copy_variations(country: str) -> dict:
 def _tenant_example_slug_for_marketing() -> str | None:
     """
     Return a tenant slug suitable for marketing (e.g. regional landing).
-    Prefer a non-legacy slug so links do not send users to school-not-found.
+    Prefer a non-excluded slug so links do not send users to school-not-found.
     """
+    import os
     from django.conf import settings
     from apps.schools.models import School
 
     slug = getattr(settings, "TENANT_EXAMPLE_SLUG", None) or None
     if slug:
         return str(slug).strip().lower() or None
+    excluded = {
+        item.strip().lower()
+        for item in (os.getenv("MARKETING_EXCLUDED_TENANT_SLUGS") or "").split(",")
+        if item.strip()
+    }
     school = (
         School.objects.filter(is_active=True)
-        .exclude(slug__iexact="gilead-school")
-        .exclude(subdomain__iexact="gilead-school")
         .order_by("created_at")
-        .values_list("slug", flat=True)
-        .first()
     )
-    return school
+    if excluded:
+        school = school.exclude(slug__in=excluded).exclude(subdomain__in=excluded)
+    return school.values_list("slug", flat=True).first()
 
 def _marketing_context(request, *, country_code: str, language_code: str, regional: bool) -> dict:
     country = _normalize_country_code(country_code)

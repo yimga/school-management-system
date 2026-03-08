@@ -10,6 +10,7 @@ from django.template.response import TemplateResponse
 from django.http import HttpResponseForbidden
 
 from apps.siteconfig.models import SiteSettings
+from apps.platform_runtime.helpers import get_effective_flags
 
 from apps.observability import views as obs_views
 from apps.portal.views_ai_copilot import (
@@ -39,6 +40,7 @@ from apps.schools.section8_views import (
     jwks_json,
     frozen_account,
 )
+from apps.schools.parent_tenant_views import parent_tenant_dashboard
 
 
 def home(request):
@@ -46,17 +48,9 @@ def home(request):
     if request.user.is_authenticated:
         return redirect("accounts:redirect")
     # Base/public host (runmycampus.com): public marketing landing, not login
-    from apps.schools.tenant_url import is_base_domain, get_single_tenant_slug
+    from apps.schools.tenant_url import is_base_domain
     if is_base_domain(request):
         return redirect("marketing_landing")
-    # Single tenant on non-base host: send to tenant login (subdomain only)
-    slug = get_single_tenant_slug()
-    if slug:
-        from apps.schools.models import School
-        from apps.schools.tenant_url import build_tenant_backend_url
-        school = School.objects.filter(slug=slug, is_active=True).first() or School.objects.filter(subdomain__iexact=slug, is_active=True).first()
-        if school:
-            return redirect(build_tenant_backend_url(request, school, path="/authentication/login/"))
     return redirect("accounts:login")
 
 
@@ -74,7 +68,7 @@ def _is_schema_allowed(user):
 @user_passes_test(_is_schema_allowed)
 def api_schema_ui(request):
     """Render Redoc/Swagger-lite page for API schema (admin-only)."""
-    flags = getattr(SiteSettings.get_solo(), "backend_feature_flags", {}) or {}
+    flags = get_effective_flags(request)
     allowed_roles = [str(r).upper() for r in flags.get("allowed_roles_api_schema", [])]
     if not flags.get("enable_api_schema_ui", True):
         return HttpResponseForbidden("API schema UI disabled by admin.")
@@ -219,6 +213,7 @@ urlpatterns = [
     path('communication/', include(('apps.communication.urls', 'communication'), namespace='communication')),
     path('emis/', include(('emis.urls', 'emis'), namespace='emis')),
     path('requests/', include(('apps.requests.urls', 'requests'), namespace='requests')),
+    path('organization/network/', parent_tenant_dashboard, name='organization_network_dashboard'),
     # Super Admin (multi-tenant provisioning)
     path('super/', include(('apps.schools.super_urls', 'super'), namespace='super')),
     # Section 8: Caddy on-demand TLS ask (no auth; restrict by IP in production)

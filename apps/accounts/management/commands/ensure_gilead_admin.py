@@ -1,36 +1,46 @@
 """
-Ensure a Gilead tenant admin user exists for the default school (gilead-school).
-Use for local/testing and Render so tenant login works after deploy.
+Legacy compatibility alias for ensuring a tenant admin user exists.
 
-By default: creates/updates user gilead_admin with password Sch00l_1234 and links
-them to the Gilead school as ADMIN. Does not change the platform superadmin (admin/admin).
-
-With --use-admin-user: ensures the existing platform user "admin" is linked to Gilead
-and sets their password to Sch00l_1234 (so tenant login is admin / Sch00l_1234).
-Then manager login would also be admin/Sch00l_1234 unless you run ensure_superadmin
-to reset manager to admin/admin.
+The command name is retained so older scripts keep working, but the behavior is
+now tenant-neutral and configurable.
 """
+import os
+
 from django.core.management import BaseCommand
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-GILEAD_SLUG = "gilead-school"
-GILEAD_ADMIN_USERNAME = "gilead_admin"
-GILEAD_ADMIN_PASSWORD = "Sch00l_1234"
+DEFAULT_TENANT_ADMIN_USERNAME = os.getenv("DEFAULT_TENANT_ADMIN_USERNAME", "tenant_admin")
+DEFAULT_TENANT_ADMIN_PASSWORD = os.getenv("DEFAULT_TENANT_ADMIN_PASSWORD", "ChangeMe_1234")
 
 
 class Command(BaseCommand):
     help = (
-        "Ensure Gilead tenant admin exists. Default: gilead_admin / Sch00l_1234. "
-        "Use --use-admin-user to set platform admin password to Sch00l_1234 and link to Gilead (admin / Sch00l_1234 on tenant)."
+        "Legacy alias for ensuring a tenant admin exists. "
+        "Use --slug/--username/--password to target a specific tenant."
     )
 
     def add_arguments(self, parser):
         parser.add_argument(
+            "--slug",
+            default=(os.getenv("DEFAULT_TENANT_SLUG") or "").strip(),
+            help="Tenant slug. Defaults to DEFAULT_TENANT_SLUG when set, otherwise the first active tenant.",
+        )
+        parser.add_argument(
+            "--username",
+            default=DEFAULT_TENANT_ADMIN_USERNAME,
+            help="Tenant admin username.",
+        )
+        parser.add_argument(
+            "--password",
+            default=DEFAULT_TENANT_ADMIN_PASSWORD,
+            help="Tenant admin password.",
+        )
+        parser.add_argument(
             "--use-admin-user",
             action="store_true",
-            help="Use the platform 'admin' user for Gilead (password set to Sch00l_1234). Manager will also use admin/Sch00l_1234 unless you run ensure_superadmin.",
+            help="Use the existing platform 'admin' user as the tenant admin for the selected tenant.",
         )
 
     def handle(self, *args, **options):
@@ -41,21 +51,26 @@ class Command(BaseCommand):
             ).SchoolMembership
         except ImportError:
             self.stdout.write(
-                self.style.WARNING("Schools app not available. Skipping Gilead admin.")
+                self.style.WARNING("Schools app not available. Skipping tenant admin bootstrap.")
             )
             return
 
-        school = School.objects.filter(slug=GILEAD_SLUG, is_active=True).first()
+        slug = (options.get("slug") or "").strip().lower()
+        if slug:
+            school = School.objects.filter(slug=slug, is_active=True).first()
+        else:
+            school = School.objects.filter(is_active=True).order_by("created_at", "id").first()
         if not school:
             self.stdout.write(
                 self.style.WARNING(
-                    "School with slug '%s' not found. Run migrations (e.g. 0012_seed_default_gilead_school)."
-                    % GILEAD_SLUG
+                    "No active tenant found. Provide --slug or create a tenant first."
                 )
             )
             return
 
         use_admin_user = options.get("use_admin_user", False)
+        tenant_admin_username = (options.get("username") or DEFAULT_TENANT_ADMIN_USERNAME).strip()
+        tenant_admin_password = (options.get("password") or DEFAULT_TENANT_ADMIN_PASSWORD).strip()
 
         if use_admin_user:
             user = User.objects.filter(username="admin").first()
@@ -66,7 +81,7 @@ class Command(BaseCommand):
                     )
                 )
                 return
-            user.set_password(GILEAD_ADMIN_PASSWORD)
+            user.set_password(tenant_admin_password)
             user.save()
             SchoolMembership.objects.get_or_create(
                 user=user,
@@ -80,17 +95,17 @@ class Command(BaseCommand):
                 membership.save(update_fields=["role", "is_primary"])
             self.stdout.write(
                 self.style.SUCCESS(
-                    "Gilead tenant admin (using platform admin): admin / %s. Log in at the Gilead tenant URL. Manager login is also admin/%s; run ensure_superadmin to reset manager to admin/admin."
-                    % (GILEAD_ADMIN_PASSWORD, GILEAD_ADMIN_PASSWORD)
+                    "Tenant admin ready for %s using platform admin: admin / %s."
+                    % (school.slug, tenant_admin_password)
                 )
             )
             return
 
         user, created = User.objects.get_or_create(
-            username=GILEAD_ADMIN_USERNAME,
+            username=tenant_admin_username,
             defaults={
-                "email": "gilead_admin@example.com",
-                "first_name": "Gilead",
+                "email": f"{tenant_admin_username}@example.com",
+                "first_name": school.name.split(" ")[0] if school.name else "Tenant",
                 "last_name": "Admin",
                 "role": User.Role.ADMIN,
                 "is_staff": True,
@@ -103,10 +118,10 @@ class Command(BaseCommand):
             user.is_staff = True
             user.is_superuser = False
             user.is_active = True
-            user.email = user.email or "gilead_admin@example.com"
+            user.email = user.email or f"{tenant_admin_username}@example.com"
             user.save(update_fields=["role", "is_staff", "is_superuser", "is_active", "email"])
 
-        user.set_password(GILEAD_ADMIN_PASSWORD)
+        user.set_password(tenant_admin_password)
         user.save()
 
         SchoolMembership.objects.get_or_create(
@@ -122,7 +137,7 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(
-                "Gilead tenant admin ready: %s / %s. Log in at the Gilead tenant URL (e.g. /authentication/login/ on tenant subdomain)."
-                % (GILEAD_ADMIN_USERNAME, GILEAD_ADMIN_PASSWORD)
+                "Tenant admin ready for %s: %s / %s."
+                % (school.slug, tenant_admin_username, tenant_admin_password)
             )
         )

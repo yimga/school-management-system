@@ -21,6 +21,8 @@ def run_adhoc_report(
     executed_by,
     parameters_override: Optional[dict] = None,
     output_format: Optional[str] = None,
+    school_id_override=None,
+    allow_global: bool = False,
 ) -> tuple[Optional[bytes], Optional[list], int, Optional[str]]:
     """
     Run an ad-hoc report. Returns (csv_bytes or None, json_rows or None, row_count, error_message).
@@ -32,6 +34,7 @@ def run_adhoc_report(
     date_to = params.get('date_to') or definition.date_to
     filters = {**definition.filters, **params.get('filters', {})}
     out_fmt = output_format or definition.output_format
+    effective_school_id = school_id_override if school_id_override is not None else definition.school_id
 
     execution = AdHocReportExecution.objects.create(
         definition=definition,
@@ -42,7 +45,15 @@ def run_adhoc_report(
     )
     start = time.perf_counter()
     try:
-        qs, headers = _build_queryset(definition.entity_type, definition.columns, filters, date_from, date_to, definition.school_id)
+        qs, headers = _build_queryset(
+            definition.entity_type,
+            definition.columns,
+            filters,
+            date_from,
+            date_to,
+            effective_school_id,
+            allow_global=allow_global,
+        )
         row_dicts = list(qs.values(*headers) if headers else [])
         for d in row_dicts:
             for k, v in list(d.items()):
@@ -73,12 +84,14 @@ def run_adhoc_report(
         return (None, None, 0, str(e))
 
 
-def _build_queryset(entity_type: str, columns: list, filters: dict, date_from, date_to, school_id):
+def _build_queryset(entity_type: str, columns: list, filters: dict, date_from, date_to, school_id, allow_global: bool = False):
     """Build Django queryset and column list from entity_type and filters."""
     from django.db.models import Q
 
     if not columns:
         columns = ['id']
+    if not school_id and not allow_global:
+        raise ValueError("school_id required for tenant-scoped ad-hoc report execution")
 
     if entity_type == 'STUDENTS':
         from apps.people.models import StudentProfile
@@ -155,8 +168,9 @@ def _build_queryset(entity_type: str, columns: list, filters: dict, date_from, d
 
     # CUSTOM / fallback: minimal students list
     from apps.people.models import StudentProfile
-    qs = StudentProfile.objects.all().order_by('id')[:1000]
+    qs = StudentProfile.objects.all().order_by('id')
     if school_id:
         qs = qs.filter(school_id=school_id)
+    qs = qs[:1000]
     headers = ['id', 'first_name', 'last_name']
     return qs, headers

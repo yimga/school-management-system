@@ -49,9 +49,15 @@ POLICY_BUNDLES = [
 class Command(BaseCommand):
     help = "Seed Blueprint Packs and Policy Bundles (Phase 3 / platform bootstrap). Idempotent."
 
+    def add_arguments(self, parser):
+        parser.add_argument("--dry-run", action="store_true", help="Show what would be created/updated without writing.")
+
     def handle(self, *args, **options):
+        dry_run = options.get("dry_run", False)
         all_packs = BLUEPRINT_PACKS + REGIONAL_BLUEPRINT_PACKS
         for row in all_packs:
+            if dry_run:
+                continue
             BlueprintPack.objects.update_or_create(
                 slug=row["slug"],
                 defaults={
@@ -66,9 +72,12 @@ class Command(BaseCommand):
                     "policy_snapshot": row.get("policy_snapshot", {}),
                 },
             )
-        self.stdout.write(self.style.SUCCESS(f"Blueprint packs: {len(all_packs)} ensured."))
+        if not dry_run:
+            self.stdout.write(self.style.SUCCESS(f"Blueprint packs: {len(all_packs)} ensured."))
 
         for row in POLICY_BUNDLES:
+            if dry_run:
+                continue
             PolicyBundle.objects.update_or_create(
                 code=row["code"],
                 school=None,
@@ -81,4 +90,7 @@ class Command(BaseCommand):
                     "is_active": True,
                 },
             )
-        self.stdout.write(self.style.SUCCESS(f"Policy bundles (platform): {len(POLICY_BUNDLES)} ensured."))
+        if dry_run:
+            self.stdout.write(self.style.SUCCESS(f"Dry run: would ensure {len(all_packs)} blueprint packs and {len(POLICY_BUNDLES)} policy bundles."))
+        else:
+            self.stdout.write(self.style.SUCCESS(f"Policy bundles (platform): {len(POLICY_BUNDLES)} ensured."))

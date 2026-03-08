@@ -1,10 +1,9 @@
 """
-Ensure platform super-admin (admin/admin), Gilead tenant admin, and optionally seed tenant demo users.
+Ensure platform super-admin, one tenant admin, and optionally seed tenant demo users.
 Use as Release Command on Render so login works after every deploy.
 
 - Super-admin: always created/updated with username=admin, password=admin (manager/super only).
-- Gilead tenant admin: always created/updated with username=gilead_admin, password=Sch00l_1234,
-  linked to school gilead-school (for tenant login).
+- Tenant admin: always created/updated with configurable username/password and linked to a chosen tenant.
 - Tenant demo users (teacher1, Parent1, principal1): created only when ADMIN_PASSWORD is set;
   that password is used for tenant users only (not for admin).
 
@@ -22,6 +21,10 @@ class Command(BaseCommand):
     )
 
     def handle(self, *args, **options):
+        tenant_slug = (os.environ.get("DEFAULT_TENANT_SLUG") or "").strip()
+        tenant_admin_username = (os.environ.get("DEFAULT_TENANT_ADMIN_USERNAME") or "tenant_admin").strip()
+        tenant_admin_password = (os.environ.get("DEFAULT_TENANT_ADMIN_PASSWORD") or "Sch00l_1234").strip()
+
         # 1. Always ensure platform super-admin: username=admin, password=admin (no env override)
         call_command(
             "ensure_superuser",
@@ -37,11 +40,15 @@ class Command(BaseCommand):
             )
         )
 
-        # 2. Gilead tenant admin: gilead_admin / Sch00l_1234 (for tenant subdomain or /t/gilead-school/...)
-        call_command(
+        # 2. Tenant admin: configurable bootstrap account for one tenant login surface.
+        ensure_tenant_admin_args = [
             "ensure_gilead_admin",
-            verbosity=options.get("verbosity", 1),
-        )
+            "--username", tenant_admin_username,
+            "--password", tenant_admin_password,
+        ]
+        if tenant_slug:
+            ensure_tenant_admin_args.extend(["--slug", tenant_slug])
+        call_command(*ensure_tenant_admin_args, verbosity=options.get("verbosity", 1))
 
         # 3. Tenant demo users: only when ADMIN_PASSWORD is set (separate credential)
         tenant_password = (os.environ.get("ADMIN_PASSWORD") or "").strip()

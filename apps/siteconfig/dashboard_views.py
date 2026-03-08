@@ -22,7 +22,6 @@ ALLOWED_CUSTOM_ROLES = {
     "ADMIN",
     "LEADERSHIP",
     "IT_ADMIN",
-    "SUPERADMIN",
     "TEACHER",
 }
 

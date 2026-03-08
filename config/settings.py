@@ -175,6 +175,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "apps.accounts.middleware.ImpossibleTravelMiddleware",  # World Engine: single trigger for check_impossible_travel after login
     "apps.accounts.middleware.RoleBasedSessionTimeoutMiddleware",
+    "apps.schools.middleware.ManagerHostControlPlaneRequiredMiddleware",  # manager host is platform-only beyond auth/bootstrap paths
+    "apps.accounts.middleware.TenantHostControlPlaneIsolationMiddleware",  # platform operators need signed impersonation before tenant-host access
     "apps.accounts.middleware.ModuleAccessMiddleware",
     "apps.accounts.middleware.RequireMFAMiddleware",
     "apps.schools.middleware.TenantSuperAdminRequiredMiddleware",  # Restrict /super/ to SUPERADMIN
@@ -259,7 +261,7 @@ if not DATABASE_URL and os.getenv("DB_HOST"):
         _db_user = os.getenv("DB_USER", "")
         _db_pass = os.getenv("DB_PASSWORD", "")
         _db_port = os.getenv("DB_PORT", "5432")
-        _db_name = os.getenv("DB_NAME", "gilead_school_mgmt_db")
+        _db_name = os.getenv("DB_NAME", "runmycampus_platform")
         _db_pass_enc = quote_plus(_db_pass) if _db_pass else ""
         _db_user_enc = quote_plus(_db_user) if _db_user else ""
         DATABASE_URL = f"postgresql://{_db_user_enc}:{_db_pass_enc}@{_db_host}:{_db_port}/{_db_name}"
@@ -282,7 +284,7 @@ else:
     raw_db_file = (os.getenv("DB_FILE") or "").strip()
     if not raw_db_file:
         if os.name == "nt" and os.getenv("LOCALAPPDATA"):
-            db_path = Path(os.getenv("LOCALAPPDATA")) / "GileadTechHigh" / "db_working.sqlite3"
+            db_path = Path(os.getenv("LOCALAPPDATA")) / "RunMyCampus" / "db_working.sqlite3"
         else:
             db_path = BASE_DIR / "db_working.sqlite3"
     else:
@@ -509,7 +511,7 @@ EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
 EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
-DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@gileadschool.com")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@runmycampus.com")
 # Optional regional SMTP (Phase Welcome): map region_id to from_email; override in local_settings, e.g. REGIONAL_FROM_EMAIL = {"DEU": "noreply@eu.example.com"}
 REGIONAL_FROM_EMAIL = {}
 
@@ -725,7 +727,7 @@ COMPLIANCE_ALERTS = {
     # Runbook / on-call guidance
     "runbook_url": os.getenv(
         "COMPLIANCE_RUNBOOK_URL",
-        "https://runbooks.gileadschool.com/security/incident-response"
+        "https://runbooks.runmycampus.com/security/incident-response"
     ),
     # Scheduled compliance report recipients
     "report_recipients": [e for e in os.getenv("COMPLIANCE_REPORT_RECIPIENTS", "").split(",") if e],
@@ -778,7 +780,7 @@ INCIDENT_RESPONSE = {
     "ticket_webhook": os.getenv("INCIDENT_TICKET_WEBHOOK", ""),
     "playbook_url": os.getenv(
         "INCIDENT_PLAYBOOK_URL",
-        "https://runbooks.gileadschool.com/security/incident-response"
+        "https://runbooks.runmycampus.com/security/incident-response"
     ),
 }
 
@@ -955,6 +957,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "django.contrib.auth.middleware.AuthenticationMiddleware",
         "apps.accounts.middleware.ImpossibleTravelMiddleware",
         "apps.accounts.middleware.RoleBasedSessionTimeoutMiddleware",
+        "apps.schools.middleware.ManagerHostControlPlaneRequiredMiddleware",
         "apps.accounts.middleware.ModuleAccessMiddleware",
         "apps.accounts.middleware.RequireMFAMiddleware",
         "apps.schools.middleware.TenantFreezeMiddleware",

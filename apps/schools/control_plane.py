@@ -1,23 +1,57 @@
 """
-Control plane hardening (12.7): permission decorator, rate limit, and audit helpers for /super/.
-Use alongside TenantSuperAdminRequiredMiddleware for defense-in-depth.
+Control-plane access helpers, decorators, and audit logging.
+
+The platform control plane must not rely on tenant RBAC. Keep access checks for
+manager-host and /super/ surfaces here so every control-plane entry point uses
+the same operator contract.
 """
 import logging
 from functools import wraps
 
-from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
-from django.views.decorators.http import require_http_methods
 
 logger = logging.getLogger(__name__)
 
 
-def _user_has_super_access(user):
+def user_has_control_plane_access(user) -> bool:
+    """
+    Return True only for platform operators.
+
+    Control-plane access is intentionally narrower than tenant staff access:
+    tenant staff/admin users must not gain manager-host capabilities.
+    """
     if not getattr(user, "is_authenticated", False):
         return False
     if getattr(user, "is_superuser", False):
         return True
     return (getattr(user, "role", "") or "").upper() == "SUPERADMIN"
+
+
+def _user_has_super_access(user):
+    return user_has_control_plane_access(user)
+
+
+def is_control_plane_request(request) -> bool:
+    return (getattr(request, "public_host_kind", None) or "").lower() == "manager"
+
+
+def require_control_plane_access(view_func):
+    """
+    Restrict view to authenticated platform operators.
+
+    Use for manager-host APIs and operator dashboards outside the /super/
+    namespace. /super/ may use require_super_access as an alias.
+    """
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            from django.contrib.auth.views import redirect_to_login
+            return redirect_to_login(request.get_full_path())
+        if not user_has_control_plane_access(request.user):
+            return HttpResponseForbidden("Control-plane access required.")
+        return view_func(request, *args, **kwargs)
+
+    return _wrapped
 
 
 def require_super_access(view_func):
@@ -30,7 +64,7 @@ def require_super_access(view_func):
         if not request.user.is_authenticated:
             from django.contrib.auth.views import redirect_to_login
             return redirect_to_login(request.get_full_path())
-        if not _user_has_super_access(request.user):
+        if not user_has_control_plane_access(request.user):
             return HttpResponseForbidden("Super Admin access required.")
         return view_func(request, *args, **kwargs)
     return _wrapped

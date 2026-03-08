@@ -3,7 +3,6 @@ from apps.marketplace import views as marketplace_views
 from apps.customersuccess import views_super as cs_views
 from . import super_views
 from .control_plane import require_super_access
-from .parent_tenant_views import parent_tenant_dashboard
 
 app_name = "super"
 
@@ -24,7 +23,6 @@ urlpatterns = [
     path("api/education-profiles/", require_super_access(super_views.api_education_profiles), name="api_education_profiles"),
     path("api/system-blueprint/", require_super_access(super_views.api_system_blueprint), name="api_system_blueprint"),
     path("api/plans-configurator/", require_super_access(super_views.api_plans_configurator), name="api_plans_configurator"),
-    path("parent-tenant/", parent_tenant_dashboard, name="parent_tenant_dashboard"),
     path("usage/", require_super_access(super_views.super_usage), name="usage"),
     path("migration/", require_super_access(super_views.super_migration_cloud), name="migration_cloud"),
     path("pulse/", require_super_access(super_views.super_pulse), name="pulse"),

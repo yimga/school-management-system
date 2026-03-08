@@ -84,6 +84,7 @@ INVOICE_GLOBAL_ROLES = {
 # - module.<module>.write
 # - module.<module>.all
 ALL_AUTHENTICATED = {"*"}
+CONTROL_PLANE_ROLE_CODES = {"SUPERADMIN"}
 
 MODULE_ACCESS_DEFAULTS = {
     # Core portals
@@ -173,6 +174,21 @@ MODULE_ACCESS_DEFAULTS = {
         "write": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
     },
 }
+
+
+def _strip_control_plane_roles(role_codes: set[str]) -> set[str]:
+    if role_codes == ALL_AUTHENTICATED:
+        return role_codes
+    return {code for code in role_codes if code not in CONTROL_PLANE_ROLE_CODES}
+
+
+STUDENT_DATA_GLOBAL_ROLES = _strip_control_plane_roles(STUDENT_DATA_GLOBAL_ROLES)
+GRADE_EDIT_GLOBAL_ROLES = _strip_control_plane_roles(GRADE_EDIT_GLOBAL_ROLES)
+INVOICE_GLOBAL_ROLES = _strip_control_plane_roles(INVOICE_GLOBAL_ROLES)
+
+for _module_permissions in MODULE_ACCESS_DEFAULTS.values():
+    for _action, _roles in list(_module_permissions.items()):
+        _module_permissions[_action] = _strip_control_plane_roles(_roles)
 
 # Group permissions by module for RBAC UI (grouped display; additive only, do not remove).
 PERMISSION_GROUPS = {

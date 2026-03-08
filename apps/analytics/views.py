@@ -20,6 +20,7 @@ from apps.academics.services import get_active_year_and_term
 from apps.evals.models import Evaluation
 from apps.people.models import TeacherProfile
 from apps.siteconfig.models import SiteSettings
+from apps.siteconfig.cache_utils import tenant_cache_key
 from apps.finance.models import Notification
 from apps.accounts.utils import get_dashboard_context
 
@@ -80,7 +81,10 @@ def dashboard(request: HttpRequest):
     cache_key = None
     if cache_ttl > 0:
         from django.core.cache import cache
-        cache_key = "analytics_dash:" + (request.get_full_path().replace("/", "_") or "default")
+        cache_key = tenant_cache_key(
+            "analytics_dash:" + (request.get_full_path().replace("/", "_") or "default"),
+            request,
+        )
         cached = cache.get(cache_key)
         if cached is not None:
             return HttpResponse(cached, content_type="text/html; charset=utf-8")

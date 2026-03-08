@@ -16,6 +16,8 @@ BOOTSTRAP_STEPS = [
     ("seed_workflow_dashboard_packs", [], "Workflow packs and dashboard packs"),
     ("seed_capability_registry", [], "Marketplace capability codes"),
     ("seed_marketplace_apps", [], "First-party marketplace apps and listings"),
+    ("seed_provider_registry", [], "Platform provider registry (payment, email, SMS, document AI, identity, storage)"),
+    ("seed_migration_profiles", [], "Migration connector profiles (CSV/XLSX, student/finance/attendance/grades, generic SIS)"),
     ("seed_finance_defaults", [], "Finance compliance profiles and chart of accounts"),
     ("seed_faqs", [], "Portal FAQ categories and questions"),
     ("seed_kb_articles", [], "Portal Knowledge Base articles"),
@@ -103,7 +105,17 @@ class Command(BaseCommand):
                 continue
             self.stdout.write(f"Running {cmd_name}… ({description})")
             extra = list(extra_args)
-            if dry_run and cmd_name in ("seed_marketplace_apps", "seed_capability_registry"):
+            if dry_run and cmd_name in (
+                "seed_marketplace_apps",
+                "seed_capability_registry",
+                "seed_provider_registry",
+                "seed_migration_profiles",
+                "seed_blueprint_policy_packs",
+                "seed_workflow_dashboard_packs",
+                "seed_finance_defaults",
+                "seed_faqs",
+                "seed_kb_articles",
+            ):
                 extra.append("--dry-run")
             try:
                 call_command(cmd_name, *extra, verbosity=verbosity)

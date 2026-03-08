@@ -31,29 +31,39 @@ DASHBOARD_PACKS = [
 class Command(BaseCommand):
     help = "Seed initial Workflow Packs and Dashboard Packs (Phase 4). Idempotent."
 
+    def add_arguments(self, parser):
+        parser.add_argument("--dry-run", action="store_true", help="Show what would be created/updated without writing.")
+
     def handle(self, *args, **options):
+        dry_run = options.get("dry_run", False)
         for row in WORKFLOW_PACKS:
-            WorkflowPack.objects.update_or_create(
-                code=row["code"],
-                defaults={
-                    "name": row["name"],
-                    "family": row.get("family", ""),
-                    "description": row.get("description", ""),
-                    "version": "1.0",
-                    "is_active": True,
-                },
-            )
-        self.stdout.write(self.style.SUCCESS(f"Workflow packs: {len(WORKFLOW_PACKS)} ensured."))
+            if not dry_run:
+                WorkflowPack.objects.update_or_create(
+                    code=row["code"],
+                    defaults={
+                        "name": row["name"],
+                        "family": row.get("family", ""),
+                        "description": row.get("description", ""),
+                        "version": "1.0",
+                        "is_active": True,
+                    },
+                )
+        if not dry_run:
+            self.stdout.write(self.style.SUCCESS(f"Workflow packs: {len(WORKFLOW_PACKS)} ensured."))
 
         for row in DASHBOARD_PACKS:
-            DashboardPack.objects.update_or_create(
-                code=row["code"],
-                defaults={
-                    "name": row["name"],
-                    "family": row.get("family", ""),
-                    "description": row.get("description", ""),
-                    "version": "1.0",
-                    "is_active": True,
-                },
-            )
-        self.stdout.write(self.style.SUCCESS(f"Dashboard packs: {len(DASHBOARD_PACKS)} ensured."))
+            if not dry_run:
+                DashboardPack.objects.update_or_create(
+                    code=row["code"],
+                    defaults={
+                        "name": row["name"],
+                        "family": row.get("family", ""),
+                        "description": row.get("description", ""),
+                        "version": "1.0",
+                        "is_active": True,
+                    },
+                )
+        if dry_run:
+            self.stdout.write(self.style.SUCCESS(f"Dry run: would ensure {len(WORKFLOW_PACKS)} workflow packs and {len(DASHBOARD_PACKS)} dashboard packs."))
+        else:
+            self.stdout.write(self.style.SUCCESS(f"Dashboard packs: {len(DASHBOARD_PACKS)} ensured."))

@@ -1,5 +1,5 @@
 """
-Align a tenant (default: Gilead) to the codebase's configuration direction without
+Align a tenant to the codebase's configuration direction without
 changing name, slug, or subdomain. Ensures:
 
 - default_region is set (canonical source for currency, grading, timezone)
@@ -37,15 +37,15 @@ def _alpha2_for_region(region) -> str:
 class Command(BaseCommand):
     help = (
         "Align tenant configuration to codebase defaults: default_region, country_code, "
-        "timezone, compiled config, and features. Default tenant: gilead-school. Safe to re-run."
+        "timezone, compiled config, and features. Defaults to DEFAULT_TENANT_SLUG or the first active tenant. Safe to re-run."
     )
 
     def add_arguments(self, parser):
         parser.add_argument(
             "--slug",
             type=str,
-            default="gilead-school",
-            help="School slug to align (default: gilead-school).",
+            default="",
+            help="School slug to align (default: DEFAULT_TENANT_SLUG or first active tenant).",
         )
         parser.add_argument(
             "--region",
@@ -70,11 +70,27 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        slug = (options.get("slug") or "gilead-school").strip()
+        slug = (options.get("slug") or "").strip()
+        if not slug:
+            import os
+
+            slug = (os.environ.get("DEFAULT_TENANT_SLUG") or "").strip()
+        if not slug:
+            slug = (
+                School.objects.filter(is_active=True)
+                .order_by("name")
+                .values_list("slug", flat=True)
+                .first()
+                or ""
+            )
         region_code = (options.get("region") or "").strip() or None
         no_compile = options.get("no_compile", False)
         no_features = options.get("no_features", False)
         dry_run = options.get("dry_run", False)
+
+        if not slug:
+            self.stdout.write(self.style.WARNING("No active tenant found to align."))
+            return
 
         school = School.objects.filter(slug=slug, is_active=True).first()
         if not school:
@@ -103,7 +119,7 @@ class Command(BaseCommand):
                     school.save(update_fields=["country_code", "updated_at"])
 
             tz = getattr(region, "timezone", None) or "UTC"
-            current_tz = getattr(school, "timezone", "") or "Africa/Douala"
+            current_tz = getattr(school, "timezone", "") or "UTC"
             if tz and current_tz != tz:
                 changes.append(("timezone", current_tz, tz))
                 if not dry_run:

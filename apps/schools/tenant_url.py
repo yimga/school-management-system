@@ -11,7 +11,12 @@ from apps.schools.host_routing import (
 
 
 def get_single_tenant_slug() -> str | None:
-    """When exactly one active school exists, return its slug (legacy helper)."""
+    """Legacy helper gated behind explicit single-tenant compatibility settings."""
+    allow_legacy = str(getattr(settings, "SINGLE_TENANT", "") or "").strip().lower() in {"1", "true", "yes"}
+    if not allow_legacy:
+        allow_legacy = str(getattr(settings, "ALLOW_LEGACY_SINGLE_TENANT_REDIRECTS", "") or "").strip().lower() in {"1", "true", "yes"}
+    if not allow_legacy:
+        return None
     try:
         from apps.schools.models import School
         schools = list(School.objects.filter(is_active=True).values_list("slug", flat=True)[:2])

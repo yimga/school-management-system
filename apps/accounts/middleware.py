@@ -9,6 +9,7 @@ from django.utils import timezone
 from django.utils.functional import cached_property
 
 from apps.schools.host_routing import public_host_kind
+from apps.schools.tenant_url import build_manager_absolute_url
 
 from .permissions import can_access_module
 from .utils import get_user_role
@@ -180,6 +181,8 @@ class ModuleAccessMiddleware:
 
     def __call__(self, request):
         path = request.path or ""
+        if getattr(request, "public_host_kind", None) == "manager":
+            return self.get_response(request)
         if self._is_bypass_path(path):
             return self.get_response(request)
 
@@ -311,6 +314,57 @@ class ModuleAccessMiddleware:
             if path.startswith(prefix):
                 return module
         return None
+
+
+class TenantHostControlPlaneIsolationMiddleware:
+    """
+    Platform operators must enter tenant hosts through the signed impersonation flow,
+    not through normal tenant RBAC. This closes scattered SUPERADMIN allow-lists in
+    legacy tenant views without requiring every view to know control-plane semantics.
+    """
+
+    ALLOWED_TENANT_PATHS = {
+        "/authentication/impersonate/",
+        "/authentication/end-impersonation/",
+        "/authentication/logout/",
+    }
+    ALLOWED_TENANT_PREFIXES = (
+        "/static/",
+        "/media/",
+        "/assets/",
+        "/favicon.ico",
+        "/health/",
+        "/healthz/",
+        "/ready",
+        "/status/",
+        "/metrics/",
+    )
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if getattr(request, "public_host_kind", None) != "tenant":
+            return self.get_response(request)
+
+        path = request.path or "/"
+        if path in self.ALLOWED_TENANT_PATHS or any(path.startswith(prefix) for prefix in self.ALLOWED_TENANT_PREFIXES):
+            return self.get_response(request)
+
+        user = getattr(request, "user", None)
+        if not user or not user.is_authenticated or getattr(user, "is_superuser", False):
+            return self.get_response(request)
+
+        role = (getattr(user, "role", "") or "").upper()
+        if role != "SUPERADMIN":
+            return self.get_response(request)
+
+        impersonation = request.session.get("impersonation") or {}
+        school = getattr(request, "school", None)
+        if school and str(impersonation.get("school_id") or "") == str(school.id):
+            return self.get_response(request)
+
+        return redirect(build_manager_absolute_url(request, "/super/"))
 
 
 class RequireMFAMiddleware:

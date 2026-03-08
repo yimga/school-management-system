@@ -25,9 +25,14 @@ class RunMyCampusAdminSite(UnfoldAdminSite):
     site_title = "Configuration Engine"
     index_title = "Administration Dashboard"
 
+    @staticmethod
+    def _is_platform_admin_request(request) -> bool:
+        host_kind = (getattr(request, "public_host_kind", None) or "").lower()
+        return host_kind in {"manager", "local", ""}
+
     def each_context(self, request):
         context = super().each_context(request)
-        context["is_manager_host"] = getattr(request, "public_host_kind", None) == "manager"
+        context["is_manager_host"] = self._is_platform_admin_request(request)
         if context["is_manager_host"]:
             try:
                 from apps.schools.tenant_url import build_public_absolute_url
@@ -59,8 +64,13 @@ class RunMyCampusAdminSite(UnfoldAdminSite):
         return context
 
     def has_permission(self, request):
-        """Restrict admin to superusers only (configuration engine)."""
-        return request.user.is_active and request.user.is_staff and request.user.is_superuser
+        """Restrict admin to platform superusers on manager/local hosts."""
+        return bool(
+            self._is_platform_admin_request(request)
+            and request.user.is_active
+            and request.user.is_staff
+            and request.user.is_superuser
+        )
 
     def login(self, request, extra_context=None):
         """Add safe password_reset_url and public_site_url to context for high-end login template."""
@@ -80,7 +90,7 @@ class RunMyCampusAdminSite(UnfoldAdminSite):
         return super().login(request, extra_context=extra_context)
 
     def index(self, request, extra_context=None):
-        """Render the custom admin dashboard at /admin/. Superadmin (manager host) and tenant get different structures."""
+        """Render the platform admin dashboard at /admin/."""
         context = build_admin_dashboard_context(
             request,
             base_context=self.each_context(request),
@@ -88,9 +98,7 @@ class RunMyCampusAdminSite(UnfoldAdminSite):
         )
         if extra_context:
             context.update(extra_context)
-        is_manager = getattr(request, "public_host_kind", None) == "manager"
-        template = "admin/index_superadmin.html" if is_manager else "admin/index_tenant.html"
-        return TemplateResponse(request, template, context)
+        return TemplateResponse(request, "admin/index_superadmin.html", context)
 
     def dashboard_redirect(self, request):
         """Legacy /admin/dashboard/ route redirected to canonical /admin/."""

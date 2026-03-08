@@ -15,6 +15,7 @@ from django.http import HttpResponseForbidden
 from django.shortcuts import render
 
 from apps.siteconfig.models import SiteSettings
+from apps.platform_runtime.helpers import get_effective_flags
 from apps.observability import views as obs_views
 from apps.portal.views_ai_copilot import (
     ai_copilot_query,
@@ -25,6 +26,7 @@ from apps.portal.views_ai_copilot import (
 )
 from config.admin import admin_site
 from apps.schools.section8_views import frozen_account
+from apps.schools.parent_tenant_views import parent_tenant_dashboard
 from apps.schools.views_domains import api_domains_list_or_create, api_domains_verify
 from apps.schools.marketing_views import marketing_page
 from apps.marketplace.views import (
@@ -57,11 +59,7 @@ def _is_schema_allowed(user):
 @login_required
 @user_passes_test(_is_schema_allowed)
 def api_schema_ui(request):
-    rt = getattr(request, "tenant_runtime", None)
-    if rt and getattr(rt, "flags", None) and getattr(rt.flags, "flags", None):
-        flags = dict(rt.flags.flags)
-    else:
-        flags = getattr(SiteSettings.get_solo(), "backend_feature_flags", {}) or {}
+    flags = get_effective_flags(request)
     allowed_roles = [str(r).upper() for r in flags.get("allowed_roles_api_schema", [])]
     if not flags.get("enable_api_schema_ui", True):
         return HttpResponseForbidden("API schema UI disabled by admin.")
@@ -168,6 +166,7 @@ urlpatterns = [
     path("communication/", include(("apps.communication.urls", "communication"), namespace="communication")),
     path("emis/", include(("emis.urls", "emis"), namespace="emis")),
     path("requests/", include(("apps.requests.urls", "requests"), namespace="requests")),
+    path("organization/network/", parent_tenant_dashboard, name="organization_network_dashboard"),
     path("api/tenant/domains/", api_domains_list_or_create, name="api_domains_list_or_create"),
     path("api/tenant/domains/<uuid:school_domain_id>/verify/", api_domains_verify, name="api_domains_verify"),
     path("account-frozen/", frozen_account, name="account_frozen"),

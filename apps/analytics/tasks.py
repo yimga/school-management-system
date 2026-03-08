@@ -16,6 +16,7 @@ from apps.academics.models import SubjectAssignment
 from apps.automation.models import AutomationExecutionLog
 from apps.evals.models import TeacherAssignment
 from apps.evals.notifications import NotificationService
+from apps.schools.celery_tasks import _run_with_tenant_context
 from apps.siteconfig.models import SiteSettings
 
 logger = logging.getLogger(__name__)
@@ -109,33 +110,54 @@ def _deadline_reminder_days_str() -> str:
 
 
 @shared_task(bind=True, name="analytics.send_deadline_reminders")
-def send_deadline_reminders_task(self, days_str: str | None = None, dry_run: bool = False) -> dict:
+def send_deadline_reminders_task(self, days_str: str | None = None, dry_run: bool = False, school_id: str | None = None) -> dict:
     """Celery task: send grading deadline reminders to teachers. Uses SiteSettings.teacher_deadline_reminder_days when days_str not provided."""
-    if days_str is None or days_str == "":
-        days_str = _deadline_reminder_days_str()
-    execution_log = AutomationExecutionLog.objects.create(
-        task_name="analytics.send_deadline_reminders",
-        execution_type=AutomationExecutionLog.ExecutionType.DRY_RUN if dry_run else AutomationExecutionLog.ExecutionType.SCHEDULED,
-        status=AutomationExecutionLog.Status.PENDING,
-    )
-    try:
-        result = run_deadline_reminders(days_str=days_str, dry_run=dry_run)
-        sent = result.get("sent", 0)
-        errors = result.get("errors", 0)
-        execution_log.mark_completed(
-            AutomationExecutionLog.Status.SUCCESS,
-            records_processed=sent,
-            records_failed=errors,
-            summary={"dry_run": dry_run, "days_str": days_str},
+    def _run_for_school(current_school_id: str) -> dict:
+        resolved_days = days_str
+        if resolved_days is None or resolved_days == "":
+            resolved_days = _deadline_reminder_days_str()
+        execution_log = AutomationExecutionLog.objects.create(
+            task_name="analytics.send_deadline_reminders",
+            execution_type=AutomationExecutionLog.ExecutionType.DRY_RUN if dry_run else AutomationExecutionLog.ExecutionType.SCHEDULED,
+            status=AutomationExecutionLog.Status.PENDING,
         )
-        return result
-    except Exception as e:
-        logger.exception("send_deadline_reminders_task failed")
-        execution_log.mark_completed(
-            AutomationExecutionLog.Status.FAILED,
-            error_message=str(e),
+        try:
+            result = run_deadline_reminders(days_str=resolved_days, dry_run=dry_run)
+            sent = result.get("sent", 0)
+            errors = result.get("errors", 0)
+            execution_log.mark_completed(
+                AutomationExecutionLog.Status.SUCCESS,
+                records_processed=sent,
+                records_failed=errors,
+                summary={"dry_run": dry_run, "days_str": resolved_days, "school_id": str(current_school_id)},
+            )
+            return {**result, "school_id": str(current_school_id)}
+        except Exception as e:
+            logger.exception("send_deadline_reminders_task failed for school=%s", current_school_id)
+            execution_log.mark_completed(
+                AutomationExecutionLog.Status.FAILED,
+                error_message=str(e),
+            )
+            raise
+
+    if school_id:
+        return _run_with_tenant_context(
+            school_id=school_id,
+            runnable=lambda: _run_for_school(school_id),
         )
-        raise
+
+    from apps.schools.models import School
+
+    totals = {"sent": 0, "errors": 0, "dry_run": dry_run, "schools_processed": 0}
+    for sid in School.objects.filter(is_active=True).values_list("id", flat=True):
+        result = _run_with_tenant_context(
+            school_id=sid,
+            runnable=lambda sid=sid: _run_for_school(str(sid)),
+        )
+        totals["sent"] += int(result.get("sent", 0))
+        totals["errors"] += int(result.get("errors", 0))
+        totals["schools_processed"] += 1
+    return totals
 
 
 def _write_student_signals_for_school(school, today, last_30):
@@ -175,50 +197,56 @@ def compute_risk_factors_task(self, school_id: str) -> dict:
     Writes StudentSignals (attendance_ratio_30d) then creates/updates RiskFactor rows.
     Used by nightly_risk_factors and POST /api/v1/intervention/calculate-risk.
     """
-    from decimal import Decimal
-    from django.utils import timezone
-    from django.db.models import Count
-    from datetime import timedelta
-    from apps.schools.models import School
-    from apps.analytics.models import RiskFactor
-    from apps.people.models import StudentProfile
-    from apps.academics.models import Attendance
+    def _run_for_school(current_school_id: str) -> dict:
+        from decimal import Decimal
+        from django.utils import timezone
+        from django.db.models import Count
+        from datetime import timedelta
+        from apps.schools.models import School
+        from apps.analytics.models import RiskFactor
+        from apps.people.models import StudentProfile
+        from apps.academics.models import Attendance
 
-    school = School.objects.filter(id=school_id).first()
-    if not school:
-        return {"status": "error", "message": "School not found"}
-    today = timezone.now().date()
-    last_30 = today - timedelta(days=30)
-    signals_written = _write_student_signals_for_school(school, today, last_30)
-    students = StudentProfile.objects.filter(school=school).values_list("id", flat=True)
-    created = 0
-    RiskFactor.objects.filter(school=school).delete()
-    for sid in students:
-        att = Attendance.objects.filter(school=school, student_id=sid, date__gte=last_30).aggregate(
-            total=Count("id"),
-            absent=Count("id", filter=Q(status="absent")),
-        )
-        total = att["total"] or 0
-        absent = att["absent"] or 0
-        if total:
-            pct_absent = float(absent) / float(total) * 100
-            score = min(100, Decimal(str(round(pct_absent * 0.4 + 20, 2))))
-        else:
-            score = Decimal("20.00")
-        reason = f"Attendance last 30 days: {total - absent}/{total} present"
-        RiskFactor.objects.create(
-            school=school,
-            student_id=sid,
-            score=score,
-            reason_summary=reason[:500],
-        )
-        created += 1
-    return {
-        "status": "ok",
-        "school_id": school_id,
-        "students_updated": created,
-        "signals_written": signals_written,
-    }
+        school = School.objects.filter(id=current_school_id).first()
+        if not school:
+            return {"status": "error", "message": "School not found"}
+        today = timezone.now().date()
+        last_30 = today - timedelta(days=30)
+        signals_written = _write_student_signals_for_school(school, today, last_30)
+        students = StudentProfile.objects.filter(school=school).values_list("id", flat=True)
+        created = 0
+        RiskFactor.objects.filter(school=school).delete()
+        for sid in students:
+            att = Attendance.objects.filter(school=school, student_id=sid, date__gte=last_30).aggregate(
+                total=Count("id"),
+                absent=Count("id", filter=Q(status="absent")),
+            )
+            total = att["total"] or 0
+            absent = att["absent"] or 0
+            if total:
+                pct_absent = float(absent) / float(total) * 100
+                score = min(100, Decimal(str(round(pct_absent * 0.4 + 20, 2))))
+            else:
+                score = Decimal("20.00")
+            reason = f"Attendance last 30 days: {total - absent}/{total} present"
+            RiskFactor.objects.create(
+                school=school,
+                student_id=sid,
+                score=score,
+                reason_summary=reason[:500],
+            )
+            created += 1
+        return {
+            "status": "ok",
+            "school_id": current_school_id,
+            "students_updated": created,
+            "signals_written": signals_written,
+        }
+
+    return _run_with_tenant_context(
+        school_id=school_id,
+        runnable=lambda: _run_for_school(school_id),
+    )
 
 
 @shared_task(bind=True, name="analytics.nightly_risk_factors")

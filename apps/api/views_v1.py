@@ -1622,8 +1622,14 @@ class AdHocReportRunView(View):
             data = {}
         params = data.get("parameters_override") or {}
         output_format = data.get("output_format") or definition.output_format
+        user_role = (getattr(request.user, "role", "") or "").upper()
         csv_bytes, json_rows, row_count, err = run_adhoc_report(
-            definition, request.user, parameters_override=params, output_format=output_format
+            definition,
+            request.user,
+            parameters_override=params,
+            output_format=output_format,
+            school_id_override=str(school.pk) if school else None,
+            allow_global=bool(not school and (request.user.is_superuser or user_role == "SUPERADMIN")),
         )
         if err:
             return JsonResponse({"ok": False, "error": err}, status=400)

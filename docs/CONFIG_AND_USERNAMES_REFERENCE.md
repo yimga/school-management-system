@@ -2,6 +2,8 @@
 
 Single source of truth for deployment config and every **actual username** created by the project.
 
+**Living platform (first-time / local):** For a non-empty platform (populated Manager catalogs, registries, workflow/dashboard packs, app catalog), run after migrations: `python manage.py bootstrap_runmycampus_platform` (or `bootstrap_platform_catalog --all`). See [BOOTSTRAP_PLATFORM_CATALOG.md](./BOOTSTRAP_PLATFORM_CATALOG.md).
+
 ---
 
 ## 1. Render config (render.yaml)

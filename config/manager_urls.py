@@ -17,6 +17,7 @@ from apps.observability import views as obs_views
 from apps.observability.models import PlatformIncident
 from apps.schools.models import School
 from apps.schools.marketing_views import marketing_page
+from apps.schools.control_plane import require_control_plane_access, user_has_control_plane_access
 from apps.schools.tenant_url import build_public_absolute_url
 from config.admin import admin_site
 
@@ -34,7 +35,9 @@ handler500 = handler500_view
 
 def manager_home(request):
     if request.user.is_authenticated:
-        return redirect("super:dashboard")
+        if user_has_control_plane_access(request.user):
+            return redirect("super:dashboard")
+        return redirect("accounts:redirect")
     return redirect("accounts:login")
 
 
@@ -123,7 +126,7 @@ def _subscription_plan_label(subscription: TenantSubscription) -> str:
     return "plan"
 
 
-@login_required
+@require_control_plane_access
 def manager_search_api(request):
     query = (request.GET.get("q") or "").strip()
     if len(query) < 2:

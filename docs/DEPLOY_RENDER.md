@@ -46,8 +46,10 @@ If you do **not** set `DATABASE_URL`, the app uses SQLite on the server disk. Re
 - `SECRET_KEY` – Required in production.
 - `RUN_INTEGRATION_PREFLIGHT=1` – Recommended. Fails deploy only when enabled integration features are missing runtime credentials.
 - `ADMIN_PASSWORD` – Recommended. Enables automatic `seed_render_users` during predeploy.
-- `RUN_BOOTSTRAP_PLATFORM_CATALOG=1` – Optional. Runs `bootstrap_platform_catalog` so Blueprint marketplace and App catalog have active packs and installable apps. See [BOOTSTRAP_PLATFORM_CATALOG.md](./BOOTSTRAP_PLATFORM_CATALOG.md).
-- `RUN_FULL_BOOTSTRAP=1` – Optional. When `RUN_BOOTSTRAP_PLATFORM_CATALOG=1`, runs `bootstrap_platform_catalog --all` to seed every applicable catalog (global data, registries, workflow/dashboard packs, portal FAQs/KB, finance defaults, compliance baseline). Use for first-time or full environment setup.
+- `RUN_BOOTSTRAP_PLATFORM_CATALOG=1` – Optional. When set, predeploy runs **full** bootstrap (`bootstrap_platform_catalog --all`) by default so Manager catalogs, registries, workflow/dashboard packs, provider registry, migration profiles, portal FAQs/KB, and finance defaults are populated. See [BOOTSTRAP_PLATFORM_CATALOG.md](./BOOTSTRAP_PLATFORM_CATALOG.md).
+- `RUN_MINIMAL_BOOTSTRAP=1` – Optional. When `RUN_BOOTSTRAP_PLATFORM_CATALOG=1`, set this to run only blueprint + marketplace seed (no registries, workflow/dashboard, portal, etc.). Omit or set to `0` for full bootstrap.
+
+**First-time / living platform:** Set `RUN_BOOTSTRAP_PLATFORM_CATALOG=1` on first deploy; full bootstrap runs by default, so Manager is not a ghost town. See [SEEDING_BOOTSTRAP_AUDIT.md](./SEEDING_BOOTSTRAP_AUDIT.md).
 
 ## Start command (do not override without binding to PORT)
 
@@ -67,4 +69,4 @@ That script runs Gunicorn with `config/gunicorn.conf.py`, which sets `bind = "0.
 4. `normalize_ui_config`
 5. `integration_preflight` (when `RUN_INTEGRATION_PREFLIGHT=1`)
 6. `seed_render_users` (always; tenant demo users only when `ADMIN_PASSWORD` is set)
-7. `bootstrap_platform_catalog` (when `RUN_BOOTSTRAP_PLATFORM_CATALOG=1`) — seeds blueprint packs and marketplace apps; use `RUN_FULL_BOOTSTRAP=1` to run with `--all` (every applicable seed). See [BOOTSTRAP_PLATFORM_CATALOG.md](./BOOTSTRAP_PLATFORM_CATALOG.md).
+7. `bootstrap_platform_catalog` (when `RUN_BOOTSTRAP_PLATFORM_CATALOG=1`) — runs with `--all` (full bootstrap) by default; set `RUN_MINIMAL_BOOTSTRAP=1` for blueprint + marketplace only. See [BOOTSTRAP_PLATFORM_CATALOG.md](./BOOTSTRAP_PLATFORM_CATALOG.md).

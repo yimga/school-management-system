@@ -50,7 +50,6 @@ def _matches_audience_role(user, audience_role: str) -> bool:
     audience = (audience_role or "").upper()
     if audience == "STAFF":
         return role in {
-            "SUPERADMIN",
             "ADMIN",
             "LEADERSHIP",
             "PRINCIPAL",
@@ -71,15 +70,24 @@ def _matches_audience_role(user, audience_role: str) -> bool:
     return role == audience
 
 
+def _thread_queryset_for_request(request: HttpRequest):
+    queryset = MessageThread.objects.all()
+    school = getattr(request, "school", None)
+    if school is not None:
+        queryset = queryset.filter(school=school)
+    return queryset
+
+
 @login_required
 def group_list(request: HttpRequest):
     """List all groups/threads user is a member of or can access."""
     if not _can_access_group_messaging(request.user):
         return HttpResponseForbidden("You don't have permission to access message groups.")
     user = request.user
+    thread_queryset = _thread_queryset_for_request(request)
     
     # Get threads user is a member of
-    my_threads = MessageThread.objects.filter(
+    my_threads = thread_queryset.filter(
         members=user,
         is_archived=False
     ).annotate(
@@ -92,14 +100,14 @@ def group_list(request: HttpRequest):
     # Get department threads if user is a teacher
     department_threads = []
     if hasattr(user, 'teacher_profile') and user.teacher_profile.department:
-        department_threads = MessageThread.objects.filter(
+        department_threads = thread_queryset.filter(
             scope=MessageThread.Scope.DEPARTMENT,
             department=user.teacher_profile.department,
             is_archived=False
         ).exclude(id__in=my_threads.values_list('id', flat=True))
     
     # Get threads user created
-    created_threads = MessageThread.objects.filter(
+    created_threads = thread_queryset.filter(
         created_by=user,
         is_archived=False
     ).exclude(id__in=my_threads.values_list('id', flat=True))
@@ -118,11 +126,14 @@ def group_create(request: HttpRequest):
     """Create a new message thread/group."""
     if not _can_access_group_messaging(request.user):
         return HttpResponseForbidden("You don't have permission to create message groups.")
+    school = getattr(request, "school", None)
     if request.method == 'POST':
-        form = MessageThreadCreateForm(request.POST, user=request.user)
+        form = MessageThreadCreateForm(request.POST, user=request.user, school=school)
         if form.is_valid():
             thread = form.save(commit=False)
             thread.created_by = request.user
+            if school is not None:
+                thread.school = school
             thread.save()
             form.save_m2m()  # Save members
             
@@ -133,7 +144,7 @@ def group_create(request: HttpRequest):
             messages.success(request, f'Group "{thread.title}" created successfully.')
             return redirect('communication:group_detail', thread_id=thread.id)
     else:
-        form = MessageThreadCreateForm(user=request.user)
+        form = MessageThreadCreateForm(user=request.user, school=school)
     
     return render(request, 'communication/group_create.html', {'form': form})
 
@@ -143,7 +154,7 @@ def group_detail(request: HttpRequest, thread_id: int):
     """View and participate in a message thread."""
     if not _can_access_group_messaging(request.user):
         return HttpResponseForbidden("You don't have permission to access this group.")
-    thread = get_object_or_404(MessageThread, id=thread_id)
+    thread = get_object_or_404(_thread_queryset_for_request(request), id=thread_id)
 
     is_member = thread.members.filter(id=request.user.id).exists()
     can_view = is_member or request.user.is_staff or request.user.is_superuser or request.user == thread.created_by
@@ -200,7 +211,8 @@ def group_manage(request: HttpRequest, thread_id: int):
     """Manage group members and settings."""
     if not _can_access_group_messaging(request.user):
         return HttpResponseForbidden("You don't have permission to manage message groups.")
-    thread = get_object_or_404(MessageThread, id=thread_id)
+    school = getattr(request, "school", None)
+    thread = get_object_or_404(_thread_queryset_for_request(request), id=thread_id)
     
     # Check permissions
     can_manage = (
@@ -215,14 +227,14 @@ def group_manage(request: HttpRequest, thread_id: int):
         return HttpResponseForbidden("You don't have permission to manage this group.")
     
     if request.method == 'POST':
-        form = MessageThreadUpdateForm(request.POST, instance=thread, user=request.user)
+        form = MessageThreadUpdateForm(request.POST, instance=thread, user=request.user, school=school)
         if form.is_valid():
             form.save()
             form.save_m2m()  # Save members
             messages.success(request, 'Group updated successfully.')
             return redirect('communication:group_detail', thread_id=thread.id)
     else:
-        form = MessageThreadUpdateForm(instance=thread, user=request.user)
+        form = MessageThreadUpdateForm(instance=thread, user=request.user, school=school)
     
     return render(request, 'communication/group_manage.html', {
         'thread': thread,
@@ -235,7 +247,7 @@ def group_join(request: HttpRequest, thread_id: int):
     """Join a group/thread."""
     if not _can_access_group_messaging(request.user):
         return HttpResponseForbidden("You don't have permission to join message groups.")
-    thread = get_object_or_404(MessageThread, id=thread_id)
+    thread = get_object_or_404(_thread_queryset_for_request(request), id=thread_id)
     if thread.is_archived:
         return HttpResponseForbidden("This group is archived.")
     if not _matches_audience_role(request.user, thread.audience_role):
@@ -265,7 +277,7 @@ def group_leave(request: HttpRequest, thread_id: int):
     """Leave a group/thread."""
     if not _can_access_group_messaging(request.user):
         return HttpResponseForbidden("You don't have permission to leave message groups.")
-    thread = get_object_or_404(MessageThread, id=thread_id)
+    thread = get_object_or_404(_thread_queryset_for_request(request), id=thread_id)
     
     if request.user in thread.members.all():
         thread.members.remove(request.user)

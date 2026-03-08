@@ -35,7 +35,7 @@ class ExecutiveReportingService:
     """
     
     @staticmethod
-    def get_financial_summary(start_date: datetime, end_date: datetime) -> Dict:
+    def get_financial_summary(start_date: datetime, end_date: datetime, school_id: Optional[str] = None) -> Dict:
         """
         Financial KPIs for executive dashboard
         Extends AdminDashboardService.get_finance_metrics() with period ranges
@@ -43,7 +43,7 @@ class ExecutiveReportingService:
         from apps.finance.models import Invoice, Payment
         
         prefix = get_tenant_cache_prefix(None)
-        cache_key = f'{prefix}:exec_finance_{start_date.date()}_{end_date.date()}'
+        cache_key = f'{prefix}:exec_finance_{school_id or "global"}_{start_date.date()}_{end_date.date()}'
         cached = cache.get(cache_key)
         if cached:
             return cached
@@ -51,11 +51,15 @@ class ExecutiveReportingService:
         invoices = Invoice.objects.filter(
             created_at__range=[start_date, end_date]
         )
+        if school_id is not None:
+            invoices = invoices.filter(school_id=school_id)
         
         payments = Payment.objects.filter(
             created_at__range=[start_date, end_date],
             status='COMPLETED'
         )
+        if school_id is not None:
+            payments = payments.filter(school_id=school_id)
         
         summary = {
             'total_invoiced': invoices.aggregate(total=Sum('total_amount'))['total'] or 0,
@@ -75,7 +79,7 @@ class ExecutiveReportingService:
         return summary
     
     @staticmethod
-    def get_academic_summary(academic_year_id: int, term_id: Optional[int] = None) -> Dict:
+    def get_academic_summary(academic_year_id: int, term_id: Optional[int] = None, school_id: Optional[str] = None) -> Dict:
         """
         Academic performance KPIs
         Integrates with AdvancedAnalyticsService for at-risk student detection
@@ -85,20 +89,29 @@ class ExecutiveReportingService:
         from apps.academics.models import Classroom
         
         prefix = get_tenant_cache_prefix(None)
-        cache_key = f'{prefix}:exec_academic_{academic_year_id}_{term_id}'
+        cache_key = f'{prefix}:exec_academic_{school_id or "global"}_{academic_year_id}_{term_id}'
         cached = cache.get(cache_key)
         if cached:
             return cached
         
         evaluations = Evaluation.objects.filter(academic_year_id=academic_year_id)
+        if school_id is not None:
+            evaluations = evaluations.filter(school_id=school_id)
         if term_id:
             evaluations = evaluations.filter(term_id=term_id)
         
-        students = Student.objects.filter(is_active=True)
+        students = Student.objects.filter(is_active=True, academic_year_id=academic_year_id)
+        if school_id is not None:
+            students = students.filter(school_id=school_id)
         classrooms = Classroom.objects.filter(academic_year_id=academic_year_id)
+        if school_id is not None:
+            classrooms = classrooms.filter(school_id=school_id)
         
         # Leverage existing AdvancedAnalyticsService for at-risk detection
-        at_risk_students = AdvancedAnalyticsService.identify_at_risk_students(threshold=50)
+        at_risk_students = AdvancedAnalyticsService.identify_at_risk_students(
+            school_id=school_id,
+            threshold=50,
+        )
         
         summary = {
             'total_students': students.count(),
@@ -122,12 +135,12 @@ class ExecutiveReportingService:
         return summary
     
     @staticmethod
-    def get_enrollment_trends(months: int = 12) -> Dict:
+    def get_enrollment_trends(months: int = 12, school_id: Optional[str] = None) -> Dict:
         """Enrollment trends over time"""
         from apps.people.models import Student
         
         prefix = get_tenant_cache_prefix(None)
-        cache_key = f'{prefix}:enrollment_trends_{months}'
+        cache_key = f'{prefix}:enrollment_trends_{school_id or "global"}_{months}'
         cached = cache.get(cache_key)
         if cached:
             return cached
@@ -138,14 +151,20 @@ class ExecutiveReportingService:
         # Monthly enrollment counts (DB-agnostic: SQLite and PostgreSQL)
         students = Student.objects.filter(
             created_at__range=[start_date, end_date]
-        ).annotate(
+        )
+        if school_id is not None:
+            students = students.filter(school_id=school_id)
+        students = students.annotate(
             month=TruncMonth('created_at')
         ).values('month').annotate(count=Count('id')).order_by('month')
+        totals = Student.objects.all()
+        if school_id is not None:
+            totals = totals.filter(school_id=school_id)
         
         trends = {
             'monthly_enrollment': list(students),
-            'total_active': Student.objects.filter(is_active=True).count(),
-            'total_inactive': Student.objects.filter(is_active=False).count(),
+            'total_active': totals.filter(is_active=True).count(),
+            'total_inactive': totals.filter(is_active=False).count(),
             'period_months': months,
         }
         
@@ -166,7 +185,7 @@ class AdHocReportBuilder:
     }
     
     @staticmethod
-    def execute_query(model_name: str, filters: Dict, fields: List[str]) -> List[Dict]:
+    def execute_query(model_name: str, filters: Dict, fields: List[str], school_id: Optional[str] = None) -> List[Dict]:
         """Execute filtered query on allowed models"""
         if model_name not in AdHocReportBuilder.ALLOWED_MODELS:
             raise ValueError(f"Model {model_name} not allowed")
@@ -177,6 +196,11 @@ class AdHocReportBuilder:
         ModelClass = apps.get_model(app_label.split('.')[-1], model)
         
         queryset = ModelClass.objects.all()
+        model_field_names = {field.name for field in ModelClass._meta.get_fields() if hasattr(field, "name")}
+        if "school" in model_field_names:
+            if school_id is None:
+                raise ValueError(f"school_id required for tenant-scoped report model {model_name}")
+            queryset = queryset.filter(school_id=school_id)
         
         # Apply filters
         if filters:

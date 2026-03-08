@@ -12,6 +12,13 @@ class ManagerUrlconfBoundaryTests(TestCase):
             is_staff=True,
             is_superuser=True,
         )
+        self.tenant_staff = User.objects.create_user(
+            username="tenant_staff_boundary",
+            password="testpass123",
+            is_staff=True,
+            is_superuser=False,
+            role=User.Role.ADMIN,
+        )
 
     def test_manager_urlconf_uses_legacy_redirects_for_tenant_prefixes(self):
         match = resolve("/portal/", urlconf="config.manager_urls")
@@ -20,15 +27,15 @@ class ManagerUrlconfBoundaryTests(TestCase):
         match = resolve("/finance/", urlconf="config.manager_urls")
         self.assertEqual(match.url_name, "manager_legacy_finance")
 
-    def test_manager_host_redirects_tenant_surface_to_control_plane(self):
+    def test_manager_host_rejects_tenant_surface_prefixes(self):
         self.client.force_login(self.user)
         response = self.client.get("/portal/teacher/", HTTP_HOST="manager.runmycampus.com")
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response["Location"], reverse("super:dashboard"))
+        self.assertEqual(response["Location"], "/")
 
         response = self.client.get("/finance/", HTTP_HOST="manager.runmycampus.com")
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response["Location"], reverse("super:billing_dashboard"))
+        self.assertEqual(response["Location"], "/")
 
     def test_manager_search_api_returns_control_plane_results(self):
         self.client.force_login(self.user)
@@ -40,3 +47,8 @@ class ManagerUrlconfBoundaryTests(TestCase):
             any(item.get("title") == "Platform Billing" for item in payload["results"]),
             payload,
         )
+
+    def test_manager_search_api_denies_tenant_staff(self):
+        self.client.force_login(self.tenant_staff)
+        response = self.client.get("/api/search/?q=billing", HTTP_HOST="manager.runmycampus.com")
+        self.assertEqual(response.status_code, 403)

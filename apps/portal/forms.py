@@ -1,10 +1,22 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
+import re
 
 from apps.people.models import StudentGuardian, StudentProfile, TeacherLeaveRequest
 from .models import LessonPlan, LessonPlanAttachment, TeacherTrainingEntry, AttendanceJustification, CahierDeTexteEntry
 from apps.siteconfig.models import SiteSettings
 from apps.academics.models import Term, AcademicYear
+
+
+def _default_school_code(school=None) -> str:
+    raw = (getattr(school, "slug", None) or getattr(school, "name", None) or "").strip().upper()
+    if not raw:
+        return "SCH"
+    parts = [part for part in re.split(r"[^A-Z0-9]+", raw) if part]
+    initials = "".join(part[0] for part in parts[:6])
+    if initials:
+        return initials[:6]
+    return "".join(parts)[:6] or "SCH"
 
 
 class LinkChildForm(forms.Form):
@@ -114,11 +126,12 @@ class LinkChildForm(forms.Form):
     def __init__(self, *args, **kwargs):
         self.guardian_user = kwargs.pop("guardian_user", None)
         policy = kwargs.pop("policy", None)
+        school = kwargs.pop("school", None)
         school_code = kwargs.pop("school_code", None)
         if not school_code and policy:
             school_code = (policy.get("admissions") or {}).get("school_code")
         if not school_code:
-            school_code = getattr(SiteSettings.get_solo(), "school_code", None) or "GIL"
+            school_code = _default_school_code(school) or getattr(SiteSettings.get_solo(), "school_code", None) or "SCH"
         super().__init__(*args, **kwargs)
         # Populate dynamic term choices from active academic year
         active_year = AcademicYear.objects.filter(is_active=True).first()
@@ -408,11 +421,11 @@ class TeacherOnboardingForm(forms.Form):
     def __init__(self, *args, **kwargs):
         from apps.academics.models import Department
         from apps.people.models import TeacherProfile
-        
+        school = kwargs.pop("school", None)
         super().__init__(*args, **kwargs)
         
         # Populate department choices
-        self.fields["department"].queryset = Department.objects.all().order_by("name")
+        self.fields["department"].queryset = Department.objects.filter(school=school).order_by("name") if school else Department.objects.none()
         
         # Populate payment method choices
         self.fields["payment_method"].choices = TeacherProfile.PaymentMethod.choices
@@ -558,13 +571,22 @@ class StudentOnboardingForm(forms.Form):
         except Exception:
             pass
         # Populate academic year choices
-        self.fields["academic_year"].queryset = AcademicYear.objects.filter(is_active=True).order_by("-start_date")
+        academic_years = AcademicYear.objects.filter(is_active=True)
+        if school is not None:
+            academic_years = academic_years.filter(school=school)
+        self.fields["academic_year"].queryset = academic_years.order_by("-start_date")
         
         # Populate specialty choices
-        self.fields["specialty"].queryset = Specialty.objects.all().order_by("name")
+        specialties = Specialty.objects.all()
+        if school is not None and hasattr(Specialty, "school_id"):
+            specialties = specialties.filter(school=school)
+        self.fields["specialty"].queryset = specialties.order_by("name")
         
         # Populate classroom choices
-        self.fields["classroom"].queryset = Classroom.objects.all().order_by("name")
+        classrooms = Classroom.objects.all()
+        if school is not None:
+            classrooms = classrooms.filter(school=school)
+        self.fields["classroom"].queryset = classrooms.order_by("name")
         
         # Populate gender choices
         self.fields["gender"].choices = StudentProfile.Gender.choices
@@ -609,6 +631,7 @@ class StudentOnboardingForm(forms.Form):
                 admissions = {
                     "admission_number_mode": getattr(site, "admission_number_mode", "AUTO_OR_MANUAL"),
                     "admission_number_pattern": (getattr(site, "admission_number_pattern", None) or "") or "",
+                    "school_code": getattr(site, "school_code", None) or _default_school_code(None),
                 }
             mode = admissions.get("admission_number_mode", "AUTO_OR_MANUAL")
             if mode == "AUTO":

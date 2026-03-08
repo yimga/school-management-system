@@ -4,8 +4,19 @@ Query: health, me { username, email, isStaff }, schoolCount (staff only), school
 """
 import graphene
 from django.contrib.auth import get_user_model
+from apps.schools.control_plane import user_has_control_plane_access
 
 User = get_user_model()
+
+
+def _can_access_global_school_registry(request) -> bool:
+    if request is None:
+        return False
+    user = getattr(request, "user", None)
+    if not user_has_control_plane_access(user):
+        return False
+    host_kind = (getattr(request, "public_host_kind", None) or "").lower()
+    return host_kind in {"manager", "local", ""}
 
 
 class UserType(graphene.ObjectType):
@@ -58,10 +69,8 @@ class Query(graphene.ObjectType):
         return user
 
     def resolve_school_count(self, info):
-        user = getattr(info.context, "user", None)
-        if not user or not getattr(user, "is_authenticated", False):
-            return None
-        if not (getattr(user, "is_staff", False) or getattr(user, "is_superuser", False)):
+        request = getattr(info, "context", None)
+        if not _can_access_global_school_registry(request):
             return None
         try:
             from apps.schools.models import School
@@ -70,10 +79,8 @@ class Query(graphene.ObjectType):
             return None
 
     def resolve_schools(self, info, limit=20):
-        user = getattr(info.context, "user", None)
-        if not user or not getattr(user, "is_authenticated", False):
-            return []
-        if not (getattr(user, "is_staff", False) or getattr(user, "is_superuser", False)):
+        request = getattr(info, "context", None)
+        if not _can_access_global_school_registry(request):
             return []
         try:
             from apps.schools.models import School

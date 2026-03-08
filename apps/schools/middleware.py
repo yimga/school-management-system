@@ -56,16 +56,6 @@ MANAGER_HOST_ALLOWED_PREFIXES = (
     "/ops/",
     "/admin/",
     "/siteconfig/",
-    "/portal/",
-    "/academics/",
-    "/evals/",
-    "/reports/",
-    "/finance/",
-    "/communication/",
-    "/kb/",
-    "/analytics/",
-    "/compliance/",
-    "/payroll/",
     "/health",
     "/healthz/",
     "/ready/",
@@ -78,6 +68,28 @@ MANAGER_HOST_ALLOWED_PREFIXES = (
     "/media/",
     "/favicon.ico",
     "/offline/",
+)
+
+MANAGER_HOST_PUBLIC_ACCESS_PREFIXES = (
+    *MANAGER_AUTH_ALLOWED_PREFIXES,
+    "/help/",
+    "/support/",
+    "/feedback/",
+    "/notifications/",
+    "/offline/",
+    "/health",
+    "/healthz/",
+    "/ready/",
+    "/status/",
+    "/api/health/",
+    "/api/billing/processors/",
+    "/api/observability/incidents/",
+    "/static/",
+    "/media/",
+    "/favicon.ico",
+    "/privacy/",
+    "/terms/",
+    "/cookie-policy/",
 )
 
 PUBLIC_ONLY_PREFIXES = (
@@ -833,30 +845,59 @@ class TenantSuperAdminRequiredMiddleware(MiddlewareMixin):
             site = SiteSettings.get_solo()
             flags = getattr(site, "backend_feature_flags", None) or {}
             if not flags.get("enable_super_admin_ui", True):
-                if not request.path.startswith("/super/parent-tenant"):
-                    from django.http import HttpResponseForbidden
-                    return HttpResponseForbidden("Super Admin is disabled.")
+                from django.http import HttpResponseForbidden
+                return HttpResponseForbidden("Super Admin is disabled.")
         except Exception:
             pass
         if not request.user.is_authenticated:
             from django.contrib.auth.views import redirect_to_login
             return redirect_to_login(request.get_full_path())
-        if getattr(request.user, "is_superuser", False):
+        try:
+            from apps.schools.control_plane import user_has_control_plane_access
+        except Exception:
+            user_has_control_plane_access = None
+        if callable(user_has_control_plane_access) and user_has_control_plane_access(request.user):
             return None
-        role = (getattr(request.user, "role", "") or "").upper()
-        if role == "SUPERADMIN":
-            return None
-        # Parent-tenant dashboard: allow users whose school has child_schools (Phase 4).
-        if request.path.startswith("/super/parent-tenant"):
-            from apps.schools.models import SchoolMembership
-            school_id = request.session.get("school_id")
-            if school_id:
-                from apps.schools.models import School
-                parent = School.objects.filter(id=school_id, is_active=True).first()
-                if parent and parent.child_schools.exists():
-                    return None
         from django.http import HttpResponseForbidden
         return HttpResponseForbidden("Super Admin access required.")
+
+
+class ManagerHostControlPlaneRequiredMiddleware(MiddlewareMixin):
+    """
+    Require a platform operator for manager-host surfaces outside the public/auth bootstrap paths.
+
+    This prevents tenant staff users from treating manager.runmycampus.com as a
+    generic staff host and closes the gap where a missed decorator could expose
+    global tenant data.
+    """
+
+    def process_request(self, request):
+        if getattr(request, "public_host_kind", None) != "manager":
+            return None
+
+        path = (request.path or "").strip()
+        if path in ("", "/"):
+            if not getattr(request.user, "is_authenticated", False):
+                return None
+        elif _path_allowed_for_reserved_host(path, allowed_prefixes=MANAGER_HOST_PUBLIC_ACCESS_PREFIXES):
+            return None
+
+        if not getattr(request.user, "is_authenticated", False):
+            from django.contrib.auth.views import redirect_to_login
+
+            return redirect_to_login(request.get_full_path())
+
+        try:
+            from apps.schools.control_plane import user_has_control_plane_access
+        except Exception:
+            user_has_control_plane_access = None
+
+        if callable(user_has_control_plane_access) and user_has_control_plane_access(request.user):
+            return None
+
+        from django.http import HttpResponseForbidden
+
+        return HttpResponseForbidden("Control-plane access required.")
 
 
 class SuperAdminRateLimitMiddleware(MiddlewareMixin):

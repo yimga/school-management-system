@@ -286,3 +286,46 @@ class MigrationRun(models.Model):
                 summary={**rollback_run.execution_summary, **result},
             )
         return rollback_run, result
+
+
+class MigrationProfile(models.Model):
+    """
+    Platform-level registry of migration connector profiles (Phase 5 migration cloud).
+    Schools use these to run imports (CSV/XLSX, student/finance/attendance/grades, generic SIS).
+    Seeded by seed_migration_profiles; migration_type in MigrationRun can match slug.
+    """
+
+    class Format(models.TextChoices):
+        CSV = "csv", "CSV"
+        XLSX = "xlsx", "XLSX"
+        GENERIC_SIS = "generic_sis", "Generic SIS"
+
+    class Domain(models.TextChoices):
+        STUDENTS = "students", "Student import"
+        FINANCE = "finance", "Finance import"
+        ATTENDANCE = "attendance", "Attendance import"
+        GRADES = "grades", "Grades import"
+        GENERIC_SIS = "generic_sis", "Generic SIS"
+
+    slug = models.SlugField(max_length=64, unique=True, db_index=True)
+    name = models.CharField(max_length=120)
+    description = models.TextField(blank=True)
+    format = models.CharField(max_length=20, choices=Format.choices, default=Format.CSV)
+    domain = models.CharField(max_length=32, choices=Domain.choices, default=Domain.STUDENTS)
+    config = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Target fields, required columns, mapping hints for the migration wizard.",
+    )
+    is_active = models.BooleanField(default=True, db_index=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["sort_order", "slug"]
+        verbose_name = "Migration profile"
+        verbose_name_plural = "Migration profiles"
+
+    def __str__(self):
+        return f"{self.name} ({self.slug})"

@@ -217,7 +217,6 @@ def _allowed_roles_for_page(page: str) -> List[str]:
     """Whitelist roles that can access a given dashboard page."""
     page = page.lower()
     role_backend = [
-        "SUPERADMIN",
         "ADMIN",
         "IT_ADMIN",
         "LEADERSHIP",
@@ -230,7 +229,6 @@ def _allowed_roles_for_page(page: str) -> List[str]:
         "COMMS_STAFF",
     ]
     role_admin = [
-        "SUPERADMIN",
         "ADMIN",
         "IT_ADMIN",
         "LEADERSHIP",
@@ -249,13 +247,13 @@ def _allowed_roles_for_page(page: str) -> List[str]:
         "admin": role_admin,
         "admin-security": role_admin,
         # Additional dashboards
-        "finance": ["SUPERADMIN", "ADMIN", "LEADERSHIP", "FINANCE_STAFF"],
-        "analytics": ["SUPERADMIN", "ADMIN", "LEADERSHIP", "ACADEMICS_STAFF"],
-        "payroll": ["SUPERADMIN", "ADMIN", "LEADERSHIP", "FINANCE_STAFF"],
+        "finance": ["ADMIN", "LEADERSHIP", "FINANCE_STAFF"],
+        "analytics": ["ADMIN", "LEADERSHIP", "ACADEMICS_STAFF"],
+        "payroll": ["ADMIN", "LEADERSHIP", "FINANCE_STAFF"],
         "emis": role_backend,
-        "entity-console": ["SUPERADMIN", "ADMIN", "LEADERSHIP", "IT_ADMIN"],
+        "entity-console": ["ADMIN", "LEADERSHIP", "IT_ADMIN"],
         # Portal KB is safe to show to any authenticated role.
-        "portal-kb": ["SUPERADMIN", "ADMIN", "LEADERSHIP", "IT_ADMIN", "ACADEMICS_STAFF", "COMMS_STAFF", "TEACHER", "DEPT_LEAD", "HOD", "PARENT", "STUDENT"],
+        "portal-kb": ["ADMIN", "LEADERSHIP", "IT_ADMIN", "ACADEMICS_STAFF", "COMMS_STAFF", "TEACHER", "DEPT_LEAD", "HOD", "PARENT", "STUDENT"],
     }.get(page, [])
 
 

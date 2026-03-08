@@ -7,7 +7,7 @@
     {% if request.build_absolute_uri %}<link rel="canonical" href="{{ request.build_absolute_uri }}">{% endif %}
     {% with desc=meta_description|default:SITE.meta_description|default:"" %}{% if desc %}<meta name="description" content="{{ desc|truncatewords:50 }}">{% endif %}{% endwith %}
     <script>
-      (function(){var k="runmycampus-theme-preference";var s=localStorage.getItem(k);if(!s&&localStorage.getItem("gilead-theme-preference")){s=localStorage.getItem("gilead-theme-preference");localStorage.setItem(k,s);localStorage.removeItem("gilead-theme-preference");}s=s||"light";var r=(s==="system")?(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):(s==="dark"?"dark":"light");document.documentElement.setAttribute("data-theme",r);document.documentElement.setAttribute("data-bs-theme",r);})();
+      (function(){var k="runmycampus-theme-preference";var s=localStorage.getItem(k);s=s||"light";var r=(s==="system")?(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):(s==="dark"?"dark":"light");document.documentElement.setAttribute("data-theme",r);document.documentElement.setAttribute("data-bs-theme",r);})();
     </script>
     <script>
       (function () {
@@ -1276,11 +1276,6 @@
         
         var key = 'runmycampus-theme-preference';
         var stored = localStorage.getItem(key);
-        if (!stored && localStorage.getItem('gilead-theme-preference')) {
-          stored = localStorage.getItem('gilead-theme-preference');
-          localStorage.setItem(key, stored);
-          localStorage.removeItem('gilead-theme-preference');
-        }
         applyTheme(stored || 'light');
         if (themeToggle) themeToggle.addEventListener('click', cycleTheme);
         

@@ -10,20 +10,24 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_protect
 
 from apps.siteconfig.models import Integration, SiteSettings
+from apps.platform_runtime.helpers import get_effective_flags
+from apps.schools.control_plane import user_has_control_plane_access
 from .models import APIAuditLog
 
 
 def _api_center_allowed(request):
     """Require enable_api_center flag and api_center.manage permission (or ADMIN/IT_ADMIN)."""
-    flags = getattr(SiteSettings.get_solo(), "backend_feature_flags", None) or {}
+    flags = get_effective_flags(request)
     if not flags.get("enable_api_center", False):
         return False
+    if getattr(request, "public_host_kind", None) == "manager":
+        return user_has_control_plane_access(getattr(request, "user", None))
     if getattr(request.user, "is_superuser", False):
         return True
     if getattr(request.user, "has_feature_permission", lambda _: False)("api_center.manage"):
         return True
     role = (getattr(request.user, "role", "") or "").upper()
-    return role in ("ADMIN", "IT_ADMIN", "SUPERADMIN")
+    return role in ("ADMIN", "IT_ADMIN")
 
 
 @login_required

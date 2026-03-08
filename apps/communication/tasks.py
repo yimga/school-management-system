@@ -10,6 +10,8 @@ from celery import shared_task
 from django.db.models import Count
 from django.utils import timezone
 
+from apps.schools.celery_tasks import _run_with_tenant_context
+
 logger = logging.getLogger(__name__)
 
 PERFECT_ATTENDANCE_3D_EVENT = "perfect_attendance_3d"
@@ -38,25 +40,30 @@ def _students_with_three_consecutive_present(school, end_date):
 
 
 @shared_task(bind=True, name="communication.kudos_perfect_attendance_3d")
-def kudos_perfect_attendance_3d_task(self, as_of_date_str: str | None = None) -> dict:
+def kudos_perfect_attendance_3d_task(self, as_of_date_str: str | None = None, school_id=None) -> dict:
     """
     Plan XIII: Find students with 3 consecutive days of perfect attendance and create
     AchievementEvent (perfect_attendance_3d) + optional AI narrative draft.
     Run daily (e.g. after attendance is finalized for the previous day).
     """
-    from apps.communication.models import AchievementEvent
-    from apps.communication.narrative_feedback import create_achievement_and_narrative
-    from apps.schools.models import School
-
     as_of = timezone.now().date()
     if as_of_date_str:
         try:
             as_of = timezone.datetime.strptime(as_of_date_str, "%Y-%m-%d").date()
         except ValueError:
             pass
-    created = 0
-    skipped = 0
-    for school in School.objects.filter(is_active=True):
+
+    def _run_for_school(current_school_id):
+        from apps.communication.models import AchievementEvent
+        from apps.communication.narrative_feedback import create_achievement_and_narrative
+        from apps.schools.models import School
+
+        school = School.objects.filter(id=current_school_id, is_active=True).first()
+        if not school:
+            return {"created": 0, "skipped": 0, "school_id": str(current_school_id), "status": "missing_school"}
+
+        created = 0
+        skipped = 0
         for student in _students_with_three_consecutive_present(school, as_of):
             # Avoid duplicate: already have event for this 3-day window (end_date=as_of)
             exists = AchievementEvent.objects.filter(
@@ -79,8 +86,38 @@ def kudos_perfect_attendance_3d_task(self, as_of_date_str: str | None = None) ->
                 created += 1
             except Exception as e:
                 logger.warning("kudos_perfect_attendance_3d: skip student %s: %s", student.id, e)
-    logger.info("kudos_perfect_attendance_3d: created=%s skipped=%s", created, skipped)
-    return {"created": created, "skipped": skipped}
+        logger.info(
+            "kudos_perfect_attendance_3d: school=%s created=%s skipped=%s",
+            school.id,
+            created,
+            skipped,
+        )
+        return {"created": created, "skipped": skipped, "school_id": str(school.id), "status": "ok"}
+
+    if school_id:
+        return _run_with_tenant_context(
+            school_id=school_id,
+            runnable=lambda: _run_for_school(school_id),
+        )
+
+    from apps.schools.models import School
+
+    totals = {"created": 0, "skipped": 0, "schools_processed": 0}
+    for sid in School.objects.filter(is_active=True).values_list("id", flat=True):
+        result = _run_with_tenant_context(
+            school_id=sid,
+            runnable=lambda sid=sid: _run_for_school(sid),
+        )
+        totals["created"] += int(result.get("created", 0))
+        totals["skipped"] += int(result.get("skipped", 0))
+        totals["schools_processed"] += 1
+    logger.info(
+        "kudos_perfect_attendance_3d: schools=%s created=%s skipped=%s",
+        totals["schools_processed"],
+        totals["created"],
+        totals["skipped"],
+    )
+    return totals
 
 
 @shared_task(bind=True, name="communication.process_outbound_message_queue")
@@ -89,38 +126,79 @@ def process_outbound_message_queue(self, school_id=None, limit=50) -> dict:
     Plan VI: Process pending OutboundMessageQueue rows; send via WhatsApp/Push.
     Configure WhatsApp/Push in API Center (ServiceIntegration: whatsapp, push).
     """
-    from apps.communication.models import OutboundMessageQueue
-    from apps.communication.channels import send_whatsapp, send_push
-    from apps.schools.models import School
+    def _process_for_school(current_school_id):
+        from apps.communication.models import OutboundMessageQueue
+        from apps.communication.channels import send_whatsapp, send_push
 
-    qs = OutboundMessageQueue.objects.filter(status="pending").select_related("school").order_by("created_at")
-    if school_id:
-        qs = qs.filter(school_id=school_id)
-    items = list(qs[:limit])
-    sent = failed = 0
-    for item in items:
-        school = item.school
-        if not school:
-            school = School.objects.filter(is_active=True).first()
-        try:
-            if item.channel == OutboundMessageQueue.Channel.WHATSAPP:
-                ok = send_whatsapp(school, item.recipient_identifier, body=item.body)
-            else:
-                ok = send_push(school, item.recipient_identifier, title="", body=item.body)
-            if ok:
-                item.status = "sent"
-                item.sent_at = timezone.now()
-                item.save(update_fields=["status", "sent_at"])
-                sent += 1
-            else:
+        qs = (
+            OutboundMessageQueue.objects.filter(status="pending", school_id=current_school_id)
+            .select_related("school")
+            .order_by("created_at")
+        )
+        items = list(qs[:limit])
+        sent = failed = 0
+        for item in items:
+            school = item.school
+            if not school:
                 item.status = "failed"
-                item.error_message = "Provider returned false or no integration"
+                item.error_message = "Missing school context for outbound message."
                 item.save(update_fields=["status", "error_message"])
                 failed += 1
-        except Exception as e:
-            item.status = "failed"
-            item.error_message = str(e)[:500]
-            item.save(update_fields=["status", "error_message"])
-            failed += 1
-            logger.warning("Outbound queue send failed id=%s: %s", item.id, e)
-    return {"sent": sent, "failed": failed, "processed": len(items)}
+                continue
+            try:
+                if item.channel == OutboundMessageQueue.Channel.WHATSAPP:
+                    ok = send_whatsapp(school, item.recipient_identifier, body=item.body)
+                else:
+                    ok = send_push(school, item.recipient_identifier, title="", body=item.body)
+                if ok:
+                    item.status = "sent"
+                    item.sent_at = timezone.now()
+                    item.save(update_fields=["status", "sent_at"])
+                    sent += 1
+                else:
+                    item.status = "failed"
+                    item.error_message = "Provider returned false or no integration"
+                    item.save(update_fields=["status", "error_message"])
+                    failed += 1
+            except Exception as e:
+                item.status = "failed"
+                item.error_message = str(e)[:500]
+                item.save(update_fields=["status", "error_message"])
+                failed += 1
+                logger.warning("Outbound queue send failed id=%s: %s", item.id, e)
+        return {"sent": sent, "failed": failed, "processed": len(items), "school_id": str(current_school_id)}
+
+    from apps.communication.models import OutboundMessageQueue
+
+    if school_id:
+        return _run_with_tenant_context(
+            school_id=school_id,
+            runnable=lambda: _process_for_school(school_id),
+        )
+
+    orphaned = list(
+        OutboundMessageQueue.objects.filter(status="pending", school__isnull=True).order_by("created_at")[:limit]
+    )
+    orphaned_failed = 0
+    for item in orphaned:
+        item.status = "failed"
+        item.error_message = "Missing school context for outbound message."
+        item.save(update_fields=["status", "error_message"])
+        orphaned_failed += 1
+
+    totals = {"sent": 0, "failed": orphaned_failed, "processed": orphaned_failed, "schools_processed": 0}
+    school_ids = list(
+        OutboundMessageQueue.objects.filter(status="pending", school__isnull=False)
+        .values_list("school_id", flat=True)
+        .distinct()
+    )
+    for sid in school_ids:
+        result = _run_with_tenant_context(
+            school_id=sid,
+            runnable=lambda sid=sid: _process_for_school(sid),
+        )
+        totals["sent"] += int(result.get("sent", 0))
+        totals["failed"] += int(result.get("failed", 0))
+        totals["processed"] += int(result.get("processed", 0))
+        totals["schools_processed"] += 1
+    return totals
