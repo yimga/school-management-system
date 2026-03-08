@@ -492,12 +492,15 @@ def site_settings(request):
                     if iid and it.get("url"):
                         by_id[iid] = it
             ctx["PINNED_CONTROL_PLANE_ITEMS"] = [by_id[pid] for pid in pinned_cp_ids if pid in by_id]
+            ctx["PINNED_CONTROL_PLANE_IDS"] = set(pinned_cp_ids)
         except Exception:
             ctx["CONTROL_PLANE_NAV"] = []
             ctx["PINNED_CONTROL_PLANE_ITEMS"] = []
+            ctx["PINNED_CONTROL_PLANE_IDS"] = set()
     else:
         ctx["CONTROL_PLANE_NAV"] = []
         ctx["PINNED_CONTROL_PLANE_ITEMS"] = []
+        ctx["PINNED_CONTROL_PLANE_IDS"] = set()
     ctx["PUBLIC_BRAND_NAME"] = "RunMyCampus"
     ctx["PUBLIC_BRAND_DOMAIN"] = "runmycampus.com"
     ctx["PUBLIC_BRAND_TAGLINE"] = "THE POWERHOUSE OF SCHOOL MANAGEMENT"

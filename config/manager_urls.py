@@ -10,6 +10,7 @@ from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import include, path, reverse
 
+from apps.api.user_preferences_api import ControlPlanePreferencesAPI
 from apps.billing import api_views as billing_api_views
 from apps.billing.models import TenantSubscription
 from apps.observability import views as obs_views
@@ -285,6 +286,7 @@ urlpatterns = [
     path("ready/", obs_views.public_health, name="ready"),
     path("status/", obs_views.public_health, name="status"),
     path("api/health/", obs_views.api_health, name="api_health"),
+    path("api/control-plane-preferences/", ControlPlanePreferencesAPI.as_view(), name="api_control_plane_preferences"),
     path("api/search/", manager_search_api, name="manager_search_api"),
     path(
         "api/billing/processors/<str:processor_code>/webhook/",

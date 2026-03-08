@@ -184,5 +184,44 @@
     if (localStorage.getItem(key) === '1') applyCompact(true);
   } catch (e) {}
 })();
+(function () {
+  function getCsrfToken() {
+    var name = 'csrftoken=';
+    var cookies = document.cookie ? document.cookie.split(';') : [];
+    for (var i = 0; i < cookies.length; i++) {
+      var c = cookies[i].trim();
+      if (c.indexOf(name) === 0) return c.substring(name.length);
+    }
+    return '';
+  }
+  var buttons = document.querySelectorAll('.cp-pin-btn[data-cp-pin-id]');
+  buttons.forEach(function (btn) {
+    if (btn.dataset.cpPinBound === '1') return;
+    btn.dataset.cpPinBound = '1';
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var id = btn.getAttribute('data-cp-pin-id');
+      if (!id) return;
+      var isPinned = btn.classList.contains('cp-pin-pinned');
+      fetch('/api/control-plane-preferences/', { method: 'GET', credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          var list = (data && Array.isArray(data.control_plane_pinned_items)) ? data.control_plane_pinned_items : [];
+          if (isPinned) list = list.filter(function (x) { return x !== id; });
+          else if (list.indexOf(id) === -1) list.push(id);
+          return fetch('/api/control-plane-preferences/', {
+            method: 'PATCH',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken(), 'Accept': 'application/json' },
+            body: JSON.stringify({ control_plane_pinned_items: list })
+          });
+        })
+        .then(function (r) { if (!r.ok) throw new Error('Save failed'); return r.json(); })
+        .then(function () { window.location.reload(); })
+        .catch(function () {});
+    });
+  });
+})();
 </script>
 {% endblock %}

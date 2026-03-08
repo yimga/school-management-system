@@ -8,8 +8,9 @@
     <span class="text-uppercase small text-muted opacity-75">{% trans "Quick access" %}</span>
     <ul class="nav flex-column gap-1 ps-0 mt-1">
       {% for item in PINNED_CONTROL_PLANE_ITEMS %}
-      <li class="nav-item">
-        <a class="nav-link text-white d-flex align-items-center {% if request.path == item.url %}active{% endif %}" href="{{ item.url }}"><i class="bi {{ item.icon }} me-2 cp-nav-icon"></i><span class="cp-nav-label">{% trans item.label %}</span></a>
+      <li class="nav-item d-flex align-items-center gap-0">
+        <a class="nav-link text-white d-flex align-items-center flex-grow-1 {% if request.path == item.url %}active{% endif %}" href="{{ item.url }}"><i class="bi {{ item.icon }} me-2 cp-nav-icon"></i><span class="cp-nav-label">{% trans item.label %}</span></a>
+        <button type="button" class="cp-pin-btn cp-pin-pinned btn btn-link p-0 ms-1 text-white opacity-75" data-cp-pin-id="{{ item.id }}" aria-label="{% trans 'Remove from Quick access' %}" title="{% trans 'Remove from Quick access' %}"><i class="bi bi-pin-angle-fill"></i></button>
       </li>
       {% endfor %}
     </ul>
@@ -28,8 +29,9 @@
           <ul class="nav flex-column gap-1 ps-2 border-0">
       {% endif %}
       {% for item in group.items %}
-            <li class="nav-item">
-              <a class="nav-link text-white d-flex align-items-center {% if request.path == item.url %}active{% endif %}" href="{{ item.url }}"><i class="bi {{ item.icon }} me-2 cp-nav-icon"></i><span class="cp-nav-label">{% trans item.label %}</span></a>
+            <li class="nav-item d-flex align-items-center gap-0">
+              <a class="nav-link text-white d-flex align-items-center flex-grow-1 {% if request.path == item.url %}active{% endif %}" href="{{ item.url }}"><i class="bi {{ item.icon }} me-2 cp-nav-icon"></i><span class="cp-nav-label">{% trans item.label %}</span></a>
+              <button type="button" class="cp-pin-btn btn btn-link p-0 ms-1 text-white opacity-75 {% if item.id in PINNED_CONTROL_PLANE_IDS %}cp-pin-pinned{% endif %}" data-cp-pin-id="{{ item.id }}" aria-label="{% if item.id in PINNED_CONTROL_PLANE_IDS %}{% trans 'Remove from Quick access' %}{% else %}{% trans 'Add to Quick access' %}{% endif %}" title="{% if item.id in PINNED_CONTROL_PLANE_IDS %}{% trans 'Remove from Quick access' %}{% else %}{% trans 'Add to Quick access' %}{% endif %}"><i class="bi {% if item.id in PINNED_CONTROL_PLANE_IDS %}bi-pin-angle-fill{% else %}bi-pin-angle{% endif %}"></i></button>
             </li>
       {% endfor %}
       {% if group.label %}
