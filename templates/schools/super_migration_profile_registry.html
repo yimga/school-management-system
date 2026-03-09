@@ -1,0 +1,41 @@
+{% extends "control_plane_base.html" %}
+{% load static i18n %}
+
+{% block cp_title %}Migration Profile Registry{% endblock %}
+
+{% block cp_content %}
+  <div class="container-fluid py-4">
+    {% include "partials/page_families/title_block.html" with title="Migration Profile Registry" subtitle="Profiles grouped by source system and category. Use the Migration Cloud to run imports." action_url=migration_cloud_url action_label="Migration Cloud" return_to_origin=1 %}
+
+    <div class="card shadow-sm border-0 page-family-content-card mb-4">
+      <div class="card-body">
+        <p class="text-muted small mb-0">
+          <a href="{% url 'super:migration_cloud' %}">Migration Cloud</a> &rarr; Registry. See <a href="/docs/RunMyCampus_Migration_Cloud_Complete_System_Blueprint.md">Migration Cloud Blueprint</a> for the full profile library.
+        </p>
+      </div>
+    </div>
+
+    {% for source_system, profile_category, profile_list in registry_groups %}
+    <div class="card shadow-sm border-0 page-family-content-card mb-3">
+      <div class="card-header bg-light">
+        <strong>{{ source_system|title }}</strong> &rarr; <span class="text-muted">{{ profile_category|title }}</span>
+      </div>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+          {% for profile in profile_list %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <span class="fw-semibold">{{ profile.name }}</span>
+              <span class="text-muted small ms-2">{{ profile.slug }}</span>
+            </div>
+            <span class="badge bg-secondary">{{ profile.domain }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    {% empty %}
+    <div class="alert alert-info">No migration profiles. Run <code>python manage.py seed_migration_profiles</code>.</div>
+    {% endfor %}
+  </div>
+{% endblock %}

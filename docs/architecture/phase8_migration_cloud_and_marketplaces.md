@@ -30,8 +30,8 @@ Consolidated status for Section 12 Phases 5–6, Section 11 (migration cloud, bl
 | **Blueprint packs (by country/region/level)** | Done | BlueprintPack: slug, name, description, category, policy_snapshot, version, is_active, country_code, metadata. Manager UI lists active packs. |
 | **Selection/apply for tenants** | Done | Manager route `super:blueprint_marketplace`; form select school + pack; POST apply. `apply_blueprint_pack(school, pack, applied_by)` creates PolicyBundle, sets TenantBlueprint.active_bundle, invalidate_policy_cache. |
 | **Preview** | Done | `preview_blueprint_pack(school, pack)` in blueprint_services; used in marketplace view. |
-| **Versioning and compatibility** | Partial | BlueprintPack has version field; tenant-facing "Update bundle" and compatibility matrix deferred (phase6_marketplace.md). |
-| **Tenant-facing "Get blueprints"** | Deferred | Currently manager-only; optional tenant backend entry later. |
+| **Versioning and compatibility** | Required (non-negotiable) | BlueprintPack has version field; tenant-facing "Update bundle" and compatibility matrix are required — implement per phase6_marketplace.md. |
+| **Tenant-facing "Get blueprints"** | Required (non-negotiable) | Tenant backend entry for Get blueprints is required; currently manager-only — implement tenant-facing path per plan. |
 
 **Touchpoints:** `apps.policies.models.BlueprintPack`, `apps.policies.blueprint_services.apply_blueprint_pack`, `apps.marketplace.views.blueprint_marketplace`, `super:marketplace/blueprints/`.  
 **Reference:** `docs/architecture/phase6_marketplace.md`.

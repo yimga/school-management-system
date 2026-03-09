@@ -312,7 +312,19 @@ class MigrationProfile(models.Model):
         BLACKBAUD = "blackbaud", "Blackbaud"
         VERACROSS = "veracross", "Veracross"
         INFINITE_CAMPUS = "infinite_campus", "Infinite Campus"
+        FACTS = "facts", "FACTS"
+        SKYWARD = "skyward", "Skyward"
+        ALMA = "alma", "Alma"
+        SQL_DUMP = "sql_dump", "SQL export"
+        API_SIS = "api_sis", "API SIS"
         OTHER = "other", "Other"
+
+    class ProfileCategory(models.TextChoices):
+        VENDOR = "vendor", "Vendor"
+        INSTITUTION_TYPE = "institution_type", "Institution type"
+        GEOGRAPHY = "geography", "Geography"
+        DATA_CONDITION = "data_condition", "Data condition"
+        STRATEGY = "strategy", "Strategy"
 
     slug = models.SlugField(max_length=64, unique=True, db_index=True)
     source_system = models.CharField(
@@ -322,6 +334,14 @@ class MigrationProfile(models.Model):
         blank=True,
         db_index=True,
         help_text="Prebuilt adapter for this SIS; null/other = generic.",
+    )
+    profile_category = models.CharField(
+        max_length=32,
+        choices=ProfileCategory.choices,
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text="Category for registry filtering: vendor, institution_type, geography, data_condition, strategy.",
     )
     name = models.CharField(max_length=120)
     description = models.TextField(blank=True)
@@ -344,3 +364,87 @@ class MigrationProfile(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.slug})"
+
+
+class MigrationPlaybook(models.Model):
+    """
+    Reusable playbook: ordered list of migration profile slugs run in sequence.
+    A MigrationRun can reference a playbook (or single profile); executor runs profiles in order.
+    """
+    slug = models.SlugField(max_length=64, unique=True, db_index=True)
+    name = models.CharField(max_length=120)
+    description = models.TextField(blank=True)
+    profile_slugs = models.JSONField(
+        default=list,
+        help_text="Ordered list of MigrationProfile slugs to run in sequence.",
+    )
+    validation_repair_defaults = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Optional defaults for validation/repair (e.g. strict_required, auto_remap).",
+    )
+    is_active = models.BooleanField(default=True, db_index=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["sort_order", "slug"]
+        verbose_name = "Migration playbook"
+        verbose_name_plural = "Migration playbooks"
+
+    def __str__(self):
+        return f"{self.name} ({self.slug})"
+
+    def get_profiles(self):
+        """Resolve profile_slugs to MigrationProfile instances in order."""
+        if not self.profile_slugs:
+            return []
+        by_slug = {p.slug: p for p in MigrationProfile.objects.filter(slug__in=self.profile_slugs, is_active=True)}
+        return [by_slug[s] for s in self.profile_slugs if s in by_slug]
+
+
+class MigrationQuarantineRecord(models.Model):
+    """
+    Repair and quarantine engine: records that failed validation or need repair.
+    Guided repair can update resolution_payload and set status to REPAIRED, then replay.
+    """
+
+    class Status(models.TextChoices):
+        PENDING = "PENDING", "Pending"
+        REPAIRED = "REPAIRED", "Repaired"
+        FAILED = "FAILED", "Failed"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="migration_quarantine_records",
+    )
+    migration_run = models.ForeignKey(
+        MigrationRun,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="quarantine_records",
+    )
+    domain = models.CharField(max_length=32, db_index=True)  # students, grades, etc.
+    row_index = models.PositiveIntegerField(help_text="1-based row index in source.")
+    payload = models.JSONField(default=dict, blank=True, help_text="Row data (sanitized).")
+    issue_class = models.CharField(max_length=64, db_index=True)  # duplicate, missing_required, invalid_ref
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING, db_index=True)
+    resolved_at = models.DateTimeField(null=True, blank=True)
+    resolution_payload = models.JSONField(default=dict, blank=True, help_text="Repaired row or resolution note.")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["school", "domain", "status"]),
+        ]
+        verbose_name = "Migration quarantine record"
+        verbose_name_plural = "Migration quarantine records"
+
+    def __str__(self):
+        return f"Quarantine {self.domain} row {self.row_index} ({self.issue_class})"

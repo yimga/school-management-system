@@ -4,7 +4,14 @@ Admin configuration for automation models.
 from django.contrib import admin
 from config.admin import platform_admin_site
 from unfold.admin import ModelAdmin
-from .models import AutomationExecutionLog, AutomationApprovalQueue, MigrationProfile, MigrationRun
+from .models import (
+    AutomationExecutionLog,
+    AutomationApprovalQueue,
+    MigrationProfile,
+    MigrationPlaybook,
+    MigrationQuarantineRecord,
+    MigrationRun,
+)
 
 
 @admin.register(AutomationExecutionLog, site=platform_admin_site)
@@ -74,10 +81,32 @@ class AutomationApprovalQueueAdmin(ModelAdmin):
 
 @admin.register(MigrationProfile, site=platform_admin_site)
 class MigrationProfileAdmin(ModelAdmin):
-    list_display = ("slug", "name", "source_system", "format", "domain", "is_active", "sort_order")
-    list_filter = ("format", "domain", "source_system", "is_active")
+    list_display = ("slug", "name", "source_system", "profile_category", "format", "domain", "is_active", "sort_order")
+    list_filter = ("format", "domain", "source_system", "profile_category", "is_active")
     search_fields = ("slug", "name", "description")
     ordering = ("sort_order", "slug")
+
+
+@admin.register(MigrationPlaybook, site=platform_admin_site)
+class MigrationPlaybookAdmin(ModelAdmin):
+    list_display = ("slug", "name", "profile_slugs_preview", "is_active", "sort_order")
+    list_filter = ("is_active",)
+    search_fields = ("slug", "name", "description")
+    ordering = ("sort_order", "slug")
+
+    def profile_slugs_preview(self, obj):
+        slugs = obj.profile_slugs or []
+        return ", ".join(slugs[:5]) + ("..." if len(slugs) > 5 else "") if slugs else "—"
+    profile_slugs_preview.short_description = "Profile slugs"
+
+
+@admin.register(MigrationQuarantineRecord, site=platform_admin_site)
+class MigrationQuarantineRecordAdmin(ModelAdmin):
+    list_display = ("id", "domain", "row_index", "issue_class", "status", "school", "created_at")
+    list_filter = ("domain", "issue_class", "status")
+    search_fields = ("issue_class",)
+    readonly_fields = ("created_at",)
+    list_per_page = 50
 
 
 @admin.register(MigrationRun, site=platform_admin_site)

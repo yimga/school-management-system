@@ -140,7 +140,7 @@ Every item below was required and non-negotiable. Each has been addressed in the
 | # | Item | Current | Required action | Owner |
 |---|------|--------|-----------------|--------|
 | 1 | **26.5 remaining lists/forms** (e.g. classes/sections; student onboarding step-level draft) | Partially done; some deferred | Either complete search/filter/export and draft per ux_rules_audit_26_5.md or formally close as “won’t do” with doc update | Product |
-| 2 | **Control plane SLO refinement / support queue** | Health and runbooks/canary doc done | Refine SLO dashboard data; optional support queue integration with ticket system | Ops |
+| 2 | **Control plane SLO refinement / support queue** | Required due now | Refine SLO dashboard data; support queue integration (apps/siteconfig/support_sla.py) | Ops |
 | 3 | **Payment plans / double-entry** | Documented deferred | Re-scope in finance roadmap; either implement or document “out of scope” with date | Product |
 | 4 | **Migration cloud rollback/legacy** | Rollback UI and legacy cleaner implemented per SCOPED_WORK_VERIFICATION | If any “legacy view” or runbook is still placeholder, complete or mark deferred with date | Ops |
 
@@ -265,7 +265,7 @@ Every wave must be completed in order. Each phase must be completed before the n
 |------|--------|-----|
 | 6.1 | Add --dry-run to any seed command that lacks it (done where applicable) | All seeds idempotent and dry-runnable where appropriate. |
 | 6.2 | Empty-state audit: each catalog/list has “why empty” and “what to do” (seed or request access) | Product review; doc and code updated. |
-| 6.3 | Give each deferred item (26.5 remaining, SLO refinement, payment plans, migration legacy) either a completion target or “out of scope” with date | Backlog updated; SCOPED_WORK_NOT_DONE and REMAINING_PLAN_AUDIT_GAPS updated. |
+| 6.3 | Give each deferred item (26.5 remaining, SLO refinement, payment plans, migration legacy) either a completion target or “out of scope” with date | SCOPED_WORK_NOT_DONE and docs/PLAN_POLICY.md updated; all items required due now, implement and integrate. |
 
 **Tests:**  
 - Bootstrap run on fresh DB (migrate + bootstrap_runmycampus_platform)  

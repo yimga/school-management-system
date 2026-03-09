@@ -2,6 +2,8 @@
 
 Audit of representative pages for shell consistency, headers, duplicated layouts, components, spacing, and states. Remediation tracked here. Blueprint §15.
 
+**Non-negotiable:** All backlog items are required remediation; nothing is optional or "save for later." Status Done = implemented.
+
 ## Audit dimensions
 
 - **Shell consistency:** Correct base template and surface theme (marketing / cp / admin / tenant).

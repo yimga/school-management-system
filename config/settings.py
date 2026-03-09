@@ -487,11 +487,14 @@ WEBHOOK_CONFIG = {
 # --- Observability ---
 OBSERVABILITY_API_KEY = os.getenv("OBSERVABILITY_API_KEY", "")
 
-# --- Policy / Marketplace (Phase 7, 24.12) ---
-# When True, get_effective_policy merges from TenantBlueprint.active_bundle.policy_snapshot when set.
-POLICY_USE_BUNDLES = os.getenv("POLICY_USE_BUNDLES", "0") in ("1", "true", "yes")
-# Per-tenant policy cache TTL in seconds; 0 or unset = no cache.
-POLICY_CACHE_TTL = int(os.getenv("POLICY_CACHE_TTL", "0")) if os.getenv("POLICY_CACHE_TTL") else 0
+# --- Policy / Marketplace (Phase 7, 24.12) — non-negotiable, always on ---
+# When True, get_effective_policy merges from TenantBlueprint.active_bundle.policy_snapshot when set. Required; default on.
+POLICY_USE_BUNDLES = os.getenv("POLICY_USE_BUNDLES", "1") in ("1", "true", "yes")
+# Per-tenant policy cache TTL in seconds. Required for scale; default 300 (5 min). Set POLICY_CACHE_TTL=0 to disable for debugging.
+_raw_ttl = os.getenv("POLICY_CACHE_TTL", "300").strip()
+POLICY_CACHE_TTL = int(_raw_ttl) if _raw_ttl.isdigit() else 300
+if POLICY_CACHE_TTL < 0:
+    POLICY_CACHE_TTL = 300
 # 24.12: Third-party apps may run schema patches only for these Django app labels (tuple). Empty = none.
 _THIRD_PARTY_ALLOWLIST_RAW = (os.getenv("THIRD_PARTY_SCHEMA_PATCH_ALLOWLIST") or "").strip()
 THIRD_PARTY_SCHEMA_PATCH_ALLOWLIST = tuple(s.strip() for s in _THIRD_PARTY_ALLOWLIST_RAW.split(",") if s.strip())

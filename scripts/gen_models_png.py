@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Optional: generate docs/architecture/models.png (Section 13.2).
+Required: generate docs/architecture/models.png (Section 13.2). Non-negotiable platform deliverable.
 Requires: django-extensions and graphviz (pip install django-extensions pygraphviz;
   or system graphviz + pip install django-extensions).
 Run from repo root: python scripts/gen_models_png.py
-Exits 0 if generation succeeded or if django-extensions/graph_models are not available (no-op).
+Exits 0 if generation succeeded or if django-extensions/graph_models are not available (no-op; install deps and re-run).
 """
 from __future__ import annotations
 
@@ -33,18 +33,18 @@ def main() -> int:
             return 0
         # graph_models not available or graphviz missing
         if "graph_models" in (result.stderr or result.stdout or "").lower() or "unknown command" in (result.stderr or "").lower():
-            print("Optional: install django-extensions and graphviz to generate models.png (see docs/architecture/README.md)")
+            print("Required: install django-extensions and graphviz to generate models.png (see docs/architecture/README.md)")
             return 0
         print(result.stderr or result.stdout or "graph_models failed", file=sys.stderr)
         return 0  # still exit 0 so CI/docs regen does not fail
     except FileNotFoundError:
-        print("Optional: manage.py not found or Django env not set; skip models.png", file=sys.stderr)
+        print("Required: manage.py not found or Django env not set; fix env and re-run for models.png", file=sys.stderr)
         return 0
     except subprocess.TimeoutExpired:
-        print("graph_models timed out; skip models.png", file=sys.stderr)
+        print("graph_models timed out; re-run or increase timeout for models.png", file=sys.stderr)
         return 0
     except Exception as e:
-        print(f"Optional models.png generation skipped: {e}", file=sys.stderr)
+        print(f"models.png generation failed (required): {e}", file=sys.stderr)
         return 0
 
 

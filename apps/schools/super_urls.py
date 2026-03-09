@@ -28,6 +28,7 @@ urlpatterns = [
     path("api/plans-configurator/", require_super_access_with_host(super_views.api_plans_configurator), name="api_plans_configurator"),
     path("usage/", require_super_access_with_host(super_views.super_usage), name="usage"),
     path("migration/", require_super_access_with_host(super_views.super_migration_cloud), name="migration_cloud"),
+    path("migration/registry/", require_super_access_with_host(super_views.super_migration_profile_registry), name="migration_profile_registry"),
     path("migration/rollback/<int:run_id>/", require_super_access_with_host(super_views.super_migration_rollback), name="migration_rollback"),
     path("pulse/", require_super_access_with_host(super_views.super_pulse), name="pulse"),
     path("tenant-health/", require_super_access_with_host(super_views.super_tenant_health), name="tenant_health"),

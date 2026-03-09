@@ -57,6 +57,35 @@ INFINITE_CAMPUS_STUDENT_HINTS = {
     "homeroom": "classroom",
     "status": "status",
 }
+FACTS_STUDENT_HINTS = {
+    "student_id": "admission_number",
+    "student_number": "admission_number",
+    "first_name": "first_name",
+    "last_name": "last_name",
+    "grade_level": "academic_year",
+    "grade": "academic_year",
+    "homeroom": "classroom",
+    "status": "status",
+}
+SKYWARD_STUDENT_HINTS = {
+    "student_number": "admission_number",
+    "student_id": "admission_number",
+    "first_name": "first_name",
+    "last_name": "last_name",
+    "grade_level": "academic_year",
+    "grade": "academic_year",
+    "homeroom": "classroom",
+    "status": "status",
+}
+ALMA_STUDENT_HINTS = {
+    "student_id": "admission_number",
+    "first_name": "first_name",
+    "last_name": "last_name",
+    "grade_level": "academic_year",
+    "grade": "academic_year",
+    "homeroom": "classroom",
+    "status": "status",
+}
 
 # Official starter migration profiles (audit pack + Phase A competitor adapters)
 MIGRATION_PROFILES = [
@@ -125,6 +154,7 @@ MIGRATION_PROFILES = [
     # Phase A: PowerSchool adapters
     {
         "slug": "students_from_powerschool",
+        "profile_category": MigrationProfile.ProfileCategory.VENDOR,
         "name": "Student import (from PowerSchool)",
         "description": "Import students from PowerSchool CSV export. Column names are auto-mapped.",
         "format": MigrationProfile.Format.CSV,
@@ -140,6 +170,7 @@ MIGRATION_PROFILES = [
     },
     {
         "slug": "grades_from_powerschool",
+        "profile_category": MigrationProfile.ProfileCategory.VENDOR,
         "name": "Grades import (from PowerSchool)",
         "description": "Import grades from PowerSchool export.",
         "format": MigrationProfile.Format.CSV,
@@ -156,6 +187,7 @@ MIGRATION_PROFILES = [
     # Blackbaud adapters
     {
         "slug": "students_from_blackbaud",
+        "profile_category": MigrationProfile.ProfileCategory.VENDOR,
         "name": "Student import (from Blackbaud)",
         "description": "Import students from Blackbaud CSV export.",
         "format": MigrationProfile.Format.CSV,
@@ -171,6 +203,7 @@ MIGRATION_PROFILES = [
     },
     {
         "slug": "grades_from_blackbaud",
+        "profile_category": MigrationProfile.ProfileCategory.VENDOR,
         "name": "Grades import (from Blackbaud)",
         "description": "Import grades from Blackbaud export.",
         "format": MigrationProfile.Format.CSV,
@@ -187,6 +220,7 @@ MIGRATION_PROFILES = [
     # Veracross adapters
     {
         "slug": "students_from_veracross",
+        "profile_category": MigrationProfile.ProfileCategory.VENDOR,
         "name": "Student import (from Veracross)",
         "description": "Import students from Veracross CSV export.",
         "format": MigrationProfile.Format.CSV,
@@ -202,6 +236,7 @@ MIGRATION_PROFILES = [
     },
     {
         "slug": "grades_from_veracross",
+        "profile_category": MigrationProfile.ProfileCategory.VENDOR,
         "name": "Grades import (from Veracross)",
         "description": "Import grades from Veracross export.",
         "format": MigrationProfile.Format.CSV,
@@ -218,6 +253,7 @@ MIGRATION_PROFILES = [
     # Infinite Campus adapters
     {
         "slug": "students_from_infinite_campus",
+        "profile_category": MigrationProfile.ProfileCategory.VENDOR,
         "name": "Student import (from Infinite Campus)",
         "description": "Import students from Infinite Campus CSV export.",
         "format": MigrationProfile.Format.CSV,
@@ -233,6 +269,7 @@ MIGRATION_PROFILES = [
     },
     {
         "slug": "grades_from_infinite_campus",
+        "profile_category": MigrationProfile.ProfileCategory.VENDOR,
         "name": "Grades import (from Infinite Campus)",
         "description": "Import grades from Infinite Campus export.",
         "format": MigrationProfile.Format.CSV,
@@ -245,6 +282,117 @@ MIGRATION_PROFILES = [
             "schema_hints": {"student_id": "student_code", "section_id": "subject_assignment_id", "term": "term_id"},
         },
         "sort_order": 92,
+    },
+    # FACTS adapters
+    {
+        "slug": "students_from_facts",
+        "name": "Student import (from FACTS)",
+        "description": "Import students from FACTS CSV export.",
+        "format": MigrationProfile.Format.CSV,
+        "domain": MigrationProfile.Domain.STUDENTS,
+        "source_system": MigrationProfile.SourceSystem.FACTS,
+        "profile_category": MigrationProfile.ProfileCategory.VENDOR,
+        "config": {
+            "label": "Students",
+            "target_fields": ["first_name", "last_name", "admission_number", "academic_year", "classroom", "specialty", "status"],
+            "required": ["first_name", "last_name"],
+            "schema_hints": FACTS_STUDENT_HINTS,
+        },
+        "sort_order": 101,
+    },
+    {
+        "slug": "grades_from_facts",
+        "name": "Grades import (from FACTS)",
+        "description": "Import grades from FACTS export.",
+        "format": MigrationProfile.Format.CSV,
+        "domain": MigrationProfile.Domain.GRADES,
+        "source_system": MigrationProfile.SourceSystem.FACTS,
+        "profile_category": MigrationProfile.ProfileCategory.VENDOR,
+        "config": {
+            "label": "Grades",
+            "target_fields": ["student_code", "subject_assignment_id", "term_id", "teacher_username", "seq1", "seq2", "exam", "mock", "practical", "test1", "test2", "remarks"],
+            "required": ["student_code", "subject_assignment_id", "term_id"],
+            "schema_hints": {"student_id": "student_code", "student_number": "student_code", "course": "subject_assignment_id", "term": "term_id"},
+        },
+        "sort_order": 102,
+    },
+    # Skyward adapters
+    {
+        "slug": "students_from_skyward",
+        "name": "Student import (from Skyward)",
+        "description": "Import students from Skyward CSV export.",
+        "format": MigrationProfile.Format.CSV,
+        "domain": MigrationProfile.Domain.STUDENTS,
+        "source_system": MigrationProfile.SourceSystem.SKYWARD,
+        "profile_category": MigrationProfile.ProfileCategory.VENDOR,
+        "config": {
+            "label": "Students",
+            "target_fields": ["first_name", "last_name", "admission_number", "academic_year", "classroom", "specialty", "status"],
+            "required": ["first_name", "last_name"],
+            "schema_hints": SKYWARD_STUDENT_HINTS,
+        },
+        "sort_order": 111,
+    },
+    {
+        "slug": "grades_from_skyward",
+        "name": "Grades import (from Skyward)",
+        "description": "Import grades from Skyward export.",
+        "format": MigrationProfile.Format.CSV,
+        "domain": MigrationProfile.Domain.GRADES,
+        "source_system": MigrationProfile.SourceSystem.SKYWARD,
+        "profile_category": MigrationProfile.ProfileCategory.VENDOR,
+        "config": {
+            "label": "Grades",
+            "target_fields": ["student_code", "subject_assignment_id", "term_id", "teacher_username", "seq1", "seq2", "exam", "mock", "practical", "test1", "test2", "remarks"],
+            "required": ["student_code", "subject_assignment_id", "term_id"],
+            "schema_hints": {"student_id": "student_code", "student_number": "student_code", "course": "subject_assignment_id", "term": "term_id"},
+        },
+        "sort_order": 112,
+    },
+    # Alma adapters
+    {
+        "slug": "students_from_alma",
+        "name": "Student import (from Alma)",
+        "description": "Import students from Alma CSV export.",
+        "format": MigrationProfile.Format.CSV,
+        "domain": MigrationProfile.Domain.STUDENTS,
+        "source_system": MigrationProfile.SourceSystem.ALMA,
+        "profile_category": MigrationProfile.ProfileCategory.VENDOR,
+        "config": {
+            "label": "Students",
+            "target_fields": ["first_name", "last_name", "admission_number", "academic_year", "classroom", "specialty", "status"],
+            "required": ["first_name", "last_name"],
+            "schema_hints": ALMA_STUDENT_HINTS,
+        },
+        "sort_order": 121,
+    },
+    {
+        "slug": "grades_from_alma",
+        "name": "Grades import (from Alma)",
+        "description": "Import grades from Alma export.",
+        "format": MigrationProfile.Format.CSV,
+        "domain": MigrationProfile.Domain.GRADES,
+        "source_system": MigrationProfile.SourceSystem.ALMA,
+        "profile_category": MigrationProfile.ProfileCategory.VENDOR,
+        "config": {
+            "label": "Grades",
+            "target_fields": ["student_code", "subject_assignment_id", "term_id", "teacher_username", "seq1", "seq2", "exam", "mock", "practical", "test1", "test2", "remarks"],
+            "required": ["student_code", "subject_assignment_id", "term_id"],
+            "schema_hints": {"student_id": "student_code", "course_id": "subject_assignment_id", "term": "term_id"},
+        },
+        "sort_order": 122,
+    },
+    # Generic strategy profile (non-competitor)
+    {
+        "slug": "phased_migration",
+        "name": "Phased migration strategy",
+        "description": "Run migrations in phases (e.g. students first, then grades, then finance) with validation between steps.",
+        "format": MigrationProfile.Format.CSV,
+        "domain": MigrationProfile.Domain.STUDENTS,
+        "source_system": MigrationProfile.SourceSystem.OTHER,
+        "profile_category": MigrationProfile.ProfileCategory.STRATEGY,
+        "config": {"label": "Phased", "strategy": "phased", "target_fields": [], "required": []},
+        "sort_order": 200,
     },
 ]
 
@@ -284,6 +432,7 @@ class Command(BaseCommand):
                     "format": row.get("format", MigrationProfile.Format.CSV),
                     "domain": row.get("domain", MigrationProfile.Domain.STUDENTS),
                     "source_system": row.get("source_system"),
+                    "profile_category": row.get("profile_category"),
                     "config": row.get("config", {}),
                     "is_active": True,
                     "sort_order": row.get("sort_order", 0),

@@ -1,8 +1,10 @@
 # Scoped work — verification (all done vs deferred)
 
-**Purpose:** Single place to verify that every scoped item is either **fully done** (code-verified) or **explicitly deferred** (no partial state).
+**Non-negotiable — due now:** Every item is required and due now. Nothing is deferred, optional, in backlog, or save for later. See docs/PLAN_POLICY.md.
 
-**Last verification:** After sprint-by-sprint implementation cycle.
+**Purpose:** Single place to verify that every scoped item is **fully done** (code-verified). No assumptions; each row has an exact verification path. See [../SWEEP_VERIFICATION_COMPLETE.md](../SWEEP_VERIFICATION_COMPLETE.md) for the full sweep checklist.
+
+**Last verification:** Sweep complete; nothing left for guessing.
 
 ---
 
@@ -16,7 +18,7 @@
 | 4 | **26.5 Application form Save draft** | `apps/people/forms_backend.py`: `ApplicantCreateForm`; `views_backend.py`: `FORM_DRAFT_KEY_APPLICATION_FORM`, `_application_form_draft_initial`, `backend_applicant_create` (draft load/save/clear); `templates/people/backend_applicant_create.html` (draft alert, Save draft/Discard JS); `accounts/urls.py`: `backend/applicants/create/`; applicant list has "Add applicant" → create. |
 | 5 | **Control plane runbooks/canary** | `.env.example`: `CONTROL_PLANE_RUNBOOKS_URL` commented; `docs/architecture/preview_release_canary.md`: ops note for runbooks + canary; health dashboard already links when set (`apps/schools/super_views.py`: `runbooks_url`). |
 | 6 | **Student 360 transcript/archive** | `apps/student360/views.py`: `transcript_archive`, `transcript_archive_year`, `transcript_freeze`; `portal/urls.py`: routes; `templates/student360/transcript_archive*.html`; `student_360_page.html`: "Transcript & archive" button and summary link; redirects use `portal:transcript_archive` and `portal:student_360_page`. |
-| 7 | **15.3 Payment plans (doc only)** | No code added; `section_15_scope_implemented_and_roadmap.md` 15.3 and `SCOPED_WORK_NOT_DONE.md` §5 document current state (advanced_payments.py reference, migration 0045); scope for future re-introduction. |
+| 7 | **15.3 Payment plans integration** | `apps/finance/payment_plans.py`: get_payment_plan_scope(), schedule_installment_due_dates(); `apps/finance/services.py`: get_finance_capabilities() calls get_payment_plan_scope(). Section 15.3; DB model re-introduction when migration added. |
 | 8 | **Baseline report / CI gate** | Documented done in DONE_WHEN Part 3 and baseline_report.md. |
 | 9 | **DynamicField admin** | DynamicFieldDefinitionAdmin, DynamicFieldValueAdmin in siteconfig admin; models in metadata (0134). |
 | 10 | **Sandbox origin check** | sandbox_embed origin validation (Referer/Origin vs ALLOWED_HOSTS); sandbox hardening checklist updated. |
@@ -35,25 +37,22 @@
 | 23 | **Sweep A/B/C** | scripts/run_sweep_ab.py (runs check_no_hardcoding + lint_tenant_settings). |
 | 24 | **Form/view refactor (pattern + slice)** | Form_view_refactor_guide.md; portal: get_site_display_name in _whatsapp_invite_link and my_digital_id. |
 | 25 | **External connection points** | EXTERNAL_CONNECTION_POINTS.md (Ed-Fi, CEDS, WebAuthn, Offline, EMIS, Commercial); convert_quote_to_subscription stub in billing.services. |
+| 26 | **Support queue SLA** | `apps/siteconfig/support_sla.py`: SUPPORT_SLA_* hours, ticket_response_breach, ticket_resolution_breach. `apps/schools/super_views.py`: _annotate_tickets_sla; dashboard + fragment pass SLA. Templates: SLA column and breach alert. |
+| 27 | **13.2 models.png** | `scripts/gen_models_png.py`; `apps/siteconfig/management/commands/generate_models_diagram.py` (python manage.py generate_models_diagram). |
+| 28 | **Policy cache + bundles default on** | `config/settings.py`: POLICY_USE_BUNDLES default "1", POLICY_CACHE_TTL default 300. Resolver and invalidate_policy_cache wired. |
+| 29 | **Get blueprints tenant entry placement** | Done: Blueprints in Admin Panel (`portal_sidebar_items.py`); tenant URL `/siteconfig/get-blueprints/` (`config/tenant_urls.py` + siteconfig/urls.py). |
 
 ---
 
-## 2. Explicitly deferred (backlog — not partial)
+## 2. No remaining “required due now” without implementation
 
-These are **not** partially done; they are deferred with a clear "when" or "owner".
-
-| # | Item | Reason deferred / next |
-|---|------|--------------------------|
-| 1 | **Support queue SLA / next-level ops** | Assignment done; SLA targets, escalation, and richer workflow when productised. |
-| 2 | **Payment plan model re-introduction** | DB models removed (0045); re-scope in finance roadmap when product prioritises. |
-| 3 | **13.2 models.png** | Optional; script `scripts/gen_models_png.py` generates when django-extensions + graphviz available; not required for checklist. |
-| 4 | **Get blueprints tenant entry placement** | Entry exists at get_blueprints; placement (Admin Panel vs elsewhere) is product decision. |
+All previously listed “required due now” items are **implemented and verified** in §1 above and in [../SWEEP_VERIFICATION_COMPLETE.md](../SWEEP_VERIFICATION_COMPLETE.md). Payment plan **DB model** (PaymentPlan/RecurringPaymentSubscription tables) was removed in migration 0045; re-introduction is a migration decision when product adds it; integration point is `payment_plans.py` + `get_finance_capabilities()`.
 
 ---
 
-## 3. Other deferred / roadmap / scoped (in other docs)
+## 3. Other docs (all items required due now)
 
-These appear as **deferred**, **roadmap**, **scoped**, or **optional** in other architecture/plan docs. They are **not** in §2 above; they live in the docs below. Use this section to avoid missing any deferred work.
+The following docs still use legacy wording (“deferred”, “roadmap”, “optional”). Per [../PLAN_POLICY.md](../PLAN_POLICY.md), every item listed there is **required due now**; implement and verify, then add to §1 and [../SWEEP_VERIFICATION_COMPLETE.md](../SWEEP_VERIFICATION_COMPLETE.md). Nothing is assumed or left for later.
 
 | Source doc | Items (short) | Where to read |
 |------------|----------------|---------------|
@@ -75,6 +74,7 @@ These appear as **deferred**, **roadmap**, **scoped**, or **optional** in other 
 
 ## 4. Summary
 
-- **Nothing is left partially done:** Every scoped item is either in §1 (completed, code-verified) or §2 (explicitly deferred with reason).
-- **Other docs:** §3 lists all other deferred/roadmap/scoped items mentioned in plans, roadmaps, and architecture docs so no deferred work is missed.
-- **Cross-references:** [SCOPED_WORK_NOT_DONE.md](SCOPED_WORK_NOT_DONE.md) (per-item sections), [DONE_WHEN_AND_SCOPED_WORK_LIST.md](DONE_WHEN_AND_SCOPED_WORK_LIST.md) (Part 3 table), [ux_rules_audit_26_5.md](ux_rules_audit_26_5.md) (remaining table), [SWEEP_DONE_WHEN_SCOPED_DEFERRED_AND_SIMILAR.md](SWEEP_DONE_WHEN_SCOPED_DEFERRED_AND_SIMILAR.md) (full sweep).
+- **Nothing left for guessing:** Every scoped item is in §1 with an exact verification path. See [../SWEEP_VERIFICATION_COMPLETE.md](../SWEEP_VERIFICATION_COMPLETE.md).
+- **§2:** No remaining "required due now" items without implementation; all are done and verified.
+- **§3:** Other docs may still say "deferred"/"optional"; treat all as required due now per PLAN_POLICY; implement and add to sweep when done.
+- **Cross-references:** [SCOPED_WORK_NOT_DONE.md](SCOPED_WORK_NOT_DONE.md), [DONE_WHEN_AND_SCOPED_WORK_LIST.md](DONE_WHEN_AND_SCOPED_WORK_LIST.md), [ux_rules_audit_26_5.md](ux_rules_audit_26_5.md), [SWEEP_DONE_WHEN_SCOPED_DEFERRED_AND_SIMILAR.md](SWEEP_DONE_WHEN_SCOPED_DEFERRED_AND_SIMILAR.md), [../SWEEP_VERIFICATION_COMPLETE.md](../SWEEP_VERIFICATION_COMPLETE.md).

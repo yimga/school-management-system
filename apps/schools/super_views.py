@@ -1343,6 +1343,32 @@ def super_migration_cloud(request):
             "selected_profile": selected_profile,
             "preview": preview,
             "dashboard_url": reverse("super:dashboard"),
+            "registry_url": reverse("super:migration_profile_registry"),
+        },
+    )
+
+
+def super_migration_profile_registry(request):
+    """Migration Profile Registry: list profiles grouped by source_system and profile_category."""
+    from apps.automation.models import MigrationProfile
+    from itertools import groupby
+    from operator import attrgetter
+
+    profiles = list(
+        MigrationProfile.objects.filter(is_active=True).order_by("source_system", "profile_category", "sort_order", "slug")
+    )
+    # Build groups: (source_system or "Generic", profile_category or "Uncategorized", list of profiles)
+    groups = []
+    for key, grp in groupby(profiles, key=lambda p: (p.source_system or "generic", p.profile_category or "uncategorized")):
+        source_system, profile_category = key
+        groups.append((source_system, profile_category, list(grp)))
+    return render(
+        request,
+        "schools/super_migration_profile_registry.html",
+        {
+            "registry_groups": groups,
+            "migration_cloud_url": reverse("super:migration_cloud"),
+            "dashboard_url": reverse("super:dashboard"),
         },
     )
 
@@ -2762,40 +2788,53 @@ def super_support_dashboard(request):
     if priority_filter:
         qs = qs.filter(priority=priority_filter)
     tickets = list(qs)
+    tickets = _annotate_tickets_sla(tickets)
     open_count = GlobalSupportTicket.objects.filter(status=GlobalSupportTicket.Status.OPEN).count()
     in_progress_count = GlobalSupportTicket.objects.filter(status=GlobalSupportTicket.Status.IN_PROGRESS).count()
     now = timezone.now()
-    backlog_48h = 0
-    backlog_7d = 0
-    oldest_hours = 0.0
-    for ticket in tickets:
-        age_hours = max(0.0, (now - ticket.created_at).total_seconds() / 3600.0)
-        ticket.age_hours = round(age_hours, 1)
-        if age_hours >= 48:
-            backlog_48h += 1
-        if age_hours >= (24 * 7):
-            backlog_7d += 1
-        if age_hours > oldest_hours:
-            oldest_hours = age_hours
+    backlog_48h = sum(1 for t in tickets if t.age_hours >= 48)
+    backlog_7d = sum(1 for t in tickets if t.age_hours >= (24 * 7))
+    oldest_hours = max((t.age_hours for t in tickets), default=0.0)
+    sla_breach_response = sum(1 for t in tickets if getattr(t, "sla_response_breach", False))
+    sla_breach_resolution = sum(1 for t in tickets if getattr(t, "sla_resolution_breach", False))
+    from apps.siteconfig.support_sla import SUPPORT_SLA_RESPONSE_HOURS, SUPPORT_SLA_RESOLUTION_HOURS
     return render(
         request,
         "schools/super_support_dashboard.html",
         {
             "tickets": tickets,
+            "request_user_id": getattr(request.user, "id", None),
             "open_count": open_count,
             "in_progress_count": in_progress_count,
             "backlog_48h": backlog_48h,
             "backlog_7d": backlog_7d,
             "oldest_hours": round(oldest_hours, 1),
+            "sla_breach_response": sla_breach_response,
+            "sla_breach_resolution": sla_breach_resolution,
+            "sla_response_hours": SUPPORT_SLA_RESPONSE_HOURS,
+            "sla_resolution_hours": SUPPORT_SLA_RESOLUTION_HOURS,
             "status_filter": status_filter,
             "priority_filter": priority_filter,
         },
     )
 
 
+def _annotate_tickets_sla(tickets):
+    """Annotate ticket list with age_hours and SLA breach flags (integrated with siteconfig.support_sla)."""
+    from apps.siteconfig.support_sla import ticket_response_breach, ticket_resolution_breach
+
+    now = timezone.now()
+    for ticket in tickets:
+        ticket.age_hours = round(max(0.0, (now - ticket.created_at).total_seconds() / 3600.0), 1)
+        ticket.sla_response_breach = ticket_response_breach(ticket)
+        ticket.sla_resolution_breach = ticket_resolution_breach(ticket)
+    return tickets
+
+
 def support_queue_fragment(request):
-    """HTMX fragment: ticket queue table (refresh every 60s)."""
+    """HTMX fragment: ticket queue table (refresh every 60s). SLA breach from apps.siteconfig.support_sla."""
     from apps.siteconfig.models import GlobalSupportTicket
+    from apps.siteconfig.support_sla import SUPPORT_SLA_RESPONSE_HOURS, SUPPORT_SLA_RESOLUTION_HOURS
 
     status_filter = request.GET.get("status", "").strip()
     priority_filter = request.GET.get("priority", "").strip()
@@ -2804,14 +2843,16 @@ def support_queue_fragment(request):
         qs = qs.filter(status=status_filter)
     if priority_filter:
         qs = qs.filter(priority=priority_filter)
-    tickets = list(qs)
-    now = timezone.now()
-    for ticket in tickets:
-        ticket.age_hours = round(max(0.0, (now - ticket.created_at).total_seconds() / 3600.0), 1)
+    tickets = _annotate_tickets_sla(list(qs))
     return render(
         request,
         "schools/super_support_queue_fragment.html",
-        {"tickets": tickets, "request_user_id": getattr(request.user, "id", None)},
+        {
+            "tickets": tickets,
+            "request_user_id": getattr(request.user, "id", None),
+            "sla_response_hours": SUPPORT_SLA_RESPONSE_HOURS,
+            "sla_resolution_hours": SUPPORT_SLA_RESOLUTION_HOURS,
+        },
     )
 
 
@@ -2836,6 +2877,7 @@ def support_assign_ticket(request):
         ticket.assigned_to = None
     ticket.save(update_fields=["assigned_to_id"])
     if request.headers.get("HX-Request"):
+        from apps.siteconfig.support_sla import SUPPORT_SLA_RESPONSE_HOURS, SUPPORT_SLA_RESOLUTION_HOURS
         status_filter = request.GET.get("status", "").strip()
         priority_filter = request.GET.get("priority", "").strip()
         qs = GlobalSupportTicket.objects.select_related("school", "user", "assigned_to").order_by("-created_at")[:50]
@@ -2843,14 +2885,16 @@ def support_assign_ticket(request):
             qs = qs.filter(status=status_filter)
         if priority_filter:
             qs = qs.filter(priority=priority_filter)
-        tickets = list(qs)
-        now = timezone.now()
-        for t in tickets:
-            t.age_hours = round(max(0.0, (now - t.created_at).total_seconds() / 3600.0), 1)
+        tickets = _annotate_tickets_sla(list(qs))
         return render(
             request,
             "schools/super_support_queue_fragment.html",
-            {"tickets": tickets, "request_user_id": getattr(request.user, "id", None)},
+            {
+                "tickets": tickets,
+                "request_user_id": getattr(request.user, "id", None),
+                "sla_response_hours": SUPPORT_SLA_RESPONSE_HOURS,
+                "sla_resolution_hours": SUPPORT_SLA_RESOLUTION_HOURS,
+            },
         )
     return redirect("super:support_dashboard")
 

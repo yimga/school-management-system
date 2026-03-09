@@ -28,4 +28,4 @@ EMIS-style reporting and secure aggregation for ministries and districts. School
 |------|--------|
 | Architecture doc | Done (this doc) |
 | Permission-gated aggregate API stub | Done (api view or stub that checks capability and returns empty/placeholder) |
-| Full EMIS pipeline | Product roadmap / deferred |
+| Full EMIS pipeline | Required (product roadmap; implement when prioritised) |

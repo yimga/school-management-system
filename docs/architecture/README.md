@@ -2,7 +2,7 @@
 
 This folder contains architecture artifacts for the RunMyCampus platform. All core docs below align with **tenant_runtime**, **four planes** (control, tenant, marketing, public), **governed nav**, and **no hardcoding** (see [ARCHITECTURE_LAWS.md](ARCHITECTURE_LAWS.md)).
 
-**Completeness:** The core platform-aligned docs are complete: no TBD/TODO/placeholder content left in them. Where optional or future work is mentioned (e.g. "optional Phase 8", "roadmap"), it is explicitly labeled as such. Other docs in this folder (execution plans, gap ledgers, roadmaps) track status and "not yet" items by design.
+**Completeness:** The core platform-aligned docs are complete. **Plan policy:** Everything is non-negotiable and due now; no deferred, optional, or backlog items (see [../PLAN_POLICY.md](../PLAN_POLICY.md)). Execution plans and gap ledgers track implementation status; all items are required.
 
 ---
 
@@ -32,7 +32,7 @@ This folder contains architecture artifacts for the RunMyCampus platform. All co
 | [PAGE_FAMILY_AND_SHELL_MAP.md](PAGE_FAMILY_AND_SHELL_MAP.md) | Page-by-page shell/family map |
 | [SIDEBAR_NAV_SURGERY.md](SIDEBAR_NAV_SURGERY.md) | Sidebar nav changes and implementation |
 | [SCOPED_WORK_NOT_DONE.md](SCOPED_WORK_NOT_DONE.md) | Scoped work: list, next steps, priority |
-| [SCOPED_WORK_VERIFICATION.md](SCOPED_WORK_VERIFICATION.md) | Verification: all items done (code-verified) or explicitly deferred; nothing partial |
+| [SCOPED_WORK_VERIFICATION.md](SCOPED_WORK_VERIFICATION.md) | Verification: all items done (code-verified) or required due now; nothing partial. See [../PLAN_POLICY.md](../PLAN_POLICY.md). |
 
 ---
 

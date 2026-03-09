@@ -2,6 +2,8 @@
 
 Single list of every **“Done when”** criterion and every **scoped / deferred / roadmap** item, with status and **why it’s not done yet** (where applicable).
 
+**Policy:** Nothing is deferred, in backlog, or “save for later” without being **required** (non-negotiable) and either implemented or scheduled with owner/target. Items labeled deferred/backlog are binding scope unless explicitly marked “out of scope by design.”
+
 **Sources:** REMAINING_PHASES_EXECUTION_ORDER.md, REMAINING_PLAN_AUDIT_GAPS.md, section_15_scope_implemented_and_roadmap.md, ux_rules_audit_26_5.md, parent_mobile_first_audit_14_4.md, sandbox_hardening_checklist_1_8.md, phase21_through_phase24_sections_27_to_31.md, INCOMPLETE_ITEMS_AND_NORTH_STAR_ALIGNMENT.md, RUNMYCAMPUS_CONSOLIDATED_ARCHITECTURE_AND_REFACTOR.md (Deferred and optional register).
 
 ---

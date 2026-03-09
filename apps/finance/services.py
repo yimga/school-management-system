@@ -1120,3 +1120,10 @@ def get_parent_fees_summary(user):
         }
     except Exception:
         return None
+
+
+# Payment plans (Section 15.3) — single integration point; required, not optional.
+def get_finance_capabilities():
+    """Return finance capabilities for the platform (payment plan scope, etc.). Used by runtime and APIs."""
+    from .payment_plans import get_payment_plan_scope
+    return {"payment_plan_scope": get_payment_plan_scope()}

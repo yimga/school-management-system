@@ -6,16 +6,16 @@
       <th>{% trans "Subject" %}</th>
       <th>{% trans "Priority" %}</th>
       <th>{% trans "Status" %}</th>
-      <th>{% trans "Created" %}</th>
       <th>{% trans "Assigned to" %}</th>
       <th>{% trans "Created" %}</th>
       <th>{% trans "Age (h)" %}</th>
+      <th>{% trans "SLA" %}</th>
       <th></th>
     </tr>
   </thead>
   <tbody>
     {% for t in tickets %}
-    <tr>
+    <tr class="{% if t.sla_response_breach or t.sla_resolution_breach %}table-warning{% endif %}">
       <td>{{ t.school.name }}</td>
       <td>{{ t.subject|truncatewords:8 }}</td>
       <td><span class="badge {% if t.priority == 'URGENT' %}bg-danger{% elif t.priority == 'HIGH' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">{{ t.get_priority_display }}</span></td>
@@ -23,6 +23,7 @@
       <td>{% if t.assigned_to %}{{ t.assigned_to.get_full_name|default:t.assigned_to.email|default:t.assigned_to.username }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
       <td>{{ t.created_at|date:"M d, H:i" }}</td>
       <td>{{ t.age_hours|default:"-" }}</td>
+      <td>{% if t.sla_response_breach %}<span class="badge bg-danger" title="{% trans 'Response SLA breach' %}">R</span>{% endif %}{% if t.sla_resolution_breach %}<span class="badge bg-danger" title="{% trans 'Resolution SLA breach' %}">Res</span>{% endif %}{% if not t.sla_response_breach and not t.sla_resolution_breach %}<span class="text-muted">—</span>{% endif %}</td>
       <td>
         {% if t.assigned_to_id == request_user_id %}
         <form method="post" action="{% url 'super:support_assign_ticket' %}?status={{ request.GET.status }}&priority={{ request.GET.priority }}" class="d-inline" hx-post="{% url 'super:support_assign_ticket' %}?status={{ request.GET.status }}&priority={{ request.GET.priority }}" hx-target="#support-queue" hx-swap="innerHTML">
@@ -42,7 +43,7 @@
       </td>
     </tr>
     {% empty %}
-    <tr><td colspan="8" class="text-muted">{% trans "No tickets" %}</td></tr>
+    <tr><td colspan="9" class="text-muted">{% trans "No tickets" %}</td></tr>
     {% endfor %}
   </tbody>
 </table>

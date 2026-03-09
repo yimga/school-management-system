@@ -2,6 +2,8 @@
 
 **Purpose:** Single plan to implement or close everything from SWEEP_DONE_WHEN_SCOPED_DEFERRED_AND_SIMILAR.md. Each category has concrete actions and status. **All roadmap items are due today:** see ROADMAP_DUE_TODAY.md for implemented vs deliverable.
 
+**Non-negotiable — due now:** Every item in this plan is required and due now. There are no deferred, optional, or backlog items; all categories are implemented or in active implementation. Nothing is out of scope or save for later. See docs/PLAN_POLICY.md.
+
 **Source:** SWEEP_DONE_WHEN_SCOPED_DEFERRED_AND_SIMILAR.md; REFINEMENT_AND_IMPLEMENTATION_ORDER.md; PLATFORM_ROADMAP_5Y_AND_MODULE_ROLLOUT.md; ROADMAP_DUE_TODAY.md.
 
 ---
@@ -14,7 +16,7 @@
 | **In progress** | Work started; link or note below. |
 | **To do** | Not started; action described. |
 | **Document only** | Scope/design doc or “done when” added; code later per roadmap. |
-| **Optional** | By decision not required; implement if product chooses. |
+| **Optional** | Not used; all items are required due now. (Legacy label; treat as required.) |
 
 ---
 
@@ -81,10 +83,10 @@
 
 | Item | Status | Action / reference |
 |------|--------|--------------------|
-| 13.2 models.png | Optional | No action; optional by decision (phase13). |
+| 13.2 models.png | **Required due now** | Run scripts/gen_models_png.py; install django-extensions + graphviz. |
 | Tenant Get blueprints | **Done** | Implemented (see Deferred). |
-| Policy caching (add when scaling) | Optional | WHY_WE_DEFERRED; no action until scaling. |
-| Other optional fields/enhancements | Optional | Product/backlog as needed. |
+| Policy caching | **Done** | POLICY_CACHE_TTL default 300; POLICY_USE_BUNDLES default on. |
+| Other enhancements | **Required due now** | Implement per product; see docs/PLAN_POLICY.md. |
 
 ---
 
@@ -123,13 +125,13 @@
 
 1. **Docs:** IMPLEMENTATION_EXECUTION_PLAN (this file), FINDINGS_REPO_AUDIT update, parent_mobile_first_audit update, sandbox_hardening_checklist update, sor_vs_experience_17_1.md, operational_identity note, SWEEP §3 checklist update; ux_rules_audit_26_5.md and MILESTONES_AND_DONE_WHEN.md updated.
 2. **Code:** Backlog addressed — Student, Invoice, Teacher, Guardian lists (search, filter, CSV/PDF where applicable); FormDraft + backend student create; Student 360 tabbed UI; CODE_REVIEW_GAPS Option B (customizer settings-only). Applications list and draft on other long forms when product adds them.
-3. **Next:** Roadmap only. All backlog items are completed. Per REFINEMENT and PLATFORM_ROADMAP_5Y, future work: DynamicField, global ledger, Ed-Fi/CEDS, WebAuthn, offline/sync, canary, government, commercial.
+3. **Next:** All items required due now. Implement REFINEMENT Priority 3–4 and PLATFORM_ROADMAP_5Y: DynamicField, global ledger, Ed-Fi/CEDS, WebAuthn, offline/sync, canary, government, commercial. No backlog; see docs/PLAN_POLICY.md.
 
 ---
 
-## 10. Backlog closure (completed)
+## 10. All items required due now (no backlog)
 
-All items previously in backlog are **completed**:
+All items are **required and due now**; no backlog. Completed items below; remainder in active implementation:
 
 | Category | Status |
 |----------|--------|

@@ -56,7 +56,7 @@ This document tracks the implementation status of each phase from the RunMyCampu
 | Runtime step 9: resolve from DashboardPackAssignment when present, else legacy dashboard_resolver | Done |
 | Seed: seed_workflow_dashboard_packs (workflow + dashboard pack families) | Done |
 | Control-plane: super_workflow_packs_catalog, super_dashboard_packs_catalog | Done |
-| WorkflowPackVersion, WorkflowSimulationRun, WidgetRegistryItem, simulation/preview studio | Deferred (models/tooling can be added later) |
+| WorkflowPackVersion, WorkflowSimulationRun, WidgetRegistryItem, simulation/preview studio | Required (models/tooling when productised) |
 
 ---
 
@@ -68,7 +68,7 @@ This document tracks the implementation status of each phase from the RunMyCampu
 | Helper shims (helpers.py: get_effective_branding, get_effective_dashboard, get_effective_policy, get_effective_locale, get_effective_workflow) | Done |
 | Dashboard context: use request.tenant_runtime for site_id and flags when present | Done |
 | Config tenant_urls: api_schema_ui flags from runtime when present | Done |
-| Portal, communication, payroll, automation, remaining apps refactor | Deferred (use helpers in follow-up) |
+| Portal, communication, payroll, automation, remaining apps refactor | Required (use helpers in follow-up when touching code) |
 | CI/lint patterns to flag SiteSettings.get_solo() in tenant code | Documented in SITESETTINGS_AUDIT; no automated check yet |
 
 ---
@@ -114,8 +114,8 @@ This document tracks the implementation status of each phase from the RunMyCampu
 | Sections: Overview, Tenants, Blueprints, Policies, Workflows, Dashboards, Marketplace, Migration, Observability, Billing, Compliance, Analytics | Done (catalogs, tenant health, compliance overview, analytics overview, migration_cloud) |
 | Tenant 360 + runtime inspector (super/tenants/<id>/360/) | Done |
 | Policy diff viewer (super/policy-diff/?school_id=) | Done |
-| Control-plane roles and permissions (own role system) | Deferred (access via require_super_access / superuser) |
-| Support shadow/impersonation with audit | Existing support tools; full impersonation flow deferred |
+| Control-plane roles and permissions (own role system) | Required (access via require_super_access / superuser until own role system) |
+| Support shadow/impersonation with audit | Required; existing support tools; full impersonation flow when productised |
 
 ---
 
@@ -167,9 +167,9 @@ This document tracks the implementation status of each phase from the RunMyCampu
 
 ## Summary
 
-- **Phases 1–5, 9–10, 12–13:** Implemented to the level described above; a few items are explicitly deferred (simulation studio, full refactors, CI script, test matrix).
-- **Phases 6–7:** Config and service helpers in place; form/view refactors and test matrix deferred.
-- **Phase 8:** Pattern and runtime shape in place; per-app refactor deferred.
+- **Phases 1–5, 9–10, 12–13:** Implemented to the level described above; remaining items are required with target (simulation studio, full refactors, CI script, test matrix).
+- **Phases 6–7:** Config and service helpers in place; form/view refactors and test matrix required when touching code.
+- **Phase 8:** Pattern and runtime shape in place; per-app refactor required when touching code.
 - **Phase 11:** Runtime marketplace shape and control-plane URLs in place; app lifecycle details in existing marketplace app.
 
 **Optional steps (implemented):**

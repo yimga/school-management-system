@@ -18,7 +18,16 @@ class MigrationProfileSourceSystemTests(TestCase):
         self.assertEqual(MigrationProfile.SourceSystem.BLACKBAUD, "blackbaud")
         self.assertEqual(MigrationProfile.SourceSystem.VERACROSS, "veracross")
         self.assertEqual(MigrationProfile.SourceSystem.INFINITE_CAMPUS, "infinite_campus")
+        self.assertEqual(MigrationProfile.SourceSystem.FACTS, "facts")
+        self.assertEqual(MigrationProfile.SourceSystem.SKYWARD, "skyward")
+        self.assertEqual(MigrationProfile.SourceSystem.ALMA, "alma")
+        self.assertEqual(MigrationProfile.SourceSystem.SQL_DUMP, "sql_dump")
+        self.assertEqual(MigrationProfile.SourceSystem.API_SIS, "api_sis")
         self.assertEqual(MigrationProfile.SourceSystem.OTHER, "other")
+
+    def test_profile_category_field_exists(self):
+        self.assertTrue(hasattr(MigrationProfile, "profile_category"))
+        self.assertTrue(hasattr(MigrationProfile, "ProfileCategory"))
 
     def test_competitor_profiles_have_schema_hints_after_seed(self):
         from django.core.management import call_command
@@ -39,6 +48,21 @@ class MigrationProfileSourceSystemTests(TestCase):
         generic = MigrationProfile.objects.filter(slug="students").first()
         self.assertIsNotNone(generic)
         self.assertIsNone(generic.source_system)
+
+    def test_facts_profile_after_seed(self):
+        from django.core.management import call_command
+        call_command("seed_migration_profiles")
+        facts = MigrationProfile.objects.filter(slug="students_from_facts").first()
+        self.assertIsNotNone(facts)
+        self.assertEqual(facts.source_system, MigrationProfile.SourceSystem.FACTS)
+        self.assertEqual(facts.profile_category, MigrationProfile.ProfileCategory.VENDOR)
+
+    def test_phased_migration_strategy_profile_after_seed(self):
+        from django.core.management import call_command
+        call_command("seed_migration_profiles")
+        phased = MigrationProfile.objects.filter(slug="phased_migration").first()
+        self.assertIsNotNone(phased)
+        self.assertEqual(phased.profile_category, MigrationProfile.ProfileCategory.STRATEGY)
 
 
 class SchemaInferenceTests(TestCase):
@@ -113,3 +137,105 @@ class PreMigrationValidationTests(TestCase):
         issues = run_pre_migration_validation("grades", rows, school=None)
         self.assertGreaterEqual(len(issues["duplicates"]), 1)
         self.assertEqual(issues["duplicates"][0]["row_indices"], [1, 2])
+
+
+class MigrationPlaybookTests(TestCase):
+    """MigrationPlaybook: ordered profile_slugs, get_profiles()."""
+
+    def test_playbook_get_profiles_returns_ordered(self):
+        from django.core.management import call_command
+        from apps.automation.models import MigrationPlaybook
+
+        call_command("seed_migration_profiles")
+        playbook = MigrationPlaybook.objects.create(
+            slug="test_students_then_grades",
+            name="Students then Grades",
+            profile_slugs=["students_from_powerschool", "grades_from_powerschool"],
+        )
+        profiles = playbook.get_profiles()
+        self.assertEqual(len(profiles), 2)
+        self.assertEqual(profiles[0].slug, "students_from_powerschool")
+        self.assertEqual(profiles[1].slug, "grades_from_powerschool")
+
+    def test_playbook_get_profiles_empty_when_no_slugs(self):
+        from apps.automation.models import MigrationPlaybook
+
+        playbook = MigrationPlaybook(slug="empty", name="Empty", profile_slugs=[])
+        self.assertEqual(playbook.get_profiles(), [])
+
+
+class SchemaFingerprintTests(TestCase):
+    """Schema fingerprint: suggest_profiles_from_headers returns best-matching profiles."""
+
+    def test_suggest_profiles_powerschool_headers(self):
+        from django.core.management import call_command
+        from apps.automation.schema_fingerprint import suggest_profiles_from_headers
+
+        call_command("seed_migration_profiles")
+        headers = ["student_number", "first_name", "last_name", "grade_level", "homeroom"]
+        scored = suggest_profiles_from_headers(headers)
+        self.assertGreater(len(scored), 0)
+        top_profile, confidence = scored[0]
+        self.assertGreaterEqual(confidence, 0.0)
+        self.assertLessEqual(confidence, 1.0)
+        # PowerSchool hints include student_number, first_name, last_name, grade_level, homeroom
+        ps = next((p for p, _ in scored if p.slug == "students_from_powerschool"), None)
+        self.assertIsNotNone(ps, "students_from_powerschool should be suggested for PowerSchool-like headers")
+
+    def test_suggest_profiles_empty_headers_returns_empty(self):
+        from apps.automation.schema_fingerprint import suggest_profiles_from_headers
+
+        self.assertEqual(suggest_profiles_from_headers([]), [])
+
+
+class QuarantineTests(TestCase):
+    """Repair and quarantine: add_to_quarantine, mark_repaired, get_repaired_rows."""
+
+    def test_add_to_quarantine_and_mark_repaired(self):
+        from apps.automation.quarantine_services import add_to_quarantine, mark_repaired, get_repaired_rows
+        from apps.automation.models import MigrationQuarantineRecord
+
+        rec = add_to_quarantine(
+            domain="students",
+            row_index=5,
+            payload={"first_name": "A", "last_name": "B"},
+            issue_class="missing_required",
+        )
+        self.assertEqual(rec.status, MigrationQuarantineRecord.Status.PENDING)
+        mark_repaired(rec, {"first_name": "A", "last_name": "B", "admission_number": "123"})
+        rec.refresh_from_db()
+        self.assertEqual(rec.status, MigrationQuarantineRecord.Status.REPAIRED)
+        self.assertIn("admission_number", rec.resolution_payload)
+        rows = get_repaired_rows(domain="students")
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["admission_number"], "123")
+
+    def test_get_repaired_rows_empty_when_none_repaired(self):
+        from apps.automation.quarantine_services import get_repaired_rows
+
+        self.assertEqual(get_repaired_rows(domain="grades"), [])
+
+
+class PlaybookExecutorTests(TestCase):
+    """execute_playbook: runs steps in sequence, returns runs and status."""
+
+    def test_execute_playbook_dry_run_empty_payload_creates_runs(self):
+        from django.core.management import call_command
+        from apps.automation.models import MigrationPlaybook, MigrationRun
+        from apps.automation.playbook_executor import execute_playbook
+
+        call_command("seed_migration_profiles")
+        playbook = MigrationPlaybook.objects.create(
+            slug="exec_test",
+            name="Exec test",
+            profile_slugs=["students_from_powerschool", "grades_from_powerschool"],
+        )
+        result = execute_playbook(playbook, school=None, user=None, dry_run=True, steps_payload=None)
+        self.assertIn("runs", result)
+        self.assertIn("status", result)
+        self.assertEqual(len(result["runs"]), 2)
+        self.assertEqual(result["status"], "SUCCESS")
+        for run in result["runs"]:
+            self.assertTrue(run.execution_summary.get("playbook_slug") == "exec_test")
+            self.assertIn("step_index", run.execution_summary)
+            self.assertIn("profile_slug", run.execution_summary)

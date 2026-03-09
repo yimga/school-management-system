@@ -2,7 +2,7 @@
 
 **Purpose:** Document how control plane (super-admin) access is enforced. There is no separate role model; access is via Django superuser and a single gate.
 
-**Reference:** PLAN_COMPLIANCE.md Phase 9 "Control-plane roles and permissions (own role system) | Deferred (access via require_super_access / superuser)".
+**Reference:** PLAN_COMPLIANCE.md Phase 9 "Control-plane roles and permissions (own role system) | Required — access via require_super_access / superuser until own role system implemented."
 
 ---
 

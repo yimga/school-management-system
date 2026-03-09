@@ -37,6 +37,15 @@
       </div>
     </div>
   </div>
+  {% if sla_breach_response or sla_breach_resolution %}
+  <div class="alert alert-warning mb-4" role="alert">
+    <strong>{% trans "SLA breach" %}</strong>:
+    {% if sla_breach_response %}{{ sla_breach_response }} {% trans "response breach" %}{% endif %}
+    {% if sla_breach_response and sla_breach_resolution %} | {% endif %}
+    {% if sla_breach_resolution %}{{ sla_breach_resolution }} {% trans "resolution breach" %}{% endif %}
+    ({% trans "Targets" %}: {% trans "Response" %} {{ sla_response_hours.URGENT }}/{{ sla_response_hours.HIGH }}/{{ sla_response_hours.NORMAL }}h, {% trans "Resolution" %} {{ sla_resolution_hours.URGENT }}/{{ sla_resolution_hours.HIGH }}/{{ sla_resolution_hours.NORMAL }}h)
+  </div>
+  {% endif %}
   <div class="card border-0 shadow-sm">
     <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
       <span>{% trans "Ticket queue" %}</span>
@@ -61,7 +70,7 @@
          hx-get="{% url 'super:support_queue_fragment' %}?status={{ status_filter }}&priority={{ priority_filter }}"
          hx-trigger="every 60s, load"
          hx-swap="innerHTML">
-      {% include "schools/super_support_queue_fragment.html" with tickets=tickets %}
+      {% include "schools/super_support_queue_fragment.html" with tickets=tickets request_user_id=request_user_id sla_response_hours=sla_response_hours sla_resolution_hours=sla_resolution_hours %}
     </div>
   </div>
 </div>
