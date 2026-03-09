@@ -76,12 +76,13 @@ def _preprocess_image(image: Image.Image) -> Image.Image:
 
 
 def process_marksheet_upload(file_obj, tesseract_cmd: Optional[str] = None) -> Dict[str, Any]:
-    """Run OCR on an uploaded marksheet and slice it into student rows."""
-    _configure_tesseract(tesseract_cmd)
-    if pytesseract is None or Image is None:
+    """Run OCR on an uploaded marksheet via DocumentExtractionProvider; slice into student rows."""
+    from apps.siteconfig.document_extraction import get_document_extraction_provider
+    provider = get_document_extraction_provider("ocr_tesseract", tesseract_cmd=tesseract_cmd)
+    if not provider.is_available():
         return {
             "success": False,
-            "message": "OCR backend (pytesseract + Pillow) is not configured.",
+            "message": "OCR backend (Tesseract) is not configured or not available.",
             "entries": [],
             "confidence": 0.0,
             "preview_text": "",
@@ -90,7 +91,6 @@ def process_marksheet_upload(file_obj, tesseract_cmd: Optional[str] = None) -> D
     try:
         file_obj.seek(0)
         image = Image.open(file_obj)
-        # Apply preprocessing for better handwriting recognition
         image = _preprocess_image(image)
     except Exception as exc:  # pragma: no cover
         logger.exception("Failed to decode marksheet file for OCR", exc_info=exc)
@@ -103,7 +103,7 @@ def process_marksheet_upload(file_obj, tesseract_cmd: Optional[str] = None) -> D
         }
 
     try:
-        preview_text = pytesseract.image_to_string(image, lang="eng")
+        preview_text = provider.extract_text(image)
     except Exception as exc:
         logger.exception("OCR engine error", exc_info=exc)
         return {
@@ -114,8 +114,9 @@ def process_marksheet_upload(file_obj, tesseract_cmd: Optional[str] = None) -> D
             "preview_text": "",
         }
 
-    entries, field_confidences = _parse_text_with_confidence(image)
-    overall_confidence = _estimate_confidence(image)
+    entries = _parse_text(preview_text)
+    field_confidences = {}
+    overall_confidence = (0.7 if entries else 0.0)
 
     return {
         "success": bool(entries),

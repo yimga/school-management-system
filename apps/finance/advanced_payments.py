@@ -3,9 +3,8 @@ Phase 9 Task 6: Advanced Payment Features
 Recurring payments, split payments, dynamic pricing, installments
 
 INTEGRATES WITH:
+- apps.finance.models (Invoice, Payment, PaymentPlan, RecurringPaymentSubscription)
 - apps.finance.payment_processors (Stripe, PayPal, Flutterwave, Paystack)
-- apps.finance.models (Invoice, Payment)
-- Existing payment infrastructure
 """
 
 from django.db import models
@@ -17,172 +16,94 @@ from decimal import Decimal
 from typing import Dict, List
 import json
 
+from .models import (
+    ComplianceProfile,
+    Invoice,
+    Payment,
+    PaymentPlan,
+    RecurringPaymentSubscription,
+)
+
 User = get_user_model()
 
 
-class PaymentPlan(models.Model):
-    """
-    Recurring payment plans
-    
-    INTEGRATES WITH: apps.finance.models.Invoice
-    """
-    
-    FREQUENCY_CHOICES = [
-        ('WEEKLY', 'Weekly'),
-        ('BIWEEKLY', 'Bi-Weekly'),
-        ('MONTHLY', 'Monthly'),
-        ('QUARTERLY', 'Quarterly'),
-        ('ANNUALLY', 'Annually'),
-    ]
-    
-    name = models.CharField(max_length=255)
-    description = models.TextField(blank=True)
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    frequency = models.CharField(max_length=20, choices=FREQUENCY_CHOICES)
-    
-    # Duration
-    max_installments = models.IntegerField(help_text="Total number of payments, 0 for unlimited")
-    
-    # Grace period
-    grace_period_days = models.IntegerField(default=0)
-    late_fee_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
-    
-    # Discounts
-    early_payment_discount_percent = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
-        default=Decimal('0.00'),
-        help_text="Discount for paying before due date"
+def _recurring_subscription_process_payment(self):
+    """Process the next scheduled payment. Only runs Stripe when payment_processor is 'stripe'."""
+    from apps.finance.payment_processors import StripeProcessor
+    from apps.people.models import StudentProfile
+
+    if self.status != "ACTIVE":
+        return False
+    student = None
+    if getattr(self.user, "id", None):
+        sp = StudentProfile.objects.filter(user_id=self.user.id).first()
+        if sp:
+            student = sp
+    profile = ComplianceProfile.objects.first()
+    if not profile:
+        return False
+    school = getattr(student, "school", None) if student else None
+    invoice = Invoice.objects.create(
+        profile=profile,
+        school=school,
+        student=student,
+        total_amount=self.plan.amount,
+        balance_amount=self.plan.amount,
+        due_date=self.next_payment_date,
+        notes=f"{self.plan.name} - Payment {self.payments_made + 1}",
+        status=Invoice.Status.ISSUED,
     )
-    
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    
-    class Meta:
-        ordering = ['name']
-    
-    def __str__(self):
-        return f"{self.name} - {self.amount} {self.frequency}"
-
-
-class RecurringPaymentSubscription(models.Model):
-    """
-    User subscription to a payment plan
-    
-    EXTENDS: Existing Invoice model with recurring capability
-    """
-    
-    STATUS_CHOICES = [
-        ('ACTIVE', 'Active'),
-        ('PAUSED', 'Paused'),
-        ('CANCELLED', 'Cancelled'),
-        ('COMPLETED', 'Completed'),
-        ('DEFAULTED', 'Defaulted'),
-    ]
-    
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='payment_subscriptions')
-    plan = models.ForeignKey(PaymentPlan, on_delete=models.PROTECT)
-    
-    # Schedule
-    start_date = models.DateField()
-    next_payment_date = models.DateField()
-    last_payment_date = models.DateField(null=True, blank=True)
-    end_date = models.DateField(null=True, blank=True)
-    
-    # Tracking
-    payments_made = models.IntegerField(default=0)
-    total_paid = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
-    missed_payments = models.IntegerField(default=0)
-    
-    # Status
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ACTIVE')
-    
-    # Payment method (default manual/mobile-money; set to 'stripe' when tenant opts in)
-    payment_processor = models.CharField(max_length=50, default='manual')
-    customer_payment_method_id = models.CharField(max_length=255, blank=True)
-    
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
-    class Meta:
-        ordering = ['-created_at']
-        indexes = [
-            models.Index(fields=['status', 'next_payment_date']),
-            models.Index(fields=['user', 'status']),
-        ]
-    
-    def __str__(self):
-        return f"{self.user.username} - {self.plan.name}"
-    
-    def process_payment(self):
-        """Process the next scheduled payment. Only runs Stripe when payment_processor is 'stripe'."""
-        from apps.finance.models import Invoice, Payment
-        from apps.finance.payment_processors import StripeProcessor
-
-        if self.status != 'ACTIVE':
-            return False
-
-        # Create invoice
-        invoice = Invoice.objects.create(
-            student=self.user,
+    processor_name = (self.payment_processor or "").strip().lower()
+    if processor_name != "stripe":
+        return False
+    try:
+        processor = StripeProcessor()
+        result = processor.process_payment({
+            "amount": float(self.plan.amount),
+            "currency": "USD",
+            "customer_id": self.customer_payment_method_id,
+        })
+        Payment.objects.create(
+            invoice=invoice,
             amount=self.plan.amount,
-            due_date=self.next_payment_date,
-            description=f"{self.plan.name} - Payment {self.payments_made + 1}",
-            status='PENDING'
+            status="completed",
+            gateway_transaction_id=result.get("transaction_id") or None,
         )
+        self.payments_made += 1
+        self.total_paid += self.plan.amount
+        self.last_payment_date = timezone.now().date()
+        self.next_payment_date = self._calculate_next_payment_date()
+        if self.plan.max_installments > 0 and self.payments_made >= self.plan.max_installments:
+            self.status = "COMPLETED"
+        self.save()
+        return True
+    except Exception:
+        self.missed_payments += 1
+        if self.missed_payments >= 3:
+            self.status = "DEFAULTED"
+        self.save()
+        return False
 
-        processor_name = (self.payment_processor or '').strip().lower()
-        if processor_name != 'stripe':
-            # Manual, mobile-money, or other: invoice stays PENDING; no automatic charge
-            return False
 
-        try:
-            processor = StripeProcessor()
-            result = processor.process_payment({
-                'amount': float(self.plan.amount),
-                'currency': 'USD',
-                'customer_id': self.customer_payment_method_id,
-            })
+def _calculate_next_payment_date(self):
+    """Calculate next payment date based on frequency."""
+    from datetime import timedelta
+    current = self.next_payment_date
+    if self.plan.frequency == "WEEKLY":
+        return current + timedelta(days=7)
+    if self.plan.frequency == "BIWEEKLY":
+        return current + timedelta(days=14)
+    if self.plan.frequency == "MONTHLY":
+        return current + timedelta(days=30)
+    if self.plan.frequency == "QUARTERLY":
+        return current + timedelta(days=90)
+    if self.plan.frequency == "ANNUALLY":
+        return current + timedelta(days=365)
+    return current + timedelta(days=30)
 
-            Payment.objects.create(
-                invoice=invoice,
-                amount=self.plan.amount,
-                status='COMPLETED',
-                transaction_id=result['transaction_id']
-            )
 
-            self.payments_made += 1
-            self.total_paid += self.plan.amount
-            self.last_payment_date = timezone.now().date()
-            self.next_payment_date = self._calculate_next_payment_date()
-
-            if self.plan.max_installments > 0 and self.payments_made >= self.plan.max_installments:
-                self.status = 'COMPLETED'
-
-            self.save()
-            return True
-
-        except Exception:
-            self.missed_payments += 1
-            if self.missed_payments >= 3:
-                self.status = 'DEFAULTED'
-            self.save()
-            return False
-    
-    def _calculate_next_payment_date(self):
-        """Calculate next payment date based on frequency"""
-        current = self.next_payment_date
-        
-        if self.plan.frequency == 'WEEKLY':
-            return current + timedelta(days=7)
-        elif self.plan.frequency == 'BIWEEKLY':
-            return current + timedelta(days=14)
-        elif self.plan.frequency == 'MONTHLY':
-            return current + timedelta(days=30)
-        elif self.plan.frequency == 'QUARTERLY':
-            return current + timedelta(days=90)
-        elif self.plan.frequency == 'ANNUALLY':
-            return current + timedelta(days=365)
+RecurringPaymentSubscription.process_payment = _recurring_subscription_process_payment
+RecurringPaymentSubscription._calculate_next_payment_date = _calculate_next_payment_date
 
 
 class SplitPayment(models.Model):

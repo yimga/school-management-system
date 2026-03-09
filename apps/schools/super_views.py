@@ -2873,9 +2873,14 @@ def support_assign_ticket(request):
         return redirect("super:support_dashboard")
     if action == "assign_me":
         ticket.assigned_to_id = getattr(request.user, "id", None)
+        if ticket.first_response_at is None:
+            ticket.first_response_at = timezone.now()
+            ticket.save(update_fields=["assigned_to_id", "first_response_at"])
+        else:
+            ticket.save(update_fields=["assigned_to_id"])
     else:
         ticket.assigned_to = None
-    ticket.save(update_fields=["assigned_to_id"])
+        ticket.save(update_fields=["assigned_to_id"])
     if request.headers.get("HX-Request"):
         from apps.siteconfig.support_sla import SUPPORT_SLA_RESPONSE_HOURS, SUPPORT_SLA_RESOLUTION_HOURS
         status_filter = request.GET.get("status", "").strip()

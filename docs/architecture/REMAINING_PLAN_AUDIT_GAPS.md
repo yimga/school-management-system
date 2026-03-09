@@ -26,7 +26,7 @@ Short checklist for items from the execution map and plan audit. Use for priorit
 
 - **Goal:** Consistently add search/filters/export to key lists; form autosave/draft where critical.
 - **Current:** Audit doc: ux_rules_audit_26_5.md. Done: document library CSV; applicants list (search/filter/export); application form Save draft. Students, invoices, teachers, guardians, evals already had reference implementation.
-- **Next:** Remaining (deferred): classes/sections list; student onboarding step-level draft. See SCOPED_WORK_VERIFICATION.md.
+- **Done:** Classes/sections list (backend_classroom_list); student onboarding step-level draft (FormDraft student_onboarding). See SCOPED_WORK_VERIFICATION.md.
 
 ## Control plane maturity
 
@@ -38,7 +38,7 @@ Short checklist for items from the execution map and plan audit. Use for priorit
 
 - **Runbooks URL:** **Done.** Set env `CONTROL_PLANE_RUNBOOKS_URL`; documented in `.env.example`; health dashboard links when set. See SCOPED_WORK_VERIFICATION.md.
 - **Canary/rollout:** **Done (doc).** [preview_release_canary.md](preview_release_canary.md) updated with ops note for runbooks + canary.
-- **Support queue:** Optional: integrate support_dashboard with ticket system when productised.
+- **Support queue:** **Done.** Support dashboard and queue show SLA breach; GlobalSupportTicket.first_response_at; support_sla integrated.
 
 ---
 

@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
 Required: generate docs/architecture/models.png (Section 13.2). Non-negotiable platform deliverable.
-Requires: django-extensions and graphviz (pip install django-extensions pygraphviz;
-  or system graphviz + pip install django-extensions).
+Requires: django-extensions (pip install django-extensions) and graphviz (system: e.g. apt-get install graphviz;
+  or pip install pygraphviz when graphviz dev libs are installed).
 Run from repo root: python scripts/gen_models_png.py
-Exits 0 if generation succeeded or if django-extensions/graph_models are not available (no-op; install deps and re-run).
+Exits 0 if generation succeeded or if graph_models/graphviz are not available (no-op; install deps and re-run).
+CI: install graphviz (e.g. sudo apt-get install -y graphviz) before running this script to upload models.png.
 """
 from __future__ import annotations
 

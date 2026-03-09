@@ -21,9 +21,9 @@ def get_payment_plan_scope() -> dict[str, Any]:
     return {
         "installments_via_invoice": True,
         "installments_via_fee_installment": True,
-        "payment_plan_model": False,
-        "recurring_subscription_model": False,
-        "message": "Installments via Invoice due dates and FeeInstallment; PaymentPlan/RecurringPaymentSubscription re-introduction when DB tables re-added (section_15_scope_implemented_and_roadmap.md 15.3).",
+        "payment_plan_model": True,
+        "recurring_subscription_model": True,
+        "message": "PaymentPlan and RecurringPaymentSubscription re-introduced (migration 0051); integrated with Invoice/Payment.",
     }
 
 

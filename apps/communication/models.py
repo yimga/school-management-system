@@ -931,9 +931,16 @@ class OutboundMessageQueue(models.Model):
     status = models.CharField(
         max_length=20,
         default="pending",
-        choices=[("pending", "Pending"), ("sent", "Sent"), ("failed", "Failed")],
+        choices=[
+            ("pending", "Pending"),
+            ("sent", "Sent"),
+            ("failed", "Failed"),
+            ("retrying", "Retrying"),
+        ],
         db_index=True,
     )
+    retry_count = models.PositiveIntegerField(default=0)
+    idempotency_key = models.CharField(max_length=255, blank=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     sent_at = models.DateTimeField(null=True, blank=True)
     error_message = models.CharField(max_length=500, blank=True)

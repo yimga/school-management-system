@@ -8,12 +8,12 @@
 |------------|---------------------|--------------------|------------|
 | **Payments (tenant-facing)** | `BasePaymentGateway` + registry | Gateways register via `finance.gateways.registry`; config from policy `payment_gateways`. | `apps/finance/gateways/` — `get_gateway(school, method_code, policy=...)`, `get_platform_fee(...)`. |
 | **Platform billing (subscriptions)** | `BasePlatformBillingProcessor` | `StripeConnectProcessor` (Stripe webhooks, payouts). Processor code in config; webhook routed by code. | `apps/billing/processors.py`; `PlatformBillingProcessorConfig`; webhook URLs per processor. |
-| **SMS / messaging** | Siteconfig / communication channel config | Twilio and others as configured in tenant/site config. | Prefer a single `NotificationProvider` or channel adapter; see `apps/communication` and `apps/siteconfig.models` (e.g. Twilio) for current usage. |
-| **Email** | Django email backend + optional provider config | SMTP, SendGrid, etc. via Django `EMAIL_BACKEND` and settings. | Ensure no direct SendGrid/Twilio calls in views; use `send_mail` or a small `EmailSender` wrapper. |
+| **SMS / messaging** | `communication.providers.SMSProvider` + `notification_service.send_sms` | Twilio, AfricasTalking adapters in `apps/communication/providers/`. | Single entry point: `apps.communication.notification_service.send_sms`; evals/notifications and others use it. No direct Twilio/AfricasTalking in app code. |
+| **Email** | `communication.notification_service.send_email` (Django backend) | SMTP, SendGrid, etc. via Django `EMAIL_BACKEND`. | All notification email via `send_email`; workflow_engine and evals use unified service. |
 | **AI / LLM** | Portal AI provider abstraction | `apps/portal.ai_provider` (or similar) should expose a single interface; implementations call OpenAI/Azure/etc. | Audit: views and automation must call an internal `completion()` or `embed()` API, not `openai.*` directly. |
-| **OCR / document extraction** | (To be formalised) | If present, should be behind e.g. `DocumentExtractionProvider` with implementations per vendor. | Grep for direct Azure/Google OCR imports in app code; move behind adapter. |
+| **OCR / document extraction** | `DocumentExtractionProvider` in `apps.siteconfig.document_extraction` | Tesseract, Pattern, Google Vision, AWS Textract via `get_document_extraction_provider(method, tesseract_cmd)`. | Evals marksheet OCR and finance receipt verification use it; no direct pytesseract/cloud in app code. |
 | **Storage (files)** | Django storage backends | DefaultStorage, S3, etc. via `DEFAULT_FILE_STORAGE` and per-field storage. | Already abstracted; avoid direct boto3 in app code. |
-| **E-sign / video / maps** | (As needed) | Add adapters when features are introduced; same pattern. | — |
+| **E-sign / video / maps** | Required when feature exists | Video: `communication.channels` / video_conferencing; e-sign/maps: add adapter when introduced. | Same pattern as payments/notifications. |
 
 ## Audit rules
 
@@ -24,9 +24,9 @@
 
 ## Gaps to close (by priority)
 
-- **SMS/email:** Confirm a single notification path (e.g. `communication.services.send_notification`) and that no view imports Twilio/SendGrid directly.
-- **AI:** Confirm all LLM usage goes through `apps/portal.ai_provider` or a shared `apps/*/ai_*.py` adapter; add wrapper if usage is scattered.
-- **OCR:** If any document extraction exists, ensure it is behind an adapter; add one if vendor is called from services/views.
+- **SMS/email:** Done. Single path: `apps.communication.notification_service` (`send_email`, `send_sms`); adapters in `communication.providers`; evals and workflow_engine use it; no direct Twilio/SendGrid in views.
+- **AI:** Confirm all LLM usage goes through a single orchestration layer (Phase 7); see `docs/architecture/ai_orchestration.md` when added.
+- **OCR:** Done. All extraction via `apps.siteconfig.document_extraction.get_document_extraction_provider`; evals and finance use it; no direct pytesseract/cloud in app code.
 
 ## References
 

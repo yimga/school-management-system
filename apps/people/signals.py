@@ -5,9 +5,53 @@ import logging
 from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
 from apps.communication.models import MessageThread
-from apps.people.models import TeacherProfile, StudentGuardian, StudentProfile
+from apps.people.models import TeacherProfile, StudentGuardian, StudentProfile, TeacherAttendance
 
 logger = logging.getLogger(__name__)
+
+
+@receiver(post_save, sender=TeacherAttendance)
+def emit_attendance_recorded_teacher(sender, instance, created, **kwargs):
+    """Emit domain event when teacher attendance is recorded (non-negotiable)."""
+    if not created:
+        return
+    try:
+        from apps.events.services import emit_event
+        school_id = getattr(instance.teacher, "school_id", None)
+        emit_event(
+            "attendance.recorded",
+            {
+                "teacher_attendance_id": str(instance.id),
+                "teacher_id": str(instance.teacher_id),
+                "date": str(instance.date),
+                "status": getattr(instance, "status", "") or "",
+                "school_id": str(school_id) if school_id else None,
+            },
+            school_id=school_id,
+        )
+    except Exception as e:
+        logger.debug("emit attendance.recorded (teacher) skipped: %s", e)
+
+
+@receiver(post_save, sender=StudentProfile)
+def emit_student_created_event(sender, instance, created, **kwargs):
+    """Emit domain event when a student profile is created (service-layer contract)."""
+    if not created:
+        return
+    try:
+        from apps.events.services import emit_event
+        school_id = getattr(instance, "school_id", None)
+        emit_event(
+            "student.created",
+            {
+                "student_id": str(instance.id),
+                "admission_number": getattr(instance, "admission_number", "") or "",
+                "school_id": str(school_id) if school_id else None,
+            },
+            school_id=school_id,
+        )
+    except Exception as e:
+        logger.debug("emit student.created skipped: %s", e)
 
 
 @receiver(post_save, sender=StudentGuardian)

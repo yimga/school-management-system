@@ -628,8 +628,21 @@ CELERY_BEAT_SCHEDULE = {
     },
     "marketplace-health-check": {
         "task": "marketplace.marketplace_health_check",
-        "schedule": 21600.0,  # Every 6 hours; Phase 11 optional
+        "schedule": 21600.0,  # Every 6 hours
         "options": {"expires": 600},
+    },
+    # Event outbox and notification queue (required for internal-first)
+    "process-event-outbox": {
+        "task": "apps.events.process_event_outbox",
+        "schedule": 120.0,  # Every 2 minutes
+        "options": {"expires": 300},
+        "kwargs": {"batch_size": 100},
+    },
+    "process-outbound-message-queue": {
+        "task": "communication.process_outbound_message_queue",
+        "schedule": 120.0,  # Every 2 minutes
+        "options": {"expires": 300},
+        "kwargs": {"limit": 50},
     },
 }
 

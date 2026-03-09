@@ -142,16 +142,23 @@ class GlobalSearchAPI(View):
                 'error': 'Query too short. Minimum 2 characters required.'
             }, status=400)
         
-        results = []
+        school = getattr(request, "school", None)
+        school_id = getattr(school, "id", None) if school else None
+        # Read layer: OpenSearch when configured (non-negotiable integration point)
+        try:
+            from apps.api.search_read_layer import search as search_read_layer
+            data = search_read_layer(q=query, search_type=search_type if search_type != 'all' else None, school_id=school_id, limit=limit)
+            if data is not None:
+                return JsonResponse(data)
+        except Exception as e:
+            logger.debug("Search read layer skipped: %s", e)
         
-        # Determine which types to search
+        results = []
         if search_type == 'all':
             types_to_search = list(self.SEARCH_CONFIG.keys())
         else:
             types_to_search = [search_type]
         
-        # Search each type (Section 25.3: tenant-scoped when request.school is set)
-        school = getattr(request, "school", None)
         for search_type_key in types_to_search:
             config = self.SEARCH_CONFIG.get(search_type_key)
             if not config:

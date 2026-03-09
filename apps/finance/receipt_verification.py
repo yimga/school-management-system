@@ -2,7 +2,7 @@
 Receipt Verification Service
 
 Extracts data from payment receipts (cash/bank) and verifies them against invoices.
-Supports pattern matching (free) and optional OCR integration.
+All OCR goes through DocumentExtractionProvider (siteconfig.document_extraction); no direct pytesseract/cloud in app code.
 """
 
 import re
@@ -14,6 +14,7 @@ from django.core.files.uploadedfile import UploadedFile
 from PIL import Image
 
 from .ocr_runtime import get_ocr_runtime_status
+from apps.siteconfig.document_extraction import get_document_extraction_provider
 
 
 class ReceiptVerificationService:
@@ -83,19 +84,15 @@ class ReceiptVerificationService:
         # For images, try to extract text
         try:
             image = Image.open(receipt_file)
-            # Convert to text (pattern matching or OCR)
+            # Convert to text via DocumentExtractionProvider (required; no direct OCR in app code)
             if self.verification_method == "pattern":
-                # For pattern matching, we'd need to read the image as text
-                # This is a simplified version - in production, you'd use OCR
                 text = self._extract_text_from_image_simple(image)
-            elif self.verification_method == "ocr_tesseract":
-                text = self._extract_text_with_tesseract(image)
-            elif self.verification_method in {"ocr_cloud_google", "ocr_cloud_aws"}:
-                # Cloud OCR call path is intentionally no-op until external provider activation.
-                # Runtime validation and env checks are already handled above.
-                text = ""
             else:
-                text = ""
+                provider = get_document_extraction_provider(
+                    self.verification_method,
+                    tesseract_cmd=self.marksheet_ocr_command or None,
+                )
+                text = provider.extract_text(image) if provider.is_available() else ""
             
             # Extract data from text
             amount = self._extract_amount(text)
@@ -144,16 +141,14 @@ class ReceiptVerificationService:
         return self._extract_text_with_tesseract(image)
     
     def _extract_text_with_tesseract(self, image: Image.Image) -> str:
-        """Extract text using Tesseract OCR."""
-        try:
-            import pytesseract
-            text = pytesseract.image_to_string(image)
-            if text and text.strip():
-                return text
-        except ImportError:
-            pass
-        except Exception:
-            pass
+        """Extract text via DocumentExtractionProvider (no direct pytesseract in app code)."""
+        provider = get_document_extraction_provider(
+            "ocr_tesseract",
+            tesseract_cmd=self.marksheet_ocr_command or None,
+        )
+        text = provider.extract_text(image) if provider.is_available() else ""
+        if text and text.strip():
+            return text
         return self._extract_text_with_tesseract_cli(image)
 
     def _extract_text_with_tesseract_cli(self, image: Image.Image) -> str:

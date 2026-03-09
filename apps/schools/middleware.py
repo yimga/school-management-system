@@ -310,6 +310,8 @@ class UrlConfSwitcherMiddleware(MiddlewareMixin):
     def process_request(self, request):
         host = _request_host_raw(request)
         kind = public_host_kind(host)
+        # Set early so templates (e.g. portal_base) can use it; manager urlconf has no 'kb' namespace.
+        request.public_host_kind = kind
         # Local/test hosts keep full URL surface for developer workflows and legacy tests.
         if kind == "local":
             request.urlconf = "config.urls"

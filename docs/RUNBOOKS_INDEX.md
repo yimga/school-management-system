@@ -20,6 +20,14 @@
 | SiteSettings / config | docs/SITESETTINGS_GET_SOLO_ALLOWLIST.md | Where get_solo is allowlisted. |
 | Health / observability | apps/observability/ | /health/, /healthz/, db_health_check; healthz returns 500 on DB failure. |
 
+## Event outbox and notifications (required)
+
+| Topic | Doc | Notes |
+|-------|-----|--------|
+| Event outbox | docs/RUNBOOK_EVENT_OUTBOX.md | DomainEvent processing; consumer task; DLQ. |
+| Notification queue | docs/RUNBOOK_NOTIFICATION_QUEUE.md | OutboundMessageQueue; retries; circuit breaker. |
+| Storage/backup | docs/RUNBOOK_STORAGE_BACKUP.md | MEDIA_ROOT / S3 backup when production media used. |
+
 ## Operational discipline
 
 - **Audit logs:** Retention and query — see compliance app and security_log_retention command.
@@ -32,3 +40,6 @@
 - docs/ACTIVATION_FLOWS.md
 - docs/CONTROL_PLANE_BOUNDARY_RULES.md
 - docs/PLATFORM_ACCESS_AND_CREDENTIALS.md
+- docs/RUNBOOK_EVENT_OUTBOX.md
+- docs/RUNBOOK_NOTIFICATION_QUEUE.md
+- docs/RUNBOOK_STORAGE_BACKUP.md

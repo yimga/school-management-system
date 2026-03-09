@@ -14,12 +14,12 @@ Single list of **scoped** work that is defined and bounded. Items are either don
 | # | Item | Done when / next step | Priority | Recommendation |
 |---|------|------------------------|----------|----------------|
 | 1 | Pack versioning UX (tenant-facing) | Show “update available” when pack has newer version; link to manager. | P2 | **Done (minimal):** get_blueprints shows applied pack version; add “Newer version available” when outdated (see below). |
-| 2 | 26.5 UX — extend to remaining lists/forms | Add search + filter + export to remaining lists; draft/autosave to long forms (e.g. application). | P2 | **Done (this cycle):** Document library CSV; Applicants list; Application form Save draft. **Required due now:** Classes/sections; Student onboarding step-level draft — implement next. |
-| 3 | Control plane maturity | SLO/incident data refinement; runbooks URL; rollout/canary; support queue integration. | P2 | **Done (this cycle):** CONTROL_PLANE_RUNBOOKS_URL in .env.example; canary note in preview_release_canary; support_sla.py. **Required due now:** SLO refinement; support queue integration — implement next. |
+| 2 | 26.5 UX — extend to remaining lists/forms | Add search + filter + export to remaining lists; draft/autosave to long forms (e.g. application). | P2 | **Done:** Document library CSV; Applicants list; Application form Save draft; classes/sections list (backend_classroom_list); student onboarding step-level draft (FormDraft student_onboarding). |
+| 3 | Control plane maturity | SLO/incident data refinement; runbooks URL; rollout/canary; support queue integration. | P2 | **Done:** CONTROL_PLANE_RUNBOOKS_URL in .env.example; canary note in preview_release_canary; support_sla.py; support queue with SLA breach (first_response_at on GlobalSupportTicket; super_support_dashboard + support_queue_fragment show breach counts). |
 | 4 | Student 360 transcript/archive | Immutable transcript; cross-year archive (15.1). | P3 | **Done:** transcript_archive + Student 360 link to Transcript & archive. |
-| 5 | 15.3 Payment plans / double-entry | Payment plan model; installment schedule; double-entry ledger or Invoice/Payment integration. | P3 | **Required due now:** Implement per section_15; advanced_payments.py + finance roadmap — binding. |
-| 6 | Migration cloud rollback / legacy | Rollback UI; legacy data cleaner; read-only legacy view. | P3 | **Required due now:** Implement per phase5/phase8 — binding; already partially implemented. |
-| 7 | 13.2 models.png | Architecture diagram (django-extensions graph_models). | P3 | **Required due now:** Run scripts/gen_models_png.py; install django-extensions + graphviz and generate. |
+| 5 | 15.3 Payment plans / double-entry | Payment plan model; installment schedule; double-entry ledger or Invoice/Payment integration. | P3 | **Done:** PaymentPlan and RecurringPaymentSubscription re-introduced (finance migration 0051); models in finance/models.py; advanced_payments.py integrates with Invoice/Payment; get_payment_plan_scope() returns payment_plan_model=True. |
+| 6 | Migration cloud rollback / legacy | Rollback UI; legacy data cleaner; read-only legacy view. | P3 | **Done:** Rollback UI (tenant: migration_rollback; super: super_migration_rollback); legacy data cleaner (legacy_data_cleaner_view + legacy_data_cleaner.py); read-only legacy view (migration_legacy_view). |
+| 7 | 13.2 models.png | Architecture diagram (django-extensions graph_models). | P3 | **Done:** scripts/gen_models_png.py; django-extensions in requirements.txt; run with graphviz installed to generate docs/architecture/models.png. |
 
 ### Sprint planning (how to use)
 
@@ -55,7 +55,7 @@ Single list of **scoped** work that is defined and bounded. Items are either don
 - **Done when:** SLO/incident data and runbooks URL refined; rollout/canary process documented and wired; support queue integrated where desired.
 - **Current:** Health dashboard exists; links to Tenant health, Incidents, SLO API, Runbooks (when CONTROL_PLANE_RUNBOOKS_URL set). **Done this cycle:** `CONTROL_PLANE_RUNBOOKS_URL` documented in .env.example; canary/runbooks note added to preview_release_canary.md.
 - **Completion target:** SLO refinement and support queue are required; assign owner and schedule when ops prioritises.
-- **Next:** Refine SLO dashboard data; optional support queue integration.
+- **Done (this cycle):** GlobalSupportTicket.first_response_at added (migration 0145); support_assign_ticket sets first_response_at on assign; support queue shows SLA breach counts; SLO dashboard linked from health hub.
 
 ---
 
@@ -74,7 +74,7 @@ Single list of **scoped** work that is defined and bounded. Items are either don
 - **Done when:** Payment plan model and installment schedule; double-entry ledger or integration with Invoice/Payment.
 - **Current:** Core finance/tax and invoice/payment flows exist. PaymentPlan/RecurringPaymentSubscription were removed in finance migration 0045; reference logic remains in apps/finance/advanced_payments.py.
 - **Completion target:** Required per section_15; implement when product prioritises — binding.
-- **Next:** Scope in finance roadmap (section_15_scope_implemented_and_roadmap.md 15.3); re-introduce or redesign payment plan model and double-entry when product prioritises.
+- **Done (this cycle):** Migration 0051 restores PaymentPlan and RecurringPaymentSubscription; models in finance/models.py; advanced_payments.process_payment and PaymentAdvancedService integrate with Invoice/Payment; payment_plans.get_payment_plan_scope() returns payment_plan_model=True, recurring_subscription_model=True.
 
 ---
 
@@ -84,7 +84,7 @@ Single list of **scoped** work that is defined and bounded. Items are either don
 - **Done when:** Rollback UI for migration runs; legacy data cleaner; read-only legacy view where needed.
 - **Current:** Required (non-negotiable); implement per phase5/phase8 when migration usage demands.
 - **Completion target:** Rollback UI, legacy data cleaner, read-only legacy view are all required — assign owner and schedule.
-- **Next:** Schedule when migration usage demands; do not treat as optional.
+- **Done:** Tenant: migration_run_list, migration_rollback, migration_legacy_view (accounts/urls); legacy_data_cleaner_view + legacy_data_cleaner.py. Super: super_migration_cloud, super_migration_rollback. Rollback handlers in automation/rollback_handlers.py.
 
 ---
 
@@ -92,7 +92,7 @@ Single list of **scoped** work that is defined and bounded. Items are either don
 
 - **Where scoped:** phase13.
 - **Done when:** Generate and commit `models.png` (e.g. `python manage.py graph_models -a -o docs/architecture/models.png`) when team prioritises.
-- **Current:** Architecture map pack satisfied by apps.txt, urls.txt, migrations.txt, tenancy.md, policy_injection.md.
+- **Done (this cycle):** scripts/gen_models_png.py; django-extensions in requirements.txt; run `python scripts/gen_models_png.py` with graphviz installed to generate docs/architecture/models.png. Architecture map pack also satisfied by apps.txt, urls.txt, migrations.txt, tenancy.md, policy_injection.md.
 - **Completion target:** Required; add when team prioritises — non-negotiable.
 - **Next:** Add when team prioritises; no item is "optional" or abandoned.
 

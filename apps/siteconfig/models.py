@@ -4180,6 +4180,11 @@ class GlobalSupportTicket(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    first_response_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When the first agent response was recorded; used for SLA response breach.",
+    )
 
     class Meta:
         ordering = ["-created_at", "-id"]

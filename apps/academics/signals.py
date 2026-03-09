@@ -1,10 +1,57 @@
 """
 Signals for academics app: e.g. notify parents when a student is marked absent or when a disciplinary incident is recorded.
+Domain events: enrollment.created, attendance.recorded (non-negotiable).
 """
+import logging
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from .models import Attendance, Incident
+from .models import Attendance, Incident, StudentDegreeEnrollment
+
+logger = logging.getLogger(__name__)
+
+
+@receiver(post_save, sender=StudentDegreeEnrollment)
+def emit_enrollment_created(sender, instance, created, **kwargs):
+    """Emit domain event when a degree enrollment is created."""
+    if not created:
+        return
+    try:
+        from apps.events.services import emit_event
+        school_id = getattr(instance.student, "school_id", None) if instance.student_id else None
+        emit_event(
+            "enrollment.created",
+            {
+                "enrollment_id": str(instance.id),
+                "student_id": str(instance.student_id),
+                "program_id": str(instance.program_id) if instance.program_id else None,
+                "school_id": str(school_id) if school_id else None,
+            },
+            school_id=school_id,
+        )
+    except Exception as e:
+        logger.debug("emit enrollment.created skipped: %s", e)
+
+
+@receiver(post_save, sender=Attendance)
+def emit_attendance_recorded(sender, instance, created, **kwargs):
+    """Emit domain event when student attendance is recorded."""
+    try:
+        from apps.events.services import emit_event
+        school_id = getattr(instance.student, "school_id", None) if getattr(instance, "student_id", None) else None
+        emit_event(
+            "attendance.recorded",
+            {
+                "attendance_id": str(instance.id),
+                "student_id": str(instance.student_id) if getattr(instance, "student_id", None) else None,
+                "date": str(instance.date) if getattr(instance, "date", None) else None,
+                "status": getattr(instance, "status", "") or "",
+                "school_id": str(school_id) if school_id else None,
+            },
+            school_id=school_id,
+        )
+    except Exception as e:
+        logger.debug("emit attendance.recorded skipped: %s", e)
 
 
 @receiver(post_save, sender=Attendance)

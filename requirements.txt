@@ -80,3 +80,6 @@ dnspython>=2.4.0
 
 # Nuance Engine (Section 7): safe JSON-Logic execution per school
 json-logic>=0.6.0
+
+# Architecture diagram (Section 13.2): python scripts/gen_models_png.py → docs/architecture/models.png
+django-extensions>=1.9.0

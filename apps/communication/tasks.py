@@ -131,12 +131,16 @@ def process_outbound_message_queue(self, school_id=None, limit=50) -> dict:
         from apps.communication.channels import send_whatsapp, send_push
 
         qs = (
-            OutboundMessageQueue.objects.filter(status="pending", school_id=current_school_id)
+            OutboundMessageQueue.objects.filter(
+                status__in=("pending", "retrying"),
+                school_id=current_school_id,
+            )
             .select_related("school")
             .order_by("created_at")
         )
         items = list(qs[:limit])
         sent = failed = 0
+        max_retries = 3
         for item in items:
             school = item.school
             if not school:
@@ -148,6 +152,14 @@ def process_outbound_message_queue(self, school_id=None, limit=50) -> dict:
             try:
                 if item.channel == OutboundMessageQueue.Channel.WHATSAPP:
                     ok = send_whatsapp(school, item.recipient_identifier, body=item.body)
+                elif item.channel == OutboundMessageQueue.Channel.SMS:
+                    from apps.communication.notification_service import send_sms
+                    ok = send_sms(
+                        item.recipient_identifier,
+                        item.body,
+                        school=school,
+                        idempotency_key=item.idempotency_key or f"outbound-{item.id}",
+                    )
                 else:
                     ok = send_push(school, item.recipient_identifier, title="", body=item.body)
                 if ok:
@@ -156,16 +168,26 @@ def process_outbound_message_queue(self, school_id=None, limit=50) -> dict:
                     item.save(update_fields=["status", "sent_at"])
                     sent += 1
                 else:
-                    item.status = "failed"
-                    item.error_message = "Provider returned false or no integration"
-                    item.save(update_fields=["status", "error_message"])
+                    item.retry_count = (item.retry_count or 0) + 1
+                    if item.retry_count >= max_retries:
+                        item.status = "failed"
+                        item.error_message = "Provider returned false or no integration (max retries)"
+                    else:
+                        item.status = "retrying"
+                        item.error_message = "Provider returned false or no integration"
+                    item.save(update_fields=["status", "error_message", "retry_count"])
                     failed += 1
             except Exception as e:
-                item.status = "failed"
-                item.error_message = str(e)[:500]
-                item.save(update_fields=["status", "error_message"])
+                item.retry_count = (item.retry_count or 0) + 1
+                if item.retry_count >= max_retries:
+                    item.status = "failed"
+                    item.error_message = str(e)[:500]
+                else:
+                    item.status = "retrying"
+                    item.error_message = str(e)[:500]
+                item.save(update_fields=["status", "error_message", "retry_count"])
                 failed += 1
-                logger.warning("Outbound queue send failed id=%s: %s", item.id, e)
+                logger.warning("Outbound queue send failed id=%s (retry %s): %s", item.id, item.retry_count, e)
         return {"sent": sent, "failed": failed, "processed": len(items), "school_id": str(current_school_id)}
 
     from apps.communication.models import OutboundMessageQueue

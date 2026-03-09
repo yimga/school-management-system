@@ -56,12 +56,13 @@ def _run_action_notify(params: dict, context: dict, school=None) -> None:
         return
     if channel == "email" and params.get("to"):
         try:
-            from django.core.mail import send_mail
-            send_mail(
+            from apps.communication.notification_service import send_email
+            to_list = [params["to"]] if isinstance(params["to"], str) else list(params["to"])
+            send_email(
+                to_list,
                 subject=params.get("subject", "Notification"),
-                message=params.get("body", ""),
-                from_email=None,
-                recipient_list=[params["to"]] if isinstance(params["to"], str) else params["to"],
+                body=params.get("body", ""),
+                school=school,
                 fail_silently=True,
             )
         except Exception as e:

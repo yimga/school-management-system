@@ -1,12 +1,13 @@
-"""Notification service for SMS, email, digests."""
+"""Notification service for SMS, email, digests. Uses unified communication notification service (no direct Twilio/AfricasTalking)."""
 
-from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.conf import settings
 import logging
 from typing import Any, Dict, List
 from urllib.parse import quote_plus
+
+from apps.communication.notification_service import send_email as _send_email, send_sms as _send_sms
 
 logger = logging.getLogger(__name__)
 
@@ -67,7 +68,7 @@ class NotificationService:
                 f"{student.get_full_name()}'s {term.label} report is ready. "
                 f"View: {portal_link}"
             )
-            return self.send_sms(guardian.phone, message)
+            return _send_sms(guardian.phone, message, site_settings=self.site_settings)
         except Exception as e:
             logger.error(f"Failed to send grade publication SMS: {e}")
             return False
@@ -103,21 +104,39 @@ class NotificationService:
             logger.error(f"Failed to send deadline reminder: {e}")
             return False
     
-    def send_sms(self, phone_number: str, message: str) -> bool:
-        """Send SMS via configured provider."""
-        if not self.site_settings:
-            logger.info(f"[CONSOLE SMS] {phone_number}: {message}")
-            return True
-        
-        provider = self.site_settings.sms_provider
-        
-        if provider == 'twilio':
-            return self._send_sms_twilio(phone_number, message)
-        elif provider == 'africastalking':
-            return self._send_sms_africastalking(phone_number, message)
-        else:
-            logger.info(f"[CONSOLE SMS] {phone_number}: {message}")
-            return True
+    def send_sms(self, phone_number: str, message: str, *, fallback_email: str | None = None) -> bool:
+        """Send SMS via unified notification service (Twilio/AfricasTalking adapters); optional fallback to email."""
+        return _send_sms(phone_number, message, site_settings=self.site_settings, fallback_email=fallback_email)
+
+    def send_notification(
+        self,
+        user: Any,
+        title: str,
+        message: str,
+        *,
+        channels: List[str] | None = None,
+    ) -> bool:
+        """Send notification to user via requested channels (email, sms). Uses unified notification service."""
+        channels = channels or ["email"]
+        ok = False
+        email = getattr(user, "email", None) if user else None
+        if email and isinstance(email, str) and email.strip() and "email" in channels:
+            ok = _send_email(
+                [email],
+                subject=title,
+                body=message,
+                site_settings=self.site_settings,
+            ) or ok
+        if "sms" in channels and user:
+            phone = getattr(user, "phone", None) or getattr(user, "mobile", None)
+            if phone and isinstance(phone, str) and phone.strip():
+                ok = _send_sms(
+                    phone,
+                    message=f"{title}\n\n{message}" if title else message,
+                    site_settings=self.site_settings,
+                    fallback_email=email,
+                ) or ok
+        return ok
 
     # ------------------------------------------------------------------
     # WhatsApp helpers (deeplink generation only for now)
@@ -242,49 +261,14 @@ class NotificationService:
                 "Check the approval list for details.\n\n"
                 "School Management System"
             )
-            send_mail(
+            _send_email(
+                [teacher_user.email],
                 subject=subject,
-                message=body,
-                from_email=self.site_settings.email_from_address if self.site_settings else settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[teacher_user.email],
+                body=body,
+                site_settings=self.site_settings,
             )
             logger.info(f"Grade approval decision email sent to {teacher_user.email}")
             return True
         except Exception as exc:
             logger.error("Failed to send grade approval decision email", exc_info=exc)
-            return False
-    
-    def _send_sms_twilio(self, phone_number: str, message: str) -> bool:
-        """Twilio SMS."""
-        try:
-            from twilio.rest import Client
-            client = Client(
-                settings.TWILIO_ACCOUNT_SID,
-                settings.TWILIO_AUTH_TOKEN
-            )
-            msg = client.messages.create(
-                body=message,
-                from_=self.site_settings.sms_sender_id,
-                to=phone_number,
-            )
-            logger.info(f"SMS sent via Twilio: {msg.sid}")
-            return True
-        except Exception as e:
-            logger.error(f"Twilio SMS failed: {e}")
-            return False
-    
-    def _send_sms_africastalking(self, phone_number: str, message: str) -> bool:
-        """AfricasTalking SMS."""
-        try:
-            import africastalking
-            at = africastalking.SMS(api_key=self.site_settings.sms_api_key)
-            response = at.send(
-                message,
-                [phone_number],
-                sender_id=self.site_settings.sms_sender_id
-            )
-            logger.info(f"SMS sent via AfricasTalking: {response}")
-            return True
-        except Exception as e:
-            logger.error(f"AfricasTalking SMS failed: {e}")
             return False

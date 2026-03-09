@@ -843,6 +843,23 @@ def create_payment_from_receipt(
     proof_upload.verified_at = timezone.now()
     proof_upload.save()
 
+    try:
+        from apps.events.services import emit_event
+        school_id = getattr(invoice, "school_id", None) or getattr(getattr(invoice, "student", None), "school_id", None)
+        emit_event(
+            "payment.created",
+            {
+                "payment_id": str(payment.id),
+                "invoice_id": str(invoice.id),
+                "student_id": str(invoice.student_id) if invoice.student_id else None,
+                "amount": str(amount_to_apply),
+                "method": getattr(proof_upload, "payment_method", "") or "",
+                "reference": payment.reference or "",
+            },
+            school_id=school_id,
+        )
+    except Exception:
+        pass
     return payment
 
 
@@ -949,6 +966,22 @@ def create_fee_invoices(
                 invoice.due_date = due_date
                 invoice.save(update_fields=["issued_date", "due_date", "updated_at"])
 
+            if created:
+                try:
+                    from apps.events.services import emit_event
+                    school_id = getattr(student, "school_id", None)
+                    emit_event(
+                        "invoice.created",
+                        {
+                            "invoice_id": str(invoice.id),
+                            "student_id": str(student.id),
+                            "reference": invoice.reference or "",
+                            "issued_date": str(issued_date),
+                        },
+                        school_id=school_id,
+                    )
+                except Exception:
+                    pass
             if created or not invoice.lines.exists():
                 InvoiceLine.objects.filter(invoice=invoice).delete()
                 for item in fee_items:

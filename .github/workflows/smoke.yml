@@ -24,6 +24,23 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Dependency vulnerability check (pip-audit)
+        run: |
+          pip install pip-audit
+          pip-audit --desc
+
+      - name: Generate SBOM (Software Bill of Materials)
+        run: |
+          pip install cyclonedx-bom
+          cyclonedx-py requirements requirements.txt -o sbom.json
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.json
+          retention-days: 90
+
       - name: Pre-deploy gate (check, migrations, smoke, theme matrix, phase checks)
         timeout-minutes: 25
         env:

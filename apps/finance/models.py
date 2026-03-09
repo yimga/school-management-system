@@ -2482,3 +2482,73 @@ class AidAuditLog(models.Model):
 
     def __str__(self) -> str:
         return f"{self.source.name} {self.action} {self.amount} @ {self.created_at}"
+
+
+# Section 15.3: Payment plans and recurring subscriptions (re-introduced after 0045 removal).
+class PaymentPlan(models.Model):
+    """Recurring payment plan (frequency, installments, grace period). Integrates with Invoice/Payment."""
+    FREQUENCY_CHOICES = [
+        ("WEEKLY", "Weekly"),
+        ("BIWEEKLY", "Bi-Weekly"),
+        ("MONTHLY", "Monthly"),
+        ("QUARTERLY", "Quarterly"),
+        ("ANNUALLY", "Annually"),
+    ]
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    frequency = models.CharField(max_length=20, choices=FREQUENCY_CHOICES)
+    max_installments = models.IntegerField(help_text="Total number of payments, 0 for unlimited")
+    grace_period_days = models.IntegerField(default=0)
+    late_fee_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
+    early_payment_discount_percent = models.DecimalField(
+        max_digits=5, decimal_places=2, default=Decimal("0.00"),
+        help_text="Discount for paying before due date",
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return f"{self.name} - {self.amount} {self.frequency}"
+
+
+class RecurringPaymentSubscription(models.Model):
+    """User subscription to a payment plan. Extends Invoice/Payment with recurring capability."""
+    STATUS_CHOICES = [
+        ("ACTIVE", "Active"),
+        ("PAUSED", "Paused"),
+        ("CANCELLED", "Cancelled"),
+        ("COMPLETED", "Completed"),
+        ("DEFAULTED", "Defaulted"),
+    ]
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="payment_subscriptions",
+    )
+    plan = models.ForeignKey(PaymentPlan, on_delete=models.PROTECT)
+    start_date = models.DateField()
+    next_payment_date = models.DateField()
+    last_payment_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
+    payments_made = models.IntegerField(default=0)
+    total_paid = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
+    missed_payments = models.IntegerField(default=0)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="ACTIVE")
+    payment_processor = models.CharField(max_length=50, default="manual")
+    customer_payment_method_id = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["status", "next_payment_date"]),
+            models.Index(fields=["user", "status"]),
+        ]
+
+    def __str__(self):
+        return f"{self.user_id} - {self.plan.name}"
