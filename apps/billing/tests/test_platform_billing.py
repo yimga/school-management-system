@@ -380,10 +380,8 @@ class PlatformBillingCommandTests(TestCase):
         )
 
     def workspace_tempdir(self):
-        root = Path(settings.BASE_DIR) / ".tmp_test_artifacts" / "billing_commands"
-        root.mkdir(parents=True, exist_ok=True)
-        tmp = root / uuid.uuid4().hex
-        tmp.mkdir(parents=True, exist_ok=True)
+        """Use system temp dir so we don't leave artifacts in the repo."""
+        tmp = Path(tempfile.mkdtemp(prefix="billing_commands_"))
         self.addCleanup(lambda: shutil.rmtree(tmp, ignore_errors=True))
         return tmp
 
