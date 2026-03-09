@@ -9,7 +9,7 @@ from django.test import RequestFactory, TestCase, override_settings
 from django.urls import resolve, reverse
 
 from apps.accounts.models import User
-from apps.accounts.views import login_view
+from apps.accounts.views import auth_root_redirect, login_view
 from config.urls import permission_denied, page_not_found, server_error
 
 
@@ -40,6 +40,33 @@ class Phase10ManagerLoginVerificationTests(TestCase):
         self.assertEqual(response.status_code, 200)
         content = response.content.decode("utf-8", errors="replace")
         self.assertIn("School portal login", content)
+
+    def test_auth_root_redirects_to_login_on_manager_host(self):
+        request = self.factory.get("/authentication/", HTTP_HOST="manager.runmycampus.com")
+        request.session = {}
+        request.user = AnonymousUser()
+        request.public_host_kind = "manager"
+        response = auth_root_redirect(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], reverse("accounts:login"))
+
+    def test_auth_root_redirects_to_login_on_tenant_host(self):
+        request = self.factory.get("/authentication/", HTTP_HOST="school.runmycampus.com")
+        request.session = {}
+        request.user = AnonymousUser()
+        request.public_host_kind = None
+        response = auth_root_redirect(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], reverse("accounts:login"))
+
+    def test_auth_root_preserves_next_query_string(self):
+        request = self.factory.get("/authentication/?next=/portal/", HTTP_HOST="school.runmycampus.com")
+        request.session = {}
+        request.user = AnonymousUser()
+        request.public_host_kind = None
+        response = auth_root_redirect(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], reverse("accounts:login") + "?next=%2Fportal%2F")
 
 
 class Phase10ErrorPagesVerificationTests(TestCase):
@@ -99,6 +126,16 @@ class Phase10UrlConfVerificationTests(TestCase):
     def test_manager_urlconf_resolves_admin(self):
         match = resolve("/admin/", urlconf="config.manager_urls")
         self.assertIsNotNone(match)
+
+    def test_manager_urlconf_resolves_auth_root(self):
+        match = resolve("/authentication/", urlconf="config.manager_urls")
+        self.assertEqual(match.namespace, "accounts")
+        self.assertEqual(match.url_name, "root")
+
+    def test_tenant_urlconf_resolves_auth_root(self):
+        match = resolve("/authentication/", urlconf="config.tenant_urls")
+        self.assertEqual(match.namespace, "accounts")
+        self.assertEqual(match.url_name, "root")
 
     def test_tenant_urlconf_does_not_resolve_super(self):
         from django.urls import Resolver404

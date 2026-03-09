@@ -3,6 +3,7 @@ from django.contrib.auth.views import PasswordChangeDoneView
 
 from .views import (
     academic_rules,
+    auth_root_redirect,
     approval_workflow_hub,
     automation_hub,
     backend_dashboard,
@@ -93,6 +94,7 @@ except ImportError:
 app_name = "accounts"
 
 urlpatterns = [
+    path("", auth_root_redirect, name="root"),
     path("login/", login_view, name="login"),
     path("logout/", logout_view, name="logout"),
     path("impersonate/", impersonate_entry, name="impersonate_entry"),

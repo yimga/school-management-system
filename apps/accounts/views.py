@@ -2976,6 +2976,15 @@ def _get_login_sso_integrations(request):
         return []
 
 
+def auth_root_redirect(request):
+    """Redirect /authentication/ to the canonical login URL and preserve the query string."""
+    target = reverse("accounts:login")
+    query_string = request.GET.urlencode()
+    if query_string:
+        target = f"{target}?{query_string}"
+    return redirect(target)
+
+
 @ratelimit(key='ip', rate='5/m', method='POST', block=True)
 def login_view(request):
     # Optional: set login page language from tenant or Accept-Language (this request only).

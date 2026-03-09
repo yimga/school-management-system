@@ -3,6 +3,8 @@ from unittest.mock import patch
 
 from django.test import Client, TestCase, override_settings
 
+from apps.schools.models import School
+
 
 @override_settings(ALLOWED_HOSTS=["*"], DEBUG=False, SECURE_SSL_REDIRECT=False)
 class PublicAccessPointsTests(TestCase):
@@ -64,6 +66,22 @@ class PublicAccessPointsTests(TestCase):
 
     def test_manager_host_routes_to_dedicated_login_surface(self):
         response = self.client.get("/", HTTP_HOST="manager.runmycampus.com")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], "/authentication/login/")
+
+    def test_manager_host_auth_root_redirects_to_login(self):
+        response = self.client.get("/authentication/", HTTP_HOST="manager.runmycampus.com")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], "/authentication/login/")
+
+    def test_tenant_host_auth_root_redirects_to_login(self):
+        School.objects.create(
+            name="Tenant Alpha",
+            slug="tenant-alpha",
+            subdomain="tenant-alpha",
+            is_active=True,
+        )
+        response = self.client.get("/authentication/", HTTP_HOST="tenant-alpha.runmycampus.com")
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response["Location"], "/authentication/login/")
 

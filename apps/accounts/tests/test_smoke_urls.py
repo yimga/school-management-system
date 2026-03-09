@@ -31,6 +31,9 @@ class SmokeUrlResolutionTests(SimpleTestCase):
     def test_accounts_login(self):
         self.assertEqual(reverse("accounts:login"), "/authentication/login/")
 
+    def test_accounts_root(self):
+        self.assertEqual(reverse("accounts:root"), "/authentication/")
+
     def test_siteconfig_customizer(self):
         self.assertEqual(reverse("siteconfig:customizer"), "/siteconfig/customizer/")
 
