@@ -23,6 +23,8 @@ from .views import (
     set_default_dashboard_view,
     theme_colors_page,
     theme_experience_redirect,
+    brand_import_from_url_view,
+    template_gallery_page,
     toggle_preview_mode,
     set_act_as_role,
 )
@@ -72,6 +74,8 @@ urlpatterns = [
     path("modules/", module_market, name="module_market"),
     path("customizer/clear-preview/", clear_preview, name="clear_preview"),
     path("theme-colors/", theme_colors_page, name="theme_colors"),
+    path("theme-colors/import-from-url/", brand_import_from_url_view, name="brand_import_from_url"),
+    path("template-gallery/", template_gallery_page, name="template_gallery"),
     path("theme-experience/", theme_experience_redirect, name="theme_experience_redirect"),
     path("preview-from-form/", preview_from_form, name="preview_from_form"),
     path("preferences/", user_preferences, name="user_preferences"),

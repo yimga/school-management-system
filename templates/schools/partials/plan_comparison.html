@@ -1,0 +1,25 @@
+{% load i18n %}
+<div class="plan-comparison border rounded-3 p-3 bg-light" data-plan-comparison="true">
+  <p class="mb-2 fw-semibold">{% trans "Plans" %}</p>
+  <p class="text-muted small mb-3">{% trans "Choose a plan that fits your school. You can change later." %}</p>
+  <div class="row g-2">
+    {% for plan in plans %}
+    <div class="col-md-4">
+      <label class="d-block border rounded-2 p-3 cursor-pointer plan-option {% if selected_plan_slug == plan.slug %}border-primary bg-white shadow-sm{% endif %}" style="cursor:pointer;">
+        <input type="radio" name="plan_slug" value="{{ plan.slug }}" {% if selected_plan_slug == plan.slug %}checked{% endif %} class="me-2">
+        <strong>{{ plan.name }}</strong>
+        {% if plan.base_price is not None %}<br><span class="text-muted small">{% trans "From" %} {{ plan.base_price }} / {% trans "mo" %}</span>{% endif %}
+        {% if plan.included_features %}<br><span class="text-muted small">{% trans "Includes" %}: {{ plan.included_features|join:", " }}</span>{% endif %}
+      </label>
+    </div>
+    {% empty %}
+    <div class="col-12"><p class="text-muted small mb-0">{% trans "No plans configured. Start with a free trial." %}</p></div>
+    {% endfor %}
+  </div>
+  <div class="mt-2">
+    <label class="d-inline-flex align-items-center gap-2">
+      <input type="checkbox" name="trial" value="1" {% if onboarding_trial %}checked{% endif %}>
+      <span class="small">{% trans "Start with a free trial" %}</span>
+    </label>
+  </div>
+</div>

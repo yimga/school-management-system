@@ -77,6 +77,156 @@ def _load_marketing_page_from_file(
 
 
 MARKETING_PAGE_DEFINITIONS = {
+    "education-operating-system": {
+        "label": "Education Operating System",
+        "seo_title": "Education Operating System | RunMyCampus - The Platform for Modern Schools",
+        "seo_description": "RunMyCampus is the education operating system: Education OS, Control Plane, Marketplace, Migration Cloud, Tenant Runtime, and Analytics. One platform for school operations, district governance, and ecosystem.",
+        "headline": "The Operating System for Modern Education",
+        "subheadline": "RunMyCampus combines school operations, district governance, migration, apps, analytics, and integrations in one platform.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "Education OS", "body": "Run every part of school operations in one platform: admissions, academics, attendance, finance, communication, workflows, reports, and Student 360."},
+            {"title": "Control Plane", "body": "Govern one school or one thousand from one command center. Multi-school oversight, policies, health monitoring, and usage."},
+            {"title": "Tenant Runtime", "body": "One platform core, configured for your institution. Country, language, education model, branding, workflow packs, and dashboard packs."},
+            {"title": "Marketplace", "body": "Extend the platform without rebuilding your system. Apps, integrations, workflow packs, dashboard packs, blueprint packs, and templates."},
+            {"title": "Migration Cloud", "body": "Switch from legacy systems without chaos. Imports, field mapping, validation, dry-runs, and migration run portfolio."},
+            {"title": "Analytics & Integrations", "body": "See what matters and connect what you already use. School and district analytics, health scores, payments, messaging, SSO, APIs, and webhooks."},
+        ],
+    },
+    "platform": {
+        "label": "Platform",
+        "seo_title": "RunMyCampus Platform - Education OS, Control Plane, Marketplace",
+        "seo_description": "Platform architecture: Education OS, Control Plane, Tenant Runtime, Marketplace, Migration Cloud, and Analytics. Built for modern schools and districts.",
+        "headline": "One platform. Six pillars.",
+        "subheadline": "Education OS, Control Plane, Tenant Runtime, Marketplace, Migration Cloud, and Analytics & Integrations.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "Education OS", "body": "Run every part of school operations: admissions, academics, attendance, finance, communication, workflows, reports, Student 360."},
+            {"title": "Control Plane", "body": "Govern schools, districts, and networks from one command center. Policies, health, usage."},
+            {"title": "Tenant Runtime", "body": "One platform core, configured for your institution. Country, language, branding, workflow and dashboard packs."},
+            {"title": "Marketplace", "body": "Apps, integrations, workflow packs, dashboard packs, blueprint packs, templates."},
+            {"title": "Migration Cloud", "body": "Import, map, validate, and switch from legacy systems safely."},
+            {"title": "Analytics & Integrations", "body": "School and district analytics, health scores, payments, messaging, SSO, APIs, webhooks."},
+        ],
+    },
+    "platform-education-os": {
+        "label": "Education OS",
+        "seo_title": "Education OS | RunMyCampus - School Operations Platform",
+        "seo_description": "Run every part of school operations in one platform: admissions, academics, attendance, finance, communication, workflows, reports, Student 360.",
+        "headline": "Education OS",
+        "subheadline": "Run every part of school operations in one platform.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "Admissions to graduation", "body": "From enquiry to completion in one configurable flow."},
+            {"title": "Academics & attendance", "body": "Syllabi, grades, report cards, attendance, and interventions."},
+            {"title": "Finance & billing", "body": "Fees, payments, and financial reporting without spreadsheets."},
+            {"title": "Communication & portals", "body": "Parent, teacher, and student portals with messaging and announcements."},
+            {"title": "Workflows & automation", "body": "Configurable approval chains and automated triggers."},
+            {"title": "Student 360", "body": "One view per student: profile, attendance, grades, interventions."},
+        ],
+    },
+    "platform-control-plane": {
+        "label": "Control Plane",
+        "seo_title": "Control Plane | RunMyCampus - Multi-School Governance",
+        "seo_description": "Govern one school or one thousand from one command center. Tenant management, policies, health monitoring, usage.",
+        "headline": "Control Plane",
+        "subheadline": "Govern one school or one thousand from one command center.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "Tenant governance", "body": "Manage schools, districts, and networks with central oversight and campus autonomy."},
+            {"title": "Policies & blueprints", "body": "Apply policy bundles, blueprint packs, workflow and dashboard packs across tenants."},
+            {"title": "Health & usage", "body": "Monitor tenant health, usage, and compliance from one dashboard."},
+            {"title": "Marketplace governance", "body": "Control which apps and integrations are available per tenant or network."},
+            {"title": "Migration portfolio", "body": "Track migration runs and rollouts across your schools."},
+        ],
+    },
+    "platform-marketplace": {
+        "label": "Marketplace",
+        "seo_title": "Marketplace | RunMyCampus - Apps and Integrations",
+        "seo_description": "Extend the platform with apps, integrations, workflow packs, dashboard packs, blueprint packs, and templates.",
+        "headline": "Marketplace",
+        "subheadline": "Extend the platform without rebuilding your system.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "Apps", "body": "Install apps for admissions, academics, operations, and more."},
+            {"title": "Integrations", "body": "Connect LMS, payments, messaging, SSO, and identity providers."},
+            {"title": "Workflow & dashboard packs", "body": "Pre-built workflows and dashboards for common school models."},
+            {"title": "Blueprint & policy packs", "body": "Country and institution-type blueprints and policy bundles."},
+            {"title": "Templates", "body": "Report templates, form templates, and branding templates."},
+        ],
+    },
+    "platform-migration-cloud": {
+        "label": "Migration Cloud",
+        "seo_title": "Migration Cloud | RunMyCampus - Switch from Legacy Systems",
+        "seo_description": "Import, map, validate, and switch from legacy SIS and spreadsheets. Field mapping, dry-runs, validation tools.",
+        "headline": "Migration Cloud",
+        "subheadline": "Switch from legacy systems without chaos.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "Imports & connectors", "body": "Bring in students, staff, and historical data from spreadsheets or legacy SIS."},
+            {"title": "Field mapping", "body": "Map source fields to RunMyCampus with guided setup."},
+            {"title": "Validation & dry-runs", "body": "Validate data and run dry-runs before go-live."},
+            {"title": "Migration runs", "body": "Track migration portfolio and rollback readiness."},
+        ],
+    },
+    "platform-runtime": {
+        "label": "Tenant Runtime",
+        "seo_title": "Tenant Runtime | RunMyCampus - Configure Once, Run Everywhere",
+        "seo_description": "One platform core, configured for your institution. Country, language, education model, branding, workflow and dashboard packs.",
+        "headline": "Tenant Runtime",
+        "subheadline": "One platform core, configured for your institution.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "Country & locale", "body": "Language, timezone, calendar, and regional compliance defaults."},
+            {"title": "Education model", "body": "Structure terms, grades, and academic levels to your system."},
+            {"title": "Branding", "body": "Logo, colors, themes, and portal appearance per school."},
+            {"title": "Workflow & dashboard packs", "body": "Assign workflow and dashboard packs without custom code."},
+            {"title": "Feature entitlements", "body": "Enable or limit modules and features by plan or policy."},
+        ],
+    },
+    "platform-integrations": {
+        "label": "Integrations",
+        "seo_title": "Integrations | RunMyCampus - LMS, Payments, SSO",
+        "seo_description": "Connect LMS, payments, messaging, SSO, and identity providers. APIs and webhooks for custom integrations.",
+        "headline": "Integrations",
+        "subheadline": "See what matters and connect what you already use.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "LMS & LTI", "body": "LTI 1.3 launch and deep linking for learning management systems."},
+            {"title": "Payments", "body": "Stripe, PayPal, and local payment gateways."},
+            {"title": "Messaging", "body": "SMS and email providers for notifications."},
+            {"title": "SSO & identity", "body": "SAML and OAuth for enterprise identity."},
+            {"title": "APIs & webhooks", "body": "REST API, OpenAPI schema, and webhook events for custom integrations."},
+        ],
+    },
+    "platform-security": {
+        "label": "Security",
+        "seo_title": "Security | RunMyCampus - Data Protection and Compliance",
+        "seo_description": "Encryption, role-based access, audit trails, and compliance with FERPA, GDPR, SOC 2 roadmap.",
+        "headline": "Security",
+        "subheadline": "Data protection and compliance built in.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "Encryption", "body": "Encryption at rest and in transit."},
+            {"title": "Access control", "body": "Role-based access and tenant isolation."},
+            {"title": "Audit trails", "body": "Full audit trails for compliance and governance."},
+            {"title": "Compliance", "body": "FERPA aligned, GDPR ready, SOC 2 roadmap."},
+        ],
+    },
+    "platform-analytics": {
+        "label": "Analytics",
+        "seo_title": "Analytics | RunMyCampus - Dashboards and Insights",
+        "seo_description": "School and district analytics, health scores, enrollment and attendance trends, financial reports, operational insights.",
+        "headline": "Analytics & Integrations",
+        "subheadline": "See what matters and connect what you already use.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "School dashboards", "body": "Enrollment, attendance, finance, and outcomes at a glance."},
+            {"title": "District rollups", "body": "Multi-school and network-level visibility."},
+            {"title": "Health scores", "body": "Tenant and platform health monitoring."},
+            {"title": "Reports & exports", "body": "Export-ready reports for boards and regulators."},
+        ],
+    },
     "product": {
         "label": "Product",
         "seo_title": "RunMyCampus Product - Unified school operations platform",
@@ -701,6 +851,63 @@ MARKETING_PAGE_DEFINITIONS = {
             {"title": "Implementation checklist", "body": "Phased rollout with school lead, IT, finance, and admissions ownership. Download and track progress."},
         ],
     },
+    "getting-started": {
+        "label": "Getting started",
+        "seo_title": "Getting Started with RunMyCampus - Onboarding in six steps",
+        "seo_description": "Sign up, setup wizard, branding, features, migration, and launch. Get your school on RunMyCampus with a clear path from trial to go-live.",
+        "headline": "Get started in six steps.",
+        "subheadline": "From sign-up to launch: setup wizard, branding, features, migration, and go-live.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "Step 1 — Sign up", "body": "Create your account and confirm your school or district. Choose your plan and region."},
+            {"title": "Step 2 — Setup wizard", "body": "Configure timezone, calendar, terms, and academic structure. The wizard guides you through core settings."},
+            {"title": "Step 3 — Branding", "body": "Upload your logo, set colors, and customize portal appearance. Your school identity across the platform."},
+            {"title": "Step 4 — Features", "body": "Enable modules and assign workflow and dashboard packs. Turn on admissions, academics, finance, and communication as needed."},
+            {"title": "Step 5 — Migration", "body": "Import students and staff from spreadsheets or your current SIS. Use field mapping and validation before go-live."},
+            {"title": "Step 6 — Launch", "body": "Go live with your tenant. Train users, invite parents and teachers, and switch to RunMyCampus as your source of truth."},
+        ],
+    },
+    "themes": {
+        "label": "Themes",
+        "seo_title": "Themes and Design | RunMyCampus - Branding and portal customization",
+        "seo_description": "Brand your school portal: logo, colors, templates, dashboards, and mobile-responsive design. Theme studio and live previews.",
+        "headline": "Themes and design.",
+        "subheadline": "Brand your portal with logo, colors, templates, and dashboards. Mobile-responsive and consistent across roles.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "Branding", "body": "Logo, colors, and portal appearance per school. Consistent identity for admin, teacher, parent, and student views."},
+            {"title": "Templates", "body": "Report templates, form templates, and dashboard layouts. Start from blueprints or customize."},
+            {"title": "Dashboards", "body": "Role-based dashboards with widgets and KPIs. Configure what each role sees on login."},
+            {"title": "Live previews", "body": "Preview branding and layout changes before publishing. No surprises at go-live."},
+            {"title": "Mobile responsiveness", "body": "Portals and forms work on phones and tablets. Parents and staff can use the platform on any device."},
+        ],
+    },
+    "design-studio": {
+        "label": "Design studio",
+        "seo_title": "Design Studio | RunMyCampus - Theme and customization",
+        "seo_description": "Customize your school portal: theme studio, branding, templates, and live preview. One place for appearance and layout.",
+        "headline": "Design studio.",
+        "subheadline": "Theme and customization in one place. Branding, templates, and live preview without code.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "Theme studio", "body": "Central place to manage logo, colors, and portal theme. Changes apply across admin, teacher, parent, and student portals."},
+            {"title": "Customization", "body": "Tweak layouts, labels, and visibility. No code required—configure from the UI."},
+            {"title": "Live preview", "body": "See how your branding and layout look before you publish. Iterate with confidence."},
+        ],
+    },
+    "uptime": {
+        "label": "Uptime and status",
+        "seo_title": "RunMyCampus Uptime and Status - Platform availability",
+        "seo_description": "Platform uptime, SLA, and status. View current status and planned maintenance. Trust and transparency for schools.",
+        "headline": "Uptime and status.",
+        "subheadline": "Platform availability, SLA, and a link to our live status page when configured.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "Uptime target", "body": "RunMyCampus targets 99.9% platform availability. Planned maintenance is communicated in advance."},
+            {"title": "SLA", "body": "Service level commitments for availability and support. Details in your agreement."},
+            {"title": "Status page", "body": "When a public status page is configured, you can check current status and incident history here."},
+        ],
+    },
 }
 
 MARKETING_PAGE_EXTRAS = {
@@ -957,6 +1164,14 @@ MARKETING_PAGE_EXTRAS = {
             {"name": "Identity", "summary": "SAML and OAuth. Single sign-on with your identity provider.", "icon": "SSO"},
         ],
     },
+    "uptime": {
+        "sla_uptime": {
+            "uptime_target": "99.9%",
+            "sla_summary": "RunMyCampus targets 99.9% platform availability. Planned maintenance is communicated in advance.",
+            "status_url": None,
+            "support_summary": "24/7 operator readiness for critical issues. Support and governance from manager workflows.",
+        },
+    },
 }
 
 TOPICAL_LANDING_DEFINITIONS = {
@@ -1202,6 +1417,26 @@ ROLE_PAGE_DEFINITIONS = {
         "dashboards": ["Entity overview", "Compliance status", "Reporting"],
         "outcomes": ["Audit-ready", "Data residency options", "Role-based governance"],
     },
+    "principals": {
+        "label": "Principals",
+        "seo_title": "School Principal Software | RunMyCampus",
+        "seo_description": "RunMyCampus for principals: oversight, reporting, and school operations in one platform.",
+        "headline": "One platform for school leadership.",
+        "subheadline": "Oversight, reporting, and operations so you lead with clarity.",
+        "workflows": ["School overview and reporting", "Staff and enrollment visibility", "Compliance and interventions"],
+        "dashboards": ["School health", "Enrollment and attendance", "Key metrics"],
+        "outcomes": ["Single source of truth", "Faster reporting", "Audit-ready"],
+    },
+    "district-leaders": {
+        "label": "District leaders",
+        "seo_title": "District & Multi-School Management | RunMyCampus",
+        "seo_description": "RunMyCampus for district leaders: multi-school oversight, policy, and governance.",
+        "headline": "District and network oversight.",
+        "subheadline": "Govern multiple schools from one command center with school-level autonomy.",
+        "workflows": ["Multi-school oversight", "Policy and blueprint rollout", "Reporting and compliance"],
+        "dashboards": ["District overview", "School health", "Usage and compliance"],
+        "outcomes": ["Central visibility", "Consistent policy", "School autonomy"],
+    },
 }
 
 MIGRATE_PAGE_DEFINITIONS = {
@@ -1250,6 +1485,88 @@ MIGRATE_PAGE_DEFINITIONS = {
         "cta": "Book an Infinite Campus migration call",
     },
 }
+
+# Backend-driven migration simulator: source profiles with steps, timeline, and field mapping (Phase 5).
+MIGRATION_SIMULATOR_SOURCES = {
+    "from-power-school": {
+        "source_id": "from-power-school",
+        "display_name": "PowerSchool",
+        "typical_timeline": "4–8 weeks",
+        "steps": [
+            {"order": 1, "title": "Export and extract", "description": "Export students, staff, and courses from PowerSchool. We provide export templates and scripts for common versions."},
+            {"order": 2, "title": "Field mapping", "description": "Map PowerSchool fields to RunMyCampus using our mapping UI. Templates cover students, staff, courses, and enrollments."},
+            {"order": 3, "title": "Validation and dry-run", "description": "Validate data and run a dry-run import. Fix any mapping or data issues before go-live."},
+            {"order": 4, "title": "Cutover and go-live", "description": "Run the final import during your cutover window. Keep PowerSchool read-only. Verify parity and switch traffic."},
+            {"order": 5, "title": "Post-go-live", "description": "Reconcile any edge cases, train users, and decommission PowerSchool when ready."},
+        ],
+        "field_mapping_examples": [
+            {"source_field": "student_id", "target_field": "External ID", "notes": "Unique student identifier"},
+            {"source_field": "first_name / last_name", "target_field": "Name", "notes": "Split or combined per your export"},
+            {"source_field": "grade_level", "target_field": "Grade level", "notes": "Map to your RunMyCampus grade set"},
+            {"source_field": "homeroom", "target_field": "Section / class", "notes": "Optional for class assignment"},
+        ],
+    },
+    "from-blackbaud": {
+        "source_id": "from-blackbaud",
+        "display_name": "Blackbaud",
+        "typical_timeline": "6–10 weeks",
+        "steps": [
+            {"order": 1, "title": "Export and extract", "description": "Export students, families, and fee data from Blackbaud. We support common export formats and can advise on data extraction."},
+            {"order": 2, "title": "Field mapping", "description": "Map Blackbaud data to RunMyCampus students, guardians, and finance. Templates for admissions and enrollment data."},
+            {"order": 3, "title": "Validation and dry-run", "description": "Validate and dry-run. Parity checks for key records and balances."},
+            {"order": 4, "title": "Cutover and go-live", "description": "Final import during cutover. Phased rollout with rollback option and support."},
+            {"order": 5, "title": "Post-go-live", "description": "Reconcile, train users, and retire Blackbaud when ready."},
+        ],
+        "field_mapping_examples": [
+            {"source_field": "Student ID", "target_field": "External ID", "notes": "Unique identifier"},
+            {"source_field": "Family / household", "target_field": "Guardians and contacts", "notes": "Map family relationships"},
+            {"source_field": "Fee / billing", "target_field": "Fees and invoices", "notes": "Outstanding balances if migrating mid-year"},
+        ],
+    },
+    "from-infinite-campus": {
+        "source_id": "from-infinite-campus",
+        "display_name": "Infinite Campus",
+        "typical_timeline": "4–8 weeks",
+        "steps": [
+            {"order": 1, "title": "Export and extract", "description": "Export student, course, and grade data from Infinite Campus. Use our export guidance for your version."},
+            {"order": 2, "title": "Field mapping", "description": "Map Infinite Campus fields to RunMyCampus students, courses, and grades. Templates provided."},
+            {"order": 3, "title": "Validation and dry-run", "description": "Validate enrollment and grades. Run dry-run and parity reports."},
+            {"order": 4, "title": "Cutover and go-live", "description": "Staged cutover with rollback plan. Final import and traffic switch."},
+            {"order": 5, "title": "Post-go-live", "description": "Reconcile and train. Decommission Infinite Campus when ready."},
+        ],
+        "field_mapping_examples": [
+            {"source_field": "student_number", "target_field": "External ID", "notes": "Unique student ID"},
+            {"source_field": "course_code", "target_field": "Course code", "notes": "Align to your course catalog"},
+            {"source_field": "term / grade", "target_field": "Term and grade level", "notes": "Map to RunMyCampus terms and grades"},
+        ],
+    },
+    "from-spreadsheets": {
+        "source_id": "from-spreadsheets",
+        "display_name": "Spreadsheets / CSV",
+        "typical_timeline": "2–4 weeks",
+        "steps": [
+            {"order": 1, "title": "Prepare CSV templates", "description": "Download our CSV templates for students, staff, and optional courses. Populate from your spreadsheets."},
+            {"order": 2, "title": "Upload and map", "description": "Upload CSVs in the migration wizard. Map columns to RunMyCampus fields. Validation runs on upload."},
+            {"order": 3, "title": "Fix and re-upload", "description": "Address any validation errors and re-upload. Repeat until clean."},
+            {"order": 4, "title": "Import and go-live", "description": "Run the import. Your tenant is populated. Invite users and switch to RunMyCampus."},
+        ],
+        "field_mapping_examples": [
+            {"source_field": "Column A (ID)", "target_field": "External ID", "notes": "Unique per student or staff"},
+            {"source_field": "Name columns", "target_field": "First name, Last name", "notes": "Or single Full name"},
+            {"source_field": "Grade / year", "target_field": "Grade level", "notes": "Match your grade set"},
+        ],
+    },
+}
+
+# Backend-driven getting-started / setup simulator: ordered steps (Phase 5).
+GETTING_STARTED_SIMULATOR_STEPS = [
+    {"order": 1, "title": "Sign up", "description": "Create your account and confirm your school or district. Choose your plan and region. You'll get a verification email.", "cta_label": "Start for real", "cta_url_slug": "signup"},
+    {"order": 2, "title": "Setup wizard", "description": "Configure timezone, calendar, terms, and academic structure. The wizard guides you through core settings so your tenant matches your school.", "cta_label": "Go to wizard", "cta_url_slug": "onboard"},
+    {"order": 3, "title": "Branding", "description": "Upload your logo, set colors, and customize portal appearance. Your school identity across admin, teacher, and parent portals.", "cta_label": "Customize", "cta_url_slug": "themes"},
+    {"order": 4, "title": "Features", "description": "Enable modules and assign workflow and dashboard packs. Turn on admissions, academics, finance, and communication as needed.", "cta_label": "Explore features", "cta_url_slug": "product"},
+    {"order": 5, "title": "Migration", "description": "Import students and staff from spreadsheets or your current SIS. Use field mapping and validation before go-live.", "cta_label": "Migration guide", "cta_url_slug": "migrate"},
+    {"order": 6, "title": "Launch", "description": "Go live with your tenant. Train users, invite parents and teachers, and switch to RunMyCampus as your source of truth.", "cta_label": "Book launch support", "cta_url_slug": "book-demo"},
+]
 
 COMPARE_PAGE_DEFINITIONS = {
     "power-school": {
@@ -1795,9 +2112,9 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
             pass
 
     # Outcome-focused landing copy (world-class SaaS front). Wave 4: evidence-driven by geo and channel.
-    # Plan: default hero headline exactly "The Global Operating System for Education"; primary CTA Start Free Trial, secondary Book demo.
-    hero_headline = "The Global Operating System for Education"
-    hero_subheadline = "One platform for admissions, academics, finance, communication, and compliance. Run your campus with clarity and scale."
+    # Education Operating System narrative: headline and subtext align with Platform Visual Architecture.
+    hero_headline = "The Operating System for Modern Schools"
+    hero_subheadline = "Admissions, academics, finance, communication, analytics, and governance — unified in one platform."
     _hero_by_country = {
         "CM": {"headline": "La plateforme pour les établissements scolaires modernes.", "subheadline": "Admissions, académique, finance, communication et conformité dans une seule plateforme. Gérez votre campus avec clarté."},
         "CA": {"headline": "The Global Operating System for Education", "subheadline": "One platform for admissions, academics, finance, and compliance. Trusted by schools across Canada and beyond."},
@@ -1817,9 +2134,11 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
     if utm_source in _hero_by_channel:
         hero_headline = _hero_by_channel[utm_source].get("headline", hero_headline)
         hero_subheadline = _hero_by_channel[utm_source].get("subheadline", hero_subheadline)
+    _education_os_path = _safe_reverse("marketing_education_operating_system") or "/education-operating-system/"
     hero_ctas = [
         {"label": "Start Free Trial", "url": _safe_reverse("signup_school"), "primary": True},
         {"label": "Book a Demo", "url": _safe_reverse("marketing_book_demo") or "/book-demo/", "primary": False},
+        {"label": "See How It Works", "url": _education_os_path, "primary": False},
         {"label": "Login", "url": _safe_reverse("global_login_discovery"), "primary": False},
     ]
     trust_logos = [
@@ -1914,14 +2233,16 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         "cta_path": _safe_reverse("marketing_developers") or "/developers/",
     }
 
-    # Non-negotiables: platform narrative
-    platform_headline = "The one platform for school and education operations."
-    category_claim = "The Shopify and Salesforce of school and education management."
+    # Non-negotiables: platform narrative (six pillars from RunMyCampus_Platform_Visual_Architecture)
+    platform_headline = "The Operating System for Modern Schools"
+    category_claim = "The Operating System for Modern Education."
     platform_pillar_grid = [
-        {"label": "Admissions to graduation", "sub": "One flow from enquiry to completion."},
-        {"label": "Single campus to multi-country", "sub": "Scale without sprawl."},
-        {"label": "K–12 to higher ed", "sub": "Every institution type."},
-        {"label": "School-led or operator-led", "sub": "Your operating model."},
+        {"label": "Education OS", "sub": "One platform for running the entire school."},
+        {"label": "Control Plane", "sub": "Manage schools, districts, and networks."},
+        {"label": "Marketplace", "sub": "Extend the platform with apps and integrations."},
+        {"label": "Migration Cloud", "sub": "Switch from legacy systems safely."},
+        {"label": "Tenant Runtime", "sub": "One platform core, configured for your institution."},
+        {"label": "Analytics & Integrations", "sub": "See what matters and connect what you use."},
     ]
     from_single_to_enterprise = [
         {"stage": "Single school", "summary": "One campus, one tenant. Launch in days."},
@@ -2325,7 +2646,8 @@ def marketing_page(request, page_slug: str):
         page_copy = deepcopy(page)
         page_extras = deepcopy(MARKETING_PAGE_EXTRAS.get(normalized_slug, {}))
     base_ctx = _marketing_base_context(request)
-    canonical_path = f"/{page_slug}/"
+    slug_based_path = f"/{page_slug}/"
+    canonical_path = (request.path if request.path.endswith("/") else request.path + "/") if (getattr(request, "path", None) and request.path != slug_based_path) else slug_based_path
     canonical_url = _absolute_url(request, canonical_path)
     page_copy["slug"] = page_slug
     page_copy["path"] = canonical_path
@@ -2348,8 +2670,8 @@ def marketing_page(request, page_slug: str):
     breadcrumb_segments = [("Home", "/"), (page_copy.get("label") or page_slug, canonical_path)]
     breadcrumb_schema_json = json.dumps(_breadcrumb_list_schema(base_url, breadcrumb_segments))
 
-    # Wave 3: SLA/uptime status URL from settings for trust-center
-    if page_slug == "trust-center" and page_extras.get("sla_uptime"):
+    # Wave 3: SLA/uptime status URL from settings for trust-center and uptime
+    if page_slug in ("trust-center", "uptime") and page_extras.get("sla_uptime"):
         status_url = getattr(settings, "MARKETING_STATUS_PAGE_URL", None) or ""
         page_extras["sla_uptime"] = {**page_extras["sla_uptime"], "status_url": status_url}
 
@@ -2716,6 +3038,85 @@ def migrate_marketing_page(request, source_slug: str | None = None):
         "active_nav_slug": "compare",
     }
     return render(request, "marketing/marketing_migrate_page.html", ctx)
+
+
+@require_GET
+def migration_simulator_page(request):
+    """Migration simulator: select source and see steps, timeline, and field mapping (backend-driven)."""
+    source_slug = (request.GET.get("source") or "").strip().lower()
+    sources_list = [
+        {"source_id": sid, "display_name": data["display_name"], "typical_timeline": data["typical_timeline"]}
+        for sid, data in MIGRATION_SIMULATOR_SOURCES.items()
+    ]
+    selected = MIGRATION_SIMULATOR_SOURCES.get(source_slug) if source_slug else None
+    if request.headers.get("Accept", "").find("application/json") >= 0 or request.GET.get("format") == "json":
+        payload = {"sources": sources_list}
+        if selected:
+            payload["selected"] = {
+                "source_id": selected["source_id"],
+                "display_name": selected["display_name"],
+                "typical_timeline": selected["typical_timeline"],
+                "steps": selected["steps"],
+                "field_mapping_examples": selected["field_mapping_examples"],
+            }
+        return JsonResponse(payload)
+    base_ctx = _marketing_base_context(request)
+    canonical_path = "/migrate/simulator/"
+    canonical_url = _absolute_url(request, canonical_path)
+    ctx = {
+        **base_ctx,
+        "seo_title": "Migration simulator | RunMyCampus",
+        "seo_description": "See migration steps, timeline, and field mapping for PowerSchool, Blackbaud, Infinite Campus, or spreadsheets.",
+        "canonical_url": canonical_url,
+        "sources": sources_list,
+        "selected_source": selected,
+        "selected_slug": source_slug or None,
+        "active_nav_slug": "compare",
+    }
+    return render(request, "marketing/marketing_migration_simulator.html", ctx)
+
+
+def _setup_simulator_cta_url(request, cta_slug):
+    """Resolve CTA slug to absolute URL for setup simulator steps."""
+    slug_to_name = {
+        "signup": "signup_school",
+        "onboard": "onboard_wizard",
+        "themes": "marketing_themes",
+        "product": "marketing_product",
+        "migrate": "migrate_marketing_page",
+        "book-demo": "marketing_book_demo",
+    }
+    name = slug_to_name.get((cta_slug or "").strip())
+    if not name:
+        return None
+    try:
+        path = reverse(name)
+        return request.build_absolute_uri(path)
+    except Exception:
+        return None
+
+
+@require_GET
+def setup_simulator_page(request):
+    """Getting-started / setup simulator: six steps with CTAs (backend-driven)."""
+    base_ctx = _marketing_base_context(request)
+    canonical_path = "/getting-started/simulator/"
+    canonical_url = _absolute_url(request, canonical_path)
+    steps = []
+    for step in GETTING_STARTED_SIMULATOR_STEPS:
+        step_copy = dict(step)
+        cta_slug = step_copy.get("cta_url_slug")
+        step_copy["cta_url"] = _setup_simulator_cta_url(request, cta_slug) if cta_slug else None
+        steps.append(step_copy)
+    ctx = {
+        **base_ctx,
+        "seo_title": "Setup simulator | RunMyCampus",
+        "seo_description": "Walk through the six steps from sign-up to launch. See what to expect and where to go next.",
+        "canonical_url": canonical_url,
+        "steps": steps,
+        "active_nav_slug": "getting-started",
+    }
+    return render(request, "marketing/marketing_setup_simulator.html", ctx)
 
 
 @require_GET

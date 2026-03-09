@@ -111,6 +111,9 @@ class GradeApprovalWorkflowTestCase(TestCase):
         # Restrict final roles so dean cannot finalize
         self.site_settings.grade_post_roles = ["REGISTRAR"]
         self.site_settings.save()
+        # Clear site-settings cache so the view sees updated grade_post_roles (not stale cached copy)
+        from django.core.cache import cache
+        cache.delete("platform_runtime:effective_site_settings:platform")
         request_obj = GradeApprovalRequest.objects.create(
             teacher=self.teacher_profile,
             academic_year=self.year,

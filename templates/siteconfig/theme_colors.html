@@ -27,6 +27,22 @@
   </div>
   {% endif %}
 
+  <div class="card border mb-2">
+    <div class="card-body py-2">
+      <h2 class="h6 mb-2">{% trans "Import from your website" %}</h2>
+      <p class="small text-muted mb-2">{% trans "Enter your school's website URL to fetch site name and primary color. We will not store the URL." %}</p>
+      <form method="post" action="{% url 'siteconfig:brand_import_from_url' %}" class="d-flex flex-wrap gap-2 align-items-end">
+        {% csrf_token %}
+        <input type="url" name="url" class="form-control form-control-sm" style="max-width: 20rem;" placeholder="https://yourschool.edu" required>
+        <label class="d-flex align-items-center gap-1 small">
+          <input type="checkbox" name="consent" value="1" required>
+          {% trans "I consent to fetch this URL" %}
+        </label>
+        <button type="submit" class="btn btn-outline-primary btn-sm">{% trans "Fetch and apply" %}</button>
+      </form>
+    </div>
+  </div>
+
   <form method="post" id="theme-colors-form">
     {% csrf_token %}
     <input type="hidden" name="preview_confirmed" id="theme-preview-confirmed" value="0">

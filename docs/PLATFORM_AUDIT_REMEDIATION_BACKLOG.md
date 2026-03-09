@@ -3,7 +3,7 @@
 **Date:** 2026-03-08  
 **Source:** PLATFORM_TRANSITION_AUDIT_REPORT.md, MODEL_TO_CANONICAL_MAPPING_REPORT.md
 
-Items that cannot be fully remediated in one pass are listed here with severity and next step. All items are non-negotiable for full platform alignment; ownership and priority should be assigned.
+**Non-negotiable:** Nothing is left as "backlog" or "save for later." Every item below is either **Done** or converted to non-negotiable execution with owner and target in [STRATEGY_REPORT_GAP_CLOSURE.md](STRATEGY_REPORT_GAP_CLOSURE.md). All items are binding for full platform alignment.
 
 ---
 

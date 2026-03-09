@@ -1196,6 +1196,69 @@ def theme_experience_redirect(request):
     return redirect(target)
 
 
+@permission_required("settings.manage")
+def brand_import_from_url_view(request):
+    """
+    POST url + consent: fetch URL, parse brand (theme-color, og:image, title), apply primary_color and site_name to SiteSettings.
+    Non-negotiable: Website/competitor import — HOW_WE_SCOPE_WEBSITE_IMPORT implemented.
+    """
+    if request.method != "POST":
+        return redirect(reverse("siteconfig:theme_colors"))
+    consent = request.POST.get("consent") in ("1", "true", "on")
+    if not consent:
+        messages.error(request, "Consent is required to fetch an external URL.")
+        return redirect(reverse("siteconfig:theme_colors"))
+    url = (request.POST.get("url") or "").strip()
+    if not url:
+        messages.error(request, "URL is required.")
+        return redirect(reverse("siteconfig:theme_colors"))
+    from apps.siteconfig.brand_import import fetch_and_parse_brand_url
+    result = fetch_and_parse_brand_url(url)
+    if result.get("error"):
+        messages.error(request, result["error"])
+        return redirect(reverse("siteconfig:theme_colors"))
+    site = get_effective_site_settings(request=request)
+    if site and site.pk:
+        if result.get("primary_color"):
+            site.primary_color = result["primary_color"]
+        if result.get("site_name"):
+            site.site_name = result["site_name"][:120]
+        site.save(update_fields=["primary_color", "site_name"])
+        messages.success(request, "Brand details applied. Refine colors and logo below if needed.")
+    else:
+        messages.info(request, "Brand fetched; create or save site settings to apply.")
+    return redirect(reverse("siteconfig:theme_colors"))
+
+
+@permission_required("settings.manage")
+def template_gallery_page(request):
+    """
+    Template gallery: list ThemePacks as templates; Preview links to theme_colors; Use applies pack to tenant.
+    Non-negotiable: Strategy Report Phase 2 — template gallery with preview-before-publish.
+    """
+    site = get_effective_site_settings(request=request)
+    if site is None:
+        site = SiteSettings()
+    packs = list(ThemePack.objects.filter(is_active=True).order_by("-is_default", "name"))
+    if request.method == "POST":
+        slug = (request.POST.get("template_slug") or "").strip()
+        if slug:
+            pack = ThemePack.objects.filter(slug=slug, is_active=True).first()
+            if pack and site.pk:
+                site.apply_theme_pack(pack, save=True)
+                messages.success(request, f'Template "{pack.name}" applied. You can refine colors in Theme & Experience.')
+        return redirect(reverse("siteconfig:theme_colors"))
+    theme_colors_url = reverse("siteconfig:theme_colors")
+    return render(
+        request,
+        "siteconfig/template_gallery.html",
+        {
+            "templates": packs,
+            "theme_colors_url": theme_colors_url,
+        },
+    )
+
+
 @staff_member_required
 def toggle_preview_mode(request):
     enabled = bool(request.session.get(PREVIEW_MODE_SESSION_KEY))
