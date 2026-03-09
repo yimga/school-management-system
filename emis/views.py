@@ -14,7 +14,7 @@ from apps.accounts.decorators import role_required
 from apps.accounts.models import User
 from apps.academics.models import AcademicYear, Classroom, SubjectAssignment, Term
 from apps.people.models import StudentProfile, TeacherProfile
-from apps.siteconfig.models import SiteSettings
+from apps.platform_runtime.helpers import get_effective_site_settings
 
 from .models import EMISExport, EMISCompliance
 from .services import EMISExportService
@@ -24,7 +24,7 @@ from .services import EMISExportService
 @role_required(User.Role.ADMIN)
 def emis_dashboard(request):
     """EMIS dashboard view"""
-    site = SiteSettings.get_solo()
+    site = get_effective_site_settings(request)
 
     # Get available academic years and terms
     academic_years = AcademicYear.objects.all().order_by('-start_date')
@@ -116,8 +116,8 @@ def export_emis_data(request):
         academic_year = AcademicYear.objects.get(id=academic_year_id)
         term = Term.objects.get(id=term_id) if term_id else None
 
-        # Initialize export service
-        service = EMISExportService(country_code)
+        # Initialize export service (pass request for tenant-scoped site settings)
+        service = EMISExportService(country_code, request=request)
 
         # Generate export data based on type
         if export_type == 'students':

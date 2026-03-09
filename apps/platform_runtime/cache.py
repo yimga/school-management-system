@@ -17,7 +17,7 @@ def get_request_runtime_cache(request: Any) -> dict:
     if request is None:
         return {}
     cache = getattr(request, _REQUEST_RUNTIME_KEY, None)
-    if cache is None:
+    if cache is None or not isinstance(cache, dict):
         cache = {}
         setattr(request, _REQUEST_RUNTIME_KEY, cache)
     return cache

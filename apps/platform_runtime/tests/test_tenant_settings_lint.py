@@ -30,3 +30,22 @@ class TenantSettingsLintTests(unittest.TestCase):
             0,
             f"lint_tenant_settings (get_solo only) failed.\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}",
         )
+
+    def test_no_school_settings_features_in_tenant_apps(self):
+        """Lint must report zero direct school.settings/school.features in tenant apps (use runtime)."""
+        root = Path(__file__).resolve().parent.parent.parent.parent
+        script = root / "scripts" / "lint_tenant_settings.py"
+        if not script.is_file():
+            self.skipTest("scripts/lint_tenant_settings.py not found")
+        result = subprocess.run(
+            [sys.executable, str(script), "--check-school-settings-features", "--base", str(root)],
+            cwd=str(root),
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+        self.assertEqual(
+            result.returncode,
+            0,
+            f"lint_tenant_settings (school.settings/features) failed.\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}",
+        )

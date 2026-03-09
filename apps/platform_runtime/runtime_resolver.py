@@ -19,8 +19,11 @@ Compilation order (single source of truth):
 """
 from __future__ import annotations
 
+import logging
 import time
 from typing import Any, Dict, List, Optional
+
+logger = logging.getLogger(__name__)
 
 from apps.tenancy.context import TenantContext
 
@@ -112,7 +115,7 @@ def _step2_tenant_identity(school: Any, tenant_ctx: TenantContext) -> TenantIden
 
 
 def _step3_registry_context(school: Any, tenant_ctx: TenantContext) -> RegistryContext:
-    """Step 3: Load registry context (country, subdivision, currency, etc.). Phase 2 will fill from registries."""
+    """Step 3: Load registry context (country, subdivision, currency, etc.). Filled from registries when installed."""
     country_code = tenant_ctx.country or (getattr(school, "country", None) if school else None)
     if isinstance(country_code, str) and len(country_code) > 2:
         country_code = country_code[:2].upper()
@@ -150,8 +153,8 @@ def _step3_registry_context(school: Any, tenant_ctx: TenantContext) -> RegistryC
                     cr = CurrencyRegistry.objects.first()
                     if cr:
                         currency_dict = {"code": cr.code, "name": cr.name, "symbol": getattr(cr, "symbol", cr.code)}
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.warning("Registry currency fallback failed: %s", e)
             for e in EducationLevelRegistry.objects.filter(is_active=True)[:50]:
                 education_levels.append({"code": e.code, "global_name": e.global_name, "country_labels": getattr(e, "country_labels", {})})
             for s in EducationSystemTypeRegistry.objects.filter(is_active=True)[:30]:
@@ -164,8 +167,8 @@ def _step3_registry_context(school: Any, tenant_ctx: TenantContext) -> RegistryC
                 fee_categories.append({"code": f.code, "name": f.name, "category": f.category})
             for g in GradeScaleRegistry.objects.filter(is_active=True)[:40]:
                 grade_scale_families.append({"code": g.code, "name": g.name, "family": g.family, "range_definition": g.range_definition or {}})
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("Registry context load failed (optional): %s", e)
     return RegistryContext(
         country=country_dict,
         subdivision=None,
@@ -184,7 +187,7 @@ def _step3_registry_context(school: Any, tenant_ctx: TenantContext) -> RegistryC
 
 
 def _step4_blueprint(school: Any, policy: Dict[str, Any]) -> BlueprintContext:
-    """Step 4: Resolve blueprint (Phase 3 will load from TenantBlueprint/BlueprintPack)."""
+    """Step 4: Resolve blueprint from TenantBlueprint/BlueprintPack when present."""
     try:
         if school and hasattr(school, "tenantblueprint"):
             tb = getattr(school, "tenantblueprint", None)
@@ -201,8 +204,8 @@ def _step4_blueprint(school: Any, policy: Dict[str, Any]) -> BlueprintContext:
                         default_workflow_pack=getattr(pack, "default_workflow_pack_id", None),
                         institution_type=getattr(pack, "country_code", None),
                     )
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("Blueprint context load failed (optional): %s", e)
     return BlueprintContext()
 
 
@@ -293,8 +296,8 @@ def _step8_workflows(school: Any) -> WorkflowsContext:
                 w = dict(w, workflow_pack_id=getattr(pack, "id", None), workflow_pack_code=getattr(pack, "code", None))
             if w:
                 by_module[slug] = w
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("Workflows context load failed (optional): %s", e)
     return WorkflowsContext(by_module=by_module)
 
 
@@ -321,8 +324,8 @@ def _step9_dashboards(school: Any) -> DashboardsContext:
                 d = dict(d, dashboard_pack_id=getattr(pack, "id", None), dashboard_pack_code=getattr(pack, "code", None))
             if d:
                 by_role[role] = d
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("Dashboards context load failed (optional): %s", e)
     return DashboardsContext(by_role=by_role, by_section=by_section)
 
 
@@ -384,8 +387,8 @@ def _step10_marketplace(school: Any) -> MarketplaceContext:
             for cap in manifest.get("integration_adapters") or []:
                 if isinstance(cap, dict) and cap not in integration_adapters:
                     integration_adapters.append(cap)
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("Marketplace context load failed (optional): %s", e)
     return MarketplaceContext(
         installed_apps=installed_apps,
         granted_scopes=list(dict.fromkeys(granted_scopes)),
@@ -416,8 +419,8 @@ def _step10_integrations_marketplace(school: Any) -> tuple:
                     messaging_channels.append(name)
                     messaging_provider = messaging_provider or name
                 enabled_providers.append(name)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("Integrations context load failed (optional): %s", e)
     integrations = IntegrationsContext(
         payment_provider=payment_provider,
         messaging_provider=messaging_provider,
@@ -523,7 +526,8 @@ def build_tenant_runtime(
             from apps.policies.policy_registry import get_effective_policy
             user = getattr(request, "user", None)
             policy = get_effective_policy(school, user=user)
-        except Exception:
+        except Exception as e:
+            logger.warning("get_effective_policy failed, using empty policy: %s", e)
             policy = {}
     if policy is None:
         policy = {}
@@ -636,8 +640,8 @@ def build_tenant_runtime_for_tenant(tenant: Any, mode: str = "job") -> TenantRun
             if hasattr(tenant, "schema_name"):
                 # In schema-per-tenant, School may live in tenant schema; use public or default
                 school = getattr(tenant, "school", None)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("School from tenant (job mode) failed: %s", e)
     tenant_ctx = TenantContext(
         tenant_id=str(getattr(tenant, "id", "")) if tenant else "",
         schema_name=getattr(tenant, "schema_name", None) if tenant else None,

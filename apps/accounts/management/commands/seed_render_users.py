@@ -42,7 +42,7 @@ class Command(BaseCommand):
 
         # 2. Tenant admin: configurable bootstrap account for one tenant login surface.
         ensure_tenant_admin_args = [
-            "ensure_gilead_admin",
+            "ensure_default_tenant_admin",
             "--username", tenant_admin_username,
             "--password", tenant_admin_password,
         ]

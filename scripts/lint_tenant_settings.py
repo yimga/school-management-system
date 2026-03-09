@@ -43,8 +43,26 @@ ALLOWED_GET_SOLO_PREFIXES = (
     "apps/reports/management/",
 )
 
+# Paths where direct school.settings / school.features reads are allowed (canonical readers/writers only).
+ALLOWED_SCHOOL_SETTINGS_FEATURES_PREFIXES = (
+    "apps/siteconfig/tenant_config.py",
+    "apps/policies/resolver.py",
+    "apps/schools/models.py",
+    "apps/siteconfig/models.py",
+    "apps/siteconfig/system_morph.py",
+    "apps/siteconfig/views.py",
+    "apps/schools/signup_views.py",
+    "apps/schools/tasks.py",
+    "apps/schools/management/",
+    "apps/siteconfig/management/",
+    "apps/compliance/management/",
+    "apps/evals/runtime_gradebook.py",  # Docstring only: tells callers to use runtime, not school.settings
+)
+
 # Patterns: (regex, description)
 SITESETTINGS_PATTERN = (re.compile(r"SiteSettings\.get_solo\s*\(\s*\)"), "SiteSettings.get_solo() (use runtime/helpers)")
+SCHOOL_SETTINGS_PATTERN = (re.compile(r"\bschool\.settings\b"), "school.settings (use request.tenant_runtime or get_effective_*)")
+SCHOOL_FEATURES_PATTERN = (re.compile(r"\bschool\.features\b"), "school.features (use request.tenant_runtime or get_effective_*)")
 HARDCODED_PATTERNS = [
     (re.compile(r"['\"]CMR['\"]|REGION_CODE\s*=\s*['\"]CMR['\"]"), "Hardcoded CMR (use env/registry)"),
     (re.compile(r"['\"]XAF['\"]|DEFAULT_CURRENCY\s*=\s*['\"]XAF['\"]"), "Hardcoded XAF (use env/registry)"),
@@ -58,6 +76,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="Flag SiteSettings.get_solo() and hardcoded region/currency in tenant apps.")
     ap.add_argument("--exit-zero", action="store_true", help="Always exit 0 (report only).")
     ap.add_argument("--check-get-solo-only", action="store_true", help="Only check get_solo(); ignore hardcoded (for CI).")
+    ap.add_argument("--check-school-settings-features", action="store_true", help="Flag direct school.settings/school.features in tenant apps (use runtime).")
     ap.add_argument("--base", default=".", help="Base directory (default: .)")
     args = ap.parse_args()
     base = Path(args.base).resolve()
@@ -83,10 +102,16 @@ def main() -> int:
             text = py.read_text(encoding="utf-8", errors="replace")
         except Exception:
             continue
+        allowed_for_school_settings = any(path_str.startswith(p) for p in ALLOWED_SCHOOL_SETTINGS_FEATURES_PREFIXES)
         for i, line in enumerate(text.splitlines(), 1):
             if in_tenant_app and not allowed_for_get_solo and SITESETTINGS_PATTERN[0].search(line):
                 hits.append((path_str, i, line.strip()[:90], SITESETTINGS_PATTERN[1]))
-            if not getattr(args, "check_get_solo_only", False):
+            if getattr(args, "check_school_settings_features", False) and in_tenant_app and not allowed_for_school_settings:
+                if SCHOOL_SETTINGS_PATTERN[0].search(line):
+                    hits.append((path_str, i, line.strip()[:90], SCHOOL_SETTINGS_PATTERN[1]))
+                if SCHOOL_FEATURES_PATTERN[0].search(line):
+                    hits.append((path_str, i, line.strip()[:90], SCHOOL_FEATURES_PATTERN[1]))
+            if not getattr(args, "check_get_solo_only", False) and not getattr(args, "check_school_settings_features", False):
                 for pat, label in HARDCODED_PATTERNS:
                     if pat.search(line) and "settings.py" not in path_str and "env.example" not in path_str:
                         hits.append((path_str, i, line.strip()[:90], label))
@@ -95,9 +120,14 @@ def main() -> int:
     get_solo_hits = [(p, ln, sn, lb) for p, ln, sn, lb in hits if "get_solo" in lb]
     if args.check_get_solo_only:
         hits = get_solo_hits
+    elif getattr(args, "check_school_settings_features", False):
+        hits = [(p, ln, sn, lb) for p, ln, sn, lb in hits if "school.settings" in lb or "school.features" in lb]
 
     if not hits:
-        print("lint_tenant_settings: No SiteSettings.get_solo() or hardcoded region/currency in tenant paths.")
+        msg = "lint_tenant_settings: No SiteSettings.get_solo() or hardcoded region/currency in tenant paths."
+        if getattr(args, "check_school_settings_features", False):
+            msg = "lint_tenant_settings: No direct school.settings/school.features reads in tenant apps."
+        print(msg)
         return 0
     print("Phase 12 CI: Prefer request.tenant_runtime / platform_runtime.helpers (see SITESETTINGS_AUDIT.md):\n")
     for path, line_no, snippet, label in hits:

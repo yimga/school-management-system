@@ -2,9 +2,13 @@
 Attach request.tenant_ctx (TenantContext) after tenant/school is resolved.
 Must run after TenantMiddleware (RLS) or TenantSchemaSchoolBridgeMiddleware (schema).
 """
+import logging
+
 from django.utils.deprecation import MiddlewareMixin
 
 from apps.tenancy.context import TenantContext
+
+logger = logging.getLogger(__name__)
 
 
 def _request_host(request) -> str:
@@ -68,8 +72,8 @@ def build_tenant_context_from_request(request) -> TenantContext:
             from apps.siteconfig.tenant_config import get_tenant_locale
             locale = get_tenant_locale(school=school)
             timezone = (locale.get("timezone") or locale.get("default_timezone") or "").strip() or None
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("get_tenant_locale failed (school context): %s", e)
         feature_flags = _school_json_payload(school, "features", "features_json")
         policy_overrides = _school_json_payload(school, "settings", "settings_json")
         return TenantContext(

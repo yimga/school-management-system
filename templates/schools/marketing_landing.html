@@ -25,12 +25,15 @@
     </div>
   </div>
 
-  {# 1. Hero #}
+  {# 1. Hero — single platform headline, primary CTA, category claim #}
   <section id="hero" class="mkt-hero" tabindex="-1">
     <div class="mkt-hero-inner">
       <div>
-        <h1 class="mkt-hero-headline">{{ hero_headline }}</h1>
-        <p class="mkt-hero-subheadline">{{ hero_subheadline }}</p>
+        <h1 class="mkt-hero-headline">{{ platform_headline|default:hero_headline }}</h1>
+        <p class="mkt-hero-subheadline">{{ hero_ai_line|default:hero_subheadline }}</p>
+        {% if category_claim %}
+        <p class="mkt-hero-category-claim text-muted small mb-2">{{ category_claim }}</p>
+        {% endif %}
         {% if global_features %}
         <p class="mkt-hero-trusted mb-2"><span class="text-muted small">{% trans "Trusted for:" %}</span> {% for f in global_features %}{% if forloop.counter <= 6 %}{% if not forloop.first %}, {% endif %}{{ f }}{% endif %}{% endfor %}</p>
         {% endif %}
@@ -44,10 +47,60 @@
         </div>
       </div>
       <div class="mkt-hero-visual">
-        <img src="{% if hero_dashboard_image_url %}{{ hero_dashboard_image_url }}{% else %}{% static 'images/runmycampus-logo.png' %}{% endif %}" alt="RunMyCampus dashboard overview" width="800" height="450" decoding="async" fetchpriority="high">
+        <img src="{% if hero_dashboard_image_url %}{{ hero_dashboard_image_url }}{% else %}{% static 'images/runmycampus-logo.png' %}{% endif %}" alt="RunMyCampus dashboard overview" width="800" height="450" decoding="async" fetchpriority="high" loading="eager">
       </div>
     </div>
   </section>
+
+  {# Pillar grid — four pillars #}
+  {% if platform_pillar_grid %}
+  <section id="platform-pillars" class="mkt-section" aria-label="{% trans 'Platform pillars' %}">
+    <div class="container">
+      <div class="row g-3 text-center">
+        {% for pillar in platform_pillar_grid %}
+        <div class="col-md-3 col-6">
+          <div class="mkt-pillar-card p-3 border rounded">
+            <strong class="d-block">{{ pillar.label }}</strong>
+            <span class="small text-muted">{{ pillar.sub }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {# From single school to enterprise #}
+  {% if from_single_to_enterprise %}
+  <section id="from-single-to-enterprise" class="mkt-section" aria-label="{% trans 'From single school to enterprise' %}">
+    <h2 class="mkt-section-heading">{% trans "From single school to enterprise" %}</h2>
+    <p class="mkt-section-lead">{% trans "One platform for every stage." %}</p>
+    <div class="mkt-platform-grid">
+      {% for item in from_single_to_enterprise %}
+      <article class="mkt-platform-card">
+        <h3>{{ item.stage }}</h3>
+        <p>{{ item.summary }}</p>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {# By-the-numbers strip #}
+  {% if by_the_numbers %}
+  <section id="by-the-numbers" class="mkt-section mkt-numbers-strip" aria-label="{% trans 'By the numbers' %}">
+    <div class="container">
+      <div class="row g-3 text-center">
+        {% for stat in by_the_numbers %}
+        <div class="col">
+          <span class="mkt-stat-value">{{ stat.value }}</span>
+          <span class="mkt-stat-label">{{ stat.label }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
 
   {# 2. Institutional coverage #}
   <section id="institutional-coverage" class="mkt-section" aria-label="{% trans 'Institutional coverage' %}">

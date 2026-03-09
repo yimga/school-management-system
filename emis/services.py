@@ -14,11 +14,25 @@ from apps.siteconfig.models import SiteSettings
 from .models import EMISExport, EMISFieldMapping
 
 
+def _get_site_for_emis(request=None, school=None):
+    """Resolve SiteSettings for EMIS; use runtime-backed helper when request is available."""
+    if request is not None:
+        try:
+            from apps.platform_runtime.helpers import get_effective_site_settings
+            site = get_effective_site_settings(request)
+            if site is not None:
+                return site
+        except Exception:
+            pass
+    return SiteSettings.get_solo()
+
+
 class EMISExportService:
     """Service for exporting EMIS data in schema-safe, ministry-ready formats."""
 
-    def __init__(self, country_code: str = "CMR"):
+    def __init__(self, country_code: str = "CMR", request=None):
         self.country_code = country_code
+        self._request = request
         self.field_mappings = self._load_field_mappings()
 
     def _load_field_mappings(self) -> Dict[str, Dict[str, Dict[str, Any]]]:
@@ -125,7 +139,7 @@ class EMISExportService:
         }
 
     def export_infrastructure(self) -> Dict[str, Any]:
-        site = SiteSettings.get_solo()
+        site = _get_site_for_emis(self._request)
         current_year = AcademicYear.objects.filter(is_active=True).order_by("-start_date").first()
         student_qs = StudentProfile.objects.all()
         if current_year:
@@ -298,7 +312,8 @@ class EMISExportService:
         if term:
             evals = evals.filter(term=term)
 
-        pass_mark = Decimal(str(getattr(SiteSettings.get_solo(), "pass_mark", "10.00")))
+        site = _get_site_for_emis(getattr(self, "_request", None))
+        pass_mark = Decimal(str(getattr(site, "pass_mark", "10.00")))
         aggregate = evals.aggregate(avg_score=Avg("final_score"), assessed_students=Count("student", distinct=True))
         pass_count = evals.filter(final_score__gte=pass_mark).values("student_id").distinct().count()
         assessed_students = aggregate["assessed_students"] or 0

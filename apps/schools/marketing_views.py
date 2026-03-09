@@ -448,6 +448,52 @@ MARKETING_PAGE_DEFINITIONS = {
             {"title": "Same day readiness", "body": "Templates and blueprints get you live quickly without starting from scratch."},
         ],
     },
+    "10-reasons": {
+        "label": "10 Reasons",
+        "seo_title": "10 Reasons Schools Choose RunMyCampus",
+        "seo_description": "Why schools and operators choose RunMyCampus: one platform, multi-tenant from day one, global compliance, and migration support.",
+        "headline": "10 reasons schools choose RunMyCampus.",
+        "subheadline": "From single campus to enterprise white-label—one platform for admissions, academics, finance, and compliance.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "One platform", "body": "Admissions, academics, finance, communication, and compliance in one place—no tool sprawl."},
+            {"title": "Multi-tenant from day one", "body": "Each school gets its own domain, branding, and data isolation."},
+            {"title": "Global compliance", "body": "FERPA, GDPR, and regional defaults. 195+ country-ready profiles."},
+            {"title": "Migration support", "body": "Guided import, phased rollout, and dedicated support during go-live."},
+            {"title": "Role-ready portals", "body": "Admins, teachers, parents, and students get purpose-built workflows."},
+            {"title": "Operator command center", "body": "Super-admin visibility across tenants for approvals, support, and billing."},
+            {"title": "Developer platform", "body": "APIs, webhooks, and an app marketplace to extend without custom code."},
+            {"title": "Transparent pricing", "body": "Starter, Growth, and Enterprise plans that map to your stage."},
+            {"title": "Security by design", "body": "Encryption at rest and in transit, audit trails, role-based access."},
+            {"title": "We set you up", "body": "Dedicated onboarding and support—you're not just buying software."},
+        ],
+    },
+    "resources": {
+        "label": "Resources",
+        "seo_title": "Resources - Reports, Guides, and Webinars | RunMyCampus",
+        "seo_description": "Reports, implementation checklists, webinars, and best practices for school operations.",
+        "headline": "Resources to run your campus.",
+        "subheadline": "Reports, checklists, webinars, and guides—all in one place.",
+        "schema_type": "CollectionPage",
+        "segments": [
+            {"title": "State of School Operations report", "body": "Download our flagship report on how schools are unifying operations."},
+            {"title": "Buyer toolkit", "body": "Checklists and implementation timeline for evaluation and go-live."},
+            {"title": "Webinars", "body": "Customer roundtables and migration best practices. Register for upcoming sessions."},
+            {"title": "Blog", "body": "Admissions, finance, multi-campus, migration, and compliance topics."},
+        ],
+    },
+    "events": {
+        "label": "Events",
+        "seo_title": "Events and Webinars | RunMyCampus",
+        "seo_description": "Upcoming webinars, customer roundtables, and RunMyCampus Live—our annual education operations summit.",
+        "headline": "Events and webinars.",
+        "subheadline": "Join customer roundtables, webinars, and be first to know for RunMyCampus Live.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "Customer roundtable", "body": "Monthly session: Migration in 90 days. Register for the next session."},
+            {"title": "RunMyCampus Live", "body": "Annual education operations summit. Be first to know when we announce dates."},
+        ],
+    },
     "verticals": {
         "label": "By School Type",
         "seo_title": "RunMyCampus by School Type - K12, private, international, district",
@@ -1708,6 +1754,137 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         "cta_path": _safe_reverse("marketing_developers") or "/developers/",
     }
 
+    # Non-negotiables: platform narrative
+    platform_headline = "The one platform for school and education operations."
+    category_claim = "The Shopify and Salesforce of school and education management."
+    platform_pillar_grid = [
+        {"label": "Admissions to graduation", "sub": "One flow from enquiry to completion."},
+        {"label": "Single campus to multi-country", "sub": "Scale without sprawl."},
+        {"label": "K–12 to higher ed", "sub": "Every institution type."},
+        {"label": "School-led or operator-led", "sub": "Your operating model."},
+    ]
+    from_single_to_enterprise = [
+        {"stage": "Single school", "summary": "One campus, one tenant. Launch in days."},
+        {"stage": "Network", "summary": "Multi-campus with central oversight and campus autonomy."},
+        {"stage": "White-label operator", "summary": "National scale with dedicated manager operations and branding."},
+    ]
+
+    # Non-negotiables: social proof & scale
+    by_the_numbers = [
+        {"value": "195+", "label": "countries"},
+        {"value": "99.9%", "label": "uptime target"},
+        {"value": "1", "label": "platform"},
+    ]
+    customer_logos = [
+        {"name": "Greenfield Academy", "logo_url": ""},
+        {"name": "Nile Valley Schools", "logo_url": ""},
+        {"name": "Toronto Scholars", "logo_url": ""},
+    ]
+    awards_recognition = [
+        "FERPA aligned",
+        "GDPR ready",
+        "SOC 2 roadmap",
+    ]
+    review_badges = [
+        {"name": "Capterra", "url": "#", "stars": "4.8", "reviews": "50+"},
+        {"name": "G2", "url": "#", "stars": "4.7", "reviews": "30+"},
+    ]
+    ten_reasons_page_path = _safe_reverse("marketing_10_reasons") or "/10-reasons/"
+
+    # Non-negotiables: discovery (role + challenge)
+    for_your_role = [
+        {"label": "Principal", "path": _safe_reverse("marketing_solutions") or "/solutions/", "summary": "Visibility and control across your school."},
+        {"label": "Admin", "path": _safe_reverse("role_school_admin") or "/roles/school-admin/", "summary": "Day-to-day operations in one place."},
+        {"label": "Finance", "path": _safe_reverse("marketing_pricing") or "/pricing/", "summary": "Billing, fees, and reporting."},
+        {"label": "IT", "path": _safe_reverse("role_it_directors") or "/roles/it-directors/", "summary": "Integrations, security, and provisioning."},
+        {"label": "Teacher", "path": _safe_reverse("role_teachers") or "/roles/teachers/", "summary": "Grades, attendance, and class tools."},
+        {"label": "Parent", "path": _safe_reverse("role_parents") or "/roles/parents/", "summary": "One portal for your children."},
+        {"label": "Operator", "path": _safe_reverse("marketing_app_marketplace") or "/app-marketplace/", "summary": "Multi-tenant command center."},
+    ]
+    solve_by_challenge = [
+        {"title": "Reduce admin burden", "path": _safe_reverse("marketing_product") or "/product/"},
+        {"title": "Multi-campus visibility", "path": _safe_reverse("marketing_case_studies") or "/case-studies/"},
+        {"title": "Parent engagement", "path": _safe_reverse("marketing_solutions") or "/solutions/"},
+        {"title": "Migration from spreadsheets", "path": _safe_reverse("migrate_marketing_page") or "/migrate/"},
+        {"title": "Compliance without the headache", "path": _safe_reverse("marketing_security_compliance") or "/security-compliance/"},
+    ]
+
+    # Non-negotiables: ecosystem
+    app_marketplace_hero = {
+        "title": "App Marketplace",
+        "summary": "Extend RunMyCampus with integrations and apps. Connect your LMS, payments, messaging, and identity providers.",
+        "app_count": "50+",
+        "cta_path": _safe_reverse("marketing_app_marketplace") or "/app-marketplace/",
+        "cta_label": "View App Marketplace",
+    }
+    developer_story_summary = "By developers, for developers. APIs, webhooks, and SDKs let you build apps and integrations that schools install. Create custom storefronts and extend the platform."
+    partners_list = [
+        {"name": "Implementation Partner 1", "url": "#"},
+        {"name": "Implementation Partner 2", "url": "#"},
+    ]
+    integrations_strip = ["Clever", "Google Classroom", "Stripe", "PayPal", "SAML", "OAuth"]
+
+    # Non-negotiables: thought leadership
+    gated_report_cta = {
+        "headline": "Download the State of School Operations report",
+        "url": _safe_reverse("marketing_resources") or "/resources/",
+        "cta_label": "Get the report",
+    }
+    second_lead_magnet = {
+        "title": "Implementation checklist",
+        "summary": "Step-by-step checklist to go live with RunMyCampus.",
+        "url": _safe_reverse("marketing_buyer_toolkit_download", args=["implementation-checklist"]) if _safe_reverse("marketing_buyer_toolkit_download") else "/buyer-toolkit/download/implementation-checklist/",
+    }
+    resources_hub_path = _safe_reverse("marketing_resources") or "/resources/"
+
+    # Non-negotiables: events & community
+    events_list = [
+        {"title": "Customer roundtable: Migration in 90 days", "date": "Monthly", "cta_url": _safe_reverse("marketing_events") or "/events/", "cta_label": "Register"},
+    ]
+    flagship_event = {
+        "name": "RunMyCampus Live",
+        "summary": "Annual education operations summit. Be first to know when we announce dates.",
+        "cta_url": _safe_reverse("marketing_events") or "/events/",
+        "cta_label": "Be first to know",
+    }
+    community_cta = {
+        "label": "Join our newsletter",
+        "url": _safe_reverse("marketing_contact") or "/contact/",
+        "summary": "Get product updates and best practices.",
+    }
+
+    # Non-negotiables: trust & support
+    support_implementation_copy = "We set you up. Dedicated onboarding and support when you need it—so you're not just buying software, you're getting a partner for go-live."
+    accessibility_line = "Accessible by design. We align with inclusive design practices and regional accessibility requirements."
+    why_switch_path = _safe_reverse("marketing_why_switch") or "/why-switch/"
+
+    # Non-negotiables: 3-step get started
+    get_started_three_steps = [
+        {"step": 1, "title": "Sign up", "body": "Start your free trial—no credit card required."},
+        {"step": 2, "title": "Add your school", "body": "Configure your tenant, terms, and branding."},
+        {"step": 3, "title": "Invite your team", "body": "Invite admins, teachers, and parents. Go live."},
+    ]
+
+    # Non-negotiables: product pillars (6) + AI + differentiation
+    product_pillars_home = [
+        {"title": "Admissions & Enrollment", "summary": "Capture leads, track applications, onboard students.", "path": _safe_reverse("marketing_product") or "/product/"},
+        {"title": "Academics & Grades", "summary": "Syllabi, attendance, report cards, interventions.", "path": _safe_reverse("marketing_product") or "/product/"},
+        {"title": "Finance & Billing", "summary": "Fees, payments, financial reporting.", "path": _safe_reverse("marketing_pricing") or "/pricing/"},
+        {"title": "Communication", "summary": "Role-ready portals for parents, teachers, students.", "path": _safe_reverse("marketing_product") or "/product/"},
+        {"title": "Compliance & Reporting", "summary": "Audit trails, regional compliance, export-ready reports.", "path": _safe_reverse("marketing_security_compliance") or "/security-compliance/"},
+        {"title": "Manager / Operations", "summary": "Super-admin command center for multi-tenant operators.", "path": _safe_reverse("marketing_app_marketplace") or "/app-marketplace/"},
+    ]
+    hero_ai_line = "One platform for admissions, academics, finance, and compliance—with AI that helps your team save time."
+    differentiation_block = [
+        "Multi-tenant from day one: each school gets its own domain, branding, and data.",
+        "Operator layer: one control plane for many campuses.",
+        "Global-first: multi-currency, multi-language, multi-timezone, country-specific grading.",
+        "One product: no feature sprawl—admissions, academics, finance, communication, compliance in one place.",
+    ]
+
+    # Enterprise path
+    enterprise_path_copy = "For operators at national scale. Book an architecture call for dedicated governance, compliance posture, and white-label branding."
+
     return {
         "pitch": pitch,
         "brand": brand,
@@ -1767,6 +1944,35 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         "institution_types": institution_types,
         "workflow_automation": workflow_automation,
         "developer_platform_card": developer_platform_card,
+        "platform_headline": platform_headline,
+        "category_claim": category_claim,
+        "platform_pillar_grid": platform_pillar_grid,
+        "from_single_to_enterprise": from_single_to_enterprise,
+        "by_the_numbers": by_the_numbers,
+        "customer_logos": customer_logos,
+        "awards_recognition": awards_recognition,
+        "review_badges": review_badges,
+        "ten_reasons_page_path": ten_reasons_page_path,
+        "for_your_role": for_your_role,
+        "solve_by_challenge": solve_by_challenge,
+        "app_marketplace_hero": app_marketplace_hero,
+        "developer_story_summary": developer_story_summary,
+        "partners_list": partners_list,
+        "integrations_strip": integrations_strip,
+        "gated_report_cta": gated_report_cta,
+        "second_lead_magnet": second_lead_magnet,
+        "resources_hub_path": resources_hub_path,
+        "events_list": events_list,
+        "flagship_event": flagship_event,
+        "community_cta": community_cta,
+        "support_implementation_copy": support_implementation_copy,
+        "accessibility_line": accessibility_line,
+        "why_switch_path": why_switch_path,
+        "get_started_three_steps": get_started_three_steps,
+        "product_pillars_home": product_pillars_home,
+        "hero_ai_line": hero_ai_line,
+        "differentiation_block": differentiation_block,
+        "enterprise_path_copy": enterprise_path_copy,
     }
 
 

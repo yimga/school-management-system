@@ -373,3 +373,38 @@ class MetricsHistoryEndpointTestCase(TestCase):
         response = view(request)
         
         self.assertEqual(response.status_code, 200)
+
+
+class HealthViewTruthfulnessTests(TestCase):
+    """Health endpoints return truthful status: public_health 200, healthz 5xx on DB failure."""
+
+    def test_public_health_returns_200_and_healthy(self):
+        """Public /health/ returns 200 with status healthy (no DB dependency)."""
+        from apps.observability.views import public_health
+        from django.test import RequestFactory
+        import json
+        factory = RequestFactory()
+        request = factory.get("/health/")
+        response = public_health(request)
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertEqual(data.get("status"), "healthy")
+
+    def test_healthz_returns_500_when_db_fails(self):
+        """healthz returns 500 when DB check raises (truthful health)."""
+        from unittest.mock import patch, MagicMock
+        from django.test import RequestFactory
+        from apps.observability.views import healthz
+        import json
+        factory = RequestFactory()
+        request = factory.get("/healthz/")
+        mock_cursor = MagicMock()
+        mock_cursor.execute.side_effect = Exception("DB unavailable")
+        with patch("apps.observability.views.connection") as mock_conn:
+            mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
+            mock_conn.cursor.return_value.__exit__.return_value = None
+            with patch("apps.observability.views._is_observability_authorized", return_value=True):
+                response = healthz(request)
+        self.assertEqual(response.status_code, 500)
+        data = json.loads(response.content)
+        self.assertEqual(data.get("status"), "error")

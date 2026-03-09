@@ -100,6 +100,10 @@ class School(models.Model):
     Tenant: one row per school. Subdomain/slug identifies the school in the URL.
     Canonical mapping: School = Tenant (one-to-one). Campus = future multi-branch entity.
     See docs/SCHOOL_TENANT_CAMPUS_CANONICAL.md.
+
+    Field responsibilities: identity, branding, plan, and region stay here; behavior comes from
+    request.tenant_runtime. settings/features are storage only — written by tenant_config,
+    read only by policies.resolver for compilation. See docs/SCHOOL_FIELD_RESPONSIBILITY_MAP.md.
     """
 
     class SubSystem(models.TextChoices):

@@ -115,6 +115,46 @@ class TenantRuntimeContractTests(TestCase):
         runtime2 = build_tenant_runtime(ctx2, request=None)
         self.assertTrue(runtime2.flags.is_enabled("new_gradebook"))
 
+    def test_runtime_with_school_and_policy_contains_all_compilation_steps(self):
+        """Runtime built with a real school and policy contains all 13 steps with real data."""
+        from unittest.mock import Mock
+        school = School.objects.create(
+            name="Runtime Contract School",
+            slug="runtime-contract-school",
+            subdomain="runtime-contract-school",
+            is_active=True,
+            settings={
+                "grading": {"pass_mark": 50, "scale": "0-100"},
+                "admissions": {"numbering_strategy": "annual"},
+            },
+            features={"library": True},
+        )
+        request = Mock()
+        request.school = school
+        request.user = None
+        tenant_ctx = TenantContext(
+            tenant_id=str(school.id),
+            schema_name="public",
+            school_id=school.id,
+            country="US",
+            timezone="UTC",
+            feature_flags={},
+            policy_overrides={},
+            host="runtime-contract-school.runmycampus.com",
+        )
+        runtime = build_tenant_runtime(tenant_ctx, request=request)
+        self.assertIsNotNone(runtime._school)
+        self.assertEqual(runtime.tenant.slug, "runtime-contract-school")
+        self.assertIsNotNone(runtime.policy_typed)
+        self.assertIsNotNone(runtime.policy_typed.raw)
+        self.assertIsNotNone(runtime.modules)
+        self.assertIsNotNone(runtime.modules.gradebook)
+        self.assertIsNotNone(runtime.modules.admissions)
+        self.assertIn("1:route", runtime.debug.compilation_trace)
+        self.assertIn("13:freeze", runtime.debug.compilation_trace)
+        self.assertEqual(len(runtime.debug.compilation_trace), 13)
+        school.delete()
+
     def test_build_tenant_runtime_for_tenant_job_mode(self):
         """build_tenant_runtime_for_tenant(tenant, mode='job') returns TenantRuntime."""
         # Pass None as tenant: should still return a runtime (empty tenant_ctx)
@@ -166,3 +206,26 @@ class RuntimeHelperResolutionTests(TestCase):
 
         self.assertTrue(flags["enable_api_center"])
         self.assertFalse(flags["require_guardian_finance_opt_in"])
+
+
+class IntegrationGovernanceTests(TestCase):
+    """Provider registry: runtime step 10 uses ServiceIntegration; catalog is source of keys."""
+
+    def test_integrations_context_shape_from_step10(self):
+        """Step 10 populates integrations with payment_provider, messaging_provider, enabled_providers."""
+        ctx = TenantContext.empty(host="example.com")
+        runtime = build_tenant_runtime(ctx, request=None)
+        self.assertIsNotNone(runtime.integrations)
+        self.assertIsInstance(runtime.integrations.enabled_providers, list)
+        self.assertIsInstance(runtime.integrations.messaging_channels, list)
+
+    def test_integration_catalog_keys_non_empty(self):
+        """INTEGRATION_CATALOG defines at least one key; API Center and resolve_* use these keys."""
+        from apps.siteconfig.integration_catalog import INTEGRATION_CATALOG, list_catalog_keys
+        keys = list_catalog_keys()
+        self.assertGreater(len(keys), 0)
+        for k in keys:
+            self.assertIn(k, INTEGRATION_CATALOG)
+            entry = INTEGRATION_CATALOG[k]
+            self.assertIn("label", entry)
+            self.assertIn("config_schema", entry)

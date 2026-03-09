@@ -3,9 +3,12 @@ Resolve effective policy: platform_defaults ⊕ country_defaults ⊕ tenant_over
 Modules must not read School.settings / School.features directly; use get_effective_policy instead.
 Optional per-tenant policy caching when POLICY_CACHE_TTL (seconds) is set in settings.
 """
+import logging
 from typing import Any, Dict, Optional
 
 from apps.siteconfig.identifier_policy_service import default_school_code_for
+
+logger = logging.getLogger(__name__)
 
 
 def _policy_cache_key(school) -> str:
@@ -89,8 +92,8 @@ def get_effective_policy(
                     cached = cache.get(key)
                     if isinstance(cached, dict) and cached:
                         return cached
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Policy cache read failed: %s", e)
 
     # Optional v2: merge from TenantBlueprint.active_bundle when POLICY_USE_BUNDLES is set
     try:
@@ -128,11 +131,11 @@ def get_effective_policy(
                             key = _policy_cache_key(school)
                             if key:
                                 cache.set(key, out, timeout=int(ttl))
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        logger.debug("Policy cache set failed: %s", e)
                     return out
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("Policy merge from TenantBlueprint failed: %s", e)
 
     # Region/school defaults from School.default_region if present
     region = getattr(school, "default_region", None)
@@ -226,7 +229,8 @@ def get_effective_policy(
                 "admission_number_pattern": (getattr(site, "admission_number_pattern", None) or "") or "",
                 "school_code": (getattr(site, "school_code", None) or default_school_code_for(school)) or default_school_code_for(school),
             }
-        except Exception:
+        except Exception as e:
+            logger.debug("Admissions backfill from SiteSettings failed: %s", e)
             out["admissions"].setdefault("admission_number_mode", "AUTO_OR_MANUAL")
             out["admissions"].setdefault("admission_number_strategy", "FULL")
             out["admissions"].setdefault("school_code", default_school_code_for(school))
@@ -245,8 +249,8 @@ def get_effective_policy(
                     "seq_width": getattr(policy_model, "seq_width", 4),
                     "reset_frequency": getattr(policy_model, "reset_frequency", "YEARLY"),
                 }
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("TenantAdmissionNumberPolicy merge failed: %s", e)
 
     # Grade approval (evals): backfill from SiteSettings when not in school.settings (Phase 1)
     if not out.get("grade_approval") or not isinstance(out.get("grade_approval"), dict):
@@ -264,7 +268,8 @@ def get_effective_policy(
                 "grade_approval_auto_validate": getattr(site, "grade_approval_auto_validate", True),
                 "grade_approval_enabled": getattr(site, "grade_approval_enabled", False),
             }
-        except Exception:
+        except Exception as e:
+            logger.debug("Grade approval backfill from SiteSettings failed: %s", e)
             from apps.siteconfig.models import default_grade_approval_roles, default_grade_post_roles
 
             out["grade_approval"].setdefault("grade_post_roles", default_grade_post_roles())
@@ -287,8 +292,8 @@ def get_effective_policy(
                 key = _policy_cache_key(school)
                 if key:
                     cache.set(key, out, timeout=int(ttl))
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Policy cache set (final) failed: %s", e)
     return out
 
 
