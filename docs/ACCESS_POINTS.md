@@ -37,7 +37,7 @@ Use the **base domain** (e.g. `https://school-management-system-2kzk.onrender.co
 | **Verify signup** | `/verify-signup/` | After signup email. |
 | **Onboarding wizard** | `/onboard/` | Post-signup onboarding. |
 | **Regional (e.g. Cameroon)** | `/cm/`, `/ca/` | Regional marketing. |
-| **Health (load balancer)** | On **public host**: use `/health/` or `/healthz/` (and optionally `/ready/`). On tenant/manager: `/health/`, `/ready/`, `/status/`. On public host, `/status/` is the marketing trust page, not health. | No auth. |
+| **Health (load balancer)** | On **tenant/manager**: `/health/`, `/healthz/`, `/ready/`, `/status/` (health). On **public (apex)**: use **`/health/`** or **`/healthz/`** for health—**`/status/`** on apex is the **marketing trust/uptime page** (`/uptime/` is alias). Render uses `healthCheckPath: /health/`. | No auth. |
 | **Weather (header API)** | `/api/weather/context/` | JSON; no auth. |
 
 On **public host**, `/` typically redirects: logged-in → dashboard redirect; not logged-in → marketing landing (or tenant login if single-tenant).

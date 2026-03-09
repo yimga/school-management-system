@@ -76,8 +76,11 @@ See [DEPLOYMENT_SSL_CDN.md](./DEPLOYMENT_SSL_CDN.md) for more detail.
 |----------|---------|--------|
 | `/health/` | Public health (no auth). Returns `{"status": "healthy"}`. | Render `healthCheckPath`, load balancers, uptime checks. |
 | `/healthz/` | Internal health (can include DB). | Optional internal/API-key checks. |
-| `/ready/`, `/status/` | Alias to same public health behavior. | Optional readiness probes. |
+| `/ready/` | Same health behavior as `/health/` on all hosts. | Optional readiness probes. |
+| `/status/` | **Tenant/manager:** same as `/health/`. **Public (apex):** marketing trust page (not health). | On apex use `/health/` or `/healthz/` for health; do not use `/status/` for health on the public host. |
 | `/api/health/` | API health (e.g. JSON). | API consumers. |
+
+**Note:** On the **public (apex)** host, `/status/` is the **marketing trust/uptime page**; `/uptime/` is an alias. For health checks on the apex host use **`/health/`** or **`/healthz/`** (e.g. Render `healthCheckPath: /health/`).
 
 Predeploy does **not** call health; it runs migrations and seeds. Ensure the app starts and `/health/` returns 200 after deploy.
 

@@ -3405,6 +3405,21 @@ def _sitemap_entries(request) -> list[tuple[str, str, str]]:
     path_specs: dict[str, tuple[str, str]] = {}  # path -> (priority, changefreq)
 
     path_specs["/"] = ("1.0", "weekly")
+    path_specs["/education-operating-system/"] = ("0.95", "weekly")
+    for platform_path in ("/platform/", "/platform/education-os/", "/platform/control-plane/", "/platform/marketplace/", "/platform/migration-cloud/", "/platform/runtime/", "/platform/integrations/", "/platform/security/", "/platform/analytics/"):
+        path_specs[platform_path] = ("0.85", "monthly")
+    path_specs["/getting-started/"] = ("0.85", "monthly")
+    path_specs["/getting-started/simulator/"] = ("0.75", "monthly")
+    path_specs["/themes/"] = ("0.8", "monthly")
+    path_specs["/design-studio/"] = ("0.8", "monthly")
+    path_specs["/status/"] = ("0.75", "monthly")  # marketing trust page on public host
+    path_specs["/uptime/"] = ("0.75", "monthly")  # alias for same page
+    path_specs["/product-tour/"] = ("0.8", "monthly")
+    path_specs["/migrate/simulator/"] = ("0.75", "monthly")
+    path_specs["/migrate-from/"] = ("0.8", "monthly")
+    path_specs["/research/"] = ("0.75", "monthly")
+    path_specs["/reports/"] = ("0.75", "monthly")
+    path_specs["/guides/"] = ("0.75", "monthly")
     for item in _marketing_nav():
         path = item["path"]
         if path in ("/pricing/", "/product/"):
@@ -3421,20 +3436,27 @@ def _sitemap_entries(request) -> list[tuple[str, str, str]]:
     # Phase 3–4: institution, role, migrate, compare, trust, developers, marketplace
     for inst in ("k12", "universities", "technical-schools", "private-schools", "government-education"):
         path_specs[f"/solutions/{inst}/"] = ("0.8", "monthly")
-    for role in ("school-admin", "teachers", "parents", "students", "it-directors", "government"):
+    for role in ("school-admin", "teachers", "parents", "students", "it-directors", "government", "principals", "district-leaders"):
         path_specs[f"/roles/{role}/"] = ("0.8", "monthly")
+    path_specs["/for/principals/"] = ("0.75", "monthly")
+    path_specs["/for/district-leaders/"] = ("0.75", "monthly")
     path_specs["/migrate/"] = ("0.8", "monthly")
     for src in ("from-power-school", "from-blackbaud", "from-infinite-campus", "from-veracross"):
         path_specs[f"/migrate/{src}/"] = ("0.8", "monthly")
+    for src in ("from-power-school", "from-blackbaud", "from-infinite-campus"):
+        path_specs[f"/migrate-from/{src}/"] = ("0.75", "monthly")
     for comp in ("power-school", "blackbaud", "infinite-campus"):
         path_specs[f"/compare/{comp}/"] = ("0.8", "monthly")
     for trust_path in ("/security/", "/compliance/", "/ferpa/", "/gdpr/", "/lgpd/"):
         path_specs[trust_path] = ("0.7", "monthly")
-    for dev in ("api", "webhooks", "integrations", "sdk"):
+    for dev in ("api", "webhooks", "integrations", "sdk", "app-building"):
         path_specs[f"/developers/{dev}/"] = ("0.7", "monthly")
     path_specs["/marketplace/"] = ("0.8", "monthly")
     path_specs["/marketplace/apps/"] = ("0.7", "monthly")
     path_specs["/marketplace/integrations/"] = ("0.7", "monthly")
+    path_specs["/marketplace/templates/"] = ("0.7", "monthly")
+    path_specs["/marketplace/blueprints/"] = ("0.7", "monthly")
+    path_specs["/marketplace/policy-packs/"] = ("0.7", "monthly")
     path_specs["/marketplace/partners/"] = ("0.7", "monthly")
     for prod in ("admissions", "academics", "finance", "communication", "automation", "analytics"):
         path_specs[f"/products/{prod}/"] = ("0.85", "monthly")

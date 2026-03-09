@@ -14,9 +14,9 @@
   - **Dashboard footer** (`templates/components/dashboard_footer.html`): “Platform Status” links to `{{ MARKETING_BASE_URL }}/status/`, and the footer meta includes “RunMyCampus” and “Pricing” linking to `{{ MARKETING_BASE_URL }}/` and `{{ MARKETING_BASE_URL }}/pricing/`.
   - **Docs landing** (`templates/schools/docs_landing.html`): “Back to Marketing” uses `{{ MARKETING_BASE_URL }}/` when available.
 
-## Optional: Status on manager/tenant
+## Health and trust page URLs
 
-On **tenant** and **manager** hosts, `/status/` is the app health endpoint. On the **apex (public)** host, `/status/` is the **marketing trust/uptime page**; for health checks on the apex host use **`/health/`** or **`/healthz/`**. If you want manager or tenant to show a “Platform status” link, it should point to the apex uptime page: `{{ MARKETING_BASE_URL }}/status/` The path `/uptime/` is an alias for the same page.
+On the **public (apex)** host, **`/status/`** is the **marketing trust/uptime page**; **`/uptime/`** is an alias. For **health checks on the apex host** use **`/health/`** or **`/healthz/`** (do not use `/status/` for health on apex). On **tenant and manager** hosts, **`/status/`** is the health endpoint (same as `/health/`). Render uses `healthCheckPath: /health/`. Links from tenant/manager to the trust page use `{{ MARKETING_BASE_URL }}/status/`.
 
 ## Tests
 

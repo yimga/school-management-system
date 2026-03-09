@@ -15,7 +15,7 @@ Verification of the Seed Marketing Front plan (seed_marketing_front_ce217fad.pla
 | `/themes/`, `/design-studio/` | Done | |
 | `/migrate-from/`, `/migrate-from/<source>/` | Done | Alias to same view as /migrate/ |
 | `/getting-started/`, `/product-tour/` | Done | product-tour → interactive-preview |
-| Marketing trust page | Done | **`/status/`** on apex (public host). `/uptime/` kept as alias. On apex, health checks use `/health/` or `/healthz/`. |
+| Marketing trust page | Done | **`/status/`** on apex (public host); **`/uptime/`** is an alias. For health on apex use **`/health/`** or **`/healthz/`** (not `/status/`). Render uses `healthCheckPath: /health/`. |
 
 ## Phase 1: Core narrative and flagship
 
@@ -31,7 +31,7 @@ Verification of the Seed Marketing Front plan (seed_marketing_front_ce217fad.pla
 
 - **3.1** Route `getting-started/`; content with 6 steps in `MARKETING_PAGE_DEFINITIONS`. **Done.**
 - **3.2** Routes `themes/`, `design-studio/`; content in definitions. **Done.**
-- **3.3** Marketing trust at **`/status/`** on public urlconf (same content as uptime page); `/uptime/` kept as alias. On apex, health checks use `/health/` or `/healthz/`. Links to `MARKETING_STATUS_PAGE_URL`; `MARKETING_PAGE_EXTRAS["uptime"]` with `sla_uptime`. **Done.**
+- **3.3** Marketing trust at **`/status/`** on public urlconf (`/uptime/` alias). Health on apex: **`/health/`** or **`/healthz/`**; tenant/manager keep `/status/` as health. Links to `MARKETING_STATUS_PAGE_URL`; `MARKETING_PAGE_EXTRAS["uptime"]` with `sla_uptime`. **Done.**
 
 ## Phase 4: Migrate-from and personas
 
@@ -81,4 +81,4 @@ Verification of the Seed Marketing Front plan (seed_marketing_front_ce217fad.pla
 
 ---
 
-**Summary:** The plan is fully implemented. The marketing trust page is at **`/status/`** on the public (apex) host; `/uptime/` is kept as an alias. On the apex host, health checks use **`/health/`** or **`/healthz/`** (tenant and manager still use `/status/` for health).
+**Summary:** The plan is fully implemented. The marketing trust page is at **`/status/`** on the public (apex) host (**`/uptime/`** is an alias). For health checks on the apex host use **`/health/`** or **`/healthz/`**; on tenant/manager, **`/status/`** remains the health endpoint. Render uses `healthCheckPath: /health/`.

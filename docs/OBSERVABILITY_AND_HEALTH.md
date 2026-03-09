@@ -7,6 +7,7 @@
 | Endpoint | Auth | Behavior |
 |----------|------|----------|
 | `/health/` | None (public) | Returns 200 `{"status": "healthy"}`. No DB/cache; for load balancers and cold starts. |
+| `/status/` | None (public) | **Tenant/manager:** same as `/health/` (health endpoint). **Public (apex) host:** marketing trust/uptime page (not health). On apex use **`/health/`** or **`/healthz/`** for health checks. |
 | `/healthz/` | Observability auth | DB connectivity check. Returns 500 with error body if DB fails. **Truthful:** does not mask exceptions. |
 | `/api/health/` | Varies by config | API health; see observability views. |
 | `/super/health/` | Super only | Control-plane health dashboard (super_views.super_control_health_dashboard). |
