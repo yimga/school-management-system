@@ -1,6 +1,14 @@
 {% extends "control_plane_base.html" %}
 {% load static i18n %}
 {% block cp_title %}Support — Super Admin{% endblock %}
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Tenant Mission Control" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Support" %}</li>
+  </ol>
+</nav>
+{% endblock %}
 {% block cp_content %}
 <div class="container-fluid py-4">
   <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">

@@ -1,7 +1,16 @@
 {% extends "control_plane_base.html" %}
-{% load static %}
+{% load static i18n %}
 
 {% block cp_title %}Mission Queues{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Tenant Mission Control" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Operational queues" %}</li>
+  </ol>
+</nav>
+{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}

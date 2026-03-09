@@ -16,6 +16,7 @@
   .cp-admin-app-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
   .cp-admin-app-btn { padding: 0.35rem 0.75rem; font-size: 0.75rem; font-weight: 600; border-radius: 999px; border: 1px solid var(--cp-panel-border); background: rgba(255,255,255,0.05); color: var(--cp-muted); text-decoration: none; transition: 0.2s; }
   .cp-admin-app-btn:hover { border-color: var(--platform-gold, #d4af37); color: var(--platform-gold); background: rgba(212,175,55,0.08); }
+  .cp-admin-index .cp-admin-tips { font-size: 0.875rem; line-height: 1.5; }
   @media (max-width: 768px) { .cp-admin-index { padding: 1rem; } .cp-hero-grid { grid-template-columns: 1fr; } }
 </style>
 {% endblock %}
@@ -81,6 +82,8 @@
       </div>
     </div>
   </section>
+
+  <p class="cp-admin-tips text-muted mb-4">{% trans "Use the left sidebar for apps and quick config. For tenant operations use the Control plane" %} (<a href="{% url 'super:dashboard' %}" class="text-warning">/super</a>).</p>
 
   <div class="cp-overview-grid mb-4" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
     <article class="cp-overview-card cp-overview-card-slate">
