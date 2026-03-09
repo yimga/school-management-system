@@ -12,7 +12,7 @@ from django.test import RequestFactory, SimpleTestCase, TestCase
 from django.urls import reverse
 
 from apps.accounts.models import Permission
-from config.admin import admin_site
+from config.admin import tenant_admin_site
 from apps.siteconfig.context_processors import site_settings
 from apps.siteconfig.forms import THEME_PUBLISH_GUARDED_FIELDS, ThemeColorsForm
 from apps.siteconfig.models import ReportCardStyle, SiteSettings, ThemePack
@@ -381,34 +381,34 @@ class ThemePackSelectorTemplateTests(TestCase):
 
 class ThemeStudioSingleSurfaceTests(TestCase):
     def test_sitesettings_theme_fieldset_is_launcher_only(self):
-        model_admin = admin_site._registry[SiteSettings]
+        model_admin = tenant_admin_site._registry[SiteSettings]
         theme_fieldset = next(
             config for title, config in model_admin.fieldsets if title == "Theme & Experience"
         )
         self.assertEqual(theme_fieldset["fields"], ("theme_color_tools_link_block",))
 
     def test_sitesettings_branding_fieldset_does_not_expose_theme_pack_editor(self):
-        model_admin = admin_site._registry[SiteSettings]
+        model_admin = tenant_admin_site._registry[SiteSettings]
         branding_fieldset = next(
             config for title, config in model_admin.fieldsets if title == "Branding"
         )
         self.assertNotIn("theme_pack", branding_fieldset["fields"])
 
     def test_theme_launcher_uses_back_link_with_stay_theme_flag(self):
-        model_admin = admin_site._registry[SiteSettings]
+        model_admin = tenant_admin_site._registry[SiteSettings]
         site = SiteSettings.get_solo()
         html = model_admin.theme_color_tools_link_block(site)
         self.assertIn("stay_theme%3D1", html)
 
     def test_themepack_admin_hidden_from_system_configuration_menu(self):
-        model_admin = admin_site._registry[ThemePack]
+        model_admin = tenant_admin_site._registry[ThemePack]
         self.assertIsInstance(model_admin, ThemePackAdmin)
         request = RequestFactory().get("/admin/")
         perms = model_admin.get_model_perms(request)
         self.assertEqual(perms, {})
 
     def test_themepack_admin_changeform_redirects_to_theme_studio(self):
-        model_admin = admin_site._registry[ThemePack]
+        model_admin = tenant_admin_site._registry[ThemePack]
         request = RequestFactory().get("/admin/siteconfig/themepack/1/change/")
         response = model_admin.changeform_view(request, object_id="1")
         self.assertEqual(response.status_code, 302)

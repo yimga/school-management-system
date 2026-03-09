@@ -304,7 +304,7 @@
       <div class="hero-cta">
         <a href="{% url 'signup_school' %}" class="btn btn-light" data-cta="primary" data-page="{{ active_nav_slug|default:page.slug }}">{% trans "Start Free Trial" %}</a>
         <a href="{% url 'marketing_book_demo' %}" class="btn btn-outline-light" data-cta="demo" data-page="{{ active_nav_slug|default:page.slug }}">{% trans "Book demo" %}</a>
-        <a href="{% url 'global_login_discovery' %}" class="btn btn-outline-light">{% trans "Self-guided tour" %}</a>
+        <a href="{% url 'global_login_discovery' %}" class="btn btn-outline-light">{% trans "Login" %}</a>
       </div>
     </section>
 
@@ -515,6 +515,9 @@
     <section class="section-shell">
       <h2 class="section-heading">{% trans "Case pattern snapshots" %}</h2>
       <p class="section-lead">{% trans "Representative outcomes seen in implementation programs." %}</p>
+      {% if active_nav_slug == 'case-studies' %}
+      <p class="small text-muted mb-3">{% trans "Filter by:" %} <a href="{% url 'institution_k12' %}">{% trans "K-12" %}</a> · <a href="{% url 'institution_universities' %}">{% trans "Universities" %}</a> · <a href="{% url 'marketing_topic' topic_slug='multi-campus-school-software' %}">{% trans "Multi-campus" %}</a> · <a href="{% url 'marketing_topic' topic_slug='admissions-software' %}">{% trans "Admissions" %}</a> · <a href="{% url 'marketing_security_compliance' %}">{% trans "Compliance" %}</a></p>
+      {% endif %}
       <div class="case-grid">
         {% for case in page_extras.case_cards %}
           <article class="case-card">
@@ -599,6 +602,7 @@
       <div class="d-flex flex-wrap gap-2">
         <a href="{% url 'signup_school' %}" class="btn btn-primary" data-cta="primary" data-page="{{ active_nav_slug|default:page.slug }}">{% trans "Start Free Trial" %}</a>
         <a href="{% url 'marketing_book_demo' %}" class="btn btn-outline-secondary" data-cta="demo" data-page="{{ active_nav_slug|default:page.slug }}">{% trans "Book demo" %}</a>
+        <a href="{% url 'global_login_discovery' %}" class="btn btn-outline-secondary">{% trans "Login" %}</a>
       </div>
     </section>
   </div>

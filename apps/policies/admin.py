@@ -4,7 +4,7 @@ Admin for Policy Registry v2 models (CountryProfile, PolicyBundle, TenantBluepri
 
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
-
+from config.admin import platform_admin_site, tenant_admin_site
 from .models import (
     BlueprintPack,
     BlueprintCompatibilityRule,
@@ -17,14 +17,14 @@ from .models import (
 )
 
 
-@admin.register(CountryProfile)
+@admin.register(CountryProfile, site=platform_admin_site)
 class CountryProfileAdmin(admin.ModelAdmin):
     list_display = ("country_code", "name", "currency_code", "timezone", "is_active")
     list_filter = ("is_active",)
     search_fields = ("country_code", "name")
 
 
-@admin.register(PolicyBundle)
+@admin.register(PolicyBundle, site=tenant_admin_site)
 class PolicyBundleAdmin(admin.ModelAdmin):
     list_display = ("id", "school", "name", "version", "applied_pack_version", "is_active", "created_at")
     list_filter = ("is_active",)
@@ -32,7 +32,7 @@ class PolicyBundleAdmin(admin.ModelAdmin):
     raw_id_fields = ("school", "created_by")
 
 
-@admin.register(TenantBlueprint)
+@admin.register(TenantBlueprint, site=tenant_admin_site)
 class TenantBlueprintAdmin(admin.ModelAdmin):
     list_display = ("school", "active_bundle", "applied_pack", "updated_at")
     raw_id_fields = ("school", "active_bundle", "applied_pack")
@@ -57,21 +57,21 @@ class BlueprintPackAdmin(admin.ModelAdmin):
     update_bundle_for_schools_needing_update.short_description = "Update bundle for schools needing this version"
 
 
-@admin.register(BlueprintCompatibilityRule)
+@admin.register(BlueprintCompatibilityRule, site=platform_admin_site)
 class BlueprintCompatibilityRuleAdmin(admin.ModelAdmin):
     list_display = ("blueprint_pack", "is_active", "created_at")
     list_filter = ("is_active",)
     raw_id_fields = ("blueprint_pack",)
 
 
-@admin.register(PolicyCompatibilityRule)
+@admin.register(PolicyCompatibilityRule, site=platform_admin_site)
 class PolicyCompatibilityRuleAdmin(admin.ModelAdmin):
     list_display = ("policy_bundle", "blueprint_slug", "country_code", "is_active")
     list_filter = ("is_active",)
     raw_id_fields = ("policy_bundle",)
 
 
-@admin.register(TenantPolicyOverride)
+@admin.register(TenantPolicyOverride, site=tenant_admin_site)
 class TenantPolicyOverrideAdmin(admin.ModelAdmin):
     list_display = ("school", "policy_key", "is_active", "updated_at")
     list_filter = ("is_active",)
@@ -79,7 +79,7 @@ class TenantPolicyOverrideAdmin(admin.ModelAdmin):
     raw_id_fields = ("school",)
 
 
-@admin.register(ScheduledPolicyOverride)
+@admin.register(ScheduledPolicyOverride, site=tenant_admin_site)
 class ScheduledPolicyOverrideAdmin(admin.ModelAdmin):
     list_display = ("school", "policy_key", "start_at", "end_at", "is_active")
     list_filter = ("is_active",)

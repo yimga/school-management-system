@@ -132,7 +132,7 @@ def main() -> int:
     print("Phase 12 CI: Prefer request.tenant_runtime / platform_runtime.helpers (see SITESETTINGS_AUDIT.md):\n")
     for path, line_no, snippet, label in hits:
         print(f"  {path}:{line_no}  {label}")
-        safe_snippet = (snippet or "").encode("utf-8", errors="replace").decode("utf-8")[:90]
+        safe_snippet = (snippet or "").encode("ascii", errors="replace").decode("ascii")[:90]
         print(f"    {safe_snippet}")
     print(f"\nTotal: {len(hits)} hit(s).")
     return 0 if args.exit_zero else 1

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from config.admin import admin_site
+from config.admin import register_tenant_admin
 from .models import APIAuditLog
 
 
@@ -16,4 +16,4 @@ class APIAuditLogAdmin(admin.ModelAdmin):
     reason_short.short_description = "Reason"
 
 
-admin_site.register(APIAuditLog, APIAuditLogAdmin)
+register_tenant_admin(APIAuditLog, APIAuditLogAdmin)

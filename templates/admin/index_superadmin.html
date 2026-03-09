@@ -121,9 +121,9 @@
   {% endif %}
 
   <header class="cp-admin-hero">
-    <div class="cp-admin-eyebrow">RunMyCampus Platform Admin</div>
-    <h1>Platform Administration</h1>
-    <p class="cp-admin-hero-sub">{% trans "Platform configuration, operator workflows, and governed administrative controls. Use the control plane for tenant operations and billing." %}</p>
+    <div class="cp-admin-eyebrow">Configuration Engine</div>
+    <h1>{% trans "Platform Backoffice" %}</h1>
+    <p class="cp-admin-hero-sub">{% trans "Maintenance and raw object editing. For governance, tenant operations, and billing use the Control Plane" %} (<a href="{% url 'super:dashboard' %}" class="text-warning">/super</a>).</p>
     <div class="cp-admin-hero-actions">
       <a href="{% url 'super:dashboard' %}" class="cp-admin-btn-primary">🎛️ {% trans "Control plane" %}</a>
       <a href="{% url 'super:command_center' %}" class="cp-admin-btn-secondary">📋 {% trans "Command center" %}</a>

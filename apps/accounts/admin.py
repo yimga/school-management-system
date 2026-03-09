@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.contrib.auth.models import Group
-from config.admin import admin_site
+from config.admin import register_tenant_admin
 
 from unfold.admin import ModelAdmin
 
@@ -130,15 +130,15 @@ class GroupAdmin(ModelAdmin):
 
 
 
-# Register all models with custom admin site
-admin_site.register(User, UserAdmin)
-admin_site.register(AccessRole, RoleAdmin)
-admin_site.register(Permission, PermissionAdmin)
-admin_site.register(TemporaryRoleGrant, TemporaryRoleGrantAdmin)
-admin_site.register(Group, GroupAdmin)
-admin_site.register(UserPreference, UserPreferenceAdmin)
-admin_site.register(Delegation, DelegationAdmin)
-admin_site.register(DelegationActionLog, DelegationActionLogAdmin)
+# Register all models with tenant admin only
+register_tenant_admin(User, UserAdmin)
+register_tenant_admin(AccessRole, RoleAdmin)
+register_tenant_admin(Permission, PermissionAdmin)
+register_tenant_admin(TemporaryRoleGrant, TemporaryRoleGrantAdmin)
+register_tenant_admin(Group, GroupAdmin)
+register_tenant_admin(UserPreference, UserPreferenceAdmin)
+register_tenant_admin(Delegation, DelegationAdmin)
+register_tenant_admin(DelegationActionLog, DelegationActionLogAdmin)
 
 
 class SecurityAuditLogAdmin(ModelAdmin):
@@ -156,5 +156,5 @@ class UserPasskeyAdmin(ModelAdmin):
     raw_id_fields = ("user",)
 
 
-admin_site.register(SecurityAuditLog, SecurityAuditLogAdmin)
-admin_site.register(UserPasskey, UserPasskeyAdmin)
+register_tenant_admin(SecurityAuditLog, SecurityAuditLogAdmin)
+register_tenant_admin(UserPasskey, UserPasskeyAdmin)

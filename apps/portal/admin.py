@@ -1,5 +1,5 @@
 from django.contrib import admin
-from config.admin import admin_site
+from config.admin import register_tenant_admin
 
 from .models import DocumentCategory, Event, PortalFeatureItem, PendingGuardianInvite, Announcement, FormSignature, LessonPlan, LessonPlanAttachment
 from .models_kb import FAQCategory, FAQ, KBCategory, KBArticle, KBArticleAttachment, KBComment, UserContribution
@@ -72,12 +72,12 @@ class EventAdmin(admin.ModelAdmin):
     ordering = ("-start_at",)
 
 
-# Register all models with custom admin site
-admin_site.register(DocumentCategory, DocumentCategoryAdmin)
-admin_site.register(PortalFeatureItem, PortalFeatureItemAdmin)
-admin_site.register(Event, EventAdmin)
-admin_site.register(PendingGuardianInvite, PendingGuardianInviteAdmin)
-admin_site.register(Announcement, AnnouncementAdmin)
+# Register all models with tenant admin only
+register_tenant_admin(DocumentCategory, DocumentCategoryAdmin)
+register_tenant_admin(PortalFeatureItem, PortalFeatureItemAdmin)
+register_tenant_admin(Event, EventAdmin)
+register_tenant_admin(PendingGuardianInvite, PendingGuardianInviteAdmin)
+register_tenant_admin(Announcement, AnnouncementAdmin)
 
 
 class FormSignatureAdmin(admin.ModelAdmin):
@@ -110,7 +110,7 @@ class FormSignatureAdmin(admin.ModelAdmin):
     )
 
 
-admin_site.register(FormSignature, FormSignatureAdmin)
+register_tenant_admin(FormSignature, FormSignatureAdmin)
 
 
 class LessonPlanAttachmentInline(admin.TabularInline):
@@ -128,10 +128,9 @@ class LessonPlanAdmin(admin.ModelAdmin):
     readonly_fields = ("created_at", "updated_at")
 
 
-admin_site.register(LessonPlan, LessonPlanAdmin)
+register_tenant_admin(LessonPlan, LessonPlanAdmin)
 
 
-@admin.register(FAQCategory, site=admin_site)
 class FAQCategoryAdmin(admin.ModelAdmin):
     list_display = ("name", "slug", "is_active", "display_order", "updated_at")
     list_filter = ("is_active",)
@@ -139,7 +138,6 @@ class FAQCategoryAdmin(admin.ModelAdmin):
     ordering = ("display_order", "name")
 
 
-@admin.register(FAQ, site=admin_site)
 class FAQAdmin(admin.ModelAdmin):
     list_display = ("question", "category", "status", "is_featured", "view_count", "updated_at")
     list_filter = ("status", "category", "is_featured")
@@ -148,7 +146,6 @@ class FAQAdmin(admin.ModelAdmin):
     autocomplete_fields = ("submitted_by", "reviewed_by")
 
 
-@admin.register(KBCategory, site=admin_site)
 class KBCategoryAdmin(admin.ModelAdmin):
     list_display = ("name", "slug", "parent", "is_active", "display_order", "updated_at")
     list_filter = ("is_active",)
@@ -157,7 +154,6 @@ class KBCategoryAdmin(admin.ModelAdmin):
     autocomplete_fields = ("parent",)
 
 
-@admin.register(KBArticle, site=admin_site)
 class KBArticleAdmin(admin.ModelAdmin):
     list_display = ("title", "category", "status", "difficulty", "is_featured", "view_count", "updated_at")
     list_filter = ("status", "difficulty", "category", "is_featured")
@@ -167,7 +163,6 @@ class KBArticleAdmin(admin.ModelAdmin):
     filter_horizontal = ("contributors", "related_articles")
 
 
-@admin.register(KBArticleAttachment, site=admin_site)
 class KBArticleAttachmentAdmin(admin.ModelAdmin):
     list_display = ("title", "article", "is_screenshot", "display_order", "created_at")
     list_filter = ("is_screenshot",)
@@ -176,7 +171,6 @@ class KBArticleAttachmentAdmin(admin.ModelAdmin):
     ordering = ("article", "display_order", "-created_at")
 
 
-@admin.register(KBComment, site=admin_site)
 class KBCommentAdmin(admin.ModelAdmin):
     list_display = ("article", "user", "is_approved", "is_helpful", "created_at")
     list_filter = ("is_approved", "is_helpful")
@@ -185,9 +179,17 @@ class KBCommentAdmin(admin.ModelAdmin):
     ordering = ("-is_helpful", "-created_at")
 
 
-@admin.register(UserContribution, site=admin_site)
 class UserContributionAdmin(admin.ModelAdmin):
     list_display = ("user", "contribution_type", "points", "created_at")
     list_filter = ("contribution_type",)
     search_fields = ("user__username", "description")
     ordering = ("-created_at",)
+
+
+register_tenant_admin(FAQCategory, FAQCategoryAdmin)
+register_tenant_admin(FAQ, FAQAdmin)
+register_tenant_admin(KBCategory, KBCategoryAdmin)
+register_tenant_admin(KBArticle, KBArticleAdmin)
+register_tenant_admin(KBArticleAttachment, KBArticleAttachmentAdmin)
+register_tenant_admin(KBComment, KBCommentAdmin)
+register_tenant_admin(UserContribution, UserContributionAdmin)

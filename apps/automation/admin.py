@@ -2,12 +2,12 @@
 Admin configuration for automation models.
 """
 from django.contrib import admin
-from config.admin import admin_site
+from config.admin import platform_admin_site
 from unfold.admin import ModelAdmin
 from .models import AutomationExecutionLog, AutomationApprovalQueue, MigrationProfile, MigrationRun
 
 
-@admin.register(AutomationExecutionLog, site=admin_site)
+@admin.register(AutomationExecutionLog, site=platform_admin_site)
 class AutomationExecutionLogAdmin(ModelAdmin):
     list_display = ("task_name", "school", "schema_name", "execution_type", "status", "records_processed", "records_failed", "started_at", "completed_at")
     list_filter = ("school", "task_name", "execution_type", "status", "started_at")
@@ -30,7 +30,7 @@ class AutomationExecutionLogAdmin(ModelAdmin):
     )
 
 
-@admin.register(AutomationApprovalQueue, site=admin_site)
+@admin.register(AutomationApprovalQueue, site=platform_admin_site)
 class AutomationApprovalQueueAdmin(ModelAdmin):
     list_display = ("automation_type", "school", "schema_name", "status", "requested_by", "approved_by", "created_at", "approved_at")
     list_filter = ("school", "automation_type", "status", "created_at")
@@ -72,7 +72,7 @@ class AutomationApprovalQueueAdmin(ModelAdmin):
     reject_selected.short_description = "Reject selected automation requests"
 
 
-@admin.register(MigrationProfile, site=admin_site)
+@admin.register(MigrationProfile, site=platform_admin_site)
 class MigrationProfileAdmin(ModelAdmin):
     list_display = ("slug", "name", "format", "domain", "is_active", "sort_order")
     list_filter = ("format", "domain", "is_active")
@@ -80,7 +80,7 @@ class MigrationProfileAdmin(ModelAdmin):
     ordering = ("sort_order", "slug")
 
 
-@admin.register(MigrationRun, site=admin_site)
+@admin.register(MigrationRun, site=platform_admin_site)
 class MigrationRunAdmin(ModelAdmin):
     list_display = (
         "migration_type",

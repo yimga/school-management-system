@@ -1,5 +1,5 @@
 from django.contrib import admin
-from config.admin import admin_site
+from config.admin import register_tenant_admin
 
 from unfold.admin import ModelAdmin
 from .models import TermPublishStatus, ReportCard, PromotionRule, EMISSubmission
@@ -27,8 +27,8 @@ class EMISSubmissionAdmin(ModelAdmin):
     raw_id_fields = ("school", "academic_year", "term", "submitted_by")
 
 
-# Register all models with custom admin site
-admin_site.register(TermPublishStatus, TermPublishStatusAdmin)
-admin_site.register(ReportCard, ReportCardAdmin)
-admin_site.register(PromotionRule, PromotionRuleAdmin)
-admin_site.register(EMISSubmission, EMISSubmissionAdmin)
+# Register all models with tenant admin only
+register_tenant_admin(TermPublishStatus, TermPublishStatusAdmin)
+register_tenant_admin(ReportCard, ReportCardAdmin)
+register_tenant_admin(PromotionRule, PromotionRuleAdmin)
+register_tenant_admin(EMISSubmission, EMISSubmissionAdmin)

@@ -2,7 +2,7 @@ from datetime import timedelta
 from decimal import Decimal
 from django.contrib import admin
 from django.contrib.admin.sites import AlreadyRegistered
-from config.admin import admin_site
+from config.admin import register_tenant_admin
 from apps.platform_runtime.helpers import get_effective_site_settings
 
 from unfold.admin import ModelAdmin
@@ -434,17 +434,17 @@ class ReferralRewardAdmin(ModelAdmin):
     search_fields = ("student__student_code", "guardian__guardian_user__username", "guardian__guardian_user__email")
 
 
-# Register all models with custom admin site
-admin_site.register(ComplianceProfile, ComplianceProfileAdmin)
-admin_site.register(TaxBracket, TaxBracketAdmin)
-admin_site.register(ContributionRule, ContributionRuleAdmin)
-admin_site.register(LedgerAccount, LedgerAccountAdmin)
-admin_site.register(JournalEntry, JournalEntryAdmin)
-admin_site.register(Counterparty, CounterpartyAdmin)
-admin_site.register(FeePlan, FeePlanAdmin)
-admin_site.register(FeeInstallment, FeeInstallmentAdmin)
-admin_site.register(Invoice, InvoiceAdmin)
-admin_site.register(Payment, PaymentAdmin)
+# Register all models with tenant admin only
+register_tenant_admin(ComplianceProfile, ComplianceProfileAdmin)
+register_tenant_admin(TaxBracket, TaxBracketAdmin)
+register_tenant_admin(ContributionRule, ContributionRuleAdmin)
+register_tenant_admin(LedgerAccount, LedgerAccountAdmin)
+register_tenant_admin(JournalEntry, JournalEntryAdmin)
+register_tenant_admin(Counterparty, CounterpartyAdmin)
+register_tenant_admin(FeePlan, FeePlanAdmin)
+register_tenant_admin(FeeInstallment, FeeInstallmentAdmin)
+register_tenant_admin(Invoice, InvoiceAdmin)
+register_tenant_admin(Payment, PaymentAdmin)
 
 
 class PaymentDisputeAdmin(ModelAdmin):
@@ -455,22 +455,22 @@ class PaymentDisputeAdmin(ModelAdmin):
     readonly_fields = ("created_at", "updated_at")
 
 
-admin_site.register(PaymentDispute, PaymentDisputeAdmin)
-admin_site.register(PaymentReminder, PaymentReminderAdmin)
-admin_site.register(PaymentReminderLog, PaymentReminderLogAdmin)
-admin_site.register(Budget, BudgetAdmin)
-admin_site.register(BudgetLine, BudgetLineAdmin)
-admin_site.register(AssetCategory, AssetCategoryAdmin)
-admin_site.register(Asset, AssetAdmin)
-admin_site.register(Grant, GrantAdmin)
-admin_site.register(Notification, NotificationAdmin)
+register_tenant_admin(PaymentDispute, PaymentDisputeAdmin)
+register_tenant_admin(PaymentReminder, PaymentReminderAdmin)
+register_tenant_admin(PaymentReminderLog, PaymentReminderLogAdmin)
+register_tenant_admin(Budget, BudgetAdmin)
+register_tenant_admin(BudgetLine, BudgetLineAdmin)
+register_tenant_admin(AssetCategory, AssetCategoryAdmin)
+register_tenant_admin(Asset, AssetAdmin)
+register_tenant_admin(Grant, GrantAdmin)
+register_tenant_admin(Notification, NotificationAdmin)
 try:
-    admin_site.register(FinanceRequestAudit, FinanceRequestAuditAdmin)
+    register_tenant_admin(FinanceRequestAudit, FinanceRequestAuditAdmin)
 except AlreadyRegistered:
     pass
-admin_site.register(ReportRequest, ReportRequestAdmin)
-admin_site.register(CashOfficeClosure, CashOfficeClosureAdmin)
-admin_site.register(ReferralReward, ReferralRewardAdmin)
+register_tenant_admin(ReportRequest, ReportRequestAdmin)
+register_tenant_admin(CashOfficeClosure, CashOfficeClosureAdmin)
+register_tenant_admin(ReferralReward, ReferralRewardAdmin)
 
 
 class PaymentProofUploadAdmin(ModelAdmin):
@@ -614,7 +614,7 @@ class PaymentProofUploadAdmin(ModelAdmin):
     reject_selected.short_description = "Reject selected receipts"
 
 
-admin_site.register(PaymentProofUpload, PaymentProofUploadAdmin)
+register_tenant_admin(PaymentProofUpload, PaymentProofUploadAdmin)
 
 
 class BankAccountAdmin(ModelAdmin):
@@ -780,12 +780,12 @@ class AidAuditLogAdmin(ModelAdmin):
     readonly_fields = ("school", "source", "action", "amount", "balance_after", "reason", "application", "created_by", "created_at")
 
 
-admin_site.register(AwardSource, AwardSourceAdmin)
-admin_site.register(Scholarship, ScholarshipAdmin)
-admin_site.register(FinancialAidApplication, FinancialAidApplicationAdmin)
-admin_site.register(AidAuditLog, AidAuditLogAdmin)
+register_tenant_admin(AwardSource, AwardSourceAdmin)
+register_tenant_admin(Scholarship, ScholarshipAdmin)
+register_tenant_admin(FinancialAidApplication, FinancialAidApplicationAdmin)
+register_tenant_admin(AidAuditLog, AidAuditLogAdmin)
 
-admin_site.register(BankAccount, BankAccountAdmin)
-admin_site.register(BankStatementEntry, BankStatementEntryAdmin)
-admin_site.register(BankStatementUpload, BankStatementUploadAdmin)
-admin_site.register(SuspensePayment, SuspensePaymentAdmin)
+register_tenant_admin(BankAccount, BankAccountAdmin)
+register_tenant_admin(BankStatementEntry, BankStatementEntryAdmin)
+register_tenant_admin(BankStatementUpload, BankStatementUploadAdmin)
+register_tenant_admin(SuspensePayment, SuspensePaymentAdmin)

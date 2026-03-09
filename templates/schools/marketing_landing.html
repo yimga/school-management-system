@@ -21,12 +21,13 @@
       <div class="d-flex gap-2">
         <a href="{% url 'signup_school' %}" class="btn btn-sm btn-primary" data-cta="primary" data-page="home">{% trans "Start Free Trial" %}</a>
         <a href="{% url 'marketing_book_demo' %}" class="btn btn-sm btn-outline-light" data-cta="demo" data-page="home">{% trans "Book a demo" %}</a>
+        <a href="{% url 'global_login_discovery' %}" class="btn btn-sm btn-outline-light">{% trans "Login" %}</a>
       </div>
     </div>
   </div>
 
-  {# 1. Hero — single platform headline, primary CTA, category claim #}
-  <section id="hero" class="mkt-hero" tabindex="-1">
+  {# 1. Hero — single platform headline, primary CTA, category claim (data-tour for product tour library) #}
+  <section id="hero" class="mkt-hero" tabindex="-1" data-tour="hero">
     <div class="mkt-hero-inner">
       <div>
         <h1 class="mkt-hero-headline">{{ platform_headline|default:hero_headline }}</h1>
@@ -44,10 +45,18 @@
           {% if demo_tenant_url %}
             <a href="{{ demo_tenant_url }}" class="btn btn-outline-light" target="_blank" rel="noopener">{% trans "Try demo" %}</a>
           {% endif %}
+          <a href="{% url 'marketing_interactive_preview' %}" class="btn btn-outline-light" data-cta="secondary" data-page="home">{% trans "See product tour" %}</a>
         </div>
       </div>
       <div class="mkt-hero-visual">
-        <img src="{% if hero_dashboard_image_url %}{{ hero_dashboard_image_url }}{% else %}{% static 'images/runmycampus-logo.png' %}{% endif %}" alt="RunMyCampus dashboard overview" width="800" height="450" decoding="async" fetchpriority="high" loading="eager">
+        {% if hero_video_url %}
+        <video class="mkt-hero-video" width="800" height="450" poster="{% if hero_video_poster_url %}{{ hero_video_poster_url }}{% endif %}" preload="metadata" playsinline muted loop aria-label="RunMyCampus platform overview">
+          <source src="{{ hero_video_url }}" type="video/mp4">
+          <img src="{% if hero_dashboard_image_url %}{{ hero_dashboard_image_url }}{% else %}{% static 'images/runmycampus-logo.png' %}{% endif %}"{% if hero_dashboard_image_srcset %} srcset="{{ hero_dashboard_image_srcset }}" sizes="{{ hero_dashboard_image_sizes }}"{% endif %} alt="RunMyCampus dashboard overview" width="800" height="450" decoding="async" loading="eager">
+        </video>
+        {% else %}
+        <img src="{% if hero_dashboard_image_url %}{{ hero_dashboard_image_url }}{% else %}{% static 'images/runmycampus-logo.png' %}{% endif %}"{% if hero_dashboard_image_srcset %} srcset="{{ hero_dashboard_image_srcset }}" sizes="{{ hero_dashboard_image_sizes }}"{% endif %} alt="RunMyCampus dashboard overview" width="800" height="450" decoding="async" fetchpriority="high" loading="eager">
+        {% endif %}
       </div>
     </div>
   </section>
@@ -102,6 +111,53 @@
   </section>
   {% endif %}
 
+  {# Outcome metrics — stat cards with mini charts #}
+  {% if outcome_metrics %}
+  <section id="outcome-metrics" class="mkt-section" aria-label="{% trans 'Outcomes' %}">
+    <h2 class="mkt-section-heading">{% trans "Outcomes from real schools" %}</h2>
+    <p class="mkt-section-lead">{% trans "What schools achieve with RunMyCampus." %}</p>
+    <div class="row g-3">
+      {% for m in outcome_metrics %}
+      <div class="col-md-6">
+        <div class="mkt-outcome-card border rounded p-3 h-100">
+          <div class="mkt-outcome-value">{{ m.value }}</div>
+          <div class="mkt-outcome-label">{{ m.label }}</div>
+          {% if m.detail %}<p class="small text-muted mb-2">{{ m.detail }}</p>{% endif %}
+          {% if m.bar_pct %}
+          <div class="mkt-outcome-bar" role="img" aria-label="{{ m.value }} {{ m.label }}">
+            <span class="mkt-outcome-bar-fill" style="width: {{ m.bar_pct }}%;"></span>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {# Product visualization — scrolling UI strip #}
+  {% if product_visualization_slides %}
+  <section id="product-visualization" class="mkt-section" aria-label="{% trans 'Product in action' %}" data-tour="product-visualization">
+    <h2 class="mkt-section-heading">{% trans "See your entire school in real time" %}</h2>
+    <p class="mkt-section-lead">{% trans "Student profiles, teacher dashboards, and admin analytics—one platform." %}</p>
+    <div class="mkt-product-viz-scroll" role="list">
+      {% for slide in product_visualization_slides %}
+      <div class="mkt-product-viz-slide" role="listitem">
+        <div class="mkt-product-viz-frame">
+          {% if slide.image_url %}
+          <img src="{{ slide.image_url }}" alt="{{ slide.title }}" width="600" height="360" loading="lazy" decoding="async">
+          {% elif slide.image_static %}
+          <img src="{% static slide.image_static %}" alt="{{ slide.title }}" width="600" height="360" loading="lazy" decoding="async">
+          {% endif %}
+        </div>
+        <h3 class="h6 mt-2">{{ slide.title }}</h3>
+        <p class="small text-muted mb-0">{{ slide.caption }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
   {# 2. Institutional coverage #}
   <section id="institutional-coverage" class="mkt-section" aria-label="{% trans 'Institutional coverage' %}">
     <h2 class="mkt-section-heading">{% trans "Built for every type of institution" %}</h2>
@@ -117,7 +173,25 @@
     </div>
   </section>
 
-  {# 3. Platform modules #}
+  {# Product pillars (6) — Learn more links #}
+  {% if product_pillars_home %}
+  <section id="product-pillars" class="mkt-section" aria-label="{% trans 'Product pillars' %}">
+    <h2 class="mkt-section-heading">{% trans "Everything you need to run your school" %}</h2>
+    <p class="mkt-section-lead">{% trans "Admissions, academics, finance, communication, and compliance in one platform." %}</p>
+    <div class="mkt-modules-grid">
+      {% for pillar in product_pillars_home %}
+      <article class="mkt-module-card">
+        <h3>{{ pillar.title }}</h3>
+        <p>{{ pillar.summary }}</p>
+        <a href="{{ pillar.path }}" class="btn btn-sm btn-outline-primary">{% trans "Learn more" %}</a>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {# 3. Platform modules (fallback) #}
+  {% if not product_pillars_home and core_modules %}
   <section id="platform-overview" class="mkt-section">
     <h2 class="mkt-section-heading">{% trans "Everything you need to run your school" %}</h2>
     <p class="mkt-section-lead">{% trans "Admissions, academics, finance, communication, and compliance in one platform." %}</p>
@@ -125,7 +199,7 @@
       {% for module in core_modules %}
         <article class="mkt-module-card">
           {% if module.screenshot_url %}
-            <div class="mkt-module-screenshot"><img src="{{ module.screenshot_url }}" alt="" width="400" height="250" loading="lazy" decoding="async"></div>
+            <div class="mkt-module-screenshot"><img src="{% static module.screenshot_url %}" alt="" width="400" height="250" loading="lazy" decoding="async"></div>
           {% endif %}
           <h3>{{ module.title }}</h3>
           <p>{{ module.summary }}</p>
@@ -133,11 +207,85 @@
       {% endfor %}
     </div>
   </section>
+  {% endif %}
+
+  {# For your role #}
+  {% if for_your_role %}
+  <section id="for-your-role" class="mkt-section" aria-label="{% trans 'For your role' %}">
+    <h2 class="mkt-section-heading">{% trans "For your role" %}</h2>
+    <p class="mkt-section-lead">{% trans "Purpose-built workflows for every stakeholder." %}</p>
+    <div class="mkt-modules-grid">
+      {% for role in for_your_role %}
+      <article class="mkt-module-card">
+        <h3>{{ role.label }}</h3>
+        <p>{{ role.summary }}</p>
+        <a href="{{ role.path }}" class="btn btn-sm btn-outline-primary">{% trans "Explore" %}</a>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {# Solve by challenge #}
+  {% if solve_by_challenge %}
+  <section id="solve-by-challenge" class="mkt-section" aria-label="{% trans 'Solve by challenge' %}">
+    <h2 class="mkt-section-heading">{% trans "Solve by challenge" %}</h2>
+    <p class="mkt-section-lead">{% trans "Find the path that fits your priority." %}</p>
+    <ul class="list-unstyled d-flex flex-wrap gap-2 justify-content-center">
+      {% for ch in solve_by_challenge %}
+      <li><a href="{{ ch.path }}" class="btn btn-outline-secondary btn-sm">{{ ch.title }}</a></li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  {# 3-step Get started #}
+  {% if get_started_three_steps %}
+  <section id="get-started" class="mkt-section" aria-label="{% trans 'Get started' %}">
+    <h2 class="mkt-section-heading">{% trans "Start in three steps" %}</h2>
+    <div class="row g-3">
+      {% for step in get_started_three_steps %}
+      <div class="col-md-4">
+        <div class="border rounded p-3 text-center">
+          <span class="badge bg-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width:2rem;height:2rem;">{{ step.step }}</span>
+          <h4 class="h6">{{ step.title }}</h4>
+          <p class="small text-muted mb-0">{{ step.body }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <p class="text-center mt-3">
+      <a href="{% url 'signup_school' %}" class="btn btn-primary" data-cta="primary" data-page="home">{% trans "Start Free Trial" %}</a>
+    </p>
+  </section>
+  {% endif %}
 
   {# 4. Workflow automation #}
   <section id="workflow-automation" class="mkt-section" aria-label="{% trans 'Workflow automation' %}">
     <h2 class="mkt-section-heading">{% trans "Workflow automation" %}</h2>
     <p class="mkt-section-lead">{% trans "From enquiry to graduation—configurable flows without custom code." %}</p>
+    <div class="mkt-workflow-diagram" aria-hidden="true">
+      <svg class="mkt-workflow-svg" viewBox="0 0 640 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="{% trans 'Example workflow: grade drop triggers teacher and parent notification then tutoring assignment' %}">
+        <defs>
+          <marker id="mkt-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><polygon points="0 0, 8 4, 0 8" fill="currentColor"/></marker>
+        </defs>
+        <g class="mkt-workflow-nodes">
+          <rect x="20" y="30" width="120" height="60" rx="8" class="mkt-workflow-node"/>
+          <text x="80" y="67" text-anchor="middle" class="mkt-workflow-label">{% trans "Grade drops" %}</text>
+          <rect x="160" y="30" width="120" height="60" rx="8" class="mkt-workflow-node"/>
+          <text x="220" y="67" text-anchor="middle" class="mkt-workflow-label">{% trans "Notify teacher" %}</text>
+          <rect x="300" y="30" width="120" height="60" rx="8" class="mkt-workflow-node"/>
+          <text x="360" y="67" text-anchor="middle" class="mkt-workflow-label">{% trans "Notify parent" %}</text>
+          <rect x="440" y="30" width="120" height="60" rx="8" class="mkt-workflow-node"/>
+          <text x="500" y="67" text-anchor="middle" class="mkt-workflow-label">{% trans "Assign tutoring" %}</text>
+        </g>
+        <g fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="140" y1="60" x2="160" y2="60" marker-end="url(#mkt-arrow)"/>
+          <line x1="280" y1="60" x2="300" y2="60" marker-end="url(#mkt-arrow)"/>
+          <line x1="420" y1="60" x2="440" y2="60" marker-end="url(#mkt-arrow)"/>
+        </g>
+      </svg>
+    </div>
     <div class="mkt-platform-grid">
       {% for item in workflow_automation %}
         <article class="mkt-platform-card">
@@ -159,6 +307,50 @@
     </ul>
   </section>
 
+  {# AI Intelligence — dedicated section (optional enhancement) #}
+  {% if ai_intelligence_features %}
+  <section id="ai-intelligence" class="mkt-section" aria-label="{% trans 'AI Insights' %}" data-tour="ai-intelligence">
+    <h2 class="mkt-section-heading">{% trans "AI Insights for Better Education" %}</h2>
+    <p class="mkt-section-lead">{% trans "Use data to predict performance, reduce dropout risk, and recommend interventions—so your team can focus on teaching." %}</p>
+    <ul class="mkt-ai-features list-unstyled">
+      {% for item in ai_intelligence_features %}
+      <li class="mb-2">{{ item }}</li>
+      {% endfor %}
+    </ul>
+    {% if ai_intelligence_cta_path %}
+    <p class="text-center mt-3">
+      <a href="{{ ai_intelligence_cta_path }}" class="btn btn-outline-primary" data-cta="ai-insights" data-page="home">{% trans "Learn about AI &amp; analytics" %}</a>
+    </p>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  {# Global infrastructure — Built for schools worldwide #}
+  <section id="global-infrastructure" class="mkt-section" aria-label="{% trans 'Global infrastructure' %}" data-tour="global-infrastructure">
+    <h2 class="mkt-section-heading">{% trans "Built for schools worldwide" %}</h2>
+    <p class="mkt-section-lead">{% trans "195+ country-ready profiles, multi-currency, multi-language, and education policy packs." %}</p>
+    {% if global_map_image_url %}
+    <div class="mkt-global-map-wrap text-center mb-3">
+      <img src="{{ global_map_image_url }}" alt="{% trans 'Global coverage' %}" width="800" height="400" loading="lazy" decoding="async" class="mkt-global-map-img">
+    </div>
+    {% endif %}
+    {% if illustration_globe_url %}
+    <div class="text-center mb-3">
+      <img src="{{ illustration_globe_url }}" alt="" width="200" height="200" loading="lazy" decoding="async" class="mkt-illustration-globe" aria-hidden="true">
+    </div>
+    {% endif %}
+    {% if global_stats %}
+    <div class="d-flex flex-wrap justify-content-center gap-4 text-center">
+      {% for stat in global_stats %}
+      <div class="mkt-global-stat">
+        <span class="mkt-global-stat-value">{{ stat.value }}</span>
+        <span class="mkt-global-stat-label">{{ stat.label }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </section>
+
   {# 6. Migration angle #}
   <section id="migration" class="mkt-section">
     <h2 class="mkt-section-heading">{% trans "Migrate with confidence" %}</h2>
@@ -177,15 +369,32 @@
     </div>
   </section>
 
-  {# 7. Marketplace ecosystem #}
-  <section id="ecosystem" class="mkt-section">
+  {# 7. Ecosystem — App Marketplace hero, integrations strip, developer story, partners #}
+  <section id="ecosystem" class="mkt-section" data-tour="ecosystem">
+    {% if app_marketplace_hero %}
+    <h2 class="mkt-section-heading">{{ app_marketplace_hero.title }}</h2>
+    <p class="mkt-section-lead">{{ app_marketplace_hero.summary }} {{ app_marketplace_hero.app_count }} {% trans "integrations and apps." %}</p>
+    <p class="text-center mb-3">
+      <a href="{{ app_marketplace_hero.cta_path }}" class="btn btn-primary">{{ app_marketplace_hero.cta_label }}</a>
+    </p>
+    {% else %}
     <h2 class="mkt-section-heading">{% trans "Ecosystem & integrations" %}</h2>
     <p class="mkt-section-lead">{% trans "Connect your LMS, payments, messaging, and identity providers." %}</p>
+    {% endif %}
+    {% if integrations_strip %}
+    <p class="text-center small text-muted mb-3">{% trans "Works with:" %} {{ integrations_strip|join:", " }}</p>
+    {% endif %}
     <div class="mkt-ecosystem-grid">
       {% for app in ecosystem_apps %}
         <div class="mkt-ecosystem-card">
+          {% if app.image_url %}
+          <div class="mkt-ecosystem-card-icon"><img src="{{ app.image_url }}" alt="" width="48" height="48" loading="lazy" decoding="async"></div>
+          {% endif %}
           <h4>{{ app.name }}</h4>
           <p>{{ app.summary }}</p>
+          {% if app.install_path or app.cta_path %}
+          <a href="{{ app.install_path|default:app.cta_path }}" class="btn btn-sm btn-outline-primary mt-2">{% trans app.cta_label|default:"Install" %}</a>
+          {% endif %}
         </div>
       {% endfor %}
     </div>
@@ -193,18 +402,39 @@
       <a href="{% url 'marketing_integrations' %}" class="btn btn-outline-primary">{% trans "View integrations" %}</a>
       <a href="{% url 'marketing_app_marketplace' %}" class="btn btn-outline-secondary ms-2">{% trans "App Marketplace" %}</a>
     </p>
+    {% if partners_list %}
+    <p class="text-center small text-muted mt-2">{% trans "Implementation partners:" %} {% for p in partners_list %}<a href="{{ p.url }}">{{ p.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+    {% endif %}
   </section>
 
-  {# 8. Developer platform #}
+  {# 8. Developer platform — By developers, for developers #}
   <section id="developer-platform" class="mkt-section" aria-label="{% trans 'Developer platform' %}">
     <h2 class="mkt-section-heading">{{ developer_platform_card.title }}</h2>
-    <p class="mkt-section-lead">{{ developer_platform_card.summary }}</p>
+    <p class="mkt-section-lead">{% if developer_story_summary %}{{ developer_story_summary }}{% else %}{{ developer_platform_card.summary }}{% endif %}</p>
     <p class="text-center">
       <a href="{{ developer_platform_card.cta_path }}" class="btn btn-outline-primary">{{ developer_platform_card.cta_label }}</a>
     </p>
   </section>
 
-  {# 9. Customer stories / testimonials #}
+  {# Customer logos #}
+  {% if customer_logos %}
+  <section id="customer-logos" class="mkt-section" aria-label="{% trans 'Schools that run on RunMyCampus' %}">
+    <h2 class="mkt-section-heading">{% trans "Schools and networks that run on RunMyCampus" %}</h2>
+    <div class="d-flex flex-wrap justify-content-center align-items-center gap-4">
+      {% for logo in customer_logos %}
+      <span class="mkt-customer-logo">
+        {% if logo.logo_url or logo.image_url %}
+        <img src="{% if logo.logo_url %}{{ logo.logo_url }}{% else %}{{ logo.image_url }}{% endif %}" alt="{{ logo.name }}" width="120" height="48" loading="lazy" decoding="async" class="mkt-customer-logo-img">
+        {% else %}
+        {{ logo.name }}
+        {% endif %}
+      </span>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {# 9. Customer stories / testimonials — named quotes with title and org #}
   <section id="customer-stories" class="mkt-section">
     <h2 class="mkt-section-heading">{% trans "What schools say about RunMyCampus" %}</h2>
     <p class="mkt-section-lead">{% trans "Outcomes from real operations teams." %}</p>
@@ -217,13 +447,40 @@
           <div class="mkt-testimonial-role">{{ t.role }}</div>
         </article>
       {% endfor %}
+      {% for v in video_testimonials %}
+        <article class="mkt-testimonial-card mkt-video-testimonial">
+          {% if v.url %}
+          <a href="{{ v.url }}" target="_blank" rel="noopener" class="mkt-video-testimonial-link" aria-label="{% if v.title %}{{ v.title }}{% else %}Watch video testimonial{% endif %}">
+            {% if v.thumbnail_url %}<img src="{{ v.thumbnail_url }}" alt="" width="320" height="180" loading="lazy" decoding="async" class="mkt-video-testimonial-thumb">{% endif %}
+            <span class="mkt-video-testimonial-play" aria-hidden="true">&#9658;</span>
+          </a>
+          {% if v.title %}<p class="mkt-video-testimonial-title small mb-0">{{ v.title }}</p>{% endif %}
+          {% endif %}
+        </article>
+      {% endfor %}
     </div>
+    {% if review_badges %}
+    <p class="text-center small text-muted mt-2">
+      {% for badge in review_badges %}<span class="me-3">{{ badge.name }} {{ badge.stars }}★ ({{ badge.reviews }} {% trans "reviews" %})</span>{% endfor %}
+    </p>
+    {% endif %}
     <p class="text-center mt-3">
       <a href="{% url 'marketing_case_studies' %}" class="btn btn-outline-primary">{% trans "Read case studies" %}</a>
     </p>
   </section>
 
-  {# 10. Pricing snapshot #}
+  {# Second lead magnet #}
+  {% if second_lead_magnet %}
+  <section id="second-lead-magnet" class="mkt-section">
+    <h2 class="mkt-section-heading">{{ second_lead_magnet.title }}</h2>
+    <p class="mkt-section-lead">{{ second_lead_magnet.summary }}</p>
+    <p class="text-center">
+      <a href="{{ second_lead_magnet.url }}" class="btn btn-outline-primary">{% trans "Download" %}</a>
+    </p>
+  </section>
+  {% endif %}
+
+  {# 10. Pricing snapshot — enterprise path visible #}
   <section id="pricing-snapshot" class="mkt-section" aria-label="{% trans 'Pricing' %}">
     <h2 class="mkt-section-heading">{% trans "Plans that scale with you" %}</h2>
     <p class="mkt-section-lead">{% trans "From single-campus to enterprise white-label." %}</p>
@@ -241,12 +498,105 @@
         </article>
       {% endfor %}
     </div>
+    {% if enterprise_path_copy %}
+    <p class="text-center small text-muted mt-3">{{ enterprise_path_copy }}</p>
+    <p class="text-center mt-2">
+      <a href="{% url 'marketing_book_demo' %}" class="btn btn-sm btn-outline-secondary">{% trans "Book architecture call" %}</a>
+    </p>
+    {% endif %}
   </section>
 
-  {# 11. Trust + security #}
+  {# Awards & recognition #}
+  {% if awards_recognition %}
+  <section id="awards" class="mkt-section" aria-label="{% trans 'Awards and recognition' %}">
+    <h2 class="mkt-section-heading">{% trans "Awards & recognition" %}</h2>
+    <div class="d-flex flex-wrap justify-content-center gap-2">
+      {% for award in awards_recognition %}
+      <span class="badge bg-secondary">{{ award }}</span>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {# Gated report CTA #}
+  {% if gated_report_cta %}
+  <section id="gated-report" class="mkt-section" aria-label="{% trans 'Download report' %}">
+    <h2 class="mkt-section-heading">{{ gated_report_cta.headline }}</h2>
+    <p class="text-center">
+      <a href="{{ gated_report_cta.url }}" class="btn btn-primary">{{ gated_report_cta.cta_label }}</a>
+    </p>
+  </section>
+  {% endif %}
+
+  {# Events & webinars #}
+  {% if events_list %}
+  <section id="events" class="mkt-section" aria-label="{% trans 'Events' %}">
+    <h2 class="mkt-section-heading">{% trans "Events & webinars" %}</h2>
+    <ul class="list-unstyled">
+      {% for event in events_list %}
+      <li class="mb-2"><strong>{{ event.title }}</strong> — {{ event.date }} <a href="{{ event.cta_url }}" class="btn btn-sm btn-outline-primary">{{ event.cta_label }}</a></li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+  {% if flagship_event %}
+  <section id="flagship-event" class="mkt-section">
+    <h2 class="mkt-section-heading">{{ flagship_event.name }}</h2>
+    <p class="mkt-section-lead">{{ flagship_event.summary }}</p>
+    <p class="text-center">
+      <a href="{{ flagship_event.cta_url }}" class="btn btn-outline-primary">{{ flagship_event.cta_label }}</a>
+    </p>
+  </section>
+  {% endif %}
+
+  {# Community CTA #}
+  {% if community_cta %}
+  <section id="community" class="mkt-section">
+    <h2 class="mkt-section-heading">{{ community_cta.label }}</h2>
+    <p class="mkt-section-lead">{{ community_cta.summary }}</p>
+    <p class="text-center">
+      <a href="{{ community_cta.url }}" class="btn btn-outline-primary">{{ community_cta.label }}</a>
+    </p>
+  </section>
+  {% endif %}
+
+  {# Differentiation block #}
+  {% if differentiation_block %}
+  <section id="differentiation" class="mkt-section" aria-label="{% trans 'Why RunMyCampus' %}">
+    <h2 class="mkt-section-heading">{% trans "Why RunMyCampus" %}</h2>
+    <ul class="mkt-migration-list">
+      {% for item in differentiation_block %}
+      <li>{{ item }}</li>
+      {% endfor %}
+    </ul>
+    {% if why_switch_path %}
+    <p class="text-center mt-3">
+      <a href="{{ why_switch_path }}" class="btn btn-outline-primary">{% trans "Why switch" %}</a>
+    </p>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  {# 10 reasons link #}
+  {% if ten_reasons_page_path %}
+  <section id="10-reasons-cta" class="mkt-section">
+    <h2 class="mkt-section-heading">{% trans "10 reasons schools choose RunMyCampus" %}</h2>
+    <p class="text-center">
+      <a href="{{ ten_reasons_page_path }}" class="btn btn-outline-primary">{% trans "Read 10 reasons" %}</a>
+    </p>
+  </section>
+  {% endif %}
+
+  {# 11. Trust + security — support & accessibility #}
   <section id="security-compliance" class="mkt-section">
     <h2 class="mkt-section-heading">{% trans "Security & compliance" %}</h2>
     <p class="mkt-section-lead">{% trans "Enterprise-grade safeguards and regional compliance readiness." %}</p>
+    {% if support_implementation_copy %}
+    <p class="mkt-security-copy">{{ support_implementation_copy }}</p>
+    {% endif %}
+    {% if accessibility_line %}
+    <p class="mkt-security-copy">{{ accessibility_line }}</p>
+    {% endif %}
     <div class="mkt-security-badges">
       {% for badge in security_badges %}
         <span class="mkt-security-badge">{{ badge }}</span>

@@ -1,6 +1,6 @@
 """Django admin configuration for compliance management."""
 from django.contrib import admin
-from config.admin import admin_site
+from config.admin import register_tenant_admin
 from .models import (
     ComplianceRule,
     RegionalComplianceRequirement,
@@ -57,14 +57,14 @@ class RegionFeatureComplianceAdmin(admin.ModelAdmin):
 
 
 # Register all models with custom admin site
-admin_site.register(RegionFeatureCompliance, RegionFeatureComplianceAdmin)
-admin_site.register(ComplianceRule, ComplianceRuleAdmin)
-admin_site.register(RegionalComplianceRequirement, RegionalComplianceRequirementAdmin)
-admin_site.register(ComplianceCheck, ComplianceCheckAdmin)
-admin_site.register(LegalDocument, LegalDocumentAdmin)
-admin_site.register(ComplianceAuditLog, ComplianceAuditLogAdmin)
-admin_site.register(StudentIDFormat, StudentIDFormatAdmin)
-admin_site.register(CertificateTemplate, CertificateTemplateAdmin)
+register_tenant_admin(RegionFeatureCompliance, RegionFeatureComplianceAdmin)
+register_tenant_admin(ComplianceRule, ComplianceRuleAdmin)
+register_tenant_admin(RegionalComplianceRequirement, RegionalComplianceRequirementAdmin)
+register_tenant_admin(ComplianceCheck, ComplianceCheckAdmin)
+register_tenant_admin(LegalDocument, LegalDocumentAdmin)
+register_tenant_admin(ComplianceAuditLog, ComplianceAuditLogAdmin)
+register_tenant_admin(StudentIDFormat, StudentIDFormatAdmin)
+register_tenant_admin(CertificateTemplate, CertificateTemplateAdmin)
 
 
 class ConsentRequestAdmin(admin.ModelAdmin):
@@ -82,5 +82,5 @@ class ConsentRecordAdmin(admin.ModelAdmin):
     readonly_fields = ("document_hash", "signed_at", "ip_address")
 
 
-admin_site.register(ConsentRequest, ConsentRequestAdmin)
-admin_site.register(ConsentRecord, ConsentRecordAdmin)
+register_tenant_admin(ConsentRequest, ConsentRequestAdmin)
+register_tenant_admin(ConsentRecord, ConsentRecordAdmin)

@@ -1,0 +1,13 @@
+{
+  "label": "Events",
+  "seo_title": "Events and Webinars | RunMyCampus",
+  "seo_description": "Upcoming webinars, customer roundtables, and RunMyCampus Live—our annual education operations summit.",
+  "headline": "Events and webinars.",
+  "subheadline": "Join customer roundtables, webinars, and be first to know for RunMyCampus Live.",
+  "schema_type": "WebPage",
+  "segments": [
+    {"title": "Customer roundtable", "body": "Monthly session: Migration in 90 days. Register for the next session."},
+    {"title": "RunMyCampus Live", "body": "Annual education operations summit. Be first to know when we announce dates."}
+  ],
+  "extras": {}
+}

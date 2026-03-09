@@ -7,7 +7,7 @@ from unfold.admin import ModelAdmin
 from apps.portal.models import PendingGuardianInvite
 from apps.finance.models import ReferralReward
 from apps.siteconfig.models import SiteSettings
-from config.admin import admin_site
+from config.admin import register_tenant_admin
 from .models import (
     TeacherProfile,
     InformationTag,
@@ -541,13 +541,13 @@ class InformationTagAdmin(ModelAdmin):
 
 
 # Register all models with custom admin site
-admin_site.register(InformationTag, InformationTagAdmin)
-admin_site.register(TeacherProfile, TeacherProfileAdmin)
-admin_site.register(StudentProfile, StudentProfileAdmin)
-admin_site.register(StudentGuardian, StudentGuardianAdmin)
-admin_site.register(TeacherPayRecord, TeacherPayRecordAdmin)
-admin_site.register(TeacherLeaveRequest, TeacherLeaveRequestAdmin)
-admin_site.register(TeacherAttendance, TeacherAttendanceAdmin)
+register_tenant_admin(InformationTag, InformationTagAdmin)
+register_tenant_admin(TeacherProfile, TeacherProfileAdmin)
+register_tenant_admin(StudentProfile, StudentProfileAdmin)
+register_tenant_admin(StudentGuardian, StudentGuardianAdmin)
+register_tenant_admin(TeacherPayRecord, TeacherPayRecordAdmin)
+register_tenant_admin(TeacherLeaveRequest, TeacherLeaveRequestAdmin)
+register_tenant_admin(TeacherAttendance, TeacherAttendanceAdmin)
 
 
 class StudentResourceReturnAdmin(ModelAdmin):
@@ -558,7 +558,7 @@ class StudentResourceReturnAdmin(ModelAdmin):
     date_hierarchy = "returned_at"
 
 
-admin_site.register(StudentResourceReturn, StudentResourceReturnAdmin)
+register_tenant_admin(StudentResourceReturn, StudentResourceReturnAdmin)
 
 
 class BadgeTypeAdmin(ModelAdmin):
@@ -612,9 +612,9 @@ class BadgeScanEventAdmin(ModelAdmin):
     date_hierarchy = "verified_at"
 
 
-admin_site.register(BadgeType, BadgeTypeAdmin)
-admin_site.register(Badge, BadgeAdmin)
-admin_site.register(BadgeScanEvent, BadgeScanEventAdmin)
+register_tenant_admin(BadgeType, BadgeTypeAdmin)
+register_tenant_admin(Badge, BadgeAdmin)
+register_tenant_admin(BadgeScanEvent, BadgeScanEventAdmin)
 
 
 class EmployerProfileAdmin(ModelAdmin):
@@ -624,7 +624,7 @@ class EmployerProfileAdmin(ModelAdmin):
     raw_id_fields = ("user", "school")
 
 
-admin_site.register(EmployerProfile, EmployerProfileAdmin)
+register_tenant_admin(EmployerProfile, EmployerProfileAdmin)
 
 
 class TenantAuditLogAdmin(ModelAdmin):
@@ -647,7 +647,7 @@ class TenantAuditLogAdmin(ModelAdmin):
         return False
 
 
-admin_site.register(TenantAuditLog, TenantAuditLogAdmin)
+register_tenant_admin(TenantAuditLog, TenantAuditLogAdmin)
 
 
 class ApplicantAdmin(ModelAdmin):
@@ -658,5 +658,5 @@ class ApplicantAdmin(ModelAdmin):
     ordering = ["-created_at"]
 
 
-admin_site.register(Applicant, ApplicantAdmin)
+register_tenant_admin(Applicant, ApplicantAdmin)
 

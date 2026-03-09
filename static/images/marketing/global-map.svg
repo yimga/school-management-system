@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 800 400">
+  <rect width="800" height="400" fill="#f1f5f9"/>
+  <ellipse cx="400" cy="200" rx="320" ry="160" fill="#e2e8f0" stroke="#cbd5e1"/>
+  <path d="M120 180 Q200 120 280 180 Q360 220 400 200 Q480 160 560 200 Q640 240 680 200" stroke="#94a3b8" stroke-width="2" fill="none"/>
+  <circle cx="400" cy="200" r="8" fill="#0ea5e9"/>
+  <text x="400" y="320" text-anchor="middle" font-family="system-ui,sans-serif" font-size="14" fill="#64748b">Global footprint</text>
+</svg>

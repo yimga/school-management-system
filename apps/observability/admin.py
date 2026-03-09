@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from config.admin import admin_site
+from config.admin import platform_admin_site
 
 from .models import (
     AnomalyDetection,
@@ -11,7 +11,7 @@ from .models import (
 )
 
 
-@admin.register(SystemHealthMetric, site=admin_site)
+@admin.register(SystemHealthMetric, site=platform_admin_site)
 class SystemHealthMetricAdmin(admin.ModelAdmin):
     list_display = ("metric_type", "value", "threshold", "status", "recorded_at")
     list_filter = ("metric_type", "status")
@@ -19,7 +19,7 @@ class SystemHealthMetricAdmin(admin.ModelAdmin):
     readonly_fields = ("recorded_at",)
 
 
-@admin.register(HealthCheckAlert, site=admin_site)
+@admin.register(HealthCheckAlert, site=platform_admin_site)
 class HealthCheckAlertAdmin(admin.ModelAdmin):
     list_display = ("severity", "metric", "is_resolved", "created_at", "resolved_at")
     list_filter = ("severity", "is_resolved")
@@ -27,7 +27,7 @@ class HealthCheckAlertAdmin(admin.ModelAdmin):
     readonly_fields = ("created_at",)
 
 
-@admin.register(PerformanceTrace, site=admin_site)
+@admin.register(PerformanceTrace, site=platform_admin_site)
 class PerformanceTraceAdmin(admin.ModelAdmin):
     list_display = ("operation_name", "duration_ms", "success", "user_id", "traced_at")
     list_filter = ("success",)
@@ -35,7 +35,7 @@ class PerformanceTraceAdmin(admin.ModelAdmin):
     readonly_fields = ("traced_at",)
 
 
-@admin.register(AnomalyDetection, site=admin_site)
+@admin.register(AnomalyDetection, site=platform_admin_site)
 class AnomalyDetectionAdmin(admin.ModelAdmin):
     list_display = ("metric_type", "anomaly_type", "current_value", "deviation_percent", "detected_at")
     list_filter = ("metric_type", "anomaly_type")
@@ -43,7 +43,7 @@ class AnomalyDetectionAdmin(admin.ModelAdmin):
     readonly_fields = ("detected_at",)
 
 
-@admin.register(PlatformIncident, site=admin_site)
+@admin.register(PlatformIncident, site=platform_admin_site)
 class PlatformIncidentAdmin(admin.ModelAdmin):
     list_display = (
         "title",

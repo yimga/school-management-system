@@ -1,0 +1,21 @@
+{
+  "label": "10 Reasons",
+  "seo_title": "10 Reasons Schools Choose RunMyCampus",
+  "seo_description": "Why schools and operators choose RunMyCampus: one platform, multi-tenant from day one, global compliance, and migration support.",
+  "headline": "10 reasons schools choose RunMyCampus.",
+  "subheadline": "From single campus to enterprise white-label—one platform for admissions, academics, finance, and compliance.",
+  "schema_type": "WebPage",
+  "segments": [
+    {"title": "One platform", "body": "Admissions, academics, finance, communication, and compliance in one place—no tool sprawl."},
+    {"title": "Multi-tenant from day one", "body": "Each school gets its own domain, branding, and data isolation."},
+    {"title": "Global compliance", "body": "FERPA, GDPR, and regional defaults. 195+ country-ready profiles."},
+    {"title": "Migration support", "body": "Guided import, phased rollout, and dedicated support during go-live."},
+    {"title": "Role-ready portals", "body": "Admins, teachers, parents, and students get purpose-built workflows."},
+    {"title": "Operator command center", "body": "Super-admin visibility across tenants for approvals, support, and billing."},
+    {"title": "Developer platform", "body": "APIs, webhooks, and an app marketplace to extend without custom code."},
+    {"title": "Transparent pricing", "body": "Starter, Growth, and Enterprise plans that map to your stage."},
+    {"title": "Security by design", "body": "Encryption at rest and in transit, audit trails, role-based access."},
+    {"title": "We set you up", "body": "Dedicated onboarding and support—you're not just buying software."}
+  ],
+  "extras": {}
+}

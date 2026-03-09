@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 from django.utils.html import format_html
 
-from config.admin import admin_site
+from config.admin import register_tenant_admin, tenant_admin_site
 from apps.communication.models import (
     Message,
     Announcement,
@@ -30,7 +30,7 @@ class FinanceRequestFilter(SimpleListFilter):
         return queryset
 
 
-@admin.register(Message, site=admin_site)
+@admin.register(Message, site=tenant_admin_site)
 class MessageAdmin(admin.ModelAdmin):
     list_display = ("subject", "sender", "recipient", "is_read", "is_finance_request", "created_at")
     list_filter = ("is_read", "is_archived", FinanceRequestFilter, "created_at")
@@ -43,7 +43,7 @@ class MessageAdmin(admin.ModelAdmin):
     is_finance_request.short_description = "Tags"
 
 
-@admin.register(Announcement, site=admin_site)
+@admin.register(Announcement, site=tenant_admin_site)
 class AnnouncementAdmin(admin.ModelAdmin):
     list_display = ("title", "status", "audience", "is_active", "created_by", "approved_by", "created_at")
     list_filter = ("status", "audience", "is_active", "announcement_type")
@@ -52,7 +52,7 @@ class AnnouncementAdmin(admin.ModelAdmin):
     list_editable = ("is_active",)
 
 
-@admin.register(AnnouncementAuditLog, site=admin_site)
+@admin.register(AnnouncementAuditLog, site=tenant_admin_site)
 class AnnouncementAuditLogAdmin(admin.ModelAdmin):
     list_display = ("announcement_id", "action", "user", "created_at", "notes_preview")
     list_filter = ("action", "created_at")
@@ -64,7 +64,7 @@ class AnnouncementAuditLogAdmin(admin.ModelAdmin):
     notes_preview.short_description = "Notes"
 
 
-@admin.register(FeedItem, site=admin_site)
+@admin.register(FeedItem, site=tenant_admin_site)
 class FeedItemAdmin(admin.ModelAdmin):
     list_display = ("title", "item_type", "school", "student", "created_at", "created_by")
     list_filter = ("item_type", "school")
@@ -72,7 +72,7 @@ class FeedItemAdmin(admin.ModelAdmin):
     readonly_fields = ("created_at",)
 
 
-@admin.register(OutboundMessageQueue, site=admin_site)
+@admin.register(OutboundMessageQueue, site=tenant_admin_site)
 class OutboundMessageQueueAdmin(admin.ModelAdmin):
     list_display = ("recipient_identifier", "channel", "status", "school", "created_at", "sent_at")
     list_filter = ("channel", "status", "school")

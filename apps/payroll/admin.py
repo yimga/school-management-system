@@ -1,5 +1,5 @@
 from django.contrib import admin
-from config.admin import admin_site
+from config.admin import register_tenant_admin
 
 from unfold.admin import ModelAdmin
 
@@ -142,12 +142,12 @@ class PayrollRunAdmin(ModelAdmin):
     inlines = [PayslipInline]
 
 
-# Register all models with custom admin site
-admin_site.register(PayScale, PayScaleAdmin)
-admin_site.register(PayrollEmployee, PayrollEmployeeAdmin)
-admin_site.register(EmploymentContract, EmploymentContractAdmin)
-admin_site.register(SalaryAdjustment, SalaryAdjustmentAdmin)
-admin_site.register(TimeEntry, TimeEntryAdmin)
-admin_site.register(LeaveRequest, LeaveRequestAdmin)
-admin_site.register(Payslip, PayslipAdmin)
-admin_site.register(PayrollRun, PayrollRunAdmin)
+# Register all models with tenant admin only
+register_tenant_admin(PayScale, PayScaleAdmin)
+register_tenant_admin(PayrollEmployee, PayrollEmployeeAdmin)
+register_tenant_admin(EmploymentContract, EmploymentContractAdmin)
+register_tenant_admin(SalaryAdjustment, SalaryAdjustmentAdmin)
+register_tenant_admin(TimeEntry, TimeEntryAdmin)
+register_tenant_admin(LeaveRequest, LeaveRequestAdmin)
+register_tenant_admin(Payslip, PayslipAdmin)
+register_tenant_admin(PayrollRun, PayrollRunAdmin)

@@ -3,6 +3,7 @@ from django.urls import NoReverseMatch, resolve, reverse
 
 from apps.accounts.models import User
 from apps.accounts.permissions import can_access_module
+from apps.schools.models import School
 from config.admin import platform_admin_site, tenant_admin_site
 from config.schema import schema
 
@@ -45,6 +46,21 @@ class ControlPlaneBoundaryTests(TestCase):
         tenant_result = schema.execute(query, context_value=tenant_request)
         self.assertIsNone(tenant_result.data["schoolCount"])
         self.assertEqual(tenant_result.data["schools"], [])
+
+
+class AdminRegistryBoundaryTests(SimpleTestCase):
+    """Assert platform and tenant admin have separate registries and correct model assignment."""
+
+    def test_platform_and_tenant_registries_are_separate(self):
+        self.assertIsNot(platform_admin_site._registry, tenant_admin_site._registry)
+
+    def test_tenant_only_model_in_tenant_admin_not_in_platform_admin(self):
+        self.assertIn(User, tenant_admin_site._registry)
+        self.assertNotIn(User, platform_admin_site._registry)
+
+    def test_platform_only_model_in_platform_admin_not_in_tenant_admin(self):
+        self.assertIn(School, platform_admin_site._registry)
+        self.assertNotIn(School, tenant_admin_site._registry)
 
 
 class AdminPlaneUrlConfTests(SimpleTestCase):

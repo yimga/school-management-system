@@ -1,10 +1,9 @@
 from django.contrib import admin
 
-from config.admin import admin_site
+from config.admin import register_tenant_admin
 from .models import AccessRequest, RequestDecision, RequestAudit
 
 
-@admin.register(AccessRequest, site=admin_site)
 class AccessRequestAdmin(admin.ModelAdmin):
     list_display = ("reference", "school", "schema_name", "request_type", "status", "requester", "requested_at")
     list_filter = ("school", "request_type", "status")
@@ -14,7 +13,6 @@ class AccessRequestAdmin(admin.ModelAdmin):
     show_full_result_count = False
 
 
-@admin.register(RequestDecision, site=admin_site)
 class RequestDecisionAdmin(admin.ModelAdmin):
     list_display = ("request", "decision", "decided_by", "created_at")
     list_filter = ("decision",)
@@ -24,7 +22,6 @@ class RequestDecisionAdmin(admin.ModelAdmin):
     show_full_result_count = False
 
 
-@admin.register(RequestAudit, site=admin_site)
 class RequestAuditAdmin(admin.ModelAdmin):
     list_display = ("request", "action", "actor", "created_at")
     list_filter = ("action",)
@@ -32,3 +29,8 @@ class RequestAuditAdmin(admin.ModelAdmin):
     readonly_fields = ("created_at",)
     list_per_page = 50
     show_full_result_count = False
+
+
+register_tenant_admin(AccessRequest, AccessRequestAdmin)
+register_tenant_admin(RequestDecision, RequestDecisionAdmin)
+register_tenant_admin(RequestAudit, RequestAuditAdmin)

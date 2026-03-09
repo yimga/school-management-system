@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from config.admin import admin_site
+from config.admin import platform_admin_site
 
 from apps.billing.models import (
     BillingAccount,
@@ -14,7 +14,7 @@ from apps.billing.models import (
 )
 
 
-@admin.register(BillingAccount, site=admin_site)
+@admin.register(BillingAccount, site=platform_admin_site)
 class BillingAccountAdmin(admin.ModelAdmin):
     list_display = (
         "school",
@@ -30,7 +30,7 @@ class BillingAccountAdmin(admin.ModelAdmin):
     search_fields = ("school__name", "billing_email", "external_customer_ref", "processor_code")
 
 
-@admin.register(TenantSubscription, site=admin_site)
+@admin.register(TenantSubscription, site=platform_admin_site)
 class TenantSubscriptionAdmin(admin.ModelAdmin):
     list_display = (
         "school",
@@ -46,21 +46,21 @@ class TenantSubscriptionAdmin(admin.ModelAdmin):
     search_fields = ("school__name", "plan__name", "external_subscription_ref")
 
 
-@admin.register(UsageMeter, site=admin_site)
+@admin.register(UsageMeter, site=platform_admin_site)
 class UsageMeterAdmin(admin.ModelAdmin):
     list_display = ("school", "metric_code", "period_start", "period_end", "quantity", "updated_at")
     list_filter = ("metric_code",)
     search_fields = ("school__name", "metric_code")
 
 
-@admin.register(PlatformLedgerEntry, site=admin_site)
+@admin.register(PlatformLedgerEntry, site=platform_admin_site)
 class PlatformLedgerEntryAdmin(admin.ModelAdmin):
     list_display = ("school", "entry_type", "status", "amount", "currency_code", "reference", "happened_at")
     list_filter = ("entry_type", "status", "currency_code")
     search_fields = ("school__name", "reference", "description", "source_ref")
 
 
-@admin.register(BillingProcessorSyncEvent, site=admin_site)
+@admin.register(BillingProcessorSyncEvent, site=platform_admin_site)
 class BillingProcessorSyncEventAdmin(admin.ModelAdmin):
     list_display = (
         "school",
@@ -75,7 +75,7 @@ class BillingProcessorSyncEventAdmin(admin.ModelAdmin):
     search_fields = ("school__name", "external_customer_ref", "external_subscription_ref", "message")
 
 
-@admin.register(PlatformBillingProcessorConfig, site=admin_site)
+@admin.register(PlatformBillingProcessorConfig, site=platform_admin_site)
 class PlatformBillingProcessorConfigAdmin(admin.ModelAdmin):
     list_display = (
         "code",
@@ -90,7 +90,7 @@ class PlatformBillingProcessorConfigAdmin(admin.ModelAdmin):
     search_fields = ("code", "display_name")
 
 
-@admin.register(Quote, site=admin_site)
+@admin.register(Quote, site=platform_admin_site)
 class QuoteAdmin(admin.ModelAdmin):
     list_display = ("id", "school", "plan", "status", "amount", "currency_code", "valid_until", "created_at")
     list_filter = ("status", "currency_code")
@@ -113,7 +113,7 @@ class QuoteAdmin(admin.ModelAdmin):
             self.message_user(request, "; ".join(errors[:5]) + ("..." if len(errors) > 5 else ""), level=40)
 
 
-@admin.register(RevenueSharePayout, site=admin_site)
+@admin.register(RevenueSharePayout, site=platform_admin_site)
 class RevenueSharePayoutAdmin(admin.ModelAdmin):
     list_display = (
         "payee_name",

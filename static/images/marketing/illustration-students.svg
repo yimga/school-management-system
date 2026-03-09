@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="180" viewBox="0 0 300 180">
+  <rect width="300" height="180" fill="transparent"/>
+  <circle cx="80" cy="70" r="25" fill="#e2e8f0"/>
+  <circle cx="150" cy="70" r="25" fill="#e2e8f0"/>
+  <circle cx="220" cy="70" r="25" fill="#e2e8f0"/>
+  <rect x="55" y="95" width="50" height="50" rx="4" fill="#cbd5e1"/>
+  <rect x="125" y="95" width="50" height="50" rx="4" fill="#cbd5e1"/>
+  <rect x="195" y="95" width="50" height="50" rx="4" fill="#cbd5e1"/>
+  <text x="150" y="170" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" fill="#64748b">Students &amp; educators</text>
+</svg>

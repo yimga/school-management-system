@@ -1,9 +1,20 @@
 /**
  * RunMyCampus marketing homepage — world-class SaaS front (Stripe/Shopify tier).
  * Scoped under .marketing-home. Load only on landing; do not use in tenant/superadmin.
+ * Design system alignment: primary #0B3D91, secondary #00A878, accent #FFC857, neutrals from slate.
  */
 .marketing-home {
   position: relative; /* anchor for skip-link positioning */
+  /* Design tokens (RunMyCampus design system) */
+  --mkt-primary: #0B3D91;
+  --mkt-secondary: #00A878;
+  --mkt-accent: #FFC857;
+  --mkt-bg-dark: #0F172A;
+  --mkt-surface: #1E293B;
+  --mkt-text: #F8FAFC;
+  --mkt-text-muted: #94a3b8;
+  --mkt-border: rgba(148, 163, 184, 0.2);
+  /* Spacing and shape */
   --mkt-spacing-xs: 0.5rem;
   --mkt-spacing-sm: 1rem;
   --mkt-spacing-md: 1.5rem;
@@ -131,6 +142,29 @@
   background: rgba(255, 255, 255, 0.1);
   color: #fff;
   border-color: #fff;
+  transform: translateY(-1px);
+}
+
+/* Subtle motion: card hover (per blueprint) */
+.marketing-home .mkt-module-card,
+.marketing-home .mkt-pillar-card,
+.marketing-home .mkt-platform-card,
+.marketing-home .mkt-ecosystem-card,
+.marketing-home .mkt-testimonial-card,
+.marketing-home .mkt-product-viz-slide {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.marketing-home .mkt-module-card:hover,
+.marketing-home .mkt-pillar-card:hover,
+.marketing-home .mkt-platform-card:hover,
+.marketing-home .mkt-ecosystem-card:hover,
+.marketing-home .mkt-testimonial-card:hover,
+.marketing-home .mkt-product-viz-slide:hover {
+  transform: translateY(-2px);
+}
+.marketing-home .mkt-platform-card:hover,
+.marketing-home .mkt-ecosystem-card:hover {
+  box-shadow: var(--mkt-shadow-md);
 }
 
 /* Sticky CTA bar (appears after scroll past hero) */
@@ -160,10 +194,111 @@
   background: rgba(30, 41, 59, 0.6);
   border: 1px solid rgba(148, 163, 184, 0.2);
 }
-.marketing-home .mkt-hero-visual img {
+.marketing-home .mkt-hero-visual img,
+.marketing-home .mkt-hero-visual .mkt-hero-video {
   width: 100%;
   height: auto;
   display: block;
+  object-fit: cover;
+}
+.marketing-home .mkt-hero-visual .mkt-hero-video {
+  max-height: 450px;
+}
+
+/* ----- Outcome metrics ----- */
+.marketing-home .mkt-outcome-card {
+  background: var(--admin-content-bg, #fff);
+}
+.marketing-home .mkt-outcome-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--school-primary, #0B3D91);
+}
+.marketing-home .mkt-outcome-label {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+.marketing-home .mkt-outcome-bar {
+  height: 6px;
+  background: var(--portal-border, rgba(15, 23, 42, 0.1));
+  border-radius: 999px;
+  overflow: hidden;
+}
+.marketing-home .mkt-outcome-bar-fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--mkt-primary), var(--mkt-secondary));
+  border-radius: 999px;
+  transition: width 0.6s ease;
+}
+
+/* ----- Product visualization strip ----- */
+.marketing-home .mkt-product-viz-scroll {
+  display: flex;
+  gap: var(--mkt-spacing-lg);
+  overflow-x: auto;
+  padding-bottom: var(--mkt-spacing-sm);
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.marketing-home .mkt-product-viz-slide {
+  flex: 0 0 min(320px, 85vw);
+  scroll-snap-align: start;
+}
+.marketing-home .mkt-product-viz-frame {
+  border-radius: var(--mkt-radius-md);
+  overflow: hidden;
+  background: var(--admin-content-bg, #f8fafc);
+  border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
+  aspect-ratio: 16/10;
+}
+.marketing-home .mkt-product-viz-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ----- Global infrastructure ----- */
+.marketing-home .mkt-global-map-wrap {
+  max-width: 800px;
+  margin: 0 auto;
+}
+.marketing-home .mkt-global-map-img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--mkt-radius-md);
+}
+.marketing-home .mkt-global-stat-value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--mkt-primary, var(--school-primary, #0B3D91));
+}
+.marketing-home .mkt-global-stat-label {
+  font-size: 0.875rem;
+  color: var(--admin-content-text-muted, #64748b);
+}
+
+/* ----- Workflow diagram ----- */
+.marketing-home .mkt-workflow-diagram {
+  max-width: 640px;
+  margin: 0 auto var(--mkt-spacing-lg);
+}
+.marketing-home .mkt-workflow-svg {
+  width: 100%;
+  height: auto;
+  color: var(--admin-content-text, #334155);
+}
+.marketing-home .mkt-workflow-node {
+  fill: var(--admin-content-bg, #f8fafc);
+  stroke: var(--portal-border, rgba(15, 23, 42, 0.12));
+  stroke-width: 1.5;
+}
+.marketing-home .mkt-workflow-label {
+  font-size: 12px;
+  fill: currentColor;
+  font-weight: 600;
 }
 
 /* ----- Social proof / trust band ----- */
@@ -370,6 +505,32 @@
   margin: 0;
   line-height: 1.4;
 }
+.marketing-home .mkt-ecosystem-card-icon {
+  margin-bottom: var(--mkt-spacing-sm);
+}
+.marketing-home .mkt-ecosystem-card-icon img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+/* ----- AI Intelligence section ----- */
+.marketing-home .mkt-ai-features {
+  max-width: 560px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.marketing-home .mkt-ai-features li {
+  padding-left: 1.5rem;
+  position: relative;
+}
+.marketing-home .mkt-ai-features li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: var(--admin-primary, #0ea5e9);
+  font-weight: 700;
+}
 
 /* ----- Testimonials ----- */
 .marketing-home .mkt-testimonials-grid {
@@ -397,6 +558,31 @@
 .marketing-home .mkt-testimonial-card .mkt-testimonial-role {
   font-size: 0.875rem;
   color: var(--admin-content-text-muted, #64748b);
+}
+.marketing-home .mkt-video-testimonial .mkt-video-testimonial-link {
+  display: block;
+  position: relative;
+  border-radius: var(--mkt-radius-md);
+  overflow: hidden;
+}
+.marketing-home .mkt-video-testimonial-thumb {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.marketing-home .mkt-video-testimonial-play {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  background: rgba(0,0,0,0.2);
+}
+.marketing-home .mkt-video-testimonial-title {
+  margin-top: 0.5rem;
 }
 .marketing-home .mkt-testimonial-stars {
   color: #eab308;

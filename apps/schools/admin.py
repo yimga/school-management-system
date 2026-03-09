@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib import messages
 
-from config.admin import admin_site
+from config.admin import platform_admin_site, register_platform_admin, register_tenant_admin, tenant_admin_site
 
 from .models import (
     Bus,
@@ -36,7 +36,7 @@ def _theme_branding_fields():
     return tuple(base)
 
 
-@admin.register(School, site=admin_site)
+@admin.register(School, site=platform_admin_site)
 class SchoolAdmin(admin.ModelAdmin):
     list_display = (
         "name",
@@ -173,14 +173,14 @@ class SchoolAdmin(admin.ModelAdmin):
         return actions
 
 
-@admin.register(SchoolMembership, site=admin_site)
+@admin.register(SchoolMembership, site=platform_admin_site)
 class SchoolMembershipAdmin(admin.ModelAdmin):
     list_display = ("user", "school", "role", "is_primary", "created_at")
     list_filter = ("role", "school")
     search_fields = ("user__username", "school__name")
 
 
-@admin.register(Campus, site=admin_site)
+@admin.register(Campus, site=tenant_admin_site)
 class CampusAdmin(admin.ModelAdmin):
     list_display = ("name", "code", "school", "is_active", "created_at")
     list_filter = ("is_active", "school")
@@ -188,7 +188,7 @@ class CampusAdmin(admin.ModelAdmin):
     raw_id_fields = ("school",)
 
 
-@admin.register(TenantQuotaLimit, site=admin_site)
+@admin.register(TenantQuotaLimit, site=platform_admin_site)
 class TenantQuotaLimitAdmin(admin.ModelAdmin):
     list_display = ("school", "limit_type", "limit_value", "period_days", "is_active", "updated_at")
     list_filter = ("limit_type", "is_active", "school")
@@ -196,7 +196,7 @@ class TenantQuotaLimitAdmin(admin.ModelAdmin):
     raw_id_fields = ("school",)
 
 
-@admin.register(TenantApiUsage, site=admin_site)
+@admin.register(TenantApiUsage, site=platform_admin_site)
 class TenantApiUsageAdmin(admin.ModelAdmin):
     list_display = ("school", "period_date", "limit_type", "request_count")
     list_filter = ("limit_type", "period_date", "school")
@@ -205,7 +205,7 @@ class TenantApiUsageAdmin(admin.ModelAdmin):
     readonly_fields = ("school", "period_date", "limit_type", "request_count")
 
 
-@admin.register(SchoolProvisioningEvent, site=admin_site)
+@admin.register(SchoolProvisioningEvent, site=platform_admin_site)
 class SchoolProvisioningEventAdmin(admin.ModelAdmin):
     list_display = ("school", "event_type", "status", "created_at", "created_by")
     list_filter = ("event_type", "status", "school")
@@ -213,32 +213,32 @@ class SchoolProvisioningEventAdmin(admin.ModelAdmin):
     readonly_fields = ("school", "event_type", "status", "message", "payload", "created_by", "created_at")
 
 
-@admin.register(InventoryItem, site=admin_site)
+@admin.register(InventoryItem, site=tenant_admin_site)
 class InventoryItemAdmin(admin.ModelAdmin):
     list_display = ("name", "school", "quantity", "location")
     list_filter = ("school",)
     search_fields = ("name", "location")
 
 
-@admin.register(Route, site=admin_site)
+@admin.register(Route, site=tenant_admin_site)
 class RouteAdmin(admin.ModelAdmin):
     list_display = ("name", "school", "is_active")
     list_filter = ("school", "is_active")
 
 
-@admin.register(Stop, site=admin_site)
+@admin.register(Stop, site=tenant_admin_site)
 class StopAdmin(admin.ModelAdmin):
     list_display = ("name", "route", "sequence")
     list_filter = ("route__school",)
 
 
-@admin.register(Bus, site=admin_site)
+@admin.register(Bus, site=tenant_admin_site)
 class BusAdmin(admin.ModelAdmin):
     list_display = ("identifier", "school", "route", "is_active")
     list_filter = ("school", "is_active")
 
 
-@admin.register(Hostel, site=admin_site)
+@admin.register(Hostel, site=tenant_admin_site)
 class HostelAdmin(admin.ModelAdmin):
     list_display = ("name", "school", "capacity", "is_active", "created_at")
     list_filter = ("school", "is_active")
@@ -246,14 +246,14 @@ class HostelAdmin(admin.ModelAdmin):
     raw_id_fields = ("school",)
 
 
-@admin.register(HostelRoom, site=admin_site)
+@admin.register(HostelRoom, site=tenant_admin_site)
 class HostelRoomAdmin(admin.ModelAdmin):
     list_display = ("name", "hostel", "capacity")
     list_filter = ("hostel__school",)
     raw_id_fields = ("hostel",)
 
 
-@admin.register(CanteenMeal, site=admin_site)
+@admin.register(CanteenMeal, site=tenant_admin_site)
 class CanteenMealAdmin(admin.ModelAdmin):
     list_display = ("name", "school", "price", "is_active", "created_at")
     list_filter = ("school", "is_active")
@@ -261,7 +261,7 @@ class CanteenMealAdmin(admin.ModelAdmin):
     raw_id_fields = ("school",)
 
 
-@admin.register(HealthRecord, site=admin_site)
+@admin.register(HealthRecord, site=tenant_admin_site)
 class HealthRecordAdmin(admin.ModelAdmin):
     list_display = ("student", "record_type", "school", "recorded_at", "confidential")
     list_filter = ("school", "record_type", "confidential")
@@ -269,7 +269,7 @@ class HealthRecordAdmin(admin.ModelAdmin):
     raw_id_fields = ("school", "student", "recorded_by")
 
 
-@admin.register(BiometricDevice, site=admin_site)
+@admin.register(BiometricDevice, site=tenant_admin_site)
 class BiometricDeviceAdmin(admin.ModelAdmin):
     list_display = ("name", "school", "device_id", "location", "is_active", "created_at")
     list_filter = ("school", "is_active")
@@ -277,14 +277,14 @@ class BiometricDeviceAdmin(admin.ModelAdmin):
     raw_id_fields = ("school",)
 
 
-@admin.register(BiometricAttendanceLog, site=admin_site)
+@admin.register(BiometricAttendanceLog, site=tenant_admin_site)
 class BiometricAttendanceLogAdmin(admin.ModelAdmin):
     list_display = ("device", "student", "user", "timestamp")
     list_filter = ("device__school",)
     raw_id_fields = ("device", "student", "user")
 
 
-@admin.register(LibraryItem, site=admin_site)
+@admin.register(LibraryItem, site=tenant_admin_site)
 class LibraryItemAdmin(admin.ModelAdmin):
     list_display = ("title", "author", "school", "item_type", "copies_total", "is_active", "created_at")
     list_filter = ("school", "item_type", "is_active")
@@ -292,7 +292,7 @@ class LibraryItemAdmin(admin.ModelAdmin):
     raw_id_fields = ("school",)
 
 
-@admin.register(LibraryLoan, site=admin_site)
+@admin.register(LibraryLoan, site=tenant_admin_site)
 class LibraryLoanAdmin(admin.ModelAdmin):
     list_display = ("item", "borrower", "school", "checked_out_at", "due_at", "returned_at")
     list_filter = ("school",)

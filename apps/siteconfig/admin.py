@@ -1,5 +1,5 @@
 from django.contrib import admin
-from config.admin import admin_site
+from config.admin import register_both, register_platform_admin, register_tenant_admin
 
 from unfold.admin import ModelAdmin
 from django.template.loader import render_to_string
@@ -1920,23 +1920,23 @@ class TenantAdmissionNumberPolicyAdmin(ModelAdmin):
     raw_id_fields = ("school",)
 
 
-# Register all models with custom admin site
-admin_site.register(SiteSettings, SiteSettingsAdmin)
-admin_site.register(TenantAdmissionNumberPolicy, TenantAdmissionNumberPolicyAdmin)
-admin_site.register(ThemePack, ThemePackAdmin)
-admin_site.register(UserPreference, UserPreferenceAdmin)
-admin_site.register(ReportTemplate, ReportTemplateAdmin)
-admin_site.register(OfficialReportTemplate, OfficialReportTemplateAdmin)
-admin_site.register(ReportCardStyle, ReportCardStyleAdmin)
-admin_site.register(ReportCardStyleAssignment, ReportCardStyleAssignmentAdmin)
-admin_site.register(Integration, IntegrationAdmin)
-admin_site.register(RegionConfig, RegionConfigAdmin)
-admin_site.register(EducationSystemProfile, EducationSystemProfileAdmin)
-admin_site.register(GradingScaleConfig, GradingScaleConfigAdmin)
-admin_site.register(HolidayCalendar, HolidayCalendarAdmin)
-admin_site.register(WeatherLocation, WeatherLocationAdmin)
-admin_site.register(FeatureToggleDefinition, FeatureToggleDefinitionAdmin)
-admin_site.register(FeatureToggleState, FeatureToggleStateAdmin)
+# Register: both = platform backoffice + tenant config; platform = manager only; tenant = tenant only
+register_both(SiteSettings, SiteSettingsAdmin)
+register_tenant_admin(TenantAdmissionNumberPolicy, TenantAdmissionNumberPolicyAdmin)
+register_both(ThemePack, ThemePackAdmin)
+register_tenant_admin(UserPreference, UserPreferenceAdmin)
+register_both(ReportTemplate, ReportTemplateAdmin)
+register_both(OfficialReportTemplate, OfficialReportTemplateAdmin)
+register_both(ReportCardStyle, ReportCardStyleAdmin)
+register_both(ReportCardStyleAssignment, ReportCardStyleAssignmentAdmin)
+register_both(Integration, IntegrationAdmin)
+register_platform_admin(RegionConfig, RegionConfigAdmin)
+register_platform_admin(EducationSystemProfile, EducationSystemProfileAdmin)
+register_both(GradingScaleConfig, GradingScaleConfigAdmin)
+register_both(HolidayCalendar, HolidayCalendarAdmin)
+register_both(WeatherLocation, WeatherLocationAdmin)
+register_both(FeatureToggleDefinition, FeatureToggleDefinitionAdmin)
+register_both(FeatureToggleState, FeatureToggleStateAdmin)
 
 
 class TourStepAdmin(ModelAdmin):
@@ -1952,8 +1952,8 @@ class FeatureUsageEventAdmin(ModelAdmin):
     date_hierarchy = "created_at"
 
 
-admin_site.register(TourStep, TourStepAdmin)
-admin_site.register(FeatureUsageEvent, FeatureUsageEventAdmin)
+register_both(TourStep, TourStepAdmin)
+register_both(FeatureUsageEvent, FeatureUsageEventAdmin)
 
 
 class PlanAdmin(ModelAdmin):
@@ -1971,7 +1971,7 @@ class PlanAdmin(ModelAdmin):
     )
 
 
-admin_site.register(Plan, PlanAdmin)
+register_platform_admin(Plan, PlanAdmin)
 
 
 class PlanAddonAdmin(ModelAdmin):
@@ -1980,7 +1980,7 @@ class PlanAddonAdmin(ModelAdmin):
     search_fields = ("code", "name")
 
 
-admin_site.register(PlanAddon, PlanAddonAdmin)
+register_platform_admin(PlanAddon, PlanAddonAdmin)
 
 
 class CountryMultiplierAdmin(ModelAdmin):
@@ -1989,7 +1989,7 @@ class CountryMultiplierAdmin(ModelAdmin):
     search_fields = ("country_code", "name")
 
 
-admin_site.register(CountryMultiplier, CountryMultiplierAdmin)
+register_platform_admin(CountryMultiplier, CountryMultiplierAdmin)
 
 
 class RegionalAIConfigAdmin(ModelAdmin):
@@ -1998,7 +1998,7 @@ class RegionalAIConfigAdmin(ModelAdmin):
     search_fields = ("regional_cluster", "default_model", "preferred_model_id")
 
 
-admin_site.register(RegionalAIConfig, RegionalAIConfigAdmin)
+register_platform_admin(RegionalAIConfig, RegionalAIConfigAdmin)
 
 
 class AIModelRegistryAdmin(ModelAdmin):
@@ -2007,7 +2007,7 @@ class AIModelRegistryAdmin(ModelAdmin):
     search_fields = ("regional_cluster", "model_id", "hardware_tier")
 
 
-admin_site.register(AIModelRegistry, AIModelRegistryAdmin)
+register_platform_admin(AIModelRegistry, AIModelRegistryAdmin)
 
 
 class RevenueSnapshotAdmin(ModelAdmin):
@@ -2018,7 +2018,7 @@ class RevenueSnapshotAdmin(ModelAdmin):
     date_hierarchy = "snapshot_date"
 
 
-admin_site.register(RevenueSnapshot, RevenueSnapshotAdmin)
+register_platform_admin(RevenueSnapshot, RevenueSnapshotAdmin)
 
 
 class BillingWaiverAuditLogAdmin(ModelAdmin):
@@ -2029,7 +2029,7 @@ class BillingWaiverAuditLogAdmin(ModelAdmin):
     date_hierarchy = "created_at"
 
 
-admin_site.register(BillingWaiverAuditLog, BillingWaiverAuditLogAdmin)
+register_platform_admin(BillingWaiverAuditLog, BillingWaiverAuditLogAdmin)
 
 
 class WaiverRequestAdmin(ModelAdmin):
@@ -2097,7 +2097,7 @@ class WaiverRequestAdmin(ModelAdmin):
             self.message_user(request, f"Denied {updated} waiver request(s).", level=messages.SUCCESS)
 
 
-admin_site.register(WaiverRequest, WaiverRequestAdmin)
+register_platform_admin(WaiverRequest, WaiverRequestAdmin)
 
 
 # ============================================================================
@@ -2127,7 +2127,7 @@ class CustomNuanceAdmin(ModelAdmin):
         super().save_model(request, obj, form, change)
 
 
-admin_site.register(CustomNuance, CustomNuanceAdmin)
+register_platform_admin(CustomNuance, CustomNuanceAdmin)
 
 
 # Default test contexts for safety verification (fee-related hooks)
@@ -2195,7 +2195,7 @@ class PendingNuanceAdmin(ModelAdmin):
             self.message_user(request, err, level=messages.ERROR)
 
 
-admin_site.register(PendingNuance, PendingNuanceAdmin)
+register_platform_admin(PendingNuance, PendingNuanceAdmin)
 
 
 class CustomFeatureTicketAdmin(ModelAdmin):
@@ -2218,8 +2218,8 @@ class FeatureFragmentAdmin(ModelAdmin):
         return super().formfield_for_dbfield(db_field, request, **kwargs)
 
 
-admin_site.register(CustomFeatureTicket, CustomFeatureTicketAdmin)
-admin_site.register(FeatureFragment, FeatureFragmentAdmin)
+register_platform_admin(CustomFeatureTicket, CustomFeatureTicketAdmin)
+register_platform_admin(FeatureFragment, FeatureFragmentAdmin)
 
 
 class DesignTemplateAdmin(ModelAdmin):
@@ -2230,7 +2230,7 @@ class DesignTemplateAdmin(ModelAdmin):
     readonly_fields = ("created_at", "updated_at")
 
 
-admin_site.register(DesignTemplate, DesignTemplateAdmin)
+register_both(DesignTemplate, DesignTemplateAdmin)
 
 
 class BrandProfileAdmin(ModelAdmin):
@@ -2239,7 +2239,7 @@ class BrandProfileAdmin(ModelAdmin):
     readonly_fields = ("created_at", "updated_at")
 
 
-admin_site.register(BrandProfile, BrandProfileAdmin)
+register_both(BrandProfile, BrandProfileAdmin)
 
 
 class BrandSettingsAdmin(ModelAdmin):
@@ -2248,7 +2248,7 @@ class BrandSettingsAdmin(ModelAdmin):
     readonly_fields = ("created_at", "updated_at")
 
 
-admin_site.register(BrandSettings, BrandSettingsAdmin)
+register_both(BrandSettings, BrandSettingsAdmin)
 
 
 class GlobalBrandRegistryAdmin(ModelAdmin):
@@ -2267,11 +2267,11 @@ class GlobalBrandRegistryAdmin(ModelAdmin):
     readonly_fields = ("created_at", "updated_at")
 
 
-admin_site.register(GlobalBrandRegistry, GlobalBrandRegistryAdmin)
+register_platform_admin(GlobalBrandRegistry, GlobalBrandRegistryAdmin)
 
 
 # Register dashboard preference and widget models for admin configurability
-admin_site.register(DashboardUserPreference, DashboardUserPreferenceAdmin)
+register_tenant_admin(DashboardUserPreference, DashboardUserPreferenceAdmin)
 
 
 class SuperAdminDashboardPreferenceAdmin(ModelAdmin):
@@ -2280,18 +2280,18 @@ class SuperAdminDashboardPreferenceAdmin(ModelAdmin):
     raw_id_fields = ("user",)
 
 
-admin_site.register(SuperAdminDashboardPreference, SuperAdminDashboardPreferenceAdmin)
-admin_site.register(DashboardWidget, DashboardWidgetAdmin)
-admin_site.register(DashboardLayout, DashboardLayoutAdmin)
-admin_site.register(DashboardTemplate)
-admin_site.register(TenantLayoutAssignment)
-admin_site.register(WorkflowTemplate)
-admin_site.register(TenantWorkflow)
-admin_site.register(WorkflowRunLog)
-admin_site.register(WorkflowPack)
-admin_site.register(WorkflowPackAssignment)
-admin_site.register(DashboardPack)
-admin_site.register(DashboardPackAssignment)
+register_platform_admin(SuperAdminDashboardPreference, SuperAdminDashboardPreferenceAdmin)
+register_both(DashboardWidget, DashboardWidgetAdmin)
+register_both(DashboardLayout, DashboardLayoutAdmin)
+register_both(DashboardTemplate, admin.ModelAdmin)
+register_tenant_admin(TenantLayoutAssignment, admin.ModelAdmin)
+register_both(WorkflowTemplate, admin.ModelAdmin)
+register_tenant_admin(TenantWorkflow, admin.ModelAdmin)
+register_both(WorkflowRunLog, admin.ModelAdmin)
+register_both(WorkflowPack, admin.ModelAdmin)
+register_both(WorkflowPackAssignment, admin.ModelAdmin)
+register_both(DashboardPack, admin.ModelAdmin)
+register_both(DashboardPackAssignment, admin.ModelAdmin)
 
 
 class FeatureControlAuditAdmin(ModelAdmin):
@@ -2308,7 +2308,7 @@ class FeatureControlAuditAdmin(ModelAdmin):
     changes_summary.short_description = "Changes"
 
 
-admin_site.register(FeatureControlAudit, FeatureControlAuditAdmin)
+register_platform_admin(FeatureControlAudit, FeatureControlAuditAdmin)
 
 
 # Section 8: Industry Interoperability — ServiceIntegration, WebhookSubscription
@@ -2320,7 +2320,7 @@ class ServiceIntegrationAdmin(ModelAdmin):
     ordering = ("school", "service_name")
 
 
-admin_site.register(ServiceIntegration, ServiceIntegrationAdmin)
+register_both(ServiceIntegration, ServiceIntegrationAdmin)
 
 
 # Section 15.2: DynamicFieldDefinition, DynamicFieldValue (custom attributes per entity)
@@ -2340,8 +2340,8 @@ class DynamicFieldValueAdmin(ModelAdmin):
     ordering = ("school", "entity_type", "object_id", "field_key")
 
 
-admin_site.register(DynamicFieldDefinition, DynamicFieldDefinitionAdmin)
-admin_site.register(DynamicFieldValue, DynamicFieldValueAdmin)
+register_tenant_admin(DynamicFieldDefinition, DynamicFieldDefinitionAdmin)
+register_tenant_admin(DynamicFieldValue, DynamicFieldValueAdmin)
 
 
 # World Engine: GlobalSyllabus, LearningPassport, BreakGlassOverride, BroadcastCampaign
@@ -2374,10 +2374,10 @@ class BroadcastCampaignAdmin(ModelAdmin):
     readonly_fields = ("created_at",)
 
 
-admin_site.register(GlobalSyllabus, GlobalSyllabusAdmin)
-admin_site.register(LearningPassport, LearningPassportAdmin)
-admin_site.register(BreakGlassOverride, BreakGlassOverrideAdmin)
-admin_site.register(BroadcastCampaign, BroadcastCampaignAdmin)
+register_both(GlobalSyllabus, GlobalSyllabusAdmin)
+register_both(LearningPassport, LearningPassportAdmin)
+register_platform_admin(BreakGlassOverride, BreakGlassOverrideAdmin)
+register_platform_admin(BroadcastCampaign, BroadcastCampaignAdmin)
 
 
 class ProductFeedbackAdmin(ModelAdmin):
@@ -2388,7 +2388,7 @@ class ProductFeedbackAdmin(ModelAdmin):
     ordering = ["-upvotes", "-created_at"]
 
 
-admin_site.register(ProductFeedback, ProductFeedbackAdmin)
+register_platform_admin(ProductFeedback, ProductFeedbackAdmin)
 
 
 class MarketingContentAdmin(ModelAdmin):
@@ -2398,7 +2398,7 @@ class MarketingContentAdmin(ModelAdmin):
     readonly_fields = ("updated_at",)
 
 
-admin_site.register(MarketingContent, MarketingContentAdmin)
+register_platform_admin(MarketingContent, MarketingContentAdmin)
 
 
 class BlogPostAdmin(ModelAdmin):
@@ -2410,7 +2410,7 @@ class BlogPostAdmin(ModelAdmin):
     date_hierarchy = "published_at"
 
 
-admin_site.register(BlogPost, BlogPostAdmin)
+register_platform_admin(BlogPost, BlogPostAdmin)
 
 
 # ============================================================================
@@ -2485,6 +2485,6 @@ try:
                 _resolve_sync_conflict(obj, SyncConflict.Status.DISCARDED, request.user)
             self.message_user(request, f"Discarded {queryset.filter(status=SyncConflict.Status.PENDING).count()} conflict(s).")
 
-    admin_site.register(SyncConflict, SyncConflictAdmin)
+    register_platform_admin(SyncConflict, SyncConflictAdmin)
 except ImportError:
     pass

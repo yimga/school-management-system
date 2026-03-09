@@ -306,15 +306,40 @@ class TenantAdminSite(BaseRunMyCampusAdminSite):
 
 
 class PlatformAdminSite(BaseRunMyCampusAdminSite):
-    site_header = "Platform Administration"
-    site_title = "Platform Administration"
-    index_title = "Platform Administration"
+    """AdminOpsShell: Platform Backoffice / Configuration Engine. Raw CRUD for platform-only and both models."""
+    site_header = "Platform Backoffice"
+    site_title = "Configuration Engine"
+    index_title = "Platform Backoffice"
     index_template_name = "admin/index_superadmin.html"
+
+    # AdminOpsShell IA: sections and app order for platform /admin/
+    PLATFORM_APP_SECTIONS = (
+        "Platform Configuration",
+        "Catalog Records",
+        "Content & Templates",
+        "Integrations & Providers",
+        "Marketplace Records",
+        "Migration Records",
+        "Maintenance & Repair",
+        "Access & Permissions",
+        "Advanced System Objects",
+    )
+    PLATFORM_APP_ORDER = {
+        "siteconfig": {"order": 1, "name": "System Configuration", "section": "Platform Configuration"},
+        "schools": {"order": 2, "name": "Schools & Tenants", "section": "Platform Configuration"},
+        "registries": {"order": 3, "name": "Registries", "section": "Platform Configuration"},
+        "policies": {"order": 10, "name": "Policies & Blueprints", "section": "Catalog Records"},
+        "billing": {"order": 20, "name": "Billing", "section": "Catalog Records"},
+        "automation": {"order": 40, "name": "Automation & Migration", "section": "Migration Records"},
+        "marketplace": {"order": 50, "name": "Marketplace", "section": "Marketplace Records"},
+        "observability": {"order": 60, "name": "Observability", "section": "Maintenance & Repair"},
+    }
 
     def is_platform_site(self) -> bool:
         return True
 
     def has_permission(self, request):
+        # Super (Control Plane) access does not imply platform admin raw edit; both require explicit checks.
         return bool(
             self._is_platform_host(request)
             and request.user.is_active
@@ -322,10 +347,60 @@ class PlatformAdminSite(BaseRunMyCampusAdminSite):
             and request.user.is_superuser
         )
 
+    def get_app_list(self, request, app_label=None):
+        """AdminOpsShell: group and order apps by platform IA (Platform Configuration, Catalog Records, etc.)."""
+        app_dict = self._build_app_dict(request, app_label)
+        section_order = {s: i for i, s in enumerate(self.PLATFORM_APP_SECTIONS)}
+        # Map app_label to section (one app can only be in one section; use primary section)
+        app_list = []
+        for app_name, app_info in app_dict.items():
+            section = None
+            order = 999
+            name = app_info.get("name", app_name)
+            for key, info in self.PLATFORM_APP_ORDER.items():
+                if key == app_name:
+                    section = info["section"]
+                    order = info["order"]
+                    name = info["name"]
+                    break
+            if not section:
+                section = "Advanced System Objects"
+            app_info["app_order"] = order
+            app_info["app_label"] = app_name
+            app_info["name"] = name
+            app_info["section"] = section
+            app_list.append(app_info)
+        app_list = [a for a in app_list if a.get("models")]
+        app_list.sort(
+            key=lambda a: (
+                section_order.get(a.get("section"), 999),
+                a.get("app_order", 999),
+                a.get("name", "").lower(),
+            )
+        )
+        return app_list
+
 
 tenant_admin_site = TenantAdminSite(name="admin")
 platform_admin_site = PlatformAdminSite(name="admin")
-platform_admin_site._registry = tenant_admin_site._registry
+# No shared registry: platform and tenant admin have separate registries.
+# Use register_tenant_admin, register_platform_admin, or register_both in app admin.py.
 
-# Backward-compatible registration target used by app admin modules.
+# Backward-compatible registration target used by app admin modules (tenant only).
 admin_site = tenant_admin_site
+
+
+def register_tenant_admin(model, admin_class):
+    """Register a model only on tenant admin (tenant host /admin/)."""
+    tenant_admin_site.register(model, admin_class)
+
+
+def register_platform_admin(model, admin_class):
+    """Register a model only on platform admin (manager host /admin/)."""
+    platform_admin_site.register(model, admin_class)
+
+
+def register_both(model, admin_class, platform_admin_class=None):
+    """Register on both tenant and platform admin. Use platform_admin_class for a different backoffice class."""
+    tenant_admin_site.register(model, admin_class)
+    platform_admin_site.register(model, platform_admin_class or admin_class)

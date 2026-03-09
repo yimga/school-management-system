@@ -1225,7 +1225,7 @@ def backend_dashboard(request):
     reminder_alerts = bool(reminders)
     section_stats = {
         section: dict(stats)
-        for section, stats in admin_section_stats().items()
+        for section, stats in admin_section_stats({"request": request}).items()
     }
     admin_portal_stats = _resolve_admin_portal_stats(
         section_stats,

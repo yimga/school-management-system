@@ -12,6 +12,7 @@ from urllib.parse import urlparse
 
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
+from django.templatetags.static import static
 from django.db.models import Count, Q
 from django.http import Http404, HttpResponse
 from django.shortcuts import render, redirect
@@ -108,6 +109,136 @@ MARKETING_PAGE_DEFINITIONS = {
                 "title": "Global tenancy",
                 "body": "Operate one campus or many with domain, policy, and branding isolation.",
             },
+        ],
+    },
+    "products-admissions": {
+        "label": "Admissions",
+        "seo_title": "Admissions & Enrollment | RunMyCampus",
+        "seo_description": "Automate admissions from application to enrollment. Capture leads, track applications, waitlists, and communications.",
+        "headline": "Automate admissions from application to enrollment.",
+        "subheadline": "Capture leads, qualify applicants, and onboard students in one configurable flow.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "Application workflow", "body": "From enquiry to decision with configurable stages and automation."},
+            {"title": "Waitlists & communications", "body": "Manage waitlists and automated parent and staff communications."},
+            {"title": "Analytics", "body": "Funnel and conversion dashboards for admissions leads and enrollment."},
+        ],
+    },
+    "products-academics": {
+        "label": "Academics",
+        "seo_title": "Academics & Grades | RunMyCampus",
+        "seo_description": "Syllabi, attendance, report cards, and interventions in one platform. Teacher and admin dashboards.",
+        "headline": "Academics and grades in one place.",
+        "subheadline": "Syllabi, attendance, report cards, and interventions with role-ready dashboards.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "Grades and report cards", "body": "Configurable grading scales, report cards, and transcript-ready exports."},
+            {"title": "Attendance", "body": "Daily attendance, trends, and early intervention signals."},
+            {"title": "Teacher dashboard", "body": "One place for classes, grading, and parent communication."},
+        ],
+    },
+    "products-finance": {
+        "label": "Finance",
+        "seo_title": "Finance & Billing | RunMyCampus",
+        "seo_description": "Tuition billing, payment tracking, scholarships, and financial reporting for schools.",
+        "headline": "Finance and billing tailored to schools.",
+        "subheadline": "Fees, payments, and financial reporting without spreadsheets.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "Tuition and fees", "body": "Billing cycles, payment plans, and fee structures by program or grade."},
+            {"title": "Payment tracking", "body": "Payment gateways, receipts, and reconciliation in one place."},
+            {"title": "Reporting", "body": "Financial dashboards and export-ready reports for leadership and auditors."},
+        ],
+    },
+    "products-communication": {
+        "label": "Communication",
+        "seo_title": "Communication & Portals | RunMyCampus",
+        "seo_description": "Role-ready portals for parents, teachers, and students. Messaging and announcements.",
+        "headline": "Communication that reaches every role.",
+        "subheadline": "Parents, teachers, and students stay connected with purpose-built portals.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "Parent portal", "body": "Attendance, grades, fees, and messages in one place for families."},
+            {"title": "Teacher and student portals", "body": "Class tools, assignments, and school-wide announcements."},
+            {"title": "Messaging", "body": "SMS and email providers with governed templates and delivery tracking."},
+        ],
+    },
+    "products-automation": {
+        "label": "Automation",
+        "seo_title": "Workflow Automation | RunMyCampus",
+        "seo_description": "Configurable workflows: from grade-drop alerts to parent notifications and tutoring assignment.",
+        "headline": "Automate school operations.",
+        "subheadline": "Build flows without code: triggers, conditions, and actions that scale.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "Triggers", "body": "Grade changes, attendance patterns, payments, and custom events."},
+            {"title": "Actions", "body": "Notify teacher, notify parent, assign intervention, or update records."},
+            {"title": "Visibility", "body": "Audit trails and dashboards for every automated step."},
+        ],
+    },
+    "products-analytics": {
+        "label": "Analytics",
+        "seo_title": "Analytics & Reporting | RunMyCampus",
+        "seo_description": "Real-time dashboards, enrollment and attendance trends, and actionable insights for school leaders.",
+        "headline": "Analytics that inform decisions.",
+        "subheadline": "Live dashboards, trends, and reports for enrollment, attendance, and outcomes.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "Leader dashboards", "body": "Enrollment, attendance, and performance at a glance."},
+            {"title": "Trends and reports", "body": "Export-ready reports and trend analysis for boards and regulators."},
+            {"title": "AI insights", "body": "Predictive signals and recommended interventions where enabled."},
+        ],
+    },
+    "school-management-system": {
+        "label": "School Management System",
+        "seo_title": "School Management System | RunMyCampus - One Platform for K-12 and Higher Ed",
+        "seo_description": "Unified school management system for admissions, academics, finance, communication, and compliance. One platform for K-12 and higher ed.",
+        "headline": "The school management system that scales.",
+        "subheadline": "One platform for admissions, academics, finance, communication, and compliance—from single campus to multi-country.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "Unified operations", "body": "Replace spreadsheets and point solutions with one tenant-first platform."},
+            {"title": "K-12 and higher ed", "body": "Purpose-built workflows for every institution type."},
+            {"title": "Multi-tenant from day one", "body": "Each school gets its own domain, branding, and data isolation."},
+        ],
+    },
+    "student-information-system": {
+        "label": "Student Information System",
+        "seo_title": "Student Information System (SIS) | RunMyCampus",
+        "seo_description": "Cloud-based student information system: enrollment, grades, attendance, and parent portals in one place.",
+        "headline": "Student information system that connects everyone.",
+        "subheadline": "Enrollment, grades, attendance, and parent communication in one secure platform.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "Student 360", "body": "One view per student: profile, attendance, grades, and interventions."},
+            {"title": "Role-ready portals", "body": "Admins, teachers, parents, and students get the right data and tools."},
+            {"title": "Reporting and compliance", "body": "Export-ready reports and regional compliance defaults."},
+        ],
+    },
+    "education-erp": {
+        "label": "Education ERP",
+        "seo_title": "Education ERP | RunMyCampus - Unified School Operations",
+        "seo_description": "Education ERP for schools: academics, finance, HR, and operations in one platform. Multi-campus and multi-country ready.",
+        "headline": "Education ERP that runs your entire operation.",
+        "subheadline": "Academics, finance, HR, and operations in one platform—from single school to enterprise.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "End-to-end operations", "body": "From admissions to graduation, finance to compliance, in one system."},
+            {"title": "Multi-campus", "body": "Central oversight with campus-level autonomy and branding."},
+            {"title": "Global-ready", "body": "Multi-currency, multi-language, and country-specific compliance."},
+        ],
+    },
+    "school-administration-software": {
+        "label": "School Administration Software",
+        "seo_title": "School Administration Software | RunMyCampus",
+        "seo_description": "School administration software for admins, principals, and district leaders. Dashboards, workflows, and reporting in one place.",
+        "headline": "School administration software that empowers leaders.",
+        "subheadline": "Dashboards, workflows, and reporting for admins, principals, and district leaders.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "Admin dashboards", "body": "Enrollment, attendance, finance, and compliance at a glance."},
+            {"title": "Configurable workflows", "body": "Approvals, communications, and processes without custom code."},
+            {"title": "Audit and reporting", "body": "Audit trails and export-ready reports for boards and regulators."},
         ],
     },
     "solutions": {
@@ -806,6 +937,9 @@ MARKETING_PAGE_EXTRAS = {
             {"question": "What if we need to leave the platform?", "answer": "Export and portability options keep you in control of your school data with no lock-in."},
         ],
     },
+    "10-reasons": {},
+    "resources": {},
+    "events": {},
     "trust-center": {
         "architecture_summary": "RunMyCampus uses a strict host contract: public (runmycampus.com), tenant (school subdomains), and manager (manager.runmycampus.com) surfaces are separated. Each tenant is isolated by subdomain with dedicated session and data context.",
         "encryption_copy": "Data is encrypted at rest and in transit. Credentials and secrets are managed with secure storage and access controls. API and integration traffic uses TLS.",
@@ -1174,14 +1308,18 @@ def _marketing_nav() -> list[dict]:
 
 
 def _marketing_navbar_primary() -> list[dict]:
-    """Primary marketing navbar: Product | Solutions | Pricing | Customers | Marketplace | Resources | Company | [Login] [Start Free Trial]."""
+    """Primary marketing navbar: Product | Solutions | Pricing | Compare | Why Switch | Customers | Marketplace | Resources | Events | Company | [Login] [Start Free Trial]."""
     return [
         {"label": "Product", "path": _safe_reverse("marketing_product") or "/product/"},
         {"label": "Solutions", "path": _safe_reverse("marketing_solutions") or "/solutions/"},
         {"label": "Pricing", "path": _safe_reverse("marketing_pricing") or "/pricing/"},
+        {"label": "Compare", "path": _safe_reverse("marketing_compare") or "/compare/"},
+        {"label": "Why Switch", "path": _safe_reverse("marketing_why_switch") or "/why-switch/"},
         {"label": "Customers", "path": _safe_reverse("marketing_case_studies") or "/case-studies/"},
         {"label": "Marketplace", "path": _safe_reverse("marketing_app_marketplace") or "/app-marketplace/"},
-        {"label": "Resources", "path": _safe_reverse("marketing_blog") or "/blog/"},
+        {"label": "Resources", "path": _safe_reverse("marketing_resources") or "/resources/"},
+        {"label": "Events", "path": _safe_reverse("marketing_events") or "/events/"},
+        {"label": "10 Reasons", "path": _safe_reverse("marketing_10_reasons") or "/10-reasons/"},
         {"label": "Company", "path": _safe_reverse("marketing_about") or "/about/"},
     ]
 
@@ -1689,12 +1827,13 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         {"name": "Edu Partners", "image_url": ""},
         {"name": "Global Schools", "image_url": ""},
     ]
+    # Module screenshot paths relative to static root (SVG placeholders included; replace with PNGs if desired)
     core_modules = [
-        {"title": "Admissions & Enrollment", "summary": "Capture leads, track applications, and onboard students in one flow.", "screenshot_url": ""},
-        {"title": "Academics & Grades", "summary": "Syllabi, attendance, report cards, and interventions in a single source of truth.", "screenshot_url": ""},
-        {"title": "Finance & Billing", "summary": "Fees, payments, and financial reporting tailored to your school model.", "screenshot_url": ""},
-        {"title": "Communication", "summary": "Parents, teachers, and students stay connected with role-ready portals.", "screenshot_url": ""},
-        {"title": "Compliance & Reporting", "summary": "Audit trails, regional compliance defaults, and export-ready reports.", "screenshot_url": ""},
+        {"title": "Admissions & Enrollment", "summary": "Capture leads, track applications, and onboard students in one flow.", "screenshot_url": "images/marketing/module-admissions.svg"},
+        {"title": "Academics & Grades", "summary": "Syllabi, attendance, report cards, and interventions in a single source of truth.", "screenshot_url": "images/marketing/module-academics.svg"},
+        {"title": "Finance & Billing", "summary": "Fees, payments, and financial reporting tailored to your school model.", "screenshot_url": "images/marketing/module-finance.svg"},
+        {"title": "Communication", "summary": "Parents, teachers, and students stay connected with role-ready portals.", "screenshot_url": "images/marketing/module-communication.svg"},
+        {"title": "Compliance & Reporting", "summary": "Audit trails, regional compliance defaults, and export-ready reports.", "screenshot_url": "images/marketing/module-compliance.svg"},
     ]
     platform_cards = [
         {"title": "Workflows that adapt", "summary": "From enquiry to graduation, every step is configurable to your school's processes and policies."},
@@ -1708,18 +1847,39 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
     ]
     migration_studio_image_url = getattr(settings, "MARKETING_MIGRATION_STUDIO_IMAGE_URL", None) or ""
     hero_dashboard_image_url = getattr(settings, "MARKETING_HERO_IMAGE_URL", None) or ""
+    if not hero_dashboard_image_url:
+        hero_dashboard_image_url = static("images/marketing/hero-placeholder.svg")
+    hero_video_url = getattr(settings, "MARKETING_HERO_VIDEO_URL", None) or ""
+    hero_video_poster_url = getattr(settings, "MARKETING_HERO_VIDEO_POSTER_URL", None) or hero_dashboard_image_url or ""
     product_demo_image_url = getattr(settings, "MARKETING_PRODUCT_DEMO_IMAGE_URL", None) or getattr(settings, "MARKETING_HERO_IMAGE_URL", None) or ""
+    # Product visualization strip: scrolling/tabbed UI screens (Student 360, teacher dashboard, admin analytics)
+    product_visualization_slides = getattr(settings, "MARKETING_PRODUCT_VISUALIZATION_SLIDES", None) or [
+        {"title": "Student 360", "caption": "One view per student: attendance, grades, interventions.", "image_url": "", "image_static": "images/marketing/viz-student360.svg"},
+        {"title": "Teacher dashboard", "caption": "Grades, attendance, and class tools in one place.", "image_url": "", "image_static": "images/marketing/viz-teacher.svg"},
+        {"title": "Admin analytics", "caption": "Real-time enrollment, finance, and compliance dashboards.", "image_url": "", "image_static": "images/marketing/viz-admin.svg"},
+    ]
+    _ecosystem_icon = static("images/marketing/logo-placeholder.svg")
+    _marketplace_path = _safe_reverse("marketing_app_marketplace") or "/app-marketplace/"
+    _integrations_path = _safe_reverse("marketing_integrations") or "/integrations/"
     ecosystem_apps = [
-        {"name": "LMS / LTI", "summary": "Connect your learning management system."},
-        {"name": "Payment gateways", "summary": "Stripe, PayPal, and local providers."},
-        {"name": "Messaging", "summary": "SMS and email providers for notifications."},
-        {"name": "Single sign-on", "summary": "SAML and OAuth for enterprise identity."},
+        {"name": "LMS / LTI", "summary": "Connect your learning management system.", "image_url": _ecosystem_icon, "install_path": _marketplace_path, "cta_path": _marketplace_path, "cta_label": "Explore"},
+        {"name": "Payment gateways", "summary": "Stripe, PayPal, and local providers.", "image_url": _ecosystem_icon, "install_path": _integrations_path, "cta_path": _integrations_path, "cta_label": "View integrations"},
+        {"name": "Messaging", "summary": "SMS and email providers for notifications.", "image_url": _ecosystem_icon, "install_path": _integrations_path, "cta_path": _integrations_path, "cta_label": "View integrations"},
+        {"name": "Single sign-on", "summary": "SAML and OAuth for enterprise identity.", "image_url": _ecosystem_icon, "install_path": _integrations_path, "cta_path": _integrations_path, "cta_label": "View integrations"},
     ]
     testimonials = [
         {"quote": "We moved from spreadsheets to RunMyCampus in one term. Admissions and billing are finally in one place.", "author": "Sarah M.", "role": "Operations Director, Greenfield Academy", "stars": 5},
         {"quote": "Multi-campus visibility without losing each school's identity. Exactly what we needed.", "author": "James K.", "role": "Network Lead, Nile Valley Schools", "stars": 5},
         {"quote": "Compliance and reporting used to take days. Now we have dashboards and exports in minutes.", "author": "Priya L.", "role": "Finance & Compliance, Toronto Scholars", "stars": 5},
     ]
+    # Video testimonials: list of {url, title, thumbnail_url}; override via MARKETING_VIDEO_TESTIMONIALS when ready
+    _video_testimonials_setting = getattr(settings, "MARKETING_VIDEO_TESTIMONIALS", None)
+    if _video_testimonials_setting:
+        video_testimonials = _video_testimonials_setting
+    else:
+        video_testimonials = [
+            {"url": _safe_reverse("marketing_landing") or "#", "title": "Customer story", "thumbnail_url": static("images/marketing/testimonial-thumb.svg")},
+        ]
     security_badges = [
         "FERPA aligned",
         "GDPR ready",
@@ -1775,10 +1935,16 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         {"value": "99.9%", "label": "uptime target"},
         {"value": "1", "label": "platform"},
     ]
+    # Outcome metrics for data viz (e.g. case study outcomes); optional bar_pct for mini chart (0-100)
+    outcome_metrics = getattr(settings, "MARKETING_OUTCOME_METRICS", None) or [
+        {"value": "40%", "label": "less admin workload", "detail": "Schools report reduced time on manual processes.", "bar_pct": 40},
+        {"value": "2×", "label": "faster admissions", "detail": "From application to decision in half the time.", "bar_pct": 50},
+    ]
+    _logo_placeholder = static("images/marketing/logo-placeholder.svg")
     customer_logos = [
-        {"name": "Greenfield Academy", "logo_url": ""},
-        {"name": "Nile Valley Schools", "logo_url": ""},
-        {"name": "Toronto Scholars", "logo_url": ""},
+        {"name": "Greenfield Academy", "logo_url": _logo_placeholder},
+        {"name": "Nile Valley Schools", "logo_url": _logo_placeholder},
+        {"name": "Toronto Scholars", "logo_url": _logo_placeholder},
     ]
     awards_recognition = [
         "FERPA aligned",
@@ -1833,7 +1999,7 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
     second_lead_magnet = {
         "title": "Implementation checklist",
         "summary": "Step-by-step checklist to go live with RunMyCampus.",
-        "url": _safe_reverse("marketing_buyer_toolkit_download", args=["implementation-checklist"]) if _safe_reverse("marketing_buyer_toolkit_download") else "/buyer-toolkit/download/implementation-checklist/",
+        "url": _safe_reverse("marketing_buyer_toolkit_download", kwargs={"document": "implementation-checklist"}) or "/buyer-toolkit/download/implementation-checklist/",
     }
     resources_hub_path = _safe_reverse("marketing_resources") or "/resources/"
 
@@ -1865,12 +2031,12 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         {"step": 3, "title": "Invite your team", "body": "Invite admins, teachers, and parents. Go live."},
     ]
 
-    # Non-negotiables: product pillars (6) + AI + differentiation
+    # Non-negotiables: product pillars (6) + AI + differentiation; link to deep product pages when available
     product_pillars_home = [
-        {"title": "Admissions & Enrollment", "summary": "Capture leads, track applications, onboard students.", "path": _safe_reverse("marketing_product") or "/product/"},
-        {"title": "Academics & Grades", "summary": "Syllabi, attendance, report cards, interventions.", "path": _safe_reverse("marketing_product") or "/product/"},
-        {"title": "Finance & Billing", "summary": "Fees, payments, financial reporting.", "path": _safe_reverse("marketing_pricing") or "/pricing/"},
-        {"title": "Communication", "summary": "Role-ready portals for parents, teachers, students.", "path": _safe_reverse("marketing_product") or "/product/"},
+        {"title": "Admissions & Enrollment", "summary": "Capture leads, track applications, onboard students.", "path": _safe_reverse("marketing_products_admissions") or "/products/admissions/"},
+        {"title": "Academics & Grades", "summary": "Syllabi, attendance, report cards, interventions.", "path": _safe_reverse("marketing_products_academics") or "/products/academics/"},
+        {"title": "Finance & Billing", "summary": "Fees, payments, financial reporting.", "path": _safe_reverse("marketing_products_finance") or "/products/finance/"},
+        {"title": "Communication", "summary": "Role-ready portals for parents, teachers, students.", "path": _safe_reverse("marketing_products_communication") or "/products/communication/"},
         {"title": "Compliance & Reporting", "summary": "Audit trails, regional compliance, export-ready reports.", "path": _safe_reverse("marketing_security_compliance") or "/security-compliance/"},
         {"title": "Manager / Operations", "summary": "Super-admin command center for multi-tenant operators.", "path": _safe_reverse("marketing_app_marketplace") or "/app-marketplace/"},
     ]
@@ -1884,6 +2050,20 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
 
     # Enterprise path
     enterprise_path_copy = "For operators at national scale. Book an architecture call for dedicated governance, compliance posture, and white-label branding."
+
+    # Asset defaults: use static placeholders when settings are unset (no 404s)
+    global_map_image_url = getattr(settings, "MARKETING_GLOBAL_MAP_IMAGE_URL", None) or static("images/marketing/global-map.svg")
+    illustration_workflow_url = getattr(settings, "MARKETING_ILLUSTRATION_WORKFLOW_URL", None) or static("images/marketing/illustration-workflow.svg")
+    illustration_globe_url = getattr(settings, "MARKETING_ILLUSTRATION_GLOBE_URL", None) or static("images/marketing/illustration-globe.svg")
+    illustration_students_url = getattr(settings, "MARKETING_ILLUSTRATION_STUDENTS_URL", None) or static("images/marketing/illustration-students.svg")
+
+    # AI Intelligence section: dedicated homepage block (optional enhancements)
+    ai_intelligence_features = [
+        "Predict at-risk students and recommend interventions.",
+        "Surface insights for enrollment and retention.",
+        "Automate routine reporting so staff focus on teaching.",
+    ]
+    ai_intelligence_cta_path = _safe_reverse("marketing_products_analytics") or _safe_reverse("marketing_landing") or "/"
 
     return {
         "pitch": pitch,
@@ -1934,10 +2114,16 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         "migration_studio_image_url": migration_studio_image_url,
         "ecosystem_apps": ecosystem_apps,
         "testimonials": testimonials,
+        "video_testimonials": video_testimonials,
         "security_badges": security_badges,
         "final_cta_headline": final_cta_headline,
         "hero_dashboard_image_url": hero_dashboard_image_url,
+        "hero_dashboard_image_srcset": getattr(settings, "MARKETING_HERO_IMAGE_SRCSET", None) or "",
+        "hero_dashboard_image_sizes": getattr(settings, "MARKETING_HERO_IMAGE_SIZES", None) or "(max-width: 800px) 100vw, 800px",
+        "hero_video_url": hero_video_url,
+        "hero_video_poster_url": hero_video_poster_url,
         "product_demo_image_url": product_demo_image_url,
+        "product_visualization_slides": product_visualization_slides,
         "organization_schema_json": organization_schema_json,
         "geo_copy": _geo_copy_variations(country),
         "marketing_calendly_url": getattr(settings, "MARKETING_CALENDLY_URL", None) or "",
@@ -1949,6 +2135,18 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         "platform_pillar_grid": platform_pillar_grid,
         "from_single_to_enterprise": from_single_to_enterprise,
         "by_the_numbers": by_the_numbers,
+        "outcome_metrics": outcome_metrics,
+        "global_map_image_url": global_map_image_url,
+        "global_stats": getattr(settings, "MARKETING_GLOBAL_STATS", None) or [
+            {"label": "Countries", "value": "195+"},
+            {"label": "Currencies", "value": "Multi-currency"},
+            {"label": "Languages", "value": "Multi-language"},
+        ],
+        "illustration_workflow_url": illustration_workflow_url,
+        "illustration_globe_url": illustration_globe_url,
+        "illustration_students_url": illustration_students_url,
+        "ai_intelligence_features": ai_intelligence_features,
+        "ai_intelligence_cta_path": ai_intelligence_cta_path,
         "customer_logos": customer_logos,
         "awards_recognition": awards_recognition,
         "review_badges": review_badges,
@@ -2745,6 +2943,10 @@ def _sitemap_entries(request) -> list[tuple[str, str, str]]:
     path_specs["/marketplace/apps/"] = ("0.7", "monthly")
     path_specs["/marketplace/integrations/"] = ("0.7", "monthly")
     path_specs["/marketplace/partners/"] = ("0.7", "monthly")
+    for prod in ("admissions", "academics", "finance", "communication", "automation", "analytics"):
+        path_specs[f"/products/{prod}/"] = ("0.85", "monthly")
+    for seo_slug in ("school-management-system", "student-information-system", "education-erp", "school-administration-software"):
+        path_specs[f"/{seo_slug}/"] = ("0.85", "monthly")
 
     try:
         from apps.siteconfig.models import GlobalBrandRegistry

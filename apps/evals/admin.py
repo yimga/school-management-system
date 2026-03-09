@@ -1,5 +1,5 @@
 from django.contrib import admin
-from config.admin import admin_site
+from config.admin import register_tenant_admin
 
 from unfold.admin import ModelAdmin
 from .models import TeacherAssignment, Evaluation, AssessmentWeights, EvaluationEvidence, GradeAudit, OfflineMarkEntry
@@ -90,11 +90,11 @@ class OfflineMarkEntryAdmin(ModelAdmin):
     readonly_fields = ('created_offline_at', 'synced_at', 'synced_by')
 
 
-# Register all models with custom admin site
-admin_site.register(TeacherAssignment, TeacherAssignmentAdmin)
-admin_site.register(Evaluation, EvaluationAdmin)
-admin_site.register(AssessmentWeights, AssessmentWeightsAdmin)
-admin_site.register(EvaluationEvidence, EvaluationEvidenceAdmin)
-admin_site.register(GradeAudit, GradeAuditAdmin)
-admin_site.register(OfflineMarkEntry, OfflineMarkEntryAdmin)
+# Register all models with tenant admin only
+register_tenant_admin(TeacherAssignment, TeacherAssignmentAdmin)
+register_tenant_admin(Evaluation, EvaluationAdmin)
+register_tenant_admin(AssessmentWeights, AssessmentWeightsAdmin)
+register_tenant_admin(EvaluationEvidence, EvaluationEvidenceAdmin)
+register_tenant_admin(GradeAudit, GradeAuditAdmin)
+register_tenant_admin(OfflineMarkEntry, OfflineMarkEntryAdmin)
 

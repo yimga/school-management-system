@@ -1,5 +1,5 @@
 from django.contrib import admin
-from config.admin import admin_site
+from config.admin import register_tenant_admin
 
 from unfold.admin import ModelAdmin
 from .models import (
@@ -209,13 +209,13 @@ TermAdmin.actions = [assign_positions_to_year]
 
 
 # Register all models with custom admin site
-admin_site.register(AcademicYear, AcademicYearAdmin)
-admin_site.register(Term, TermAdmin)
-admin_site.register(Department, DepartmentAdmin)
-admin_site.register(Specialty, SpecialtyAdmin)
-admin_site.register(Classroom, ClassroomAdmin)
-admin_site.register(ClassroomPromotionMapping, ClassroomPromotionMappingAdmin)
-admin_site.register(Subject, SubjectAdmin)
+register_tenant_admin(AcademicYear, AcademicYearAdmin)
+register_tenant_admin(Term, TermAdmin)
+register_tenant_admin(Department, DepartmentAdmin)
+register_tenant_admin(Specialty, SpecialtyAdmin)
+register_tenant_admin(Classroom, ClassroomAdmin)
+register_tenant_admin(ClassroomPromotionMapping, ClassroomPromotionMappingAdmin)
+register_tenant_admin(Subject, SubjectAdmin)
 
 
 class IncidentAdmin(ModelAdmin):
@@ -233,10 +233,10 @@ class IncidentAdmin(ModelAdmin):
     date_hierarchy = "date"
 
 
-admin_site.register(Incident, IncidentAdmin)
-admin_site.register(SubjectAssignment, SubjectAssignmentAdmin)
-admin_site.register(CourseSyllabus, CourseSyllabusAdmin)
-admin_site.register(ClassBooklist, ClassBooklistAdmin)
+register_tenant_admin(Incident, IncidentAdmin)
+register_tenant_admin(SubjectAssignment, SubjectAssignmentAdmin)
+register_tenant_admin(CourseSyllabus, CourseSyllabusAdmin)
+register_tenant_admin(ClassBooklist, ClassBooklistAdmin)
 
 
 class CurriculumNodeInline(admin.TabularInline):
@@ -261,15 +261,15 @@ class CurriculumNodeAdmin(ModelAdmin):
     ordering = ("standard", "order", "code")
 
 
-admin_site.register(CurriculumStandard, CurriculumStandardAdmin)
-admin_site.register(CurriculumNode, CurriculumNodeAdmin)
-admin_site.register(CertificationExamSession, CertificationExamSessionAdmin)
-admin_site.register(CertificationCandidate, CertificationCandidateAdmin)
-admin_site.register(CertificationAuditLog, CertificationAuditLogAdmin)
-admin_site.register(CertificationExamPreset, CertificationExamPresetAdmin)
-admin_site.register(CertificationFeeTemplate, CertificationFeeTemplateAdmin)
-admin_site.register(CertificationDocumentChecklist, CertificationDocumentChecklistAdmin)
-admin_site.register(CertificationCandidateDocumentStatus, CertificationCandidateDocumentStatusAdmin)
+register_tenant_admin(CurriculumStandard, CurriculumStandardAdmin)
+register_tenant_admin(CurriculumNode, CurriculumNodeAdmin)
+register_tenant_admin(CertificationExamSession, CertificationExamSessionAdmin)
+register_tenant_admin(CertificationCandidate, CertificationCandidateAdmin)
+register_tenant_admin(CertificationAuditLog, CertificationAuditLogAdmin)
+register_tenant_admin(CertificationExamPreset, CertificationExamPresetAdmin)
+register_tenant_admin(CertificationFeeTemplate, CertificationFeeTemplateAdmin)
+register_tenant_admin(CertificationDocumentChecklist, CertificationDocumentChecklistAdmin)
+register_tenant_admin(CertificationCandidateDocumentStatus, CertificationCandidateDocumentStatusAdmin)
 
 
 # --- Scheduling (timetable) ---
@@ -319,12 +319,12 @@ class SchedulingConstraintAdmin(ModelAdmin):
     list_filter = ("constraint_type", "is_active")
 
 
-admin_site.register(Room, RoomAdmin)
-admin_site.register(TimeSlot, TimeSlotAdmin)
-admin_site.register(Schedule, ScheduleAdmin)
-admin_site.register(ScheduleEntry, ScheduleEntryAdmin)
-admin_site.register(TeacherAvailability, TeacherAvailabilityAdmin)
-admin_site.register(SchedulingConstraint, SchedulingConstraintAdmin)
+register_tenant_admin(Room, RoomAdmin)
+register_tenant_admin(TimeSlot, TimeSlotAdmin)
+register_tenant_admin(Schedule, ScheduleAdmin)
+register_tenant_admin(ScheduleEntry, ScheduleEntryAdmin)
+register_tenant_admin(TeacherAvailability, TeacherAvailabilityAdmin)
+register_tenant_admin(SchedulingConstraint, SchedulingConstraintAdmin)
 
 
 class WorkflowConfigAdmin(ModelAdmin):
@@ -337,4 +337,4 @@ class WorkflowConfigAdmin(ModelAdmin):
     step_count_display.short_description = "Steps"
 
 
-admin_site.register(WorkflowConfig, WorkflowConfigAdmin)
+register_tenant_admin(WorkflowConfig, WorkflowConfigAdmin)

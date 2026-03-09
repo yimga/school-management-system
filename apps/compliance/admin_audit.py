@@ -8,6 +8,7 @@ from django.contrib import admin
 from django.http import HttpResponse
 from django.utils import timezone
 from unfold.admin import ModelAdmin
+from config.admin import tenant_admin_site
 from .models_audit import (
     AuditLog,
     UserActivitySession,
@@ -36,7 +37,7 @@ def _audit_log_export_rows(queryset):
         }
 
 
-@admin.register(AuditLog)
+@admin.register(AuditLog, site=tenant_admin_site)
 class AuditLogAdmin(ModelAdmin):
     list_display = ("timestamp", "user", "action", "model_name", "object_repr", "sensitivity", "ip_address")
     list_filter = ("action", "sensitivity", "model_name", "app_label", "timestamp")
@@ -100,7 +101,7 @@ class AuditLogAdmin(ModelAdmin):
         return False
 
 
-@admin.register(UserActivitySession)
+@admin.register(UserActivitySession, site=tenant_admin_site)
 class UserActivitySessionAdmin(ModelAdmin):
     list_display = ("user", "login_timestamp", "logout_timestamp", "ip_address", "page_views", "api_calls", "is_suspicious")
     list_filter = ("is_suspicious", "login_timestamp")
@@ -118,7 +119,7 @@ class UserActivitySessionAdmin(ModelAdmin):
     )
 
 
-@admin.register(AccessLog)
+@admin.register(AccessLog, site=tenant_admin_site)
 class AccessLogAdmin(ModelAdmin):
     list_display = ("timestamp", "user", "access_type", "resource", "status", "response_time_ms", "ip_address")
     list_filter = ("access_type", "status", "request_method", "timestamp")
@@ -136,7 +137,7 @@ class AccessLogAdmin(ModelAdmin):
     )
 
 
-@admin.register(ComplianceReport)
+@admin.register(ComplianceReport, site=tenant_admin_site)
 class ComplianceReportAdmin(ModelAdmin):
     list_display = ("report_type", "start_date", "end_date", "generated_at", "generated_by", "export_link")
     list_filter = ("report_type", "generated_at")
@@ -261,7 +262,7 @@ class ComplianceReportAdmin(ModelAdmin):
     export_as_pdf.short_description = "Export selected as PDF"
 
 
-@admin.register(ThreatDetectionConfig)
+@admin.register(ThreatDetectionConfig, site=tenant_admin_site)
 class ThreatDetectionConfigAdmin(ModelAdmin):
     list_display = ("window_minutes", "failed_per_user", "failed_per_ip", "mute_status", "updated_at", "updated_by")
     readonly_fields = ("updated_at", "updated_by")
@@ -308,7 +309,7 @@ class ThreatDetectionConfigAdmin(ModelAdmin):
         return False
 
 
-@admin.register(IPAccessRule)
+@admin.register(IPAccessRule, site=tenant_admin_site)
 class IPAccessRuleAdmin(ModelAdmin):
     list_display = ("ip_address", "rule_type", "is_active", "description", "created_at", "expires_at", "expired_status")
     list_filter = ("rule_type", "is_active", "created_at")
@@ -379,7 +380,7 @@ class IPAccessRuleAdmin(ModelAdmin):
     export_to_csv.short_description = "Export selected rules to CSV"
 
 
-@admin.register(CountryAccessRule)
+@admin.register(CountryAccessRule, site=tenant_admin_site)
 class CountryAccessRuleAdmin(ModelAdmin):
     list_display = ("country_code", "country_name", "rule_type", "is_active", "description", "created_at")
     list_filter = ("rule_type", "is_active", "created_at")

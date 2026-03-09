@@ -3,10 +3,13 @@
 ## Goal
 Build a clean, conversion-first, enterprise-grade public surface for `runmycampus.com` with strict host clarity and measurable pipeline outcomes.
 
+## Master checklist: 60 non-negotiables
+**All items are defined and tracked in [MARKETING_NON_NEGOTIABLES.md](MARKETING_NON_NEGOTIABLES.md).** Nothing is deferred to "later"; every item is either implemented or scheduled with a target date. Review that document for the complete list, acceptance checklist, content ownership, and review cadence.
+
 ## Status Legend
 - `done`: implemented and in code
 - `next`: prioritized for immediate build
-- `later`: queued after core conversion path is stable
+- (no `later` bucket: all work is in MARKETING_NON_NEGOTIABLES.md)
 
 ## Wave 1 (Core Conversion) - Priority
 1. `done` Hero simplification and segment-first messaging.

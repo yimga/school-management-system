@@ -1,15 +1,25 @@
 # Marketing homepage assets
 
-Placeholder for marketing landing images:
+Default placeholder SVGs are included so no section 404s. Replace with final art when ready.
 
-- `hero-dashboard.png` – hero section dashboard visual (optional; set `MARKETING_HERO_IMAGE_URL` or `hero_dashboard_image_url` in context)
-- `product-demo.png` – product demonstration screenshot (optional; set `MARKETING_PRODUCT_DEMO_IMAGE_URL`)
-- `migration-studio.png` – migration studio screenshot (optional; set `MARKETING_MIGRATION_STUDIO_IMAGE_URL`)
-- Module screenshots for core modules (optional; set `screenshot_url` per module in `core_modules`)
+## Included placeholders (no code change required to run)
 
-Templates use alt text and fallbacks when URLs are empty.
+- **Hero:** `hero-placeholder.svg` – used when `MARKETING_HERO_IMAGE_URL` is unset.
+- **Module screenshots:** `module-admissions.svg`, `module-academics.svg`, `module-finance.svg`, `module-communication.svg`, `module-compliance.svg` – wired in `core_modules` context.
+- **Product viz:** `viz-student360.svg`, `viz-teacher.svg`, `viz-admin.svg` – wired in `product_visualization_slides`.
+- **Global map:** `global-map.svg` – used when `MARKETING_GLOBAL_MAP_IMAGE_URL` is unset.
+- **Illustrations:** `illustration-workflow.svg`, `illustration-globe.svg`, `illustration-students.svg` – used when the corresponding `MARKETING_ILLUSTRATION_*_URL` is unset.
+- **Customer logos:** `logo-placeholder.svg` – used for each `customer_logos` entry when you don’t set a custom `logo_url`/`image_url`.
+- **Video testimonial thumb:** `testimonial-thumb.svg` – used for the default video testimonial card when `MARKETING_VIDEO_TESTIMONIALS` is unset.
 
-## Social proof (trust logos and video)
+## Optional settings (replace placeholders)
 
-- **Trust logos:** The landing uses `trust_logos` (name + image_url). Replace placeholder entries in `marketing_views.py` with real logo URLs, or drop PNG/SVG files here and reference via `{% static 'images/marketing/partner-logo.png' %}`.
-- **Video testimonial:** To add a short testimonial video, set a URL in context (e.g. `marketing_testimonial_video_url`) and add an optional video embed block in `marketing_landing.html` (e.g. `<video>` or third-party embed). No code change required until you add the URL and template block.
+- **Hero:** Set `MARKETING_HERO_IMAGE_URL` (and optionally `MARKETING_HERO_VIDEO_URL`, `MARKETING_HERO_VIDEO_POSTER_URL`). For responsive hero image set `MARKETING_HERO_IMAGE_SRCSET` and `MARKETING_HERO_IMAGE_SIZES`.
+- **Product demo / migration:** `MARKETING_PRODUCT_DEMO_IMAGE_URL`, `MARKETING_MIGRATION_STUDIO_IMAGE_URL`.
+- **Global map / illustrations:** `MARKETING_GLOBAL_MAP_IMAGE_URL`, `MARKETING_ILLUSTRATION_WORKFLOW_URL`, `MARKETING_ILLUSTRATION_GLOBE_URL`, `MARKETING_ILLUSTRATION_STUDENTS_URL`.
+- **Video testimonials:** Set `MARKETING_VIDEO_TESTIMONIALS` to a list of `{url, title, thumbnail_url}` for real videos.
+- **Customer logos:** For each school in `customer_logos`, set `logo_url` or `image_url` to your asset (or keep the default placeholder).
+
+## Trust logos
+
+The landing uses `trust_logos` (name + image_url). Replace placeholder entries in context with real logo URLs, or add files here and reference via `{% static 'images/marketing/partner-logo.png' %}`.
