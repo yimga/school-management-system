@@ -42,7 +42,7 @@
               </div>
               <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary">Save changes</button>
-                <a class="btn btn-outline-secondary" href="{% url 'accounts:user_profile' %}">Cancel</a>
+                <a class="btn btn-outline-secondary js-return-to-origin" href="{% url 'accounts:user_profile' %}" data-fallback="{% url 'accounts:user_profile' %}">Cancel</a>
               </div>
             </form>
           </div>

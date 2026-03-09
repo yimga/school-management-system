@@ -13,7 +13,7 @@
 {% endblock %}
 
 {% block breadcrumb_actions %}
-<a href="{{ dashboard_url }}" class="btn btn-sm btn-outline-light">{% trans "Back to Dashboard" %}</a>
+<a href="{{ dashboard_url }}" class="btn btn-sm btn-outline-light js-return-to-origin" data-fallback="{{ dashboard_url }}">{% trans "Back to Dashboard" %}</a>
 {% endblock %}
 
 {% block cp_content %}

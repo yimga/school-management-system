@@ -3,6 +3,10 @@
 
 {% block extrastyle %}
   {{ block.super }}
+  {% if is_manager_host %}
+  <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
+  {% endif %}
   <!-- Admin-only design tokens -->
   <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
   <link rel="stylesheet" href="{% static 'css/design-system-unified.css' %}">
@@ -179,22 +183,31 @@
 {% block extrahead %}
   {{ block.super }}
   {% if is_manager_host %}<link rel="icon" href="{% static 'images/runmycampus-icon.png' %}" type="image/png">{% elif SITE_FAVICON_URL %}<link rel="icon" href="{{ SITE_FAVICON_URL }}" type="image/x-icon">{% endif %}
-  {# Configuration Engine: same high-end control-plane shell as /super/ on all hosts #}
+  {# Configuration Engine: premium shell on all hosts – manager gets navy/gold, tenant gets same UX with school theme #}
   <script>
     (function(){
+      var isManager = {{ is_manager_host|yesno:"true,false" }};
       function applyAdminShell() {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        document.documentElement.setAttribute('data-bs-theme', 'dark');
-        document.documentElement.setAttribute('data-surface', 'control-plane');
-        document.documentElement.classList.add('dark');
-        if (document.body) {
-          document.body.classList.add('control-plane-shell', 'admin-manager-shell', 'cp-surface', 'portal-backend-dark');
+        if (isManager) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          document.documentElement.setAttribute('data-bs-theme', 'dark');
+          document.documentElement.setAttribute('data-surface', 'control-plane');
+          document.documentElement.classList.add('dark');
+          if (document.body) {
+            document.body.classList.add('control-plane-shell', 'admin-manager-shell', 'cp-surface', 'portal-backend-dark');
+          }
+        } else {
+          document.documentElement.setAttribute('data-surface', 'tenant');
+          if (document.body) {
+            document.body.classList.add('admin-premium-shell', 'portal-backend-dark');
+          }
         }
       }
       if (document.body) applyAdminShell(); else document.addEventListener('DOMContentLoaded', applyAdminShell);
     })();
   </script>
   <script src="{% static 'js/admin-sidebar-nav.js' %}" defer></script>
+  <script src="{% static 'js/return-to-origin.js' %}" defer></script>
 {% endblock %}
 
 {% block title %}{% if site_title %}{{ site_title }}{% else %}{% trans 'Site administration' %}{% endif %}{% endblock %}

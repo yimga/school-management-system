@@ -1,6 +1,9 @@
 {% load i18n admin_urls %}
 
 <div {% if not is_popup %}id="submit-row"{% endif %} class="relative lg:sticky lg:bottom-0 z-40">
+    {% if request.GET.next %}
+    <input type="hidden" name="next" value="{{ request.GET.next }}" form="{{ opts.model_name }}_form">
+    {% endif %}
     <div class="backdrop-blur-xs bg-white/80 rounded-b-default pb-4 px-4 dark:bg-base-900/80 lg:border-t lg:border-base-200 relative lg:scrollable-top lg:py-0 dark:border-base-800">
         <div class="flex flex-col-reverse gap-3 items-center mx-auto lg:flex-row-reverse container lg:h-[64px]">
             {% block submit-row %}
@@ -33,7 +36,7 @@
                 {% endif %}
 
                 {% url opts|admin_urlname:'changelist' as changelist_url %}
-                <a href="{% add_preserved_filters changelist_url %}" class="border border-base-200 cursor-pointer font-medium px-3 py-2 rounded-default text-center transition-all w-full hover:bg-base-50 lg:block lg:w-auto dark:border-base-700 dark:hover:text-base-200 dark:hover:bg-base-900 js-admin-back" data-fallback="{% add_preserved_filters changelist_url %}">
+                <a href="{% add_preserved_filters changelist_url %}" class="border border-base-200 cursor-pointer font-medium px-3 py-2 rounded-default text-center transition-all w-full hover:bg-base-50 lg:block lg:w-auto dark:border-base-700 dark:hover:text-base-200 dark:hover:bg-base-900 js-admin-back js-return-to-origin" data-fallback="{% add_preserved_filters changelist_url %}">
                     {% translate 'Back' %}
                 </a>
                 <script>
@@ -46,14 +49,13 @@
                         try { return new URL(url, window.location.href).origin === window.location.origin; }
                         catch (e) { return false; }
                       }
+                      var stored = null;
+                      try { stored = sessionStorage.getItem('runmycampus-return-url'); } catch (e) {}
                       var ref = document.referrer;
-                      if (ref && sameOrigin(ref)) {
-                        a.setAttribute('href', ref);
-                      } else {
-                        a.setAttribute('href', fallback);
-                      }
+                      var href = (stored && sameOrigin(stored)) ? stored : (ref && sameOrigin(ref) ? ref : fallback);
+                      a.setAttribute('href', href);
                       a.addEventListener('click', function (ev) {
-                        if (window.history && window.history.length > 1 && ref && sameOrigin(ref)) {
+                        if (window.history && window.history.length > 1 && ref && sameOrigin(ref) && !(stored && sameOrigin(stored))) {
                           ev.preventDefault();
                           window.history.back();
                         }
@@ -76,7 +78,7 @@
 
                 <div class="flex flex-col gap-3 mr-auto w-full lg:flex-row lg:w-auto">
                     {% if show_close or adminform.model_admin.change_form_show_cancel_button %}
-                        <a href="{% add_preserved_filters changelist_url %}" class="border border-base-200 cursor-pointer font-medium px-3 py-2 rounded-default text-center transition-all w-full hover:bg-base-50 lg:block lg:w-auto dark:border-base-700  dark:hover:text-base-200 dark:hover:bg-base-900">
+                        <a href="{% add_preserved_filters changelist_url %}" class="border border-base-200 cursor-pointer font-medium px-3 py-2 rounded-default text-center transition-all w-full hover:bg-base-50 lg:block lg:w-auto dark:border-base-700  dark:hover:text-base-200 dark:hover:bg-base-900 js-return-to-origin" data-fallback="{% add_preserved_filters changelist_url %}">
                             {% translate 'Close' %}
                         </a>
                     {% endif %}

@@ -13,7 +13,7 @@
 
         <div id="main" class="bg-white flex flex-col grow min-w-0 dark:bg-base-900 {% element_classes 'main' %}">
             {% block branding %}{% endblock %}
-            {% include "unfold/helpers/header.html" %}
+            {% if not is_manager_host %}{% include "unfold/helpers/header.html" %}{% endif %}
 
 
             {% block messages %}

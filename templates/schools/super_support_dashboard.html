@@ -7,7 +7,7 @@
     <h1 class="h4 mb-0">{% trans "Support mission control" %}</h1>
     <div class="d-flex gap-2">
       <a href="{% url 'super:command_center' %}" class="btn btn-outline-warning">{% trans "Open command center" %}</a>
-      <a href="{% url 'super:dashboard' %}" class="btn btn-outline-secondary">{% trans "Back to dashboard" %}</a>
+      <a href="{% url 'super:dashboard' %}" class="btn btn-outline-secondary js-return-to-origin" data-fallback="{% url 'super:dashboard' %}">{% trans "Back to dashboard" %}</a>
     </div>
   </div>
   <div class="row g-3 mb-4">

@@ -206,7 +206,7 @@
                 </div>
               </div>
               <div class="d-flex justify-content-between mt-4">
-                <a href="{% url 'super:dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
+                <a href="{% url 'super:dashboard' %}" class="btn btn-outline-secondary js-return-to-origin" data-fallback="{% url 'super:dashboard' %}">Cancel</a>
                 <button type="button" class="btn btn-primary" id="btn-next">Next</button>
                 <button type="submit" class="btn btn-success d-none" id="btn-submit">Create School</button>
               </div>

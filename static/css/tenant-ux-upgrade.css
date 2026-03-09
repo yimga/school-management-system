@@ -1,0 +1,173 @@
+/**
+ * Tenant UX Upgrade – Same high-end design system as /super/ and admin across ALL tenant pages.
+ * Applied to portal_base (backend + portal): cards, tables, forms, buttons, sections, typography.
+ * Keeps tenant branding (--school-primary, --school-accent).
+ */
+
+html[data-surface="tenant"] .card,
+html[data-surface="tenant"] .portal-main-col .card,
+html[data-surface="tenant"] #main-content .card {
+  border-radius: var(--platform-premium-radius, 14px);
+  box-shadow: var(--platform-premium-shadow);
+  border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+html[data-surface="tenant"] .card:hover,
+html[data-surface="tenant"] #main-content .card:hover {
+  box-shadow: var(--platform-premium-shadow-hover);
+}
+html[data-surface="tenant"][data-theme="dark"] .card,
+html[data-surface="tenant"] body.portal-backend-dark .card,
+html[data-surface="tenant"] body.portal-backend-dark #main-content .card {
+  box-shadow: var(--platform-premium-shadow-dark);
+  border-color: rgba(148, 163, 184, 0.15);
+}
+html[data-surface="tenant"][data-theme="dark"] .card:hover,
+html[data-surface="tenant"] body.portal-backend-dark .card:hover {
+  box-shadow: var(--platform-premium-shadow-dark-hover);
+}
+
+/* Section / panel blocks */
+html[data-surface="tenant"] .dashboard-section,
+html[data-surface="tenant"] #main-content section.card,
+html[data-surface="tenant"] .workflow-hero,
+html[data-surface="tenant"] .hub-card,
+html[data-surface="tenant"] .page-wrap {
+  border-radius: var(--platform-premium-radius, 14px);
+  box-shadow: var(--platform-premium-shadow);
+  border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
+}
+html[data-surface="tenant"] body.portal-backend-dark .page-wrap,
+html[data-surface="tenant"] body.portal-backend-dark .dashboard-section,
+html[data-surface="tenant"] body.portal-backend-dark .workflow-hero,
+html[data-surface="tenant"] body.portal-backend-dark .hub-card {
+  box-shadow: var(--platform-premium-shadow-dark);
+  border-color: rgba(148, 163, 184, 0.15);
+}
+
+/* Tables: density and header styling */
+html[data-surface="tenant"] #main-content .table-responsive,
+html[data-surface="tenant"] .portal-main-col .table-responsive {
+  border-radius: var(--platform-premium-radius-sm, 10px);
+  overflow: hidden;
+  box-shadow: var(--platform-premium-shadow);
+}
+html[data-surface="tenant"] #main-content .table thead th,
+html[data-surface="tenant"] .portal-main-col .table thead th {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--portal-border, rgba(15, 23, 42, 0.12));
+}
+html[data-surface="tenant"] #main-content .table tbody td,
+html[data-surface="tenant"] .portal-main-col .table tbody td {
+  padding: 0.75rem 1rem;
+  vertical-align: middle;
+}
+html[data-surface="tenant"] #main-content .table tbody tr:hover td,
+html[data-surface="tenant"] .portal-main-col .table tbody tr:hover td {
+  background: color-mix(in srgb, var(--school-primary, #0d6efd) 6%, transparent);
+}
+
+/* Forms: inputs and focus */
+html[data-surface="tenant"] #main-content .form-control,
+html[data-surface="tenant"] #main-content .form-select,
+html[data-surface="tenant"] .portal-main-col .form-control,
+html[data-surface="tenant"] .portal-main-col .form-select {
+  border-radius: 8px;
+  border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.12));
+  padding: 0.5rem 0.75rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+html[data-surface="tenant"] #main-content .form-control:focus,
+html[data-surface="tenant"] #main-content .form-select:focus,
+html[data-surface="tenant"] .portal-main-col .form-control:focus,
+html[data-surface="tenant"] .portal-main-col .form-select:focus {
+  border-color: var(--school-primary, #0d6efd);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--school-primary, #0d6efd) 18%, transparent);
+}
+html[data-surface="tenant"] #main-content .form-label,
+html[data-surface="tenant"] .portal-main-col .form-label {
+  font-weight: 500;
+  margin-bottom: 0.35rem;
+}
+
+/* Buttons: pill for primary, consistent hover */
+html[data-surface="tenant"] #main-content .btn-primary,
+html[data-surface="tenant"] .portal-main-col .btn-primary {
+  border-radius: 999px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  background: var(--school-primary, #0d6efd);
+  border-color: var(--school-primary, #0d6efd);
+}
+html[data-surface="tenant"] #main-content .btn-primary:hover,
+html[data-surface="tenant"] .portal-main-col .btn-primary:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  filter: brightness(1.06);
+}
+html[data-surface="tenant"] #main-content .btn,
+html[data-surface="tenant"] .portal-main-col .btn {
+  border-radius: 8px;
+  font-weight: 500;
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Section and page headings */
+html[data-surface="tenant"] #main-content h1,
+html[data-surface="tenant"] #main-content .page-header h1,
+html[data-surface="tenant"] .portal-main-col h1 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+html[data-surface="tenant"] #main-content h2,
+html[data-surface="tenant"] #main-content .section-title,
+html[data-surface="tenant"] .portal-main-col h2,
+html[data-surface="tenant"] .portal-main-col .section-title {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* Alerts: radius and border */
+html[data-surface="tenant"] #main-content .alert,
+html[data-surface="tenant"] .portal-main-col .alert {
+  border-radius: var(--platform-premium-radius-sm, 10px);
+  border: 1px solid transparent;
+  padding: 1rem 1.25rem;
+}
+
+/* List groups */
+html[data-surface="tenant"] #main-content .list-group-item,
+html[data-surface="tenant"] .portal-main-col .list-group-item {
+  border-color: var(--portal-border, rgba(15, 23, 42, 0.08));
+  padding: 0.75rem 1rem;
+}
+html[data-surface="tenant"] #main-content .list-group-item:first-child,
+html[data-surface="tenant"] .portal-main-col .list-group-item:first-child {
+  border-radius: var(--platform-premium-radius-sm, 10px) var(--platform-premium-radius-sm, 10px) 0 0;
+}
+html[data-surface="tenant"] #main-content .list-group-item:last-child,
+html[data-surface="tenant"] .portal-main-col .list-group-item:last-child {
+  border-radius: 0 0 var(--platform-premium-radius-sm, 10px) var(--platform-premium-radius-sm, 10px);
+}
+
+/* Badges: consistent radius */
+html[data-surface="tenant"] #main-content .badge,
+html[data-surface="tenant"] .portal-main-col .badge {
+  border-radius: 6px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* Dropdowns: premium shadow and radius */
+html[data-surface="tenant"] .dropdown-menu {
+  border-radius: var(--platform-premium-radius-sm, 10px);
+  box-shadow: var(--platform-premium-shadow);
+  border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
+}
+html[data-surface="tenant"] .dropdown-item:hover {
+  background: color-mix(in srgb, var(--school-primary, #0d6efd) 10%, transparent);
+  color: var(--school-primary, #0d6efd);
+}

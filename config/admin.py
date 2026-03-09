@@ -6,10 +6,12 @@ instances so manager-host routes no longer behave like a tenant surface.
 """
 from apps.dashboard.admin_context import build_admin_dashboard_context
 
+from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
 from django.urls import NoReverseMatch, path, reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.safestring import mark_safe
 from unfold.sites import UnfoldAdminSite
 
@@ -93,6 +95,21 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
         if extra_context:
             context.update(extra_context)
         return TemplateResponse(request, self.index_template_name, context)
+
+    def add_view(self, request, *args, **kwargs):
+        """After add POST, redirect to request.POST['next'] when safe (return-to-origin)."""
+        response = super().add_view(request, *args, **kwargs)
+        if (
+            request.method == "POST"
+            and isinstance(response, HttpResponseRedirect)
+            and response.status_code == 302
+        ):
+            next_url = (request.POST.get("next") or "").strip()
+            if next_url and url_has_allowed_host_and_scheme(
+                next_url, allowed_hosts={request.get_host()}
+            ):
+                return redirect(next_url)
+        return response
 
     def dashboard_redirect(self, request):
         return redirect("admin:index")
@@ -311,6 +328,17 @@ class PlatformAdminSite(BaseRunMyCampusAdminSite):
     site_title = "Configuration Engine"
     index_title = "Platform Backoffice"
     index_template_name = "admin/index_superadmin.html"
+
+    def index(self, request, extra_context=None):
+        context = build_admin_dashboard_context(
+            request,
+            base_context=self.each_context(request),
+            title=self.index_title,
+        )
+        context["app_list"] = self.get_app_list(request)
+        if extra_context:
+            context.update(extra_context)
+        return TemplateResponse(request, self.index_template_name, context)
 
     # AdminOpsShell IA: sections and app order for platform /admin/
     PLATFORM_APP_SECTIONS = (

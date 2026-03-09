@@ -60,7 +60,7 @@
               </div>
               <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary">{% if is_edit %}Save changes{% else %}Create delegation{% endif %}</button>
-                <a class="btn btn-outline-secondary" href="{% url 'accounts:my_delegations' %}">Cancel</a>
+                <a class="btn btn-outline-secondary js-return-to-origin" href="{% url 'accounts:my_delegations' %}" data-fallback="{% url 'accounts:my_delegations' %}">Cancel</a>
               </div>
             </form>
           </div>

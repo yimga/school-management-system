@@ -35,6 +35,7 @@
     <a href="#cp-main-content" class="skip-link visually-hidden-focusable" aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>
     {% block content %}{% endblock %}
     <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'js/return-to-origin.js' %}" defer></script>
     {% block extrajs %}{% endblock %}
   </body>
 </html>

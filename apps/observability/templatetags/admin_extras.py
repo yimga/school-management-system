@@ -82,6 +82,29 @@ def get_all_model_counts(context):
     return counts
 
 
+@register.simple_tag(takes_context=True)
+def add_preserved_filters_with_next(context, add_url, is_popup=False, to_field=None):
+    """
+    Return the add URL with preserved changelist filters and next= for return-to-origin.
+    Usage: {% add_preserved_filters_with_next add_url is_popup to_field %}
+    """
+    from urllib.parse import quote
+
+    try:
+        from django.contrib.admin.templatetags.admin_urls import add_preserved_filters
+        base = add_preserved_filters(context, add_url, is_popup, to_field)
+    except Exception:
+        base = add_url or ""
+    request = context.get("request")
+    if not request:
+        return base
+    full_path = request.get_full_path()
+    if not full_path:
+        return base
+    sep = "&" if "?" in base else "?"
+    return base + sep + "next=" + quote(full_path, safe="/")
+
+
 @register.filter
 def format_count(count):
     """

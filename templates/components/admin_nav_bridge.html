@@ -1,6 +1,57 @@
 {% load static i18n %}
-<!-- Admin Navigation Bridge: platform-only on manager host; tenant switching on tenant host -->
+<!-- Admin Navigation Bridge: on manager host use same navbar as /super/ for unified high-end UX -->
 
+{% if is_manager_host %}
+<nav class="navbar navbar-expand-lg navbar-dark cp-navbar admin-cp-navbar-unified" style="background: var(--cp-bg, #0B0E14); border-bottom: 1px solid rgba(125,152,187,0.18);">
+  <div class="container-fluid px-3">
+    <a class="navbar-brand fw-bold d-flex align-items-center gap-2 text-white" href="{% url 'super:dashboard' %}">
+      {% if PUBLIC_BRAND_FAVICON_URL %}
+        <img src="{{ PUBLIC_BRAND_FAVICON_URL }}" alt="" width="32" height="32" decoding="async" style="object-fit: contain;">
+      {% else %}
+        <img src="{% static 'images/runmycampus-icon.png' %}" alt="" width="32" height="32" decoding="async" style="object-fit: contain;">
+      {% endif %}
+      <span>RunMyCampus Manager</span>
+    </a>
+    <button class="navbar-toggler border-light d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#adminCpNavbarContent" aria-controls="adminCpNavbarContent" aria-label="{% trans 'Open menu' %}">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="adminCpNavbarContent">
+      <div class="d-flex align-items-center gap-3 ms-lg-auto">
+        <div class="cp-header-search d-none d-md-block position-relative">
+          <input type="search" class="form-control form-control-sm bg-dark border-secondary text-white" placeholder="{% trans 'Search tenants, incidents… (Ctrl+K)' %}" aria-label="Search" id="cpSearchInputAdmin" style="min-width: 220px;" autocomplete="off">
+          <div id="cpSearchResultsAdmin" class="dropdown-menu position-absolute start-0 mt-1 shadow" style="min-width: 280px; max-height: 70vh; overflow-y: auto;" aria-label="Search results"></div>
+        </div>
+        {% if request.user.is_authenticated %}
+          <a href="{% url 'admin:index' %}" class="btn btn-sm btn-outline-light d-flex align-items-center gap-1 active" title="{% trans 'Configuration Engine – system and data' %}">
+            <i class="bi bi-gear-wide-connected"></i>
+            <span class="d-none d-lg-inline">{% trans "Configuration Engine" %}</span>
+          </a>
+          <a href="{% url 'super:dashboard' %}" class="btn btn-sm btn-outline-light d-flex align-items-center gap-1" title="{% trans 'Control plane' %}">
+            <i class="bi bi-speedometer2"></i>
+            <span class="d-none d-lg-inline">{% trans "Control plane" %}</span>
+          </a>
+          <div class="dropdown">
+            <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" id="cpUserDropdownAdmin" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-person-circle me-1"></i>
+              {{ request.user.username }}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="cpUserDropdownAdmin">
+              <li><a class="dropdown-item" href="{% url 'accounts:user_profile' %}"><i class="bi bi-person me-2"></i>{% trans "My Profile" %}</a></li>
+              <li><a class="dropdown-item" href="{% url 'siteconfig:user_preferences' %}"><i class="bi bi-sliders me-2"></i>{% trans "Preferences" %}</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-gear-wide-connected me-2"></i>{% trans "Configuration Engine" %}</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}"><i class="bi bi-box-arrow-right me-2"></i>{% trans "Logout" %}</a></li>
+            </ul>
+          </div>
+        {% else %}
+          <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:login' %}">{% trans "Login" %}</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</nav>
+{% else %}
 <style>
 .admin-nav-bridge {
     position: sticky;
@@ -264,3 +315,4 @@
     </div>
     {% endif %}
 </div>
+{% endif %}
