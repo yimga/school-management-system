@@ -21,7 +21,7 @@ from apps.portal.views_ai_copilot import (
     ai_copilot_audit_feed,
 )
 from config.admin import platform_admin_site
-from apps.schools.marketing_views import marketing_landing, regional_marketing_landing, marketing_page, topical_marketing_landing, blog_post_detail, buyer_toolkit_download, marketing_funnel_dashboard
+from apps.schools.marketing_views import marketing_landing, regional_marketing_landing, marketing_page, topical_marketing_landing, blog_post_detail, buyer_toolkit_download, marketing_funnel_dashboard, marketing_robots_txt, marketing_sitemap_xml
 from apps.schools.signup_views import signup_school, verify_signup, api_trial_school, onboarding_wizard
 from apps.schools.section8_views import (
     verify_caddy_domain,
@@ -223,6 +223,8 @@ urlpatterns = [
     path('find/', find_school, name='find_school'),
     path('verify/', public_verify_hub, name='public_verify_hub'),
     path('support/', public_support_hub, name='public_support_hub'),
+    path("robots.txt", marketing_robots_txt, name="marketing_robots_txt"),
+    path("sitemap.xml", marketing_sitemap_xml, name="marketing_sitemap_xml"),
     path('marketing/', marketing_landing, name='marketing_landing'),
     path("product/", marketing_page, {"page_slug": "product"}, name="marketing_product"),
     path("solutions/", marketing_page, {"page_slug": "solutions"}, name="marketing_solutions"),
@@ -241,6 +243,13 @@ urlpatterns = [
     path("blog/", marketing_page, {"page_slug": "blog"}, name="marketing_blog"),
     path("blog/<slug:slug>/", blog_post_detail, name="marketing_blog_detail"),
     path("contact/", marketing_page, {"page_slug": "contact"}, name="marketing_contact"),
+    path("why-switch/", marketing_page, {"page_slug": "why-switch"}, name="marketing_why_switch"),
+    path("10-reasons/", marketing_page, {"page_slug": "10-reasons"}, name="marketing_10_reasons"),
+    path("resources/", marketing_page, {"page_slug": "resources"}, name="marketing_resources"),
+    path("events/", marketing_page, {"page_slug": "events"}, name="marketing_events"),
+    path("trust-center/", marketing_page, {"page_slug": "trust-center"}, name="marketing_trust_center"),
+    path("developers/", marketing_page, {"page_slug": "developers"}, name="marketing_developers"),
+    path("app-marketplace/", marketing_page, {"page_slug": "app-marketplace"}, name="marketing_app_marketplace"),
     path("privacy/", marketing_page, {"page_slug": "privacy"}, name="marketing_privacy"),
     path("terms/", marketing_page, {"page_slug": "terms"}, name="marketing_terms"),
     path("cookie-policy/", marketing_page, {"page_slug": "cookie-policy"}, name="marketing_cookie_policy"),
@@ -261,6 +270,8 @@ urlpatterns = [
     path('lti/service/<str:tool_id>/deep-linking', lti_deep_linking, name='lti_deep_linking'),
     path('lti/jwks.json', jwks_json, name='lti_jwks'),
     path('account-frozen/', frozen_account, name='account_frozen'),
+    # Resolve name for templates that link to operator help (manager host uses config.manager_urls; root needs name for tests/shared templates)
+    path('help/', lambda request: redirect('public_support_hub'), name='manager_help'),
 ]
 
 if settings.DEBUG:
