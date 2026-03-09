@@ -95,6 +95,9 @@
           <div class="segment-links">
             <a href="mailto:{{ SITE.company_email|default:'support@school.com' }}"><i class="bi bi-envelope-open"></i> {{ SITE.company_email|default:"support@school.com" }}</a>
             <a href="tel:{{ SITE.company_phone|default:'+15551234567' }}"><i class="bi bi-telephone"></i> {{ SITE.company_phone|default:"+1 (555) 123-4567" }}</a>
+            {% if MARKETING_BASE_URL %}
+            <a href="{{ MARKETING_BASE_URL }}/status/" target="_blank" rel="noopener"><i class="bi bi-activity"></i> Platform Status</a>
+            {% endif %}
             <span class="status-chip">All Systems Operational</span>
           </div>
         </details>
@@ -133,6 +136,10 @@
     <div class="footer-meta small" id="preview-footer-meta" data-preview-label="Copyright &amp; company name">
       <span>&copy; {% now "Y" %} {{ SITE.company_name|default:SITE.site_name|default:"School" }}. All rights reserved.</span>
       <span class="meta-powered">Powered by <strong>RunMyCampus</strong></span>
+      {% if MARKETING_BASE_URL %}
+      <a href="{{ MARKETING_BASE_URL }}/" target="_blank" rel="noopener" class="ms-2">RunMyCampus</a>
+      <a href="{{ MARKETING_BASE_URL }}/pricing/" target="_blank" rel="noopener" class="ms-2">Pricing</a>
+      {% endif %}
     </div>
   </div>
   {% endwith %}

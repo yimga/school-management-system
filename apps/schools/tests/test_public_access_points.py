@@ -113,3 +113,14 @@ class PublicAccessPointsTests(TestCase):
             HTTP_USER_AGENT="Render/1.0",
         )
         self.assertEqual(response.status_code, 200)
+
+    def test_marketing_base_url_context_processor_uses_canonical_domain(self):
+        """Cross-host links from tenant/manager should use MARKETING_BASE_URL (canonical apex)."""
+        from apps.schools.context_processors import marketing_base_url
+        from django.test import RequestFactory
+        rf = RequestFactory()
+        req = rf.get("/", HTTP_HOST="tenant-a.runmycampus.com")
+        req.scheme = "https"
+        ctx = marketing_base_url(req)
+        self.assertIn("MARKETING_BASE_URL", ctx)
+        self.assertEqual(ctx["MARKETING_BASE_URL"], "https://runmycampus.com")

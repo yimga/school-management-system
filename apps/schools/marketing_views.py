@@ -14,7 +14,7 @@ from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
 from django.templatetags.static import static
 from django.db.models import Count, Q
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
@@ -908,9 +908,55 @@ MARKETING_PAGE_DEFINITIONS = {
             {"title": "Status page", "body": "When a public status page is configured, you can check current status and incident history here."},
         ],
     },
+    "research": {
+        "label": "Research",
+        "seo_title": "Research | RunMyCampus - Education operations insights",
+        "seo_description": "Research and insights on school operations, EdTech, and platform adoption.",
+        "headline": "Research.",
+        "subheadline": "Insights on education operations, EdTech trends, and platform adoption.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "Insights", "body": "Reports and analysis on school operations, migration, and platform best practices."},
+            {"title": "Resources", "body": "Link to resources, blog, and guides for deeper reading."},
+        ],
+    },
+    "reports": {
+        "label": "Reports",
+        "seo_title": "Reports | RunMyCampus - Education and operations reports",
+        "seo_description": "Reports and benchmarks on school operations and RunMyCampus platform.",
+        "headline": "Reports.",
+        "subheadline": "Benchmarks and reports on education operations and platform adoption.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "Benchmarks", "body": "Industry benchmarks and adoption reports."},
+            {"title": "Resources", "body": "Download reports and link to resources when available."},
+        ],
+    },
+    "guides": {
+        "label": "Guides",
+        "seo_title": "Guides | RunMyCampus - Implementation and how-to guides",
+        "seo_description": "How-to and implementation guides for RunMyCampus and school operations.",
+        "headline": "Guides.",
+        "subheadline": "Implementation and how-to guides for setup, migration, and operations.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "Implementation", "body": "Getting started, migration, and rollout guides."},
+            {"title": "How-to", "body": "Step-by-step guides for common tasks and workflows."},
+        ],
+    },
 }
 
 MARKETING_PAGE_EXTRAS = {
+    "education-operating-system": {
+        "diagram_path": "images/marketing/platform-diagram-marketing.svg",
+    },
+    "platform": {
+        "diagram_path": "images/marketing/platform-diagram-marketing.svg",
+    },
+    "platform-analytics": {
+        "data_viz_path": "images/marketing/viz-admin.svg",
+        "data_viz_caption": "Sample admin dashboard: health and usage at a glance.",
+    },
     "product": {
         "trust_strip": ["Unified data model", "Role-ready portals", "Global tenancy", "FERPA aligned", "GDPR ready"],
         "metrics": [
@@ -1484,6 +1530,17 @@ MIGRATE_PAGE_DEFINITIONS = {
         "rollback_copy": "Staged cutover with rollback plan.",
         "cta": "Book an Infinite Campus migration call",
     },
+    "from-veracross": {
+        "seo_title": "Migrate from Veracross to RunMyCampus",
+        "seo_description": "Migrate from Veracross to RunMyCampus: one-record, people-centered data with guided mapping and validation.",
+        "headline": "Migrate from Veracross to RunMyCampus.",
+        "subheadline": "Student, family, and course data with guided mapping and validation.",
+        "migration_cloud_copy": "Export from Veracross and import into RunMyCampus with field mapping and validation.",
+        "field_mapping_copy": "Map Veracross fields to RunMyCampus students, guardians, and courses; we provide templates.",
+        "validation_copy": "Validate data before cutover; run parity reports.",
+        "rollback_copy": "Staged cutover with rollback plan; keep Veracross read-only during transition.",
+        "cta": "Book a Veracross migration call",
+    },
 }
 
 # Backend-driven migration simulator: source profiles with steps, timeline, and field mapping (Phase 5).
@@ -1538,6 +1595,23 @@ MIGRATION_SIMULATOR_SOURCES = {
             {"source_field": "student_number", "target_field": "External ID", "notes": "Unique student ID"},
             {"source_field": "course_code", "target_field": "Course code", "notes": "Align to your course catalog"},
             {"source_field": "term / grade", "target_field": "Term and grade level", "notes": "Map to RunMyCampus terms and grades"},
+        ],
+    },
+    "from-veracross": {
+        "source_id": "from-veracross",
+        "display_name": "Veracross",
+        "typical_timeline": "4–8 weeks",
+        "steps": [
+            {"order": 1, "title": "Export and extract", "description": "Export student, family, and course data from Veracross. We provide export guidance for your setup."},
+            {"order": 2, "title": "Field mapping", "description": "Map Veracross fields to RunMyCampus students, guardians, and courses. Pre-built templates for common exports."},
+            {"order": 3, "title": "Validation and dry-run", "description": "Validate data and run dry-run import. Parity checks for key records."},
+            {"order": 4, "title": "Cutover and go-live", "description": "Staged cutover with rollback plan. Final import and traffic switch."},
+            {"order": 5, "title": "Post-go-live", "description": "Reconcile, train users, and decommission Veracross when ready."},
+        ],
+        "field_mapping_examples": [
+            {"source_field": "person_id / student_id", "target_field": "External ID", "notes": "Unique identifier"},
+            {"source_field": "section / advisor", "target_field": "Section or class", "notes": "Map to RunMyCampus sections"},
+            {"source_field": "grade / form", "target_field": "Grade level", "notes": "Map to your grade set"},
         ],
     },
     "from-spreadsheets": {
@@ -3199,19 +3273,37 @@ DEVELOPER_PAGE_DEFINITIONS = {
             {"title": "Sandbox", "body": "Try the sandbox at /developer-portal/sandbox/ for app preview."},
         ],
     },
+    "app-building": {
+        "label": "App building",
+        "seo_title": "Build Apps for RunMyCampus | Developer guide",
+        "seo_description": "Build apps and extensions for the RunMyCampus marketplace. SDK, API, and sandbox.",
+        "headline": "App building",
+        "subheadline": "Build apps and extensions that run on RunMyCampus. Use the API, SDK, and sandbox.",
+        "sections": [
+            {"title": "Getting started", "body": "Register your app, get credentials, and use the API or SDK to build integrations."},
+            {"title": "Sandbox", "body": "Test your app in the developer sandbox at /developer-portal/sandbox/ before publishing."},
+            {"title": "Marketplace", "body": "Submit your app to the marketplace for schools to install. Governance and review pipeline."},
+        ],
+    },
 }
 
 MARKETPLACE_PAGE_DEFINITIONS = {
     "": {
         "headline": "RunMyCampus Marketplace",
-        "subheadline": "Apps and integrations to extend your platform.",
+        "subheadline": "Apps, integrations, templates, blueprints, and policy packs to extend your platform.",
         "apps_copy": "Discover apps for admissions, academics, and operations.",
         "integrations_copy": "Connect LMS, payments, and identity providers.",
+        "templates_copy": "Report templates, form templates, and branding templates.",
+        "blueprints_copy": "Country and institution-type blueprints for faster setup.",
+        "policy_packs_copy": "Pre-built policy bundles and compliance packs.",
         "partners_copy": "Built with our partners for education.",
     },
-    "apps": {"headline": "Marketplace apps", "subheadline": "Apps to extend RunMyCampus.", "apps_copy": "Browse and install apps.", "integrations_copy": "", "partners_copy": ""},
-    "integrations": {"headline": "Integrations", "subheadline": "Connect your systems.", "apps_copy": "", "integrations_copy": "LMS, SIS, payments, messaging.", "partners_copy": ""},
-    "partners": {"headline": "Partners", "subheadline": "Built with our partners.", "apps_copy": "", "integrations_copy": "", "partners_copy": "Partner solutions and certified integrations."},
+    "apps": {"headline": "Marketplace apps", "subheadline": "Apps to extend RunMyCampus.", "apps_copy": "Browse and install apps.", "integrations_copy": "", "templates_copy": "", "blueprints_copy": "", "policy_packs_copy": "", "partners_copy": ""},
+    "integrations": {"headline": "Integrations", "subheadline": "Connect your systems.", "apps_copy": "", "integrations_copy": "LMS, SIS, payments, messaging.", "templates_copy": "", "blueprints_copy": "", "policy_packs_copy": "", "partners_copy": ""},
+    "templates": {"headline": "Templates", "subheadline": "Report, form, and branding templates.", "apps_copy": "", "integrations_copy": "", "templates_copy": "Report templates, form templates, and dashboard layouts. Start from blueprints or customize.", "blueprints_copy": "", "policy_packs_copy": "", "partners_copy": ""},
+    "blueprints": {"headline": "Blueprints", "subheadline": "Country and institution blueprints.", "apps_copy": "", "integrations_copy": "", "templates_copy": "", "blueprints_copy": "Pre-built policy and workflow bundles for faster setup and best practices. Country and institution-type blueprints.", "policy_packs_copy": "", "partners_copy": ""},
+    "policy-packs": {"headline": "Policy packs", "subheadline": "Pre-built policy and compliance packs.", "apps_copy": "", "integrations_copy": "", "templates_copy": "", "blueprints_copy": "", "policy_packs_copy": "Policy bundles and compliance packs. Apply across tenants from the control plane.", "partners_copy": ""},
+    "partners": {"headline": "Partners", "subheadline": "Built with our partners.", "apps_copy": "", "integrations_copy": "", "templates_copy": "", "blueprints_copy": "", "policy_packs_copy": "", "partners_copy": "Partner solutions and certified integrations."},
 }
 
 
@@ -3332,7 +3424,7 @@ def _sitemap_entries(request) -> list[tuple[str, str, str]]:
     for role in ("school-admin", "teachers", "parents", "students", "it-directors", "government"):
         path_specs[f"/roles/{role}/"] = ("0.8", "monthly")
     path_specs["/migrate/"] = ("0.8", "monthly")
-    for src in ("from-power-school", "from-blackbaud", "from-infinite-campus"):
+    for src in ("from-power-school", "from-blackbaud", "from-infinite-campus", "from-veracross"):
         path_specs[f"/migrate/{src}/"] = ("0.8", "monthly")
     for comp in ("power-school", "blackbaud", "infinite-campus"):
         path_specs[f"/compare/{comp}/"] = ("0.8", "monthly")

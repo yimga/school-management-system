@@ -226,6 +226,7 @@ TEMPLATES = [
                 "apps.siteconfig.context_processors.region_settings",
                 "apps.siteconfig.context_processors.language_context",
                 "apps.accounts.context_processors.dashboard_context",  # Dashboard header/footer data
+                "apps.schools.context_processors.marketing_base_url",  # MARKETING_BASE_URL for cross-host links
                 "apps.portal.context_processors.announcements",  # Global announcements banner
                 "apps.siteconfig.context_processors.ai_copilot_settings",  # AI Copilot API key
                 "apps.policies.context_processors.tenant_policy_context",  # tenant_ctx + global_env (Policy Registry)

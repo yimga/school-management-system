@@ -27,6 +27,28 @@
   </section>
   {% endif %}
 
+  {% if page.templates_copy %}
+  <section class="section-shell" aria-label="{% trans 'Templates' %}">
+    <h2 class="section-heading">{% trans "Templates" %}</h2>
+    <p class="section-lead mb-0">{{ page.templates_copy }}</p>
+    <a href="{% url 'marketing_themes' %}" class="btn btn-sm btn-outline-primary mt-2">{% trans "Themes" %}</a>
+  </section>
+  {% endif %}
+
+  {% if page.blueprints_copy %}
+  <section class="section-shell" aria-label="{% trans 'Blueprints' %}">
+    <h2 class="section-heading">{% trans "Blueprints" %}</h2>
+    <p class="section-lead mb-0">{{ page.blueprints_copy }}</p>
+  </section>
+  {% endif %}
+
+  {% if page.policy_packs_copy %}
+  <section class="section-shell" aria-label="{% trans 'Policy packs' %}">
+    <h2 class="section-heading">{% trans "Policy packs" %}</h2>
+    <p class="section-lead mb-0">{{ page.policy_packs_copy }}</p>
+  </section>
+  {% endif %}
+
   {% if page.partners_copy %}
   <section class="section-shell" aria-label="{% trans 'Partners' %}">
     <h2 class="section-heading">{% trans "Partners" %}</h2>

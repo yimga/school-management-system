@@ -314,6 +314,20 @@
       {% endfor %}
     </div>
 
+    {% if page_extras.diagram_path %}
+    <section class="section-shell" aria-label="{% trans 'Platform diagram' %}">
+      <h2 class="section-heading">{% trans "Platform at a glance" %}</h2>
+      <img src="{% static page_extras.diagram_path %}" alt="{% trans 'RunMyCampus platform: Education OS, Control Plane, Marketplace, Tenant Runtime, Migration Cloud, Analytics & Integrations' %}" class="img-fluid" style="max-width: 520px; height: auto;" width="520" height="340" loading="lazy">
+    </section>
+    {% endif %}
+    {% if page_extras.data_viz_path %}
+    <section class="section-shell" aria-label="{% trans 'Data visualization' %}">
+      <h2 class="section-heading">{% trans "See what matters" %}</h2>
+      <img src="{% static page_extras.data_viz_path %}" alt="{% if page_extras.data_viz_caption %}{{ page_extras.data_viz_caption }}{% else %}{% trans 'Dashboard and analytics' %}{% endif %}" class="img-fluid" style="max-width: 100%; height: auto;" loading="lazy">
+      {% if page_extras.data_viz_caption %}<p class="section-lead mt-2 mb-0">{{ page_extras.data_viz_caption }}</p>{% endif %}
+    </section>
+    {% endif %}
+
     {% if active_nav_slug == 'book-demo' and marketing_calendly_url %}
       <section class="section-shell" aria-label="{% trans 'Schedule a demo' %}">
         <h2 class="section-heading">{% trans "Pick a time" %}</h2>

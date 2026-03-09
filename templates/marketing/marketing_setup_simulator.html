@@ -1,0 +1,34 @@
+{% extends "marketing/base_marketing.html" %}
+{% load i18n %}
+{% block title %}Setup simulator | RunMyCampus{% endblock %}
+{% block extrahead %}
+  <meta name="description" content="{{ seo_description|default:'' }}">
+  {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
+{% endblock %}
+{% block content %}
+<section class="container py-4 py-lg-5 page-stack">
+  <h1 class="display-6 fw-bold mb-3">{% trans "Setup simulator" %}</h1>
+  <p class="lead text-muted mb-4">{% trans "Walk through the six steps from sign-up to launch. See what to expect and where to go next." %}</p>
+
+  <section class="section-shell" aria-label="{% trans 'Steps' %}">
+    <ol class="list-group list-group-numbered mb-0">
+      {% for step in steps %}
+        <li class="list-group-item">
+          <strong>{{ step.title }}</strong>
+          <p class="mb-2 mt-1">{{ step.description }}</p>
+          {% if step.cta_url and step.cta_label %}
+            <a href="{{ step.cta_url }}" class="btn btn-sm btn-outline-primary" data-cta="simulator-step" data-step="{{ step.order }}">{{ step.cta_label }}</a>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ol>
+  </section>
+
+  <section class="section-shell border-0 bg-transparent pt-0">
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{% url 'signup_school' %}" class="btn btn-primary" data-cta="signup" data-page="setup-simulator">{% trans "Start for real" %}</a>
+      <a href="{% url 'marketing_getting_started' %}" class="btn btn-outline-secondary">{% trans "Getting started" %}</a>
+    </div>
+  </section>
+</section>
+{% endblock %}

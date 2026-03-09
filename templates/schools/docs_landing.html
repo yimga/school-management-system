@@ -14,7 +14,7 @@
           </p>
           <div class="d-flex gap-2 flex-wrap">
             <a class="btn btn-primary" href="https://api.runmycampus.com/">{% trans "API Service Status" %}</a>
-            <a class="btn btn-outline-primary" href="https://runmycampus.com/">{% trans "Back to Marketing" %}</a>
+            <a class="btn btn-outline-primary" href="{% if MARKETING_BASE_URL %}{{ MARKETING_BASE_URL }}/{% else %}https://runmycampus.com/{% endif %}">{% trans "Back to Marketing" %}</a>
           </div>
         </div>
       </div>

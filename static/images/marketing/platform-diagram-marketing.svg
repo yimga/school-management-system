@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 340" width="520" height="340" aria-labelledby="platform-diagram-title">
+  <title id="platform-diagram-title">RunMyCampus Platform: Education OS, Control Plane, Marketplace, Tenant Runtime, Migration Cloud, Analytics &amp; Integrations</title>
+  <defs>
+    <style>
+      .box { fill: #f1f5f9; stroke: #64748b; stroke-width: 1.5; rx: 6; }
+      .box-top { fill: #0f172a; stroke: #334155; }
+      .text-top { fill: #f8fafc; font: 600 14px system-ui, sans-serif; }
+      .text-box { fill: #334155; font: 12px system-ui, sans-serif; }
+      .text-small { fill: #64748b; font: 10px system-ui, sans-serif; }
+      .line { stroke: #94a3b8; stroke-width: 1.5; fill: none; }
+    </style>
+  </defs>
+  <!-- Top banner -->
+  <rect class="box box-top" x="110" y="8" width="300" height="44" />
+  <text class="text-top" x="260" y="32" text-anchor="middle">RUNMYCAMPUS</text>
+  <text class="text-top" x="260" y="46" text-anchor="middle" font-size="11" opacity="0.9">Education Operating System</text>
+  <!-- Vertical line down -->
+  <line class="line" x1="260" y1="52" x2="260" y2="88" />
+  <!-- Three top boxes -->
+  <rect class="box" x="24" y="92" width="140" height="72" />
+  <text class="text-box" x="94" y="112" text-anchor="middle" font-weight="600">Education OS</text>
+  <text class="text-small" x="94" y="128" text-anchor="middle">Admissions</text>
+  <text class="text-small" x="94" y="140" text-anchor="middle">Academics · Finance</text>
+  <text class="text-small" x="94" y="152" text-anchor="middle">Communication</text>
+  <rect class="box" x="190" y="92" width="140" height="72" />
+  <text class="text-box" x="260" y="112" text-anchor="middle" font-weight="600">Control Plane</text>
+  <text class="text-small" x="260" y="128" text-anchor="middle">Multi-school</text>
+  <text class="text-small" x="260" y="140" text-anchor="middle">Governance · Policies</text>
+  <text class="text-small" x="260" y="152" text-anchor="middle">Health &amp; Usage</text>
+  <rect class="box" x="356" y="92" width="140" height="72" />
+  <text class="text-box" x="426" y="112" text-anchor="middle" font-weight="600">Marketplace</text>
+  <text class="text-small" x="426" y="128" text-anchor="middle">Apps</text>
+  <text class="text-small" x="426" y="140" text-anchor="middle">Templates</text>
+  <text class="text-small" x="426" y="152" text-anchor="middle">Extensions</text>
+  <!-- Lines from top three to bottom three -->
+  <line class="line" x1="94" y1="164" x2="140" y2="200" />
+  <line class="line" x1="260" y1="164" x2="260" y2="200" />
+  <line class="line" x1="426" y1="164" x2="400" y2="200" />
+  <line class="line" x1="94" y1="164" x2="260" y2="200" />
+  <line class="line" x1="426" y1="164" x2="260" y2="200" />
+  <!-- Bottom three boxes -->
+  <rect class="box" x="80" y="204" width="140" height="72" />
+  <text class="text-box" x="150" y="224" text-anchor="middle" font-weight="600">Tenant Runtime</text>
+  <text class="text-small" x="150" y="240" text-anchor="middle">Localization</text>
+  <text class="text-small" x="150" y="252" text-anchor="middle">Branding</text>
+  <rect class="box" x="190" y="204" width="140" height="72" />
+  <text class="text-box" x="260" y="224" text-anchor="middle" font-weight="600">Migration Cloud</text>
+  <text class="text-small" x="260" y="240" text-anchor="middle">Switch</text>
+  <text class="text-small" x="260" y="252" text-anchor="middle">Safely</text>
+  <rect class="box" x="300" y="204" width="140" height="72" />
+  <text class="text-box" x="370" y="224" text-anchor="middle" font-weight="600">Analytics &amp;</text>
+  <text class="text-box" x="370" y="238" text-anchor="middle">Integrations</text>
+  <text class="text-small" x="370" y="252" text-anchor="middle">Insights · Connectors</text>
+</svg>
