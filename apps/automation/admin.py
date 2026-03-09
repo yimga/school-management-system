@@ -74,8 +74,8 @@ class AutomationApprovalQueueAdmin(ModelAdmin):
 
 @admin.register(MigrationProfile, site=platform_admin_site)
 class MigrationProfileAdmin(ModelAdmin):
-    list_display = ("slug", "name", "format", "domain", "is_active", "sort_order")
-    list_filter = ("format", "domain", "is_active")
+    list_display = ("slug", "name", "source_system", "format", "domain", "is_active", "sort_order")
+    list_filter = ("format", "domain", "source_system", "is_active")
     search_fields = ("slug", "name", "description")
     ordering = ("sort_order", "slug")
 

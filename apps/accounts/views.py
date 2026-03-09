@@ -2029,10 +2029,33 @@ def migration_wizard(request):
     session_key = "migration_wizard"
     wizard_data = request.session.get(session_key) or {}
 
+    if request.method == "GET" and request.GET.get("clear") == "1":
+        request.session.pop(session_key, None)
+        return redirect("accounts:migration_wizard")
+
     if request.method == "POST":
         action = request.POST.get("action")
+        if action == "select_system":
+            source_system = (request.POST.get("source_system") or "").strip()
+            allowed = ("powerschool", "blackbaud", "veracross", "infinite_campus", "other")
+            if source_system not in allowed:
+                source_system = "other"
+            request.session[session_key] = {**wizard_data, "source_system": source_system}
+            return redirect("accounts:migration_wizard")
+
         if action == "upload":
-            migration_type = request.POST.get("migration_type")
+            from apps.automation.models import MigrationProfile
+            profile_slug = request.POST.get("profile_slug")
+            if profile_slug:
+                profile = MigrationProfile.objects.filter(slug=profile_slug, is_active=True).first()
+                if profile:
+                    migration_type = profile.domain  # "students", "grades", etc.
+                else:
+                    migration_type = request.POST.get("migration_type") or "students"
+                    profile_slug = None
+            else:
+                migration_type = request.POST.get("migration_type")
+                profile_slug = None
             if migration_type not in MIGRATION_TYPES:
                 messages.error(request, "Invalid migration type.")
                 return redirect("accounts:migration_wizard")
@@ -2049,7 +2072,9 @@ def migration_wizard(request):
                 messages.error(request, f"Could not read the CSV file. Use UTF-8 encoding and check the file is not corrupted. Details: {e}")
                 return redirect("accounts:migration_wizard")
             request.session[session_key] = {
+                "source_system": wizard_data.get("source_system", "other"),
                 "migration_type": migration_type,
+                "profile_slug": profile_slug,
                 "headers": headers,
                 "rows": rows,
                 "row_count": len(rows),
@@ -2179,22 +2204,75 @@ def migration_wizard(request):
             return redirect("accounts:migration_wizard")
 
     # GET or after POST without run
+    from apps.automation.models import MigrationProfile
+    source_system = wizard_data.get("source_system") or "other"
+    # Profiles for dropdown: match source_system or generic (null/other)
+    if source_system == "other":
+        profiles = list(
+            MigrationProfile.objects.filter(
+                is_active=True,
+                slug__in=("students", "grades"),
+                source_system__isnull=True,
+            ).order_by("sort_order", "slug")
+        )
+    else:
+        profiles = list(
+            MigrationProfile.objects.filter(is_active=True, source_system=source_system).order_by("sort_order", "slug")
+        )
+    if not profiles:
+        profiles = list(
+            MigrationProfile.objects.filter(is_active=True, slug__in=("students", "grades")).order_by("sort_order")[:2]
+        )
+    profile_choices = [(p.slug, p.name) for p in profiles]
+    migration_types_for_dropdown = dict(profile_choices) if profile_choices else MIGRATION_TYPES
+
     has_data = bool(wizard_data.get("rows"))
     config = MIGRATION_TYPES.get(wizard_data.get("migration_type", "")) or {}
+    profile_slug = wizard_data.get("profile_slug")
+    schema_hints = {}
+    if has_data:
+        if profile_slug:
+            prof = MigrationProfile.objects.filter(slug=profile_slug).first()
+            if prof and isinstance(prof.config, dict):
+                schema_hints = prof.config.get("schema_hints") or {}
+        if not schema_hints and headers and config.get("target_fields"):
+            from apps.accounts.migration_services import infer_schema_mapping
+            schema_hints = infer_schema_mapping(headers, config.get("target_fields", []))
     headers = wizard_data.get("headers", [])
     rows = wizard_data.get("rows", [])[:15]
     preview_matrix = []
     for row in rows:
         preview_matrix.append([str(row.get(h, "")) for h in headers])
     scorecard = request.session.pop("migration_wizard_scorecard", None)
+    if scorecard and scorecard.get("validation_issues"):
+        # Phase C: build drill-down list for template (category, label, issues)
+        vi = scorecard["validation_issues"]
+        labels = {"duplicates": "Duplicates", "missing_required": "Missing required fields", "invalid_refs": "Invalid references"}
+        scorecard["validation_issues_list"] = [
+            {"category": cat, "label": labels.get(cat, cat), "issues": vi.get(cat, [])}
+            for cat in ("duplicates", "missing_required", "invalid_refs")
+            if vi.get(cat)
+        ]
+    schema_hints_json = json.dumps(schema_hints)
     return render(request, "accounts/migration_wizard.html", {
         "migration_types": MIGRATION_TYPES,
+        "migration_type_choices": profile_choices,
         "wizard_data": wizard_data,
         "has_data": has_data,
+        "source_system": source_system,
+        "source_system_choices": [
+            ("powerschool", "PowerSchool"),
+            ("blackbaud", "Blackbaud"),
+            ("veracross", "Veracross"),
+            ("infinite_campus", "Infinite Campus"),
+            ("other", "Other"),
+        ],
         "target_fields": config.get("target_fields", []),
         "required_fields": config.get("required", []),
         "preview_matrix": preview_matrix,
         "scorecard": scorecard,
+        "schema_hints": schema_hints,
+        "schema_hints_json": schema_hints_json,
     })
 
 

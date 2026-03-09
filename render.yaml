@@ -3,6 +3,9 @@
 #
 # Pre-Deploy: With USE_DJANGO_TENANTS=1 the service MUST use preDeployCommand below
 # (migrate_schemas --shared then --tenant). Do not override with "migrate" or deploy will fail.
+#
+# Health: healthCheckPath uses /health/. /status/ is also a health endpoint on all hosts.
+# Marketing trust/uptime page on public host is /uptime/ (not /status/).
 services:
   - type: web
     name: school-management-system

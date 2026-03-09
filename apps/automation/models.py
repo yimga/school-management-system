@@ -307,7 +307,22 @@ class MigrationProfile(models.Model):
         GRADES = "grades", "Grades import"
         GENERIC_SIS = "generic_sis", "Generic SIS"
 
+    class SourceSystem(models.TextChoices):
+        POWERSCHOOL = "powerschool", "PowerSchool"
+        BLACKBAUD = "blackbaud", "Blackbaud"
+        VERACROSS = "veracross", "Veracross"
+        INFINITE_CAMPUS = "infinite_campus", "Infinite Campus"
+        OTHER = "other", "Other"
+
     slug = models.SlugField(max_length=64, unique=True, db_index=True)
+    source_system = models.CharField(
+        max_length=32,
+        choices=SourceSystem.choices,
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text="Prebuilt adapter for this SIS; null/other = generic.",
+    )
     name = models.CharField(max_length=120)
     description = models.TextField(blank=True)
     format = models.CharField(max_length=20, choices=Format.choices, default=Format.CSV)

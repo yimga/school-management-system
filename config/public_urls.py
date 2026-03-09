@@ -74,8 +74,8 @@ urlpatterns = [
     path("healthz/", obs_views.healthz, name="healthz"),
     path("health/", obs_views.public_health, name="health"),
     path("ready/", obs_views.public_health, name="ready"),
-    # On public (apex) host only: /status/ is the marketing trust/uptime page. Use /health/ or /healthz/ for health checks.
-    path("status/", marketing_page, {"page_slug": "uptime"}, name="marketing_status"),
+    # Health endpoint at /status/ (same as tenant/manager). Render can use /health/ or /status/ for healthCheckPath.
+    path("status/", obs_views.public_health, name="status"),
     path("api/caddy-check/", verify_caddy_domain),
     path("api/v1/auth/check-domain/", verify_caddy_domain),
     path("discover/", global_login_discovery, name="global_login_discovery"),
@@ -145,7 +145,7 @@ urlpatterns = [
     path("getting-started/simulator/", setup_simulator_page, name="setup_simulator"),
     path("themes/", marketing_page, {"page_slug": "themes"}, name="marketing_themes"),
     path("design-studio/", marketing_page, {"page_slug": "design-studio"}, name="marketing_design_studio"),
-    path("uptime/", marketing_page, {"page_slug": "uptime"}, name="marketing_uptime"),  # alias; canonical trust page is /status/
+    path("uptime/", marketing_page, {"page_slug": "uptime"}, name="marketing_uptime"),  # canonical marketing trust/uptime page
     path("buyer-toolkit/", marketing_page, {"page_slug": "buyer-toolkit"}, name="marketing_buyer_toolkit"),
     path("buyer-toolkit/download/<str:document>/", buyer_toolkit_download, name="marketing_buyer_toolkit_download"),
     path("funnel-dashboard/", marketing_funnel_dashboard, name="marketing_funnel_dashboard"),

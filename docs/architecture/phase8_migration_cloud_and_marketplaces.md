@@ -1,10 +1,10 @@
 # Phase 8 — Migration Cloud and Marketplaces
 
-Consolidated status for Section 12 Phases 5–6, Section 11 (migration cloud, blueprint marketplace), Section 29.6, 29.10. **Migration cloud and marketplaces are implemented;** deferred sub-items are documented below.
+Consolidated status for Section 12 Phases 5–6, Section 11 (migration cloud, blueprint marketplace), Section 29.6, 29.10. **Migration cloud and marketplaces are implemented;** all previously deferred migration items are **non-negotiable to implement** per the Migration Cloud Strategy and Implementation Plan (phases A–O).
 
 ---
 
-## Migration cloud (11.1, 12.5, 29.6)
+## Migration cloud (11.1, 12.5, 29.6) — all requirements non-negotiable
 
 | Requirement | Status | Where |
 |-------------|--------|--------|
@@ -13,10 +13,10 @@ Consolidated status for Section 12 Phases 5–6, Section 11 (migration cloud, bl
 | **Dry-run validator** | Done | "Validate only (dry run)" runs validation/simulation (no DB writes); returns scorecard (would create, would update, errors). `run_dry_run()` in accounts.migration_services; evals.dry_run_grade_import. |
 | **Migration scorecard** | Done | MigrationRun stores row_count, created_count, updated_count, error_count, status, execution_summary, started_at, completed_at. Displayed in wizard. |
 | **Parity checker** | Done | `compute_parity(migration_run)` compares row_count to created + updated + error; surfaced in scorecard/admin. |
-| **Rollback** | Deferred | Store enough info to revert last run; UI to trigger rollback (later). |
-| **Legacy data cleaner** | Deferred | Broader tooling for legacy schema migration; backfill commands used where needed. |
-| **Read-only legacy view** | Deferred | Separate feature for viewing legacy data read-only. |
-| **Rollback-safe cutover / post-migration exception queue** (29.6) | Deferred | Document when cutover and exception queue are added. |
+| **Rollback** | Required | Implement full UI to trigger rollback; code exists in automation.rollback_handlers. |
+| **Legacy data cleaner** | Required | Implement per Migration Cloud Plan (universal migration phases). |
+| **Read-only legacy view** | Required | Implement per plan. |
+| **Rollback-safe cutover / post-migration exception queue** (29.6) | Required | Implement per plan Phase D and observability. |
 
 **Touchpoints:** `apps/accounts/views.migration_wizard`, `apps/accounts/migration_services`, `apps/automation/models.MigrationRun`, `apps/evals/importers`.  
 **Reference:** `docs/architecture/phase5_migration_cloud.md`.
@@ -56,18 +56,18 @@ Consolidated status for Section 12 Phases 5–6, Section 11 (migration cloud, bl
 
 ---
 
-## Checklist updates (Phase 8)
+## Checklist updates (Phase 8) — all migration items non-negotiable
 
-- **11.1 (Migration cloud):** Implemented; rollback, legacy cleaner, read-only legacy view deferred (phase5_migration_cloud.md, this doc).
-- **11.2 (Blueprint marketplace):** Implemented; pack versioning/tenant-facing optional (phase6_marketplace.md, this doc).
-- **12.5 (Phase 5):** Implemented (phase5_migration_cloud.md).
+- **11.1 (Migration cloud):** Implemented core; rollback UI, legacy cleaner, read-only legacy view, and full Migration Cloud Plan (phases A–O) **required** (phase5_migration_cloud.md, this doc, Migration Cloud Strategy and Implementation Plan).
+- **11.2 (Blueprint marketplace):** Implemented; pack versioning/tenant-facing per roadmap.
+- **12.5 (Phase 5):** Implemented (phase5_migration_cloud.md); all former deferred items now required.
 - **12.6 (Phase 6):** Implemented (phase6_marketplace.md, this doc).
 - **25.2 (Marketplace governance):** App review, permission scopes, data access logs (AppAuditLog), kill switch (suspend_app); section_25_current_state.md.
-- **29.6 (Migration engine):** Import cockpit, mapping, dry run, parity done; rollback-safe cutover and post-migration exception queue deferred (this doc).
+- **29.6 (Migration engine):** Import cockpit, mapping, dry run, parity done; rollback-safe cutover and post-migration exception queue **required** per plan.
 - **29.10 (Commercial platform):** Self-serve trials, quote-to-contract, partner tooling, migration sales calculator, in-app upgrade — separate roadmap; marketplace install/billing support present.
 
 ---
 
 ## Implementation note
 
-**Migration cloud and marketplaces are no longer "deferred" as a whole.** Core migration cloud (import studio, field mapping, dry-run, scorecard, parity) and core marketplaces (blueprint packs + apply, app catalog + install pipeline with schema patch, widgets, audit, governance) are in place. Deferred items: migration rollback UI, legacy data cleaner, read-only legacy view; blueprint pack versioning/upgrade UX; optional tenant-facing blueprint/app discovery; full tenant app billing wiring and 29.10 commercial features.
+**All Migration Cloud plan items are non-negotiable.** Core migration cloud (import studio, field mapping, dry-run, scorecard, parity, rollback code) and core marketplaces are in place. Every phase in the Migration Cloud Strategy and Implementation Plan (A through O), including rollback UI, legacy data cleaner, read-only legacy view, competitor adapters, schema inference, validation/repair, digital twin, universal migration (multi-format, multi-entity, ID translation, code tables, scale, conflict resolution, provenance), and observability must be implemented. No migration item is optional or indefinitely deferred.

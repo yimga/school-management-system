@@ -9,21 +9,45 @@
     <h1 class="h4 mb-1 fw-bold">Data migration wizard</h1>
     <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:import_hub' %}">Back to Import Hub</a>
   </div>
-  <p class="text-muted small mb-4">Upload a CSV, map columns to target fields, preview, then run. Backed by students bulk-commit and grade import.</p>
+  <p class="text-muted small mb-4">Choose your current system, upload a CSV, map columns to target fields, preview, then run. Backed by students bulk-commit and grade import.</p>
 
-  {% if not has_data %}
+  {% if not wizard_data.source_system %}
   <div class="card shadow-sm">
     <div class="card-body">
-      <h2 class="h6 mb-3">Step 1: Upload</h2>
+      <h2 class="h6 mb-3">Step 1: Choose your current system</h2>
+      <form method="post" action="">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="select_system">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Where are you migrating from?</label>
+            <select name="source_system" class="form-select" required>
+              {% for value, label in source_system_choices %}
+              <option value="{{ value }}">{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary">Next</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  {% elif not has_data %}
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <p class="small text-muted mb-2">Current system: <strong>{{ source_system|title }}</strong>. <a href="{% url 'accounts:migration_wizard' %}?clear=1">Change</a></p>
+      <h2 class="h6 mb-3">Step 2: Upload</h2>
       <form method="post" enctype="multipart/form-data" action="">
         {% csrf_token %}
         <input type="hidden" name="action" value="upload">
         <div class="row g-3">
           <div class="col-md-4">
-            <label class="form-label">Migration type</label>
-            <select name="migration_type" class="form-select" required>
-              {% for key, cfg in migration_types.items %}
-              <option value="{{ key }}">{{ cfg.label }}</option>
+            <label class="form-label">Import type</label>
+            <select name="profile_slug" class="form-select" required>
+              {% for value, label in migration_type_choices %}
+              <option value="{{ value }}">{{ label }}</option>
               {% endfor %}
             </select>
           </div>
@@ -132,6 +156,37 @@
         {% endfor %}
       </ul>
       {% endif %}
+      {% if scorecard.validation_issues_list %}
+      <div class="mt-3">
+        <strong class="d-block mb-2">Validation issues (drill-down)</strong>
+        <div class="accordion" id="validation-accordion">
+          {% for group in scorecard.validation_issues_list %}
+          <div class="accordion-item">
+            <h3 class="accordion-header">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#validation-{{ group.category }}" aria-expanded="false" aria-controls="validation-{{ group.category }}">
+                {{ group.label }} ({{ group.issues|length }})
+              </button>
+            </h3>
+            <div id="validation-{{ group.category }}" class="accordion-collapse collapse" data-bs-parent="#validation-accordion">
+              <div class="accordion-body small">
+                <ul class="list-unstyled mb-0">
+                  {% for item in group.issues %}
+                  <li class="mb-1">
+                    {% if item.row_indices %}
+                    <span class="text-primary">Rows {% for r in item.row_indices %}{{ r }}{% if not forloop.last %}, {% endif %}{% endfor %}</span>: {{ item.message }}
+                    {% else %}
+                    <span class="text-primary">Row {{ item.row }}</span>: {{ item.message }}
+                    {% endif %}
+                  </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
     </div>
   </div>
   {% endif %}
@@ -141,11 +196,20 @@
 {% if has_data %}
 <script>
 (function() {
+  var schemaHints = {{ schema_hints_json|safe }};
+  if (typeof schemaHints !== 'object') schemaHints = {};
+  var selects = document.querySelectorAll('.map-select');
+  selects.forEach(function(s) {
+    var header = s.getAttribute('data-header');
+    var suggested = header && schemaHints[header];
+    if (suggested && s.querySelector('option[value="' + suggested + '"]')) {
+      s.value = suggested;
+    }
+  });
   var runForm = document.getElementById('run-form');
   var runFormCommit = document.getElementById('run-form-commit');
   var mappingInput = document.getElementById('mapping-input');
   var mappingInputCommit = document.getElementById('mapping-input-commit');
-  var selects = document.querySelectorAll('.map-select');
   function buildMapping() {
     var m = {};
     selects.forEach(function(s) {
