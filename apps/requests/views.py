@@ -154,10 +154,10 @@ def requests_dashboard(request: HttpRequest):
 @user_passes_test(_can_manage_requests)
 def request_detail(request: HttpRequest, request_id):
     school = _request_school(request)
-    access_request = get_object_or_404(
-        AccessRequest.objects.select_related("requester"),
-        id=request_id,
-    )
+    qs = AccessRequest.objects.select_related("requester")
+    if school is not None:
+        qs = qs.filter(school=school)
+    access_request = get_object_or_404(qs, id=request_id)
     if school is not None and access_request.school_id != school.id:
         return HttpResponseForbidden("This request does not belong to the active school.")
     if request.method == "POST":

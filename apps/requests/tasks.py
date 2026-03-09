@@ -1,6 +1,7 @@
 """
 Optional Celery task: remind assignees of pending AccessRequests.
 Configure interval in Site Settings (requests_reminder_interval_hours); 0 = disabled.
+Runs in tenant context (per school_id or all active schools).
 """
 from __future__ import annotations
 
@@ -10,16 +11,13 @@ from django.utils import timezone
 from celery import shared_task
 from apps.automation.models import AutomationExecutionLog
 from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.schools.celery_tasks import _run_with_tenant_context, get_active_school_ids
 
 logger = logging.getLogger(__name__)
 
 
-@shared_task(bind=True, name="requests.remind_pending_assignees")
-def remind_pending_assignees_task(self) -> dict:
-    """
-    Notify staff who are assigned to pending AccessRequests.
-    Run on a schedule (e.g. daily); interval configurable via SiteSettings.requests_reminder_interval_hours.
-    """
+def _remind_pending_assignees_body() -> dict:
+    """Inner body: run inside tenant context."""
     from apps.finance.models import Notification
     from .models import AccessRequest
 
@@ -88,3 +86,17 @@ def remind_pending_assignees_task(self) -> dict:
             error_message=str(e),
         )
         raise
+
+
+@shared_task(bind=True, name="requests.remind_pending_assignees")
+def remind_pending_assignees_task(self, school_id: str | None = None) -> dict:
+    """Notify staff assigned to pending AccessRequests. Runs in tenant context (per school_id or all active schools)."""
+    if school_id:
+        return _run_with_tenant_context(school_id=school_id, runnable=_remind_pending_assignees_body)
+    totals = {"notified": 0, "assignees": 0, "pending_total": 0}
+    for sid in get_active_school_ids():
+        result = _run_with_tenant_context(school_id=sid, runnable=_remind_pending_assignees_body)
+        totals["notified"] += result.get("notified", 0)
+        totals["assignees"] += result.get("assignees", 0)
+        totals["pending_total"] += result.get("pending_total", 0)
+    return totals

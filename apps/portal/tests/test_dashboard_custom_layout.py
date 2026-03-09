@@ -109,10 +109,9 @@ class DashboardCustomLayoutTests(TestCase):
         ), patch("apps.portal.views._portal_features_status", return_value=[]), patch(
             "apps.portal.views.default_portal_features", return_value={}
         ), patch("apps.portal.views.filter_portal_items", return_value=[]), patch(
-            "apps.portal.views.SiteSettings.get_solo", return_value=site_payload
+            "apps.portal.views.get_effective_site_settings", return_value=site_payload
         ), patch("apps.portal.views.default_backend_feature_flags", return_value={}), patch(
-            "apps.siteconfig.models_dashboard.get_dashboard_widget_metadata", return_value={}
-        ):
+            "apps.siteconfig.models_dashboard.get_dashboard_widget_metadata", return_value={}):
             response = self.client.get(url)
 
         self.assertEqual(response.status_code, 200)

@@ -83,7 +83,10 @@ def get_lifecycle_snapshot(school) -> dict:
 
 
 def _normalized_action(action: str) -> str:
-    return str(action or "").strip().lower().replace("-", "_")
+    a = str(action or "").strip().lower().replace("-", "_")
+    if a == "suspend":
+        return "freeze"  # Suspend is alias for freeze (TENANT_LIFECYCLE.md)
+    return a
 
 
 def _target_subscription_status_for_school(school) -> str:

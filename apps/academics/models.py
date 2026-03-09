@@ -4,6 +4,11 @@ from django.db.models import Q
 from django.core.exceptions import ValidationError
 
 
+def _default_currency():
+    """Platform default currency (no hardcoded XAF). See config.PLATFORM_DEFAULT_CURRENCY."""
+    return getattr(settings, "PLATFORM_DEFAULT_CURRENCY", "USD")
+
+
 class AcademicYear(models.Model):
     # Phase 4: Enable audit logging for this model
     audit_enabled = True
@@ -576,7 +581,7 @@ class CertificationFeeTemplate(models.Model):
         help_text="Attach to a preset to reuse across sessions. Leave blank for a one-off template.",
     )
     name = models.CharField(max_length=160)
-    currency = models.CharField(max_length=10, default="XAF")
+    currency = models.CharField(max_length=10, default=_default_currency)
     is_default_for_preset = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
 

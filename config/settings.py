@@ -839,6 +839,13 @@ DEFAULT_CURRENCY = os.getenv('DEFAULT_CURRENCY', '')
 # When False: single region per deployment (use REGION_CODE). Used in context as enable_multi_region.
 ENABLE_MULTI_REGION = os.getenv('ENABLE_MULTI_REGION', 'False').lower() == 'true'
 
+# Platform-neutral fallbacks when no tenant/region context (no hardcoded CMR/XAF). Used by get_platform_defaults().
+# When REGION_CODE/DEFAULT_CURRENCY/DEFAULT_GRADING_SCALE are set in .env they are used; otherwise neutral defaults.
+PLATFORM_DEFAULT_REGION_CODE = os.getenv('PLATFORM_DEFAULT_REGION_CODE', '') or REGION_CODE or 'GLOBAL'
+PLATFORM_DEFAULT_CURRENCY = os.getenv('PLATFORM_DEFAULT_CURRENCY', '') or DEFAULT_CURRENCY or 'USD'
+PLATFORM_DEFAULT_TIMEZONE = os.getenv('PLATFORM_DEFAULT_TIMEZONE', '') or TIME_ZONE or 'UTC'
+PLATFORM_DEFAULT_GRADING_SCALE = os.getenv('PLATFORM_DEFAULT_GRADING_SCALE', '') or DEFAULT_GRADING_SCALE or '0-100'
+
 # Global grading scales (imported from apps.evals.grading module at runtime)
 # Reference: GRADING_SCALES, CURRENCY_SYMBOLS defined in apps/evals/grading.py
 

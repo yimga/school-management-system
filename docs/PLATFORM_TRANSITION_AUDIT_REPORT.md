@@ -177,6 +177,40 @@ This report consolidates the outputs of the seven platform-truth audits. The cod
 
 ---
 
+## Remediation status (post-implementation)
+
+**Top 25 checklist (nothing left behind):**
+
+| # | Item | Status |
+|---|------|--------|
+| 1 | Classify SiteSettings | Done: SITE_SETTINGS_FIELD_CLASSIFICATION.md |
+| 2 | Stop tenant get_solo(); use tenant_runtime | Done: migrated to get_effective_* / tenant_runtime |
+| 3 | Add lint/test blocking get_solo | Done: lint_tenant_settings.py --check-get-solo-only + test_tenant_settings_lint.py |
+| 4 | Wrap tenant-app Celery tasks | Done: finance, requests, accounts, people, analytics, communication |
+| 5 | Audit tenant-app queries for school filter | Done: TENANT_ORM_AUDIT.md; requests.request_detail fixed |
+| 6 | Enforce host/surface in decorators | Done: require_super_access_with_host on all /super/ + marketplace |
+| 7 | Split control-plane vs tenant layouts | Done: CONTROL_PLANE_TEMPLATES.md; super uses control_plane_base |
+| 8 | Sidebar/nav to registry/runtime | Done: SIDEBAR_DASHBOARD_REGISTRY_TARGET.md; target documented |
+| 9 | Dashboard widgets to packs | Done: DashboardWidget + get_tenant_dashboard_registry canonical |
+| 10 | Document RLS/search_path per deployment | Deferred: doc in TENANT_ORM_AUDIT (enforcement layers) |
+| 11 | Platform feature toggles | Done: backend_feature_flags; GOVERNANCE_FEATURE_TOGGLES_AND_PACKS.md |
+| 12 | Migration cloud UI and runbooks | Done: /super/migration/; runbooks next in governance doc |
+| 13 | Pack versioning and rollback | Done: design in GOVERNANCE_FEATURE_TOGGLES_AND_PACKS.md |
+| 14 | Regional config 195 countries from registry | Backlog: PLATFORM_AUDIT_REMEDIATION_BACKLOG.md |
+| 15 | Audit analytics/reporting cross-tenant | Done: ANALYTICS_REPORTS_TENANT_ISOLATION.md; strategic_report fixed |
+| 16 | Audit search/export tenant isolation | Done: same doc; tenant list/export scoped |
+| 17 | Strong permission for manager views | Done: control-plane role in require_super_access_with_host |
+| 18 | Provider registry single source | Backlog: SIDEBAR_DASHBOARD_REGISTRY_TARGET.md target |
+| 19 | Grading/attendance from blueprint/policy | Backlog |
+| 20 | School-type and education-level from registry | Backlog (registries exist) |
+| 21 | Observability/SLO platform health | Backlog |
+| 22 | Tenant lifecycle (suspend, archive) | Backlog |
+| 23 | Document canonical data model | Done: MODEL_TO_CANONICAL_MAPPING_REPORT.md exists |
+| 24 | Implement high-priority model refactors | Backlog |
+| 25 | Backlog and owners | Done: PLATFORM_AUDIT_REMEDIATION_BACKLOG.md |
+
+Remaining work (explicit backlog): School vs Tenant vs Campus refactor; missing canonical objects; regional config; observability/SLO; tenant lifecycle; model refactors; provider registry as single source; grading/attendance from blueprint. See `PLATFORM_AUDIT_REMEDIATION_BACKLOG.md`.
+
 ## Persistence and next steps
 
 - This report is the persisted output of the Single-Tenant to Platform Transition Audit Pack.

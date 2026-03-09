@@ -47,6 +47,8 @@ def dashboard_context(request):
     user = getattr(request, "user", None)
     if not getattr(user, "is_authenticated", False):
         return context
+    if not getattr(user, "pk", None):
+        return context
 
     if connection.needs_rollback:
         _reset_db_state()

@@ -42,6 +42,7 @@ Single list of **scoped** work that is defined and bounded. Items are either don
 - **Where scoped:** ux_rules_audit_26_5.md; REMAINING_PLAN_AUDIT_GAPS 26.5.
 - **Done when:** Each major tenant-facing list has search + one filter + export (CSV) where appropriate; long forms (e.g. application) have Save draft or equivalent.
 - **Current:** Students, Invoices, Teachers, Guardians, Evals, Applications (partial) have reference implementation. Backend student create has FormDraft. **Done this cycle:** Document library CSV export; Applicants list (search/filter/export already present); Application form — backend Add applicant with Save draft (FormDraft `application_form`).
+- **Completion target:** Deferred list/form items — out of scope as of 2025-03-08; prioritise per ux_rules_audit_26_5.md.
 - **Next:** Use the [Remaining lists/forms to prioritise](ux_rules_audit_26_5.md#remaining-listsforms-to-prioritise) checklist in ux_rules_audit_26_5.md; assign one list or form per sprint; add search/filter/export or draft as per pattern.
 
 ---
@@ -51,6 +52,7 @@ Single list of **scoped** work that is defined and bounded. Items are either don
 - **Where scoped:** REMAINING_PLAN_AUDIT_GAPS “Control plane maturity”.
 - **Done when:** SLO/incident data and runbooks URL refined; rollout/canary process documented and wired; support queue integrated where desired.
 - **Current:** Health dashboard exists; links to Tenant health, Incidents, SLO API, Runbooks (when CONTROL_PLANE_RUNBOOKS_URL set). **Done this cycle:** `CONTROL_PLANE_RUNBOOKS_URL` documented in .env.example; canary/runbooks note added to preview_release_canary.md.
+- **Completion target:** SLO refinement and support queue — out of scope as of 2025-03-08; schedule when ops prioritises.
 - **Next:** Refine SLO dashboard data; optional support queue integration.
 
 ---
@@ -69,6 +71,7 @@ Single list of **scoped** work that is defined and bounded. Items are either don
 - **Where scoped:** section_15_scope_implemented_and_roadmap.
 - **Done when:** Payment plan model and installment schedule; double-entry ledger or integration with Invoice/Payment.
 - **Current:** Core finance/tax and invoice/payment flows exist. PaymentPlan/RecurringPaymentSubscription were removed in finance migration 0045; reference logic remains in apps/finance/advanced_payments.py.
+- **Completion target:** Out of scope as of 2025-03-08; re-introduce when product prioritises (section_15).
 - **Next:** Scope in finance roadmap (section_15_scope_implemented_and_roadmap.md 15.3); re-introduce or redesign payment plan model and double-entry when product prioritises.
 
 ---
@@ -78,6 +81,7 @@ Single list of **scoped** work that is defined and bounded. Items are either don
 - **Where scoped:** Phase 8; migration cloud docs.
 - **Done when:** Rollback UI for migration runs; legacy data cleaner; read-only legacy view where needed.
 - **Current:** Explicitly deferred; complexity and risk.
+- **Completion target:** Out of scope as of 2025-03-08; schedule when migration usage demands it.
 - **Next:** Schedule when migration usage demands it.
 
 ---
@@ -87,7 +91,8 @@ Single list of **scoped** work that is defined and bounded. Items are either don
 - **Where scoped:** Deferred and optional register; phase13.
 - **Done when:** Optional: generate and commit `models.png` (e.g. `python manage.py graph_models -a -o docs/architecture/models.png`).
 - **Current:** Architecture map pack satisfied by apps.txt, urls.txt, migrations.txt, tenancy.md, policy_injection.md.
-- **Next:** Add only if team decides it’s needed.
+- **Completion target:** Out of scope as of 2025-03-08; add only if team decides it's needed.
+- **Next:** Add only if team decides it's needed.
 
 ---
 

@@ -1,5 +1,6 @@
 """
 Celery tasks for accounts (e.g. delegation auto-revoke).
+Runs in tenant context where applicable.
 """
 from __future__ import annotations
 
@@ -7,6 +8,7 @@ import logging
 from django.utils import timezone
 from celery import shared_task
 from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.schools.celery_tasks import _run_with_tenant_context, get_active_school_ids
 
 logger = logging.getLogger(__name__)
 
@@ -25,16 +27,11 @@ def _school_for_user(user):
     return None
 
 
-@shared_task(name="accounts.expire_past_delegations")
-def expire_past_delegations():
-    """
-    Set is_active=False on delegations whose effective_end_date has passed.
-    Respects SiteSettings.delegation_auto_revoke; when True, deactivates automatically.
-    """
+def _expire_past_delegations_body() -> dict:
+    """Inner body: run inside tenant context."""
     from apps.accounts.models import Delegation
 
     now = timezone.now()
-    # Delegations that are still active but past their effective end
     qs = Delegation.objects.filter(is_active=True).select_related("delegator")
     to_expire = []
     for d in qs:
@@ -75,14 +72,21 @@ def expire_past_delegations():
     return {"expired": len(to_expire)}
 
 
-@shared_task(name="accounts.prepare_rollover_proposal")
-def prepare_rollover_proposal(school_id, source_year_id, target_year_id, created_by_id=None):
-    """
-    Plan II: Build a rollover proposal (PENDING) with one item per student in source year.
-    Suggested next class from ClassroomPromotionMapping or same-name in target year; promotion status from get_promotion_status.
-    """
+@shared_task(name="accounts.expire_past_delegations")
+def expire_past_delegations(school_id: str | None = None):
+    """Set is_active=False on past delegations. Runs in tenant context (per school_id or all active schools)."""
+    if school_id:
+        return _run_with_tenant_context(school_id=school_id, runnable=_expire_past_delegations_body)
+    totals = {"expired": 0}
+    for sid in get_active_school_ids():
+        result = _run_with_tenant_context(school_id=sid, runnable=_expire_past_delegations_body)
+        totals["expired"] += result.get("expired", 0)
+    return totals
+
+
+def _prepare_rollover_proposal_impl(school_id, source_year_id, target_year_id, created_by_id=None):
+    """Inner implementation: run inside tenant context."""
     import logging
-    from django.utils import timezone
     from apps.accounts.models import RolloverProposal, RolloverProposalItem
     from apps.schools.models import School
     from apps.academics.models import AcademicYear, Classroom
@@ -160,12 +164,17 @@ def prepare_rollover_proposal(school_id, source_year_id, target_year_id, created
     return {"ok": True, "proposal_id": proposal.pk, "items": created}
 
 
-@shared_task(name="accounts.apply_rollover_proposal")
-def apply_rollover_proposal(proposal_id, lock_source=False, notify_parents=False, allow_outstanding_returns=False, carry_forward_arrears=False):
-    """
-    Plan II: Apply an APPROVED rollover proposal: move students to target year and (approved or suggested) classroom.
-    Optionally lock source year, notify parents, carry forward arrears.
-    """
+@shared_task(name="accounts.prepare_rollover_proposal")
+def prepare_rollover_proposal(school_id, source_year_id, target_year_id, created_by_id=None):
+    """Build rollover proposal. Runs in tenant context for school_id."""
+    return _run_with_tenant_context(
+        school_id=str(school_id),
+        runnable=lambda: _prepare_rollover_proposal_impl(school_id, source_year_id, target_year_id, created_by_id),
+    )
+
+
+def _apply_rollover_proposal_impl(proposal_id, lock_source=False, notify_parents=False, allow_outstanding_returns=False, carry_forward_arrears=False):
+    """Inner implementation: run inside tenant context."""
     import logging
     from django.utils import timezone
     from apps.accounts.models import RolloverProposal, RolloverProposalItem
@@ -227,3 +236,13 @@ def apply_rollover_proposal(proposal_id, lock_source=False, notify_parents=False
 
     logger.info("apply_rollover_proposal: proposal %s applied; updated=%d graduated=%d skipped=%d", proposal_id, updated, graduated, skipped)
     return {"ok": True, "updated": updated, "graduated": graduated, "skipped": skipped}
+
+
+@shared_task(name="accounts.apply_rollover_proposal")
+def apply_rollover_proposal(proposal_id, lock_source=False, notify_parents=False, allow_outstanding_returns=False, carry_forward_arrears=False, school_id: str | None = None):
+    """Apply APPROVED rollover proposal. Runs in tenant context when school_id is provided."""
+    def _run():
+        return _apply_rollover_proposal_impl(proposal_id, lock_source, notify_parents, allow_outstanding_returns, carry_forward_arrears)
+    if school_id:
+        return _run_with_tenant_context(school_id=str(school_id), runnable=_run)
+    return _apply_rollover_proposal_impl(proposal_id, lock_source, notify_parents, allow_outstanding_returns, carry_forward_arrears)

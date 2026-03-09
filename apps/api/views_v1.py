@@ -421,7 +421,11 @@ class FinanceExchangeRateView(View):
         if not getattr(request, "user", None) or not request.user.is_authenticated:
             return JsonResponse({"error": "Authentication required"}, status=401)
         from_currency = (request.GET.get("from_currency") or request.GET.get("from") or "USD").strip().upper()[:3]
-        to_currency = (request.GET.get("to_currency") or request.GET.get("to") or (getattr(school.default_region, "default_currency", None) if school and getattr(school, "default_region", None) else "XAF")).strip().upper()[:3]
+        _to = (getattr(school.default_region, "default_currency", None) if school and getattr(school, "default_region", None) else None)
+        if _to is None:
+            from apps.platform_runtime.helpers import get_platform_defaults
+            _to = get_platform_defaults(use_db=False)["currency"]
+        to_currency = (request.GET.get("to_currency") or request.GET.get("to") or _to).strip().upper()[:3]
         if from_currency == to_currency:
             return JsonResponse({"from_currency": from_currency, "to_currency": to_currency, "rate": 1.0, "source": "identity"})
         rate = _get_exchange_rate(from_currency, to_currency)

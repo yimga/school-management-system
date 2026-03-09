@@ -48,6 +48,7 @@ class Phase10ErrorPagesVerificationTests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
+    @override_settings(ROOT_URLCONF="config.manager_urls")
     def test_manager_403_uses_control_plane_template(self):
         request = self.factory.get("/admin/")
         request.user = User(is_staff=True, is_superuser=False)
@@ -55,7 +56,11 @@ class Phase10ErrorPagesVerificationTests(TestCase):
         response = permission_denied(request, None)
         self.assertEqual(response.status_code, 403)
         content = response.content.decode("utf-8", errors="replace")
-        self.assertIn("Back to Manager", content)
+        # Control-plane 403 shows either "Back to Manager" (generic) or "Tenant Mission Control" (admin-forbidden).
+        self.assertTrue(
+            "Back to Manager" in content or "Tenant Mission Control" in content,
+            msg="Control plane 403 must show manager navigation (Back to Manager or Tenant Mission Control)",
+        )
 
     def test_manager_404_uses_control_plane_template(self):
         request = self.factory.get("/super/nonexistent/")

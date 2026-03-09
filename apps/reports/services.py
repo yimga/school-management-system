@@ -5,7 +5,7 @@ from typing import Any, Dict, Iterable, Optional
 from django.conf import settings
 from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
 from django.urls import reverse
-from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.helpers import get_effective_site_settings, get_platform_defaults
 from apps.policies.policy_registry import get_effective_policy
 from apps.siteconfig.models import RegionConfig, EducationSystemProfile
 
@@ -564,13 +564,14 @@ def _region_display_context(
     if policy is None:
         policy = {}
     try:
-        region_code = getattr(settings, "REGION_CODE", "CMR")
+        region_code = getattr(settings, "REGION_CODE", "") or get_platform_defaults(use_db=False)["region_code"]
         region = RegionConfig.objects.get(code=region_code)
     except Exception:
         region = RegionConfig.get_default()
-    cur_code = getattr(region, "default_currency", "XAF")
+    _pd = get_platform_defaults(use_db=False)
+    cur_code = getattr(region, "default_currency", None) or _pd["currency"]
     date_fmt = getattr(region, "date_format", "DD/MM/YYYY")
-    grading_scale = (policy.get("grading") or {}).get("grading_scale") or getattr(region, "grading_scale", "0-20")
+    grading_scale = (policy.get("grading") or {}).get("grading_scale") or getattr(region, "grading_scale", None) or _pd["grading_scale"]
     decimal_sep = getattr(region, "decimal_separator", ".")
     thousands_sep = getattr(region, "thousands_separator", ",")
     report_template_family = None
@@ -772,7 +773,10 @@ def annual_report_context(student: StudentProfile, academic_year) -> dict:
         specialty_id=student.specialty_id,
         is_active=True,
     ).select_related("classroom")
-    school_students = StudentProfile.objects.filter(is_active=True).select_related("classroom")
+    school_students = StudentProfile.objects.filter(
+        school_id=student.school_id,
+        is_active=True,
+    ).select_related("classroom")
 
     class_rankings = sorted(
         class_students,

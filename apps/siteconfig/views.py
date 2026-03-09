@@ -23,7 +23,7 @@ from django.views.decorators.clickjacking import xframe_options_exempt, xframe_o
 from apps.academics.models import Classroom
 from apps.academics.services import get_active_year_and_term
 from apps.people.models import StudentProfile
-from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.helpers import get_effective_site_settings, get_platform_defaults
 from apps.policies.policy_registry import get_effective_policy
 from apps.reports.models import ReportCard
 from apps.reports.services import (
@@ -381,7 +381,7 @@ def grading_settings(request):
     if role not in ("ADMIN", "LEADERSHIP", "IT_ADMIN", "PRINCIPAL", "VICE_PRINCIPAL") and not (request.user.is_staff or request.user.is_superuser):
         return HttpResponseForbidden("You do not have permission to change school grading settings.")
     policy = get_effective_policy(school)
-    current_grading = (policy.get("grading") or {}).get("grading_scale") or "0-20"
+    current_grading = (policy.get("grading") or {}).get("grading_scale") or get_platform_defaults(use_db=False)["grading_scale"]
     current_language = policy.get("default_language") or "en"
     if request.method == "POST":
         new_grading = (request.POST.get("grading_scale") or "").strip() or None

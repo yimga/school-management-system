@@ -11,6 +11,11 @@ from django.db import models
 _AUTH_USER_MODEL = getattr(settings, "AUTH_USER_MODEL", "accounts.User")
 
 
+def _default_timezone():
+    """Platform default timezone (no hardcoded Africa/Douala). See config.PLATFORM_DEFAULT_TIMEZONE."""
+    return getattr(settings, "PLATFORM_DEFAULT_TIMEZONE", "UTC")
+
+
 def can(school, capability: str) -> bool:
     """
     Section 25.1: Entitlement check — return True if tenant has the capability/module enabled.
@@ -91,7 +96,11 @@ def _get_role_choices():
 
 
 class School(models.Model):
-    """Tenant: one row per school. Subdomain/slug identifies the school in the URL."""
+    """
+    Tenant: one row per school. Subdomain/slug identifies the school in the URL.
+    Canonical mapping: School = Tenant (one-to-one). Campus = future multi-branch entity.
+    See docs/SCHOOL_TENANT_CAMPUS_CANONICAL.md.
+    """
 
     class SubSystem(models.TextChoices):
         FR = "FR", "French sub-system"
@@ -135,7 +144,7 @@ class School(models.Model):
         related_name="schools",
         help_text="Canonical subdivision selection for this school.",
     )
-    timezone = models.CharField(max_length=50, default="Africa/Douala")
+    timezone = models.CharField(max_length=50, default=_default_timezone)
     settings = models.JSONField(
         default=dict,
         blank=True,

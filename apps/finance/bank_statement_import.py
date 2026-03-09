@@ -23,6 +23,7 @@ from apps.finance.models import (
     SuspensePaymentAllocation,
 )
 from apps.finance.services import apply_payment
+from apps.platform_runtime.helpers import get_platform_defaults
 
 
 @dataclass
@@ -229,7 +230,7 @@ class BankStatementImportService:
             bank_statement_entry=entry,
             defaults={
                 "amount": abs(entry.amount),
-                "currency": entry.bank_account.currency or "XAF",
+                "currency": entry.bank_account.currency or get_platform_defaults(use_db=False)["currency"],
                 "transaction_reference": entry.transaction_reference,
                 "payer_name": row.payer_name,
                 "payer_phone": row.payer_phone,

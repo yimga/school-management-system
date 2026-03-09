@@ -14,7 +14,7 @@ CURATED_CATALOG_SLUGS = (
     "admin-ocean-blue",
     "admin-indigo-lecture",
     "admin-digital-lavender",
-    "admin-gilead-warm-pink",
+    "admin-runmycampus-warm-pink",
     "admin-sunset-study",
     "admin-sunset-warm",
     "admin-forest-academy",
@@ -195,10 +195,10 @@ class Command(BaseCommand):
                     weather_bg="rgba(5,150,105,0.08)",
                 ),
             },
-            # 4. Gilead Warm Pink - brand accent
+            # 4. RunMyCampus Warm Pink - brand accent
             {
-                "slug": "admin-gilead-warm-pink",
-                "name": "Gilead Warm Pink",
+                "slug": "admin-runmycampus-warm-pink",
+                "name": "RunMyCampus Warm Pink",
                 "description": "Warm pink with purple. Friendly, creative, brand accent.",
                 "applies_to_admin": True,
                 "is_default": False,
@@ -222,7 +222,7 @@ class Command(BaseCommand):
                     weather_bg="rgba(255,106,136,0.08)",
                 ),
             },
-            # 5. Gilead Dark Pink - Unfold dark primary
+            # 5. Midnight Scholar - Unfold dark primary
             {
                 "slug": "admin-midnight-scholar",
                 "name": "Midnight Scholar",
@@ -309,10 +309,10 @@ class Command(BaseCommand):
                     weather_bg="rgba(245,158,11,0.15)",
                 ),
             },
-            # 8. Gilead Dark Neutral - neutral dark
+            # 8. RunMyCampus Dark Neutral - neutral dark
             {
-                "slug": "admin-gilead-dark-neutral",
-                "name": "Gilead Dark Neutral",
+                "slug": "admin-runmycampus-dark-neutral",
+                "name": "RunMyCampus Dark Neutral",
                 "description": "Unfold dark grays: neutral dark admin.",
                 "applies_to_admin": True,
                 "is_default": False,

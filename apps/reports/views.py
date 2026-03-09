@@ -99,8 +99,16 @@ VERIFY_REPORT_HASH_RATE_LIMIT_WINDOW = 60 * 15
 VERIFY_REPORT_HASH_RATE_LIMIT_MAX = 120
 
 
-def _sample_student() -> StudentProfile:
-    student = StudentProfile.objects.filter(is_active=True).select_related("classroom", "specialty").first()
+def _sample_student(school=None):
+    """
+    Return a sample student for report preview. When school is provided (tenant context),
+    only students from that school are considered. When school is None (e.g. control-plane),
+    uses first active student in current schema — do not use in tenant views without passing school.
+    """
+    qs = StudentProfile.objects.filter(is_active=True).select_related("classroom", "specialty")
+    if school is not None:
+        qs = qs.filter(school_id=getattr(school, "id", school))
+    student = qs.first()
     if student:
         return student
     return SimpleNamespace(
@@ -113,8 +121,9 @@ def _sample_student() -> StudentProfile:
     )
 
 
-def _build_preview_context(style: ReportCardStyle, report_type: str) -> dict:
-    student = _sample_student()
+def _build_preview_context(style: ReportCardStyle, report_type: str, request: HttpRequest | None = None) -> dict:
+    school = _report_scope_school(request) if request else None
+    student = _sample_student(school=school)
     year, term = get_active_year_and_term(school=getattr(student, "school", None))
     result = {}
     if report_type == ReportCard.Type.TERM and year and term:

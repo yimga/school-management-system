@@ -10,7 +10,7 @@ from django.utils import translation
 from django.utils.translation import gettext as _
 from apps.accounts.models import User
 from apps.finance.models import Notification
-from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.helpers import get_effective_site_settings, get_platform_defaults
 from .preview_state import PREVIEW_MODE_SESSION_KEY, ACT_AS_ROLE_SESSION_KEY
 from .portal_sidebar_items import build_portal_sidebar_items
 from apps.policies.policy_registry import get_effective_policy
@@ -259,7 +259,7 @@ def site_settings(request):
         finance_request_url = "/requests/"
     finance_request_alerts = 0
     notifications_unread_count = 0
-    if user and getattr(user, "is_authenticated", False):
+    if user and getattr(user, "is_authenticated", False) and getattr(user, "pk", None):
         finance_request_alerts = Notification.objects.filter(
             recipient=user,
             title__icontains="finance access request",
@@ -298,7 +298,7 @@ def site_settings(request):
     _pack_console = getattr(admin_theme, "backend_console_theme", None) or ""
     resolved_backend_console_theme = _pack_console.strip() or getattr(site, "backend_console_theme", None) or "dark"
     can_manage_settings = False
-    if user and getattr(user, "is_authenticated", False):
+    if user and getattr(user, "is_authenticated", False) and getattr(user, "pk", None):
         can_manage_settings = bool(
             getattr(user, "is_superuser", False)
             or getattr(user, "has_feature_permission", lambda _code: False)("settings.manage")
@@ -310,7 +310,7 @@ def site_settings(request):
     )
     # Cache portal "hat" checks before building sidebar (so get_effective_portal_role can use them)
     effective_portal_role = None
-    if user and getattr(user, "is_authenticated", False):
+    if user and getattr(user, "is_authenticated", False) and getattr(user, "pk", None):
         try:
             from apps.accounts.portal_roles import has_teacher_hat, has_parent_hat, get_effective_portal_role
             request._portal_teacher_hat = has_teacher_hat(user)
@@ -591,19 +591,20 @@ def region_settings(request):
             grading_scale = getattr(region, "grading_scale", "default")
             default_language = getattr(region, "default_language", "en")
         except Exception:
+            _pd = get_platform_defaults(use_db=False)
             region = SimpleNamespace(
-                code=getattr(settings, "REGION_CODE", "CMR"),
+                code=_pd["region_code"],
                 name="Default",
-                default_currency="XAF",
+                default_currency=_pd["currency"],
                 date_format="YYYY-MM-DD",
-                timezone=getattr(settings, "TIME_ZONE", "UTC"),
+                timezone=_pd["timezone"],
                 default_language="en",
-                grading_scale="default",
+                grading_scale=_pd["grading_scale"],
                 decimal_separator=".",
                 thousands_separator=",",
                 is_rtl=False,
             )
-            grading_scale = "default"
+            grading_scale = _pd["grading_scale"]
             default_language = "en"
     if school and not (school.default_region_id):
         grading_scale = (policy.get("grading") or {}).get("grading_scale") or grading_scale
@@ -625,7 +626,7 @@ def region_settings(request):
     effective_currency = (
         (tenant_locale or {}).get("currency")
         or getattr(region, "default_currency", None)
-        or "XAF"
+        or get_platform_defaults(use_db=False)["currency"]
     )
     currency_symbol = get_currency_symbol(effective_currency)
     effective_date_format = (
@@ -646,7 +647,7 @@ def region_settings(request):
         is_rtl = True
     return {
         'region': region,
-        'region_code': getattr(region, "code", "CMR"),
+        'region_code': getattr(region, "code", None) or get_platform_defaults(use_db=False)["region_code"],
         'region_name': getattr(region, "name", "Default"),
         'currency_symbol': currency_symbol,
         'date_format': effective_date_format,

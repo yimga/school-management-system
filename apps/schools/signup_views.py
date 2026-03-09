@@ -17,6 +17,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 from django.views.decorators.csrf import csrf_exempt
 
+from apps.platform_runtime.helpers import get_platform_defaults
 from apps.schools.models import School, SignupVerification
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
 
@@ -266,7 +267,7 @@ def api_trial_school(request: HttpRequest):
         trial_end_date=trial_end,
         default_region=default_region,
         country_code=country_code,
-        timezone=getattr(settings, "DEFAULT_SCHOOL_TIMEZONE", "Africa/Douala"),
+        timezone=getattr(settings, "DEFAULT_SCHOOL_TIMEZONE", None) or get_platform_defaults(use_db=False)["timezone"],
     )
     if default_region:
         school.settings = (school.settings or {})

@@ -16,7 +16,7 @@ from django.utils import timezone
 
 from apps.apicenter.gating import is_integration_allowed
 from apps.people.models import StudentProfile, StudentGuardian
-from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.helpers import get_effective_site_settings, get_platform_defaults
 from apps.siteconfig.models import Integration
 
 from .models import (
@@ -245,7 +245,7 @@ def pay_invoice_with_wallet(
     wallet, _ = ParentWallet.objects.get_or_create(
         school=school,
         user=user,
-        defaults={"currency_code": getattr(school, "currency_code", "XAF") or "XAF"},
+        defaults={"currency_code": getattr(school, "currency_code", None) or get_platform_defaults(use_db=False)["currency"]},
     )
     if wallet.balance < amount_val:
         raise ValueError(f"Insufficient wallet balance: {wallet.balance} (need {amount_val}).")
@@ -290,7 +290,7 @@ def top_up_wallet(
     wallet, _ = ParentWallet.objects.get_or_create(
         school=school,
         user=user,
-        defaults={"currency_code": getattr(school, "currency_code", "XAF") or "XAF"},
+        defaults={"currency_code": getattr(school, "currency_code", None) or get_platform_defaults(use_db=False)["currency"]},
     )
     new_balance = wallet.balance + amount_val
     ref = reference or f"TOPUP-{timezone.now().strftime('%Y%m%d%H%M%S')}"
@@ -791,13 +791,17 @@ def create_payment_from_receipt(
     site = _site_settings_for_school(getattr(invoice, "school", None) or getattr(getattr(invoice, "student", None), "school", None))
     overpayment_handling = getattr(site, "finance_overpayment_handling", "allow_with_refund")
     tolerance = Decimal(str(getattr(site, "finance_overpayment_tolerance_xaf", "1000")))
+    _currency = (
+        getattr(getattr(invoice, "school", None), "currency_code", None)
+        or get_platform_defaults(use_db=False)["currency"]
+    )
 
     amount_to_apply = min(amount, balance)
     overpayment = amount - balance if amount > balance else Decimal("0")
 
     if overpayment > tolerance and balance > 0:
         raise ValueError(
-            f"Receipt amount {amount} exceeds balance {balance} by more than allowed tolerance ({tolerance} XAF). "
+            f"Receipt amount {amount} exceeds balance {balance} by more than allowed tolerance ({tolerance} {_currency}). "
             "Please review manually."
         )
 
@@ -831,7 +835,7 @@ def create_payment_from_receipt(
             )
         if not proof_upload.verification_notes:
             proof_upload.verification_notes = ""
-        proof_upload.verification_notes += f" Overpayment {overpayment} XAF → refund request created. "
+        proof_upload.verification_notes += f" Overpayment {overpayment} {_currency} → refund request created. "
 
     proof_upload.payment = payment
     proof_upload.status = PaymentProofUpload.Status.VERIFIED

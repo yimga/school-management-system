@@ -33,6 +33,7 @@ from apps.siteconfig.education_profile_engine import (
 )
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
 from apps.siteconfig.models import EducationSystemProfile
+from apps.platform_runtime.helpers import get_platform_defaults
 from apps.siteconfig.tenant_config import apply_tenant_settings_overrides
 from .control_plane_lifecycle import apply_school_lifecycle_action, get_lifecycle_snapshot
 from .models import School, SchoolProvisioningEvent, TenantApiUsage, TenantQuotaLimit
@@ -1922,7 +1923,7 @@ def create_school_wizard(request):
     regions = RegionConfig.objects.all().order_by("name")
     defaults = default_header_weather_config()
     default_country_code = _canonical_country_alpha2(
-        defaults.get("header_weather_country_code", "CMR")
+        defaults.get("header_weather_country_code") or get_platform_defaults(use_db=False)["region_code"]
     )
     countries = list_country_choices()
     known_codes = {row["code"] for row in countries}
@@ -1998,7 +1999,7 @@ def create_school_wizard(request):
             "regions": regions,
             "countries": countries,
             "cities": cities,
-            "default_country_code": default_country_code or defaults.get("header_weather_country_code", "CMR"),
+            "default_country_code": default_country_code or defaults.get("header_weather_country_code") or get_platform_defaults(use_db=False)["region_code"],
             "default_sub_system": default_sub_system,
             "education_profiles": education_profiles,
             "education_levels": education_levels,
@@ -2243,6 +2244,45 @@ def school_lifecycle_action(request, school_id):
 
     messages.success(request, outcome["message"])
     return redirect(next_url)
+
+
+@require_http_methods(["GET"])
+def api_school_policy_bundles(request, school_id):
+    """List policy bundles for a school (for pack versioning rollback UI)."""
+    from apps.policies.rollback import list_policy_bundles_for_school
+
+    school = get_object_or_404(School, id=school_id)
+    bundles = list_policy_bundles_for_school(school)
+    from apps.policies.models import TenantBlueprint
+    tb = TenantBlueprint.objects.filter(school=school).select_related("active_bundle").first()
+    active_id = tb.active_bundle_id if tb else None
+    items = [
+        {
+            "id": b.id,
+            "version": b.version,
+            "applied_pack_version": getattr(b, "applied_pack_version", "") or "",
+            "code": getattr(b, "code", "") or "",
+            "name": getattr(b, "name", "") or "",
+            "created_at": b.created_at.isoformat() if hasattr(b.created_at, "isoformat") else str(b.created_at),
+            "is_active": b.id == active_id,
+        }
+        for b in bundles[:50]
+    ]
+    return JsonResponse({"school_id": str(school.id), "active_bundle_id": active_id, "bundles": items})
+
+
+@require_http_methods(["POST"])
+def api_school_policy_bundle_activate(request, school_id, bundle_id):
+    """Set the active policy bundle for a school (rollback to previous version)."""
+    from apps.policies.rollback import set_active_policy_bundle
+    from apps.policies.models import PolicyBundle
+
+    school = get_object_or_404(School, id=school_id)
+    bundle = get_object_or_404(PolicyBundle, id=bundle_id, school=school)
+    ok = set_active_policy_bundle(school, bundle)
+    if not ok:
+        return JsonResponse({"ok": False, "error": "Could not set active bundle"}, status=400)
+    return JsonResponse({"ok": True, "school_id": str(school.id), "active_bundle_id": bundle.id, "message": "Active policy bundle updated."})
 
 
 def _slug_from_name(name: str) -> str:

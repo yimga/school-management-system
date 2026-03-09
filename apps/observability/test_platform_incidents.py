@@ -1,6 +1,6 @@
 import json
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from apps.accounts.models import User
 from apps.observability.models import PlatformIncident
@@ -30,7 +30,7 @@ class PlatformIncidentConsoleTests(TestCase):
             username="incident_admin",
             email="incident-admin@example.com",
             password="Test1234!",
-            role=User.Role.ADMIN,
+            role=User.Role.SUPERADMIN,
             is_staff=True,
         )
         self.incident = PlatformIncident.objects.create(
@@ -45,6 +45,7 @@ class PlatformIncidentConsoleTests(TestCase):
             created_by=self.admin_user,
         )
 
+    @override_settings(ROOT_URLCONF="config.manager_urls")
     def test_manager_console_renders_platform_incident(self):
         self.client.force_login(self.admin_user)
         response = self.client.get("/ops/incidents/", HTTP_HOST="manager.runmycampus.com")

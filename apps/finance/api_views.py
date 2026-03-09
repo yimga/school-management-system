@@ -16,6 +16,7 @@ from django.utils.dateparse import parse_datetime
 
 from apps.finance.models import Invoice, Payment, Notification, ComplianceProfile
 from apps.finance.services import pay_invoice_with_wallet
+from apps.platform_runtime.helpers import get_platform_defaults
 from apps.api.serializers import InvoiceSerializer, PaymentSerializer
 from apps.api.permissions import IsAdminUser
 from apps.schools.models import School
@@ -529,5 +530,5 @@ class FinancialAnalyticsAPI(APIView):
             'outstanding_fees': float(outstanding_fees),
             'payment_methods': list(payment_methods),
             'monthly_revenue': list(monthly_revenue),
-            'currency': ComplianceProfile.objects.filter(is_active=True).values_list('currency_code', flat=True).first() or 'XAF'
+            'currency': ComplianceProfile.objects.filter(is_active=True).values_list('currency_code', flat=True).first() or get_platform_defaults(use_db=False)["currency"]
         })

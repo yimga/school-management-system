@@ -522,13 +522,8 @@ def send_payment_reminders_task(self, dry_run: bool = False, school_id: str | No
     return totals
 
 
-@shared_task(bind=True, name="finance.retry_failed_payment_reminders")
-def retry_failed_payment_reminders_task(self, dry_run: bool = False) -> dict:
-    """
-    Reset next_send_at for reminders that had FAILED sends, so the next reminder run will retry.
-    Only retries if last failure was at least finance_reminder_retry_failed_hours ago.
-    When dry_run=True, only reports how many would be reset; no DB updates.
-    """
+def _retry_failed_payment_reminders_body(dry_run: bool) -> dict:
+    """Inner body: run inside tenant context."""
     from apps.finance.models import PaymentReminderLog
 
     execution_log = AutomationExecutionLog.objects.create(
@@ -585,11 +580,20 @@ def retry_failed_payment_reminders_task(self, dry_run: bool = False) -> dict:
         raise
 
 
-@shared_task(bind=True, name="finance.apply_split_late_fees")
-def apply_split_late_fees_task(self, dry_run: bool = False) -> dict:
-    """
-    Apply configured late fees to overdue payer shares.
-    """
+@shared_task(bind=True, name="finance.retry_failed_payment_reminders")
+def retry_failed_payment_reminders_task(self, dry_run: bool = False, school_id: str | None = None) -> dict:
+    """Reset next_send_at for failed reminders. Runs in tenant context (per school_id or all active schools)."""
+    if school_id:
+        return _run_with_tenant_context(school_id=school_id, runnable=lambda: _retry_failed_payment_reminders_body(dry_run))
+    totals = {"reset": 0, "dry_run": dry_run}
+    for sid in get_active_school_ids():
+        result = _run_with_tenant_context(school_id=sid, runnable=lambda d=dry_run: _retry_failed_payment_reminders_body(d))
+        totals["reset"] += result.get("reset", 0)
+    return totals
+
+
+def _apply_split_late_fees_body(dry_run: bool) -> dict:
+    """Inner body: run inside tenant context."""
     execution_log = AutomationExecutionLog.objects.create(
         task_name="finance.apply_split_late_fees",
         execution_type=AutomationExecutionLog.ExecutionType.DRY_RUN if dry_run else AutomationExecutionLog.ExecutionType.SCHEDULED,
@@ -620,20 +624,24 @@ def apply_split_late_fees_task(self, dry_run: bool = False) -> dict:
         raise
 
 
-@shared_task(bind=True, name="finance.auto_generate_fee_invoices", autoretry_for=(Exception,), max_retries=3, retry_backoff=True)
-def auto_generate_fee_invoices_task(self, dry_run: bool = False) -> dict:
-    """
-    Automatically generate fee invoices based on schedule configuration.
-    
-    Args:
-        dry_run: If True, log what would be done but don't execute.
-    
-    Returns:
-        Dict with execution summary
-    """
+@shared_task(bind=True, name="finance.apply_split_late_fees")
+def apply_split_late_fees_task(self, dry_run: bool = False, school_id: str | None = None) -> dict:
+    """Apply configured late fees to overdue payer shares. Runs in tenant context."""
+    if school_id:
+        return _run_with_tenant_context(school_id=school_id, runnable=lambda: _apply_split_late_fees_body(dry_run))
+    totals = {"applied": 0, "checked": 0, "status": "ok", "dry_run": dry_run}
+    for sid in get_active_school_ids():
+        result = _run_with_tenant_context(school_id=sid, runnable=lambda d=dry_run: _apply_split_late_fees_body(d))
+        totals["applied"] += int(result.get("applied", 0) or 0)
+        totals["checked"] += int(result.get("checked", 0) or 0)
+    return totals
+
+
+def _auto_generate_fee_invoices_body(dry_run: bool) -> dict:
+    """Inner body: run inside tenant context."""
     from apps.finance.models import ComplianceProfile
     from apps.automation.helpers import get_current_academic_year, get_current_term
-    
+
     execution_log = AutomationExecutionLog.objects.create(
         task_name="finance.auto_generate_fee_invoices",
         execution_type=AutomationExecutionLog.ExecutionType.DRY_RUN if dry_run else AutomationExecutionLog.ExecutionType.SCHEDULED,
@@ -803,11 +811,23 @@ def auto_generate_fee_invoices_task(self, dry_run: bool = False) -> dict:
         )
         raise
 
-@shared_task(bind=True, name="finance.auto_copy_fee_plans", autoretry_for=(Exception,), max_retries=3, retry_backoff=True)
-def auto_copy_fee_plans_task(self, dry_run: bool = False) -> dict:
-    """
-    Copy active fee plans from a source academic year to the next year based on SiteSettings mode.
-    """
+
+@shared_task(bind=True, name="finance.auto_generate_fee_invoices", autoretry_for=(Exception,), max_retries=3, retry_backoff=True)
+def auto_generate_fee_invoices_task(self, dry_run: bool = False, school_id: str | None = None) -> dict:
+    """Automatically generate fee invoices. Runs in tenant context (per school_id or all active schools)."""
+    if school_id:
+        return _run_with_tenant_context(school_id=school_id, runnable=lambda: _auto_generate_fee_invoices_body(dry_run))
+    totals = {"status": "success", "invoices_created": 0, "plans_processed": 0, "failed": 0}
+    for sid in get_active_school_ids():
+        result = _run_with_tenant_context(school_id=sid, runnable=lambda d=dry_run: _auto_generate_fee_invoices_body(d))
+        totals["invoices_created"] += result.get("invoices_created", 0) or 0
+        totals["plans_processed"] += result.get("plans_processed", 0) or 0
+        totals["failed"] += result.get("failed", 0) or 0
+    return totals
+
+
+def _auto_copy_fee_plans_body(dry_run: bool) -> dict:
+    """Inner body: run inside tenant context."""
     from apps.academics.models import AcademicYear
     from apps.finance.services import copy_fee_plan_to_year
 
@@ -941,51 +961,55 @@ def auto_copy_fee_plans_task(self, dry_run: bool = False) -> dict:
         raise
 
 
-@shared_task(bind=True, name="finance.update_invoice_statuses", autoretry_for=(Exception,), max_retries=3, retry_backoff=True)
-def update_invoice_statuses_task(self, dry_run: bool = False) -> dict:
-    """
-    Automatically update invoice statuses (overdue, paid).
-    
-    Args:
-        dry_run: If True, log what would be done but don't execute.
-    
-    Returns:
-        Dict with execution summary
-    """
+@shared_task(bind=True, name="finance.auto_copy_fee_plans", autoretry_for=(Exception,), max_retries=3, retry_backoff=True)
+def auto_copy_fee_plans_task(self, dry_run: bool = False, school_id: str | None = None) -> dict:
+    """Copy active fee plans to next year. Runs in tenant context (per school_id or all active schools)."""
+    if school_id:
+        return _run_with_tenant_context(school_id=school_id, runnable=lambda: _auto_copy_fee_plans_body(dry_run))
+    totals = {"status": "success", "copied": 0, "errors": 0}
+    for sid in get_active_school_ids():
+        result = _run_with_tenant_context(school_id=sid, runnable=lambda d=dry_run: _auto_copy_fee_plans_body(d))
+        totals["copied"] += result.get("copied", 0) or 0
+        totals["errors"] += result.get("errors", 0) or 0
+    return totals
+
+
+def _update_invoice_statuses_body(dry_run: bool) -> dict:
+    """Inner body: run inside tenant context."""
     execution_log = AutomationExecutionLog.objects.create(
         task_name="finance.update_invoice_statuses",
         execution_type=AutomationExecutionLog.ExecutionType.DRY_RUN if dry_run else AutomationExecutionLog.ExecutionType.SCHEDULED,
         status=AutomationExecutionLog.Status.PENDING,
     )
-    
+
     try:
         site = get_cached_site_settings()
-        
+
         if not getattr(site, "finance_invoice_auto_status_updates_enabled", True):
             execution_log.mark_completed(
                 AutomationExecutionLog.Status.SUCCESS,
                 summary={"message": "Invoice status updates disabled"}
             )
             return {"status": "disabled"}
-        
+
         grace_period = getattr(site, "finance_invoice_overdue_grace_period_days", 0)
         now = timezone.now().date()
         cutoff_date = now - timedelta(days=grace_period)
-        
+
         # Find overdue invoices
         overdue_query = Invoice.objects.filter(
             due_date__lt=cutoff_date,
             status__in=[Invoice.Status.ISSUED, Invoice.Status.PARTIAL],
         )
-        
+
         # Find paid invoices (balance = 0 but status not PAID)
         paid_query = Invoice.objects.filter(
             balance_amount=0,
         ).exclude(status=Invoice.Status.PAID)
-        
+
         overdue_count = overdue_query.count()
         paid_count = paid_query.count()
-        
+
         if dry_run:
             execution_log.mark_completed(
                 AutomationExecutionLog.Status.SUCCESS,
@@ -1000,13 +1024,13 @@ def update_invoice_statuses_task(self, dry_run: bool = False) -> dict:
                 "would_mark_overdue": overdue_count,
                 "would_mark_paid": paid_count,
             }
-        
+
         # Update overdue invoices
         overdue_updated = overdue_query.update(status=Invoice.Status.OVERDUE)
-        
+
         # Update paid invoices
         paid_updated = paid_query.update(status=Invoice.Status.PAID)
-        
+
         execution_log.mark_completed(
             AutomationExecutionLog.Status.SUCCESS,
             records_processed=overdue_updated + paid_updated,
@@ -1015,13 +1039,13 @@ def update_invoice_statuses_task(self, dry_run: bool = False) -> dict:
                 "marked_paid": paid_updated,
             }
         )
-        
+
         return {
             "status": "success",
             "marked_overdue": overdue_updated,
             "marked_paid": paid_updated,
         }
-    
+
     except Exception as e:
         logger.error("Error in update_invoice_statuses_task: %s", str(e))
         execution_log.mark_completed(
@@ -1031,22 +1055,33 @@ def update_invoice_statuses_task(self, dry_run: bool = False) -> dict:
         raise
 
 
+@shared_task(bind=True, name="finance.update_invoice_statuses", autoretry_for=(Exception,), max_retries=3, retry_backoff=True)
+def update_invoice_statuses_task(self, dry_run: bool = False, school_id: str | None = None) -> dict:
+    """Automatically update invoice statuses. Runs in tenant context (per school_id or all active schools)."""
+    if school_id:
+        return _run_with_tenant_context(school_id=school_id, runnable=lambda: _update_invoice_statuses_body(dry_run))
+    totals = {"status": "success", "marked_overdue": 0, "marked_paid": 0}
+    for sid in get_active_school_ids():
+        result = _run_with_tenant_context(school_id=sid, runnable=lambda d=dry_run: _update_invoice_statuses_body(d))
+        totals["marked_overdue"] += result.get("marked_overdue", 0) or 0
+        totals["marked_paid"] += result.get("marked_paid", 0) or 0
+    return totals
+
+
 @shared_task(bind=True, name="finance.process_payment_receipt_upload", autoretry_for=(Exception,), max_retries=3, retry_backoff=True)
-def process_payment_receipt_upload_task(self, proof_upload_id: int) -> dict:
+def process_payment_receipt_upload_task(self, proof_upload_id: int, school_id: str | None = None) -> dict:
     """
-    Process a payment receipt upload: extract data, verify against invoice, and auto-apply if verified.
-
-    Args:
-        proof_upload_id: PaymentProofUpload ID
-
-    Returns:
-        {
-            "status": "verified" | "discrepancy" | "rejected",
-            "payment_id": int | None,
-            "confidence": float,
-            "discrepancies": list[str]
-        }
+    Process a payment receipt upload. Runs in tenant context when school_id is provided (required in multi-tenant).
     """
+    def _run():
+        return _process_payment_receipt_upload_impl(proof_upload_id)
+    if school_id:
+        return _run_with_tenant_context(school_id=school_id, runnable=_run)
+    return _process_payment_receipt_upload_impl(proof_upload_id)
+
+
+def _process_payment_receipt_upload_impl(proof_upload_id: int) -> dict:
+    """Process a payment receipt upload (run inside tenant context when invoked from task)."""
     execution_log = AutomationExecutionLog.objects.create(
         task_name="finance.process_payment_receipt_upload",
         execution_type=AutomationExecutionLog.ExecutionType.MANUAL,
@@ -1408,22 +1443,8 @@ def _notify_finance_staff_suspicious_receipt(proof_upload: PaymentProofUpload, f
         logger.error(f"Error notifying finance staff about suspicious receipt: {str(e)}")
 
 
-@shared_task(bind=True, name="finance.retry_bank_verification", autoretry_for=(Exception,), max_retries=3, retry_backoff=True)
-def retry_bank_verification_task(self, days_old: int = 30) -> dict:
-    """
-    Retry bank verification for receipts that failed verification earlier.
-    Useful when bank statements are uploaded later (e.g., monthly statements).
-    
-    Args:
-        days_old: Only retry receipts older than this many days (default: 30)
-    
-    Returns:
-        {
-            "retried": int,
-            "verified": int,
-            "still_pending": int
-        }
-    """
+def _retry_bank_verification_body(days_old: int) -> dict:
+    """Inner body: run inside tenant context."""
     execution_log = AutomationExecutionLog.objects.create(
         task_name="finance.retry_bank_verification",
         execution_type=AutomationExecutionLog.ExecutionType.SCHEDULED,
@@ -1557,3 +1578,18 @@ def retry_bank_verification_task(self, days_old: int = 30) -> dict:
             error_message=str(e),
         )
         raise
+
+
+@shared_task(bind=True, name="finance.retry_bank_verification", autoretry_for=(Exception,), max_retries=3, retry_backoff=True)
+def retry_bank_verification_task(self, days_old: int = 30, school_id: str | None = None) -> dict:
+    """Retry bank verification for receipts. Runs in tenant context (per school_id or all active schools)."""
+    if school_id:
+        return _run_with_tenant_context(school_id=school_id, runnable=lambda: _retry_bank_verification_body(days_old))
+    totals = {"retried": 0, "verified": 0, "still_pending": 0, "errors": 0}
+    for sid in get_active_school_ids():
+        result = _run_with_tenant_context(school_id=sid, runnable=lambda d=days_old: _retry_bank_verification_body(d))
+        totals["retried"] += result.get("retried", 0) or 0
+        totals["verified"] += result.get("verified", 0) or 0
+        totals["still_pending"] += result.get("still_pending", 0) or 0
+        totals["errors"] += result.get("errors", 0) or 0
+    return totals

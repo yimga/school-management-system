@@ -8,17 +8,24 @@ BULK_GRADES_BATCH_SIZE = 100
 
 
 @shared_task(bind=True, name="evals.process_bulk_grades")
-def process_bulk_grades(self, student_ids=None, academic_year_id=None, term_id=None, schema_name=None):
+def process_bulk_grades(self, student_ids=None, academic_year_id=None, term_id=None, schema_name=None, school_id=None):
     """
     Process grades for many students in batches of BULK_GRADES_BATCH_SIZE.
-    Pass schema_name when using django-tenants so the task runs in the correct tenant schema.
+    In multi-tenant deployments, pass schema_name or school_id so the task runs in the correct
+    tenant schema. If both are omitted, runs in current schema (single-tenant or test only).
     """
-    from django.db import connection
-    if schema_name:
+    if schema_name or school_id is not None:
+        from apps.schools.celery_tasks import _run_with_tenant_context
+
+        def run():
+            return _run_bulk_grades(student_ids, academic_year_id, term_id)
+
         try:
-            from django_tenants.utils import schema_context
-            with schema_context(schema_name):
-                return _run_bulk_grades(student_ids, academic_year_id, term_id)
+            return _run_with_tenant_context(
+                schema_name=schema_name,
+                school_id=school_id,
+                runnable=run,
+            )
         except Exception as e:
             self.retry(exc=e, countdown=60)
     return _run_bulk_grades(student_ids, academic_year_id, term_id)

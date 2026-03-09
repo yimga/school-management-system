@@ -26,7 +26,7 @@ THEME_PALETTE_GROUPS: Sequence[Tuple[str, Sequence[str]]] = (
     (
         "Warm & Human",
         (
-            "admin-gilead-warm-pink",
+            "admin-runmycampus-warm-pink",
             "admin-sunset-study",
             "admin-sunset-warm",
         ),

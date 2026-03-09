@@ -19,6 +19,11 @@ from apps.accounts.validators import (
 from apps.siteconfig.models import _tenant_upload_to
 
 
+def _default_currency():
+    """Platform default currency (no hardcoded XAF). See config.PLATFORM_DEFAULT_CURRENCY."""
+    return getattr(settings, "PLATFORM_DEFAULT_CURRENCY", "USD")
+
+
 def _invoice_attachment_upload_to(instance, filename):
     """Tenant-scoped path for Invoice attachments (Section 25.3, media_tenant_scope.md)."""
     return _tenant_upload_to("finance/invoices")(instance, filename)
@@ -41,8 +46,8 @@ class ComplianceProfile(models.Model):
 
     name = models.CharField(max_length=120)
     country_code = models.CharField(max_length=2)
-    currency_code = models.CharField(max_length=3, default="XAF")
-    currency_symbol = models.CharField(max_length=8, default="XAF")
+    currency_code = models.CharField(max_length=3, default=_default_currency)
+    currency_symbol = models.CharField(max_length=8, default=_default_currency)
     timezone = models.CharField(max_length=64, default=settings.TIME_ZONE)
     chart_template = models.CharField(max_length=20, choices=ChartTemplate.choices, default=ChartTemplate.GENERIC)
     # Phase 3: Global Flexibility – configure allowed payment methods per region/profile
@@ -935,7 +940,7 @@ class ParentWallet(models.Model):
         related_name="parent_wallets",
         help_text="Guardian/parent user who owns this wallet.",
     )
-    currency_code = models.CharField(max_length=3, default="XAF")
+    currency_code = models.CharField(max_length=3, default=_default_currency)
     balance = models.DecimalField(
         max_digits=12,
         decimal_places=2,
@@ -1981,8 +1986,8 @@ class BankAccount(models.Model):
     )
     currency = models.CharField(
         max_length=3,
-        default="XAF",
-        help_text="Currency code (XAF for Cameroon)"
+        default=_default_currency,
+        help_text="Currency code (ISO 4217, e.g. USD, XAF, EUR)"
     )
     is_active = models.BooleanField(
         default=True,
@@ -2167,7 +2172,7 @@ class SuspensePayment(models.Model):
         blank=True,
     )
     amount = models.DecimalField(max_digits=12, decimal_places=2)
-    currency = models.CharField(max_length=3, default="XAF")
+    currency = models.CharField(max_length=3, default=_default_currency)
     transaction_reference = models.CharField(max_length=100, blank=True)
     payer_name = models.CharField(max_length=120, blank=True)
     payer_phone = models.CharField(max_length=50, blank=True)

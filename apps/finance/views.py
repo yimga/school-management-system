@@ -1226,8 +1226,8 @@ def upload_payment_receipt(request: HttpRequest, invoice_id: int):
     # Trigger automatic verification (if enabled)
     if getattr(site_settings, "finance_receipt_auto_verify_enabled", True):
         from apps.finance.tasks import process_payment_receipt_upload_task
-        # Process immediately (or queue for background processing)
-        process_payment_receipt_upload_task.delay(proof_upload.id)
+        school_id = str(getattr(invoice, "school_id", None) or getattr(getattr(invoice, "student", None), "school_id", None) or "")
+        process_payment_receipt_upload_task.delay(proof_upload.id, school_id=school_id if school_id else None)
         messages.success(
             request,
             "Receipt uploaded successfully. It is being verified automatically. "

@@ -67,7 +67,7 @@ class ThemePaletteSeedCommandTests(TestCase):
                 "admin-ocean-blue",
                 "admin-indigo-lecture",
                 "admin-digital-lavender",
-                "admin-gilead-warm-pink",
+                "admin-runmycampus-warm-pink",
                 "admin-sunset-study",
                 "admin-sunset-warm",
                 "admin-forest-academy",

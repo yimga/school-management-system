@@ -186,3 +186,30 @@ def _platform_branding_fallback() -> Any:
             if self.colors is None:
                 self.colors = {}
     return FallbackBranding()
+
+
+def get_platform_defaults(use_db: bool = True) -> dict:
+    """
+    Return platform-neutral defaults (region_code, currency, timezone, grading_scale).
+    When use_db=True and DB is available, uses RegionConfig.get_default() (GLOBAL/USD/UTC/0-100).
+    When use_db=False or DB unavailable, uses Django settings so code never hardcodes CMR/XAF/0-20.
+    """
+    from django.conf import settings
+    if use_db:
+        try:
+            from apps.siteconfig.models import RegionConfig
+            r = RegionConfig.get_default()
+            return {
+                "region_code": getattr(r, "code", "GLOBAL"),
+                "currency": getattr(r, "default_currency", "USD"),
+                "timezone": getattr(r, "timezone", "UTC"),
+                "grading_scale": getattr(r, "grading_scale", "0-100"),
+            }
+        except Exception:
+            pass
+    return {
+        "region_code": getattr(settings, "PLATFORM_DEFAULT_REGION_CODE", "GLOBAL"),
+        "currency": getattr(settings, "PLATFORM_DEFAULT_CURRENCY", "USD"),
+        "timezone": getattr(settings, "PLATFORM_DEFAULT_TIMEZONE", "UTC"),
+        "grading_scale": getattr(settings, "PLATFORM_DEFAULT_GRADING_SCALE", "0-100"),
+    }

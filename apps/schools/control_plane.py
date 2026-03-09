@@ -70,6 +70,33 @@ def require_super_access(view_func):
     return _wrapped
 
 
+def _is_super_surface(request) -> bool:
+    """True if request is for /super/ or manager host (control-plane surface)."""
+    path = (getattr(request, "path", "") or "").strip()
+    if path.startswith("/super/"):
+        return True
+    return is_control_plane_request(request)
+
+
+def require_super_access_with_host(view_func):
+    """
+    Restrict view to control-plane surface (manager host or /super/) AND control-plane role.
+    Use for all /super/ views so that even if URLconf is misconfigured, views reject non-manager access.
+    Enforces: (1) host/surface is manager or path is /super/, (2) user has SUPERADMIN or is_superuser.
+    """
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        if not _is_super_surface(request):
+            return HttpResponseForbidden("Control-plane surface required (manager host or /super/).")
+        if not getattr(request, "user", None) or not request.user.is_authenticated:
+            from django.contrib.auth.views import redirect_to_login
+            return redirect_to_login(request.get_full_path())
+        if not user_has_control_plane_access(request.user):
+            return HttpResponseForbidden("Super Admin access required.")
+        return view_func(request, *args, **kwargs)
+    return _wrapped
+
+
 def rate_limit_super(minute_limit=120):
     """
     Rate limit /super/ view to minute_limit requests per user per minute (cache-based).

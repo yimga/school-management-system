@@ -481,9 +481,15 @@ def strategic_report(request: HttpRequest):
     if not _can_access_strategic_report(request.user):
         return HttpResponseForbidden("You do not have permission to view strategic reporting.")
     from apps.people.models import StudentProfile
+    school = getattr(request, "school", None)
     active_year, _ = get_active_year_and_term()
-    total_students = StudentProfile.objects.filter(is_active=True).count()
-    total_teachers = TeacherProfile.objects.filter(is_active=True).count()
+    student_qs = StudentProfile.objects.filter(is_active=True)
+    teacher_qs = TeacherProfile.objects.filter(is_active=True)
+    if school is not None:
+        student_qs = student_qs.filter(school=school)
+        teacher_qs = teacher_qs.filter(school=school)
+    total_students = student_qs.count()
+    total_teachers = teacher_qs.count()
     dashboard_context = get_dashboard_context(request.user, "analytics")
     context = {
         "total_students": total_students,

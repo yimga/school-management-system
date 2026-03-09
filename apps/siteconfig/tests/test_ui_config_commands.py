@@ -2,11 +2,10 @@ from pathlib import Path
 from io import StringIO
 from contextlib import contextmanager
 import shutil
-import uuid
+import tempfile
 import json
 
 from django.core.management import CommandError, call_command
-from django.conf import settings
 from django.test import TestCase, override_settings
 
 from apps.finance.models import ComplianceProfile
@@ -29,10 +28,8 @@ class UIConfigCommandTests(TestCase):
 
     @contextmanager
     def workspace_tempdir(self):
-        root = Path(settings.BASE_DIR) / ".tmp_test_artifacts" / "ui_config_commands"
-        root.mkdir(parents=True, exist_ok=True)
-        tmp = root / uuid.uuid4().hex
-        tmp.mkdir(parents=True, exist_ok=True)
+        """Use system temp dir so we don't leave permission-locked dirs in the repo."""
+        tmp = Path(tempfile.mkdtemp(prefix="ui_config_commands_"))
         try:
             yield tmp
         finally:

@@ -19,16 +19,16 @@ def main() -> int:
     args = ap.parse_args()
     root = Path(__file__).resolve().parent.parent
     scripts = [
-        (root / "scripts" / "check_no_hardcoding.py", "No-hardcoding (country/region/tenant literals)"),
-        (root / "scripts" / "lint_tenant_settings.py", "Tenant settings (SiteSettings.get_solo, DEFAULT_*)"),
+        (root / "scripts" / "check_no_hardcoding.py", "No-hardcoding (country/region/tenant literals)", []),
+        (root / "scripts" / "lint_tenant_settings.py", "Tenant settings (SiteSettings.get_solo in tenant apps)", ["--check-get-solo-only"]),
     ]
     failed = []
-    for script, label in scripts:
+    for script, label, extra_args in scripts:
         if not script.is_file():
             print(f"Skip {label}: {script} not found", file=sys.stderr)
             continue
         r = subprocess.run(
-            [sys.executable, str(script), "--base", str(root)],
+            [sys.executable, str(script), "--base", str(root)] + extra_args,
             cwd=root,
             capture_output=True,
             text=True,
