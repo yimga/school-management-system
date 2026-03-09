@@ -11,6 +11,8 @@ from __future__ import annotations
 from copy import copy
 from typing import Any, Optional
 
+from django.core.cache import cache
+
 
 def get_tenant_runtime(request: Any) -> Optional[Any]:
     """Return request.tenant_runtime or None (e.g. on public/control plane)."""
@@ -116,9 +118,30 @@ def get_effective_site_settings(request: Any = None, school: Any = None) -> Any:
     A shallow copy of the platform singleton is used so existing attribute reads
     and helper methods still work while school-level JSON overrides are layered on
     top without mutating the stored singleton.
+
+    Performance: request-scope cache avoids repeated get_solo() in the same request
+    (e.g. context processor + view). Short TTL cache (60s) per school reduces DB load
+    across requests.
     """
     if school is None and request is not None:
         school = getattr(request, "school", None)
+
+    # Request-scope cache: same request gets same result without another get_solo()
+    cache_attr = "_effective_site_settings_cached"
+    if request is not None:
+        cached = getattr(request, cache_attr, None)
+        if cached is not None:
+            return cached
+
+    school_id = getattr(school, "id", None) if school else None
+    cache_key = f"platform_runtime:effective_site_settings:{school_id or 'platform'}"
+
+    resolved = cache.get(cache_key)
+    if resolved is not None:
+        if request is not None:
+            setattr(request, cache_attr, resolved)
+        return resolved
+
     try:
         from apps.siteconfig.models import SiteSettings
 
@@ -126,6 +149,9 @@ def get_effective_site_settings(request: Any = None, school: Any = None) -> Any:
     except Exception:
         return None
     if school is None:
+        cache.set(cache_key, base, 60)
+        if request is not None:
+            setattr(request, cache_attr, base)
         return base
 
     school_settings = getattr(school, "settings", None) or {}
@@ -143,7 +169,10 @@ def get_effective_site_settings(request: Any = None, school: Any = None) -> Any:
         if hasattr(resolved, key):
             setattr(resolved, key, value)
 
-    setattr(resolved, "_resolved_for_school_id", getattr(school, "id", None))
+    setattr(resolved, "_resolved_for_school_id", school_id)
+    cache.set(cache_key, resolved, 60)
+    if request is not None:
+        setattr(request, cache_attr, resolved)
     return resolved
 
 

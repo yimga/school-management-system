@@ -23,7 +23,11 @@ import logging
 import time
 from typing import Any, Dict, List, Optional
 
+from django.core.cache import cache
+
 logger = logging.getLogger(__name__)
+
+REGISTRY_CONTEXT_CACHE_TTL = 300  # 5 minutes; registries change rarely
 
 from apps.tenancy.context import TenantContext
 
@@ -115,10 +119,15 @@ def _step2_tenant_identity(school: Any, tenant_ctx: TenantContext) -> TenantIden
 
 
 def _step3_registry_context(school: Any, tenant_ctx: TenantContext) -> RegistryContext:
-    """Step 3: Load registry context (country, subdivision, currency, etc.). Filled from registries when installed."""
+    """Step 3: Load registry context (country, subdivision, currency, etc.). Filled from registries when installed. Cached 5min to avoid 7+ registry queries per request."""
     country_code = tenant_ctx.country or (getattr(school, "country", None) if school else None)
     if isinstance(country_code, str) and len(country_code) > 2:
         country_code = country_code[:2].upper()
+    cache_key = f"platform_runtime:registry_context:{country_code or 'default'}"
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     country_dict = None
     currency_dict = None
     education_levels: List[Dict[str, Any]] = []
@@ -169,7 +178,7 @@ def _step3_registry_context(school: Any, tenant_ctx: TenantContext) -> RegistryC
                 grade_scale_families.append({"code": g.code, "name": g.name, "family": g.family, "range_definition": g.range_definition or {}})
     except Exception as e:
         logger.warning("Registry context load failed (optional): %s", e)
-    return RegistryContext(
+    result = RegistryContext(
         country=country_dict,
         subdivision=None,
         currency=currency_dict,
@@ -184,6 +193,8 @@ def _step3_registry_context(school: Any, tenant_ctx: TenantContext) -> RegistryC
         grade_scale_families=grade_scale_families,
         institution_types=institution_types,
     )
+    cache.set(cache_key, result, REGISTRY_CONTEXT_CACHE_TTL)
+    return result
 
 
 def _step4_blueprint(school: Any, policy: Dict[str, Any]) -> BlueprintContext:
