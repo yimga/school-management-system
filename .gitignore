@@ -47,6 +47,8 @@ npm-debug.log*
 htmlcov/
 .pytest_cache/
 .tmp_test_artifacts/
+full_test_run.txt
+test_output.txt
 
 # Backups and temp
 *.bak
