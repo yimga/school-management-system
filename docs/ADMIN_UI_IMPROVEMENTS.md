@@ -2,7 +2,7 @@
 
 The `/admin/` UI is in good shape (Unfold, custom sidebar, tenant vs manager dashboards). This doc lists **prioritized improvements** you can tackle next. Use it to pick what to implement.
 
-**Recently done:** Platform admin index (`index_superadmin.html`) has a tips line (sidebar + Control plane link). Super: breadcrumbs added on dashboard, command center, and support dashboard for consistent “you are here” and back navigation.
+**Recently done:** Layout/scroll: single scroll in `#main` / `.cp-main-col`, bottom padding, themed scrollbars, back-to-top uses scroll container, skip-link scroll-margin; layout in admin-sidebar-scroll.css. Platform admin index (`index_superadmin.html`) has a tips line (sidebar + Control plane link). Super: breadcrumbs added on dashboard, command center, and support dashboard for consistent “you are here” and back navigation.
 
 ---
 

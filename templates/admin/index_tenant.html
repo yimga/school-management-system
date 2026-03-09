@@ -90,6 +90,8 @@
   .tenant-admin-backend-tile .title { font-size: 22px; font-weight: 800; margin: 0 0 8px; }
   .tenant-admin-backend-tile .sub { font-size: 14px; opacity: 0.9; margin: 0; }
 
+  .tenant-admin-tips { font-size: 0.875rem; line-height: 1.5; }
+
   @media (max-width: 768px) {
     .tenant-admin-index { padding: 16px; }
     .tenant-admin-hero { padding: 20px; }
@@ -130,6 +132,14 @@
     <div class="title">{% trans "Backend Dashboard" %}</div>
     <p class="sub">{% trans "Operations, workflows, overview, and daily tasks. Start here." %}</p>
   </a>
+
+  <p class="tenant-admin-tips text-muted small mb-3 mb-md-4">
+    <span class="me-2">{% trans "Tip:" %}</span>
+    <span>{% trans "Use the left sidebar to jump to any section, or pin frequently used pages." %}</span>
+    {% if not is_manager_host %}
+    <a href="{% url 'kb:kb_home' %}" class="ms-2 text-decoration-underline">{% trans "Help &amp; Knowledge Base" %}</a>
+    {% endif %}
+  </p>
 
   <header class="tenant-admin-hero">
     <div class="tenant-admin-hero-label">{% trans "Configuration Engine" %}</div>

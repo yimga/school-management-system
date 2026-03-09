@@ -12,6 +12,19 @@
   --sidebar-section: 24px; /* space before section title */
 }
 
+/* ----- Scrollable area: bottom padding so last items aren't flush; focus scroll-margin ----- */
+#nav-sidebar-apps,
+.admin-sidebar-apps {
+  padding-bottom: 24px;
+  scroll-padding-bottom: 16px;
+}
+#nav-sidebar-apps .admin-sidebar-link,
+#nav-sidebar-apps .admin-sidebar-model-link,
+#nav-sidebar-apps .admin-sidebar-app-title,
+#nav-sidebar-apps .admin-sidebar-quick-group-title {
+  scroll-margin-block-end: 12px;
+}
+
 /* Brand block: aligned, consistent padding */
 #nav-sidebar-inner .admin-sidebar-brand-link-header {
   padding: var(--sidebar-py) var(--sidebar-px);
@@ -52,15 +65,37 @@
   color: rgba(255, 255, 255, 0.6) !important;
 }
 
+/* Nav blocks: clear separation between Pinned, Start, School setup, Libraries, All apps */
+#nav-sidebar-apps .admin-sidebar-nav-block {
+  padding: 0 var(--sidebar-px) 16px !important;
+  margin-bottom: 8px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.dark #nav-sidebar-apps .admin-sidebar-nav-block {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+#nav-sidebar-apps .admin-sidebar-nav-block:last-of-type {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
 /* Pinned section: same padding and list style as quick access */
 #nav-sidebar .admin-sidebar-pinned-section,
-#nav-sidebar-apps .admin-sidebar-pinned-section {
+#nav-sidebar-apps .admin-sidebar-pinned-section,
+#nav-sidebar-apps #admin-sidebar-pinned-wrap {
   padding: 0 var(--sidebar-px) 12px !important;
   margin-bottom: 4px !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
-.dark #nav-sidebar-apps .admin-sidebar-pinned-section {
+.dark #nav-sidebar-apps .admin-sidebar-pinned-section,
+.dark #nav-sidebar-apps #admin-sidebar-pinned-wrap {
   border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Muted section title (e.g. Pinned) */
+#nav-sidebar-apps .admin-sidebar-section-title--muted {
+  opacity: 0.85;
+  font-size: 0.65rem !important;
 }
 #nav-sidebar-apps .admin-sidebar-pinned-item {
   margin: 2px 0;
@@ -175,6 +210,54 @@
   margin: 2px 0 !important;
   font-size: 0.8125rem !important;
   border-radius: 6px !important;
+}
+
+/* All applications: collapsed by default, secondary emphasis */
+#nav-sidebar-apps .admin-sidebar-all-apps {
+  padding: 0 var(--sidebar-px) 20px !important;
+  margin-top: 4px !important;
+}
+#nav-sidebar-apps .admin-sidebar-section-title--secondary {
+  margin: var(--sidebar-section) var(--sidebar-px) 8px !important;
+  padding: 0 !important;
+  font-size: 0.6875rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  color: var(--color-base-500, #64748b) !important;
+  border: none !important;
+  background: none !important;
+}
+.dark #nav-sidebar-apps .admin-sidebar-section-title--secondary {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+#nav-sidebar-apps .admin-sidebar-all-apps-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px var(--sidebar-px);
+  margin: 0;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-base-600, #475569);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, color 0.15s;
+}
+.dark #nav-sidebar-apps .admin-sidebar-all-apps-trigger {
+  color: rgba(255, 255, 255, 0.65);
+}
+#nav-sidebar-apps .admin-sidebar-all-apps-trigger:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-base-800, #1e293b);
+}
+.dark #nav-sidebar-apps .admin-sidebar-all-apps-trigger:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 /* App groups container: consistent padding */

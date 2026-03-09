@@ -23,6 +23,7 @@
           <input type="search" class="form-control form-control-sm bg-dark border-secondary text-white" placeholder="{% trans 'Search tenants, incidents… (Ctrl+K)' %}" aria-label="Search" id="cpSearchInput" style="min-width: 220px;" autocomplete="off">
           <div id="cpSearchResults" class="dropdown-menu position-absolute start-0 mt-1 shadow" style="min-width: 280px; max-height: 70vh; overflow-y: auto;" aria-label="Search results"></div>
         </div>
+        <button type="button" class="btn btn-sm btn-outline-light d-none d-md-inline-flex align-items-center" onclick="typeof window.cpShowShortcutsHelp === 'function' && window.cpShowShortcutsHelp();" aria-label="{% trans 'Keyboard shortcuts' %}" title="{% trans 'Keyboard shortcuts (?)' %}"><span aria-hidden="true">?</span><span class="ms-1 d-none d-lg-inline">{% trans "Shortcuts" %}</span></button>
         {% if request.user.is_authenticated %}
           <a href="{% url 'admin:index' %}" class="btn btn-sm btn-outline-light d-flex align-items-center gap-1" title="{% trans 'Configuration Engine – system and data' %}">
             <i class="bi bi-gear-wide-connected"></i>
@@ -321,6 +322,7 @@
   function hideHelp() {
     if (helpEl) helpEl.style.display = 'none';
   }
+  window.cpShowShortcutsHelp = showHelp;
   document.addEventListener('keydown', function (e) {
     if (e.key === '?' && !e.ctrlKey && !e.metaKey && !e.altKey) {
       e.preventDefault();

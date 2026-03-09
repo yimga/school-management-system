@@ -36,17 +36,71 @@
   min-height: 0 !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  padding-bottom: 2.5rem; /* breathing room so last section is not flush */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.28) rgba(255, 255, 255, 0.04);
+}
+#page > #main::-webkit-scrollbar {
+  width: 8px;
+}
+#page > #main::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 4px;
+  margin: 4px 0;
+}
+#page > #main::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.28);
+  border-radius: 4px;
+  min-height: 40px;
+}
+#page > #main::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+/* Light admin: darker scrollbar */
+body:not(.portal-backend-dark) #page > #main {
+  scrollbar-color: rgba(0, 0, 0, 0.28) rgba(0, 0, 0, 0.06);
+}
+body:not(.portal-backend-dark) #page > #main::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.06);
+}
+body:not(.portal-backend-dark) #page > #main::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.28);
+}
+body:not(.portal-backend-dark) #page > #main::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.4);
+}
+/* Content must not clip: single scroll is #main */
+#page > #main > div[class*="container"],
+#page > #main #content {
+  overflow: visible !important;
+  max-height: none !important;
+}
+/* Skip-link target: scroll into view with margin when focused */
+#content {
+  scroll-margin-top: 1rem;
 }
 
 /* ----- Vertical scroll: only the main app list area scrolls (header + user stay fixed) ----- */
+#nav-sidebar {
+  height: 100vh;
+  max-height: 100vh;
+}
 #nav-sidebar-inner {
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0 !important; /* override min-h-screen so scroll area can shrink */
+  height: 100%;
 }
 #nav-sidebar-apps,
 .admin-sidebar-apps {
   overflow-y: auto !important;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 0, 0, 0.35) rgba(0, 0, 0, 0.06);
   flex: 1 1 0;
@@ -67,17 +121,24 @@
 .admin-sidebar-apps::-webkit-scrollbar-track {
   background: rgba(0, 0, 0, 0.06);
   border-radius: 4px;
+  margin: 4px 0;
 }
 
 #nav-sidebar-apps::-webkit-scrollbar-thumb,
 .admin-sidebar-apps::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.35);
   border-radius: 4px;
+  min-height: 40px;
 }
 
 #nav-sidebar-apps::-webkit-scrollbar-thumb:hover,
 .admin-sidebar-apps::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.5);
+}
+
+#nav-sidebar-apps::-webkit-scrollbar-thumb:active,
+.admin-sidebar-apps::-webkit-scrollbar-thumb:active {
+  background: rgba(0, 0, 0, 0.6);
 }
 
 .dark #nav-sidebar-apps::-webkit-scrollbar-thumb,
@@ -107,6 +168,8 @@
 }
 
 #nav-sidebar-inner .nav-search,
+#nav-sidebar-inner .admin-sidebar-search-hint,
+#nav-sidebar-inner .admin-sidebar-user-card,
 .admin-sidebar-quick-access {
   flex-shrink: 0;
 }

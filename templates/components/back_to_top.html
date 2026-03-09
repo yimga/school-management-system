@@ -47,17 +47,39 @@
     var scrollThreshold = 400;
     var btn = document.getElementById('back-to-top-btn');
     if (!btn) return;
+    function getScrollContainer() {
+      var main = document.getElementById('main');
+      if (main && main.scrollHeight > main.clientHeight) return main;
+      var cpMain = document.getElementById('cp-main-content') || document.querySelector('.cp-main-col');
+      if (cpMain && cpMain.scrollHeight > cpMain.clientHeight) return cpMain;
+      return null;
+    }
+    function getScrollTop(container) {
+      return container ? container.scrollTop : (window.scrollY || document.documentElement.scrollTop);
+    }
     function updateVisibility() {
-      if (window.scrollY >= scrollThreshold) {
+      var container = getScrollContainer();
+      var top = getScrollTop(container);
+      if (top >= scrollThreshold) {
         btn.removeAttribute('hidden');
       } else {
         btn.setAttribute('hidden', '');
       }
     }
     function scrollToTop() {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      var container = getScrollContainer();
+      if (container) {
+        container.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     }
-    window.addEventListener('scroll', updateVisibility, { passive: true });
+    var container = getScrollContainer();
+    if (container) {
+      container.addEventListener('scroll', updateVisibility, { passive: true });
+    } else {
+      window.addEventListener('scroll', updateVisibility, { passive: true });
+    }
     btn.addEventListener('click', scrollToTop);
     updateVisibility();
   })();

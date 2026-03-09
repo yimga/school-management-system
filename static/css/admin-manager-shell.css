@@ -11,19 +11,11 @@ body.admin-premium-shell {
   min-height: 100vh;
 }
 
-body.admin-manager-shell #page , body.admin-premium-shell #page {
+body.admin-manager-shell #page ,
+body.admin-premium-shell #page {
   background: transparent !important;
-  min-height: 100vh;
-  height: 100vh;
-  overflow: hidden;
 }
-/* Only main content scrolls; sidebar stays fixed (same as /super/) */
-body.admin-manager-shell #main , body.admin-premium-shell #main {
-  overflow-y: auto !important;
-  overflow-x: hidden;
-  flex: 1 1 0;
-  min-height: 0;
-}
+/* Layout (100vh, single scroll in #main) is in admin-sidebar-scroll.css */
 
 /* Sidebar: navy panel matching control plane */
 body.admin-manager-shell #nav-sidebar, body.admin-premium-shell #nav-sidebar,

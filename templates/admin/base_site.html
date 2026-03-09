@@ -284,12 +284,13 @@
     window.getQuickAccessState = function() {
       try {
         return {
-          overviewOpen: localStorage.getItem('admin-qa-overview') !== '0',
-          configOpen: localStorage.getItem('admin-qa-config') !== '0',
-          contentOpen: localStorage.getItem('admin-qa-content') === '1'
+          startOpen: true,
+          setupOpen: true,
+          setupAdvancedOpen: localStorage.getItem('admin-qa-setup-advanced') === '1',
+          librariesOpen: localStorage.getItem('admin-qa-content') === '1'
         };
       } catch (e) {
-        return { overviewOpen: true, configOpen: true, contentOpen: false };
+        return { startOpen: true, setupOpen: true, setupAdvancedOpen: false, librariesOpen: false };
       }
     };
 

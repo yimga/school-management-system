@@ -29,10 +29,18 @@
         </p>
         <div class="cp-chip-row">
           <span class="cp-chip cp-chip-{{ platform_health.overall_status|default:'warning' }}">Platform {{ platform_health.overall_status|default:"warning"|upper }}</span>
+          {% if platform_incidents_url %}
+          <a href="{{ platform_incidents_url }}" class="cp-chip text-decoration-none" title="{% trans 'Open incident console' %}">Open incidents {{ platform_incidents|length }}</a>
+          {% else %}
           <span class="cp-chip">Open incidents {{ platform_incidents|length }}</span>
+          {% endif %}
           <span class="cp-chip">Countries live {{ countries_live_count }}/{{ registry_counts.countries }}</span>
           <span class="cp-chip">Webhook drift {{ webhook_stack.unsynced_legacy_groups|default:0 }}</span>
+          {% if command_center_url and attention_school_count %}
+          <a href="{{ command_center_url }}" class="cp-chip text-decoration-none" title="{% trans 'Open operational queues' %}">Attention tenants {{ attention_school_count }}</a>
+          {% else %}
           <span class="cp-chip">Attention tenants {{ attention_school_count }}</span>
+          {% endif %}
         </div>
       </div>
       <div class="cp-hero-actions">
@@ -110,17 +118,17 @@
             <h2 class="cp-panel-title">Operator queues</h2>
           </div>
           <div class="cp-panel-header-actions">
-            <span class="cp-panel-stat">Pending approvals {{ pending_approval_count }}</span>
-            <span class="cp-panel-stat">Support backlog 48h+ {{ command_center.support_backlog_48h_count }}</span>
-            <span class="cp-panel-stat">Provisioning breaches {{ command_center.provisioning_sla_breaches }}</span>
+            <a href="{{ command_center_url|default:'#' }}" class="cp-panel-stat text-decoration-none" title="{% trans 'Open operational queues' %}">Pending approvals {{ pending_approval_count }}</a>
+            <a href="{{ command_center_url|default:'#' }}" class="cp-panel-stat text-decoration-none" title="{% trans 'Open operational queues' %}">Support backlog 48h+ {{ command_center.support_backlog_48h_count }}</a>
+            <a href="{{ command_center_url|default:'#' }}" class="cp-panel-stat text-decoration-none" title="{% trans 'Open operational queues' %}">Provisioning breaches {{ command_center.provisioning_sla_breaches }}</a>
           </div>
         </div>
         <div class="cp-queue-grid">
           <article class="cp-queue-card">
-            <div class="cp-queue-card-header">
-              <h3>Pending approvals</h3>
+            <a href="{{ command_center_url|default:'#' }}" class="cp-queue-card-header text-decoration-none d-flex justify-content-between align-items-center" title="{% trans 'Open operational queues' %}">
+              <h3 class="mb-0">Pending approvals</h3>
               <span>{{ pending_approval_count }}</span>
-            </div>
+            </a>
             <div class="cp-list">
               {% for school in pending_schools|slice:":8" %}
               <div class="cp-list-row">
@@ -140,10 +148,17 @@
           </article>
 
           <article class="cp-queue-card">
+            {% if platform_incidents_url %}
+            <a href="{{ platform_incidents_url }}" class="cp-queue-card-header text-decoration-none d-flex justify-content-between align-items-center" title="{% trans 'Open incident console' %}">
+              <h3 class="mb-0">Platform incidents</h3>
+              <span>{{ platform_incidents|length }}</span>
+            </a>
+            {% else %}
             <div class="cp-queue-card-header">
               <h3>Platform incidents</h3>
               <span>{{ platform_incidents|length }}</span>
             </div>
+            {% endif %}
             <div class="cp-list">
               {% for incident in platform_incidents|slice:":8" %}
               <div class="cp-list-row">
@@ -184,10 +199,10 @@
           </article>
 
           <article class="cp-queue-card">
-            <div class="cp-queue-card-header">
-              <h3>Support and provisioning</h3>
+            <a href="{{ command_center_url|default:'#' }}" class="cp-queue-card-header text-decoration-none d-flex justify-content-between align-items-center" title="{% trans 'Open operational queues' %}">
+              <h3 class="mb-0">Support and provisioning</h3>
               <span>{{ stale_support_rows|length }} / {{ provisioning_breach_rows|length }}</span>
-            </div>
+            </a>
             <div class="cp-queue-split">
               <div>
                 <div class="cp-mini-heading">Stale support</div>

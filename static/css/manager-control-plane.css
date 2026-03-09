@@ -97,6 +97,10 @@
   text-decoration: none;
 }
 
+a.cp-chip:hover {
+  opacity: 0.95;
+  filter: brightness(1.05);
+}
 .cp-chip-healthy,
 .cp-chip-success {
   border-color: rgba(49, 196, 141, 0.35);
@@ -305,6 +309,10 @@
   color: #d7e7fb;
   font-size: 0.78rem;
 }
+a.cp-panel-stat:hover {
+  color: #d7e7fb;
+  background: rgba(255, 255, 255, 0.1);
+}
 
 .cp-queue-grid {
   display: grid;
@@ -315,6 +323,15 @@
 .cp-queue-card-header h3 {
   font-size: 1rem;
   margin: 0;
+}
+a.cp-queue-card-header {
+  color: inherit;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+a.cp-queue-card-header:hover {
+  opacity: 0.9;
+  color: inherit;
 }
 
 .cp-list,
@@ -652,28 +669,42 @@
   overflow-x: hidden;
   flex: 1 1 0;
   min-height: 0;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+  scrollbar-color: rgba(255, 255, 255, 0.35) transparent;
 }
 .cp-sidebar-col .cp-sidebar-inner::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 .cp-sidebar-col .cp-sidebar-inner::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 4px;
+  margin: 4px 0;
 }
 .cp-sidebar-col .cp-sidebar-inner::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.25);
-  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  min-height: 40px;
+}
+.cp-sidebar-col .cp-sidebar-inner::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.45);
+}
+.cp-sidebar-col .cp-sidebar-inner::-webkit-scrollbar-thumb:active {
+  background: rgba(255, 255, 255, 0.55);
 }
 .cp-sidebar-col::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 .cp-sidebar-col::-webkit-scrollbar-track {
   background: transparent;
 }
 .cp-sidebar-col::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.25);
-  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+.cp-sidebar-col::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.45);
 }
 .cp-main-col {
   flex: 1 1 0;
@@ -682,6 +713,12 @@
   overflow-y: auto;
   overflow-x: hidden;
   overflow-wrap: break-word;
+  padding-bottom: 2.5rem; /* breathing room so last section is not flush */
+  scroll-behavior: smooth;
+}
+#cp-main-content:focus,
+.cp-main-col:focus-within {
+  scroll-margin-top: 1rem;
 }
 @media (max-width: 991.98px) {
   .cp-sidebar-col {
@@ -690,6 +727,24 @@
   .cp-sidebar-col .cp-sidebar-inner {
     max-height: none;
   }
+}
+
+/* Mobile offcanvas: scrollable sidebar nav */
+.cp-sidebar-offcanvas .offcanvas-body {
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+.cp-sidebar-offcanvas .offcanvas-body::-webkit-scrollbar {
+  width: 6px;
+}
+.cp-sidebar-offcanvas .offcanvas-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+.cp-sidebar-offcanvas .offcanvas-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.45);
 }
 
 /* ========== Navbar: responsive brand and actions ========== */
