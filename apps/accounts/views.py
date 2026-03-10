@@ -3258,6 +3258,10 @@ def school_picker(request):
 
 @ratelimit(key="ip", rate="10/h", method="POST", block=True)
 def claim_invite(request):
+    if not getattr(request, "school", None):
+        messages.info(request, "Claim invite is available only inside a school workspace.")
+        return redirect("global_login_discovery")
+
     if request.user.is_authenticated:
         return redirect(reverse("accounts:redirect"))
 

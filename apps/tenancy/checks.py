@@ -9,8 +9,21 @@ from django.core.checks import Error, Warning, register
 SCHEMA_REQUIRED_APPS = {
     "apps.registries",
     "apps.billing",
-    "apps.student360",
     "apps.metadata.apps.MetadataConfig",
+}
+
+SCHEMA_TENANT_ONLY_APPS = {
+    "apps.portal",
+    "apps.student360",
+    "apps.academics",
+    "apps.people",
+    "apps.finance",
+    "apps.evals",
+    "apps.reports",
+    "apps.communication",
+    "apps.analytics",
+    "apps.payroll",
+    "apps.school_events",
 }
 
 
@@ -46,6 +59,27 @@ def tenancy_strategy_checks(app_configs, **kwargs):
                     "Schema mode is missing required shared apps.",
                     hint="Add the missing platform apps to SHARED_APPS/INSTALLED_APPS: %s" % ", ".join(missing_apps),
                     id="tenancy.E004",
+                )
+            )
+        shared_apps = set(getattr(settings, "SHARED_APPS", []) or [])
+        tenant_apps = set(getattr(settings, "TENANT_APPS", []) or [])
+        leaked_shared_apps = sorted(app for app in SCHEMA_TENANT_ONLY_APPS if app in shared_apps)
+        missing_tenant_apps = sorted(app for app in SCHEMA_TENANT_ONLY_APPS if app not in tenant_apps)
+        if leaked_shared_apps:
+            errors.append(
+                Error(
+                    "Schema mode has tenant-only apps in SHARED_APPS.",
+                    hint="Move these apps to TENANT_APPS so tenant data never migrates into the public schema: %s"
+                    % ", ".join(leaked_shared_apps),
+                    id="tenancy.E005",
+                )
+            )
+        if missing_tenant_apps:
+            errors.append(
+                Error(
+                    "Schema mode is missing tenant-only apps from TENANT_APPS.",
+                    hint="Add these apps to TENANT_APPS: %s" % ", ".join(missing_tenant_apps),
+                    id="tenancy.E006",
                 )
             )
     else:

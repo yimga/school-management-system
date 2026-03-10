@@ -18,7 +18,7 @@ from django.test import TestCase
 
 
 # Apps that serve tenant UI/API; they must not import control-plane ORM directly.
-TENANT_APPS = ("portal", "academics", "people", "finance", "evals", "reports", "communication")
+TENANT_APPS = ("portal", "student360", "academics", "people", "finance", "evals", "reports", "communication")
 
 # Forbidden import patterns (tenant code must use resolver/registry/services, not ORM).
 FORBIDDEN_PATTERNS = (

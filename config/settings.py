@@ -931,11 +931,9 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.observability",
         "apps.api",
         "apps.apicenter",
-        "apps.portal",
         "apps.automation",
         "apps.requests",
         "apps.billing",
-        "apps.student360",
         "apps.metadata.apps.MetadataConfig",
         "emis",
         "django_celery_results",
@@ -948,6 +946,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.customersuccess",
     ]
     TENANT_APPS = [
+        "apps.portal",
         "apps.academics",
         "apps.people",
         "apps.finance",
@@ -957,6 +956,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.analytics",
         "apps.payroll",
         "apps.school_events",
+        "apps.student360",
     ]
     INSTALLED_APPS = list(SHARED_APPS) + [a for a in TENANT_APPS if a not in SHARED_APPS]
     # Middleware: TenantMain first (strict tenant resolution), then URLConf switch, then school bridge.
