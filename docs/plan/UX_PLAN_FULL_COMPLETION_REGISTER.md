@@ -125,6 +125,7 @@ After deploying, you must be on the **tenant** app (school context) and **logged
 After all implementable items are DONE, run:
 
 - **Pre-deploy gate (CI):** `bash scripts/pre_deploy_gate.sh` — includes check_no_committed_env, Django check, migrations, smoke URLs, theme matrix, phase checks.
+- **UX completion audit:** `python scripts/verify_ux_completion.py` — verifies role-home contract, Setup Studio payload, marketplace trust surfaces, and proof-page markers/routes.
 - **Smoke URLs:** `python manage.py test apps.accounts.tests.test_smoke_urls -v 1`
 - **Full test suite:** `python manage.py test` (or your usual test command).
 
