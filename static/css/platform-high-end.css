@@ -89,11 +89,10 @@ body.portal-backend-dark .portal-sidebar-col .sidebar {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* Control plane sidebar (partials/control_plane_sidebar) */
+/* Control plane sidebar (partials/control_plane_sidebar) – scroll controlled by manager-control-plane.css */
 .cp-sidebar-inner {
   border-radius: var(--platform-premium-radius) !important;
   box-shadow: var(--platform-premium-shadow-dark);
-  overflow: hidden;
 }
 .cp-sidebar-nav .nav-link {
   border-radius: var(--platform-premium-radius-sm);
