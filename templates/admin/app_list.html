@@ -128,10 +128,10 @@
   </div>
 
   {% if app_list %}
-  <div class="admin-sidebar-all-apps" x-data="{ allAppsOpen: false }" role="group" aria-label="{% trans 'All applications' %}">
+  <div class="admin-sidebar-all-apps" x-data="{ allAppsOpen: false }" role="group" aria-label="{% trans 'Apps' %}">
     <h2 class="admin-sidebar-section-title admin-sidebar-section-title--secondary">
-      <button type="button" class="admin-sidebar-all-apps-trigger" @click="allAppsOpen = !allAppsOpen" :aria-expanded="allAppsOpen" aria-label="{% trans 'Toggle all applications' %}" @keydown.enter.prevent="allAppsOpen = !allAppsOpen" @keydown.space.prevent="allAppsOpen = !allAppsOpen">
-        <span>{% trans "All applications" %}</span>
+      <button type="button" class="admin-sidebar-all-apps-trigger" @click="allAppsOpen = !allAppsOpen" :aria-expanded="allAppsOpen" aria-label="{% trans 'Toggle Apps' %}" @keydown.enter.prevent="allAppsOpen = !allAppsOpen" @keydown.space.prevent="allAppsOpen = !allAppsOpen">
+        <span>{% trans "Apps" %}</span>
         <span class="admin-sidebar-chevron inline-flex items-center justify-center" :class="{ 'rotate-90': allAppsOpen }" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></span>
       </button>
     </h2>

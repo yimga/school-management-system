@@ -31,6 +31,7 @@ REGISTRY_CONTEXT_CACHE_TTL = 300  # 5 minutes; registries change rarely
 
 from apps.tenancy.context import TenantContext
 
+from .exceptions import BlueprintCompatibilityError, RuntimeResolutionError
 from .contracts import (
     BlueprintContext,
     BrandingContext,
@@ -163,7 +164,11 @@ def _step3_registry_context(school: Any, tenant_ctx: TenantContext) -> RegistryC
                     if cr:
                         currency_dict = {"code": cr.code, "name": cr.name, "symbol": getattr(cr, "symbol", cr.code)}
                 except Exception as e:
-                    logger.warning("Registry currency fallback failed: %s", e)
+                    logger.warning(
+                        "Registry currency fallback failed (%s): %s",
+                        RuntimeResolutionError.__name__,
+                        e,
+                    )
             for e in EducationLevelRegistry.objects.filter(is_active=True)[:50]:
                 education_levels.append({"code": e.code, "global_name": e.global_name, "country_labels": getattr(e, "country_labels", {})})
             for s in EducationSystemTypeRegistry.objects.filter(is_active=True)[:30]:
@@ -177,7 +182,11 @@ def _step3_registry_context(school: Any, tenant_ctx: TenantContext) -> RegistryC
             for g in GradeScaleRegistry.objects.filter(is_active=True)[:40]:
                 grade_scale_families.append({"code": g.code, "name": g.name, "family": g.family, "range_definition": g.range_definition or {}})
     except Exception as e:
-        logger.warning("Registry context load failed (optional): %s", e)
+        logger.warning(
+            "Registry context load failed (optional) (%s): %s",
+            RuntimeResolutionError.__name__,
+            e,
+        )
     result = RegistryContext(
         country=country_dict,
         subdivision=None,
@@ -216,7 +225,11 @@ def _step4_blueprint(school: Any, policy: Dict[str, Any]) -> BlueprintContext:
                         institution_type=getattr(pack, "country_code", None),
                     )
     except Exception as e:
-        logger.debug("Blueprint context load failed (optional): %s", e)
+        logger.debug(
+            "Blueprint context load failed (optional) (%s): %s",
+            BlueprintCompatibilityError.__name__,
+            e,
+        )
     return BlueprintContext()
 
 
@@ -308,7 +321,11 @@ def _step8_workflows(school: Any) -> WorkflowsContext:
             if w:
                 by_module[slug] = w
     except Exception as e:
-        logger.warning("Workflows context load failed (optional): %s", e)
+        logger.warning(
+            "Workflows context load failed (optional) (%s): %s",
+            RuntimeResolutionError.__name__,
+            e,
+        )
     return WorkflowsContext(by_module=by_module)
 
 
@@ -336,7 +353,11 @@ def _step9_dashboards(school: Any) -> DashboardsContext:
             if d:
                 by_role[role] = d
     except Exception as e:
-        logger.warning("Dashboards context load failed (optional): %s", e)
+        logger.warning(
+            "Dashboards context load failed (optional) (%s): %s",
+            RuntimeResolutionError.__name__,
+            e,
+        )
     return DashboardsContext(by_role=by_role, by_section=by_section)
 
 
@@ -399,7 +420,11 @@ def _step10_marketplace(school: Any) -> MarketplaceContext:
                 if isinstance(cap, dict) and cap not in integration_adapters:
                     integration_adapters.append(cap)
     except Exception as e:
-        logger.warning("Marketplace context load failed (optional): %s", e)
+        logger.warning(
+            "Marketplace context load failed (optional) (%s): %s",
+            RuntimeResolutionError.__name__,
+            e,
+        )
     return MarketplaceContext(
         installed_apps=installed_apps,
         granted_scopes=list(dict.fromkeys(granted_scopes)),
@@ -431,7 +456,11 @@ def _step10_integrations_marketplace(school: Any) -> tuple:
                     messaging_provider = messaging_provider or name
                 enabled_providers.append(name)
         except Exception as e:
-            logger.warning("Integrations context load failed (optional): %s", e)
+            logger.warning(
+                "Integrations context load failed (optional) (%s): %s",
+                RuntimeResolutionError.__name__,
+                e,
+            )
     integrations = IntegrationsContext(
         payment_provider=payment_provider,
         messaging_provider=messaging_provider,
@@ -538,7 +567,11 @@ def build_tenant_runtime(
             user = getattr(request, "user", None)
             policy = get_effective_policy(school, user=user)
         except Exception as e:
-            logger.warning("get_effective_policy failed, using empty policy: %s", e)
+            logger.warning(
+                "get_effective_policy failed, using empty policy (%s): %s",
+                RuntimeResolutionError.__name__,
+                e,
+            )
             policy = {}
     if policy is None:
         policy = {}
@@ -652,7 +685,11 @@ def build_tenant_runtime_for_tenant(tenant: Any, mode: str = "job") -> TenantRun
                 # In schema-per-tenant, School may live in tenant schema; use public or default
                 school = getattr(tenant, "school", None)
         except Exception as e:
-            logger.debug("School from tenant (job mode) failed: %s", e)
+            logger.debug(
+                "School from tenant (job mode) failed (%s): %s",
+                RuntimeResolutionError.__name__,
+                e,
+            )
     tenant_ctx = TenantContext(
         tenant_id=str(getattr(tenant, "id", "")) if tenant else "",
         schema_name=getattr(tenant, "schema_name", None) if tenant else None,

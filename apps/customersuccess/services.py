@@ -248,6 +248,17 @@ def get_guided_onboarding_steps(school):
             "done": has_grading,
             "link": "/siteconfig/grading-settings/" if not has_grading else "",
         })
+        has_branding = bool(
+            (getattr(site, "site_name", None) or "").strip()
+            or getattr(site, "logo", None)
+            or (getattr(site, "school_name", None) or "").strip()
+        )
+        steps.append({
+            "key": "branding",
+            "label": "Set school branding",
+            "done": has_branding,
+            "link": "/siteconfig/customizer/" if not has_branding else "",
+        })
     except Exception:
         pass
     steps.append({

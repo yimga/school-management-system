@@ -1,7 +1,19 @@
 from django.test import TestCase
 
-from apps.metadata.models import DynamicFieldDefinition, DynamicFieldValue
-from apps.metadata.services import get_dynamic_field_map, get_dynamic_field_value, set_dynamic_field_value
+from apps.metadata.models import (
+    DynamicFieldDefinition,
+    DynamicFieldValue,
+    EntityCatalogEntry,
+    FieldCatalogEntry,
+    MetadataDependency,
+)
+from apps.metadata.services import (
+    export_entity_catalog_bundle,
+    get_downstream_dependencies,
+    get_dynamic_field_map,
+    get_dynamic_field_value,
+    set_dynamic_field_value,
+)
 from apps.people.models import StudentProfile
 from apps.schools.models import School
 
@@ -56,3 +68,73 @@ class MetadataServicesTests(TestCase):
             ).exists()
         )
         self.assertEqual(self.student.custom_attributes["transportation_zone"], "north-campus")
+
+
+class LineageAndCatalogExportTests(TestCase):
+    """Tests for lineage-first rule and catalog bundle export (Workstream I)."""
+
+    def setUp(self):
+        self.entity = EntityCatalogEntry.objects.create(
+            code="student",
+            name="Student",
+            description="Student profile",
+            owning_app="people",
+            model_label="people.StudentProfile",
+            is_core=True,
+        )
+        self.field = FieldCatalogEntry.objects.create(
+            entity=self.entity,
+            field_name="admission_number",
+            label="Admission number",
+            data_type="string",
+            is_custom=False,
+            defined_in_app="people",
+            source="seed_entity_catalog",
+        )
+        self.dep = MetadataDependency.objects.create(
+            consumer_type="dashboard",
+            consumer_code="principal_home",
+            field=self.field,
+        )
+
+    def test_get_downstream_dependencies_by_entity_code(self):
+        deps = get_downstream_dependencies(entity_code="student")
+        self.assertEqual(len(deps), 1)
+        self.assertEqual(deps[0]["consumer_type"], "dashboard")
+        self.assertEqual(deps[0]["consumer_code"], "principal_home")
+        self.assertEqual(deps[0]["entity_code"], "student")
+        self.assertEqual(deps[0]["field_name"], "admission_number")
+
+    def test_get_downstream_dependencies_by_field_id(self):
+        deps = get_downstream_dependencies(field_id=self.field.id)
+        self.assertEqual(len(deps), 1)
+        self.assertEqual(deps[0]["consumer_code"], "principal_home")
+
+    def test_get_downstream_dependencies_empty_when_no_match(self):
+        self.assertEqual(get_downstream_dependencies(entity_code="nonexistent"), [])
+        self.assertEqual(get_downstream_dependencies(field_id=99999), [])
+
+    def test_export_entity_catalog_bundle_includes_entities_and_fields(self):
+        bundle = export_entity_catalog_bundle(entity_codes=["student"])
+        self.assertEqual(bundle["version"], "1")
+        self.assertEqual(len(bundle["entities"]), 1)
+        ent = bundle["entities"][0]
+        self.assertEqual(ent["code"], "student")
+        self.assertEqual(ent["name"], "Student")
+        self.assertIn("fields", ent)
+        fields = ent["fields"]
+        self.assertTrue(any(f["field_name"] == "admission_number" for f in fields))
+
+    def test_export_entity_catalog_bundle_can_include_dependencies(self):
+        bundle = export_entity_catalog_bundle(
+            entity_codes=["student"],
+            include_dependencies=True,
+        )
+        ent = bundle["entities"][0]
+        self.assertIn("dependencies", ent)
+        self.assertTrue(
+            any(
+                d["consumer_code"] == "principal_home" and d["field_name"] == "admission_number"
+                for d in ent["dependencies"]
+            )
+        )

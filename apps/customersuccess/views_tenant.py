@@ -26,7 +26,9 @@ def guided_onboarding_view(request):
     """Section 11.4: Guided onboarding — checklist of setup steps and progress."""
     school = getattr(request, "school", None)
     if not school:
-        return render(request, "customersuccess/guided_onboarding.html", {"steps": [], "school": None})
+        return render(request, "customersuccess/guided_onboarding.html", {
+            "steps": [], "school": None, "setup_health_score": 0, "recommended_next": None,
+        })
     steps = get_guided_onboarding_steps(school)
     try:
         for s in steps:
@@ -36,7 +38,18 @@ def guided_onboarding_view(request):
                 s["link"] = reverse("accounts:backend_dashboard")
     except Exception:
         pass
+    # Setup health score: 0–100 from completed steps
+    done_count = sum(1 for s in steps if s.get("done"))
+    setup_health_score = round(100 * done_count / max(len(steps), 1)) if steps else 0
+    # Recommended next: first incomplete step
+    recommended_next = None
+    for s in steps:
+        if not s.get("done") and s.get("link"):
+            recommended_next = {"key": s.get("key", ""), "label": s.get("label", ""), "link": s["link"]}
+            break
     return render(request, "customersuccess/guided_onboarding.html", {
         "steps": steps,
         "school": school,
+        "setup_health_score": setup_health_score,
+        "recommended_next": recommended_next,
     })

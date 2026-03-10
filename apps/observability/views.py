@@ -1126,3 +1126,22 @@ def api_operational_slo_dashboard(request):
 def admin_dashboard(request):
     """Legacy alias for the admin dashboard."""
     return redirect("admin:index")
+
+
+# C3: Runtime observability — inspect effective runtime (resolver registry + sample runtime)
+@login_required
+@require_GET
+@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+def runtime_inspect(request):
+    """Admin tool: effective runtime summary and resolver registry (plan C3)."""
+    from apps.platform_runtime.resolver_registry import RESOLVER_ENTRY_POINTS
+    rt = getattr(request, "tenant_runtime", None)
+    route = getattr(rt, "route", None) if rt else None
+    tenant_identity = getattr(rt, "tenant", None) if rt else None
+    payload = {
+        "resolvers": [{"name": n, "location": loc} for n, loc in RESOLVER_ENTRY_POINTS],
+        "tenant_runtime_present": rt is not None,
+        "surface": getattr(route, "surface", None) if route else None,
+        "identity_slug": getattr(tenant_identity, "slug", None) if tenant_identity else None,
+    }
+    return JsonResponse(payload)

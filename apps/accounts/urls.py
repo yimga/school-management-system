@@ -6,9 +6,6 @@ from .views import (
     auth_root_redirect,
     approval_workflow_hub,
     automation_hub,
-    backend_dashboard,
-    backend_dashboard_status_fragment,
-    dismiss_first_login_checklist,
     request_waiver,
     backend_ops_watch_data,
     import_hub,
@@ -41,6 +38,8 @@ from .views import (
     user_profile,
     workflow_center,
 )
+from .views_dashboard import backend_dashboard, backend_dashboard_status_fragment
+from .views_onboarding import dismiss_first_login_checklist
 from .views_delegation import (
     my_delegations,
     delegation_add,

@@ -16,7 +16,7 @@
         <div class="cp-eyebrow">RunMyCampus Manager</div>
         <h1 class="cp-hero-title">App catalog</h1>
         <p class="cp-hero-copy">
-          Install approved marketplace apps for a school. Only installable (approved, not kill-switched) apps are listed.
+          Get capabilities for your school—parent portal, reports, integrations—from approved apps. Preview impact and compatibility before installing.
         </p>
       </div>
       <div class="cp-hero-actions">
@@ -38,13 +38,16 @@
   <div class="row g-4">
     <div class="col-12 col-lg-8">
       <section class="cp-panel">
-        <div class="cp-panel-header">
-          <span class="cp-panel-eyebrow">Installable</span>
-          <h2 class="cp-panel-title">Apps</h2>
+        <div class="cp-panel-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+          <div>
+            <span class="cp-panel-eyebrow">Catalog</span>
+            <h2 class="cp-panel-title mb-0">Apps</h2>
+          </div>
+          <input type="search" class="form-control form-control-sm" style="max-width: 220px;" placeholder="Search apps…" aria-label="Search apps" id="app-catalog-search">
         </div>
-        <div class="cp-list">
+        <div class="cp-list" id="app-catalog-list">
           {% for listing in listings %}
-          <div class="cp-list-row d-flex align-items-start justify-content-between flex-wrap gap-2">
+          <div class="cp-list-row d-flex align-items-start justify-content-between flex-wrap gap-2" data-app-name="{{ listing.app.name|lower }}" data-app-slug="{{ listing.app.slug|lower }}" data-app-desc="{{ listing.app.description|default:''|lower }}">
             <div>
               <strong>{{ listing.app.name }}</strong>
               <span class="text-muted small ms-1">({{ listing.app.slug }})</span>
@@ -73,14 +76,44 @@
     <div class="col-12 col-lg-4">
       <div class="cp-panel">
         <div class="cp-panel-header">
-          <span class="cp-panel-eyebrow">Phase 6</span>
-          <h2 class="cp-panel-title">Install flow</h2>
+          <span class="cp-panel-eyebrow">Before you install</span>
+          <h2 class="cp-panel-title">Compatibility & impact</h2>
         </div>
         <div class="p-3">
-          <p class="small mb-0">Select an app and a school, then click Install. The install pipeline creates an AppInstallation, runs schema patches if declared in the app manifest, and registers widgets. Only approved, non–kill-switched apps appear.</p>
+          <p class="small mb-2">Select an app and a school, then click Install. You’ll get:</p>
+          <ul class="small mb-0 ps-3">
+            <li>Compatibility check (school scope, existing installs)</li>
+            <li>AppInstallation record and optional schema patches</li>
+            <li>Widget registration when declared in the app manifest</li>
+          </ul>
+          <p class="small text-muted mt-2 mb-0">Only approved, non–kill-switched apps appear in the catalog.</p>
         </div>
       </div>
     </div>
   </div>
 </div>
+<script>
+(function () {
+  var searchEl = document.getElementById("app-catalog-search");
+  var listEl = document.getElementById("app-catalog-list");
+  if (!searchEl || !listEl) return;
+  var rows = listEl.querySelectorAll(".cp-list-row[data-app-name]");
+  function filter() {
+    var q = (searchEl.value || "").trim().toLowerCase();
+    rows.forEach(function (row) {
+      if (!q) {
+        row.style.display = "";
+        return;
+      }
+      var name = (row.getAttribute("data-app-name") || "").toLowerCase();
+      var slug = (row.getAttribute("data-app-slug") || "").toLowerCase();
+      var desc = (row.getAttribute("data-app-desc") || "").toLowerCase();
+      var match = name.indexOf(q) >= 0 || slug.indexOf(q) >= 0 || desc.indexOf(q) >= 0;
+      row.style.display = match ? "" : "none";
+    });
+  }
+  searchEl.addEventListener("input", filter);
+  searchEl.addEventListener("search", filter);
+})();
+</script>
 {% endblock %}

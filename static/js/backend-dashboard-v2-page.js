@@ -65,6 +65,7 @@
     if (!Array.isArray(commands)) commands = [];
 
     var activeQueryResults = [];
+    var selectedIndex = 0;
     var previousFocusedElement = null;
 
     function isTypingContext(target) {
@@ -91,13 +92,16 @@
       }
     }
 
-    function renderResults(query) {
+    function renderResults(query, preserveSelection) {
       var normalized = String(query || "").trim().toLowerCase();
       var items = commands.filter(function (item) {
         if (!normalized) return true;
         return String(item.label || "").toLowerCase().indexOf(normalized) >= 0;
       });
       activeQueryResults = items;
+      if (!preserveSelection) selectedIndex = 0;
+      if (selectedIndex >= items.length && items.length > 0) selectedIndex = items.length - 1;
+      if (selectedIndex < 0) selectedIndex = 0;
 
       if (!items.length) {
         resultsEl.innerHTML = '<div class="backend-cmd-empty">No matching command.</div>';
@@ -105,11 +109,15 @@
       }
 
       var lead = normalized ? "" : '<div class="backend-cmd-empty text-start py-2">Available commands</div>';
-      resultsEl.innerHTML = lead + items.map(function (item) {
+      resultsEl.innerHTML = lead + items.map(function (item, index) {
         var label = escapeHtml(item.label || "Command");
         var href = String(item.url || "#");
-        return '<a class="backend-cmd-item" href="' + href + '"><span>' + label + "</span><kbd>Enter</kbd></a>";
+        var selected = index === selectedIndex ? " backend-cmd-item--selected" : "";
+        return '<a class="backend-cmd-item' + selected + '" href="' + href + '" data-index="' + index + '"><span>' + label + "</span><kbd>Enter</kbd></a>";
       }).join("");
+
+      var selectedEl = resultsEl.querySelector(".backend-cmd-item--selected");
+      if (selectedEl) selectedEl.scrollIntoView({ block: "nearest", behavior: "smooth" });
     }
 
     function openPalette() {
@@ -138,11 +146,32 @@
     inputEl.addEventListener("keydown", function (event) {
       if (event.key === "Enter") {
         event.preventDefault();
-        var first = activeQueryResults[0];
-        if (first && first.url) window.location.href = first.url;
+        var item = activeQueryResults[selectedIndex];
+        if (item && item.url) window.location.href = item.url;
+      } else if (event.key === "ArrowDown") {
+        event.preventDefault();
+        if (activeQueryResults.length) {
+          selectedIndex = (selectedIndex + 1) % activeQueryResults.length;
+          renderResults(inputEl.value, true);
+        }
+      } else if (event.key === "ArrowUp") {
+        event.preventDefault();
+        if (activeQueryResults.length) {
+          selectedIndex = selectedIndex <= 0 ? activeQueryResults.length - 1 : selectedIndex - 1;
+          renderResults(inputEl.value, true);
+        }
       } else if (event.key === "Escape") {
         event.preventDefault();
         closePalette();
+      }
+    });
+
+    resultsEl.addEventListener("click", function (event) {
+      var item = event.target.closest(".backend-cmd-item");
+      if (item && activeQueryResults[Number(item.getAttribute("data-index"))]) {
+        event.preventDefault();
+        var cmd = activeQueryResults[Number(item.getAttribute("data-index"))];
+        if (cmd && cmd.url) window.location.href = cmd.url;
       }
     });
 

@@ -62,13 +62,14 @@ from .views_tag_manager import tag_manager, tag_manager_edit
 from .views_impersonation_consent import grant_impersonation_consent, revoke_impersonation_consent
 from .views_form_draft import form_draft_api
 from .views import feedback_roadmap
+from .views_console_domains import console_domains_hub
 from apps.schools.views_domains import custom_domain_wizard
 
 app_name = "siteconfig"
 
 urlpatterns = [
     path("maintenance/", maintenance_view, name="maintenance"),
-    # Redirect legacy customizer paths into settings (keep name for templates)
+    path("console/", console_domains_hub, name="console_domains_hub"),
     path("customizer/", customizer, name="customizer"),
     path("grading-settings/", grading_settings, name="grading_settings"),
     path("modules/", module_market, name="module_market"),

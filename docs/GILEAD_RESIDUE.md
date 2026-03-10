@@ -27,6 +27,18 @@ New installs get one default tenant with slug `gilead-school`; set `DEFAULT_TENA
 
 - Tests that use `q=gilead` or slug `gilead-school` exercise redirect/search for the **seeded default** tenant; acceptable. Optional: add tests with a neutral slug (e.g. `default-school`) if a future seed uses it.
 
+## Classification (plan remediation #8)
+
+| Category | Description | Action |
+|----------|-------------|--------|
+| **Historical** | Migrations, seed data filenames (e.g. `0012_seed_default_gilead_school`) | Leave as-is; do not edit applied migrations. |
+| **Comment-only** | Comments or docstrings mentioning "Gilead" as example | Safe; optionally reword to "default tenant" where it improves clarity. |
+| **Config-risk** | Env or config that hardcodes tenant slug/name for production | Use `DEFAULT_TENANT_SLUG` / platform-neutral defaults; document in runbooks. |
+| **Code-risk** | Code paths that assume slug `gilead-school` or name "Gilead" for behavior | Refactor to use config or first-tenant resolution; no hardcoded slug in app logic. |
+| **Branding** | User-facing labels, watermarks, footers saying "Gilead" | Override via SiteSettings/admin or tenant branding; remove from default templates. |
+
+**Current status:** Command rename and deprecated alias are in place; migrations are historical; env/docs use platform-neutral wording. Remaining references are mostly historical (migrations), comment-only, or config (DEFAULT_TENANT_SLUG). No user-facing branding in default flows beyond seeded tenant name/slug that admins can change.
+
 ## References
 
 - `apps/accounts/management/commands/ensure_default_tenant_admin.py`

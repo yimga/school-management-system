@@ -1636,8 +1636,13 @@ def backend_dashboard(request):
         for key in ("enrollment_trends", "outstanding_fees", "at_risk_students")
     )
 
+    from apps.dashboard.action_registry import VALID_DASHBOARD_INTENTS
+    _intent = (request.GET.get("intent") or "operational").strip().lower()
+    if _intent not in VALID_DASHBOARD_INTENTS:
+        _intent = "operational"
     context = {
         "site": site,
+        "dashboard_intent": _intent,
         "backend_feature_flags": backend_flags,
         "backend_module_visibility": backend_module_visibility,
         "backend_visual_settings": backend_visual_settings,
@@ -1715,27 +1720,35 @@ def backend_dashboard(request):
         ],
         "SHOW_HEADER_CONTEXT_STRIP": False,
     }
-    # W1-6: First-login checklist (dismissible, deep links to classrooms, first student, attendance).
+    # W1-6: First-login checklist aligned with Setup Studio (same labels, same deep links); thin entry to Setup Studio.
     try:
         from apps.siteconfig.models_dashboard import DashboardUserPreference
-        from apps.people.models import TeacherProfile
+        from apps.customersuccess.services import get_guided_onboarding_steps
         pref, _ = DashboardUserPreference.objects.get_or_create(user=request.user, defaults={"dashboard_layout": {}})
         layout = pref.dashboard_layout or {}
         context["first_login_checklist_show"] = not layout.get("first_login_checklist_dismissed")
         context["first_login_checklist_dismiss_url"] = reverse("accounts:dismiss_first_login_checklist")
         _safe = _safe_reverse
-        # Role-aware attendance link: teachers get portal "Take attendance", others get admin "View attendance"
-        has_teacher_profile = TeacherProfile.objects.filter(user=request.user).exists()
-        if has_teacher_profile:
-            attendance_label, attendance_url = _("Take attendance"), _safe("portal:teacher_attendance") or "#"
+        school = getattr(request, "school", None)
+        if school:
+            steps = get_guided_onboarding_steps(school)
+            checklist_items = []
+            for s in steps:
+                if not s.get("done") and s.get("link"):
+                    link = s["link"]
+                    if link.startswith("/authentication/backend/students/"):
+                        link = _safe("accounts:backend_student_list") or link
+                    elif "/backend/" in link:
+                        link = _safe("accounts:backend_dashboard") or link
+                    checklist_items.append({"label": _(s.get("label", "")), "url": link})
+            setup_studio_url = _safe("siteconfig:guided_onboarding") or "#"
+            if setup_studio_url != "#":
+                checklist_items.append({"label": _("Setup Studio (all steps)"), "url": setup_studio_url})
+            context["first_login_checklist_items"] = checklist_items
         else:
-            attendance_label, attendance_url = _("View attendance"), _safe("admin:people_teacherattendance_changelist") or "#"
-        context["first_login_checklist_items"] = [
-            {"label": _("Classrooms"), "url": _safe("admin:academics_classroom_changelist") or "#"},
-            {"label": _("Add first student"), "url": context.get("quick_student_create_url") or _safe("admin:people_studentprofile_add") or "#"},
-            {"label": attendance_label, "url": attendance_url},
-        ]
-        # W2-2: Sensible defaults copy (what was auto-created + link to settings).
+            context["first_login_checklist_items"] = [
+                {"label": _("Setup Studio"), "url": _safe("siteconfig:guided_onboarding") or "#"},
+            ]
         context["first_login_settings_url"] = _safe("siteconfig:customizer") or _safe("admin:index") or "#"
         context["first_login_sensible_defaults_copy"] = _(
             "We've set up: academic year, terms, default classrooms, and subjects. You can change these in Settings."
@@ -1800,24 +1813,6 @@ def backend_dashboard_status_fragment(request):
     })
     cache.set(cache_key, html, BACKEND_STATUS_FRAGMENT_CACHE_TTL)
     return HttpResponse(html)
-
-
-@login_required
-@permission_required("settings.manage")
-@user_passes_test(_is_admin_user)
-def dismiss_first_login_checklist(request):
-    """W1-6: Dismiss the first-login checklist for this user (persisted in DashboardUserPreference)."""
-    try:
-        from apps.siteconfig.models_dashboard import DashboardUserPreference
-        pref, _ = DashboardUserPreference.objects.get_or_create(user=request.user, defaults={"dashboard_layout": {}})
-        layout = dict(pref.dashboard_layout or {})
-        layout["first_login_checklist_dismissed"] = True
-        pref.dashboard_layout = layout
-        pref.save(update_fields=["dashboard_layout"])
-    except Exception:
-        pass
-    next_url = request.POST.get("next") or request.GET.get("next") or reverse("accounts:backend_dashboard")
-    return redirect(next_url)
 
 
 @permission_required("settings.manage")

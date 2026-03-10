@@ -16,7 +16,7 @@
         <div class="cp-eyebrow">RunMyCampus Manager</div>
         <h1 class="cp-hero-title">Blueprint marketplace</h1>
         <p class="cp-hero-copy">
-          Apply policy packs (e.g. Cameroon Francophone, UAE MoE+IB, UK GCSE/A-Level) to a school. Requires POLICY_USE_BUNDLES=True for the resolver to use the applied bundle.
+          Get curriculum and policy alignment—Cameroon Francophone, UAE MoE+IB, UK GCSE/A-Level—for a school. Preview policy keys and impact before applying; roll back to the previous bundle if needed.
         </p>
       </div>
       <div class="cp-hero-actions">
@@ -130,7 +130,8 @@
           <h2 class="cp-panel-title">About blueprint packs</h2>
         </div>
         <div class="p-3">
-          <p class="small mb-0">Each pack defines a <code>policy_snapshot</code> (terminology, grading, admissions, features). Applying it creates a PolicyBundle for the selected school and sets TenantBlueprint.active_bundle so <code>get_effective_policy(school)</code> merges from that bundle when <code>POLICY_USE_BUNDLES</code> is True. Use <strong>Preview</strong> before Apply; use <strong>Revert</strong> to restore a previous bundle.</p>
+          <p class="small mb-2">Each pack defines a <code>policy_snapshot</code> (terminology, grading, admissions, features). Applying it creates a PolicyBundle for the selected school and sets TenantBlueprint.active_bundle so <code>get_effective_policy(school)</code> merges from that bundle when <code>POLICY_USE_BUNDLES</code> is True. Use <strong>Preview</strong> before Apply; use <strong>Revert</strong> to restore a previous bundle.</p>
+          <p class="small text-muted mb-0"><strong>Compare:</strong> Run Preview on two packs for the same school to compare policy keys and impact before choosing one to apply.</p>
         </div>
       </div>
     </div>

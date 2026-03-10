@@ -193,6 +193,39 @@ body[data-dashboard-page="backend"] .backend-v2-overview-sub {
   font-size: 0.8125rem;
 }
 
+body[data-dashboard-page="backend"] .backend-intent-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+body[data-dashboard-page="backend"] .backend-intent-pill {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 999px;
+  border: 1px solid var(--admin-border, #cbd5e1);
+  background: var(--admin-surface, #fff);
+  color: var(--admin-muted, #64748b);
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+body[data-dashboard-page="backend"] .backend-intent-pill:hover,
+body[data-dashboard-page="backend"] .backend-intent-pill:focus-visible {
+  background: color-mix(in srgb, var(--brand-primary, #0d6efd) 10%, var(--admin-surface, #fff) 90%);
+  color: var(--admin-text, #0f172a);
+  border-color: color-mix(in srgb, var(--brand-primary, #0d6efd) 40%, var(--admin-border, #cbd5e1) 60%);
+}
+
+body[data-dashboard-page="backend"] .backend-intent-pill.active {
+  background: var(--brand-primary, var(--dashboard-theme-primary, #0d6efd));
+  color: #fff;
+  border-color: var(--brand-primary, var(--dashboard-theme-primary, #0d6efd));
+}
+
 body[data-dashboard-page="backend"] .backend-v2-ctas {
   display: flex;
   gap: var(--dash-gap);
@@ -736,6 +769,13 @@ body[data-dashboard-page="backend"] .backend-cmd-item:hover,
 body[data-dashboard-page="backend"] .backend-cmd-item:focus-visible {
   border-color: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, #0d6efd)) 45%, var(--admin-border, #cbd5e1) 55%);
   background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, #0d6efd)) 10%, var(--admin-surface, #fff) 90%);
+}
+
+body[data-dashboard-page="backend"] .backend-cmd-item.backend-cmd-item--selected,
+body[data-dashboard-page="backend"] .backend-cmd-item.backend-cmd-item--selected:hover,
+body[data-dashboard-page="backend"] .backend-cmd-item.backend-cmd-item--selected:focus-visible {
+  border-color: var(--brand-primary, var(--dashboard-theme-primary, #0d6efd));
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, #0d6efd)) 18%, var(--admin-surface, #fff) 82%);
 }
 
 body[data-dashboard-page="backend"] .backend-cmd-item kbd {

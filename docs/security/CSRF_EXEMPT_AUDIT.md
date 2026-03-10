@@ -20,3 +20,17 @@ All endpoints that use `@csrf_exempt` or `csrf_exempt` must be justified and doc
 | apps/siteconfig/views_verify.py | L27 | Email/signup verify | Token in URL | Review | GET/POST | Keep with token check |
 
 **Actions:** For each row, confirm auth and signature; add rate limits and audit logs where missing; refactor or remove unjustified exemptions.
+
+## Remediation next steps
+
+1. **Signup/verify** — Ensure token-in-URL or signed link; rate limit by IP; audit log verification attempts.
+2. **API views_v1** — Replace CSRF exempt with DRF token/session auth where possible; for machine-to-machine keep exempt but require API key header and rate limit.
+3. **Finance webhook** — Confirm signature verification (e.g. Stripe webhook secret); log payload hash and result.
+4. **Section 8 / CEDS / Ed-Fi / OneRoster** — Document required auth (OAuth, API key); add method restrictions (POST only where applicable); rate limit.
+5. **GraphQL** — Ensure authentication required for mutations; if exempt for legacy client, add token and rate limit.
+6. **Billing webhook** — Same as finance: verify signature, log.
+7. **SCIM** — Bearer token required; restrict to POST/PATCH/DELETE as per SCIM spec; rate limit.
+8. **SAML** — Keep; ensure SAML response validation and replay check.
+9. **Lead capture** — Add rate limit (per-IP); consider honeypot or token; audit log submissions.
+10. **views_verify** — Ensure token is single-use and expiry; rate limit.
+11. Create a follow-up ticket per app to implement the above and re-audit.

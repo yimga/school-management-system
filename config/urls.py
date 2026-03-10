@@ -166,6 +166,7 @@ urlpatterns = [
     path('metrics/', obs_views.metrics, name='metrics'),
     path('api/observability/copilot-metrics/', obs_views.copilot_metrics_json, name='copilot_metrics_json'),
     path('api/observability/slo-dashboard/', obs_views.api_operational_slo_dashboard, name='api_operational_slo_dashboard'),
+    path('api/observability/runtime-inspect/', obs_views.runtime_inspect, name='runtime_inspect'),
     
     # Legacy alias: /admin/dashboard/ resolves to canonical /admin/
     path('admin/dashboard/', obs_views.admin_dashboard, name='admin_dashboard'),
@@ -285,6 +286,7 @@ urlpatterns = [
     path("solutions/<str:topic_slug>/", topical_marketing_landing, name="marketing_topic"),
     path('cm/', regional_marketing_landing, {"country_code": "CM"}, name='marketing_cm'),
     path('ca/', regional_marketing_landing, {"country_code": "CA"}, name='marketing_ca'),
+    path('setup-studio/', onboarding_wizard, name='setup_studio'),  # Plan D1: canonical 8-step entry (currently delegates to onboarding_wizard)
     path('onboard/', onboarding_wizard, name='onboard_wizard'),
     path('signup/', signup_school, name='signup_school'),
     path('verify-signup/', verify_signup, name='verify_signup'),

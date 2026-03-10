@@ -280,6 +280,30 @@ html[data-bs-theme="dark"] .dashboard-header {
   font-weight: 600;
 }
 
+/* ========== Setup Studio and first-login – premium cards ========== */
+.setup-studio-shell .card,
+.first-login-checklist-card {
+  border-radius: var(--platform-card-radius) !important;
+  box-shadow: var(--platform-premium-shadow);
+}
+.setup-studio-shell .card:hover,
+.first-login-checklist-card:hover {
+  box-shadow: var(--platform-premium-shadow-hover);
+}
+.contextual-quick-actions .card {
+  border-radius: var(--platform-card-radius) !important;
+  box-shadow: var(--platform-premium-shadow);
+}
+
+/* Empty states: same radius and padding as cards */
+.backend-v2-panel--empty,
+.cp-panel .card-body:empty + .card-footer {
+  border-radius: var(--platform-premium-radius-sm);
+}
+.backend-v2-panel--empty .card-body {
+  padding: 1.25rem 1.5rem;
+}
+
 /* ========== Main content area – consistent padding ========== */
 #main-content,
 .portal-main-col,

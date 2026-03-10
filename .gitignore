@@ -56,3 +56,18 @@ test_output.txt
 *.bak
 *.tmp
 /logs/
+/backups/
+
+# SQLite and DB artifacts (repo hygiene — do not commit)
+db_working.sqlite3
+db_*.sqlite3
+*.sqlite3.malformed
+*.sqlite3.corrupted
+/data/db_live.sqlite3
+db_fresh.sqlite3
+db_buea_seed.sqlite3
+db_step4.sqlite3
+
+# Merge conflict artifacts (do not commit)
+*_Conflict.py
+*Conflict*.py

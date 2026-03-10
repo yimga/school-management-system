@@ -1,0 +1,30 @@
+{% extends "portal_base.html" %}
+{% load static i18n %}
+
+{% block title %}{% trans "Config console" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <header class="mb-4">
+    <h1 class="h2">{% trans "Config console" %}</h1>
+    <p class="text-muted">{% trans "Seven domains — guided, search, preview, diff, rollback. Outcomes not jargon." %}</p>
+  </header>
+  <div class="row g-3">
+    {% for domain in domains %}
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <h2 class="h6 card-title">{{ domain.name }}</h2>
+          <p class="card-text small text-muted">{{ domain.outcome }}</p>
+          <ul class="list-unstyled mb-0">
+            {% for link in domain.resolved_links %}
+            <li><a href="{{ link.url }}">{{ link.label }}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

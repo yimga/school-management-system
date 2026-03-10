@@ -8,13 +8,18 @@
     {% if first_login_sensible_defaults_copy %}
     <p class="card-text small text-muted mb-2">{{ first_login_sensible_defaults_copy }} <a href="{{ first_login_settings_url }}">{% trans "Settings" %}</a></p>
     {% endif %}
-    <p class="card-text small text-muted mb-2">{% trans "Complete these steps to get your school up and running:" %}</p>
+    <p class="card-text small text-muted mb-2">{% trans "Complete these steps to get your school up and running (same as Setup Studio):" %}</p>
     <ul class="list-unstyled mb-0">
       {% for item in first_login_checklist_items %}
       <li class="mb-1">
         <a href="{{ item.url }}">{{ item.label }}</a>
       </li>
+      {% empty %}
+      <li class="mb-1 text-muted small">{% trans "No pending steps." %}</li>
       {% endfor %}
     </ul>
+    <p class="card-text small mt-2 mb-0">
+      <a href="{% url 'siteconfig:guided_onboarding' %}">{% trans "Open Setup Studio" %}</a> {% trans "for the full flow." %}
+    </p>
   </div>
 </div>

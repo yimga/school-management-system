@@ -141,3 +141,256 @@ class EntityState(models.Model):
 
     def __str__(self):
         return f"{self.entity_type}:{self.entity_id} -> {self.current_state}"
+
+
+class EntityCatalogEntry(models.Model):
+    """
+    Catalog entry for a logical entity in the platform (e.g. student, invoice, attendance_record).
+    This is part of the formal Metadata Catalog (see plan Workstream I).
+    """
+
+    code = models.CharField(
+        max_length=80,
+        unique=True,
+        help_text="Stable entity code, e.g. student, invoice, attendance_record.",
+    )
+    name = models.CharField(
+        max_length=120,
+        help_text="Human-readable name, e.g. Student, Invoice, Attendance Record.",
+    )
+    description = models.TextField(blank=True)
+    owning_app = models.CharField(
+        max_length=80,
+        blank=True,
+        help_text="Optional owning app/domain (e.g. people, finance, academics).",
+    )
+    model_label = models.CharField(
+        max_length=120,
+        blank=True,
+        help_text="Optional dotted model label (e.g. people.StudentProfile).",
+    )
+    is_core = models.BooleanField(
+        default=True,
+        help_text="True if this is a core platform entity; False if defined by a pack or extension.",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "metadata"
+        verbose_name = "Entity Catalog Entry"
+        verbose_name_plural = "Entity Catalog Entries"
+        ordering = ["code"]
+
+    def __str__(self) -> str:
+        return f"{self.code}"
+
+
+class FieldCatalogEntry(models.Model):
+    """
+    Catalog entry for a field on an entity (standard or dynamic).
+    Backed by either a concrete model field or a DynamicFieldDefinition.
+    """
+
+    entity = models.ForeignKey(
+        EntityCatalogEntry,
+        on_delete=models.CASCADE,
+        related_name="fields",
+    )
+    field_name = models.CharField(
+        max_length=120,
+        help_text="Internal field name (e.g. first_name, admission_number, custom:preferred_name).",
+    )
+    label = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Human-readable label.",
+    )
+    data_type = models.CharField(
+        max_length=40,
+        help_text="Logical data type (e.g. string, number, boolean, date, json).",
+    )
+    is_custom = models.BooleanField(
+        default=False,
+        help_text="True if this field is defined via DynamicFieldDefinition / metadata packs.",
+    )
+    is_required = models.BooleanField(default=False)
+    is_indexed = models.BooleanField(default=False)
+    defined_in_app = models.CharField(
+        max_length=80,
+        blank=True,
+        help_text="Owning app for the field definition (e.g. people, finance, metadata).",
+    )
+    source = models.CharField(
+        max_length=120,
+        blank=True,
+        help_text="Where this field came from (e.g. model, dynamic_field, pack:finance_core_v1).",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "metadata"
+        verbose_name = "Field Catalog Entry"
+        verbose_name_plural = "Field Catalog Entries"
+        unique_together = [["entity", "field_name"]]
+        ordering = ["entity__code", "field_name"]
+
+    def __str__(self) -> str:
+        return f"{self.entity.code}.{self.field_name}"
+
+
+class MetadataDependency(models.Model):
+    """
+    Dependency edge from a metadata consumer (dashboard, workflow, policy, API, template, integration)
+    to an entity.field in the catalog. Supports lineage-first rule (see plan Workstream I7).
+    """
+
+    CONSUMER_TYPES = [
+        ("dashboard", "Dashboard"),
+        ("workflow", "Workflow"),
+        ("policy", "Policy"),
+        ("report", "Report"),
+        ("api", "API"),
+        ("template", "Template"),
+        ("integration", "Integration"),
+        ("other", "Other"),
+    ]
+
+    consumer_type = models.CharField(
+        max_length=40,
+        choices=CONSUMER_TYPES,
+        help_text="Type of metadata consumer.",
+    )
+    consumer_code = models.CharField(
+        max_length=160,
+        help_text="Stable code/identifier for the consumer (e.g. dashboard:principal_home, workflow:fee_reminder).",
+    )
+    field = models.ForeignKey(
+        FieldCatalogEntry,
+        on_delete=models.CASCADE,
+        related_name="dependencies",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        app_label = "metadata"
+        verbose_name = "Metadata Dependency"
+        verbose_name_plural = "Metadata Dependencies"
+        unique_together = [["consumer_type", "consumer_code", "field"]]
+        ordering = ["consumer_type", "consumer_code"]
+
+    def __str__(self) -> str:
+        return f"{self.consumer_type}:{self.consumer_code} -> {self.field}"
+
+
+class BusinessGlossaryEntry(models.Model):
+    """
+    Business-first glossary: education term → technical metadata (plan Workstream I1).
+    Maps human terms to entity/field codes for lineage and data dictionary.
+    """
+
+    term = models.CharField(
+        max_length=160,
+        help_text="Business/education term (e.g. Report Card, Transcript, Fee).",
+    )
+    definition = models.TextField(blank=True)
+    entity_code = models.CharField(
+        max_length=80,
+        blank=True,
+        db_index=True,
+        help_text="Optional link to EntityCatalogEntry.code.",
+    )
+    field_name = models.CharField(max_length=120, blank=True)
+    locale = models.CharField(max_length=10, default="en")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "metadata"
+        verbose_name = "Business Glossary Entry"
+        verbose_name_plural = "Business Glossary Entries"
+        ordering = ["term", "locale"]
+        unique_together = [["term", "locale"]]
+
+    def __str__(self) -> str:
+        return f"{self.term} ({self.locale})"
+
+
+class ConfigMutationAuditLog(models.Model):
+    """
+    Audit trail for privileged metadata/config mutations (plan Workstream I4 / §15).
+    Who, what, old/new, scope, impact, rollback token.
+    """
+
+    SCOPE_CHOICES = [
+        ("platform", "Platform"),
+        ("region", "Region"),
+        ("blueprint", "Blueprint"),
+        ("plan", "Plan"),
+        ("tenant", "Tenant"),
+        ("sandbox", "Sandbox"),
+    ]
+
+    actor_id = models.IntegerField(null=True, blank=True, help_text="User ID if applicable.")
+    target_type = models.CharField(
+        max_length=80,
+        help_text="Config type (e.g. SiteSettings, RegionConfig, blueprint, policy_bundle).",
+    )
+    target_id = models.CharField(max_length=120, blank=True)
+    scope = models.CharField(max_length=20, choices=SCOPE_CHOICES, default="tenant")
+    old_value_json = models.JSONField(default=dict, blank=True)
+    new_value_json = models.JSONField(default=dict, blank=True)
+    impact_summary = models.CharField(max_length=500, blank=True)
+    rollback_token = models.CharField(max_length=64, blank=True, db_index=True)
+    reason = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        app_label = "metadata"
+        verbose_name = "Config Mutation Audit Log"
+        verbose_name_plural = "Config Mutation Audit Logs"
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"{self.target_type}@{self.scope} {self.created_at}"
+
+
+class LayoutDefinition(models.Model):
+    """
+    Layout/UI as metadata (plan I6). Page or section layout: widget keys, order, options.
+    Drives UI composition without code changes.
+    """
+    code = models.CharField(max_length=80, db_index=True, help_text="e.g. dashboard_principal_home, form_student_edit.")
+    name = models.CharField(max_length=120, blank=True)
+    scope = models.CharField(
+        max_length=20,
+        choices=ConfigMutationAuditLog.SCOPE_CHOICES,
+        default="tenant",
+        db_index=True,
+    )
+    layout_schema = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Structure: sections, widget_keys, order, options (metadata-driven UI).",
+    )
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "metadata"
+        verbose_name = "Layout Definition"
+        verbose_name_plural = "Layout Definitions"
+        ordering = ["code", "scope"]
+
+    def __str__(self) -> str:
+        return f"{self.code} ({self.scope})"

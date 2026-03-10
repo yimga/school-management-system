@@ -104,7 +104,13 @@ backend-shell dashboard-page-backend
   {% include "accounts/first_login_checklist_card.html" %}
   {% endif %}
 
-  <div class="backend-v2-shell">
+  <div class="backend-v2-shell" data-dashboard-intent="{{ dashboard_intent|default:'operational' }}">
+    {% if backend_intent_emphasize_setup %}
+    <div class="alert alert-info py-2 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2" role="region" aria-label="{% trans 'Setup focus' %}">
+      <span>{% trans "Focus: Setup — Complete your school setup for the best experience." %}</span>
+      <a href="{% url 'siteconfig:guided_onboarding' %}" class="btn btn-sm btn-primary">{% trans "Open Setup Studio" %}</a>
+    </div>
+    {% endif %}
     <div class="backend-v2-grid {% if not backend_module_visibility.admin_portal %}backend-v2-grid--single{% endif %}">
       <section class="backend-v2-main">
         {% if backend_module_visibility.overview %}
@@ -113,6 +119,14 @@ backend-shell dashboard-page-backend
             <div>
               <h2>Overview</h2>
               <p class="backend-v2-overview-sub">Live pulse of academics, people, attendance, and finance</p>
+              <nav class="backend-intent-switcher mt-2" aria-label="{% trans 'Dashboard view' %}">
+                {% url 'accounts:backend_dashboard' as base_url %}
+                <a href="{{ base_url }}?intent=executive" class="backend-intent-pill {% if dashboard_intent == 'executive' %}active{% endif %}">{% trans "Executive" %}</a>
+                <a href="{{ base_url }}?intent=operational" class="backend-intent-pill {% if dashboard_intent == 'operational' %}active{% endif %}">{% trans "Operational" %}</a>
+                <a href="{{ base_url }}?intent=academic" class="backend-intent-pill {% if dashboard_intent == 'academic' %}active{% endif %}">{% trans "Academic" %}</a>
+                <a href="{{ base_url }}?intent=finance" class="backend-intent-pill {% if dashboard_intent == 'finance' %}active{% endif %}">{% trans "Finance" %}</a>
+                <a href="{{ base_url }}?intent=setup" class="backend-intent-pill {% if dashboard_intent == 'setup' %}active{% endif %}">{% trans "Setup" %}</a>
+              </nav>
             </div>
             <div class="backend-v2-ctas">
               {% for cta in primary_ctas %}

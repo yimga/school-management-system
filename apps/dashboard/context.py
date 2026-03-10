@@ -7,7 +7,11 @@ from django.core.cache import cache
 from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 
-from apps.dashboard.action_registry import get_backend_dashboard_actions
+from apps.dashboard.action_registry import (
+    get_backend_dashboard_actions,
+    get_contextual_actions,
+    VALID_DASHBOARD_INTENTS,
+)
 from apps.platform_runtime.helpers import get_effective_site_settings
 
 
@@ -528,7 +532,12 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
         "can_use_messages": can_use_messages,
         "can_manage_rbac": can_manage_rbac,
     }
-    actions = get_backend_dashboard_actions(perms, _safe_reverse, _build_nav_item, _dedupe_nav_items)
+    intent = (base.get("dashboard_intent") or "").strip().lower()
+    if intent not in VALID_DASHBOARD_INTENTS:
+        intent = ""
+    actions = get_backend_dashboard_actions(
+        perms, _safe_reverse, _build_nav_item, _dedupe_nav_items, intent=intent or None
+    )
     primary_ctas = actions["primary_ctas"]
     action_chips = actions["action_chips"]
     welcome_action_grid = actions["welcome_action_grid"]
@@ -669,4 +678,9 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
         # Backward-compatible aliases used by older templates/tests.
         "sidebar_quick_access": quick_links,
         "empty_panel_quick_actions": quick_links[:3],
+        "dashboard_intent": intent or "operational",
+        "backend_intent_emphasize_setup": intent == "setup",
+        "contextual_actions": get_contextual_actions(
+            "backend_dashboard", perms, __safe_reverse, max_items=7
+        ),
     }

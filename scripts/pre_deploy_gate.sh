@@ -8,7 +8,15 @@ python manage.py check
 
 echo "[pre_deploy_gate] Architecture laws (no hardcoding; lint reports SiteSettings usage)"
 python scripts/check_no_hardcoding.py --allow-tests
-python scripts/lint_tenant_settings.py --exit-zero
+python scripts/lint_tenant_settings.py --check-get-solo-only
+echo "[pre_deploy_gate] Codex guardrails (mega-files, broad except)"
+if [ "${CODEX_STRICT:-0}" = "1" ]; then
+  python scripts/lint_mega_files.py
+  python scripts/lint_broad_except.py --strict
+else
+  python scripts/lint_mega_files.py --exit-zero
+  python scripts/lint_broad_except.py --exit-zero
+fi
 
 echo "[pre_deploy_gate] Migrations (no unapplied changes)"
 python manage.py makemigrations --check --dry-run
