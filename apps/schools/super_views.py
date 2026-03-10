@@ -1701,35 +1701,43 @@ def super_registries_overview(request):
 
 
 def super_metadata_catalog(request):
-    """Metadata catalog MVP: search entities/fields and see usage (plan Workstream I / todo 4)."""
-    from apps.metadata.models import (
-        EntityCatalogEntry,
-        FieldCatalogEntry,
-        MetadataDependency,
-        BusinessGlossaryEntry,
-    )
-
-    q = request.GET.get("q", "").strip()
-    entity_code = request.GET.get("entity", "").strip()
-    entities = EntityCatalogEntry.objects.prefetch_related("fields", "fields__dependencies").order_by("code")
-    if entity_code:
-        entities = entities.filter(code__icontains=entity_code)
-    if q:
-        entities = entities.filter(
-            Q(code__icontains=q) | Q(name__icontains=q) | Q(description__icontains=q)
+    """Metadata catalog: entity/field search (metadata app) + platform catalog (schema, experience, runtime, registry)."""
+    entities = []
+    try:
+        from apps.metadata.models import (
+            EntityCatalogEntry,
+            MetadataDependency,
         )
-    entities = list(entities[:200])
-    # Include field count and sample dependencies per entity
-    for ent in entities:
-        ent._field_count = ent.fields.count()
-        ent._sample_deps = MetadataDependency.objects.filter(field__entity=ent).count()
+        q = request.GET.get("q", "").strip()
+        entity_code = request.GET.get("entity", "").strip()
+        qs = EntityCatalogEntry.objects.prefetch_related("fields", "fields__dependencies").order_by("code")
+        if entity_code:
+            qs = qs.filter(code__icontains=entity_code)
+        if q:
+            qs = qs.filter(
+                Q(code__icontains=q) | Q(name__icontains=q) | Q(description__icontains=q)
+            )
+        entities = list(qs[:200])
+        for ent in entities:
+            ent._field_count = ent.fields.count()
+            ent._sample_deps = MetadataDependency.objects.filter(field__entity=ent).count()
+    except Exception:
+        pass
+
+    platform_catalog = None
+    try:
+        from apps.siteconfig.metadata_catalog import get_catalog
+        platform_catalog = get_catalog()
+    except Exception:
+        pass
 
     return render(
         request,
         "schools/super_metadata_catalog.html",
         {
             "entities": entities,
-            "query": q or entity_code,
+            "query": request.GET.get("q", "").strip() or request.GET.get("entity", "").strip(),
+            "platform_catalog": platform_catalog,
             "dashboard_url": reverse("super:dashboard"),
         },
     )
@@ -3139,28 +3147,28 @@ def switch_to_tenant(request):
 
 
 def super_runtime_inspector(request):
-    """Control plane: inspect tenant_runtime for a selected school (policy, entitlements, flags)."""
+    """Control plane: inspect tenant_runtime for a selected school (effective blueprint, packs, overrides)."""
+    from apps.platform_runtime.runtime_inspector import get_runtime_inspection_for_school
+
     school_id = (request.GET.get("school_id") or "").strip()
     school = None
-    runtime_summary = None
+    inspection = None
+    schools_sample = list(School.objects.filter(is_active=True).order_by("-last_activity", "-created_at")[:20].values("id", "name", "slug"))
     if school_id:
         try:
             school = School.objects.get(id=school_id)
-            from apps.platform_runtime.runtime_resolver import build_tenant_runtime_for_tenant
-            rt = build_tenant_runtime_for_tenant(school, user=getattr(request, "user", None))
-            if rt:
-                runtime_summary = {
-                    "surface": getattr(rt, "surface", ""),
-                    "policy_keys": list((rt.policy or {}).keys())[:30],
-                    "entitlements_modules": list(getattr(getattr(rt, "entitlements", None), "modules", []) or [])[:20],
-                    "flags_keys": list(getattr(rt, "flags", {}).keys())[:20],
-                }
+            inspection = get_runtime_inspection_for_school(school)
         except (School.DoesNotExist, ValueError):
             pass
     return render(
         request,
         "schools/super_runtime_inspector.html",
-        {"school": school, "runtime_summary": runtime_summary, "dashboard_url": reverse("super:dashboard")},
+        {
+            "school": school,
+            "inspection": inspection,
+            "schools_sample": schools_sample,
+            "dashboard_url": reverse("super:dashboard"),
+        },
     )
 
 

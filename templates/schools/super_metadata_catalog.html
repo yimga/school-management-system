@@ -18,7 +18,55 @@
 
 {% block cp_content %}
 <div class="container-fluid py-2">
-  <p class="text-secondary small mb-3">{% trans "Entity and field catalog with usage references. Search by entity or field; open a field for impact (workflows, dashboards, reports)." %}</p>
+  <p class="text-secondary small mb-3">{% trans "Entity and field catalog with usage references; platform catalog (schema, experience, runtime, registry) from Master Platform Checklist." %}</p>
+
+  {% if platform_catalog %}
+  <div class="card shadow-sm border-primary mb-4">
+    <div class="card-header bg-dark text-light">{% trans "Platform catalog" %} (schema, experience, runtime, registry, integration, governance)</div>
+    <div class="card-body">
+      <div class="row g-3">
+        {% if platform_catalog.schema %}
+        <div class="col-md-6 col-lg-4">
+          <h6 class="text-secondary">{% trans "Schema" %}</h6>
+          <p class="small mb-0">{% trans "Entities:" %} {{ platform_catalog.schema.entities|length }}</p>
+          <p class="small text-muted mb-0">{{ platform_catalog.schema.documentation|default:"" }}</p>
+        </div>
+        {% endif %}
+        {% if platform_catalog.experience %}
+        <div class="col-md-6 col-lg-4">
+          <h6 class="text-secondary">{% trans "Experience" %}</h6>
+          <p class="small mb-0">{% trans "Theme packs:" %} {{ platform_catalog.experience.theme_packs|length|default:0 %}, {% trans "widgets:" %} {{ platform_catalog.experience.dashboard_widgets|length|default:0 }}</p>
+        </div>
+        {% endif %}
+        {% if platform_catalog.runtime %}
+        <div class="col-md-6 col-lg-4">
+          <h6 class="text-secondary">{% trans "Runtime" %}</h6>
+          <p class="small mb-0">{% trans "Blueprints:" %} {{ platform_catalog.runtime.blueprints|length|default:0 }}</p>
+        </div>
+        {% endif %}
+        {% if platform_catalog.registry %}
+        <div class="col-md-6 col-lg-4">
+          <h6 class="text-secondary">{% trans "Registry" %}</h6>
+          <p class="small mb-0">{% trans "Countries:" %} {{ platform_catalog.registry.countries|length|default:0 }}</p>
+        </div>
+        {% endif %}
+        {% if platform_catalog.integration %}
+        <div class="col-md-6 col-lg-4">
+          <h6 class="text-secondary">{% trans "Integration" %}</h6>
+          <p class="small mb-0">{% trans "Integrations:" %} {{ platform_catalog.integration.integrations|length }}</p>
+        </div>
+        {% endif %}
+        {% if platform_catalog.governance %}
+        <div class="col-md-6 col-lg-4">
+          <h6 class="text-secondary">{% trans "Governance" %}</h6>
+          <p class="small mb-0">{% trans "Rules:" %} {{ platform_catalog.governance.rules|length }}</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
   <form method="get" class="mb-4">
     <div class="input-group">
       <input type="text" name="q" class="form-control" placeholder="{% trans 'Search entity or field...' %}" value="{{ query }}" />

@@ -3,6 +3,8 @@
 **Mission:** RunMyCampus must become the Education OS, Control Plane, Marketplace, Migration Destination, and Intelligence Layer for school and education management.  
 **Rule:** Nothing is optional or deferred; all items are required and tracked here. Update this file when each phase completes.
 
+**After deploy: see everything** → [WHERE_TO_SEE_MASTER_CHECKLIST_AFTER_DEPLOY.md](WHERE_TO_SEE_MASTER_CHECKLIST_AFTER_DEPLOY.md) — control-plane pages (Runtime Inspector, Metadata catalog), sidebar links, file list, and one-page verification.
+
 ---
 
 ## Audit verification (last run)

@@ -61,6 +61,7 @@ def build_control_plane_nav(request):
     ])
     add_group("Blueprints & Policies", [
         {"id": "super_registries", "label": "Registries", "url_name": "super:registries_overview", "icon": "bi-globe"},
+        {"id": "super_metadata_catalog", "label": "Metadata catalog", "url_name": "super:metadata_catalog", "icon": "bi-journal-code"},
         {"id": "super_blueprints", "label": "Blueprints", "url_name": "super:blueprints_catalog", "icon": "bi-diagram-3"},
         {"id": "super_policies", "label": "Policies", "url_name": "super:policies_catalog", "icon": "bi-shield"},
     ])

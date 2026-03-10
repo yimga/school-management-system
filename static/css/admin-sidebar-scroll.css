@@ -42,6 +42,12 @@
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.28) rgba(255, 255, 255, 0.04);
 }
+/* Allow main content wrapper to shrink so #main stays viewport-bound and scrolls (fixes clipped content) */
+#page > #main > .grow,
+#page > #main > div.grow {
+  min-height: 0 !important;
+  flex: 1 1 0 !important;
+}
 #page > #main::-webkit-scrollbar {
   width: 8px;
 }

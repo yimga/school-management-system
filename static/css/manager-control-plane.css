@@ -732,12 +732,14 @@ a.cp-queue-card-header:hover {
 .cp-sidebar-col::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.45);
 }
-.cp-main-col {
-  flex: 1 1 0;
-  min-width: 0;
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
+/* Main content column: must scroll when content overflows (viewport-bound via flex min-height: 0 chain) */
+.cp-main-col,
+#cp-main-content {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
   overflow-wrap: break-word;
   padding-bottom: 2.5rem; /* breathing room so last section is not flush */
   scroll-behavior: smooth;
@@ -745,27 +747,33 @@ a.cp-queue-card-header:hover {
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.28) rgba(255, 255, 255, 0.04);
 }
-.cp-main-col::-webkit-scrollbar {
+.cp-main-col::-webkit-scrollbar,
+#cp-main-content::-webkit-scrollbar {
   width: 8px;
 }
-.cp-main-col::-webkit-scrollbar-track {
+.cp-main-col::-webkit-scrollbar-track,
+#cp-main-content::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.04);
   border-radius: 4px;
   margin: 4px 0;
 }
-.cp-main-col::-webkit-scrollbar-thumb {
+.cp-main-col::-webkit-scrollbar-thumb,
+#cp-main-content::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.28);
   border-radius: 4px;
   min-height: 40px;
 }
-.cp-main-col::-webkit-scrollbar-thumb:hover {
+.cp-main-col::-webkit-scrollbar-thumb:hover,
+#cp-main-content::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.42);
 }
-.cp-main-col::-webkit-scrollbar-thumb:active {
+.cp-main-col::-webkit-scrollbar-thumb:active,
+#cp-main-content::-webkit-scrollbar-thumb:active {
   background: rgba(255, 255, 255, 0.5);
 }
 @media (prefers-reduced-motion: reduce) {
   .cp-main-col,
+  #cp-main-content,
   .cp-sidebar-col .cp-sidebar-inner,
   .cp-sidebar-offcanvas .offcanvas-body {
     scroll-behavior: auto;
