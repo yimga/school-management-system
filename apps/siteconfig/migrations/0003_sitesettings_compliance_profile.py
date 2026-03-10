@@ -45,6 +45,7 @@ class Migration(migrations.Migration):
                     name="compliance_profile",
                     field=models.ForeignKey(
                         blank=True,
+                        db_constraint=False,
                         null=True,
                         on_delete=django.db.models.deletion.SET_NULL,
                         related_name="site_settings",

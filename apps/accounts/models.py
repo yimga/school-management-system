@@ -388,11 +388,13 @@ class RolloverProposal(models.Model):
     source_year = models.ForeignKey(
         "academics.AcademicYear",
         on_delete=models.CASCADE,
+        db_constraint=False,
         related_name="rollover_proposals_as_source",
     )
     target_year = models.ForeignKey(
         "academics.AcademicYear",
         on_delete=models.CASCADE,
+        db_constraint=False,
         related_name="rollover_proposals_as_target",
     )
     status = models.CharField(
@@ -438,6 +440,7 @@ class RolloverProposalItem(models.Model):
     student = models.ForeignKey(
         "people.StudentProfile",
         on_delete=models.CASCADE,
+        db_constraint=False,
         related_name="rollover_proposal_items",
     )
     current_classroom_id = models.PositiveIntegerField(null=True, blank=True)
@@ -446,6 +449,7 @@ class RolloverProposalItem(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
+        db_constraint=False,
         related_name="rollover_items_suggested",
     )
     approved_next_classroom = models.ForeignKey(
@@ -453,6 +457,7 @@ class RolloverProposalItem(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
+        db_constraint=False,
         related_name="rollover_items_approved",
     )
     promotion_status = models.CharField(max_length=20, blank=True)  # PROMOTED, REPEAT, DEMOTED, NO_DATA, etc.

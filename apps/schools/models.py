@@ -860,6 +860,7 @@ class HealthRecord(models.Model):
     student = models.ForeignKey(
         "people.StudentProfile",
         on_delete=models.CASCADE,
+        db_constraint=False,
         related_name="health_records",
     )
     record_type = models.CharField(
@@ -917,6 +918,7 @@ class BiometricAttendanceLog(models.Model):
         on_delete=models.CASCADE,
         null=True,
         blank=True,
+        db_constraint=False,
         related_name="biometric_logs",
     )
     user = models.ForeignKey(

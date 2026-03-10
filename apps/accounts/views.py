@@ -18,14 +18,12 @@ from django_ratelimit.decorators import ratelimit
 from config.admin import admin_site
 from apps.finance.models import Invoice, ReferralReward, PaymentReminder, Notification as FinanceNotification
 from apps.finance.services import finance_dashboard_data
-from apps.portal.models import PendingGuardianInvite
 from apps.people.models import StudentGuardian, StudentProfile, TeacherAttendance, TeacherProfile, Badge, BadgeType
 from apps.academics.models import AcademicYear, Classroom
 from apps.reports.models import TermPublishStatus
 from apps.siteconfig.models import SiteSettings, default_backend_feature_flags
 from apps.academics.services import get_active_year_and_term
 from apps.academics.services_year_setup import clone_academic_year
-from apps.portal.services import link_guardian_via_invite
 from apps.accounts.decorators import permission_required
 from apps.dashboard.context import build_dashboard_extras
 from apps.siteconfig.templatetags.admin_health import admin_section_stats
@@ -1144,6 +1142,8 @@ def backend_dashboard(request):
         "balanced_motion": bool(backend_flags.get("backend_balanced_motion", True)),
         "layout_equal_heights": bool(backend_flags.get("backend_layout_equal_heights", True)),
     }
+    from apps.portal.models import PendingGuardianInvite
+
     stats = {
         "students": StudentProfile.objects.filter(is_active=True).count(),
         "guardians": StudentGuardian.objects.count(),
@@ -3258,6 +3258,8 @@ def school_picker(request):
 
 @ratelimit(key="ip", rate="10/h", method="POST", block=True)
 def claim_invite(request):
+    from apps.portal.services import link_guardian_via_invite
+
     if not getattr(request, "school", None):
         messages.info(request, "Claim invite is available only inside a school workspace.")
         return redirect("global_login_discovery")

@@ -2,14 +2,15 @@
 Tests for regional configuration admin interface and management.
 """
 
-from django.test import TestCase, Client
+from django.test import TestCase, Client, override_settings
 from django.contrib.auth.models import User
 from django.urls import reverse
 from django.contrib.admin.sites import AdminSite
 
 from apps.siteconfig.models import RegionConfig, GradingScaleConfig, HolidayCalendar
 from apps.siteconfig.admin import RegionConfigAdmin, GradingScaleConfigAdmin, HolidayCalendarAdmin
-from apps.academics.models import AcademicYear, School
+from apps.academics.models import AcademicYear
+from apps.schools.models import School
 from datetime import date
 
 
@@ -223,6 +224,7 @@ class GradingScaleConfigAdminTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
 
 
+@override_settings(ROOT_URLCONF="config.tenant_urls")
 class HolidayCalendarAdminTestCase(TestCase):
     """Test HolidayCalendar admin interface."""
 

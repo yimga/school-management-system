@@ -1132,6 +1132,7 @@ class SiteSettings(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
+        db_constraint=False,
         related_name="site_settings",
     )
     
@@ -2229,6 +2230,7 @@ class ReportCardStyleAssignment(models.Model):
     classroom = models.OneToOneField(
         Classroom,
         on_delete=models.CASCADE,
+        db_constraint=False,
         related_name="report_card_style_assignment",
     )
     style = models.ForeignKey(
@@ -2251,7 +2253,9 @@ def get_report_card_style_for_student(student: StudentProfile, report_type: str)
     if assignment and assignment.style and assignment.style.is_active:
         return assignment.style
 
-    site = SiteSettings.get_solo()
+    from apps.platform_runtime.helpers import get_effective_site_settings
+
+    site = get_effective_site_settings(school=getattr(student, "school", None))
     default_field = "default_term_report_style" if report_type == ReportCard.Type.TERM else "default_annual_report_style"
     style = getattr(site, default_field, None)
     if style and style.is_active:
@@ -3724,6 +3728,7 @@ class HolidayCalendar(models.Model):
     academic_year = models.ForeignKey(
         'academics.AcademicYear',
         on_delete=models.CASCADE, 
+        db_constraint=False,
         related_name='holidays_by_region',
         help_text="Academic year for this holiday"
     )

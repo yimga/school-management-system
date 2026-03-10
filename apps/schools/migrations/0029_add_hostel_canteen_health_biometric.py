@@ -37,7 +37,7 @@ class Migration(migrations.Migration):
                 ('timestamp', models.DateTimeField(db_index=True)),
                 ('raw_identifier', models.CharField(blank=True, db_index=True, max_length=120)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('student', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='biometric_logs', to='people.studentprofile')),
+                ('student', models.ForeignKey(blank=True, db_constraint=False, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='biometric_logs', to='people.studentprofile')),
                 ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='biometric_logs', to=settings.AUTH_USER_MODEL)),
                 ('device', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='attendance_logs', to='schools.biometricdevice')),
             ],
@@ -55,7 +55,7 @@ class Migration(migrations.Migration):
                 ('confidential', models.BooleanField(default=False)),
                 ('recorded_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='recorded_health_records', to=settings.AUTH_USER_MODEL)),
                 ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='health_records', to='schools.school')),
-                ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='health_records', to='people.studentprofile')),
+                ('student', models.ForeignKey(db_constraint=False, on_delete=django.db.models.deletion.CASCADE, related_name='health_records', to='people.studentprofile')),
             ],
             options={
                 'ordering': ['-recorded_at'],

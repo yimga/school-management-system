@@ -58,7 +58,7 @@ class Migration(migrations.Migration):
                 ('description', models.TextField(blank=True, help_text='Holiday description')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('academic_year', models.ForeignKey(help_text='Academic year for this holiday', on_delete=django.db.models.deletion.CASCADE, related_name='holidays_by_region', to='academics.academicyear')),
+                ('academic_year', models.ForeignKey(db_constraint=False, help_text='Academic year for this holiday', on_delete=django.db.models.deletion.CASCADE, related_name='holidays_by_region', to='academics.academicyear')),
                 ('region', models.ForeignKey(help_text='Region this holiday applies to', on_delete=django.db.models.deletion.CASCADE, related_name='holidays', to='siteconfig.regionconfig')),
             ],
             options={

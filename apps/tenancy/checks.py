@@ -2,6 +2,7 @@
 Django system checks: enforce TENANCY_MODE / USE_DJANGO_TENANTS vs middleware and DB engine.
 Never run both schema and RLS tenant resolution in the same request path.
 """
+from django.apps import apps as django_apps
 from django.conf import settings
 from django.core.checks import Error, Warning, register
 
@@ -25,6 +26,8 @@ SCHEMA_TENANT_ONLY_APPS = {
     "apps.payroll",
     "apps.school_events",
 }
+
+LEGACY_MIXED_SHARED_APPS = {"accounts", "schools", "siteconfig"}
 
 
 @register()
@@ -113,3 +116,51 @@ def control_plane_cookie_scope_checks(app_configs, **kwargs):
             )
         )
     return warnings
+
+
+@register()
+def shared_model_tenant_constraint_checks(app_configs, **kwargs):
+    errors = []
+    if not getattr(settings, "USE_DJANGO_TENANTS", False):
+        return errors
+
+    shared_apps = {
+        app.split(".")[-1]
+        for app in (getattr(settings, "SHARED_APPS", []) or [])
+        if app == "emis" or app.startswith("apps.")
+    }
+    tenant_apps = {
+        app.split(".")[-1]
+        for app in (getattr(settings, "TENANT_APPS", []) or [])
+        if app.startswith("apps.")
+    }
+
+    for model in django_apps.get_models():
+        if model._meta.app_label not in shared_apps:
+            continue
+        if model._meta.app_label not in LEGACY_MIXED_SHARED_APPS:
+            continue
+        for field in list(model._meta.local_fields) + list(model._meta.local_many_to_many):
+            if not getattr(field, "is_relation", False):
+                continue
+            remote_field = getattr(field, "remote_field", None)
+            related_model = getattr(remote_field, "model", None) if remote_field else None
+            if not getattr(related_model, "_meta", None):
+                continue
+            if related_model._meta.app_label not in tenant_apps:
+                continue
+            if getattr(field, "db_constraint", True):
+                errors.append(
+                    Error(
+                        (
+                            f"Schema mode has a DB-constrained shared-to-tenant relation: "
+                            f"{model._meta.label}.{field.name} -> {related_model._meta.label}."
+                        ),
+                        hint=(
+                            "Mixed shared apps must use db_constraint=False for tenant-app relations "
+                            "until the model is fully extracted into a tenant app."
+                        ),
+                        id="tenancy.E007",
+                    )
+                )
+    return errors

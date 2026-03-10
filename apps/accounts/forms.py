@@ -6,7 +6,6 @@ from django.utils import timezone
 from .models import AccessRole, Permission, User, UserPreference
 from .delegation import get_allowed_delegate_queryset, SCOPE_CHOICES
 from apps.platform_runtime.helpers import get_effective_site_settings
-from apps.portal.models import PendingGuardianInvite
 
 
 # User preference form for background logo and opacity
@@ -193,6 +192,8 @@ class ClaimInviteAccountForm(forms.Form):
         super().__init__(*args, **kwargs)
 
     def clean_token(self):
+        from apps.portal.models import PendingGuardianInvite
+
         token = self.cleaned_data["token"].strip()
         try:
             invite = PendingGuardianInvite.objects.select_related("student").get(token=token)
