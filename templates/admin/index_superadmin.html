@@ -22,7 +22,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="cp-admin-index control-plane-shell">
+<div class="cp-admin-index">
   {% if PREVIEW_MODE_ENABLED %}
   <div class="cp-chip cp-chip-warning d-flex flex-wrap align-items-center justify-content-between mb-3">
     <span><strong>Preview mode</strong> — {{ PREVIEW_BANNER_TEXT|default:PREVIEW_NOTE|default:"Sandbox data will not persist." }}</span>
