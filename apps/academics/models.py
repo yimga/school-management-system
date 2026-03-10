@@ -1277,3 +1277,10 @@ class WorkflowConfig(models.Model):
     def __str__(self):
         return self.workflow_key
 
+
+from .models_tenant_runtime import (  # noqa: E402,F401
+    HolidayCalendar,
+    ReportCardStyleAssignment,
+    RolloverProposal,
+    RolloverProposalItem,
+)

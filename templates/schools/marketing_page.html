@@ -327,6 +327,17 @@
       {% if page_extras.data_viz_caption %}<p class="section-lead mt-2 mb-0">{{ page_extras.data_viz_caption }}</p>{% endif %}
     </section>
     {% endif %}
+    {% if page_extras.video_url %}
+    <section class="section-shell" aria-label="{% trans 'Video' %}">
+      <h2 class="section-heading">{% if page_extras.video_heading %}{{ page_extras.video_heading }}{% else %}{% trans "See it in action" %}{% endif %}</h2>
+      <div class="ratio ratio-16x9">
+        <video class="img-fluid" src="{{ page_extras.video_url }}" {% if page_extras.video_poster_url %}poster="{{ page_extras.video_poster_url }}"{% endif %} controls preload="metadata" playsinline aria-label="{% if page_extras.video_caption %}{{ page_extras.video_caption }}{% else %}{% trans 'Platform overview' %}{% endif %}">
+          {% trans "Your browser does not support the video tag." %}
+        </video>
+      </div>
+      {% if page_extras.video_caption %}<p class="section-lead mt-2 mb-0">{{ page_extras.video_caption }}</p>{% endif %}
+    </section>
+    {% endif %}
 
     {% if active_nav_slug == 'book-demo' and marketing_calendly_url %}
       <section class="section-shell" aria-label="{% trans 'Schedule a demo' %}">
@@ -369,6 +380,20 @@
           </div>
         </form>
       </section>
+    {% endif %}
+    {% if demo_tenant_url and demo_what_you_see %}
+      {% if active_nav_slug == 'book-demo' or active_nav_slug == 'demo' %}
+      <section class="section-shell" aria-label="{% trans 'What you\'ll see' %}">
+        <h2 class="section-heading">{% trans "What you'll see" %}</h2>
+        <p class="section-lead">{% trans "In the demo environment and live walkthrough:" %}</p>
+        <ul class="highlight-list mb-3">
+          {% for item in demo_what_you_see %}
+            <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+        <a href="{{ demo_tenant_url }}" class="btn btn-primary" target="_blank" rel="noopener">{% trans "Try demo" %}</a>
+      </section>
+      {% endif %}
     {% endif %}
 
     {% if active_nav_slug == 'blog' and blog_posts %}

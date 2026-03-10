@@ -38,6 +38,7 @@ default_*.sqlite3
 # OS
 .DS_Store
 Thumbs.db
+nul
 
 # Node (if used)
 node_modules/

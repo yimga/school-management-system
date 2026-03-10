@@ -17,7 +17,7 @@ These are present on:
 - Marketing subpages: detail hero CTAs and footer CTAs
 - Compare, marketplace, role, topic, migrate pages
 
-When the optional marketing analytics script is loaded (`marketing_analytics_script_url`), it can read these attributes to push events.
+When the marketing analytics script is enabled (`marketing_analytics_script_url`), it reads these attributes to push events.
 
 ## Conversion events (defined)
 
@@ -30,7 +30,7 @@ When the optional marketing analytics script is loaded (`marketing_analytics_scr
 
 ## Implementation notes
 
-- **Marketing script optional:** Set `MARKETING_ANALYTICS_SCRIPT_URL` (and optionally `MARKETING_ANALYTICS_PRECONNECT_ORIGIN`) in settings to load a third-party script; preconnect is output in landing `extrahead`.
+- **Marketing script (required when analytics enabled):** Set `MARKETING_ANALYTICS_SCRIPT_URL` and `MARKETING_ANALYTICS_PRECONNECT_ORIGIN` in settings to load the third-party script; preconnect is output in landing `extrahead`.
 - **No PII in data-cta/data-page:** Only CTA type and page slug; no user data.
 - **Activation:** Tracked outside marketing (e.g. in tenant app or post-signup redirect); not in marketing templates.
 

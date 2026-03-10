@@ -129,6 +129,7 @@ INSTALLED_APPS = [
     "apps.reports",
     "apps.siteconfig.apps.SiteconfigConfig",
     "apps.schools",
+    "apps.schoolops.apps.SchoolOpsConfig",
     "apps.analytics",
     "apps.finance",
     "apps.payroll",
@@ -424,9 +425,39 @@ else:
 SESSION_EXPIRE_AT_BROWSER_CLOSE = os.getenv("SESSION_EXPIRE_AT_BROWSER_CLOSE", "1") == "1"
 SESSION_SAVE_EVERY_REQUEST = os.getenv("SESSION_SAVE_EVERY_REQUEST", "1") == "1"
 
-# Marketing (Plan 4.11): demo tenant URL for "Try demo" CTA; optional analytics script URL for marketing pages
+# Marketing (Plan 4.11): demo tenant URL for "Try demo" CTA; analytics script URL for marketing pages
 MARKETING_DEMO_TENANT_URL = (os.getenv("MARKETING_DEMO_TENANT_URL") or "").strip() or ""
 MARKETING_ANALYTICS_SCRIPT_URL = (os.getenv("MARKETING_ANALYTICS_SCRIPT_URL") or "").strip() or ""
+# Marketing visual assets (override via env for production; fallbacks in apps/schools/marketing_views.py)
+MARKETING_HERO_IMAGE_URL = (os.getenv("MARKETING_HERO_IMAGE_URL") or "").strip() or None
+MARKETING_HERO_VIDEO_URL = (os.getenv("MARKETING_HERO_VIDEO_URL") or "").strip() or None
+MARKETING_HERO_VIDEO_POSTER_URL = (os.getenv("MARKETING_HERO_VIDEO_POSTER_URL") or "").strip() or None
+MARKETING_MIGRATION_STUDIO_IMAGE_URL = (os.getenv("MARKETING_MIGRATION_STUDIO_IMAGE_URL") or "").strip() or None
+MARKETING_MIGRATION_CLOUD_DIAGRAM_URL = (os.getenv("MARKETING_MIGRATION_CLOUD_DIAGRAM_URL") or "").strip() or None
+MARKETING_PLATFORM_ARCHITECTURE_DIAGRAM_URL = (os.getenv("MARKETING_PLATFORM_ARCHITECTURE_DIAGRAM_URL") or "").strip() or None
+MARKETING_SCHOOL_IN_A_BOX_FLOW_IMAGE_URL = (os.getenv("MARKETING_SCHOOL_IN_A_BOX_FLOW_IMAGE_URL") or "").strip() or None
+MARKETING_DATA_INTELLIGENCE_LOOP_IMAGE_URL = (os.getenv("MARKETING_DATA_INTELLIGENCE_LOOP_IMAGE_URL") or "").strip() or None
+MARKETING_ECOSYSTEM_MAP_IMAGE_URL = (os.getenv("MARKETING_ECOSYSTEM_MAP_IMAGE_URL") or "").strip() or None
+MARKETING_STATUS_PAGE_URL = (os.getenv("MARKETING_STATUS_PAGE_URL") or "").strip() or None
+MARKETING_CALENDLY_URL = (os.getenv("MARKETING_CALENDLY_URL") or "").strip() or None
+# Demo page: "What you'll see" bullets (required); set MARKETING_DEMO_WHAT_YOU_SEE as JSON array or comma-separated in env
+_demo_what = os.getenv("MARKETING_DEMO_WHAT_YOU_SEE", "").strip()
+if _demo_what:
+    try:
+        import json
+        MARKETING_DEMO_WHAT_YOU_SEE = json.loads(_demo_what) if _demo_what.startswith("[") else [s.strip() for s in _demo_what.split(",") if s.strip()]
+    except Exception:
+        MARKETING_DEMO_WHAT_YOU_SEE = [s.strip() for s in _demo_what.split(",") if s.strip()]
+else:
+    MARKETING_DEMO_WHAT_YOU_SEE = [
+        "Public marketing and discovery experience",
+        "Tenant login and school dashboard",
+        "Manager control plane and command center",
+    ]
+# Product tour: URL for "Click through the platform" (Navattic, Product Fruits, or internal interactive preview)
+MARKETING_PRODUCT_TOUR_URL = (os.getenv("MARKETING_PRODUCT_TOUR_URL") or "").strip() or None
+# Newsletter: form action URL (POST); required for signup (set to your list endpoint or webhook)
+MARKETING_NEWSLETTER_FORM_ACTION = (os.getenv("MARKETING_NEWSLETTER_FORM_ACTION") or "").strip() or None
 
 # Role-based session overrides (seconds)
 ROLE_SESSION_TIMEOUTS = {
@@ -949,6 +980,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.portal",
         "apps.academics",
         "apps.people",
+        "apps.schoolops",
         "apps.finance",
         "apps.evals",
         "apps.reports",

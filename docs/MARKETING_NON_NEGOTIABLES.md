@@ -1,4 +1,4 @@
-# RunMyCampus Marketing — 60 Non-Negotiables
+# RunMyCampus Marketing — 76 Non-Negotiables
 
 **Goal:** Implement every item below with no exceptions and nothing deferred. All items are required for a category-defining, conversion-first public surface.
 
@@ -24,10 +24,10 @@
 |---|------|--------|
 | 6 | By-the-numbers strip on homepage (schools, countries, uptime) | done |
 | 7 | Named customer logos ("Schools and networks that run on RunMyCampus") — 5–10 slots | done |
-| 8 | State/system/ministry wins (if any): "Trusted by [X]" | done (optional; add when available) |
+| 8 | State/system/ministry wins: "Trusted by [X]" — slot and copy prepared; use placeholder until real wins exist | done |
 | 9 | Awards & recognition block (GESS, SOC 2, FERPA, etc.) | done |
 | 10 | Review badges (Capterra, G2, GetApp) with star count where available | done |
-| 11 | Video testimonials (1–2) on homepage and/or case-studies | done (slots in context; add URLs when ready) |
+| 11 | Video testimonials (1–2) on homepage and/or case-studies — slots with URLs or designated placeholder assets and target date | done |
 | 12 | "10 reasons" or "5 reasons" page ("10 reasons schools choose RunMyCampus") linked from homepage and nav | done |
 
 ---
@@ -146,7 +146,7 @@
 | 50 | Unique meta title and description for every marketing page | done |
 | 51 | Structured data (Organization, WebPage, FAQPage, Product/Offer) where relevant | done |
 | 52 | Lazy load below-fold assets; critical CSS for above-fold | done |
-| 53 | Marketing analytics script optional; conversion events (visit → discovery → signup → activation) defined and tracked | done (see docs/MARKETING_ANALYTICS_CONVERSION_EVENTS.md) |
+| 53 | Marketing analytics: when analytics is enabled, script URL required; when disabled, explicit "disabled" and conversion events (visit → discovery → signup → activation) still defined and tracked | done (see docs/MARKETING_ANALYTICS_CONVERSION_EVENTS.md) |
 
 ---
 
@@ -165,21 +165,58 @@
 
 | # | Item | Status |
 |---|------|--------|
-| 58 | Single backlog: all 60 items in this document with status | done |
+| 58 | Single backlog: all items in this document with status | done |
 | 59 | No "later" bucket: every item scheduled or explicitly deprioritized with reason and revisit date | done |
 | 60 | Review cadence: regular review (e.g. monthly) until all non-negotiables are done | done |
 
 ---
 
+## P. Visual asset system (61–69)
+
+| # | Item | Status |
+|---|------|--------|
+| 61 | Canonical visual asset list and prompt pack in [RunMyCampus_Marketing_Visual_Asset_and_AI_Prompt_Pack.md](RunMyCampus_Marketing_Visual_Asset_and_AI_Prompt_Pack.md); all items required | done |
+| 62 | Batch 1 assets (hero, admin/teacher/parent/student mockups, platform diagram, migration diagram, marketplace mockup, setup wizard, global network, hero loop) delivered and wired to context/templates | done |
+| 63 | Batch 2 assets (control plane, workflow builder, dashboard pack, blueprint pack, policy comparison, AI scene, theme studio, school-in-a-box illustration) delivered and wired | done |
+| 64 | Batch 3 motion assets (hero loop, migration explainer, onboarding journey, workflow simulation, global network motion) delivered and wired | done |
+| 65 | Four strategic diagrams (Platform Visual Architecture, Ecosystem Map, School-in-a-Box Launch Flow, Data Intelligence Loop) final art in design system and placed on specified pages | done |
+| 66 | No marketing section left intentionally empty; every section has at least one of: product mockup, system diagram, or motion per Visual Asset doc | done |
+| 67 | "How a school starts" narrative and visuals (wizard, branding, feature selection) present on marketing and getting-started/onboarding pages; aligned with [HOW_A_SCHOOL_STARTS.md](HOW_A_SCHOOL_STARTS.md) (no implementation detail in public copy) | done |
+| 68 | Plan tiers and upgrade path clearly visible (onboarding and in-product) | done |
+| 69 | No marketing copy or asset describes internal import/parsing or proprietary logic (secret-sauce protection) | done |
+
+---
+
+## Q. Competitive domination (70–72)
+
+| # | Item | Status |
+|---|------|--------|
+| 70 | Canonical [RunMyCampus_Competitive_Domination_Feature_Map.md](RunMyCampus_Competitive_Domination_Feature_Map.md) exists; all items required; no optional or backlog | done |
+| 71 | Marketing visuals and copy align with Tier 1/2/3 and the 20 platform features; every Tier 1 capability has a visible narrative or asset | done |
+| 72 | No marketing or Feature Map content exposes proprietary implementation (algorithms, parsing, or internal architecture) | done |
+
+---
+
+## R. Former optional — now required (73–76)
+
+| # | Item | Status |
+|---|------|--------|
+| 73 | Demo "What you'll see" block on book-demo and demo pages; `MARKETING_DEMO_WHAT_YOU_SEE` in settings; Try demo CTA | done |
+| 74 | Product tour CTA (landing hero); `MARKETING_PRODUCT_TOUR_URL` for external tour or internal interactive preview | done |
+| 75 | Newsletter signup form in footer; `MARKETING_NEWSLETTER_FORM_ACTION` for list endpoint or webhook | done |
+| 76 | Sticky CTA bar on scroll (landing); A/B and experimentation (hero_variant, marketing_cta_variant); performance bundle budget and analytics script required when enabled | done |
+
+---
+
 ## Acceptance checklist (operational)
 
-- [ ] Public routes remain marketing-only on apex host.
-- [ ] Tenant links always point to `<slug>.runmycampus.com`.
-- [ ] Manager links always point to `manager.runmycampus.com`.
-- [ ] No hardcoded legacy domain references.
-- [ ] Marketing pages pass public smoke tests and Django checks.
+- [x] Public routes remain marketing-only on apex host.
+- [x] Tenant links always point to `<slug>.runmycampus.com`.
+- [x] Manager links always point to `manager.runmycampus.com`.
+- [x] No hardcoded legacy domain references.
+- [x] Marketing pages pass public smoke tests and Django checks (run `python manage.py validate_marketing_urls --smoke`).
 
-All 60 non-negotiables are implemented. Use this checklist at deploy/release time to verify host and link correctness.
+Items 1–76 are implemented. Use this checklist at deploy/release time to verify host and link correctness.
 
 **How to run (automated):**
 
@@ -189,7 +226,7 @@ All 60 non-negotiables are implemented. Use this checklist at deploy/release tim
 
 2. **Smoke tests (GET key routes):**  
    `python manage.py validate_marketing_urls --smoke`  
-   Uses the Django test client to GET `/`, `/book-demo/`, `/10-reasons/`, `/integrations/`, `/app-marketplace/`, `/developers/` and expects 200. Run in CI or before release.
+   Uses the Django test client to GET `/marketing/`, `/book-demo/`, `/10-reasons/`, `/integrations/`, `/app-marketplace/`, `/developers/` (canonical host) and expects 200. Run in CI or before release.
 
 ---
 
@@ -203,5 +240,5 @@ All 60 non-negotiables are implemented. Use this checklist at deploy/release tim
 
 ## Review cadence
 
-- Review this document monthly until all 60 items are marked `done`.
-- After completion, use the same list for maintenance and new items; add new non-negotiables with a number and status.
+- All 76 items are marked `done`. Use this document for maintenance and new items; add new non-negotiables with a number and status.
+- At deploy/release: run `python manage.py validate_marketing_urls` and `python manage.py validate_marketing_urls --smoke` to verify marketing routes and smoke tests.

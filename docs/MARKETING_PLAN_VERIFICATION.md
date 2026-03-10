@@ -68,7 +68,7 @@ Verification of the Seed Marketing Front plan (seed_marketing_front_ce217fad.pla
 |------|--------|
 | Routes: public_urls.py, config/urls.py | Done; config/urls.py has core + research/reports/guides (migrate, marketplace, roles, developers subsections live on public_urls when urlconf is switched). |
 | Context and definitions: marketing_views.py | Done. |
-| Content seed: optional JSON | Using MARKETING_PAGE_DEFINITIONS (Option B); optional JSON not required. |
+| Content seed: JSON or code | Using MARKETING_PAGE_DEFINITIONS (Option B); file-based JSON per page supported; both required for full flexibility. |
 | Templates: marketing_landing, marketing_page, etc. | Done; diagram and data_viz blocks in marketing_page.html. |
 | Static: platform-diagram-marketing.svg | Done. |
 | Docs: MARKETING_MEDIA.md, tenant/manager behavior | Done (MARKETING_MEDIA.md, MARKETING_CROSS_HOST.md). |

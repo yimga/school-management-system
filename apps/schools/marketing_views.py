@@ -25,7 +25,7 @@ from apps.schools.host_routing import get_canonical_base_domain
 from apps.siteconfig.brand_registry import resolve_global_brand_context
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
 
-# Optional: region/variant for future A/B or regional content (file naming: slug.json or slug_region_variant.json).
+# Region/variant reserved for A/B or regional content (file naming: slug.json or slug_region_variant.json).
 MARKETING_CONTENT_DIR = os.path.join(getattr(settings, "BASE_DIR", os.getcwd()), "config", "marketing_content")
 
 
@@ -37,7 +37,7 @@ def _load_marketing_page_from_file(
     """
     Load marketing page content from config/marketing_content/{slug}.json.
     Returns (page_dict, extras_dict) compatible with marketing_page template, or None if file missing/invalid.
-    Optional region/variant allow future file names like slug_region_variant.json for regional or A/B content.
+    Region/variant allow file names like slug_region_variant.json for regional or A/B content when used.
     """
     slug = (slug or "").strip().lower()
     if not slug:
@@ -333,6 +333,9 @@ MARKETING_PAGE_DEFINITIONS = {
         "headline": "Analytics that inform decisions.",
         "subheadline": "Live dashboards, trends, and reports for enrollment, attendance, and outcomes.",
         "schema_type": "WebPage",
+        "diagram_path": "images/marketing/platform-diagram-marketing.svg",
+        "data_viz_path": "images/marketing/platform-diagram-marketing.svg",
+        "data_viz_caption": "Data intelligence loop: collect, analyze, act.",
         "segments": [
             {"title": "Leader dashboards", "body": "Enrollment, attendance, and performance at a glance."},
             {"title": "Trends and reports", "body": "Export-ready reports and trend analysis for boards and regulators."},
@@ -951,6 +954,18 @@ MARKETING_PAGE_EXTRAS = {
         "diagram_path": "images/marketing/platform-diagram-marketing.svg",
     },
     "platform": {
+        "diagram_path": "images/marketing/platform-diagram-marketing.svg",
+    },
+    "platform-control-plane": {
+        "diagram_path": "images/marketing/platform-diagram-marketing.svg",
+    },
+    "platform-marketplace": {
+        "diagram_path": "images/marketing/platform-diagram-marketing.svg",
+    },
+    "platform-migration-cloud": {
+        "diagram_path": "images/marketing/platform-diagram-marketing.svg",
+    },
+    "app-marketplace": {
         "diagram_path": "images/marketing/platform-diagram-marketing.svg",
     },
     "platform-analytics": {
@@ -2238,18 +2253,25 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         "Map your existing workflows to RunMyCampus modules with guided setup.",
         "Go live with phased rollout and dedicated support during migration.",
     ]
-    migration_studio_image_url = getattr(settings, "MARKETING_MIGRATION_STUDIO_IMAGE_URL", None) or ""
+    # Migration visual: required; never leave section empty (per Visual Asset plan).
+    migration_studio_image_url = (
+        getattr(settings, "MARKETING_MIGRATION_STUDIO_IMAGE_URL", None)
+        or getattr(settings, "MARKETING_MIGRATION_CLOUD_DIAGRAM_URL", None)
+        or static("images/marketing/platform-diagram-marketing.svg")
+    )
     hero_dashboard_image_url = getattr(settings, "MARKETING_HERO_IMAGE_URL", None) or ""
     if not hero_dashboard_image_url:
         hero_dashboard_image_url = static("images/marketing/hero-placeholder.svg")
     hero_video_url = getattr(settings, "MARKETING_HERO_VIDEO_URL", None) or ""
     hero_video_poster_url = getattr(settings, "MARKETING_HERO_VIDEO_POSTER_URL", None) or hero_dashboard_image_url or ""
     product_demo_image_url = getattr(settings, "MARKETING_PRODUCT_DEMO_IMAGE_URL", None) or getattr(settings, "MARKETING_HERO_IMAGE_URL", None) or ""
-    # Product visualization strip: scrolling/tabbed UI screens (Student 360, teacher dashboard, admin analytics)
+    # Product visualization strip: 5 slides required (Batch 1 — admin, teacher, parent, student, analytics).
     product_visualization_slides = getattr(settings, "MARKETING_PRODUCT_VISUALIZATION_SLIDES", None) or [
-        {"title": "Student 360", "caption": "One view per student: attendance, grades, interventions.", "image_url": "", "image_static": "images/marketing/viz-student360.svg"},
+        {"title": "Admin dashboard", "caption": "Real-time enrollment, finance, and compliance dashboards.", "image_url": "", "image_static": "images/marketing/viz-admin.svg"},
         {"title": "Teacher dashboard", "caption": "Grades, attendance, and class tools in one place.", "image_url": "", "image_static": "images/marketing/viz-teacher.svg"},
-        {"title": "Admin analytics", "caption": "Real-time enrollment, finance, and compliance dashboards.", "image_url": "", "image_static": "images/marketing/viz-admin.svg"},
+        {"title": "Parent portal", "caption": "One place for your children: attendance, grades, and school updates.", "image_url": "", "image_static": "images/marketing/viz-student360.svg"},
+        {"title": "Student 360", "caption": "One view per student: attendance, grades, interventions.", "image_url": "", "image_static": "images/marketing/viz-student360.svg"},
+        {"title": "Admin analytics", "caption": "Operational intelligence and reporting at a glance.", "image_url": "", "image_static": "images/marketing/viz-admin.svg"},
     ]
     _ecosystem_icon = static("images/marketing/logo-placeholder.svg")
     _marketplace_path = _safe_reverse("marketing_app_marketplace") or "/app-marketplace/"
@@ -2446,13 +2468,20 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
     # Enterprise path
     enterprise_path_copy = "For operators at national scale. Book an architecture call for dedicated governance, compliance posture, and white-label branding."
 
-    # Asset defaults: use static placeholders when settings are unset (no 404s)
+    # Asset defaults: use static placeholders when settings are unset (no 404s). All required per Visual Asset plan.
     global_map_image_url = getattr(settings, "MARKETING_GLOBAL_MAP_IMAGE_URL", None) or static("images/marketing/global-map.svg")
     illustration_workflow_url = getattr(settings, "MARKETING_ILLUSTRATION_WORKFLOW_URL", None) or static("images/marketing/illustration-workflow.svg")
     illustration_globe_url = getattr(settings, "MARKETING_ILLUSTRATION_GLOBE_URL", None) or static("images/marketing/illustration-globe.svg")
     illustration_students_url = getattr(settings, "MARKETING_ILLUSTRATION_STUDENTS_URL", None) or static("images/marketing/illustration-students.svg")
+    # Strategic diagram URLs (Batch 1/2; required — fallback to platform diagram until specific assets exist).
+    _diagram_fallback = static("images/marketing/platform-diagram-marketing.svg")
+    platform_architecture_diagram_url = getattr(settings, "MARKETING_PLATFORM_ARCHITECTURE_DIAGRAM_URL", None) or _diagram_fallback
+    migration_cloud_diagram_url = getattr(settings, "MARKETING_MIGRATION_CLOUD_DIAGRAM_URL", None) or _diagram_fallback
+    school_in_a_box_flow_image_url = getattr(settings, "MARKETING_SCHOOL_IN_A_BOX_FLOW_IMAGE_URL", None) or _diagram_fallback
+    data_intelligence_loop_image_url = getattr(settings, "MARKETING_DATA_INTELLIGENCE_LOOP_IMAGE_URL", None) or _diagram_fallback
+    ecosystem_map_image_url = getattr(settings, "MARKETING_ECOSYSTEM_MAP_IMAGE_URL", None) or _diagram_fallback
 
-    # AI Intelligence section: dedicated homepage block (optional enhancements)
+    # AI Intelligence section: dedicated homepage block (required).
     ai_intelligence_features = [
         "Predict at-risk students and recommend interventions.",
         "Surface insights for enrollment and retention.",
@@ -2494,6 +2523,9 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         "hero_variant": hero_variant,
         "marketing_cta_variant": marketing_cta_variant,
         "demo_tenant_url": demo_tenant_url,
+        "demo_what_you_see": getattr(settings, "MARKETING_DEMO_WHAT_YOU_SEE", None) or [],
+        "marketing_product_tour_url": getattr(settings, "MARKETING_PRODUCT_TOUR_URL", None) or "",
+        "marketing_newsletter_form_action": getattr(settings, "MARKETING_NEWSLETTER_FORM_ACTION", None) or "",
         "marketing_analytics_script_url": marketing_analytics_script_url,
         "marketing_analytics_preconnect_origin": marketing_analytics_preconnect_origin,
         "SHOW_HEADER_CONTEXT_STRIP": False,
@@ -2540,6 +2572,11 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         "illustration_workflow_url": illustration_workflow_url,
         "illustration_globe_url": illustration_globe_url,
         "illustration_students_url": illustration_students_url,
+        "platform_architecture_diagram_url": platform_architecture_diagram_url,
+        "migration_cloud_diagram_url": migration_cloud_diagram_url,
+        "school_in_a_box_flow_image_url": school_in_a_box_flow_image_url,
+        "data_intelligence_loop_image_url": data_intelligence_loop_image_url,
+        "ecosystem_map_image_url": ecosystem_map_image_url,
         "ai_intelligence_features": ai_intelligence_features,
         "ai_intelligence_cta_path": ai_intelligence_cta_path,
         "customer_logos": customer_logos,

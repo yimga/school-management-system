@@ -55,6 +55,26 @@ python manage.py check
 python manage.py test --verbosity=1 --parallel 4
 ```
 
+## Marketing (72 non-negotiables)
+
+Per [MARKETING_NON_NEGOTIABLES.md](MARKETING_NON_NEGOTIABLES.md), run before release or in CI:
+
+```bash
+python manage.py validate_marketing_urls
+python manage.py validate_marketing_urls --smoke
+```
+
+- **validate_marketing_urls:** Django `check` + resolution of 14 marketing URL names.
+- **--smoke:** GETs 6 key routes (landing, book-demo, 10-reasons, integrations, app-marketplace, developers) with `HTTP_HOST=runmycampus.com` and expects 200.
+
+Automated tests (same coverage; require DB and migrations):
+
+```bash
+python manage.py test apps.schools.tests.test_marketing_validation -v 2
+```
+
+Covers: URL resolution for all 14 names, smoke GET 200 for 6 key URLs, landing context contains required visual keys (`migration_studio_image_url`, `platform_architecture_diagram_url`, `school_in_a_box_flow_image_url`, `data_intelligence_loop_image_url`, `product_visualization_slides`), platform and products-analytics pages have `page_extras`, onboard wizard returns 200.
+
 ## Django check
 
 Always safe to run; no tests, no DB writes:

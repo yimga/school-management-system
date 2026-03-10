@@ -1,6 +1,6 @@
 # Marketing — category-defining execution
 
-**Goal:** Marketing is decoupled from app shell; content and footer/header decoupled from product chrome; SEO and performance budgets; optional experimentation.
+**Goal:** Marketing is decoupled from app shell; content and footer/header decoupled from product chrome; SEO and performance budgets; required experimentation (A/B).
 
 ## Shell and assets
 
@@ -15,8 +15,8 @@
 ## SEO and performance
 
 - **SEO:** Add meta title, description, and structured data to all marketing and regional landing pages. Sitemap and robots.txt for public marketing.
-- **Performance:** Lazy load below-fold assets; critical CSS for above-fold; optional bundle size budget for marketing JS/CSS (e.g. Lighthouse or CI step).
-- **Experimentation:** Optional A/B or feature-flag hook (e.g. experiment_id in template or config) for marketing copy; implement when needed.
+- **Performance:** Lazy load below-fold assets; critical CSS for above-fold; required bundle size budget for marketing JS/CSS (e.g. Lighthouse or CI step).
+- **Experimentation:** Required A/B or feature-flag hook (e.g. experiment_id in template or config); hero_variant and marketing_cta_variant implemented; document variant flags in marketing docs.
 
 ## References
 

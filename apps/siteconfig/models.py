@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from decimal import Decimal
 import logging
@@ -1126,14 +1126,13 @@ class SiteSettings(models.Model):
         default='show_both'
     )
 
-    # Compliance profile (finance/payroll)
-    compliance_profile = models.ForeignKey(
-        "finance.ComplianceProfile",
-        on_delete=models.SET_NULL,
+    # Compliance profile (finance/payroll). Store the tenant model PK only so the
+    # shared SiteSettings row does not carry a tenant ORM relation in schema mode.
+    compliance_profile_id = models.PositiveBigIntegerField(
         null=True,
         blank=True,
-        db_constraint=False,
-        related_name="site_settings",
+        db_column="compliance_profile_id",
+        editable=False,
     )
     
     # ===== NEW: FINANCE AUTOMATION =====
@@ -1606,6 +1605,36 @@ class SiteSettings(models.Model):
             normalized_update_fields.update(cleared_fields)
             kwargs["update_fields"] = list(normalized_update_fields)
         super().save(*args, **kwargs)
+
+    @property
+    def compliance_profile(self):
+        profile_id = getattr(self, "compliance_profile_id", None)
+        if not profile_id:
+            self._state.fields_cache["compliance_profile"] = None
+            return None
+        cached = self._state.fields_cache.get("compliance_profile")
+        if cached is not None and getattr(cached, "pk", None) == profile_id:
+            return cached
+        try:
+            compliance_model = django_apps.get_model("finance", "ComplianceProfile")
+        except LookupError:
+            return None
+        try:
+            profile = compliance_model.objects.filter(pk=profile_id).first()
+        except (OperationalError, DatabaseError):
+            return None
+        self._state.fields_cache["compliance_profile"] = profile
+        return profile
+
+    @compliance_profile.setter
+    def compliance_profile(self, value):
+        if value is None:
+            self.compliance_profile_id = None
+            self._state.fields_cache["compliance_profile"] = None
+            return
+        profile_id = getattr(value, "pk", value)
+        self.compliance_profile_id = profile_id or None
+        self._state.fields_cache["compliance_profile"] = value if getattr(value, "pk", None) else None
 
     @property
     def active_theme(self) -> "ThemePack | None":
@@ -2226,25 +2255,7 @@ class ReportCardStyle(models.Model):
         return bool(value) if value is not None else bool(default)
 
 
-class ReportCardStyleAssignment(models.Model):
-    classroom = models.OneToOneField(
-        Classroom,
-        on_delete=models.CASCADE,
-        db_constraint=False,
-        related_name="report_card_style_assignment",
-    )
-    style = models.ForeignKey(
-        ReportCardStyle,
-        on_delete=models.PROTECT,
-        related_name="assignments",
-    )
-
-    class Meta:
-        ordering = ["classroom__name"]
-
-    def __str__(self):
-        return f"{self.classroom} → {self.style.name}"
-
+from apps.academics.models import ReportCardStyleAssignment  # noqa: E402,F401
 
 def get_report_card_style_for_student(student: StudentProfile, report_type: str) -> ReportCardStyle | None:
     if not student or not student.classroom:
@@ -3704,69 +3715,7 @@ class GradingScaleConfig(models.Model):
             return 'F'
 
 
-class HolidayCalendar(models.Model):
-    """
-    Store holidays and important dates per region and academic year.
-    Controls when school is closed and affects attendance tracking.
-    """
-    from apps.academics.models import AcademicYear
-    
-    HOLIDAY_TYPE_CHOICES = [
-        ('school_holiday', 'School Holiday'),
-        ('public_holiday', 'Public Holiday'),
-        ('exam_period', 'Exam Period'),
-        ('religious', 'Religious Holiday'),
-        ('special_event', 'Special Event'),
-    ]
-    
-    region = models.ForeignKey(
-        RegionConfig, 
-        on_delete=models.CASCADE, 
-        related_name='holidays',
-        help_text="Region this holiday applies to"
-    )
-    academic_year = models.ForeignKey(
-        'academics.AcademicYear',
-        on_delete=models.CASCADE, 
-        db_constraint=False,
-        related_name='holidays_by_region',
-        help_text="Academic year for this holiday"
-    )
-    
-    name = models.CharField(
-        max_length=200,
-        help_text="Holiday name (e.g., 'Christmas Break', 'Eid al-Fitr')"
-    )
-    date_start = models.DateField(help_text="Holiday start date")
-    date_end = models.DateField(help_text="Holiday end date (inclusive)")
-    
-    holiday_type = models.CharField(
-        max_length=50, 
-        choices=HOLIDAY_TYPE_CHOICES,
-        help_text="Type of holiday"
-    )
-    
-    is_working_day = models.BooleanField(
-        default=False,
-        help_text="Some regions work during certain holidays (e.g., religious holidays)"
-    )
-    
-    description = models.TextField(blank=True, help_text="Holiday description")
-    
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
-    class Meta:
-        unique_together = ('region', 'academic_year', 'name')
-        ordering = ['date_start']
-    
-    def __str__(self):
-        return f"{self.region.code} - {self.name} ({self.date_start.year})"
-    
-    def overlaps_date(self, date):
-        """Check if a specific date falls within this holiday."""
-        return self.date_start <= date <= self.date_end
-
+from apps.academics.models import HolidayCalendar  # noqa: E402,F401
 
 class WeatherLocation(models.Model):
     """
@@ -4615,3 +4564,4 @@ class DynamicFieldValue(models.Model):
 post_save.connect(_refresh_site_settings_cache, sender=SiteSettings)
 post_save.connect(_emit_global_change_alert, sender=SiteSettings)
 post_delete.connect(_clear_site_settings_cache, sender=SiteSettings)
+

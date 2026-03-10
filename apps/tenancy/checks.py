@@ -25,10 +25,8 @@ SCHEMA_TENANT_ONLY_APPS = {
     "apps.analytics",
     "apps.payroll",
     "apps.school_events",
+    "apps.schoolops",
 }
-
-LEGACY_MIXED_SHARED_APPS = {"accounts", "schools", "siteconfig"}
-
 
 @register()
 def tenancy_strategy_checks(app_configs, **kwargs):
@@ -138,8 +136,6 @@ def shared_model_tenant_constraint_checks(app_configs, **kwargs):
     for model in django_apps.get_models():
         if model._meta.app_label not in shared_apps:
             continue
-        if model._meta.app_label not in LEGACY_MIXED_SHARED_APPS:
-            continue
         for field in list(model._meta.local_fields) + list(model._meta.local_many_to_many):
             if not getattr(field, "is_relation", False):
                 continue
@@ -153,12 +149,12 @@ def shared_model_tenant_constraint_checks(app_configs, **kwargs):
                 errors.append(
                     Error(
                         (
-                            f"Schema mode has a DB-constrained shared-to-tenant relation: "
+                            f"Schema mode has a shared-to-tenant relation: "
                             f"{model._meta.label}.{field.name} -> {related_model._meta.label}."
                         ),
                         hint=(
-                            "Mixed shared apps must use db_constraint=False for tenant-app relations "
-                            "until the model is fully extracted into a tenant app."
+                            "Shared-app models must not point at tenant-app models. "
+                            "Replace the relation with a tenant-safe pointer/value object, or move the model into a tenant app."
                         ),
                         id="tenancy.E007",
                     )
