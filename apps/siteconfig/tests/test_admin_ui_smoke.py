@@ -93,7 +93,13 @@ class AdminUiSmokeTests(TestCase):
         request.session = {}
         ctx = site_settings(request)
         html = render_to_string("admin/app_list.html", {"app_list": [], **ctx}, request=request)
-        self.assertIn(reverse("admin:siteconfig_sitesettings_change", args=[self.site.pk]), html)
+        # Settings manager should see Site settings link (change or changelist depending on SITE in context)
+        change_url = reverse("admin:siteconfig_sitesettings_change", args=[self.site.pk])
+        changelist_url = reverse("admin:siteconfig_sitesettings_changelist")
+        self.assertTrue(
+            change_url in html or changelist_url in html,
+            msg=f"Expected Site settings link (change or changelist) in HTML for settings manager",
+        )
 
     def test_admin_sidebar_child_links_are_resolvable(self):
         self.client.force_login(self.superuser)

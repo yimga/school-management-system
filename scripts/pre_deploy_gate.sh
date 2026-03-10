@@ -6,6 +6,12 @@ set -euo pipefail
 echo "[pre_deploy_gate] No committed .env / .env.local"
 bash scripts/check_no_committed_env.sh
 
+echo "[pre_deploy_gate] Repo hygiene (no conflict markers, backup files)"
+python scripts/check_repo_hygiene.py
+
+echo "[pre_deploy_gate] Bounded context imports (tenant vs control-plane)"
+python scripts/lint_bounded_context_imports.py --strict
+
 echo "[pre_deploy_gate] No print() in application code"
 python scripts/lint_no_print_in_apps.py
 

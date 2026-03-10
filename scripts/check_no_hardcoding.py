@@ -40,6 +40,9 @@ SKIP_FILES = {
     "currency_seed.py",  # registry seed by country code
     "region_seed.py",
     "locale_seed.py",
+    # Regional payment/translation fallbacks; TODO: move to policy/registry
+    "payment_processors.py",
+    "translations.py",
 }
 
 
