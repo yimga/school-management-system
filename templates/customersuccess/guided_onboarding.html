@@ -1,31 +1,81 @@
 {% extends "backend_base.html" %}
 {% load i18n %}
-{% block backend_title %}{% trans "Guided onboarding" %}{% endblock %}
+{% block backend_title %}{% trans "Setup Studio" %}{% endblock %}
 {% block content %}
-<div class="container-fluid py-4">
-  <div class="card shadow-sm">
-    <div class="card-header">{% trans "Guided onboarding" %}</div>
-    <div class="card-body">
-      <p class="text-muted small">Section 11.4: Complete these steps to get your school set up.</p>
-      <ul class="list-group list-group-flush">
-        {% for step in steps %}
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-          {% if step.done %}
-          <span class="text-success">✓ {{ step.label }}</span>
-          {% else %}
-          <span>{{ step.label }}</span>
-          {% endif %}
-          {% if not step.done and step.link %}
-          <a href="{{ step.link }}" class="btn btn-sm btn-primary">{% trans "Do it" %}</a>
-          {% elif step.done %}
-          <span class="badge bg-success">{% trans "Done" %}</span>
-          {% endif %}
-        </li>
-        {% empty %}
-        <li class="list-group-item text-muted">{% trans "No steps configured." %}</li>
-        {% endfor %}
-      </ul>
-    </div>
+<div class="container-fluid py-4 setup-studio-shell">
+  <div class="row g-4">
+    {# Left: progress rail #}
+    <aside class="col-lg-3">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-light">
+          <h5 class="mb-0">{% trans "Setup progress" %}</h5>
+        </div>
+        <div class="card-body py-3">
+          {% with done_count=0 %}
+          {% for step in steps %}
+            <div class="d-flex align-items-center gap-2 py-2 border-bottom border-light">
+              {% if step.done %}
+                <span class="text-success flex-shrink-0" aria-hidden="true">✓</span>
+                <span class="text-muted small">{{ step.label }}</span>
+              {% else %}
+                <span class="text-muted flex-shrink-0" aria-hidden="true">○</span>
+                <span class="small">{{ step.label }}</span>
+              {% endif %}
+            </div>
+          {% empty %}
+            <p class="text-muted small mb-0">{% trans "No steps configured." %}</p>
+          {% endfor %}
+          {% endwith %}
+        </div>
+      </div>
+    </aside>
+    {# Center: current step / step list #}
+    <main class="col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <h5 class="mb-0">{% trans "Setup Studio" %}</h5>
+          <span class="badge bg-primary">{% trans "Get your school ready" %}</span>
+        </div>
+        <div class="card-body">
+          <p class="text-muted small mb-4">{% trans "Complete these steps to get your school set up. Each action opens the right place to finish the step." %}</p>
+          <ul class="list-group list-group-flush">
+            {% for step in steps %}
+              <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                {% if step.done %}
+                  <span class="text-success">✓ {{ step.label }}</span>
+                  <span class="badge bg-success">{% trans "Done" %}</span>
+                {% else %}
+                  <span>{{ step.label }}</span>
+                  {% if step.link %}
+                    <a href="{{ step.link }}" class="btn btn-sm btn-primary">{% trans "Do it" %}</a>
+                  {% else %}
+                    <span class="text-muted small">—</span>
+                  {% endif %}
+                {% endif %}
+              </li>
+            {% empty %}
+              <li class="list-group-item text-muted">{% trans "No steps configured." %}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="card-footer bg-light d-flex justify-content-between align-items-center">
+          <a href="{% url 'accounts:backend_dashboard' %}" class="btn btn-outline-secondary btn-sm">{% trans "Back to dashboard" %}</a>
+          <span class="text-muted small">{% trans "Recommended next: complete the first incomplete step above." %}</span>
+        </div>
+      </div>
+    </main>
+    {# Right: preview / tips #}
+    <aside class="col-lg-3">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-light">
+          <h6 class="mb-0">{% trans "Tips" %}</h6>
+        </div>
+        <div class="card-body">
+          <p class="small text-muted mb-2">{% trans "Setup in order for best results: academic year first, then classrooms and people, then grading and reports." %}</p>
+          <p class="small text-muted mb-0">{% trans "You can return to this page anytime from the dashboard or Backend to see your progress." %}</p>
+        </div>
+      </div>
+    </aside>
   </div>
 </div>
 {% endblock %}

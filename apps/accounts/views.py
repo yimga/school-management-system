@@ -26,6 +26,7 @@ from apps.academics.services import get_active_year_and_term
 from apps.academics.services_year_setup import clone_academic_year
 from apps.accounts.decorators import permission_required
 from apps.dashboard.context import build_dashboard_extras
+from apps.dashboard.recommendation_service import get_recommended_next_steps
 from apps.siteconfig.templatetags.admin_health import admin_section_stats
 from apps.siteconfig.templatetags.admin_kpis import admin_kpis
 from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata, DashboardWidget
@@ -1609,31 +1610,9 @@ def backend_dashboard(request):
     total_students = max(stats.get("students", 0), 1)
     at_risk_ratio_pct = int(round((len(at_risk_students) / total_students) * 100))
 
-    # Workflow progress and recommended next steps for dashboard
+    # Workflow progress and recommended next steps for dashboard (recommendation service)
     workflow_progress = _workflow_progress(year)
-    recommended_next_steps = []
-    try:
-        # Backend dashboard: keep navigation in backend; only Configuration Engine links to /admin
-        if not year:
-            recommended_next_steps.append({"label": "Set up academic year", "url": reverse("accounts:workflow_center"), "icon": "bi-calendar-event"})
-        else:
-            if workflow_progress.get("classrooms", 0) == 0:
-                recommended_next_steps.append({"label": "Create classrooms", "url": reverse("accounts:workflow_center"), "icon": "bi-door-open"})
-            if workflow_progress.get("students", 0) == 0:
-                try:
-                    recommended_next_steps.append({"label": "Add student", "url": reverse("accounts:backend_student_create"), "icon": "bi-person-plus"})
-                except Exception:
-                    recommended_next_steps.append({"label": "Add student", "url": reverse("admin:index"), "icon": "bi-person-plus"})
-            if workflow_progress.get("teachers", 0) == 0:
-                try:
-                    recommended_next_steps.append({"label": "Add teacher", "url": reverse("accounts:backend_teacher_create"), "icon": "bi-person-badge"})
-                except Exception:
-                    recommended_next_steps.append({"label": "Add teacher", "url": reverse("admin:index"), "icon": "bi-person-badge"})
-        if not recommended_next_steps:
-            recommended_next_steps.append({"label": "Workflow Center", "url": reverse("accounts:workflow_center"), "icon": "bi-diagram-3"})
-            recommended_next_steps.append({"label": "Publish results", "url": reverse("reports:publish_term_results"), "icon": "bi-award"})
-    except Exception:
-        recommended_next_steps = [{"label": "Workflow Center", "url": reverse("accounts:workflow_center"), "icon": "bi-diagram-3"}]
+    recommended_next_steps = get_recommended_next_steps(workflow_progress, year=year, max_steps=5)
 
     backend_main_module_count = sum(
         1
