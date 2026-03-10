@@ -17,9 +17,11 @@ class SiteconfigConfig(AppConfig):
             from . import models_workflow  # noqa: F401
         except Exception:
             pass
-        # Import signals for audit logging
+        # Import signals for audit logging and pack assignment -> PackageEngine
         try:
             from . import signals  # noqa: F401
+            from .signals import _connect_pack_assignment_signals
+            _connect_pack_assignment_signals()
         except Exception:
             pass
         # Default Django admin site only; manager and tenant urlconfs use config.admin.admin_site

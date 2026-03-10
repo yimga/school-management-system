@@ -57,3 +57,54 @@ def sync_school_features_on_tenant_system(sender, instance, **kwargs):
                 sync_tenant_modules_to_school_features(school, persist=True)
     except Exception as e:
         logger.debug("sync_tenant_modules_to_school_features after TenantSystem change: %s", e)
+
+
+# Metadata plan todo 8: route workflow/dashboard pack install through PackageEngine
+def _on_workflow_pack_assignment_save(sender, instance, created, **kwargs):
+    if not created:
+        return
+    try:
+        pack = getattr(instance, "workflow_pack", None)
+        if not pack:
+            return
+        from apps.packages.engine import PackageEngine
+        school_id = getattr(instance, "school_id", None)
+        PackageEngine.apply_package(
+            tenant_id=school_id,
+            package_id=getattr(pack, "code", "") or str(pack.pk),
+            version=getattr(pack, "version", "1") or "1",
+            payload_sections={"workflow": {"module_slug": getattr(instance, "module_slug", "")}},
+            mode="production",
+        )
+    except Exception as e:
+        logger.debug("PackageEngine after WorkflowPackAssignment: %s", e)
+
+
+def _on_dashboard_pack_assignment_save(sender, instance, created, **kwargs):
+    if not created:
+        return
+    try:
+        pack = getattr(instance, "dashboard_pack", None)
+        if not pack:
+            return
+        from apps.packages.engine import PackageEngine
+        school_id = getattr(instance, "school_id", None)
+        PackageEngine.apply_package(
+            tenant_id=school_id,
+            package_id=getattr(pack, "code", "") or str(pack.pk),
+            version=getattr(pack, "version", "1") or "1",
+            payload_sections={"dashboard": {"role": getattr(instance, "role", "")}},
+            mode="production",
+        )
+    except Exception as e:
+        logger.debug("PackageEngine after DashboardPackAssignment: %s", e)
+
+
+def _connect_pack_assignment_signals():
+    try:
+        from .models_workflow import WorkflowPackAssignment
+        from .models_dashboard import DashboardPackAssignment
+        post_save.connect(_on_workflow_pack_assignment_save, sender=WorkflowPackAssignment, weak=False)
+        post_save.connect(_on_dashboard_pack_assignment_save, sender=DashboardPackAssignment, weak=False)
+    except Exception:
+        pass

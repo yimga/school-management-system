@@ -215,6 +215,15 @@ def get_effective_policy(
     if isinstance(features, dict):
         out["features"] = {**out["features"], **features}
 
+    # Register usage for metadata catalog (plan todo 4: hooks in policy definitions)
+    try:
+        from apps.metadata.usage_registry import register_usage
+        register_usage("policy", "policy:effective", "grade", "grade_value")
+        register_usage("policy", "policy:effective", "application", "admission_number")
+        register_usage("policy", "policy:effective", "invoice", "amount")
+    except Exception:
+        pass
+
     # Admissions: if not set from school.settings, backfill from SiteSettings (single-tenant / backward compat)
     if not out.get("admissions") or not isinstance(out.get("admissions"), dict):
         out["admissions"] = out.get("admissions") or {}

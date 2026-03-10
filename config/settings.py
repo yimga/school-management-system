@@ -147,6 +147,9 @@ INSTALLED_APPS = [
     "apps.runtime_blueprints.apps.RuntimeBlueprintsConfig",
     "apps.policies_rules.apps.PoliciesRulesConfig",
     "apps.plans_entitlements.apps.PlansEntitlementsConfig",
+    "apps.global_registries.apps.GlobalRegistriesConfig",
+    "apps.integrations_marketplace.apps.IntegrationsMarketplaceConfig",
+    "apps.setup_studio.apps.SetupStudioConfig",
     "emis",
     # Celery result/beat (optional: used when REDIS_URL is set for background tasks)
     "django_celery_results",

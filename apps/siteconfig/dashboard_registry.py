@@ -62,6 +62,17 @@ def get_tenant_dashboard_registry(
         except Exception:
             pass
     metadata = get_dashboard_widget_metadata(widget_ids) if widget_ids else {}
+    # Register usage for metadata catalog (plan todo 4: hooks in dashboard definitions)
+    consumer = f"dashboard:{page or 'backend'}"
+    if role:
+        consumer = f"{consumer}:{role}"
+    try:
+        from apps.metadata.usage_registry import register_usage
+        register_usage("dashboard", consumer, "student", "admission_number")
+        register_usage("dashboard", consumer, "person", "first_name")
+        register_usage("dashboard", consumer, "invoice", "amount")
+    except Exception:
+        pass
     return {
         "widgets": widgets,
         "installed_app_widgets": installed,

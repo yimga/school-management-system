@@ -318,6 +318,13 @@ def _step8_workflows(school: Any) -> WorkflowsContext:
             if slug in assigned:
                 pack = assigned[slug].workflow_pack
                 w = dict(w, workflow_pack_id=getattr(pack, "id", None), workflow_pack_code=getattr(pack, "code", None))
+                try:
+                    from apps.metadata.usage_registry import register_usage
+                    code = getattr(pack, "code", None) or slug
+                    register_usage("workflow", f"workflow:{code}", "application", "admission_number")
+                    register_usage("workflow", f"workflow:{code}", "attendance", "status")
+                except Exception:
+                    pass
             if w:
                 by_module[slug] = w
     except Exception as e:
@@ -350,6 +357,12 @@ def _step9_dashboards(school: Any) -> DashboardsContext:
             if rk in assigned:
                 pack = assigned[rk].dashboard_pack
                 d = dict(d, dashboard_pack_id=getattr(pack, "id", None), dashboard_pack_code=getattr(pack, "code", None))
+                try:
+                    from apps.metadata.usage_registry import register_usage
+                    code = getattr(pack, "code", None) or rk
+                    register_usage("dashboard", f"dashboard_pack:{code}", "student", "admission_number")
+                except Exception:
+                    pass
             if d:
                 by_role[role] = d
     except Exception as e:

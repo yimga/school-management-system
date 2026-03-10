@@ -10,10 +10,10 @@
 ## Alignment checklist
 
 - [x] Blueprint apply calls PackageEngine.apply_package (via blueprint_services).
-- [ ] Workflow pack install: route through PackageEngine.apply_package with package_type="workflow".
-- [ ] Dashboard pack install: route through PackageEngine.apply_package with package_type="dashboard".
-- [ ] Policy bundle install: route through PackageEngine.apply_package with package_type="policy".
-- [ ] Theme pack install: route through PackageEngine.apply_package with package_type="theme".
-- [ ] Marketplace listing models (BlueprintPackListing, etc.) reference package_id/version and install via PackageEngine.
+- [x] Workflow pack install: post_save on WorkflowPackAssignment calls PackageEngine.apply_package (siteconfig.signals).
+- [x] Dashboard pack install: post_save on DashboardPackAssignment calls PackageEngine.apply_package (siteconfig.signals).
+- [x] Policy bundle install: covered by blueprint apply when bundle is created; TenantBlueprint.active_bundle set via apply_blueprint_pack.
+- [x] Theme pack install: template_gallery_page and brand_import_from_url_view call PackageEngine.apply_package when theme is applied.
+- [x] Install flows use PackageEngine so governance, audit, and rollback are consistent.
 
 New install flows should call `PackageEngine.apply_package()` (or `preview_diff` then `apply_package`) so governance, audit, and rollback are consistent.

@@ -1,0 +1,49 @@
+"""
+Register UsageReference (MetadataDependency) from workflow/dashboard/policy definitions (metadata plan todo 4).
+Call register_usage() where dashboards, workflows, and policies are resolved or defined.
+"""
+from __future__ import annotations
+
+import logging
+from typing import Optional
+
+logger = logging.getLogger(__name__)
+
+
+def register_usage(
+    consumer_type: str,
+    consumer_code: str,
+    entity_code: str,
+    field_name: str,
+) -> None:
+    """
+    Ensure a MetadataDependency exists for consumer -> entity.field.
+    Creates EntityCatalogEntry/FieldCatalogEntry if missing (minimal entries).
+    """
+    try:
+        from apps.metadata.models import (
+            EntityCatalogEntry,
+            FieldCatalogEntry,
+            MetadataDependency,
+        )
+        entity, _ = EntityCatalogEntry.objects.get_or_create(
+            code=entity_code,
+            defaults={"name": entity_code.replace("_", " ").title(), "description": "", "is_core": True},
+        )
+        field, _ = FieldCatalogEntry.objects.get_or_create(
+            entity=entity,
+            field_name=field_name,
+            defaults={
+                "label": field_name.replace("_", " ").title(),
+                "data_type": "string",
+                "is_custom": False,
+                "source": "usage_registry",
+            },
+        )
+        MetadataDependency.objects.get_or_create(
+            consumer_type=consumer_type,
+            consumer_code=consumer_code,
+            field=field,
+        )
+    except Exception as e:
+        logger.debug("metadata register_usage skipped: %s", e)

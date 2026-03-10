@@ -110,6 +110,19 @@ def fetch_and_parse_brand_url(url: str, timeout: int = DEFAULT_TIMEOUT) -> dict:
         logger.warning("Brand import parse failed: %s", e)
         result["error"] = "Could not read page. Use manual upload instead."
 
+    # Suggest a theme pack (metadata plan todo 7: brand import assistant).
+    try:
+        from django.apps import apps
+        if apps.is_installed("siteconfig"):
+            ThemePack = apps.get_model("siteconfig", "ThemePack")
+            default = ThemePack.objects.filter(is_active=True).order_by("-is_default", "name").first()
+            if default:
+                result["suggested_theme_pack_slug"] = getattr(default, "slug", None) or ""
+                result["suggested_theme_pack_name"] = getattr(default, "name", None) or ""
+    except Exception:
+        result["suggested_theme_pack_slug"] = None
+        result["suggested_theme_pack_name"] = None
+
     return result
 
 

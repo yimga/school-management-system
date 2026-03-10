@@ -1224,7 +1224,30 @@ def brand_import_from_url_view(request):
         if result.get("site_name"):
             site.site_name = result["site_name"][:120]
         site.save(update_fields=["primary_color", "site_name"])
-        messages.success(request, "Brand details applied. Refine colors and logo below if needed.")
+        # Apply suggested theme pack if user requested (metadata plan todo 7: brand import assistant).
+        apply_theme = request.POST.get("apply_theme") in ("1", "true", "on")
+        if apply_theme and result.get("suggested_theme_pack_slug"):
+            pack = ThemePack.objects.filter(slug=result["suggested_theme_pack_slug"], is_active=True).first()
+            if pack:
+                site.apply_theme_pack(pack, save=True)
+                try:
+                    from apps.packages.engine import PackageEngine
+                    school = getattr(request, "school", None)
+                    PackageEngine.apply_package(
+                        tenant_id=getattr(school, "id", None),
+                        package_id=pack.slug,
+                        version=getattr(pack, "version", "1") or "1",
+                        payload_sections={"theme": {"name": pack.name}},
+                        mode="production",
+                        actor_id=getattr(request.user, "id", None) if getattr(request, "user", None) else None,
+                    )
+                except Exception:
+                    pass
+                messages.success(request, f'Theme "{pack.name}" applied. Refine colors below if needed.')
+            else:
+                messages.success(request, "Brand details applied. Refine colors and logo below if needed.")
+        else:
+            messages.success(request, "Brand details applied. Refine colors and logo below if needed.")
     else:
         messages.info(request, "Brand fetched; create or save site settings to apply.")
     return redirect(reverse("siteconfig:theme_colors"))
@@ -1246,6 +1269,19 @@ def template_gallery_page(request):
             pack = ThemePack.objects.filter(slug=slug, is_active=True).first()
             if pack and site.pk:
                 site.apply_theme_pack(pack, save=True)
+                try:
+                    from apps.packages.engine import PackageEngine
+                    school = getattr(request, "school", None)
+                    PackageEngine.apply_package(
+                        tenant_id=getattr(school, "id", None),
+                        package_id=pack.slug,
+                        version=getattr(pack, "version", "1") or "1",
+                        payload_sections={"theme": {"name": pack.name}},
+                        mode="production",
+                        actor_id=getattr(request.user, "id", None) if getattr(request, "user", None) else None,
+                    )
+                except Exception:
+                    pass
                 messages.success(request, f'Template "{pack.name}" applied. You can refine colors in Theme & Experience.')
         return redirect(reverse("siteconfig:theme_colors"))
     theme_colors_url = reverse("siteconfig:theme_colors")
