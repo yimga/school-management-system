@@ -3,6 +3,12 @@
 # Exit 0 only if all pass. Run before deploy or in CI.
 set -euo pipefail
 
+echo "[pre_deploy_gate] No committed .env / .env.local"
+bash scripts/check_no_committed_env.sh
+
+echo "[pre_deploy_gate] No print() in application code"
+python scripts/lint_no_print_in_apps.py
+
 echo "[pre_deploy_gate] Django check"
 python manage.py check
 

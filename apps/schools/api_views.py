@@ -2,6 +2,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
+from rest_framework import status
 
 
 def _offline_enabled_for_request(request):
@@ -23,10 +24,24 @@ class SchoolConfigAPI(APIView):
     """
     GET /api/config — returns current school branding and features from request host.
     Used by SPA/mobile when not using server-rendered context.
+    Rate-limited per IP to avoid abuse (see ALLOWANY_API_AUDIT.md).
     """
     permission_classes = [AllowAny]
 
     def get(self, request):
+        from apps.api.rate_limit import throttle_ip_request
+        allowed, retry_after = throttle_ip_request(
+            request,
+            scope="school_config_api",
+            max_count=120,
+            window_seconds=60,
+        )
+        if not allowed:
+            return Response(
+                {"detail": "Request limit exceeded. Retry later."},
+                status=status.HTTP_429_TOO_MANY_REQUESTS,
+                headers={"Retry-After": str(retry_after)},
+            )
         school = getattr(request, "school", None)
         if not school:
             from apps.platform_runtime.helpers import get_effective_site_settings

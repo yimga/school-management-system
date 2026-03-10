@@ -7,6 +7,7 @@ import logging
 from typing import Any, Dict, Optional
 
 from apps.siteconfig.identifier_policy_service import default_school_code_for
+from apps.platform_runtime.helpers import get_effective_site_settings
 
 logger = logging.getLogger(__name__)
 
@@ -219,8 +220,10 @@ def get_effective_policy(
         out["admissions"] = out.get("admissions") or {}
     if not any(k in out["admissions"] for k in ("admission_number_mode", "admission_number_strategy", "school_code")):
         try:
-            from apps.siteconfig.models import SiteSettings
-            site = SiteSettings.get_solo()
+            site = get_effective_site_settings(school=school)
+            if site is None:
+                from apps.siteconfig.models import SiteSettings
+                site = SiteSettings.get_solo()
             out["admissions"] = {
                 **out["admissions"],
                 "admission_number_mode": getattr(site, "admission_number_mode", "AUTO_OR_MANUAL") or "AUTO_OR_MANUAL",
@@ -257,8 +260,11 @@ def get_effective_policy(
         out["grade_approval"] = out.get("grade_approval") or {}
     if not any(k in out["grade_approval"] for k in ("grade_post_roles", "grade_approval_roles")):
         try:
-            from apps.siteconfig.models import SiteSettings, default_grade_approval_roles, default_grade_post_roles
-            site = SiteSettings.get_solo()
+            from apps.siteconfig.models import default_grade_approval_roles, default_grade_post_roles
+            site = get_effective_site_settings(school=school)
+            if site is None:
+                from apps.siteconfig.models import SiteSettings
+                site = SiteSettings.get_solo()
             out["grade_approval"] = {
                 **out["grade_approval"],
                 "grade_post_roles": getattr(site, "grade_post_roles", None) or default_grade_post_roles(),

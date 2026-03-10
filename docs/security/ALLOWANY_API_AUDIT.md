@@ -14,7 +14,7 @@
 
 | App | View / endpoint | permission_classes | Tag | Notes |
 |-----|-----------------|---------------------|-----|-------|
-| apps/schools/api_views.py | SchoolConfigAPI | AllowAny | Public SPA/config | GET /api/config — returns school branding/features by request host. No auth; used by SPA/mobile. Response: schoolName, logoUrl, primaryColor, accentColor, features, offlineEnabled. **Verdict:** Keep; add rate limit (e.g. per-IP). No sensitive data. |
+| apps/schools/api_views.py | SchoolConfigAPI | AllowAny | Public SPA/config | GET /api/config — returns school branding/features by request host. No auth; used by SPA/mobile. Response: schoolName, logoUrl, primaryColor, accentColor, features, offlineEnabled. **Verdict:** Keep. **Rate limit implemented:** 120 req/min per IP (scope `school_config_api`); 429 + Retry-After when exceeded. No sensitive data. |
 
 ## Other APIs checked
 

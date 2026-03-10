@@ -15,6 +15,11 @@ class Command(BaseCommand):
         parser.add_argument("--use-admin-user", action="store_true")
 
     def handle(self, *args, **options):
+        self.stdout.write(
+            self.style.WARNING(
+                "ensure_gilead_admin is deprecated. Use: python manage.py ensure_default_tenant_admin"
+            )
+        )
         kwargs = {"verbosity": options.get("verbosity", 1)}
         if options.get("slug"):
             kwargs["slug"] = options["slug"]

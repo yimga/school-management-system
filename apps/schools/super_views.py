@@ -1362,13 +1362,16 @@ def super_migration_profile_registry(request):
     for key, grp in groupby(profiles, key=lambda p: (p.source_system or "generic", p.profile_category or "uncategorized")):
         source_system, profile_category = key
         groups.append((source_system, profile_category, list(grp)))
+    migration_cloud_url = reverse("super:migration_cloud")
     return render(
         request,
         "schools/super_migration_profile_registry.html",
         {
             "registry_groups": groups,
-            "migration_cloud_url": reverse("super:migration_cloud"),
+            "migration_cloud_url": migration_cloud_url,
             "dashboard_url": reverse("super:dashboard"),
+            "profiles_total": len(profiles),
+            "groups_count": len(groups),
         },
     )
 

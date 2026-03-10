@@ -1,5 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% load static i18n %}
+{% comment %}Operational workbench: status bar, filter, work queue, primary action per row. See docs/ui/OPERATIONAL_WORKBENCH.md.{% endcomment %}
 
 {% block cp_title %}Migration Profile Registry{% endblock %}
 
@@ -7,28 +8,41 @@
   <div class="container-fluid py-4">
     {% include "partials/page_families/title_block.html" with title="Migration Profile Registry" subtitle="Profiles grouped by source system and category. Use the Migration Cloud to run imports." action_url=migration_cloud_url action_label="Migration Cloud" return_to_origin=1 %}
 
-    <div class="card shadow-sm border-0 page-family-content-card mb-4">
-      <div class="card-body">
-        <p class="text-muted small mb-0">
-          <a href="{% url 'super:migration_cloud' %}">Migration Cloud</a> &rarr; Registry. See <a href="/docs/RunMyCampus_Migration_Cloud_Complete_System_Blueprint.md">Migration Cloud Blueprint</a> for the full profile library.
-        </p>
-      </div>
+    {% comment %}1. Top status bar — counts and Refresh{% endcomment %}
+    <div class="d-flex flex-wrap align-items-center gap-3 mb-3 py-2 border-bottom page-family-content-card">
+      <span class="text-muted small">
+        <strong>{{ profiles_total|default:0 }}</strong> profile{{ profiles_total|pluralize }}
+        <span class="mx-1">•</span>
+        <strong>{{ groups_count|default:0 }}</strong> group{{ groups_count|pluralize }}
+      </span>
+      <a href="{{ request.path }}" class="btn btn-sm btn-outline-secondary">{% trans "Refresh" %}</a>
     </div>
 
+    {% comment %}2. Filter / search — single row; scope by source/category via expandable list{% endcomment %}
+    <div class="mb-3">
+      <p class="text-muted small mb-0">
+        <a href="{% url 'super:migration_cloud' %}">Migration Cloud</a> &rarr; Registry. See <a href="/docs/RunMyCampus_Migration_Cloud_Complete_System_Blueprint.md">Migration Cloud Blueprint</a> for the full profile library.
+      </p>
+    </div>
+
+    {% comment %}3. Work queue — list with one primary action per row{% endcomment %}
     {% for source_system, profile_category, profile_list in registry_groups %}
     <div class="card shadow-sm border-0 page-family-content-card mb-3">
       <div class="card-header bg-light">
         <strong>{{ source_system|title }}</strong> &rarr; <span class="text-muted">{{ profile_category|title }}</span>
       </div>
-      <div class="card-body">
+      <div class="card-body p-0">
         <ul class="list-group list-group-flush">
           {% for profile in profile_list %}
-          <li class="list-group-item d-flex justify-content-between align-items-center">
+          <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
             <div>
               <span class="fw-semibold">{{ profile.name }}</span>
               <span class="text-muted small ms-2">{{ profile.slug }}</span>
             </div>
-            <span class="badge bg-secondary">{{ profile.domain }}</span>
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge bg-secondary">{{ profile.domain }}</span>
+              <a href="{{ migration_cloud_url }}?profile={{ profile.slug }}" class="btn btn-sm btn-primary">{% trans "Use in Cloud" %}</a>
+            </div>
           </li>
           {% endfor %}
         </ul>

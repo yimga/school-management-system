@@ -3,18 +3,22 @@ LibreOffice headless conversion: ODT/DOCX/ODS/HTML to PDF or DOCX/ODT.
 
 Requires LibreOffice installed (e.g. apt-get install libreoffice-writer,
 or full LibreOffice). Run from server or Celery worker.
+Callers must pass source_path under a controlled directory when path is user-derived.
 
 Usage:
     from apps.portal.document_conversion import convert_to_pdf, convert_to_docx
     pdf_bytes = convert_to_pdf("/path/to/file.odt")
     docx_bytes = convert_to_docx("/path/to/file.odt")
 """
+import logging
 import os
 import shutil
 import subprocess
-import tempfile
 import sys
+import tempfile
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 def _find_soffice() -> str | None:
@@ -89,9 +93,9 @@ def _convert_with_libreoffice(source_path: str, target_ext: str) -> bytes:
             timeout=120,
         )
         if result.returncode != 0:
-            raise RuntimeError(
-                f"LibreOffice conversion failed: {result.stderr or result.stdout or 'unknown error'}"
-            )
+            err = result.stderr or result.stdout or "unknown error"
+            logger.warning("LibreOffice conversion failed: returncode=%s stderr=%s", result.returncode, err[:300])
+            raise RuntimeError(f"LibreOffice conversion failed: {err}")
 
         base = Path(source_path).stem
         out_path = Path(out_dir) / f"{base}.{target_ext.split(':')[0]}"

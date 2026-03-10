@@ -22,3 +22,19 @@ Raw SQL appears in migrations, RLS helpers, reporting, and some application code
 **Migrations and scripts:** Most cursor.execute in migrations are one-off DDL/data; document and leave unless security-sensitive. Scripts (scripts/*, management commands) should be reviewed for tenant/path safety.
 
 **Actions:** For each application-file row, add tenant_scoping and auth checks if missing; replace with ORM where feasible; otherwise wrap in a documented service layer.
+
+**Remediation done:** observability/views.py — health-check `SELECT 1` raw SQL documented in-code (no tenant scope; staff-only views). Remaining application-file rows tracked in UX_PLAN_FULL_COMPLETION_REGISTER.
+
+## Required remediation (non-negotiable)
+
+These must be completed; no deferral to backlog. Track in [UX_PLAN_FULL_COMPLETION_REGISTER.md](../plan/UX_PLAN_FULL_COMPLETION_REGISTER.md).
+
+1. **health_utils.py** — Confirm tenant scoping and auth; wrap in a small service if kept; add tests.
+2. **rls_context.py** — Already tenant-scoped; document and keep.
+3. **middleware.py** — Review raw SQL for tenant/path safety; wrap in service if needed.
+4. **performance_optimization.py (evals)** — Review; add tenant scope if missing; wrap in service.
+5. **observability/views.py, monitoring.py** — Review; restrict to staff/admin; wrap in service.
+6. **siteconfig/cache_utils.py, models.py** — Review; add tenant scope where applicable; wrap in service.
+7. **onboarding_service.py** — Review; ensure tenant-scoped; wrap in service.
+8. **tenancy/tasks.py** — Review for tenant/path safety; document and add timeouts if needed.
+9. **All application-file usages** — Replace with ORM where feasible; otherwise add tenant_scoping and auth checks and wrap in a documented service layer. Re-audit after changes.

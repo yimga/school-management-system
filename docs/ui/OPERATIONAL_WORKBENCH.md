@@ -26,3 +26,4 @@ Use this layout for migration wizards, policy/config workbenches, and any page w
 
 - Blueprint marketplace: catalog list + Preview + Apply + Rollback panel.
 - App catalog: list + compatibility/impact panel + Install.
+- **Migration Profile Registry** (`schools/super_migration_profile_registry.html`): status bar (profile/group counts, Refresh), work queue with primary action "Use in Cloud" per row; conforms to this pattern.

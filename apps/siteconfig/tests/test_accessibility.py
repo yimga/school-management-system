@@ -84,8 +84,9 @@ class PortalAccessibilityTest(AccessibilityTestCase):
         self.assertIn(response.status_code, (200, 302, 403))
         if response.status_code == 200:
             issues = self.check_wcag_html_structure(response.content.decode())
-            # These are warnings, not strict failures yet; print for audit visibility.
-            print(f"Portal dashboard WCAG check: {issues}")
+            # Warnings for audit; use logging so CI stdout stays clean.
+            import logging
+            logging.getLogger(__name__).debug("Portal dashboard WCAG check: %s", issues)
 
     def test_grades_page_accessibility(self):
         """Test teacher dashboard page is accessible for teacher role."""
@@ -113,7 +114,8 @@ class AdminAccessibilityTest(AccessibilityTestCase):
         
         if response.status_code == 200:
             issues = self.check_wcag_html_structure(response.content.decode())
-            print(f"Admin dashboard WCAG check: {issues}")
+            import logging
+            logging.getLogger(__name__).debug("Admin dashboard WCAG check: %s", issues)
 
 
 class ColorContrastTest(TestCase):
@@ -149,7 +151,6 @@ class ColorContrastTest(TestCase):
         luminance = self.calculate_luminance(r, g, b)
         # Just verify calculation works
         self.assertGreater(luminance, 0)
-        print(f"Primary color luminance: {luminance}")
 
     def test_secondary_color_contrast(self):
         """Test secondary theme color meets WCAG contrast."""
@@ -157,4 +158,3 @@ class ColorContrastTest(TestCase):
         r, g, b = 108, 117, 125
         luminance = self.calculate_luminance(r, g, b)
         self.assertGreater(luminance, 0)
-        print(f"Secondary color luminance: {luminance}")

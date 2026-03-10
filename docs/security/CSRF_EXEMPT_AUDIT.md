@@ -16,8 +16,8 @@ All endpoints that use `@csrf_exempt` or `csrf_exempt` must be justified and doc
 | apps/billing/api_views.py | L59 | Billing webhook | Signature | Verify | POST | Keep with verification |
 | apps/api/scim_views.py | L164, L192, L288, L372, L386 | SCIM provisioning | Token / bearer | Review | Restrict | Audit each |
 | apps/accounts/views_saml.py | L171 | SAML SSO callback | SAML assertion | SAML validation | POST | Keep with validation |
-| apps/api/lead_capture_api.py | L58 | Lead capture (public form) | None / optional | Review | POST only, rate limit | Refactor: add token or rate limit |
-| apps/siteconfig/views_verify.py | L27 | Email/signup verify | Token in URL | Review | GET/POST | Keep with token check |
+| apps/api/lead_capture_api.py | L58 | Lead capture (public form) | None / optional | Cache-based | POST only; **rate limit 30/IP and 200/school per 15 min** | Keep with rate limit |
+| apps/siteconfig/views_verify.py | L27 | Student ID verify (public) | Token in URL | rate_limit_verify(ip) | GET only; **rate limited** | Keep with token + rate limit |
 
 **Actions:** For each row, confirm auth and signature; add rate limits and audit logs where missing; refactor or remove unjustified exemptions.
 

@@ -36,5 +36,5 @@ Files under `apps/` that contain `print(` (sample; run `grep -rn "print\s*(" app
 
 1. **Replace in request/worker path:** For each non-test file above, replace `print(...)` with `logger = logging.getLogger(__name__); logger.debug(...)` (or appropriate level). Ensure no PII or secrets in log messages.
 2. **Management commands:** Audit all `management/commands/*.py` for `print(`; use `self.stdout.write()` for user-facing output and logging for diagnostics.
-3. **CI/lint:** Add a check (e.g. script or pre-commit) that fails if `print(` appears in `apps/**/*.py` outside `tests/` or `management/commands/` (with allowlist if needed).
+3. **CI/lint:** `scripts/lint_no_print_in_apps.py` — fails if `print(` appears in `apps/**/*.py` outside `tests/`, `management/commands/`, or `migrations/`; comment-only lines skipped. Run in `scripts/pre_deploy_gate.sh`.
 4. **Root and config:** Run same audit for `config/`, root-level scripts, and worker entrypoints; separate dev-only scripts from production code.

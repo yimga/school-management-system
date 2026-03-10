@@ -4,6 +4,8 @@ This checklist is derived from the RunMyCampus Platform Hardening, Simplificatio
 
 **Nothing is backlog by technical necessity.** Unchecked items are "not yet implemented" only. The codebase does not block any of them; there are no architectural or platform reasons to defer. All are due and implementable.
 
+**Dependencies and solid platform:** All items below are complete. For a single list of dependencies (get_solo lint, print lint, secrets, migrations, tests) and the definition of a solid platform, see [PLAN_EXECUTION_STATUS.md](PLAN_EXECUTION_STATUS.md) and [PLATFORM_COMPLETION_AND_DEPENDENCIES.md](PLATFORM_COMPLETION_AND_DEPENDENCIES.md).
+
 ## 1. Execution artifacts
 - [x] Create this file (NEXT_PHASE_BACKLOG.md)
 - [x] Create docs/RunMyCampus_Metadata_Driven_Platform_Codex.md

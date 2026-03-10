@@ -30,14 +30,15 @@ def main():
         print("Not present (will be created).")
 
     os.environ["DB_FILE"] = "db_working.sqlite3"
-    rc = subprocess.call(
+    result = subprocess.run(
         [sys.executable, "manage.py", "migrate", "--noinput"],
         cwd=base,
         env=os.environ,
+        timeout=300,
     )
-    if rc != 0:
+    if result.returncode != 0:
         print("Migration failed.", file=sys.stderr)
-        sys.exit(rc)
+        sys.exit(result.returncode)
     print("Done. Run: python manage.py createsuperuser")
 
 if __name__ == "__main__":

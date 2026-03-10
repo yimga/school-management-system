@@ -5,6 +5,7 @@ Extracts data from payment receipts (cash/bank) and verifies them against invoic
 All OCR goes through DocumentExtractionProvider (siteconfig.document_extraction); no direct pytesseract/cloud in app code.
 """
 
+import logging
 import re
 import subprocess
 import tempfile
@@ -171,13 +172,22 @@ class ReceiptVerificationService:
                     timeout=25,
                 )
                 if completed.returncode != 0:
+                    logging.getLogger(__name__).warning(
+                        "Receipt OCR tesseract failed: returncode=%s stderr=%s",
+                        completed.returncode,
+                        (completed.stderr or "")[:200],
+                    )
                     return ""
                 with open(out_path, "r", encoding="utf-8", errors="ignore") as handle:
                     text = handle.read()
                 return text.strip()
-        except Exception:
+        except subprocess.TimeoutExpired:
+            logging.getLogger(__name__).warning("Receipt OCR tesseract timed out (25s)")
             return ""
-    
+        except Exception as e:
+            logging.getLogger(__name__).debug("Receipt OCR tesseract error: %s", e)
+            return ""
+
     def _extract_amount(self, text: str) -> Optional[Decimal]:
         """
         Extract amount from text using pattern matching.

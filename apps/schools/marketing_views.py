@@ -21,7 +21,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.csrf import csrf_protect
 
-from apps.schools.host_routing import get_canonical_base_domain
+from apps.schools.domain_resolution_service import get_canonical_base_domain
 from apps.siteconfig.brand_registry import resolve_global_brand_context
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
 

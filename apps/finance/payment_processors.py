@@ -3,8 +3,11 @@ Phase 8 Task 6: Advanced Finance - Payment Processors
 Multiple gateway support: Stripe, PayPal, Flutterwave, Paystack
 """
 
+import logging
 from datetime import datetime
 from decimal import Decimal
+
+logger = logging.getLogger(__name__)
 
 
 class StripeProcessor:
@@ -472,7 +475,7 @@ class MultiGatewayProcessor:
             try:
                 self.processors[provider] = ProcessorFactory.get_processor(provider, **config)
             except Exception as e:
-                print(f'Failed to initialize {provider}: {e}')
+                logger.warning("Failed to initialize payment provider %s: %s", provider, e)
     
     def get_best_processor(self, region, amount=None):
         """Get best processor for region"""

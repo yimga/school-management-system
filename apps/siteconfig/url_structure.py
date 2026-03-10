@@ -69,8 +69,11 @@ SEMANTIC_URLS = {
     },
 }
 
-print("""
-URL Structure Strategy for Phase 7 Task 4:
+# URL Structure Strategy (Phase 7 Task 4): semantic paths, consistency (list/detail/create),
+# SEO (hyphens, full words, canonical tags). See URL_MIGRATIONS and SEMANTIC_URLS above.
+# Removed module-level print() to avoid runtime output; use docs or logging if needed.
+"""
+URL Structure Strategy for Phase 7 Task 4 (reference only; not executed):
 
 1. SEMANTIC PATHS
    Current: /evals/marks/, /reports/cards/
@@ -103,4 +106,4 @@ URL Structure Strategy for Phase 7 Task 4:
    Create robots.txt
    Generate sitemap.xml
    Update meta tags for SEO
-""")
+"""

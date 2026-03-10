@@ -301,7 +301,7 @@ def global_login_discovery(request):
             },
         )
     from .models import SchoolMembership
-    from apps.schools.host_routing import get_canonical_base_domain
+    from apps.schools.domain_resolution_service import get_canonical_base_domain
     memberships = SchoolMembership.objects.filter(
         user__email__iexact=email,
         school__is_active=True,

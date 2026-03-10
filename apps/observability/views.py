@@ -277,6 +277,7 @@ def healthz(request):
     """Internal health check including DB connectivity (RBAC/API-key protected)."""
     try:
         # Simple DB round-trip
+        # Raw SQL: health check only; no tenant scope or user input (raw_sql_audit).
         with connection.cursor() as cursor:
             cursor.execute("SELECT 1")
             cursor.fetchone()
@@ -412,6 +413,7 @@ def api_health(request):
     Used by dashboard to display system state.
     """
     try:
+        # Raw SQL: health check only; no tenant scope or user input (raw_sql_audit).
         with connection.cursor() as cursor:
             cursor.execute("SELECT 1")
             cursor.fetchone()

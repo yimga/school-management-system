@@ -38,8 +38,16 @@
 - **Branding** — Theme, logo, colors → brand_experience / runtime resolver.
 - **Runtime-only** — Tenant-specific overrides → get_effective_site_settings(request=request) or tenant-scoped API.
 
+## Dependencies completed (R2)
+
+- **Runtime resolver:** `apps/platform_runtime.helpers.get_effective_site_settings(request=..., school=...)` is the single entry point for tenant-aware settings. Caching and school overrides are handled there.
+- **Tenant-facing code uses resolver:** `siteconfig/views.py`, `siteconfig/middleware/maintenance_mode.py`, `accounts/delegation.py`, `portal/forms.py`, `finance/admin.py`, `api/ministry_placeholders.py`, `automation/helpers.py` (get_cached_site_settings → get_effective_site_settings), and `policies/resolver.py` (admissions and grade_approval backfill) use the runtime resolver instead of direct `get_solo()` in tenant paths.
+- **CI/lint:** `scripts/lint_tenant_settings.py --check-get-solo-only` and `--check-school-settings-features` run in pre_deploy_gate; `apps/platform_runtime/tests/test_tenant_settings_lint.py` fails CI if new violations appear in tenant apps. Allowed paths (siteconfig/models, platform_runtime/helpers, management commands, resolver fallback) are allowlisted.
+
+With these in place, all other R2 work (full grep, per-usage tickets for remaining files) can proceed; no further dependency work is required.
+
 ## Next steps
 
 1. Run: `grep -rn "get_solo\|SiteSettings" --include="*.py" apps/ config/` and add every remaining file to this table.
-2. For each **Forbidden** or **To-be-decomposed**: open a ticket to switch to runtime resolver or new domain model.
-3. Add CI/lint rule: flag new `SiteSettings.get_solo()` in `apps/*/views*.py`, `apps/*/serializers*.py`, `apps/*/tasks.py` (except siteconfig admin/forms).
+2. For each **Forbidden** or **To-be-decomposed** not yet migrated: switch to `get_effective_site_settings(request=request)` or `get_effective_site_settings(school=school)`.
+3. CI/lint is in place; keep allowlist in `scripts/lint_tenant_settings.py` in sync with intentional get_solo (e.g. siteconfig admin/forms, resolver fallback).
