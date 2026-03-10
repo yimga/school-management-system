@@ -69,6 +69,19 @@ def apply_blueprint_pack(school, pack, *, applied_by=None):
         tb.applied_pack = pack
         tb.save(update_fields=["active_bundle", "applied_pack", "updated_at"])
     invalidate_policy_cache(school)
+    # Wire to PackageEngine so Setup Studio and all blueprint applies are audited (metadata plan todo 7).
+    try:
+        from apps.packages.engine import PackageEngine
+        PackageEngine.apply_package(
+            tenant_id=getattr(school, "id", None),
+            package_id=getattr(pack, "slug", "") or str(pack.pk),
+            version=getattr(pack, "version", "") or "1",
+            payload_sections={"policy": dict(getattr(pack, "policy_snapshot", None) or {})},
+            mode="production",
+            actor_id=getattr(applied_by, "id", None) if applied_by else None,
+        )
+    except Exception:
+        pass  # Do not fail blueprint apply if package engine is unavailable
     return bundle
 
 

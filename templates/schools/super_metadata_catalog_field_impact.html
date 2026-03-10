@@ -1,0 +1,47 @@
+{% extends "control_plane_base.html" %}
+{% load static i18n %}
+
+{% block cp_title %}{% trans "Field impact" %}: {{ entity.code }}.{{ field.field_name }}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Tenant Mission Control" %}</a></li>
+    <li class="breadcrumb-item"><a href="{{ catalog_url }}">{% trans "Metadata Catalog" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ entity.code }}.{{ field.field_name }}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block breadcrumb_actions %}
+<a href="{{ catalog_url }}" class="btn btn-sm btn-outline-light">{% trans "Back to Catalog" %}</a>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-2">
+  <h5 class="mb-3"><code>{{ entity.code }}.{{ field.field_name }}</code> — {{ field.label|default:field.field_name }}</h5>
+  <p class="text-secondary small">{% trans "Consumers that reference this field (workflows, dashboards, reports, policies, APIs)." %}</p>
+  <div class="card shadow-sm border-secondary" style="background: var(--cp-panel-bg, rgba(8,16,30,0.6)); border-color: var(--cp-panel-border) !important;">
+    <div class="card-body p-0">
+      <table class="table table-dark table-hover mb-0">
+        <thead>
+          <tr>
+            <th>{% trans "Type" %}</th>
+            <th>{% trans "Consumer" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in dependencies %}
+          <tr>
+            <td>{{ d.get_consumer_type_display }}</td>
+            <td><code>{{ d.consumer_code }}</code></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="2" class="text-secondary">{% trans "No usage references registered." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

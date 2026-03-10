@@ -69,6 +69,7 @@ HARDCODED_PATTERNS = [
     (re.compile(r"DEFAULT_GRADING_SCALE\s*=\s*['\"]0-20['\"]"), "Hardcoded 0-20 grading (use env/registry)"),
     (re.compile(r"['\"]Africa/Douala['\"]"), "Hardcoded Africa/Douala (use env/registry)"),
     (re.compile(r"DEFAULT_COUNTRY\s*=\s*['\"]"), "DEFAULT_COUNTRY hardcoded (use env/registry)"),
+    (re.compile(r"['\"]gilead-school['\"]|['\"]gilead_school['\"]"), "Hardcoded tenant slug (use DEFAULT_TENANT_SLUG or config)"),
 ]
 
 

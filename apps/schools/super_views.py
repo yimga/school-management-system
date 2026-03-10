@@ -1623,7 +1623,11 @@ def super_policies_catalog(request):
     return render(
         request,
         "schools/super_policies_catalog.html",
-        {"bundles": bundles, "dashboard_url": reverse("super:dashboard")},
+        {
+            "bundles": bundles,
+            "dashboard_url": reverse("super:dashboard"),
+            "bundles_total": len(bundles),
+        },
     )
 
 
@@ -1692,6 +1696,61 @@ def super_registries_overview(request):
         {
             "registry_rows": rows,
             "dashboard_url": reverse("super:dashboard"),
+        },
+    )
+
+
+def super_metadata_catalog(request):
+    """Metadata catalog MVP: search entities/fields and see usage (plan Workstream I / todo 4)."""
+    from apps.metadata.models import (
+        EntityCatalogEntry,
+        FieldCatalogEntry,
+        MetadataDependency,
+        BusinessGlossaryEntry,
+    )
+
+    q = request.GET.get("q", "").strip()
+    entity_code = request.GET.get("entity", "").strip()
+    entities = EntityCatalogEntry.objects.prefetch_related("fields", "fields__dependencies").order_by("code")
+    if entity_code:
+        entities = entities.filter(code__icontains=entity_code)
+    if q:
+        entities = entities.filter(
+            Q(code__icontains=q) | Q(name__icontains=q) | Q(description__icontains=q)
+        )
+    entities = list(entities[:200])
+    # Include field count and sample dependencies per entity
+    for ent in entities:
+        ent._field_count = ent.fields.count()
+        ent._sample_deps = MetadataDependency.objects.filter(field__entity=ent).count()
+
+    return render(
+        request,
+        "schools/super_metadata_catalog.html",
+        {
+            "entities": entities,
+            "query": q or entity_code,
+            "dashboard_url": reverse("super:dashboard"),
+        },
+    )
+
+
+def super_metadata_catalog_field_impact(request, entity_code, field_name):
+    """Impact view for a single field: list dependent workflows/dashboards/reports (plan todo 4)."""
+    from apps.metadata.models import EntityCatalogEntry, FieldCatalogEntry, MetadataDependency
+
+    entity = get_object_or_404(EntityCatalogEntry, code=entity_code)
+    field = get_object_or_404(FieldCatalogEntry, entity=entity, field_name=field_name)
+    deps = MetadataDependency.objects.filter(field=field).select_related("field").order_by("consumer_type", "consumer_code")
+    return render(
+        request,
+        "schools/super_metadata_catalog_field_impact.html",
+        {
+            "entity": entity,
+            "field": field,
+            "dependencies": deps,
+            "dashboard_url": reverse("super:dashboard"),
+            "catalog_url": reverse("super:metadata_catalog"),
         },
     )
 

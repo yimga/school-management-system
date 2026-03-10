@@ -142,6 +142,11 @@ INSTALLED_APPS = [
     "apps.apicenter",
     "apps.automation",  # Automation and background tasks
     "apps.metadata.apps.MetadataConfig",  # Custom fields without DDL (metadata engine)
+    "apps.packages.apps.PackagesConfig",  # PackageEngine: validate/preview/apply/rollback (metadata plan todo 5)
+    "apps.brand_experience.apps.BrandExperienceConfig",  # Bounded-context shell (metadata plan todo 2)
+    "apps.runtime_blueprints.apps.RuntimeBlueprintsConfig",
+    "apps.policies_rules.apps.PoliciesRulesConfig",
+    "apps.plans_entitlements.apps.PlansEntitlementsConfig",
     "emis",
     # Celery result/beat (optional: used when REDIS_URL is set for background tasks)
     "django_celery_results",

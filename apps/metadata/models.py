@@ -357,6 +357,37 @@ class ConfigMutationAuditLog(models.Model):
         return f"{self.target_type}@{self.scope} {self.created_at}"
 
 
+class MetadataChangeLog(models.Model):
+    """
+    Central audit trail for metadata object changes (plan todo 6).
+    Captures: actor, object, old/new (summarized), scope, tenants affected, timestamp, reason.
+    """
+
+    actor_id = models.IntegerField(null=True, blank=True)
+    object_type = models.CharField(max_length=80, help_text="Metadata type (e.g. EntityCatalogEntry, PolicyBundle).")
+    object_id = models.CharField(max_length=120, blank=True, db_index=True)
+    scope = models.CharField(
+        max_length=20,
+        choices=ConfigMutationAuditLog.SCOPE_CHOICES,
+        default="tenant",
+        db_index=True,
+    )
+    old_value_summary = models.JSONField(default=dict, blank=True)
+    new_value_summary = models.JSONField(default=dict, blank=True)
+    tenants_affected = models.JSONField(default=list, blank=True, help_text="List of tenant/school IDs if scope allows.")
+    reason = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        app_label = "metadata"
+        verbose_name = "Metadata Change Log"
+        verbose_name_plural = "Metadata Change Logs"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.object_type}@{self.scope} {self.created_at}"
+
+
 class LayoutDefinition(models.Model):
     """
     Layout/UI as metadata (plan I6). Page or section layout: widget keys, order, options.

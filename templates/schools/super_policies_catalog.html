@@ -18,7 +18,12 @@
 
 {% block cp_content %}
 <div class="container-fluid py-2">
-  <p class="text-secondary small mb-4">{% trans "Behavioral rules by country/region. Platform bundles (no school) and per-tenant bundles." %}</p>
+  {% comment %}Operational workbench: status bar, work queue, one primary action per row. See docs/ui/OPERATIONAL_WORKBENCH.md.{% endcomment %}
+  <p class="text-secondary small mb-2">{% trans "Behavioral rules by country/region. Platform bundles (no school) and per-tenant bundles." %}</p>
+  <div class="d-flex flex-wrap align-items-center gap-3 mb-3 py-2 border-bottom">
+    <span class="text-muted small"><strong>{{ bundles_total|default:0 }}</strong> {% trans "bundle" %}{{ bundles_total|default:0|pluralize }}</span>
+    <a href="{{ request.path }}" class="btn btn-sm btn-outline-secondary">{% trans "Refresh" %}</a>
+  </div>
   <div class="card shadow-sm border-secondary">
     <div class="card-body p-0">
       <table class="table table-dark table-hover mb-0">
@@ -40,7 +45,7 @@
             <td>{{ b.country_scope|default:"*" }}</td>
             <td>{{ b.version }}</td>
             <td>{{ b.precedence_weight }}</td>
-            <td>{% if b.admin_url %}<a href="{{ b.admin_url }}" class="btn btn-sm btn-outline-light">{% trans "Edit" %}</a>{% endif %}</td>
+            <td>{% if b.admin_url %}<a href="{{ b.admin_url }}" class="btn btn-sm btn-primary">{% trans "Manage" %}</a>{% endif %}</td>
           </tr>
           {% empty %}
           <tr><td colspan="6" class="text-secondary">{% trans "No policy bundles." %}</td></tr>

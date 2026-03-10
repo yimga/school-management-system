@@ -1,0 +1,67 @@
+{% extends "control_plane_base.html" %}
+{% load static i18n %}
+
+{% block cp_title %}{% trans "Metadata Catalog" %}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Tenant Mission Control" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Metadata Catalog" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block breadcrumb_actions %}
+<a href="{{ dashboard_url }}" class="btn btn-sm btn-outline-light">{% trans "Back to Dashboard" %}</a>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-2">
+  <p class="text-secondary small mb-3">{% trans "Entity and field catalog with usage references. Search by entity or field; open a field for impact (workflows, dashboards, reports)." %}</p>
+  <form method="get" class="mb-4">
+    <div class="input-group">
+      <input type="text" name="q" class="form-control" placeholder="{% trans 'Search entity or field...' %}" value="{{ query }}" />
+      <button type="submit" class="btn btn-outline-light">{% trans "Search" %}</button>
+    </div>
+  </form>
+  <div class="card shadow-sm border-secondary" style="background: var(--cp-panel-bg, rgba(8,16,30,0.6)); border-color: var(--cp-panel-border) !important;">
+    <div class="card-body p-0">
+      <table class="table table-dark table-hover mb-0">
+        <thead>
+          <tr>
+            <th>{% trans "Entity" %}</th>
+            <th>{% trans "Name" %}</th>
+            <th class="text-end">{% trans "Fields" %}</th>
+            <th class="text-end">{% trans "Usage refs" %}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ent in entities %}
+          <tr>
+            <td><code>{{ ent.code }}</code></td>
+            <td>{{ ent.name }}</td>
+            <td class="text-end">{{ ent._field_count }}</td>
+            <td class="text-end">{{ ent._sample_deps }}</td>
+            <td>—</td>
+          </tr>
+          {% for f in ent.fields.all|slice:":10" %}
+          <tr class="table-secondary">
+            <td colspan="2" class="ps-4"><code>{{ f.field_name }}</code> — {{ f.label|default:"" }}</td>
+            <td class="text-end">—</td>
+            <td class="text-end">{{ f.dependencies.all|length }}</td>
+            <td><a href="{% url 'super:metadata_catalog_field_impact' entity_code=ent.code field_name=f.field_name %}" class="btn btn-sm btn-outline-secondary">{% trans "Impact" %}</a></td>
+          </tr>
+          {% empty %}
+          <tr class="table-secondary"><td colspan="5" class="ps-4 text-secondary">{% trans "No fields." %}</td></tr>
+          {% endfor %}
+          {% empty %}
+          <tr><td colspan="5" class="text-secondary">{% trans "No entities. Run: python manage.py seed_entity_catalog" %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
