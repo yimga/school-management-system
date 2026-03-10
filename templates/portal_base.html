@@ -949,7 +949,7 @@
     <link rel="apple-touch-icon" href="{% static 'images/icon-192.png' %}">
   </head>
 
-  <body class="layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} {% block body_extra_class %}{% endblock %}">
+  <body class="layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} portal-body-with-layout {% block body_extra_class %}{% endblock %}">
     <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 skip-link-theme rounded" href="#main-content" aria-label="Skip to main content">Skip to main content</a>
     {% if SITE and SITE.is_preview %}
     <div class="alert alert-warning text-center m-0 rounded-0 border-0 d-flex flex-wrap align-items-center justify-content-center gap-2 py-2 px-3" role="status">

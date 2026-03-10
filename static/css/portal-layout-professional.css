@@ -5,17 +5,24 @@
  */
 
 /* ===== Viewport-fixed layout: single scroll in main (tenant + backend + workflows) ===== */
+/* Ensure every dashboard/page can scroll: body bounded so main column is the scroll container */
 body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+}
+body.portal-body-with-layout,
+body:has(.portal-layout-wrap) {
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
 }
 body > nav.topbar,
 body > .topbar {
   flex-shrink: 0;
 }
 .portal-layout-wrap {
-  flex: 1;
+  flex: 1 1 0;
   min-height: 0;
   overflow: hidden;
   display: flex;
@@ -29,51 +36,66 @@ body > .topbar {
     flex: 0 0 auto;
   }
 }
-.portal-layout-wrap .portal-main-col {
-  flex: 1 1 0;
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
+/* Main content: always scrollable so all page/dashboard content is reachable */
+.portal-layout-wrap .portal-main-col,
+.portal-layout-wrap #main-content {
+  flex: 1 1 0 !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
   padding-bottom: 2.5rem; /* breathing room so last section is not flush */
   scrollbar-width: thin;
   scrollbar-color: rgba(15, 23, 42, 0.22) rgba(15, 23, 42, 0.05);
 }
-.portal-layout-wrap .portal-main-col::-webkit-scrollbar {
+.portal-layout-wrap .portal-main-col::-webkit-scrollbar,
+.portal-layout-wrap #main-content::-webkit-scrollbar {
   width: 8px;
 }
-.portal-layout-wrap .portal-main-col::-webkit-scrollbar-track {
+.portal-layout-wrap .portal-main-col::-webkit-scrollbar-track,
+.portal-layout-wrap #main-content::-webkit-scrollbar-track {
   background: rgba(15, 23, 42, 0.05);
   border-radius: 4px;
   margin: 4px 0;
 }
-.portal-layout-wrap .portal-main-col::-webkit-scrollbar-thumb {
+.portal-layout-wrap .portal-main-col::-webkit-scrollbar-thumb,
+.portal-layout-wrap #main-content::-webkit-scrollbar-thumb {
   background: rgba(15, 23, 42, 0.22);
   border-radius: 4px;
   min-height: 40px;
 }
-.portal-layout-wrap .portal-main-col::-webkit-scrollbar-thumb:hover {
+.portal-layout-wrap .portal-main-col::-webkit-scrollbar-thumb:hover,
+.portal-layout-wrap #main-content::-webkit-scrollbar-thumb:hover {
   background: rgba(15, 23, 42, 0.35);
 }
 html[data-theme="dark"] .portal-layout-wrap .portal-main-col,
-body.portal-backend-dark .portal-layout-wrap .portal-main-col {
+html[data-theme="dark"] .portal-layout-wrap #main-content,
+body.portal-backend-dark .portal-layout-wrap .portal-main-col,
+body.portal-backend-dark .portal-layout-wrap #main-content {
   scrollbar-color: rgba(255, 255, 255, 0.28) rgba(255, 255, 255, 0.04);
 }
 html[data-theme="dark"] .portal-layout-wrap .portal-main-col::-webkit-scrollbar-track,
-body.portal-backend-dark .portal-layout-wrap .portal-main-col::-webkit-scrollbar-track {
+html[data-theme="dark"] .portal-layout-wrap #main-content::-webkit-scrollbar-track,
+body.portal-backend-dark .portal-layout-wrap .portal-main-col::-webkit-scrollbar-track,
+body.portal-backend-dark .portal-layout-wrap #main-content::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.04);
 }
 html[data-theme="dark"] .portal-layout-wrap .portal-main-col::-webkit-scrollbar-thumb,
-body.portal-backend-dark .portal-layout-wrap .portal-main-col::-webkit-scrollbar-thumb {
+html[data-theme="dark"] .portal-layout-wrap #main-content::-webkit-scrollbar-thumb,
+body.portal-backend-dark .portal-layout-wrap .portal-main-col::-webkit-scrollbar-thumb,
+body.portal-backend-dark .portal-layout-wrap #main-content::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.28);
 }
 html[data-theme="dark"] .portal-layout-wrap .portal-main-col::-webkit-scrollbar-thumb:hover,
-body.portal-backend-dark .portal-layout-wrap .portal-main-col::-webkit-scrollbar-thumb:hover {
+html[data-theme="dark"] .portal-layout-wrap #main-content::-webkit-scrollbar-thumb:hover,
+body.portal-backend-dark .portal-layout-wrap .portal-main-col::-webkit-scrollbar-thumb:hover,
+body.portal-backend-dark .portal-layout-wrap #main-content::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.4);
 }
 @media (prefers-reduced-motion: reduce) {
   .portal-layout-wrap .portal-main-col,
+  .portal-layout-wrap #main-content,
   .portal-layout-wrap .portal-sidebar-col .sidebar {
     scroll-behavior: auto;
   }
@@ -132,14 +154,24 @@ body.portal-backend-dark .portal-layout-wrap .portal-main-col::-webkit-scrollbar
 }
 
 /* ===== Page & content containment ===== */
+/* Page wrap: contain horizontal overflow only; allow vertical flow so main col scrolls */
 .page-wrap {
   min-width: 0;
   max-width: 100%;
   overflow-x: hidden;
+  overflow-y: visible;
 }
 
 .portal-main-col {
   min-width: 0;
+}
+
+/* Dashboard/content wrappers: never clip vertical so scroll reveals all content */
+.backend-dashboard-content,
+#main-content .page-wrap {
+  overflow-x: hidden;
+  overflow-y: visible;
+  min-height: 0;
 }
 
 /* Skip-link target: scroll into view with margin when focused */
