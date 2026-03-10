@@ -57,8 +57,15 @@ class TenantDatabaseRouter:
     def allow_relation(self, obj1, obj2, **hints) -> Optional[bool]:
         return None
 
-    def allow_migrate(self, db, app_label, model_name=None, **hints) -> bool:
-        return True
+    def allow_migrate(self, db, app_label, model_name=None, **hints) -> Optional[bool]:
+        """
+        Defer migration routing to downstream routers.
+
+        In schema mode, django-tenants' TenantSyncRouter must decide whether an app
+        belongs in the public schema or tenant schemas. Returning True here causes
+        tenant-app migrations to run during `migrate_schemas --shared`.
+        """
+        return None
 
 
 class PreviewDatabaseRouter:
