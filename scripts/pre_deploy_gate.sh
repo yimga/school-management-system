@@ -52,11 +52,14 @@ echo "[pre_deploy_gate] Smoke URLs"
 run_django_tests apps.accounts.tests.test_smoke_urls
 
 echo "[pre_deploy_gate] Targeted hardening regressions"
-run_django_tests \
-  apps.siteconfig.tests.test_ai_copilot_context \
-  apps.siteconfig.tests.test_metadata_catalog \
-  apps.packages.tests.test_engine \
+TARGETED_HARDENING_TESTS=(
+  apps.siteconfig.tests.test_ai_copilot_context
+  apps.siteconfig.tests.test_backend_context
+  apps.siteconfig.tests.test_metadata_catalog
+  apps.packages.tests.test_engine
   apps.setup_studio.tests
+)
+run_django_tests "${TARGETED_HARDENING_TESTS[@]}"
 
 echo "[pre_deploy_gate] Theme stress matrix"
 run_django_tests apps.siteconfig.tests.test_theme_visibility_matrix
@@ -67,12 +70,17 @@ run_django_tests apps.siteconfig.tests.test_admin_ui_smoke apps.api.tests.test_d
 echo "[pre_deploy_gate] Phase 7 core workflow regression (qa.md, automation.md)"
 python manage.py test_core_workflows --keepdb --noinput
 
+echo "[pre_deploy_gate] UX completion audit"
+python scripts/verify_ux_completion.py
+
 echo "[pre_deploy_gate] Multi-tenant coverage checks"
 # Run only tests that are committed on main (omit test_global_catalog, test_tenant_audit if not yet merged)
-run_django_tests \
-  apps.siteconfig.tests.test_education_profile_engine \
-  apps.schools.tests.test_feature_registry \
+MULTI_TENANT_TESTS=(
+  apps.siteconfig.tests.test_education_profile_engine
+  apps.schools.tests.test_feature_registry
   apps.schools.tests.test_tenant_isolation_and_provisioning
+)
+run_django_tests "${MULTI_TENANT_TESTS[@]}"
 
 echo "[pre_deploy_gate] Render startup command sanity"
 if ! grep -q "render_start_web.sh" render.yaml; then

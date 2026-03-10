@@ -376,6 +376,42 @@ def _recommended_starter_stack() -> dict[str, Any]:
     }
 
 
+def _recommended_next_step(
+    step_state: dict[str, dict[str, Any]],
+    recommendations: list[dict[str, Any]],
+) -> dict[str, Any] | None:
+    recommendation_to_step = {
+        "plan": "plan_choice",
+        "blueprint": "blueprint",
+        "branding": "branding",
+        "data": "data_path",
+        "launch": "launch",
+    }
+    for recommendation in recommendations:
+        step_key = recommendation_to_step.get(str(recommendation.get("type", "")).strip())
+        if not step_key:
+            continue
+        state = step_state.get(step_key)
+        if not state or state["done"]:
+            continue
+        return {
+            **state,
+            "description": recommendation.get("detail") or state["description"],
+            "cta_label": recommendation.get("cta_label") or "Complete step",
+            "priority_tone": recommendation.get("tone", "important"),
+        }
+
+    for definition in STEP_DEFINITIONS:
+        state = step_state[definition["key"]]
+        if not state["done"]:
+            return {
+                **state,
+                "cta_label": "Complete step",
+                "priority_tone": "important" if state["is_blocker"] else "progress",
+            }
+    return None
+
+
 def compile_setup_studio(school) -> dict[str, Any]:
     _ensure_step_definitions()
     step_state = _step_state_for_school(school)
@@ -392,6 +428,7 @@ def compile_setup_studio(school) -> dict[str, Any]:
         **step_state[current_step_key],
         "cta_label": "Complete step",
     }
+    recommended_next = _recommended_next_step(step_state, recommendations)
 
     payload = {
         "current_step_key": current_step_key,
@@ -410,6 +447,7 @@ def compile_setup_studio(school) -> dict[str, Any]:
         "launch_ready": launch_ready,
         "recommended_blueprint": _recommended_blueprint(school),
         "recommended_starter_stack": _recommended_starter_stack(),
+        "recommended_next": recommended_next,
     }
 
     with transaction.atomic():
@@ -451,5 +489,16 @@ def get_setup_studio_payload(school) -> dict[str, Any]:
             }
         )
     payload["steps"] = steps
-    payload["recommended_next"] = next((step for step in steps if not step["done"] and step["link"] != "#"), None)
+    if payload.get("recommended_next"):
+        recommended_key = payload["recommended_next"]["key"]
+        step_lookup = {step["key"]: step for step in steps}
+        if recommended_key in step_lookup:
+            payload["recommended_next"] = {
+                **step_lookup[recommended_key],
+                "description": payload["recommended_next"].get("description", step_lookup[recommended_key]["description"]),
+                "cta_label": payload["recommended_next"].get("cta_label", "Complete step"),
+                "priority_tone": payload["recommended_next"].get("priority_tone", "important"),
+            }
+    else:
+        payload["recommended_next"] = next((step for step in steps if not step["done"] and step["link"] != "#"), None)
     return payload

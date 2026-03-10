@@ -96,9 +96,11 @@
 - [x] Added `apps.setup_studio.services.get_setup_studio_payload`
 - [x] Re-backed guided onboarding to use `setup_studio` instead of ad hoc customer-success heuristics
 - [x] Updated the Setup Studio UI to show blockers, role previews, and recommendations
+- [x] Changed Setup Studio’s dominant next action to follow ranked recommendations/blockers instead of blindly choosing the first incomplete step
 - [ ] Add live preview, blueprint recommendation ranking, and launch orchestration beyond inferred readiness
 
 ### Phase 8
+- [x] Unified backend next-action ranking so the recommendation service and contextual action registry now prioritize the same setup, workflow, finance, and academic actions
 - [ ] Split the backend experience into role-native default homes with one dominant purpose per dashboard instead of relying on one overloaded super-dashboard
 - [ ] Replace generic quick actions with a contextual next-action engine that is role-aware, state-aware, urgency-aware, and recommendation-first
 - [ ] Finish Setup Studio as a true launch product with left-rail progress/health, centered guided tasks, right-rail live preview, and preview-by-role before launch

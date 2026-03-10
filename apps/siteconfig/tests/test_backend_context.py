@@ -147,4 +147,38 @@ class DashboardExtrasTests(TestCase):
         self.assertIn("dashboard_next_best_actions", extras)
         self.assertIn("dashboard_recent_activity", extras)
         self.assertIn("role_home_destinations", extras)
+        self.assertIn("contextual_actions", extras)
         self.assertEqual(extras["role_home"]["default_intent"], "setup")
+        self.assertTrue(extras["contextual_actions"])
+        self.assertEqual(extras["contextual_actions"][0]["id"], "setup_studio")
+        self.assertEqual(extras["dashboard_next_best_actions"][0]["label"], "Setup Studio")
+
+
+class RecommendationServiceTests(TestCase):
+    def test_setup_intent_prioritizes_setup_studio(self):
+        from apps.dashboard.recommendation_service import get_recommended_next_steps
+
+        steps = get_recommended_next_steps({}, intent="setup", max_steps=4)
+
+        self.assertTrue(steps)
+        self.assertEqual(steps[0]["action_id"], "setup_studio")
+        self.assertEqual(steps[0]["priority"], "now")
+
+    def test_finance_risk_prioritizes_finance_console(self):
+        from apps.dashboard.recommendation_service import get_recommended_next_steps
+
+        steps = get_recommended_next_steps(
+            {
+                "classrooms": 6,
+                "students": 120,
+                "teachers": 12,
+            },
+            year=object(),
+            intent="finance",
+            priority_signals={"overdue_invoices": 7, "draft_invoices": 3},
+            max_steps=4,
+        )
+
+        self.assertTrue(steps)
+        self.assertEqual(steps[0]["action_id"], "finance_console")
+        self.assertEqual(steps[0]["priority"], "now")

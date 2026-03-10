@@ -774,10 +774,13 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
         __safe_reverse,
         intent=intent or None,
         workflow_progress=base.get("workflow_progress") if isinstance(base.get("workflow_progress"), dict) else None,
+        recommended_steps=base.get("recommended_next_steps") if isinstance(base.get("recommended_next_steps"), list) else None,
         max_items=5,
     )
 
-    if role_code in {"BURSAR", "FINANCE_STAFF"}:
+    if role_code in {"BURSAR", "FINANCE_STAFF"} and not any(
+        item.get("id") == "finance_console" for item in welcome_action_grid
+    ):
         finance_console = _build_nav_item(
             "Finance Console",
             "bi-cash-stack",
@@ -887,6 +890,15 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
     kpi_strip_cards = _select_kpis_for_intent(kpi_strip_cards, intent)
     dashboard_priority_queue = _build_priority_queue(operations_watch, max_items=4)
     dashboard_recent_activity = _build_recent_activity_block(base.get("recent_activities"), max_items=4)
+    if not dashboard_recent_activity:
+        dashboard_recent_activity = [
+            {
+                "title": "Role home is ready",
+                "actor": "System",
+                "action": "prepared your command center",
+                "time_ago": "just now",
+            }
+        ]
     dashboard_next_best_actions = list(base.get("recommended_next_steps") or [])[:3]
     if not dashboard_next_best_actions:
         dashboard_next_best_actions = [

@@ -19,12 +19,14 @@ class SetupStudioServiceTests(TestCase):
 
         self.assertIn("steps", payload)
         self.assertIn("current_step", payload)
+        self.assertIn("recommended_next", payload)
         self.assertIn("preview_cards", payload)
         self.assertIn("health_summary", payload)
         self.assertIn("launch_blockers", payload)
         self.assertIn("recommendations", payload)
         self.assertGreaterEqual(len(payload["launch_blockers"]), 1)
         self.assertGreaterEqual(payload["progress_percent"], 0)
+        self.assertEqual(payload["recommended_next"]["key"], "plan_choice")
 
         progress = SetupProgress.objects.get(school=self.school)
         self.assertEqual(progress.health_score, payload["health_score"])

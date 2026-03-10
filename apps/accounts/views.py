@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.views import PasswordChangeView as DjangoPasswordChangeView
+from django.db import DatabaseError, OperationalError, ProgrammingError
 from django.db.models import Avg, Count, Q
 from django.shortcuts import redirect, render, get_object_or_404
 from django.http import HttpResponseForbidden, JsonResponse
@@ -1654,10 +1655,26 @@ def backend_dashboard(request):
     _intent = requested_intent or role_intent_defaults.get(role_upper, "operational")
     if _intent not in VALID_DASHBOARD_INTENTS:
         _intent = "operational"
+    pending_approvals_count = 0
+    try:
+        from apps.requests.models import AccessRequest
+
+        pending_approvals_count = AccessRequest.objects.filter(
+            status=AccessRequest.Status.PENDING
+        ).count()
+    except (ImportError, AttributeError, DatabaseError, OperationalError, ProgrammingError):
+        pending_approvals_count = 0
     recommended_next_steps = get_recommended_next_steps(
         workflow_progress,
         year=year,
         intent=_intent,
+        priority_signals={
+            "overdue_invoices": stats.get("overdue_invoices", 0),
+            "pending_invites": stats.get("pending_invites", 0),
+            "pending_approvals_count": pending_approvals_count,
+            "draft_invoices": finance_summary.get("draft_invoices", 0) if isinstance(finance_summary, dict) else 0,
+            "at_risk_students": len(at_risk_students),
+        },
         max_steps=4,
     )
     context = {

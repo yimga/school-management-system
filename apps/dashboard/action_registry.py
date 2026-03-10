@@ -64,6 +64,9 @@ BACKEND_ACTION_CHIPS = [
 ]
 
 BACKEND_WELCOME_ACTION_GRID = [
+    {"label": "Setup Studio", "icon": "bi-magic", "url_name": "siteconfig:guided_onboarding", "item_id": "setup_studio", "allow_key": "can_manage_settings"},
+    {"label": "Workflow Center", "icon": "bi-diagram-3", "url_name": "accounts:workflow_center", "item_id": "workflow_center", "allow_key": "always"},
+    {"label": "Finance Console", "icon": "bi-cash-stack", "url_name": "finance:dashboard", "item_id": "finance_console", "allow_key": "can_manage_finance"},
     {"label": "Add Student", "icon": "bi-person-plus", "url_name": "accounts:backend_student_create", "fallback_url_name": "admin:index", "item_id": "add_student", "allow_key": "can_manage_people"},
     {"label": "Add Teacher", "icon": "bi-person-badge", "url_name": "accounts:backend_teacher_create", "fallback_url_name": "admin:index", "item_id": "add_teacher", "allow_key": "can_manage_people"},
     {"label": "Onboard Student", "icon": "bi-mortarboard", "url_name": "portal:student_onboarding", "item_id": "onboard_student", "allow_key": "can_manage_people"},
@@ -102,11 +105,11 @@ BACKEND_INTENT_PRIMARY_INDEX = {
     "setup": 0,
 }
 BACKEND_INTENT_WELCOME_ITEM_IDS = {
-    "executive": ["add_teacher", "roles_permissions", "manage_exams", "document_library", "add_student"],
-    "operational": ["add_student", "add_teacher", "manage_exams", "workflow_center", "create_invoice", "announcements"],
-    "academic": ["add_student", "manage_exams", "onboard_student", "add_teacher", "document_library"],
-    "finance": ["create_invoice", "add_student", "manage_exams", "document_library", "roles_permissions"],
-    "setup": ["add_student", "add_teacher", "onboard_student", "document_library", "manage_exams", "roles_permissions"],
+    "executive": ["workflow_center", "setup_studio", "roles_permissions", "manage_exams", "document_library", "add_student"],
+    "operational": ["workflow_center", "add_student", "add_teacher", "manage_exams", "create_invoice", "announcements"],
+    "academic": ["manage_exams", "workflow_center", "add_student", "onboard_student", "add_teacher", "document_library"],
+    "finance": ["finance_console", "create_invoice", "workflow_center", "document_library", "roles_permissions"],
+    "setup": ["setup_studio", "workflow_center", "add_student", "add_teacher", "onboard_student", "document_library", "manage_exams"],
 }
 VALID_DASHBOARD_INTENTS = frozenset(BACKEND_INTENT_PRIMARY_INDEX.keys())
 
@@ -232,6 +235,8 @@ CONTEXTUAL_GROUP_NAV = "Go to"
 
 # Map item_id -> group for backend contextual panel
 BACKEND_CONTEXTUAL_GROUPS: Dict[str, str] = {
+    "setup_studio": CONTEXTUAL_GROUP_SETUP,
+    "finance_console": CONTEXTUAL_GROUP_FINANCE,
     "add_student": CONTEXTUAL_GROUP_PEOPLE,
     "add_teacher": CONTEXTUAL_GROUP_PEOPLE,
     "onboard_student": CONTEXTUAL_GROUP_PEOPLE,
@@ -248,6 +253,8 @@ BACKEND_CONTEXTUAL_GROUPS: Dict[str, str] = {
 }
 
 BACKEND_CONTEXTUAL_REASONS: Dict[str, str] = {
+    "setup_studio": "Use one guided launch surface instead of scattering setup across utility pages.",
+    "finance_console": "Open collections, approvals, and billing health from one finance-first surface.",
     "add_student": "Unblock enrollment and downstream workflows.",
     "add_teacher": "Get classrooms, reporting, and communication ready faster.",
     "onboard_student": "Move one admitted learner into an active record.",
@@ -271,6 +278,7 @@ def get_contextual_actions(
     *,
     intent: Optional[str] = None,
     workflow_progress: Optional[Dict[str, Any]] = None,
+    recommended_steps: Optional[List[Dict[str, Any]]] = None,
     max_items: int = 7,
 ) -> List[Dict[str, Any]]:
     """
@@ -317,13 +325,22 @@ def get_contextual_actions(
             "group": BACKEND_CONTEXTUAL_GROUPS.get(item_id, CONTEXTUAL_GROUP_NAV),
             "reason": BACKEND_CONTEXTUAL_REASONS.get(item_id, "Continue the highest-value workflow for this role."),
         })
-    preferred_ids = list(BACKEND_INTENT_WELCOME_ITEM_IDS.get(intent or "", []))
+    recommended_by_id: Dict[str, Dict[str, Any]] = {}
+    preferred_ids = []
+    for step in recommended_steps or []:
+        action_id = str(step.get("action_id", "") or "").strip()
+        if not action_id:
+            continue
+        recommended_by_id[action_id] = step
+        preferred_ids.append(action_id)
+
+    preferred_ids.extend(BACKEND_INTENT_WELCOME_ITEM_IDS.get(intent or "", []))
     if workflow_progress:
         if workflow_progress.get("students", 0) == 0:
             preferred_ids.insert(0, "add_student")
         if workflow_progress.get("teachers", 0) == 0:
             preferred_ids.insert(0, "add_teacher")
-        if workflow_progress.get("classrooms", 0) == 0:
+        if workflow_progress.get("classrooms", 0) == 0 or not workflow_progress.get("has_year_setup", False):
             preferred_ids.insert(0, "workflow_center")
 
     by_id = {str(item.get("id", "")): item for item in out if item.get("id")}
@@ -338,6 +355,12 @@ def get_contextual_actions(
 
     sliced = ordered[:max_items]
     for index, item in enumerate(sliced):
-        item["priority"] = "now" if index == 0 else "next" if index < 3 else "later"
+        recommendation = recommended_by_id.get(str(item.get("id", "")))
+        if recommendation:
+            item["reason"] = recommendation.get("reason") or item.get("reason", "")
+            item["category"] = recommendation.get("category") or item.get("group")
+            item["priority"] = recommendation.get("priority") or ("now" if index == 0 else "next" if index < 3 else "later")
+        else:
+            item["priority"] = "now" if index == 0 else "next" if index < 3 else "later"
         item["featured"] = index == 0
     return sliced

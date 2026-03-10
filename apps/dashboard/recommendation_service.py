@@ -27,10 +27,17 @@ def _append_step(
     icon: str,
     reason: str,
     category: str,
+    action_id: str = "",
+    score: int = 50,
 ) -> None:
     if not url or url == "#":
         return
-    if any(item["label"] == label or item["url"] == url for item in steps):
+    if any(
+        item["label"] == label
+        or item["url"] == url
+        or (action_id and item.get("action_id") == action_id)
+        for item in steps
+    ):
         return
     steps.append(
         {
@@ -39,6 +46,8 @@ def _append_step(
             "icon": icon,
             "reason": reason,
             "category": category,
+            "action_id": action_id,
+            "score": score,
         }
     )
 
@@ -48,6 +57,7 @@ def get_recommended_next_steps(
     *,
     year=None,
     intent: str | None = None,
+    priority_signals: Dict[str, Any] | None = None,
     max_steps: int = 5,
 ) -> List[Dict[str, str]]:
     """
@@ -62,15 +72,23 @@ def get_recommended_next_steps(
     teachers = int(workflow_progress.get("teachers", 0) or 0)
     active_year_ready = bool(year)
     resolved_intent = (intent or "").strip().lower()
+    signals = priority_signals or {}
+    overdue_invoices = int(signals.get("overdue_invoices", 0) or 0)
+    pending_approvals = int(signals.get("pending_approvals_count", 0) or 0)
+    pending_invites = int(signals.get("pending_invites", 0) or 0)
+    at_risk_students = int(signals.get("at_risk_students", 0) or 0)
+    draft_invoices = int(signals.get("draft_invoices", 0) or 0)
 
     if not active_year_ready:
         _append_step(
             steps,
-            label="Set up academic year",
-            url=_safe_reverse("accounts:workflow_center"),
-            icon="bi-calendar-event",
-            reason="Most downstream workflows stay blocked until the active year exists.",
+            label="Open Setup Studio",
+            url=_safe_reverse("siteconfig:guided_onboarding", _safe_reverse("accounts:workflow_center")),
+            icon="bi-magic",
+            reason="Academic year, blueprint, and launch readiness still need one guided setup surface.",
             category="Setup",
+            action_id="setup_studio",
+            score=100 if resolved_intent == "setup" else 94,
         )
 
     if students == 0:
@@ -81,6 +99,8 @@ def get_recommended_next_steps(
             icon="bi-person-plus",
             reason="Admissions, attendance, finance, and family workflows need active student records.",
             category="People",
+            action_id="add_student",
+            score=96 if resolved_intent in {"setup", "operational"} else 90,
         )
 
     if teachers == 0:
@@ -91,16 +111,56 @@ def get_recommended_next_steps(
             icon="bi-person-badge",
             reason="Academic delivery and parent communication are incomplete without staff coverage.",
             category="People",
+            action_id="add_teacher",
+            score=95 if resolved_intent in {"setup", "academic"} else 88,
         )
 
     if classrooms == 0:
         _append_step(
             steps,
-            label="Create classrooms",
+            label="Open workflow center",
             url=_safe_reverse("accounts:workflow_center"),
-            icon="bi-door-open",
-            reason="Classrooms turn imported people and timetable data into usable operations.",
+            icon="bi-diagram-3",
+            reason="Classrooms, approvals, and launch tasks converge fastest in the workflow queue.",
             category="Setup",
+            action_id="workflow_center",
+            score=92 if resolved_intent in {"setup", "operational"} else 84,
+        )
+
+    if overdue_invoices > 0 or draft_invoices > 0 or resolved_intent == "finance":
+        _append_step(
+            steps,
+            label="Review collections",
+            url=_safe_reverse("finance:dashboard"),
+            icon="bi-cash-stack",
+            reason="Collections, overdue invoices, and draft billing items need an explicit finance-first pass.",
+            category="Finance",
+            action_id="finance_console",
+            score=98 if overdue_invoices > 0 else 90,
+        )
+
+    if pending_approvals > 0 or pending_invites > 0 or resolved_intent in {"operational", "executive"}:
+        _append_step(
+            steps,
+            label="Resolve active queues",
+            url=_safe_reverse("accounts:workflow_center"),
+            icon="bi-diagram-3",
+            reason="Approvals, invites, and operational blockers should be cleared from one queue-first surface.",
+            category="Operations",
+            action_id="workflow_center",
+            score=97 if pending_approvals > 0 else 89,
+        )
+
+    if at_risk_students > 0 or resolved_intent == "academic":
+        _append_step(
+            steps,
+            label="Review grading and interventions",
+            url=_safe_reverse("reports:publish_term_results", _safe_reverse("accounts:workflow_center")),
+            icon="bi-journal-check",
+            reason="Academic risk, report readiness, and intervention timing should stay in one academic workbench.",
+            category="Academic",
+            action_id="manage_exams",
+            score=95 if at_risk_students > 0 else 86,
         )
 
     if resolved_intent == "setup":
@@ -109,44 +169,21 @@ def get_recommended_next_steps(
             label="Open Setup Studio",
             url=_safe_reverse("siteconfig:guided_onboarding", _safe_reverse("accounts:backend_dashboard")),
             icon="bi-magic",
-            reason="Finish blueprint, branding, and launch-readiness tasks from one guided surface.",
+            reason="Keep setup, launch blockers, previews, and blueprint decisions in one guided operator flow.",
             category="Setup",
-        )
-    elif resolved_intent == "finance":
-        _append_step(
-            steps,
-            label="Review collections",
-            url=_safe_reverse("finance:dashboard"),
-            icon="bi-cash-stack",
-            reason="Finance mode should open cash collection and approval decisions first.",
-            category="Finance",
-        )
-    elif resolved_intent == "academic":
-        _append_step(
-            steps,
-            label="Review grading and reports",
-            url=_safe_reverse("reports:publish_term_results", _safe_reverse("accounts:workflow_center")),
-            icon="bi-journal-check",
-            reason="Academic mode is for outcomes, interventions, and publishing readiness.",
-            category="Academic",
+            action_id="setup_studio",
+            score=93,
         )
     elif resolved_intent == "executive":
         _append_step(
             steps,
-            label="Open decision queue",
+            label="Review school pulse",
             url=_safe_reverse("accounts:workflow_center"),
             icon="bi-speedometer2",
-            reason="Executive mode should surface the shortest path to decisions and blockers.",
+            reason="Executive mode should start from decisions, blockers, and the operating pulse.",
             category="Executive",
-        )
-    else:
-        _append_step(
-            steps,
-            label="Open workflow center",
-            url=_safe_reverse("accounts:workflow_center"),
-            icon="bi-diagram-3",
-            reason="Workflow Center remains the fastest route when multiple queues need attention.",
-            category="Operations",
+            action_id="workflow_center",
+            score=88,
         )
 
     _append_step(
@@ -156,15 +193,12 @@ def get_recommended_next_steps(
         icon="bi-command",
         reason="Search and commands should replace sidebar hunting for major tasks.",
         category="Navigation",
+        score=40,
     )
 
-    _append_step(
-        steps,
-        label="Review finance health",
-        url=_safe_reverse("finance:dashboard", _safe_reverse("accounts:backend_dashboard")),
-        icon="bi-wallet2",
-        reason="Operational readiness is not complete until collections and invoices are in good shape.",
-        category="Finance",
-    )
-
-    return steps[:max_steps]
+    steps.sort(key=lambda item: int(item.get("score", 0)), reverse=True)
+    sliced = steps[:max_steps]
+    for index, item in enumerate(sliced):
+        item["priority"] = "now" if index == 0 else "next" if index < 3 else "later"
+        item.pop("score", None)
+    return sliced
