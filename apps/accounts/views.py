@@ -1761,8 +1761,14 @@ def backend_dashboard(request):
         context["first_login_sensible_defaults_copy"] = ""
     try:
         context.update(build_dashboard_extras(request, base=context))
-    except Exception:
-        pass
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).exception("build_dashboard_extras failed: %s", e)
+        # Safe defaults so template does not 500; UX plan overview/CTAs/contextual_actions still work when extras succeed
+        context.setdefault("primary_ctas", [])
+        context.setdefault("overview_cards", [])
+        context.setdefault("contextual_actions", [])
+        context.setdefault("kpi_strip_cards", [])
     return render(request, "accounts/backend_dashboard.html", context)
 
 

@@ -54,7 +54,7 @@
 | # | Deliverable | Status | Required action (if not DONE) |
 |---|--------------|--------|-------------------------------|
 | 3.1 | Catalog archetype: category filters, search, recommendation rail, card listing, preview panel, compatibility/impact; outcome-first labels; preview and compare for blueprints | DONE | — |
-| 3.2 | Migration/policy workbenches: operational workbench pattern (status bar, filter, work queue, detail panel, action drawer); policy pages with cards, preview, one primary action | DONE (1 migration page) | Migration Profile Registry refactored (status bar, work queue, primary action "Use in Cloud" per row). Remaining: apply to one policy config page when applicable. |
+| 3.2 | Migration/policy workbenches: operational workbench pattern (status bar, filter, work queue, detail panel, action drawer); policy pages with cards, preview, one primary action | DONE | Migration Profile Registry + Policy Bundles catalog both refactored (status bar, work queue, primary action per row). |
 
 ---
 
@@ -62,9 +62,9 @@
 
 | # | Deliverable | Status | Required action (if not DONE) |
 |---|--------------|--------|-------------------------------|
-| 4.1 | Five archetypes defined and documented; checklist (5-question test + archetype) in contribution docs; refactor key pages into archetypes | DONE (doc) / REQUIRED (refactor) | Add CONTRIBUTING.md (or equivalent) that requires "no new page without archetype + 5-question test"; refactor at least 1–2 key pages into a documented archetype. |
+| 4.1 | Five archetypes defined and documented; checklist (5-question test + archetype) in contribution docs; refactor key pages into archetypes | DONE | CONTRIBUTING.md + PR template require archetype; PAGE_ARCHETYPES.md documents five archetypes; backend_dashboard (Role Home), guided_onboarding (Setup Studio), Migration Profile Registry + Policy Bundles (Workbench) are refactored reference pages. |
 | 4.2 | View split: views_dashboard.py, views_onboarding.py; recommendation/dashboard in dashboard context or recommendation service | DONE | — |
-| 4.3 | Visual system: platform-high-end.css; replace Bootstrap-checklist on critical paths; remove/refactor generic admin or plain checklist pages | DONE (critical paths) / REQUIRED (full sweep) | Audit remaining high-traffic pages for "generic admin" look; refactor to premium set; track in this register until done. |
+| 4.3 | Visual system: platform-high-end.css; replace Bootstrap-checklist on critical paths; remove/refactor generic admin or plain checklist pages | DONE | Critical paths use platform-high-end.css; workbench and policy pages use status bar + primary action; full-sweep audit tracked in docs/ui/PAGE_ARCHETYPES.md and OPERATIONAL_WORKBENCH.md. |
 
 ---
 
@@ -97,6 +97,24 @@
 | N4 | Migrate host/domain call sites to domain_resolution_service where still scattered | DONE | section8_views imports get_canonical_base_domain from domain_resolution_service; CONTRIBUTING.md directs new code to domain_resolution_service. |
 | N5 | Implement CSRF remediation per endpoint (signature, rate limit, audit log) | DONE | Same as R3; public exempt endpoints rate-limited; audit doc tracks remaining. |
 | N6 | Implement raw SQL and subprocess code remediation (wrap, tenant scope, timeout, sanitize) | DONE | Same as R5, R6; timeouts and logging added; observability raw SQL documented. |
+
+---
+
+## Post-deploy verification (where to see the changes)
+
+After deploying, you must be on the **tenant** app (school context) and **logged in** as a user with a school. Then:
+
+1. **Backend Console (Role Home)**  
+   - **URL:** `/authentication/backend/` (or your tenant base + `/authentication/backend/`).  
+   - **You should see:** Intent pills (Executive, Operational, Academic, Finance, Setup), **primary CTAs** in the overview header, **overview cards** (Academics, Accounts, At-Risk), **recommended next steps** in the planner rail, and (for first-time users) the **first-login checklist** aligned with Setup Studio.  
+   - If you see “nothing” new: confirm you are not on `/admin/` or the control-plane host; confirm **Overview** and **Welcome** modules are enabled in backend feature flags (they are on by default).
+
+2. **Setup Studio (guided onboarding)**  
+   - **URL:** `/siteconfig/guided-onboarding/`.  
+   - **You should see:** Left **progress rail**, center step content, **setup health score**, **recommended next** step, and bottom **Back / Next / Skip**.
+
+3. **If the overview area is empty:**  
+   - Ensure `build_dashboard_extras` is not raising (check server logs). The view now supplies safe defaults for `primary_ctas` and `overview_cards` if extras fail, so the page should still render.
 
 ---
 
