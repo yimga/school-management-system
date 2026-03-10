@@ -35,6 +35,48 @@ body > .topbar {
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  padding-bottom: 2.5rem; /* breathing room so last section is not flush */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(15, 23, 42, 0.22) rgba(15, 23, 42, 0.05);
+}
+.portal-layout-wrap .portal-main-col::-webkit-scrollbar {
+  width: 8px;
+}
+.portal-layout-wrap .portal-main-col::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.05);
+  border-radius: 4px;
+  margin: 4px 0;
+}
+.portal-layout-wrap .portal-main-col::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.22);
+  border-radius: 4px;
+  min-height: 40px;
+}
+.portal-layout-wrap .portal-main-col::-webkit-scrollbar-thumb:hover {
+  background: rgba(15, 23, 42, 0.35);
+}
+html[data-theme="dark"] .portal-layout-wrap .portal-main-col,
+body.portal-backend-dark .portal-layout-wrap .portal-main-col {
+  scrollbar-color: rgba(255, 255, 255, 0.28) rgba(255, 255, 255, 0.04);
+}
+html[data-theme="dark"] .portal-layout-wrap .portal-main-col::-webkit-scrollbar-track,
+body.portal-backend-dark .portal-layout-wrap .portal-main-col::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+}
+html[data-theme="dark"] .portal-layout-wrap .portal-main-col::-webkit-scrollbar-thumb,
+body.portal-backend-dark .portal-layout-wrap .portal-main-col::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.28);
+}
+html[data-theme="dark"] .portal-layout-wrap .portal-main-col::-webkit-scrollbar-thumb:hover,
+body.portal-backend-dark .portal-layout-wrap .portal-main-col::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+@media (prefers-reduced-motion: reduce) {
+  .portal-layout-wrap .portal-main-col,
+  .portal-layout-wrap .portal-sidebar-col .sidebar {
+    scroll-behavior: auto;
+  }
 }
 .portal-layout-wrap .portal-layout-row {
   min-height: 0;
@@ -54,7 +96,38 @@ body > .topbar {
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
     max-height: none; /* override inline max-height so flex controls height */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(15, 23, 42, 0.25) rgba(15, 23, 42, 0.04);
+  }
+  .portal-layout-wrap .portal-sidebar-col .sidebar::-webkit-scrollbar {
+    width: 8px;
+  }
+  .portal-layout-wrap .portal-sidebar-col .sidebar::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.04);
+    border-radius: 4px;
+    margin: 4px 0;
+  }
+  .portal-layout-wrap .portal-sidebar-col .sidebar::-webkit-scrollbar-thumb {
+    background: rgba(15, 23, 42, 0.25);
+    border-radius: 4px;
+    min-height: 40px;
+  }
+  .portal-layout-wrap .portal-sidebar-col .sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(15, 23, 42, 0.4);
+  }
+  html[data-theme="dark"] .portal-layout-wrap .portal-sidebar-col .sidebar,
+  body.portal-backend-dark .portal-layout-wrap .portal-sidebar-col .sidebar {
+    scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.04);
+  }
+  html[data-theme="dark"] .portal-layout-wrap .portal-sidebar-col .sidebar::-webkit-scrollbar-thumb,
+  body.portal-backend-dark .portal-layout-wrap .portal-sidebar-col .sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+  }
+  html[data-theme="dark"] .portal-layout-wrap .portal-sidebar-col .sidebar::-webkit-scrollbar-thumb:hover,
+  body.portal-backend-dark .portal-layout-wrap .portal-sidebar-col .sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.45);
   }
 }
 
@@ -67,6 +140,11 @@ body > .topbar {
 
 .portal-main-col {
   min-width: 0;
+}
+
+/* Skip-link target: scroll into view with margin when focused */
+#main-content {
+  scroll-margin-top: 1rem;
 }
 
 /* ===== Collapsible portal sidebar (B1): icon-only strip when collapsed ===== */

@@ -58,6 +58,13 @@
 #page > #main::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.4);
 }
+@media (prefers-reduced-motion: reduce) {
+  #page > #main,
+  #nav-sidebar-apps,
+  .admin-sidebar-apps {
+    scroll-behavior: auto;
+  }
+}
 /* Light admin: darker scrollbar */
 body:not(.portal-backend-dark) #page > #main {
   scrollbar-color: rgba(0, 0, 0, 0.28) rgba(0, 0, 0, 0.06);

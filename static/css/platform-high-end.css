@@ -29,6 +29,23 @@ body.portal-backend-dark {
   --platform-premium-shadow-hover: var(--platform-premium-shadow-dark-hover);
 }
 
+/* ========== Premium polish – selection, focus, motion ========== */
+/* Refined text selection (all surfaces) */
+::selection {
+  background: rgba(13, 110, 253, 0.2);
+  color: inherit;
+}
+.control-plane-shell ::selection,
+body.portal-backend-dark ::selection,
+html[data-theme="dark"] ::selection {
+  background: rgba(212, 175, 55, 0.25);
+  color: inherit;
+}
+/* Consistent focus-visible: high contrast, never clip */
+*:focus-visible {
+  outline-offset: 2px;
+}
+
 /* ========== Sidebars – every sidebar on the platform ========== */
 
 /* Portal / tenant backend sidebar (partials/portal_sidebar) */
