@@ -24,6 +24,9 @@ def __safe_reverse(name: str, fallback: str = "#") -> str:
         return fallback
 
 
+_safe_reverse = __safe_reverse
+
+
 def _safe_int(value: Any, default: int = 0) -> int:
     try:
         return int(value or 0)
@@ -177,6 +180,226 @@ def _build_cached_snapshot(site_id: str, role_code: str) -> Dict[str, int]:
     }
     cache.set(key, snapshot, DASHBOARD_SNAPSHOT_CACHE_TTL)
     return snapshot
+
+
+ROLE_HOME_BY_ROLE = {
+    "ADMIN": "implementation",
+    "IT_ADMIN": "implementation",
+    "SUPERADMIN": "implementation",
+    "PRINCIPAL": "principal",
+    "VICE_PRINCIPAL": "principal",
+    "LEADERSHIP": "district_leader",
+    "PROPRIETOR": "district_leader",
+    "SECRETARY": "admissions",
+    "ACADEMICS_STAFF": "admissions",
+    "BURSAR": "finance",
+    "ACCOUNTANT": "finance",
+    "FINANCE_STAFF": "finance",
+    "TEACHER": "teacher",
+    "PARENT": "parent",
+    "STUDENT": "student",
+}
+
+ROLE_HOME_CONFIG = {
+    "principal": {
+        "key": "principal",
+        "eyebrow": "Principal home",
+        "title": "Lead with status and decisions",
+        "purpose": "See academic, people, finance, and launch signals without reconstructing the story from separate pages.",
+        "default_intent": "executive",
+        "queue_label": "Decision queue",
+        "next_label": "Recommended next",
+        "recent_label": "Recent movement",
+        "search_hint": "Search students, finance actions, interventions, and workflows",
+        "destinations": ["workflow_center", "documents", "preferences"],
+    },
+    "teacher": {
+        "key": "teacher",
+        "eyebrow": "Teacher home",
+        "title": "Stay focused on class outcomes",
+        "purpose": "This role home favors grading, attendance, and classroom actions over admin navigation.",
+        "default_intent": "academic",
+        "queue_label": "Academic queue",
+        "next_label": "Teaching next steps",
+        "recent_label": "Latest classroom movement",
+        "search_hint": "Search classes, grades, attendance, and parent communication",
+        "destinations": ["workflow_center", "preferences"],
+    },
+    "admissions": {
+        "key": "admissions",
+        "eyebrow": "Admissions home",
+        "title": "Move applicants into active enrollment",
+        "purpose": "Keep enrollment, onboarding, and records flowing without bouncing across utility pages.",
+        "default_intent": "operational",
+        "queue_label": "Admissions queue",
+        "next_label": "Enrollment next",
+        "recent_label": "Recent admissions activity",
+        "search_hint": "Search applicants, students, families, and enrollment tasks",
+        "destinations": ["workflow_center", "documents", "preferences"],
+    },
+    "finance": {
+        "key": "finance",
+        "eyebrow": "Finance home",
+        "title": "Collections and approvals first",
+        "purpose": "Every block in this mode is tuned for payment health, approvals, and billing follow-through.",
+        "default_intent": "finance",
+        "queue_label": "Collections queue",
+        "next_label": "Finance next",
+        "recent_label": "Recent finance movement",
+        "search_hint": "Search invoices, collections, requests, and approvals",
+        "destinations": ["workflow_center", "preferences"],
+    },
+    "district_leader": {
+        "key": "district_leader",
+        "eyebrow": "District leader home",
+        "title": "See school health before drilling down",
+        "purpose": "Monitor cross-team movement and intervene only where the platform shows risk or friction.",
+        "default_intent": "executive",
+        "queue_label": "Leadership queue",
+        "next_label": "Leadership next",
+        "recent_label": "Recent operating movement",
+        "search_hint": "Search schools, approvals, audits, and operations",
+        "destinations": ["workflow_center", "documents", "preferences"],
+    },
+    "implementation": {
+        "key": "implementation",
+        "eyebrow": "Implementation home",
+        "title": "Launch readiness is the main job",
+        "purpose": "Use Setup Studio, queue health, and role previews to remove launch blockers in the right order.",
+        "default_intent": "setup",
+        "queue_label": "Launch blockers",
+        "next_label": "Launch next",
+        "recent_label": "Recent setup movement",
+        "search_hint": "Search setup tasks, blueprints, branding, and launch blockers",
+        "destinations": ["workflow_center", "documents", "preferences"],
+    },
+    "parent": {
+        "key": "parent",
+        "eyebrow": "Parent home",
+        "title": "One place for family follow-through",
+        "purpose": "Stay on top of attendance, grades, fees, and messages without chasing separate tools.",
+        "default_intent": "operational",
+        "queue_label": "Family queue",
+        "next_label": "Family next",
+        "recent_label": "Recent family updates",
+        "search_hint": "Search children, fees, messages, and school updates",
+        "destinations": ["preferences"],
+    },
+    "student": {
+        "key": "student",
+        "eyebrow": "Student home",
+        "title": "Keep learning work obvious",
+        "purpose": "Assignments, results, and resources should feel like one path instead of separate utilities.",
+        "default_intent": "academic",
+        "queue_label": "Student queue",
+        "next_label": "Student next",
+        "recent_label": "Recent study updates",
+        "search_hint": "Search assignments, grades, and school resources",
+        "destinations": ["preferences"],
+    },
+}
+
+INTENT_KPI_PRIORITY = {
+    "executive": ["top_performing", "attendance_today", "recent_admissions"],
+    "operational": ["attendance_today", "recent_admissions", "weekly_presence"],
+    "academic": ["top_performing", "attendance_today", "recent_admissions"],
+    "finance": ["recent_admissions", "attendance_today", "weekly_presence"],
+    "setup": ["recent_admissions", "attendance_today", "weekly_presence"],
+}
+
+
+def _resolve_role_home(role_code: str, intent: str | None) -> Dict[str, Any]:
+    key = ROLE_HOME_BY_ROLE.get(role_code or "", "implementation" if intent == "setup" else "principal")
+    role_home = dict(ROLE_HOME_CONFIG.get(key, ROLE_HOME_CONFIG["principal"]))
+    if intent in VALID_DASHBOARD_INTENTS:
+        role_home["active_intent"] = intent
+    else:
+        role_home["active_intent"] = role_home["default_intent"]
+    return role_home
+
+
+def _build_priority_queue(items: list[Dict[str, Any]], *, max_items: int = 4) -> list[Dict[str, Any]]:
+    priority = {"danger": 0, "warn": 1, "ok": 2}
+    ranked = sorted(
+        [item for item in items if _safe_int(item.get("value")) > 0],
+        key=lambda item: (priority.get(str(item.get("status")), 3), -_safe_int(item.get("value"))),
+    )
+    if ranked:
+        return ranked[:max_items]
+    return [{
+        "label": "No urgent blockers",
+        "value": 0,
+        "status": "ok",
+        "url": __safe_reverse("accounts:workflow_center"),
+        "icon": "bi-check2-circle",
+        "meta": "The main queues are clear right now.",
+    }]
+
+
+def _build_recent_activity_block(activities: Any, *, max_items: int = 4) -> list[Dict[str, Any]]:
+    results: list[Dict[str, Any]] = []
+    if not isinstance(activities, list):
+        return results
+    for activity in activities[:max_items]:
+        user = activity.get("user") if isinstance(activity, dict) else getattr(activity, "user", None)
+        actor = ""
+        if user is not None:
+            actor = getattr(user, "get_full_name", lambda: "")() or getattr(user, "username", "")
+        results.append(
+            {
+                "title": str(activity.get("object") if isinstance(activity, dict) else getattr(activity, "object", "")) or "Platform update",
+                "actor": actor or "System",
+                "action": str(activity.get("action") if isinstance(activity, dict) else getattr(activity, "action", "")) or "updated",
+                "time_ago": str(activity.get("time_ago") if isinstance(activity, dict) else getattr(activity, "time_ago", "")) or "just now",
+            }
+        )
+    return results
+
+
+def _prioritize_destinations(
+    role_home: Dict[str, Any],
+    action_chips: list[Dict[str, Any]],
+    quick_links: list[Dict[str, Any]],
+    contextual_actions: list[Dict[str, Any]],
+) -> list[Dict[str, Any]]:
+    combined = _dedupe_nav_items(list(action_chips or []) + list(quick_links or []) + list(contextual_actions or []))
+    preferred_ids = list(role_home.get("destinations") or [])
+    by_id = {str(item.get("id", "")): item for item in combined if item.get("id")}
+    prioritized: list[Dict[str, Any]] = []
+    seen: set[tuple[str, str]] = set()
+
+    def _remember(item: Dict[str, Any]) -> bool:
+        key = (
+            str(item.get("label", "") or "").strip().lower(),
+            str(item.get("url", "") or "").strip().lower(),
+        )
+        if key in seen:
+            return False
+        seen.add(key)
+        return True
+
+    for item_id in preferred_ids:
+        item = by_id.get(item_id)
+        if item and item not in prioritized and _remember(item):
+            prioritized.append(item)
+    for item in combined:
+        if item not in prioritized and _remember(item):
+            prioritized.append(item)
+    return prioritized[:5]
+
+
+def _select_kpis_for_intent(kpis: list[Dict[str, Any]], intent: str) -> list[Dict[str, Any]]:
+    desired_ids = INTENT_KPI_PRIORITY.get(intent, [])
+    by_id = {str(item.get("id", "")): item for item in kpis}
+    ordered: list[Dict[str, Any]] = []
+    for item_id in desired_ids:
+        item = by_id.get(item_id)
+        if item and item not in ordered:
+            ordered.append(item)
+    for item in kpis:
+        if item not in ordered:
+            ordered.append(item)
+    return ordered[:3]
 
 
 def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
@@ -535,6 +758,8 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
     intent = (base.get("dashboard_intent") or "").strip().lower()
     if intent not in VALID_DASHBOARD_INTENTS:
         intent = ""
+    role_home = _resolve_role_home(role_code, intent or None)
+    intent = intent or role_home["default_intent"]
     actions = get_backend_dashboard_actions(
         perms, _safe_reverse, _build_nav_item, _dedupe_nav_items, intent=intent or None
     )
@@ -543,6 +768,14 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
     welcome_action_grid = actions["welcome_action_grid"]
     quick_links = actions["quick_links"]
     command_palette = actions["command_palette"]
+    contextual_actions = get_contextual_actions(
+        "backend_dashboard",
+        perms,
+        __safe_reverse,
+        intent=intent or None,
+        workflow_progress=base.get("workflow_progress") if isinstance(base.get("workflow_progress"), dict) else None,
+        max_items=5,
+    )
 
     if role_code in {"BURSAR", "FINANCE_STAFF"}:
         finance_console = _build_nav_item(
@@ -565,6 +798,8 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
     if pinned_order:
         order_map = {key: idx for idx, key in enumerate(pinned_order)}
         quick_links.sort(key=lambda x: order_map.get(x.get("id", ""), 999))
+    role_home_destinations = _prioritize_destinations(role_home, action_chips, quick_links, contextual_actions)
+    quick_links = role_home_destinations[:5]
 
     upcoming_events = []
     try:
@@ -649,6 +884,29 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
             "icon": "bi-activity",
         },
     ]
+    kpi_strip_cards = _select_kpis_for_intent(kpi_strip_cards, intent)
+    dashboard_priority_queue = _build_priority_queue(operations_watch, max_items=4)
+    dashboard_recent_activity = _build_recent_activity_block(base.get("recent_activities"), max_items=4)
+    dashboard_next_best_actions = list(base.get("recommended_next_steps") or [])[:3]
+    if not dashboard_next_best_actions:
+        dashboard_next_best_actions = [
+            {
+                "label": item["label"],
+                "url": item["url"],
+                "icon": item.get("icon", "bi-arrow-right"),
+                "reason": item.get("reason", ""),
+                "category": item.get("group", "Action"),
+            }
+            for item in contextual_actions[:3]
+        ]
+    dashboard_contract = {
+        "dominant_purpose": role_home["purpose"],
+        "primary_action_count": len(primary_ctas[:1]),
+        "metric_count": len(overview_cards) + len(kpi_strip_cards),
+        "urgent_queue_count": len(dashboard_priority_queue),
+        "recommended_count": len(dashboard_next_best_actions),
+        "recent_count": len(dashboard_recent_activity),
+    }
 
     operations_watch = operations_watch[:max_items]
     quick_links = quick_links[:max_items]
@@ -680,7 +938,11 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
         "empty_panel_quick_actions": quick_links[:3],
         "dashboard_intent": intent or "operational",
         "backend_intent_emphasize_setup": intent == "setup",
-        "contextual_actions": get_contextual_actions(
-            "backend_dashboard", perms, __safe_reverse, max_items=7
-        ),
+        "contextual_actions": contextual_actions,
+        "role_home": role_home,
+        "role_home_destinations": role_home_destinations,
+        "dashboard_priority_queue": dashboard_priority_queue,
+        "dashboard_recent_activity": dashboard_recent_activity,
+        "dashboard_next_best_actions": dashboard_next_best_actions,
+        "dashboard_contract": dashboard_contract,
     }

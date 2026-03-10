@@ -27,7 +27,7 @@ def dashboard_context(request):
     - System version
     - Role-based metrics
     - User information
-    - tenant_path_prefix for Option A path-based tenant links (e.g. /t/gilead/)
+    - tenant_path_prefix for Option A path-based tenant links (e.g. /t/default-school/)
     """
     try:
         from apps.schools.tenant_url import get_tenant_prefix

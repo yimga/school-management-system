@@ -2,7 +2,9 @@
 
 **Purpose:** Confirm every audit and backlog item is covered regardless of priority. Run after any major platform change.
 
-**Status: All items non-negotiable; all implemented and complete.** Waves 1–7 done; no optional items; no backlog.
+> Historical note as of March 10, 2026: this checklist reflects a prior completion claim set. Re-validate every claim against [MASTER_PLATFORM_CHECKLIST.md](MASTER_PLATFORM_CHECKLIST.md) before treating it as current truth.
+
+**Status:** Historical verification record. Current hardening truth lives in `MASTER_PLATFORM_CHECKLIST.md`, and any “Done” row below must be treated as stale until rechecked there.
 
 **Last verified:** 2026-03-08 (Waves 1–7 complete).
 

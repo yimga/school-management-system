@@ -742,7 +742,7 @@ def language_context(request):
 def ai_copilot_settings(request):
     """
     Context processor for AI Copilot settings.
-    Provides the Gemini API key and RBAC permissions to templates.
+    Provides frontend-safe AI visibility flags and RBAC permissions to templates.
     
     Ensures AI copilot respects role-based access control:
     - ADMIN/LEADERSHIP: Full system access (analytics, finance, compliance)
@@ -750,8 +750,6 @@ def ai_copilot_settings(request):
     - PARENT: Child-specific data access
     - Other: General navigation only
     """
-    import os
-    
     # Get user role
     _user = getattr(request, "user", None)
     user_role = 'USER'
@@ -799,9 +797,28 @@ def ai_copilot_settings(request):
             'can_view_financial': True,  # Only their child's fees
             'scope': 'parent',
         })
-    
+    ai_backend_enabled = False
+    ai_provider_name = ""
+    try:
+        from apps.portal.ai_provider import get_ai_provider_status
+
+        status = get_ai_provider_status()
+        ai_backend_enabled = bool(status.get("has_live_provider")) or bool(status.get("rules_fallback_enabled"))
+        for provider in status.get("preference", []):
+            provider_cfg = status.get(provider, {}) if isinstance(status.get(provider), dict) else {}
+            if provider == "rules" and status.get("rules_fallback_enabled"):
+                ai_provider_name = "rules"
+                break
+            if provider_cfg.get("configured"):
+                ai_provider_name = provider
+                break
+    except (AttributeError, ImportError, TypeError, ValueError):
+        ai_backend_enabled = False
+        ai_provider_name = ""
+
     return {
-        'GEMINI_API_KEY': os.environ.get('GEMINI_API_KEY', ''),
+        'AI_BACKEND_ENABLED': ai_backend_enabled,
+        'AI_PROVIDER_NAME': ai_provider_name,
         'AI_PERMISSIONS': json.dumps(ai_permissions),
         'USER_ROLE': user_role,
     }

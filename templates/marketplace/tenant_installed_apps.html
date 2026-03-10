@@ -9,7 +9,7 @@
   {% if not school %}
   <p class="text-muted">{% trans "No school context." %}</p>
   {% else %}
-  <p class="text-muted small">{% trans "Apps installed for this school. Widgets can be opened from the app sandbox." %}</p>
+  <p class="text-muted small">{% trans "Apps installed for this school. New installs now land in sandbox first so your team can preview and then activate deliberately." %}</p>
   {% if pending_scope_grants_count %}
   <div class="alert alert-warning mb-3">
     <a href="{% url 'tenant_scope_consent' %}">{% trans "Approve pending scopes" %}</a> ({{ pending_scope_grants_count }})

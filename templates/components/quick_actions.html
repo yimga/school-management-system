@@ -1,16 +1,26 @@
-{# Contextual action panel: pass contextual_actions (registry-driven, 5–7 items, with group) for role/context-aware panel; else legacy quick-actions grid. #}
+{# Contextual action surface. Prefer contextual_actions with ranked items; legacy quick-action grid remains as fallback. #}
 <div class="card shadow-sm contextual-quick-actions">
   <div class="card-header bg-gradient-primary text-white d-flex justify-content-between align-items-center">
-    <h5 class="mb-0">
-      <i class="bi bi-lightning-charge"></i> {% if contextual_actions %}Actions{% else %}Quick Actions{% endif %}
-    </h5>
+    <div>
+      <h5 class="mb-0"><i class="bi bi-lightning-charge"></i> {% if contextual_actions %}Next Best Actions{% else %}Quick Actions{% endif %}</h5>
+      <div class="small opacity-75">{% if contextual_actions %}Role-aware actions ranked by urgency and workflow state{% else %}Legacy shortcut grid{% endif %}</div>
+    </div>
     <span class="badge quick-actions-badge" style="background: rgba(255,255,255,0.25); color: var(--header-brand-fg, #fff);">{% if contextual_actions %}{{ contextual_actions|length }}{% else %}{{ quick_actions|length|default:10 }}{% endif %}</span>
   </div>
   <div class="card-body p-0">
     {% if contextual_actions %}
-    {# Registry-driven contextual panel: grouped by goal, 5–7 items #}
+    {% with featured=contextual_actions|first %}
+    <div class="contextual-featured-action">
+      <div class="contextual-featured-meta">
+        <span class="contextual-featured-badge">{% if featured.priority == 'now' %}Do now{% else %}Recommended{% endif %}</span>
+        <strong>{{ featured.label }}</strong>
+        <p class="mb-0">{{ featured.reason|default:"Most important next step right now." }}</p>
+      </div>
+      <a href="{{ featured.url }}" class="btn btn-primary btn-sm">Open</a>
+    </div>
+    {% endwith %}
     <div class="contextual-actions-panel">
-      {% regroup contextual_actions by group as action_groups %}
+      {% regroup contextual_actions|slice:'1:' by group as action_groups %}
       {% for group in action_groups %}
       <div class="contextual-action-group">
         <div class="contextual-action-group-label">{{ group.grouper }}</div>
@@ -18,7 +28,10 @@
           {% for action in group.list %}
           <a href="{{ action.url }}" class="contextual-action-item">
             <span class="contextual-action-icon"><i class="bi {{ action.icon|default:'bi-circle' }}"></i></span>
-            <span class="contextual-action-title">{{ action.label }}</span>
+            <span class="contextual-action-copy">
+              <span class="contextual-action-title">{{ action.label }}</span>
+              <small class="contextual-action-reason">{{ action.reason }}</small>
+            </span>
           </a>
           {% endfor %}
         </div>
@@ -26,7 +39,6 @@
       {% endfor %}
     </div>
     {% else %}
-    {# Legacy: hardcoded grid (deprecated; pass contextual_actions from view for registry-driven panel) #}
     <div class="quick-actions-grid">
       <a href="{% if is_backend_context %}{% url 'accounts:rbac' %}{% else %}{% url 'admin:accounts_user_add' %}{% endif %}" class="quick-action-item">
         <div class="quick-action-icon bg-primary"><i class="fas fa-user-plus"></i></div>
@@ -63,45 +75,6 @@
           <div class="quick-action-desc">{% if is_backend_context %}Report library{% else %}Report cards{% endif %}</div>
         </div>
       </a>
-      <a href="{% if is_backend_context %}{% url 'evals:evaluation_admin' %}{% else %}{% url 'admin:evals_evaluation_add' %}{% endif %}" class="quick-action-item">
-        <div class="quick-action-icon bg-purple"><i class="fas fa-clipboard-check"></i></div>
-        <div class="quick-action-content">
-          <div class="quick-action-title">Add Evaluation</div>
-          <div class="quick-action-desc">Grade entry</div>
-        </div>
-      </a>
-      {% if not is_backend_context %}
-      <a href="{% url 'admin:academics_academicyear_changelist' %}" class="quick-action-item">
-        <div class="quick-action-icon quick-action-icon-neutral" style="background: var(--admin-content-surface); color: var(--admin-content-text);"><i class="fas fa-calendar-alt"></i></div>
-        <div class="quick-action-content">
-          <div class="quick-action-title">Academic Years</div>
-          <div class="quick-action-desc">Manage years</div>
-        </div>
-      </a>
-      {% endif %}
-      {% if request.user.role == 'ADMIN' or request.user.is_superuser %}
-      <a href="{% if is_backend_context %}{% url 'siteconfig:customizer' %}{% else %}{% url 'admin:siteconfig_sitesettings_changelist' %}{% endif %}" class="quick-action-item">
-        <div class="quick-action-icon bg-teal"><i class="fas fa-cog"></i></div>
-        <div class="quick-action-content">
-          <div class="quick-action-title">Settings</div>
-          <div class="quick-action-desc">System config</div>
-        </div>
-      </a>
-      {% endif %}
-      <a href="{% url 'analytics:dashboard' %}" class="quick-action-item">
-        <div class="quick-action-icon bg-gradient"><i class="fas fa-chart-line"></i></div>
-        <div class="quick-action-content">
-          <div class="quick-action-title">Analytics</div>
-          <div class="quick-action-desc">View insights</div>
-        </div>
-      </a>
-      <a href="{% url 'compliance:dashboard' %}" class="quick-action-item">
-        <div class="quick-action-icon bg-danger"><i class="fas fa-shield-alt"></i></div>
-        <div class="quick-action-content">
-          <div class="quick-action-title">Access Logs</div>
-          <div class="quick-action-desc">Security audit</div>
-        </div>
-      </a>
     </div>
     {% endif %}
   </div>
@@ -119,15 +92,20 @@
 </div>
 
 <style>
+.contextual-featured-action { display: flex; justify-content: space-between; gap: 0.85rem; padding: 1rem; border-bottom: 1px solid rgba(226, 232, 240, 0.9); background: linear-gradient(135deg, rgba(13,110,253,0.08), rgba(25,135,84,0.05)); }
+.contextual-featured-meta { display: grid; gap: 0.25rem; }
+.contextual-featured-badge { display: inline-flex; width: fit-content; padding: 0.25rem 0.55rem; border-radius: 999px; background: rgba(13,110,253,0.14); color: var(--bs-primary); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
 .contextual-actions-panel { padding: 0.75rem 1rem; }
 .contextual-action-group { margin-bottom: 0.75rem; }
 .contextual-action-group:last-child { margin-bottom: 0; }
 .contextual-action-group-label { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; color: var(--bs-secondary); margin-bottom: 0.35rem; }
-.contextual-action-list { display: flex; flex-direction: column; gap: 2px; }
-.contextual-action-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.6rem; border-radius: 8px; text-decoration: none; color: inherit; transition: background 0.15s; }
+.contextual-action-list { display: flex; flex-direction: column; gap: 0.25rem; }
+.contextual-action-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem; border-radius: 10px; text-decoration: none; color: inherit; transition: background 0.15s; }
 .contextual-action-item:hover { background: rgba(0,0,0,0.05); text-decoration: none; color: inherit; }
-.contextual-action-icon { width: 28px; height: 28px; border-radius: 6px; background: var(--bs-primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; flex-shrink: 0; }
-.contextual-action-title { font-size: 0.875rem; font-weight: 500; }
+.contextual-action-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--bs-primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
+.contextual-action-copy { display: grid; gap: 0.1rem; min-width: 0; }
+.contextual-action-title { font-size: 0.9rem; font-weight: 600; }
+.contextual-action-reason { color: var(--bs-secondary-color); }
 .quick-actions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1px; background: #e2e8f0; }
 .quick-action-item { display: flex; align-items: center; gap: 12px; padding: 16px; background: var(--admin-content-bg); text-decoration: none; color: inherit; transition: all 0.2s ease; border: none; }
 .quick-action-item:hover { background: #f8fafc; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); text-decoration: none; color: inherit; }
@@ -135,8 +113,5 @@
 .quick-action-content { flex: 1; min-width: 0; }
 .quick-action-title { font-weight: 600; font-size: 0.9rem; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .quick-action-desc { font-size: 0.75rem; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.bg-purple { background: linear-gradient(135deg, #9b6bff 0%, #7c3aed 100%); }
-.bg-teal { background: linear-gradient(135deg, #2dd4bf 0%, #14b8a6 100%); }
-.bg-gradient { background: linear-gradient(135deg, #ff6a88 0%, #9b6bff 100%); }
-@media (max-width: 768px) { .quick-actions-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); } .quick-action-item { padding: 12px; } .quick-action-icon { width: 40px; height: 40px; font-size: 18px; } }
+@media (max-width: 768px) { .quick-actions-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); } .quick-action-item { padding: 12px; } .quick-action-icon { width: 40px; height: 40px; font-size: 18px; } .contextual-featured-action { flex-direction: column; } }
 </style>

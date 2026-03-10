@@ -45,6 +45,39 @@ class SetupProgress(models.Model):
         blank=True,
         help_text="List of step keys marked done.",
     )
+    step_state = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Structured state for each setup step.",
+    )
+    recommendations = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Recommended actions and blueprint/starter-stack suggestions.",
+    )
+    role_previews = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Role-specific preview destinations and summary cards.",
+    )
+    launch_checklist = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Launch readiness checklist with blocker flags.",
+    )
+    launch_blockers = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Current blocker keys preventing launch.",
+    )
+    health_score = models.PositiveSmallIntegerField(default=0)
+    health_breakdown = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Weighted readiness scoring breakdown.",
+    )
+    launch_ready = models.BooleanField(default=False)
+    launched_at = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

@@ -4,7 +4,6 @@ Rate-limit by IP; JWT short expiry; return JSON or HTML with name, photo, status
 """
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.views.decorators.http import require_GET
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import never_cache
 
 from apps.siteconfig.student_id_service import verify_student_token, rate_limit_verify
@@ -24,7 +23,6 @@ def _get_client_ip(request):
 
 @require_GET
 @never_cache
-@csrf_exempt
 def verify_student_id(request, token: str):
     """
     GET /verify/<token>/ — Public verification; no auth.

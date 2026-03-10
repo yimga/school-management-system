@@ -2,6 +2,8 @@
 
 Raw SQL appears in migrations, RLS helpers, reporting, and some application code. For each usage, confirm: tenant scoping, auth assumptions, and whether it can be replaced with ORM or wrapped in a repository/service.
 
+**Enforcement:** `python scripts/lint_raw_sql_usage.py` with `scripts/allowlists/raw_sql_allowlist.json`.
+
 **Classification key:** Performance | Reporting | Migration/repair | Unsafe business logic | Replaceable with ORM | Keep but wrap
 
 **High-priority (application code, not migrations):**

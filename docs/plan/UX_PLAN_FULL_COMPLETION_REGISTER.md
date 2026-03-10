@@ -1,5 +1,7 @@
 # UX Plan — Full completion register (non-negotiable)
 
+> Historical note as of March 10, 2026: this register contains older “DONE” claims that do not override the current hardening ledger. Revalidate every claimed completion against [MASTER_PLATFORM_CHECKLIST.md](../MASTER_PLATFORM_CHECKLIST.md) before treating it as current.
+
 **Rule:** Nothing is "backlog", "optional", or "deferred". Every item is either **DONE** or **REQUIRED** with a concrete action. Required items must be completed or explicitly assigned and tracked until done.
 
 **Plan reference:** `ux_workflow_and_high-end_ui_08c021b7.plan.md` (UX Workflow and High-End UI Transformation). All phases and remediations are **due today** per plan.

@@ -178,7 +178,7 @@ def _extract_slug_from_tenant_path(path: str) -> str | None:
 
 
 def _strip_tenant_path_prefix(path: str, slug: str) -> str:
-    """Return path with /t/<slug> stripped. E.g. /t/gilead/authentication/login/ -> /authentication/login/ (must start with / for Django resolver)."""
+    """Return path with /t/<slug> stripped. E.g. /t/default-school/authentication/login/ -> /authentication/login/."""
     prefix = f"/t/{slug}/"
     prefix_alt = f"/t/{slug}"
     if path.startswith(prefix):

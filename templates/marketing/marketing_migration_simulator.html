@@ -1,47 +1,59 @@
 {% extends "marketing/base_marketing.html" %}
 {% load i18n %}
+
 {% block title %}Migration simulator | RunMyCampus{% endblock %}
 {% block extrahead %}
   <meta name="description" content="{{ seo_description|default:'' }}">
   {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
 {% endblock %}
-{% block content %}
-<section class="container py-4 py-lg-5 page-stack">
-  <h1 class="display-6 fw-bold mb-3">{% trans "Migration simulator" %}</h1>
-  <p class="lead text-muted mb-4">{% trans "Select your current system to see migration steps, timeline, and field mapping guidance." %}</p>
 
-  <section class="section-shell" aria-label="{% trans 'Select source' %}">
-    <h2 class="section-heading">{% trans "Select source" %}</h2>
-    <div class="d-flex flex-wrap gap-2 mb-4">
-      <a href="{% url 'migration_simulator' %}" class="btn {% if not selected_slug %}btn-primary{% else %}btn-outline-primary{% endif %}">{% trans "All" %}</a>
-      {% for s in sources %}
-        <a href="{% url 'migration_simulator' %}?source={{ s.source_id|urlencode }}" class="btn {% if selected_slug == s.source_id %}btn-primary{% else %}btn-outline-primary{% endif %}">{{ s.display_name }}</a>
-      {% endfor %}
+{% block content %}
+<section class="proof-page">
+  <section class="proof-hero">
+    <div class="proof-hero-grid">
+      <div>
+        <div class="proof-kicker"><i class="bi bi-shuffle"></i> {% trans "Migration simulator" %}</div>
+        <h1 class="proof-hero-title">{% trans "See the source-specific path before you switch." %}</h1>
+        <p class="proof-hero-copy">{% trans "Choose your current system to preview migration timeline, cutover sequence, and field-mapping examples. This is the proof layer marketing pages were missing." %}</p>
+        <div class="proof-chip-row">
+          <a href="{% url 'migration_simulator' %}" class="proof-chip {% if not selected_slug %}active{% endif %}">{% trans "All sources" %}</a>
+          {% for s in sources %}
+          <a href="{% url 'migration_simulator' %}?source={{ s.source_id|urlencode }}" class="proof-chip">{{ s.display_name }}</a>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="proof-visual">
+        <img src="{{ migration_cloud_diagram_url|default:migration_studio_image_url }}" alt="{% trans 'Migration simulator visual' %}">
+      </div>
     </div>
   </section>
 
   {% if selected_source %}
-  <section class="section-shell" aria-label="{% trans 'Timeline' %}">
-    <h2 class="section-heading">{% trans "Typical timeline" %}</h2>
-    <p class="section-lead mb-0">{{ selected_source.typical_timeline }}</p>
+  <section class="proof-split">
+    <div class="proof-panel">
+      <h2 class="proof-panel-title">{% trans "Typical timeline" %}</h2>
+      <p class="proof-panel-copy">{{ selected_source.typical_timeline }}</p>
+    </div>
+    <div class="proof-panel">
+      <h2 class="proof-panel-title">{% trans "What this proves" %}</h2>
+      <p class="proof-panel-copy">{% trans "Your migration page is no longer just headline-plus-copy. It now shows the operator path, not only the promise." %}</p>
+    </div>
   </section>
 
-  <section class="section-shell" aria-label="{% trans 'Steps' %}">
-    <h2 class="section-heading">{% trans "Migration steps" %}</h2>
-    <ol class="list-group list-group-numbered mb-0">
-      {% for step in selected_source.steps %}
-        <li class="list-group-item">
-          <strong>{{ step.title }}</strong>
-          <p class="mb-0 mt-1">{{ step.description }}</p>
-        </li>
-      {% endfor %}
-    </ol>
+  <section class="proof-flow">
+    {% for step in selected_source.steps %}
+    <article class="proof-step">
+      <span class="proof-step-order">{{ step.order }}</span>
+      <h3>{{ step.title }}</h3>
+      <p>{{ step.description }}</p>
+    </article>
+    {% endfor %}
   </section>
 
-  <section class="section-shell" aria-label="{% trans 'Field mapping examples' %}">
-    <h2 class="section-heading">{% trans "Field mapping examples" %}</h2>
-    <div class="table-responsive">
-      <table class="table table-bordered">
+  <section class="proof-panel">
+    <h2 class="proof-panel-title">{% trans "Field mapping examples" %}</h2>
+    <div class="proof-compare-table">
+      <table>
         <thead>
           <tr>
             <th>{% trans "Source field" %}</th>
@@ -51,11 +63,11 @@
         </thead>
         <tbody>
           {% for row in selected_source.field_mapping_examples %}
-            <tr>
-              <td><code>{{ row.source_field }}</code></td>
-              <td>{{ row.target_field }}</td>
-              <td>{{ row.notes }}</td>
-            </tr>
+          <tr>
+            <td><code>{{ row.source_field }}</code></td>
+            <td>{{ row.target_field }}</td>
+            <td>{{ row.notes }}</td>
+          </tr>
           {% endfor %}
         </tbody>
       </table>
@@ -63,10 +75,10 @@
   </section>
   {% endif %}
 
-  <section class="section-shell border-0 bg-transparent pt-0">
-    <div class="d-flex flex-wrap gap-2">
+  <section class="proof-panel">
+    <div class="proof-hero-actions">
       <a href="{% url 'marketing_book_demo' %}" class="btn btn-primary" data-cta="demo" data-page="migration-simulator">{% trans "Request migration assessment" %}</a>
-      <a href="{% url 'migrate_marketing_page' %}" class="btn btn-outline-secondary">{% trans "Migration overview" %}</a>
+      <a href="{% url 'migrate_marketing_page' %}" class="btn btn-outline-primary">{% trans "Migration overview" %}</a>
     </div>
   </section>
 </section>

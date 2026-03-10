@@ -8,9 +8,9 @@ import json
 import logging
 from uuid import UUID
 
+from django.db import DatabaseError
 from django.http import JsonResponse
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
@@ -44,14 +44,13 @@ def _backend_flag_enabled(flag_name: str, request=None, *, default: bool = False
     try:
         flags = get_effective_flags(request)
         return bool(flags.get(flag_name, default))
-    except Exception:
+    except (AttributeError, DatabaseError, TypeError, ValueError):
         return default
 
 
 # ---------------------------------------------------------------------------
 # POST /api/v1/tenants/provision  -> delegates to super api_create_school
 # ---------------------------------------------------------------------------
-@method_decorator(csrf_exempt, name="dispatch")
 class TenantsProvisionView(View):
     """POST /api/v1/tenants/provision - Create new school and start provisioning."""
 
@@ -78,7 +77,7 @@ class IntegrationCatalogView(View):
             keys = list_catalog_keys()
             catalog = {k: {**v, "config_schema": v.get("config_schema", {})} for k, v in INTEGRATION_CATALOG.items()}
             return JsonResponse({"keys": keys, "catalog": catalog})
-        except Exception as e:
+        except (AttributeError, DatabaseError, ImportError, TypeError, ValueError) as e:
             logger.exception("config/integration-catalog")
             return JsonResponse({"error": str(e)}, status=500)
 
@@ -107,7 +106,7 @@ class EducationTemplatesView(View):
             catalog = list_template_catalog()
             if catalog:
                 templates = catalog
-        except Exception:
+        except (ImportError, DatabaseError):
             pass
         return JsonResponse({"templates": templates})
 
@@ -142,7 +141,7 @@ class EducationDNAView(View):
                 "timezone": locale.get("timezone", "UTC"),
                 "date_format": locale.get("date_format", "DD/MM/YYYY"),
             })
-        except Exception as e:
+        except (AttributeError, DatabaseError, ImportError, TypeError, ValueError) as e:
             logger.exception("education-dna")
             return JsonResponse({"error": str(e)}, status=500)
 
@@ -224,7 +223,7 @@ class MeSchoolsView(View):
                     {"school_id": str(s.id), "name": s.name, "slug": getattr(s, "slug", "") or ""}
                     for s in children[:50]
                 ]
-            except Exception:
+            except (AttributeError, DatabaseError, TypeError):
                 pass
         return JsonResponse({
             "schools": schools,
@@ -400,12 +399,12 @@ class FinanceGenerateBatchView(View):
             from apps.finance.tasks import auto_generate_fee_invoices_task
             result = auto_generate_fee_invoices_task.apply_async(kwargs={})
             return JsonResponse({"ok": True, "job_id": result.id, "message": "Batch generation started."}, status=202)
-        except Exception as e:
+        except (AttributeError, DatabaseError, ImportError, OSError, RuntimeError, TypeError, ValueError):
             from apps.finance.tasks import auto_generate_fee_invoices_task
             try:
                 out = auto_generate_fee_invoices_task(dry_run=False)
                 return JsonResponse({"ok": True, "message": "Batch generation completed (sync).", "result": out}, status=200)
-            except Exception as e2:
+            except (AttributeError, DatabaseError, ImportError, OSError, RuntimeError, TypeError, ValueError) as e2:
                 logger.exception("finance/generate-batch")
                 return JsonResponse({"error": str(e2)}, status=500)
 
@@ -468,7 +467,7 @@ class InterventionRedFlagsView(View):
             qs = RiskFactor.objects.filter(school=school, score__gte=threshold).select_related("student", "student__user").order_by("-score")[:200]
             items = [{"student_id": r.student_id, "score": r.score, "reason_summary": r.reason_summary, "band": r.band, "computed_at": r.computed_at.isoformat() if r.computed_at else None} for r in qs]
             return JsonResponse({"count": len(items), "threshold": threshold, "students": items})
-        except Exception as e:
+        except (AttributeError, DatabaseError, ImportError, TypeError, ValueError) as e:
             logger.exception("intervention/red-flags")
             return JsonResponse({"error": str(e)}, status=500)
 
@@ -490,7 +489,7 @@ class InterventionCalculateRiskView(View):
             from apps.analytics.tasks import compute_risk_factors_task
             result = compute_risk_factors_task.apply_async(kwargs={"school_id": str(school.id)})
             return JsonResponse({"ok": True, "job_id": result.id, "message": "Risk calculation started."}, status=202)
-        except Exception as e:
+        except (AttributeError, DatabaseError, ImportError, OSError, RuntimeError, TypeError, ValueError) as e:
             if hasattr(e, "message"):
                 msg = e.message
             else:
@@ -602,7 +601,7 @@ class InterventionGenerateRoadmapView(View):
             return JsonResponse(roadmap, status=200)
         except StudentProfile.DoesNotExist:
             return JsonResponse({"error": "Student not found"}, status=404)
-        except Exception as e:
+        except (AttributeError, DatabaseError, ImportError, TypeError, ValueError) as e:
             logger.exception("intervention/generate-roadmap")
             return JsonResponse({"error": str(e)}, status=500)
 
@@ -610,7 +609,7 @@ class InterventionGenerateRoadmapView(View):
 # ---------------------------------------------------------------------------
 # POST /api/v1/enrollment/apply  -> public application (alias to lead capture)
 # ---------------------------------------------------------------------------
-@method_decorator(csrf_exempt, name="dispatch")
+@method_decorator(require_http_methods(["POST"]), name="dispatch")
 class EnrollmentApplyView(View):
     """POST /api/v1/enrollment/apply - Public application submission (delegates to lead capture)."""
 
@@ -988,7 +987,7 @@ class SuperPulseView(View):
         try:
             snapshots = RevenueSnapshot.objects.filter(snapshot_date=first_of_month).aggregate(total=Sum("actual_revenue"), waived=Sum("waived_amount"))
             total_revenue = (snapshots["total"] or 0) + (snapshots["waived"] or 0)
-        except Exception:
+        except (DatabaseError, KeyError, TypeError):
             total_revenue = 0
         by_country = list(
             School.objects.filter(is_active=True)
@@ -1235,7 +1234,6 @@ class RosettaScalesView(View):
 # Parent Wallet top-up (Plan V)
 # POST /api/v1/finance/wallet/top-up
 # ---------------------------------------------------------------------------
-@method_decorator(csrf_exempt, name="dispatch")
 class FinanceWalletTopUpView(View):
     """POST /api/v1/finance/wallet/top-up - Credit parent wallet. Body: { \"amount\": \"100.00\", \"reference\": \"optional\" }."""
 
@@ -1315,14 +1313,14 @@ class RegulatoryExportView(View):
             if result.get("job_id"):
                 return JsonResponse({"ok": True, "job_id": result["job_id"], "message": "Export queued.", "preset_id": preset_id})
             return JsonResponse({"ok": True, **result, "preset_id": preset_id})
-        except Exception as e:
-            if "build_regulatory_export" in str(e) or "build_regulatory_export" in str(type(e)):
-                return JsonResponse({
-                    "ok": False,
-                    "error": "Regulatory export not fully implemented for this preset.",
-                    "preset_id": preset_id,
-                    "hint": "Use reports app and template_family from preset.",
-                }, status=501)
+        except NotImplementedError:
+            return JsonResponse({
+                "ok": False,
+                "error": "Regulatory export not fully implemented for this preset.",
+                "preset_id": preset_id,
+                "hint": "Use reports app and template_family from preset.",
+            }, status=501)
+        except (AttributeError, DatabaseError, ImportError, OSError, RuntimeError, TypeError, ValueError) as e:
             logger.exception("regulatory-export")
             return JsonResponse({"error": str(e)}, status=500)
 
@@ -1330,7 +1328,6 @@ class RegulatoryExportView(View):
 # ---------------------------------------------------------------------------
 # PATCH /api/v1/attendance/bulk-update  -> bulk update attendance (Plan II)
 # ---------------------------------------------------------------------------
-@method_decorator(csrf_exempt, name="dispatch")
 class AttendanceBulkUpdateView(View):
     """PATCH /api/v1/attendance/bulk-update - Bulk update attendance records. Body: { \"records\": [ { \"id\": <id>, \"status\": \"present\" } or { \"student\", \"classroom\", \"date\", \"status\" } ] }."""
 
@@ -1451,7 +1448,6 @@ class PaymentDisputeListView(View):
         return JsonResponse({"disputes": items, "count": len(items)})
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class PaymentDisputeCreateView(View):
     """POST /api/v1/finance/disputes - Raise a payment dispute."""
 
@@ -1502,7 +1498,6 @@ class PaymentDisputeCreateView(View):
         }, status=201)
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class PaymentDisputeResolveView(View):
     """PATCH /api/v1/finance/disputes/<uuid:id> - Resolve a dispute (staff/bursar)."""
 
@@ -1601,7 +1596,6 @@ class AdHocReportListCreateView(View):
         return JsonResponse({"ok": True, "id": obj.id, "name": obj.name}, status=201)
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class AdHocReportRunView(View):
     """POST /api/v1/reports/adhoc/<id>/run — run report now; returns CSV download or JSON."""
 
@@ -1716,7 +1710,6 @@ class VideoSessionListCreateView(View):
         return JsonResponse({"ok": True, "session_id": session.id, "join_url": session.join_url}, status=201)
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class VideoAttendanceSyncView(View):
     """POST /api/v1/video/sessions/<id>/attendance-sync — sync participants (Zoom/Meet webhook or manual)."""
 
@@ -1826,7 +1819,6 @@ class EMISPrepareView(View):
         }, status=201)
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class EMISSubmitView(View):
     """POST /api/v1/reports/emis/<int:id>/submit - Mark EMIS submission as submitted."""
 

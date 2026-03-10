@@ -3,14 +3,25 @@
 # Exit 0 only if all pass. Run before deploy or in CI.
 set -euo pipefail
 
+run_django_tests() {
+  python manage.py test "$@" --keepdb --noinput -v 1
+}
+
 echo "[pre_deploy_gate] No committed .env / .env.local"
 bash scripts/check_no_committed_env.sh
 
 echo "[pre_deploy_gate] Repo hygiene (no conflict markers, backup files)"
 python scripts/check_repo_hygiene.py
 
+echo "[pre_deploy_gate] Root clutter (generated artifacts must not live at repo root)"
+python scripts/check_root_clutter.py
+
 echo "[pre_deploy_gate] Bounded context imports (tenant vs control-plane)"
 python scripts/lint_bounded_context_imports.py --strict
+python scripts/lint_siteconfig_legacy_imports.py
+
+echo "[pre_deploy_gate] Provider secret exposure"
+python scripts/lint_secret_exposure.py
 
 echo "[pre_deploy_gate] No print() in application code"
 python scripts/lint_no_print_in_apps.py
@@ -21,13 +32,14 @@ python manage.py check
 echo "[pre_deploy_gate] Architecture laws (no hardcoding; lint reports SiteSettings usage)"
 python scripts/check_no_hardcoding.py --allow-tests
 python scripts/lint_tenant_settings.py --check-get-solo-only
-echo "[pre_deploy_gate] Codex guardrails (mega-files, broad except)"
+python scripts/lint_csrf_exempt_usage.py
+python scripts/lint_raw_sql_usage.py
+python scripts/lint_broad_except.py --allowlist scripts/allowlists/broad_except_allowlist.json --strict
+echo "[pre_deploy_gate] Codex guardrails (mega-files)"
 if [ "${CODEX_STRICT:-0}" = "1" ]; then
   python scripts/lint_mega_files.py
-  python scripts/lint_broad_except.py --strict
 else
   python scripts/lint_mega_files.py --exit-zero
-  python scripts/lint_broad_except.py --exit-zero
 fi
 
 echo "[pre_deploy_gate] Migrations (no unapplied changes)"
@@ -37,24 +49,30 @@ echo "[pre_deploy_gate] Tenant model audit"
 python manage.py audit_tenant_models --strict
 
 echo "[pre_deploy_gate] Smoke URLs"
-python manage.py test apps.accounts.tests.test_smoke_urls -v 1
+run_django_tests apps.accounts.tests.test_smoke_urls
+
+echo "[pre_deploy_gate] Targeted hardening regressions"
+run_django_tests \
+  apps.siteconfig.tests.test_ai_copilot_context \
+  apps.siteconfig.tests.test_metadata_catalog \
+  apps.packages.tests.test_engine \
+  apps.setup_studio.tests
 
 echo "[pre_deploy_gate] Theme stress matrix"
-python manage.py test apps.siteconfig.tests.test_theme_visibility_matrix -v 1
+run_django_tests apps.siteconfig.tests.test_theme_visibility_matrix
 
 echo "[pre_deploy_gate] Phase checks (targeted tests)"
-python manage.py test apps.siteconfig.tests.test_admin_ui_smoke apps.api.tests.test_dashboard_api_rbac -v 1
+run_django_tests apps.siteconfig.tests.test_admin_ui_smoke apps.api.tests.test_dashboard_api_rbac
 
 echo "[pre_deploy_gate] Phase 7 core workflow regression (qa.md, automation.md)"
-python manage.py test_core_workflows
+python manage.py test_core_workflows --keepdb --noinput
 
 echo "[pre_deploy_gate] Multi-tenant coverage checks"
 # Run only tests that are committed on main (omit test_global_catalog, test_tenant_audit if not yet merged)
-python manage.py test \
+run_django_tests \
   apps.siteconfig.tests.test_education_profile_engine \
   apps.schools.tests.test_feature_registry \
-  apps.schools.tests.test_tenant_isolation_and_provisioning \
-  -v 1
+  apps.schools.tests.test_tenant_isolation_and_provisioning
 
 echo "[pre_deploy_gate] Render startup command sanity"
 if ! grep -q "render_start_web.sh" render.yaml; then

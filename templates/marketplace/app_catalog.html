@@ -6,98 +6,162 @@
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
+<link rel="stylesheet" href="{% static 'marketing/css/proof-pages.css' %}">
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-4 control-plane-shell">
-  <section class="cp-hero cp-hero-compact mb-4">
-    <div class="cp-hero-grid">
+<div class="container-fluid py-4 control-plane-shell proof-page">
+  <section class="proof-hero">
+    <div class="proof-hero-grid">
       <div>
-        <div class="cp-eyebrow">RunMyCampus Manager</div>
-        <h1 class="cp-hero-title">App catalog</h1>
-        <p class="cp-hero-copy">
-          Get capabilities for your school—parent portal, reports, integrations—from approved apps. Preview impact and compatibility before installing.
+        <div class="proof-kicker"><i class="bi bi-grid"></i> RunMyCampus control plane</div>
+        <h1 class="proof-hero-title">Install with trust, not guesswork.</h1>
+        <p class="proof-hero-copy">
+          The control-plane catalog should feel like a governed marketplace, not a list of install buttons. Every card below shows verification, compatibility shape, install scope, and sandbox posture before you commit.
         </p>
+        <div class="proof-hero-actions">
+          <a href="{% url 'super:marketplace_governance' %}" class="btn btn-light btn-sm">Marketplace governance</a>
+          <a href="{% url 'super:blueprint_marketplace' %}" class="btn btn-outline-light btn-sm">Blueprint marketplace</a>
+          <a href="{% url 'super:marketplace_sandbox_inspector' %}" class="btn btn-outline-light btn-sm">Sandbox inspector</a>
+        </div>
+        <div class="proof-strip">
+          <div class="proof-strip-card"><strong>{{ catalog_stats.apps|default:0 }}</strong><span>installable apps</span></div>
+          <div class="proof-strip-card"><strong>{{ catalog_stats.verified_publishers|default:0 }}</strong><span>verified publishers</span></div>
+          <div class="proof-strip-card"><strong>{{ catalog_stats.installed_pairs|default:0 }}</strong><span>live school installs</span></div>
+        </div>
       </div>
-      <div class="cp-hero-actions">
-        <a href="{% url 'super:marketplace_governance' %}" class="btn btn-outline-light btn-sm">Governance</a>
-        <a href="{% url 'super:blueprint_marketplace' %}" class="btn btn-outline-light btn-sm">Blueprint marketplace</a>
-        <a href="{% url 'super:dashboard' %}" class="btn btn-outline-light btn-sm">Control plane</a>
+      <div class="proof-visual">
+        <div class="proof-app-screen h-100">
+          <strong>Install path</strong>
+          <p class="mb-2">Preview fit, install to sandbox, then activate once the school validates the experience.</p>
+          <div class="proof-chip-row">
+            <span class="proof-chip"><i class="bi bi-shield-check"></i> Verified listing</span>
+            <span class="proof-chip"><i class="bi bi-bezier2"></i> Compatibility clues</span>
+            <span class="proof-chip"><i class="bi bi-box-arrow-in-down"></i> Sandbox first</span>
+          </div>
+        </div>
+        <div class="proof-visual-caption">Trust signals, rollout posture, and rollback expectations should be visible before install.</div>
       </div>
     </div>
   </section>
 
   {% if messages %}
-  <div class="mb-3">
+  <div>
     {% for message in messages %}
     <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
     {% endfor %}
   </div>
   {% endif %}
 
-  <div class="row g-4">
-    <div class="col-12 col-lg-8">
-      <section class="cp-panel">
-        <div class="cp-panel-header d-flex flex-wrap align-items-center justify-content-between gap-2">
-          <div>
-            <span class="cp-panel-eyebrow">Catalog</span>
-            <h2 class="cp-panel-title mb-0">Apps</h2>
-          </div>
-          <input type="search" class="form-control form-control-sm" style="max-width: 220px;" placeholder="Search apps…" aria-label="Search apps" id="app-catalog-search">
-        </div>
-        <div class="cp-list" id="app-catalog-list">
-          {% for listing in listings %}
-          <div class="cp-list-row d-flex align-items-start justify-content-between flex-wrap gap-2" data-app-name="{{ listing.app.name|lower }}" data-app-slug="{{ listing.app.slug|lower }}" data-app-desc="{{ listing.app.description|default:''|lower }}">
-            <div>
-              <strong>{{ listing.app.name }}</strong>
-              <span class="text-muted small ms-1">({{ listing.app.slug }})</span>
-              <span class="badge bg-{% if listing.app.kind == 'first_party' %}primary{% else %}secondary{% endif %} ms-1">{{ listing.app.get_kind_display }}</span>
-              <span class="small text-muted">v{{ listing.app.version }}</span>
-              {% if listing.app.description %}<p class="small text-muted mb-0 mt-1">{{ listing.app.description|truncatewords:25 }}</p>{% endif %}
-            </div>
-            <form method="post" class="d-flex align-items-center gap-2">
-              {% csrf_token %}
-              <input type="hidden" name="app_id" value="{{ listing.app.pk }}">
-              <select name="school_id" class="form-select form-select-sm" style="width: auto; min-width: 180px;" required>
-                <option value="">Select school…</option>
-                {% for s in schools %}
-                <option value="{{ s.pk }}">{{ s.name }}</option>
-                {% endfor %}
-              </select>
-              <button type="submit" class="btn btn-primary btn-sm">Install</button>
-            </form>
-          </div>
-          {% empty %}
-          <div class="cp-list-row text-muted">No installable apps. Approve listings in Marketplace governance to make apps available here.</div>
-          {% endfor %}
-        </div>
-      </section>
+  <section class="proof-panel">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+      <div>
+        <h2 class="proof-panel-title">Governed app catalog</h2>
+        <p class="proof-panel-copy">Use search when you know the app, or scan trust-heavy cards when you need confidence before rollout.</p>
+      </div>
+      <input type="search" class="form-control" style="max-width: 320px;" placeholder="Search by app, slug, use case, or description" aria-label="Search apps" id="app-catalog-search">
     </div>
-    <div class="col-12 col-lg-4">
-      <div class="cp-panel">
-        <div class="cp-panel-header">
-          <span class="cp-panel-eyebrow">Before you install</span>
-          <h2 class="cp-panel-title">Compatibility & impact</h2>
+
+    <div class="proof-catalog-grid" id="app-catalog-list">
+      {% for listing in listings %}
+      <article class="proof-app-card" data-app-name="{{ listing.app.name|lower }}" data-app-slug="{{ listing.app.slug|lower }}" data-app-desc="{{ listing.app.description|default:''|lower }} {{ listing.category|default:''|lower }}">
+        <div class="proof-app-head">
+          <div>
+            <h3 class="mb-1">{{ listing.app.name }}</h3>
+            <div class="text-muted small">{{ listing.app.slug }} • v{{ listing.app.version }}</div>
+          </div>
+          <div class="proof-app-meta">
+            <span class="badge {% if listing.publisher and listing.publisher.verification_status == 'verified' %}text-bg-success{% else %}text-bg-secondary{% endif %}">
+              {% if listing.publisher and listing.publisher.verification_status == 'verified' %}Verified{% else %}Review required{% endif %}
+            </span>
+            <span class="badge text-bg-light">{{ listing.app.get_kind_display }}</span>
+          </div>
         </div>
-        <div class="p-3">
-          <p class="small mb-2">Select an app and a school, then click Install. You’ll get:</p>
-          <ul class="small mb-0 ps-3">
-            <li>Compatibility check (school scope, existing installs)</li>
-            <li>AppInstallation record and optional schema patches</li>
-            <li>Widget registration when declared in the app manifest</li>
-          </ul>
-          <p class="small text-muted mt-2 mb-0">Only approved, non–kill-switched apps appear in the catalog.</p>
+
+        <div class="proof-app-screen">
+          <strong>{% if listing.category %}{{ listing.category|title }}{% else %}Best for school operations{% endif %}</strong>
+          <p class="mb-2">{{ listing.short_description|default:listing.app.description|default:"Installable control-plane capability with governed rollout."|truncatewords:28 }}</p>
+          <div class="proof-chip-row">
+            <span class="proof-chip"><i class="bi bi-buildings"></i> {{ listing.active_installations|default:0 }} schools</span>
+            <span class="proof-chip"><i class="bi bi-key"></i> {{ listing.scope_count|default:0 }} scopes</span>
+            <span class="proof-chip"><i class="bi bi-exclamation-octagon"></i> {{ listing.sensitive_scope_count|default:0 }} sensitive</span>
+            {% if listing.compatibility.countries %}
+            <span class="proof-chip"><i class="bi bi-globe2"></i> {{ listing.compatibility.countries|join:", " }}</span>
+            {% endif %}
+            {% if listing.compatibility.plan_tiers %}
+            <span class="proof-chip"><i class="bi bi-stack"></i> {{ listing.compatibility.plan_tiers|join:", " }}</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="text-muted small">
+          {% if listing.sandbox_installations %}
+          {{ listing.sandbox_installations }} install{{ listing.sandbox_installations|pluralize }} currently in sandbox review.
+          {% else %}
+          Sandbox-first rollout available for every install from this page.
+          {% endif %}
+        </div>
+
+        <form method="post" class="proof-app-actions">
+          {% csrf_token %}
+          <input type="hidden" name="app_id" value="{{ listing.app.pk }}">
+          <select name="school_id" class="form-select" style="min-width: 220px;" required>
+            <option value="">Select school...</option>
+            {% for s in schools %}
+            <option value="{{ s.pk }}">{{ s.name }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="btn btn-primary">Install to sandbox</button>
+        </form>
+      </article>
+      {% empty %}
+      <div class="proof-panel">
+        <h3 class="proof-panel-title">No installable apps yet</h3>
+        <p class="proof-panel-copy">Approve listings in governance before they appear here.</p>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="proof-split">
+    <div class="proof-panel">
+      <h2 class="proof-panel-title">What the operator sees before install</h2>
+      <div class="proof-flow">
+        <div class="proof-step">
+          <span class="proof-step-order">1</span>
+          <h3>Trust state</h3>
+          <p>Publisher verification, listing status, and sensitive scope counts are visible on every card.</p>
+        </div>
+        <div class="proof-step">
+          <span class="proof-step-order">2</span>
+          <h3>Compatibility clues</h3>
+          <p>Region and plan chips make it obvious whether an app fits the school before rollout begins.</p>
+        </div>
+        <div class="proof-step">
+          <span class="proof-step-order">3</span>
+          <h3>Sandbox-first activation</h3>
+          <p>Install to sandbox, validate the experience, then activate when the school confirms it is ready.</p>
         </div>
       </div>
     </div>
-  </div>
+    <div class="proof-panel">
+      <h2 class="proof-panel-title">Rollback and safety posture</h2>
+      <ul class="proof-bullet-list">
+        <li>Sandbox install keeps rollout deliberate instead of instantly live.</li>
+        <li>Scope consent and marketplace governance remain visible after install.</li>
+        <li>Operators can inspect sandbox installations before promotion.</li>
+        <li>Kill switch and approval states stay separate from school-facing install UX.</li>
+      </ul>
+    </div>
+  </section>
 </div>
+
 <script>
 (function () {
   var searchEl = document.getElementById("app-catalog-search");
   var listEl = document.getElementById("app-catalog-list");
   if (!searchEl || !listEl) return;
-  var rows = listEl.querySelectorAll(".cp-list-row[data-app-name]");
+  var rows = listEl.querySelectorAll(".proof-app-card[data-app-name]");
   function filter() {
     var q = (searchEl.value || "").trim().toLowerCase();
     rows.forEach(function (row) {
@@ -105,11 +169,12 @@
         row.style.display = "";
         return;
       }
-      var name = (row.getAttribute("data-app-name") || "").toLowerCase();
-      var slug = (row.getAttribute("data-app-slug") || "").toLowerCase();
-      var desc = (row.getAttribute("data-app-desc") || "").toLowerCase();
-      var match = name.indexOf(q) >= 0 || slug.indexOf(q) >= 0 || desc.indexOf(q) >= 0;
-      row.style.display = match ? "" : "none";
+      var haystack = [
+        row.getAttribute("data-app-name") || "",
+        row.getAttribute("data-app-slug") || "",
+        row.getAttribute("data-app-desc") || ""
+      ].join(" ").toLowerCase();
+      row.style.display = haystack.indexOf(q) >= 0 ? "" : "none";
     });
   }
   searchEl.addEventListener("input", filter);

@@ -75,6 +75,187 @@ backend-shell dashboard-page-backend
     --chart-color-1: var(--brand-primary);
     --chart-color-2: var(--brand-accent);
   }
+  .backend-role-home {
+    display: grid;
+    gap: 1rem;
+  }
+  .backend-role-home-top {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(260px, 0.9fr);
+    gap: 1rem;
+    align-items: start;
+  }
+  .backend-role-home-copy {
+    padding: 1.5rem;
+    border-radius: 24px;
+    background:
+      linear-gradient(135deg, rgba(255,255,255,0.16), rgba(255,255,255,0.04)),
+      radial-gradient(circle at top right, rgba(255,255,255,0.22), transparent 40%),
+      linear-gradient(135deg, rgba(13,110,253,0.94), rgba(25,135,84,0.88));
+    color: #fff;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+  }
+  .backend-role-home-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    opacity: 0.84;
+    margin-bottom: 0.55rem;
+  }
+  .backend-role-home-title {
+    margin: 0;
+    font-size: clamp(1.4rem, 1.2rem + 0.7vw, 2rem);
+    line-height: 1.08;
+  }
+  .backend-role-home-sub {
+    margin: 0.7rem 0 1rem;
+    max-width: 56rem;
+    color: rgba(255,255,255,0.84);
+  }
+  .backend-role-home-contract {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+  .backend-role-home-contract-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.42rem 0.7rem;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.14);
+    font-size: 0.83rem;
+    color: rgba(255,255,255,0.92);
+  }
+  .backend-role-home-actions {
+    display: grid;
+    gap: 0.85rem;
+  }
+  .backend-role-home-command {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.7rem;
+    padding: 0.95rem 1rem;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 18px;
+    background: rgba(255,255,255,0.94);
+    color: inherit;
+    text-decoration: none;
+    box-shadow: 0 18px 34px rgba(15, 23, 42, 0.08);
+  }
+  .backend-role-home-command:hover {
+    text-decoration: none;
+    color: inherit;
+    transform: translateY(-1px);
+  }
+  .backend-role-home-command-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+  .backend-role-home-command-hint {
+    font-size: 0.76rem;
+    color: var(--bs-secondary-color);
+  }
+  .backend-role-home-primary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+  }
+  .backend-role-home-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+  .backend-role-home-panel {
+    padding: 1rem 1rem 0.95rem;
+    border-radius: 22px;
+    background: rgba(255,255,255,0.94);
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+    border: 1px solid rgba(226, 232, 240, 0.9);
+  }
+  .backend-role-home-panel h4 {
+    margin: 0 0 0.75rem;
+    font-size: 0.95rem;
+  }
+  .backend-role-home-list {
+    display: grid;
+    gap: 0.65rem;
+  }
+  .backend-role-home-list-item {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+  .backend-role-home-list-item strong {
+    display: block;
+    font-size: 0.92rem;
+  }
+  .backend-role-home-list-item small,
+  .backend-role-home-list-item span {
+    display: block;
+  }
+  .backend-role-home-pill {
+    min-width: 2.4rem;
+    text-align: center;
+    padding: 0.3rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    background: rgba(13,110,253,0.1);
+    color: var(--brand-primary);
+  }
+  .backend-role-home-pill.is-danger {
+    background: rgba(239,68,68,0.12);
+    color: #b91c1c;
+  }
+  .backend-role-home-pill.is-warn {
+    background: rgba(251,191,36,0.2);
+    color: #92400e;
+  }
+  .backend-role-home-destinations {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .backend-role-home-destination {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.7rem 0.9rem;
+    border-radius: 14px;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    background: rgba(255,255,255,0.78);
+    color: inherit;
+    text-decoration: none;
+  }
+  .backend-role-home-destination:hover {
+    text-decoration: none;
+    color: inherit;
+    background: rgba(255,255,255,0.98);
+  }
+  .backend-role-home-empty-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.55rem;
+    font-size: 0.84rem;
+  }
+  @media (max-width: 1199px) {
+    .backend-role-home-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 991px) {
+    .backend-role-home-top {
+      grid-template-columns: 1fr;
+    }
+  }
   {% endwith %}
   </style>
 {% endblock %}
@@ -178,49 +359,113 @@ backend-shell dashboard-page-backend
 
         {% if backend_module_visibility.welcome %}
         <div class="backend-v2-welcome" data-widget-id="backend-v2-welcome">
-          <div class="backend-v2-welcome-top">
-            <div>
-              <h3 class="backend-v2-welcome-title">Welcome back, {{ request.user.first_name|default:request.user.username }}</h3>
-              <p class="backend-v2-welcome-sub">Manage your school operations from this unified dashboard.</p>
+          <div class="backend-role-home">
+            <div class="backend-role-home-top">
+              <div class="backend-role-home-copy">
+                <div class="backend-role-home-eyebrow">
+                  <i class="bi bi-stars"></i>
+                  <span>{{ role_home.eyebrow }}</span>
+                </div>
+                <h3 class="backend-role-home-title">{{ role_home.title }}</h3>
+                <p class="backend-role-home-sub">{{ role_home.purpose }}</p>
+                <div class="backend-role-home-contract">
+                  <span class="backend-role-home-contract-item"><i class="bi bi-bullseye"></i> 1 dominant purpose</span>
+                  <span class="backend-role-home-contract-item"><i class="bi bi-grid-1x2"></i> {{ dashboard_contract.metric_count }} metrics</span>
+                  <span class="backend-role-home-contract-item"><i class="bi bi-command"></i> Search-first navigation</span>
+                  <span class="backend-role-home-contract-item"><i class="bi bi-lightning"></i> {{ dashboard_priority_queue|length }} priority items</span>
+                </div>
+              </div>
+              <div class="backend-role-home-actions">
+                <button type="button" class="backend-role-home-command js-open-backend-command">
+                  <span class="backend-role-home-command-copy">
+                    <strong>Command center</strong>
+                    <span class="backend-role-home-command-hint">{{ role_home.search_hint }}</span>
+                  </span>
+                  <span class="badge text-bg-light">Search</span>
+                </button>
+                <div class="backend-role-home-primary">
+                  {% for cta in primary_ctas %}
+                  <a class="backend-v2-cta" href="{{ cta.url }}">
+                    <i class="bi {{ cta.icon }}"></i>
+                    <span>{{ cta.label }}</span>
+                  </a>
+                  {% endfor %}
+                  <a class="backend-v2-cta" href="{% url 'accounts:workflow_center' %}">
+                    <i class="bi bi-diagram-3"></i>
+                    <span>Workflow center</span>
+                  </a>
+                  {% if allow_custom_layout %}
+                  {% include "components/dashboard_customize_ui.html" %}
+                  {% endif %}
+                </div>
+              </div>
             </div>
-            <div class="backend-v2-welcome-controls">
-              <a class="backend-v2-cta" href="{% url 'accounts:workflow_center' %}">
-                <i class="bi bi-diagram-3"></i>
-                <span>Workflow</span>
-              </a>
-              <a class="backend-v2-cta" href="{% url 'siteconfig:set_default_dashboard_view' %}?view=WORKFLOW&amp;next={% url 'accounts:workflow_center' %}">
-                <i class="bi bi-pin-angle"></i>
-                <span>Use workflow default</span>
-              </a>
-              <button type="button" class="backend-v2-cta js-open-backend-command">
-                <i class="bi bi-command"></i>
-                <span>Command center</span>
-              </button>
-              {% if allow_custom_layout %}
-              {% include "components/dashboard_customize_ui.html" %}
-              {% endif %}
+            <div class="backend-role-home-grid">
+              <section class="backend-role-home-panel" aria-label="{{ role_home.queue_label }}">
+                <h4>{{ role_home.queue_label }}</h4>
+                <div class="backend-role-home-list">
+                  {% for item in dashboard_priority_queue %}
+                  <a class="backend-role-home-list-item text-decoration-none text-reset" href="{{ item.url|default:'#' }}">
+                    <div>
+                      <strong>{{ item.label }}</strong>
+                      <small class="text-muted">{{ item.meta|default:"Highest-friction item in the current queue." }}</small>
+                    </div>
+                    <span class="backend-role-home-pill {% if item.status == 'danger' %}is-danger{% elif item.status == 'warn' %}is-warn{% endif %}">{{ item.value }}</span>
+                  </a>
+                  {% endfor %}
+                </div>
+              </section>
+              <section class="backend-role-home-panel" aria-label="{{ role_home.next_label }}">
+                <h4>{{ role_home.next_label }}</h4>
+                <div class="backend-role-home-list">
+                  {% for step in dashboard_next_best_actions %}
+                  <a class="backend-role-home-list-item text-decoration-none text-reset" href="{{ step.url }}">
+                    <div>
+                      <strong>{% if step.icon %}<i class="bi {{ step.icon }} me-1"></i>{% endif %}{{ step.label }}</strong>
+                      <small class="text-muted">{{ step.reason|default:"Platform-guided next best action." }}</small>
+                    </div>
+                    <span class="backend-role-home-pill">{{ step.category|default:"Next" }}</span>
+                  </a>
+                  {% empty %}
+                  <div>
+                    <strong>No pending workflow steps</strong>
+                    <a class="backend-role-home-empty-link text-decoration-none" href="{% url 'accounts:workflow_center' %}">
+                      <i class="bi bi-arrow-right"></i> Open workflow center
+                    </a>
+                  </div>
+                  {% endfor %}
+                </div>
+              </section>
+              <section class="backend-role-home-panel" aria-label="{{ role_home.recent_label }}">
+                <h4>{{ role_home.recent_label }}</h4>
+                <div class="backend-role-home-list">
+                  {% for item in dashboard_recent_activity %}
+                  <div class="backend-role-home-list-item">
+                    <div>
+                      <strong>{{ item.title|truncatechars:34 }}</strong>
+                      <small class="text-muted">{{ item.actor }} • {{ item.action }}</small>
+                    </div>
+                    <span class="backend-role-home-pill">{{ item.time_ago }}</span>
+                  </div>
+                  {% empty %}
+                  <div>
+                    <strong>No recent activity yet</strong>
+                    <a class="backend-role-home-empty-link text-decoration-none" href="{% url 'accounts:workflow_center' %}">
+                      <i class="bi bi-arrow-right"></i> Start with workflow center
+                    </a>
+                  </div>
+                  {% endfor %}
+                </div>
+              </section>
             </div>
-          </div>
-          <div class="backend-v2-chip-row">
-            {% url 'accounts:workflow_center' as workflow_center_url %}
-            {% for chip in action_chips %}
-            {% with chip_label=chip.label|default_if_none:""|lower %}
-            {% if chip.url != workflow_center_url and chip_label != 'workflow center' and chip_label != 'workflow' and chip_label != 'customize layout' and chip_label != 'command center' and chip_label != 'use workflow default' %}
-            <a class="backend-v2-chip" href="{{ chip.url }}">
-              <i class="bi {{ chip.icon }}"></i>
-              <span>{{ chip.label }}</span>
-            </a>
-            {% endif %}
-            {% endwith %}
-            {% endfor %}
-          </div>
-          <div class="backend-v2-action-grid">
-            {% for action in welcome_action_grid %}
-            <a class="backend-v2-action" href="{{ action.url }}">
-              <i class="bi {{ action.icon }}"></i>
-              <span>{{ action.label }}</span>
-            </a>
-            {% endfor %}
+            <div class="backend-role-home-destinations">
+              {% for destination in role_home_destinations %}
+              <a class="backend-role-home-destination" href="{{ destination.url }}">
+                <i class="bi {{ destination.icon|default:'bi-arrow-right' }}"></i>
+                <span>{{ destination.label }}</span>
+              </a>
+              {% endfor %}
+            </div>
           </div>
         </div>
         {% endif %}
@@ -312,6 +557,7 @@ backend-shell dashboard-page-backend
             <div class="card-body">
               <h5 class="backend-v2-panel-title mb-1">Outstanding Fees</h5>
               <p class="small text-muted mb-0">No fee status data yet. Create invoices to see breakdown here.</p>
+              <a class="backend-empty-quick-action mt-2 d-inline-block" href="{% url 'finance:dashboard' %}">Open finance console</a>
             </div>
           </article>
           {% endif %}
@@ -344,7 +590,10 @@ backend-shell dashboard-page-backend
                   <span class="badge text-bg-warning">{{ student.value }}</span>
                 </div>
                 {% empty %}
-                <p class="small text-muted mb-0">No at-risk learners detected.</p>
+                <div>
+                  <p class="small text-muted mb-0">No at-risk learners detected.</p>
+                  <a class="backend-empty-quick-action mt-2 d-inline-block" href="{% url 'accounts:workflow_center' %}">Review intervention workflow</a>
+                </div>
                 {% endfor %}
               </div>
             </div>
@@ -361,6 +610,7 @@ backend-shell dashboard-page-backend
             <div class="card-body">
               <h5 class="backend-v2-panel-title mb-1">Enrollment Trends</h5>
               <p class="small text-muted mb-0">No enrollment trend data yet. Add students with join dates to see trends.</p>
+              <a class="backend-empty-quick-action mt-2 d-inline-block" href="{{ quick_student_create_url }}">Add student roster</a>
             </div>
           </article>
           {% endif %}
@@ -388,7 +638,10 @@ backend-shell dashboard-page-backend
                   <span class="badge text-bg-light">{{ student.admission_number }}</span>
                 </div>
                 {% empty %}
-                <div class="small text-muted">No recent admissions yet.</div>
+                <div>
+                  <div class="small text-muted">No recent admissions yet.</div>
+                  <a class="backend-empty-quick-action mt-2 d-inline-block" href="{{ quick_student_create_url }}">Start admissions</a>
+                </div>
                 {% endfor %}
               </div>
             </div>
@@ -414,7 +667,10 @@ backend-shell dashboard-page-backend
                   <span class="small text-muted">{{ activity.time_ago }} ago</span>
                 </div>
                 {% empty %}
-                <div class="small text-muted">No recent activity available.</div>
+                <div>
+                  <div class="small text-muted">No recent activity available.</div>
+                  <a class="backend-empty-quick-action mt-2 d-inline-block" href="{% url 'accounts:workflow_center' %}">Open workflow center</a>
+                </div>
                 {% endfor %}
               </div>
             </div>
@@ -443,7 +699,10 @@ backend-shell dashboard-page-backend
                   <span class="badge text-bg-success">{{ student.score }}/20</span>
                 </div>
                 {% empty %}
-                <div class="small text-muted">Top-performing metrics will appear once marks are entered.</div>
+                <div>
+                  <div class="small text-muted">Top-performing metrics will appear once marks are entered.</div>
+                  <a class="backend-empty-quick-action mt-2 d-inline-block" href="{% url 'reports:publish_term_results' %}">Open academic workbench</a>
+                </div>
                 {% endfor %}
               </div>
             </div>
@@ -524,8 +783,8 @@ backend-shell dashboard-page-backend
       <div class="card mb-3 backend-quick-links-card backend-v2-rail-card backend-v2-rail-card--links {% if not quick_links %}backend-v2-panel--empty{% endif %}" data-widget-id="backend-quick-links">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
-            <h6 class="mb-0">Quick Links</h6>
-            <span class="badge bg-light text-dark">Shortcuts</span>
+            <h6 class="mb-0">Role destinations</h6>
+            <span class="badge bg-light text-dark">Top 5</span>
           </div>
           <div class="backend-quick-links-list">
             {% for quick in quick_links|slice:backend_max_items_slice %}
@@ -570,7 +829,7 @@ backend-shell dashboard-page-backend
             </section>
             <section class="backend-planner-section">
               <div class="backend-planner-section-head d-flex align-items-center justify-content-between">
-                <span class="small fw-semibold text-muted">Suggested next</span>
+                <span class="small fw-semibold text-muted">Recommended next</span>
                 {% if finance_requests_count %}
                 <a class="badge text-bg-warning text-decoration-none" href="{{ finance_request_link }}">Finance {{ finance_requests_count }}</a>
                 {% endif %}

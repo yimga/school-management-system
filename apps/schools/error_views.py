@@ -1,6 +1,8 @@
 """
 Dedicated error views for multi-tenant flows (e.g. School Not Found 404).
 """
+import os
+
 from django.db.models import Q
 from django.shortcuts import render
 
@@ -20,12 +22,14 @@ def school_not_found(request):
 def _school_display_name_for_public(school) -> str:
     """
     Display name for a school on platform surfaces (e.g. school-not-found).
-    Avoids tenant-specific legacy names (e.g. Gilead) so platform stays RunMyCampus-only.
+    Avoids showing the seeded default tenant brand on public platform surfaces.
     """
     name = (school.name or "").strip()
     if not name:
         return school.slug or "School"
-    if "gilead" in name.lower():
+    default_slug = (os.environ.get("DEFAULT_TENANT_SLUG") or "").strip().lower()
+    school_slug = (getattr(school, "slug", "") or "").strip().lower()
+    if default_slug and school_slug == default_slug:
         return school.slug or "School"
     return name
 

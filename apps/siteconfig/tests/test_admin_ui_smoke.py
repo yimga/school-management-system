@@ -35,8 +35,9 @@ class AdminUiSmokeTests(TestCase):
     def setUp(self):
         self.site = SiteSettings.get_solo()
         self.factory = RequestFactory()
-        # Keep admin smoke assertions on the base-domain admin path.
-        # Tenant middleware redirects /admin/* on tenant hosts to backend.
+        # Keep admin smoke assertions on the public/local admin path.
+        # Tenant hosts redirect /admin/* to the backend console, while local
+        # development may render the platform shell directly.
         self.client.defaults["HTTP_HOST"] = "localhost"
         self.superuser = User.objects.create_superuser(
             username="admin-ui-super",
@@ -49,21 +50,41 @@ class AdminUiSmokeTests(TestCase):
         response = self.client.get(reverse("admin:index"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "admin-sidebar-quick-access")
-        self.assertContains(response, reverse("accounts:backend_dashboard"))
-        self.assertContains(response, "Back to Backend")
+        content = response.content.decode("utf-8", errors="ignore")
 
-        quick_paths = [
-            reverse("admin:index"),
-            reverse("admin:siteconfig_sitesettings_change", args=[self.site.pk]),
-            reverse("admin:siteconfig_regionconfig_changelist"),
-            reverse("admin:siteconfig_integration_changelist"),
-            reverse("siteconfig:feature_control_panel"),
-            reverse("siteconfig:theme_colors"),
-            reverse("siteconfig:report_library"),
-            reverse("kb:kb_home"),
-            reverse("portal:document_library_manage"),
-            reverse("accounts:backend_dashboard"),
-        ]
+        platform_quick_link = reverse("super:dashboard")
+        tenant_quick_link = reverse("accounts:backend_dashboard")
+
+        if platform_quick_link in content:
+            self.assertContains(response, platform_quick_link)
+            self.assertContains(response, "Control plane")
+            quick_paths = [
+                reverse("admin:index"),
+                platform_quick_link,
+                reverse("admin:siteconfig_sitesettings_change", args=[self.site.pk]),
+                reverse("admin:siteconfig_regionconfig_changelist"),
+                reverse("admin:siteconfig_integration_changelist"),
+                reverse("siteconfig:feature_control_panel"),
+                reverse("siteconfig:theme_colors"),
+                reverse("siteconfig:report_library"),
+                reverse("super:blueprint_marketplace"),
+                reverse("manager_help"),
+            ]
+        else:
+            self.assertContains(response, tenant_quick_link)
+            self.assertContains(response, "Backend Console")
+            quick_paths = [
+                reverse("admin:index"),
+                reverse("admin:siteconfig_sitesettings_change", args=[self.site.pk]),
+                reverse("admin:siteconfig_regionconfig_changelist"),
+                reverse("admin:siteconfig_integration_changelist"),
+                reverse("siteconfig:feature_control_panel"),
+                reverse("siteconfig:theme_colors"),
+                reverse("siteconfig:report_library"),
+                reverse("kb:kb_home"),
+                reverse("portal:document_library_manage"),
+                tenant_quick_link,
+            ]
 
         for path in quick_paths:
             page = self.client.get(path)

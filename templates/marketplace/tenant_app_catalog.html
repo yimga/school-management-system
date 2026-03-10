@@ -1,43 +1,152 @@
 {% extends "backend_base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "App catalog" %}{% endblock %}
 
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'marketing/css/proof-pages.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid py-3">
-  <h4 class="mb-3">{% trans "App catalog" %}</h4>
+<div class="container-fluid py-4 proof-page">
   {% if not school %}
-  <p class="text-muted">{% trans "No school context." %}</p>
+  <div class="proof-panel">
+    <h1 class="proof-panel-title">{% trans "App catalog" %}</h1>
+    <p class="proof-panel-copy">{% trans "No school context." %}</p>
+  </div>
   {% else %}
-  <p class="text-muted small">{% trans "Browse and install apps for this school. Sensitive scopes require approval after install." %}</p>
-  <div class="card shadow-sm mb-4">
-    <div class="card-body p-0">
-      <ul class="list-group list-group-flush">
-        {% for listing in listings %}
-        <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
-          <div>
-            <strong>{{ listing.app.name }}</strong>
-            <span class="text-muted small ms-1">({{ listing.app.slug }})</span>
-            {% if listing.app.version %}<span class="badge bg-secondary ms-1">v{{ listing.app.version }}</span>{% endif %}
-            {% if listing.app.description %}<p class="small text-muted mb-0 mt-1">{{ listing.app.description|truncatewords:20 }}</p>{% endif %}
+  <section class="proof-hero">
+    <div class="proof-hero-grid">
+      <div>
+        <div class="proof-kicker"><i class="bi bi-box-seam"></i> {{ school.name }}</div>
+        <h1 class="proof-hero-title">{% trans "Install with confidence." %}</h1>
+        <p class="proof-hero-copy">
+          This tenant catalog is now sandbox-first. Every install is staged so your team can preview impact, review scopes, and activate deliberately.
+        </p>
+        <div class="proof-hero-actions">
+          <a href="{% url 'tenant_installed_apps' %}" class="btn btn-light btn-sm">{% trans "Installed apps" %}</a>
+          <a href="{% url 'tenant_scope_consent' %}" class="btn btn-outline-light btn-sm">{% trans "Scope consent" %}</a>
+        </div>
+        <div class="proof-strip">
+          <div class="proof-strip-card"><strong>{{ catalog_stats.apps|default:0 }}</strong><span>{% trans "apps available" %}</span></div>
+          <div class="proof-strip-card"><strong>{{ catalog_stats.verified_publishers|default:0 }}</strong><span>{% trans "verified publishers" %}</span></div>
+          <div class="proof-strip-card"><strong>{{ catalog_stats.installed|default:0 }}</strong><span>{% trans "already installed" %}</span></div>
+        </div>
+      </div>
+      <div class="proof-visual">
+        <div class="proof-app-screen h-100">
+          <strong>{% trans "Tenant install path" %}</strong>
+          <p class="mb-2">{% trans "Choose app, review trust signals, install to sandbox, approve scopes if needed, then activate." %}</p>
+          <div class="proof-chip-row">
+            <span class="proof-chip"><i class="bi bi-shield-check"></i> {% trans "Verified" %}</span>
+            <span class="proof-chip"><i class="bi bi-sliders"></i> {% trans "Compatibility" %}</span>
+            <span class="proof-chip"><i class="bi bi-hourglass-split"></i> {% trans "Sandbox" %}</span>
           </div>
-          {% if listing.app.slug in installed_slugs %}
-          <span class="badge bg-success">{% trans "Installed" %}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="proof-panel">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+      <div>
+        <h2 class="proof-panel-title">{% trans "Tenant marketplace" %}</h2>
+        <p class="proof-panel-copy">{% trans "Browse governed apps, then install to sandbox instead of pushing directly into live use." %}</p>
+      </div>
+      <a href="{% url 'tenant_installed_apps' %}" class="btn btn-outline-primary">{% trans "Review sandbox installs" %}</a>
+    </div>
+
+    <div class="proof-catalog-grid">
+      {% for listing in listings %}
+      <article class="proof-app-card">
+        <div class="proof-app-head">
+          <div>
+            <h3 class="mb-1">{{ listing.app.name }}</h3>
+            <div class="text-muted small">{{ listing.app.slug }} • v{{ listing.app.version }}</div>
+          </div>
+          <div class="proof-app-meta">
+            <span class="badge {% if listing.publisher and listing.publisher.verification_status == 'verified' %}text-bg-success{% else %}text-bg-secondary{% endif %}">
+              {% if listing.publisher and listing.publisher.verification_status == 'verified' %}{% trans "Verified" %}{% else %}{% trans "Review required" %}{% endif %}
+            </span>
+            {% if listing.app.slug in installed_slugs %}
+            <span class="badge text-bg-success">{% trans "Installed" %}</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="proof-app-screen">
+          <strong>{% if listing.category %}{{ listing.category|title }}{% else %}{% trans "Best for school operations" %}{% endif %}</strong>
+          <p class="mb-2">{% if listing.short_description %}{{ listing.short_description|truncatewords:24 }}{% elif listing.app.description %}{{ listing.app.description|truncatewords:24 }}{% else %}{% trans "Governed school capability." %}{% endif %}</p>
+          <div class="proof-chip-row">
+            <span class="proof-chip"><i class="bi bi-key"></i> {{ listing.scope_count|default:0 }} {% trans "scopes" %}</span>
+            <span class="proof-chip"><i class="bi bi-exclamation-triangle"></i> {{ listing.sensitive_scope_count|default:0 }} {% trans "sensitive" %}</span>
+            <span class="proof-chip"><i class="bi bi-box-arrow-in-down"></i> {% trans "Sandbox first" %}</span>
+            {% if listing.compatibility.plan_tiers %}
+            <span class="proof-chip"><i class="bi bi-stack"></i> {{ listing.compatibility.plan_tiers|join:", " }}</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="text-muted small">
+          {% if listing.compatibility.countries %}
+          {% trans "Declared for regions:" %} {{ listing.compatibility.countries|join:", " }}
           {% else %}
-          <form method="post" action="{% url 'tenant_install_app' %}" class="d-inline">
-            {% csrf_token %}
-            <input type="hidden" name="app_id" value="{{ listing.app.pk }}">
-            <button type="submit" class="btn btn-primary btn-sm">{% trans "Install" %}</button>
-          </form>
+          {% trans "Compatibility details will be confirmed during install review." %}
           {% endif %}
-        </li>
-        {% empty %}
-        <li class="list-group-item text-muted">{% trans "No installable apps available." %}</li>
-        {% endfor %}
+        </div>
+
+        {% if listing.app.slug in installed_slugs %}
+        <div class="proof-app-actions">
+          <a href="{% url 'tenant_installed_apps' %}" class="btn btn-outline-secondary btn-sm">{% trans "Manage install" %}</a>
+        </div>
+        {% else %}
+        <form method="post" action="{% url 'tenant_install_app' %}" class="proof-app-actions">
+          {% csrf_token %}
+          <input type="hidden" name="app_id" value="{{ listing.app.pk }}">
+          <button type="submit" class="btn btn-primary">{% trans "Install to sandbox" %}</button>
+        </form>
+        {% endif %}
+      </article>
+      {% empty %}
+      <div class="proof-panel">
+        <h3 class="proof-panel-title">{% trans "No installable apps available." %}</h3>
+        <p class="proof-panel-copy">{% trans "Approved catalog entries will appear here when governance allows them for this tenant." %}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="proof-split">
+    <div class="proof-panel">
+      <h2 class="proof-panel-title">{% trans "What changed in the install flow" %}</h2>
+      <div class="proof-flow">
+        <div class="proof-step">
+          <span class="proof-step-order">1</span>
+          <h3>{% trans "Trust first" %}</h3>
+          <p>{% trans "Every card now shows verification and scope posture before you click install." %}</p>
+        </div>
+        <div class="proof-step">
+          <span class="proof-step-order">2</span>
+          <h3>{% trans "Sandbox install" %}</h3>
+          <p>{% trans "Installs land in sandbox so your team can preview the experience and check scope requests." %}</p>
+        </div>
+        <div class="proof-step">
+          <span class="proof-step-order">3</span>
+          <h3>{% trans "Deliberate activation" %}</h3>
+          <p>{% trans "Activation is a separate decision after the school confirms the app is ready." %}</p>
+        </div>
+      </div>
+    </div>
+    <div class="proof-panel">
+      <h2 class="proof-panel-title">{% trans "Rollback expectations" %}</h2>
+      <ul class="proof-bullet-list">
+        <li>{% trans "Sandbox install keeps new capabilities out of live navigation until you activate." %}</li>
+        <li>{% trans "Pending scope grants remain visible so sensitive access is not hidden." %}</li>
+        <li>{% trans "Installed apps page gives the team one place to activate or uninstall." %}</li>
       </ul>
     </div>
-  </div>
-  <a href="{% url 'tenant_installed_apps' %}" class="btn btn-outline-secondary">{% trans "Back to installed apps" %}</a>
+  </section>
   {% endif %}
 </div>
 {% endblock %}

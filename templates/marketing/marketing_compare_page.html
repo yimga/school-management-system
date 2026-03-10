@@ -1,5 +1,6 @@
 {% extends "marketing/base_marketing.html" %}
 {% load i18n %}
+
 {% block title %}{{ seo_title|default:"Compare" }}{% endblock %}
 {% block extrahead %}
   <meta name="description" content="{{ seo_description|default:'' }}">
@@ -7,42 +8,71 @@
   <script type="application/ld+json">{{ structured_data_json|safe }}</script>
   {% if breadcrumb_schema_json %}<script type="application/ld+json">{{ breadcrumb_schema_json|safe }}</script>{% endif %}
 {% endblock %}
-{% block content %}
-<section class="container py-4 py-lg-5 page-stack">
-  <h1 class="display-6 fw-bold mb-3">{{ page.headline }}</h1>
-  <p class="lead text-muted mb-4">{{ page.subheadline }}</p>
 
-  {% if page.criteria %}
-  <section class="section-shell" aria-label="{% trans 'Comparison' %}">
-    <h2 class="section-heading">{% trans "Comparison" %}</h2>
-    <div class="compare-table-wrap">
-      <table class="compare-table">
-        <thead>
-          <tr>
-            <th>{% trans "Criterion" %}</th>
-            <th>RunMyCampus</th>
-            <th>{{ page.competitor_name }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for row in page.criteria %}
-          <tr>
-            <td>{{ row.name }}</td>
-            <td>{{ row.runmycampus }}</td>
-            <td>{{ row.competitor }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+{% block content %}
+<section class="proof-page">
+  <section class="proof-hero">
+    <div class="proof-hero-grid">
+      <div>
+        <div class="proof-kicker"><i class="bi bi-columns-gap"></i> {% trans "Compare" %}</div>
+        <h1 class="proof-hero-title">{{ page.headline }}</h1>
+        <p class="proof-hero-copy">{{ page.subheadline }}</p>
+        <div class="proof-hero-actions">
+          <a href="{% url 'signup_school' %}" class="btn btn-light" data-cta="primary" data-page="compare">{% trans "Start free trial" %}</a>
+          <a href="{% url 'marketing_book_demo' %}" class="btn btn-outline-light" data-cta="demo" data-page="compare">{% trans "Book demo" %}</a>
+        </div>
+        <div class="proof-strip">
+          <div class="proof-strip-card"><strong>{% trans "Unified platform" %}</strong><span>{% trans "Admissions to finance" %}</span></div>
+          <div class="proof-strip-card"><strong>{% trans "Role-native UX" %}</strong><span>{% trans "Not a generic SIS shell" %}</span></div>
+          <div class="proof-strip-card"><strong>{% trans "Migration ready" %}</strong><span>{% trans "Replace legacy stack with one path" %}</span></div>
+        </div>
+      </div>
+      <div class="proof-visual">
+        <img src="{{ platform_architecture_diagram_url }}" alt="{% trans 'Platform diagram' %}">
+        <div class="proof-visual-caption">{% trans "The comparison is not just feature-by-feature. It is platform model versus software sprawl." %}</div>
+      </div>
     </div>
   </section>
-  {% endif %}
 
-  <section class="section-shell border-0 bg-transparent pt-0">
-    <div class="d-flex flex-wrap gap-2">
-      <a href="{% url 'signup_school' %}" class="btn btn-primary" data-cta="primary" data-page="compare">{% trans "Start free trial" %}</a>
-      <a href="{% url 'marketing_book_demo' %}" class="btn btn-outline-primary" data-cta="demo" data-page="compare">{% trans "Book demo" %}</a>
-      <a href="{% url 'marketing_compare' %}" class="btn btn-outline-secondary">{% trans "Compare overview" %}</a>
+  <section class="proof-compare-table">
+    <table>
+      <thead>
+        <tr>
+          <th>{% trans "Criterion" %}</th>
+          <th>RunMyCampus</th>
+          <th>{{ page.competitor_name }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in page.criteria %}
+        <tr>
+          <td><strong>{{ row.name }}</strong></td>
+          <td>{{ row.runmycampus }}</td>
+          <td>{{ row.competitor }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="proof-split">
+    <div class="proof-panel">
+      <h2 class="proof-panel-title">{% trans "Why switch now" %}</h2>
+      <ul class="proof-bullet-list">
+        <li>{% trans "Replace outdated school software with one operating model instead of another stack of modules." %}</li>
+        <li>{% trans "Reduce admin clicks by moving decisions, queues, and role homes into one platform." %}</li>
+        <li>{% trans "Launch faster than legacy rollouts with setup studio, migration cloud, and runtime blueprints." %}</li>
+        <li>{% trans "Unify family, academic, finance, and compliance workflows without stitching products together." %}</li>
+      </ul>
+    </div>
+    <div class="proof-panel">
+      <h2 class="proof-panel-title">{% trans "What buyers should see" %}</h2>
+      <div class="proof-chip-row">
+        <span class="proof-chip"><i class="bi bi-grid-1x2"></i> {% trans "Control plane" %}</span>
+        <span class="proof-chip"><i class="bi bi-boxes"></i> {% trans "Runtime blueprints" %}</span>
+        <span class="proof-chip"><i class="bi bi-cloud-arrow-up"></i> {% trans "Migration cloud" %}</span>
+        <span class="proof-chip"><i class="bi bi-shop"></i> {% trans "Marketplace" %}</span>
+      </div>
     </div>
   </section>
 </section>

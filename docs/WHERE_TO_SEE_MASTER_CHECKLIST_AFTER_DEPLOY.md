@@ -1,7 +1,11 @@
 # Where to See All Master Platform Checklist Work After Deploy
 
-**Single source of truth:** [MASTER_PLATFORM_CHECKLIST.md](MASTER_PLATFORM_CHECKLIST.md) (phase log + full checklist).  
+> Historical note as of March 10, 2026: this document predates the hardening reset and may describe phases as complete when the codebase does not currently satisfy that claim. Use [MASTER_PLATFORM_CHECKLIST.md](MASTER_PLATFORM_CHECKLIST.md) as the only live source of truth.
+
+**Single source of truth:** [MASTER_PLATFORM_CHECKLIST.md](MASTER_PLATFORM_CHECKLIST.md) (hardening ledger + verified status).  
 **Plan:** `.cursor/plans/master_platform_checklist_single_plan_*.plan.md` (phase order and principle).
+
+All completion language below is historical unless it is also reflected in [MASTER_PLATFORM_CHECKLIST.md](MASTER_PLATFORM_CHECKLIST.md).
 
 After deployment, use this page to verify every visible and technical outcome.
 

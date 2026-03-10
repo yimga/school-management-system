@@ -1,5 +1,6 @@
 {% extends "marketing/base_marketing.html" %}
 {% load i18n %}
+
 {% block title %}{{ seo_title|default:"Migrate to RunMyCampus" }}{% endblock %}
 {% block extrahead %}
   <meta name="description" content="{{ seo_description|default:'' }}">
@@ -7,35 +8,114 @@
   <script type="application/ld+json">{{ structured_data_json|safe }}</script>
   {% if breadcrumb_schema_json %}<script type="application/ld+json">{{ breadcrumb_schema_json|safe }}</script>{% endif %}
 {% endblock %}
+
 {% block content %}
-<section class="container py-4 py-lg-5 page-stack">
-  <h1 class="display-6 fw-bold mb-3">{{ page.headline }}</h1>
-  <p class="lead text-muted mb-4">{{ page.subheadline }}</p>
-
-  <section class="section-shell" aria-label="{% trans 'Migration cloud' %}">
-    <h2 class="section-heading">{% trans "Migration cloud" %}</h2>
-    <p class="section-lead mb-0">{{ page.migration_cloud_copy }}</p>
+<section class="proof-page">
+  <section class="proof-hero">
+    <div class="proof-hero-grid">
+      <div>
+        <div class="proof-kicker"><i class="bi bi-arrow-left-right"></i> {% trans "Migration cloud" %}</div>
+        <h1 class="proof-hero-title">{{ page.headline }}</h1>
+        <p class="proof-hero-copy">{{ page.subheadline }}</p>
+        <div class="proof-hero-actions">
+          <a href="{% url 'marketing_book_demo' %}" class="btn btn-light" data-cta="demo" data-page="migrate">{{ page.cta }}</a>
+          <a href="{% url 'migration_simulator' %}" class="btn btn-outline-light">{% trans "Open migration simulator" %}</a>
+        </div>
+        <div class="proof-strip">
+          <div class="proof-strip-card"><strong>{% trans "Dry-run first" %}</strong><span>{% trans "Preview before cutover" %}</span></div>
+          <div class="proof-strip-card"><strong>{% trans "Parity checks" %}</strong><span>{% trans "Validate records before go-live" %}</span></div>
+          <div class="proof-strip-card"><strong>{% trans "Rollback ready" %}</strong><span>{% trans "Cut over without blind risk" %}</span></div>
+        </div>
+      </div>
+      <div class="proof-visual">
+        <img src="{{ migration_cloud_diagram_url|default:migration_studio_image_url }}" alt="{% trans 'Migration cloud visual' %}">
+        <div class="proof-visual-caption">{% trans "Replace legacy SIS sprawl with one governed migration path: export, map, validate, cut over, and confirm parity." %}</div>
+      </div>
+    </div>
   </section>
 
-  <section class="section-shell" aria-label="{% trans 'Field mapping' %}">
-    <h2 class="section-heading">{% trans "Field mapping" %}</h2>
-    <p class="section-lead mb-0">{{ page.field_mapping_copy }}</p>
+  <section class="proof-split">
+    <div class="proof-panel">
+      <h2 class="proof-panel-title">{% trans "Why schools switch now" %}</h2>
+      <ul class="proof-bullet-list">
+        <li>{% trans "Replace outdated school software without forcing staff to learn five new tools." %}</li>
+        <li>{% trans "Launch faster than traditional SIS rollouts by using guided mapping and dry-runs." %}</li>
+        <li>{% trans "Unify family, academic, finance, and compliance workflows on one platform." %}</li>
+        <li>{% trans "Reduce admin clicks by moving from export-cleanup-import loops to one governed migration flow." %}</li>
+      </ul>
+    </div>
+    <div class="proof-panel">
+      <h2 class="proof-panel-title">{% trans "Platform seriousness" %}</h2>
+      <div class="proof-chip-row">
+        <span class="proof-chip"><i class="bi bi-grid-1x2"></i> {% trans "Control plane" %}</span>
+        <span class="proof-chip"><i class="bi bi-boxes"></i> {% trans "Runtime blueprints" %}</span>
+        <span class="proof-chip"><i class="bi bi-cloud-arrow-up"></i> {% trans "Migration cloud" %}</span>
+        <span class="proof-chip"><i class="bi bi-stars"></i> {% trans "AI/config intelligence" %}</span>
+        <span class="proof-chip"><i class="bi bi-people"></i> {% trans "Role-native UX" %}</span>
+      </div>
+    </div>
   </section>
 
-  <section class="section-shell" aria-label="{% trans 'Validation' %}">
-    <h2 class="section-heading">{% trans "Validation" %}</h2>
-    <p class="section-lead mb-0">{{ page.validation_copy }}</p>
+  <section class="proof-card-grid">
+    <article class="proof-card">
+      <h3>{% trans "Migration cloud" %}</h3>
+      <p>{{ page.migration_cloud_copy }}</p>
+    </article>
+    <article class="proof-card">
+      <h3>{% trans "Field mapping" %}</h3>
+      <p>{{ page.field_mapping_copy }}</p>
+    </article>
+    <article class="proof-card">
+      <h3>{% trans "Validation" %}</h3>
+      <p>{{ page.validation_copy }}</p>
+    </article>
+    <article class="proof-card">
+      <h3>{% trans "Rollback" %}</h3>
+      <p>{{ page.rollback_copy }}</p>
+    </article>
+    <article class="proof-card">
+      <h3>{% trans "Operator visibility" %}</h3>
+      <p>{% trans "Track dry-runs, validation errors, and launch confidence from one migration portfolio instead of ad hoc spreadsheets." %}</p>
+    </article>
+    <article class="proof-card">
+      <h3>{% trans "Role previews before launch" %}</h3>
+      <p>{% trans "Check admin shell, teacher dashboard, and parent portal before switching traffic so trust does not break at go-live." %}</p>
+    </article>
   </section>
 
-  <section class="section-shell" aria-label="{% trans 'Rollback' %}">
-    <h2 class="section-heading">{% trans "Rollback" %}</h2>
-    <p class="section-lead mb-0">{{ page.rollback_copy }}</p>
-  </section>
-
-  <section class="section-shell border-0 bg-transparent pt-0">
-    <div class="d-flex flex-wrap gap-2">
-      <a href="{% url 'marketing_book_demo' %}" class="btn btn-primary" data-cta="demo" data-page="migrate">{{ page.cta }}</a>
-      <a href="{% url 'migrate_marketing_page' %}" class="btn btn-outline-secondary">{% trans "Migration overview" %}</a>
+  <section class="proof-split">
+    <div class="proof-panel">
+      <h2 class="proof-panel-title">{% trans "Migration flow" %}</h2>
+      <div class="proof-flow">
+        <div class="proof-step">
+          <span class="proof-step-order">1</span>
+          <h3>{% trans "Extract" %}</h3>
+          <p>{% trans "Pull students, staff, academics, and finance records from your current system or spreadsheets." %}</p>
+        </div>
+        <div class="proof-step">
+          <span class="proof-step-order">2</span>
+          <h3>{% trans "Map" %}</h3>
+          <p>{% trans "Align fields to RunMyCampus entities with explicit mapping and compatibility cues." %}</p>
+        </div>
+        <div class="proof-step">
+          <span class="proof-step-order">3</span>
+          <h3>{% trans "Validate" %}</h3>
+          <p>{% trans "Run parity checks, dry-runs, and confidence reports before your cutover window opens." %}</p>
+        </div>
+        <div class="proof-step">
+          <span class="proof-step-order">4</span>
+          <h3>{% trans "Launch" %}</h3>
+          <p>{% trans "Switch traffic once the platform confirms launch readiness and rollback posture." %}</p>
+        </div>
+      </div>
+    </div>
+    <div class="proof-panel">
+      <h2 class="proof-panel-title">{% trans "Conversion-grade CTA" %}</h2>
+      <p class="proof-panel-copy">{% trans "If you are replacing PowerSchool, Blackbaud, Infinite Campus, Veracross, or spreadsheets, this is the migration posture your operators need: visible, governed, and reversible." %}</p>
+      <div class="proof-hero-actions">
+        <a href="{% url 'marketing_book_demo' %}" class="btn btn-primary" data-cta="demo" data-page="migrate-primary">{% trans "Request migration assessment" %}</a>
+        <a href="{% url 'migration_simulator' %}" class="btn btn-outline-primary">{% trans "See source-by-source paths" %}</a>
+      </div>
     </div>
   </section>
 </section>

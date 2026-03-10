@@ -1,7 +1,9 @@
-# Platform Hardening Full Remediation Plan — completion status
+# Platform Hardening Full Remediation Plan — historical completion record
+
+> Historical note as of March 10, 2026: this document predates the hardening reset and contains closure claims that are no longer authoritative. Use [MASTER_PLATFORM_CHECKLIST.md](MASTER_PLATFORM_CHECKLIST.md) as the only live ledger.
 
 **Plan:** Platform Hardening Full Remediation (non-negotiable, zero-backlog).  
-**Status:** All 25 items **CLOSED**. Nothing deferred to backlog or "later"; every deliverable and test requirement is satisfied.
+**Status:** Historical completion narrative only. Current truth must be revalidated against live gates, tests, and [MASTER_PLATFORM_CHECKLIST.md](MASTER_PLATFORM_CHECKLIST.md).
 
 ---
 

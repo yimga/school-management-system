@@ -1,0 +1,76 @@
+{
+  "files": {
+    "apps/customers/management/commands/ensure_tenant_schemas.py": {
+      "expected_count": 2,
+      "reason": "Tenant schema provisioning command."
+    },
+    "apps/evals/performance_optimization.py": {
+      "expected_count": 1,
+      "reason": "Performance hotspot pending ORM replacement."
+    },
+    "apps/observability/management/commands/db_health_check.py": {
+      "expected_count": 1,
+      "reason": "Database health probe."
+    },
+    "apps/observability/management/commands/synthetic_probe.py": {
+      "expected_count": 1,
+      "reason": "Synthetic probe health check."
+    },
+    "apps/observability/monitoring.py": {
+      "expected_count": 1,
+      "reason": "Database liveness check pending service wrapper."
+    },
+    "apps/observability/views.py": {
+      "expected_count": 2,
+      "reason": "Staff-only health endpoints."
+    },
+    "apps/people/management/commands/attach_audit_triggers.py": {
+      "expected_count": 4,
+      "reason": "Audit trigger installation command."
+    },
+    "apps/people/management/commands/revoke_audit_log_permissions.py": {
+      "expected_count": 2,
+      "reason": "Audit hardening command."
+    },
+    "apps/portal/management/commands/verify_onboarding_setup.py": {
+      "expected_count": 1,
+      "reason": "Verification command pending service extraction."
+    },
+    "apps/schools/health_utils.py": {
+      "expected_count": 3,
+      "reason": "Tenant health utility pending repository refactor."
+    },
+    "apps/schools/management/commands/tenant_health_check.py": {
+      "expected_count": 2,
+      "reason": "Operational tenant health command."
+    },
+    "apps/schools/management/commands/verify_tenant_rls.py": {
+      "expected_count": 1,
+      "reason": "RLS verification command."
+    },
+    "apps/schools/middleware.py": {
+      "expected_count": 3,
+      "reason": "Tenant middleware raw SQL pending service wrapper."
+    },
+    "apps/schools/onboarding_service.py": {
+      "expected_count": 1,
+      "reason": "Tenant schema cleanup pending service isolation."
+    },
+    "apps/schools/rls_context.py": {
+      "expected_count": 4,
+      "reason": "RLS session variable management."
+    },
+    "apps/siteconfig/cache_utils.py": {
+      "expected_count": 1,
+      "reason": "Current-setting cache helper."
+    },
+    "apps/siteconfig/management/commands/recover_database.py": {
+      "expected_count": 1,
+      "reason": "Database recovery command."
+    },
+    "apps/siteconfig/models.py": {
+      "expected_count": 1,
+      "reason": "Legacy model helper pending repository extraction."
+    }
+  }
+}

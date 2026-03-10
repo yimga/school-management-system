@@ -9,8 +9,8 @@ from typing import Any, Dict, Optional
 
 from django.db.models import Count
 
-from apps.siteconfig.models_runtime_blueprints import Blueprint
-from apps.siteconfig.models_dashboard import DashboardWidget
+from apps.policies_rules.models import PolicyBundle
+from apps.runtime_blueprints.models import Blueprint, DashboardPack, DashboardWidget, WorkflowPack
 from apps.siteconfig.workflow_registry import get_workflow_catalog
 
 # Canonical entity list aligned with docs/architecture/canonical_education_graph.md
@@ -77,12 +77,33 @@ def get_runtime_metadata(school_id: Optional[Any] = None) -> Dict[str, Any]:
     except Exception:
         blueprints = []
     try:
+        workflow_packs = list(
+            WorkflowPack.objects.filter(is_active=True).values("id", "code", "family", "name", "version").order_by("code")[:200]
+        )
+    except Exception:
+        workflow_packs = []
+    try:
+        dashboard_packs = list(
+            DashboardPack.objects.filter(is_active=True).values("id", "code", "family", "name", "version").order_by("code")[:200]
+        )
+    except Exception:
+        dashboard_packs = []
+    try:
+        policy_bundles = list(
+            PolicyBundle.objects.filter(is_active=True).values("id", "code", "name", "version", "country_scope").order_by("code", "name")[:200]
+        )
+    except Exception:
+        policy_bundles = []
+    try:
         workflow_catalog = get_workflow_catalog()
     except Exception:
         workflow_catalog = {}
     return {
         "schema_version": "1.0",
         "blueprints": blueprints,
+        "workflow_packs": workflow_packs,
+        "dashboard_packs": dashboard_packs,
+        "policy_bundles": policy_bundles,
         "workflow_catalog": workflow_catalog,
         "scope": "platform",
         "documentation": "docs/architecture/orchestration_layer.md",

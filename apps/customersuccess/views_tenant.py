@@ -1,16 +1,17 @@
 """
-Section 11.4: Tenant-facing customer success — support co-pilot, guided onboarding.
+Section 11.4: Tenant-facing customer success - support co-pilot, guided onboarding.
 """
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
-from django.urls import reverse
 
-from .services import get_support_copilot_suggestions, get_guided_onboarding_steps
+from apps.setup_studio.services import get_setup_studio_payload
+
+from .services import get_support_copilot_suggestions
 
 
 @login_required
 def support_copilot_view(request):
-    """Section 11.4: Support co-pilot — suggested actions from interventions, risk alerts, health."""
+    """Section 11.4: Support co-pilot - suggested actions from interventions, risk alerts, health."""
     school = getattr(request, "school", None)
     if not school:
         return render(request, "customersuccess/support_copilot.html", {"suggestions": [], "school": None})
@@ -23,33 +24,42 @@ def support_copilot_view(request):
 
 @login_required
 def guided_onboarding_view(request):
-    """Section 11.4: Guided onboarding — checklist of setup steps and progress."""
+    """Section 11.4: Guided onboarding - Setup Studio backed by persisted setup state."""
     school = getattr(request, "school", None)
     if not school:
         return render(request, "customersuccess/guided_onboarding.html", {
-            "steps": [], "school": None, "setup_health_score": 0, "recommended_next": None,
+            "steps": [],
+            "school": None,
+            "current_step": None,
+            "progress_percent": 0,
+            "setup_health_score": 0,
+            "health_summary": {"label": "Needs attention", "detail": "No school context was detected for Setup Studio.", "tone": "risk"},
+            "recommended_next": None,
+            "recommendations": [],
+            "role_previews": [],
+            "preview_cards": [],
+            "launch_checklist": [],
+            "launch_blockers": [],
+            "launch_ready": False,
+            "recommended_blueprint": None,
+            "recommended_starter_stack": None,
         })
-    steps = get_guided_onboarding_steps(school)
-    try:
-        for s in steps:
-            if s.get("link") and s["link"].startswith("/authentication/backend/students/"):
-                s["link"] = reverse("accounts:backend_student_list")
-            elif s.get("link") and "/backend/" in s["link"]:
-                s["link"] = reverse("accounts:backend_dashboard")
-    except Exception:
-        pass
-    # Setup health score: 0–100 from completed steps
-    done_count = sum(1 for s in steps if s.get("done"))
-    setup_health_score = round(100 * done_count / max(len(steps), 1)) if steps else 0
-    # Recommended next: first incomplete step
-    recommended_next = None
-    for s in steps:
-        if not s.get("done") and s.get("link"):
-            recommended_next = {"key": s.get("key", ""), "label": s.get("label", ""), "link": s["link"]}
-            break
+
+    studio = get_setup_studio_payload(school)
     return render(request, "customersuccess/guided_onboarding.html", {
-        "steps": steps,
+        "steps": studio["steps"],
         "school": school,
-        "setup_health_score": setup_health_score,
-        "recommended_next": recommended_next,
+        "current_step": studio["current_step"],
+        "progress_percent": studio["progress_percent"],
+        "setup_health_score": studio["health_score"],
+        "health_summary": studio["health_summary"],
+        "recommended_next": studio["recommended_next"],
+        "recommendations": studio["recommendations"],
+        "role_previews": studio["role_previews"],
+        "preview_cards": studio["preview_cards"],
+        "launch_checklist": studio["launch_checklist"],
+        "launch_blockers": studio["launch_blockers"],
+        "launch_ready": studio["launch_ready"],
+        "recommended_blueprint": studio["recommended_blueprint"],
+        "recommended_starter_stack": studio["recommended_starter_stack"],
     })

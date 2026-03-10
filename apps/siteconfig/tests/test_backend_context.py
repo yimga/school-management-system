@@ -107,7 +107,10 @@ class BackendSidebarItemsTests(TestCase):
     def test_not_in_backend_superuser_has_guardians_and_site_settings(self):
         items = self._items_for_path("/portal/", self.superuser)
         ids = [it["id"] for it in items]
-        self.assertIn("guardians", ids, "Outside backend, superuser should see guardians")
+        self.assertTrue(
+            "guardians_backend" in ids or "guardians" in ids,
+            "Outside backend, superuser should see a guardians management destination",
+        )
         self.assertIn("site_settings", ids, "Outside backend, superuser should see site_settings")
 
 
@@ -139,3 +142,9 @@ class DashboardExtrasTests(TestCase):
         self.assertIsInstance(extras["empty_panel_quick_actions"], list)
         self.assertIn("operations_watch", extras)
         self.assertIsInstance(extras["operations_watch"], list)
+        self.assertIn("role_home", extras)
+        self.assertIn("dashboard_priority_queue", extras)
+        self.assertIn("dashboard_next_best_actions", extras)
+        self.assertIn("dashboard_recent_activity", extras)
+        self.assertIn("role_home_destinations", extras)
+        self.assertEqual(extras["role_home"]["default_intent"], "setup")

@@ -5,7 +5,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import User
-from apps.marketplace.models import MarketplaceApp, MarketplaceListing, MarketplaceReview, PublisherOrganization
+from apps.marketplace.models import AppInstallation, MarketplaceApp, MarketplaceListing, MarketplaceReview, PublisherOrganization
 from apps.marketplace.services import install_app, submit_marketplace_review
 from apps.schools.models import School
 
@@ -117,3 +117,22 @@ class MarketplaceGovernanceTests(TestCase):
         self.assertFalse(listing.kill_switch_active)
         self.assertIsNotNone(listing.approved_at)
 
+    def test_control_plane_catalog_installs_to_sandbox(self):
+        MarketplaceListing.objects.create(
+            app=self.third_party_app,
+            publisher=self.publisher,
+            status=MarketplaceListing.Status.APPROVED,
+            security_review_status=MarketplaceListing.ReviewStatus.APPROVED,
+        )
+        self.client.force_login(self.manager)
+
+        response = self.client.post(
+            reverse("super:app_catalog"),
+            {"app_id": self.third_party_app.pk, "school_id": self.school.pk},
+            HTTP_HOST="manager.runmycampus.com",
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        installation = AppInstallation.objects.get(app=self.third_party_app, school=self.school)
+        self.assertEqual(installation.install_phase, AppInstallation.InstallPhase.SANDBOX)

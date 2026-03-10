@@ -476,8 +476,8 @@ document.addEventListener('DOMContentLoaded', function() {
   const wrappers = document.querySelectorAll('.ai-copilot-wrapper');
   if (!wrappers.length) return;
 
-  const GEMINI_API_KEY = '{{ GEMINI_API_KEY|default:"" }}';
-  const USE_AI_BACKEND = GEMINI_API_KEY !== '';
+  const AI_BACKEND_ENABLED = '{{ AI_BACKEND_ENABLED|yesno:"true,false" }}' === 'true';
+  const AI_PROVIDER_NAME = '{{ AI_PROVIDER_NAME|default:"" }}';
   const AI_PERMISSIONS = {{ AI_PERMISSIONS|default:"{}"|safe }};
   const USER_ROLE = '{{ USER_ROLE|default:"USER" }}';
   const CSRF_TOKEN = '{{ csrf_token }}';
@@ -648,6 +648,9 @@ document.addEventListener('DOMContentLoaded', function() {
       sendBtn.disabled = true;
 
       try {
+        if (!AI_BACKEND_ENABLED) {
+          throw new Error('AI backend is currently unavailable.');
+        }
         const resp = await fetch('/api/ai-copilot/validate/', {
           method: 'POST',
           headers: {
@@ -693,11 +696,13 @@ document.addEventListener('DOMContentLoaded', function() {
         loadingMsg.remove();
         const aiMsg = document.createElement('div');
         aiMsg.className = 'ai-message';
+        const providerLabel = AI_PROVIDER_NAME ? `Provider (${escapeHtml(AI_PROVIDER_NAME)})` : '';
         aiMsg.innerHTML = `
           <div class="ai-message-avatar">
             <i class="bi bi-robot"></i>
           </div>
           <div class="ai-message-content">
+            ${providerLabel ? `<p class="mb-1 text-muted small">${providerLabel}</p>` : ''}
             <p class="mb-0">${safeResponse}</p>
           </div>
         `;

@@ -1,0 +1,25 @@
+{
+  "allowed": [
+    ".cursorrules",
+    ".env.example",
+    ".gitignore",
+    ".pa11yci.json",
+    ".python-version",
+    "build.sh",
+    "CONTRIBUTING.md",
+    "deploy.sh",
+    "lighthouserc.js",
+    "manage.py",
+    "package-lock.json",
+    "package.json",
+    "playwright.config.js",
+    "Procfile",
+    "push-all.sh",
+    "QUICK_START.md",
+    "REBUILD_TRIGGER.txt",
+    "render.yaml",
+    "requirements.txt",
+    "runtime.txt",
+    "SECURITY.md"
+  ]
+}

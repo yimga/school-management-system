@@ -9,8 +9,8 @@ import time
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.db import DatabaseError
 from django.http import JsonResponse
-from django.middleware.csrf import get_token
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_GET, require_http_methods
 
@@ -25,6 +25,34 @@ AI_COPILOT_ENABLED = getattr(settings, "AI_COPILOT_ENABLED", True)
 # --- AI Copilot Rate Limiting & Telemetry ---
 RATE_LIMIT_PER_MIN = int(os.environ.get('AI_COPILOT_RATE_LIMIT', '30'))
 RATE_LIMIT_WINDOW = int(os.environ.get('AI_COPILOT_RATE_WINDOW', '60'))  # seconds
+
+
+def _cache_get(key, default=None):
+    try:
+        return cache.get(key, default)
+    except Exception:
+        logger.debug("AI copilot cache get failed for %s", key, exc_info=True)
+        return default
+
+
+def _cache_set(key, value, timeout=None):
+    try:
+        cache.set(key, value, timeout)
+        return True
+    except Exception:
+        logger.debug("AI copilot cache set failed for %s", key, exc_info=True)
+        return False
+
+
+def _cache_incr_or_set(key, amount: int = 1):
+    try:
+        cache.incr(key, amount)
+        return True
+    except (ValueError, TypeError):
+        return _cache_set(key, amount, None)
+    except Exception:
+        logger.debug("AI copilot cache incr failed for %s", key, exc_info=True)
+        return False
 
 
 def _log_ai_audit(request, action, reason="", details=None, sensitivity=None):
@@ -43,7 +71,7 @@ def _log_ai_audit(request, action, reason="", details=None, sensitivity=None):
             sensitivity=sensitivity or AuditLog.Sensitivity.MEDIUM,
             new_values=details or {},
         )
-    except Exception:
+    except DatabaseError:
         # Avoid blocking AI responses if audit logging fails
         logger.exception("AI Copilot audit logging failed")
 
@@ -53,30 +81,20 @@ def _check_rate_limit(user, request=None):
     base = f"ai_rl:{getattr(user, 'id', 'anon')}"
     key = tenant_cache_key(base, request)
     now = time.time()
-    try:
-        events = cache.get(key, [])
-    except Exception:
-        # If cache is unavailable, allow requests without rate limiting.
-        return True, 0
+    events = _cache_get(key, [])
     if not isinstance(events, (list, tuple)):
         events = []
     # Keep only events within window
     events = [t for t in events if now - t < RATE_LIMIT_WINDOW]
     if len(events) >= RATE_LIMIT_PER_MIN:
         # Save pruned events and deny
-        try:
-            cache.set(key, events, RATE_LIMIT_WINDOW)
-        except Exception:
-            pass
+        _cache_set(key, events, RATE_LIMIT_WINDOW)
         # Calculate approximate seconds until next allowed (based on oldest event)
         retry_after = max(0, int(RATE_LIMIT_WINDOW - (now - events[0]))) if events else RATE_LIMIT_WINDOW
         return False, retry_after
     # Allow and record this event
     events.append(now)
-    try:
-        cache.set(key, events, RATE_LIMIT_WINDOW)
-    except Exception:
-        pass
+    _cache_set(key, events, RATE_LIMIT_WINDOW)
     return True, 0
 
 
@@ -85,48 +103,20 @@ def _increment_usage_metrics(user, allowed: bool, request=None):
     def _k(b):
         return tenant_cache_key(b, request)
 
-    try:
-        cache.incr(_k('ai_copilot_usage_total'))
-    except (ValueError, TypeError):
-        try:
-            cache.set(_k('ai_copilot_usage_total'), 1, None)
-        except Exception:
-            pass
-    except Exception:
-        pass
+    _cache_incr_or_set(_k('ai_copilot_usage_total'))
 
     role = (getattr(user, 'role', 'USER') or '').upper()
-    try:
-        roles = cache.get(_k('ai_copilot_usage_roles')) or []
-        if role not in roles:
-            roles.append(role)
-            try:
-                cache.set(_k('ai_copilot_usage_roles'), roles, None)
-            except Exception:
-                pass
-    except Exception:
-        pass
+    roles = _cache_get(_k('ai_copilot_usage_roles'), []) or []
+    if not isinstance(roles, list):
+        roles = []
+    if role and role not in roles:
+        roles.append(role)
+        _cache_set(_k('ai_copilot_usage_roles'), roles, None)
 
-    try:
-        cache.incr(_k(f'ai_copilot_usage_role:{role}'))
-    except (ValueError, TypeError):
-        try:
-            cache.set(_k(f'ai_copilot_usage_role:{role}'), 1, None)
-        except Exception:
-            pass
-    except Exception:
-        pass
+    _cache_incr_or_set(_k(f'ai_copilot_usage_role:{role}'))
 
     if not allowed:
-        try:
-            cache.incr(_k('ai_copilot_usage_denied_total'))
-        except (ValueError, TypeError):
-            try:
-                cache.set(_k('ai_copilot_usage_denied_total'), 1, None)
-            except Exception:
-                pass
-        except Exception:
-            pass
+        _cache_incr_or_set(_k('ai_copilot_usage_denied_total'))
 
 
 def get_ai_permissions(user):
@@ -320,10 +310,7 @@ def ai_copilot_query(request):
         )
 
         _increment_usage_metrics(request.user, allowed=True, request=request)
-        try:
-            cache.set(tenant_cache_key('ai_copilot_last_success_ts', request), time.time(), None)
-        except Exception:
-            pass
+        _cache_set(tenant_cache_key('ai_copilot_last_success_ts', request), time.time(), None)
         return JsonResponse({
             'success': True,
             'allowed': True,
@@ -338,21 +325,10 @@ def ai_copilot_query(request):
             'success': False,
             'error': 'Invalid JSON in request body.'
         }, status=400)
-    except Exception as e:
+    except (DatabaseError, OSError, RuntimeError, TypeError, ValueError) as e:
         logger.error(f'AI Copilot error: {str(e)}', exc_info=True)
-        try:
-            cache.incr(tenant_cache_key('ai_copilot_usage_errors_total', request))
-        except (ValueError, TypeError):
-            try:
-                cache.set(tenant_cache_key('ai_copilot_usage_errors_total', request), 1, None)
-            except Exception:
-                pass
-        except Exception:
-            pass
-        try:
-            cache.set(tenant_cache_key('ai_copilot_last_error_ts', request), time.time(), None)
-        except Exception:
-            pass
+        _cache_incr_or_set(tenant_cache_key('ai_copilot_usage_errors_total', request))
+        _cache_set(tenant_cache_key('ai_copilot_last_error_ts', request), time.time(), None)
         return JsonResponse({
             'success': False,
             'error': 'An error occurred processing your request.'
@@ -391,17 +367,7 @@ def ai_copilot_limits(request):
     """Return current rate limit status for the logged-in user (tenant-scoped)."""
     key = tenant_cache_key(f"ai_rl:{getattr(request.user, 'id', 'anon')}", request)
     now = time.time()
-    try:
-        events = cache.get(key, [])
-    except Exception:
-        return JsonResponse({
-            'success': True,
-            'rate_limit': RATE_LIMIT_PER_MIN,
-            'window_seconds': RATE_LIMIT_WINDOW,
-            'used': 0,
-            'remaining': RATE_LIMIT_PER_MIN,
-            'reset_in_seconds': 0,
-        })
+    events = _cache_get(key, [])
     if not isinstance(events, (list, tuple)):
         events = []
     events = [t for t in events if now - t < RATE_LIMIT_WINDOW]

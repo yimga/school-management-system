@@ -1,8 +1,10 @@
-# Scoped work — verification (all done vs deferred)
+# Scoped work — verification (historical verification record)
+
+> Historical note as of March 10, 2026: this document predates the hardening reset and contains completion claims that are no longer authoritative. Use [../MASTER_PLATFORM_CHECKLIST.md](../MASTER_PLATFORM_CHECKLIST.md) as the only live execution ledger.
 
 **Non-negotiable — due now:** Every item is required and due now. Nothing is deferred, optional, in backlog, or save for later. See docs/PLAN_POLICY.md.
 
-**Purpose:** Single place to verify that every scoped item is **fully done** (code-verified). No assumptions; each row has an exact verification path. See [../SWEEP_VERIFICATION_COMPLETE.md](../SWEEP_VERIFICATION_COMPLETE.md) for the full sweep checklist.
+**Purpose:** Historical scoped-work verification narrative. Revalidate every claim against [../MASTER_PLATFORM_CHECKLIST.md](../MASTER_PLATFORM_CHECKLIST.md) before treating it as current truth. See [../SWEEP_VERIFICATION_COMPLETE.md](../SWEEP_VERIFICATION_COMPLETE.md) for the historical sweep checklist.
 
 **Last verification:** Sweep complete; nothing left for guessing.
 

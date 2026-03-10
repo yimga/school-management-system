@@ -1612,7 +1612,6 @@ def backend_dashboard(request):
 
     # Workflow progress and recommended next steps for dashboard (recommendation service)
     workflow_progress = _workflow_progress(year)
-    recommended_next_steps = get_recommended_next_steps(workflow_progress, year=year, max_steps=5)
 
     backend_main_module_count = sum(
         1
@@ -1637,9 +1636,30 @@ def backend_dashboard(request):
     )
 
     from apps.dashboard.action_registry import VALID_DASHBOARD_INTENTS
-    _intent = (request.GET.get("intent") or "operational").strip().lower()
+    role_intent_defaults = {
+        User.Role.PRINCIPAL: "executive",
+        User.Role.VICE_PRINCIPAL: "executive",
+        User.Role.LEADERSHIP: "executive",
+        User.Role.PROPRIETOR: "executive",
+        User.Role.BURSAR: "finance",
+        User.Role.ACCOUNTANT: "finance",
+        User.Role.FINANCE_STAFF: "finance",
+        User.Role.TEACHER: "academic",
+        User.Role.SECRETARY: "operational",
+        User.Role.IT_ADMIN: "setup",
+        User.Role.ADMIN: "setup",
+        User.Role.SUPERADMIN: "setup",
+    }
+    requested_intent = (request.GET.get("intent") or "").strip().lower()
+    _intent = requested_intent or role_intent_defaults.get(role_upper, "operational")
     if _intent not in VALID_DASHBOARD_INTENTS:
         _intent = "operational"
+    recommended_next_steps = get_recommended_next_steps(
+        workflow_progress,
+        year=year,
+        intent=_intent,
+        max_steps=4,
+    )
     context = {
         "site": site,
         "dashboard_intent": _intent,

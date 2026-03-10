@@ -1,34 +1,86 @@
 {% extends "marketing/base_marketing.html" %}
 {% load i18n %}
+
 {% block title %}Setup simulator | RunMyCampus{% endblock %}
 {% block extrahead %}
   <meta name="description" content="{{ seo_description|default:'' }}">
   {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
 {% endblock %}
-{% block content %}
-<section class="container py-4 py-lg-5 page-stack">
-  <h1 class="display-6 fw-bold mb-3">{% trans "Setup simulator" %}</h1>
-  <p class="lead text-muted mb-4">{% trans "Walk through the six steps from sign-up to launch. See what to expect and where to go next." %}</p>
 
-  <section class="section-shell" aria-label="{% trans 'Steps' %}">
-    <ol class="list-group list-group-numbered mb-0">
-      {% for step in steps %}
-        <li class="list-group-item">
-          <strong>{{ step.title }}</strong>
-          <p class="mb-2 mt-1">{{ step.description }}</p>
-          {% if step.cta_url and step.cta_label %}
-            <a href="{{ step.cta_url }}" class="btn btn-sm btn-outline-primary" data-cta="simulator-step" data-step="{{ step.order }}">{{ step.cta_label }}</a>
-          {% endif %}
-        </li>
-      {% endfor %}
-    </ol>
+{% block content %}
+<section class="proof-page">
+  <section class="proof-hero">
+    <div class="proof-hero-grid">
+      <div>
+        <div class="proof-kicker"><i class="bi bi-magic"></i> {% trans "Setup simulator" %}</div>
+        <h1 class="proof-hero-title">{% trans "Preview the launch studio before you sign in." %}</h1>
+        <p class="proof-hero-copy">{% trans "This simulator shows the same setup philosophy we use in-product: one dominant step, live previews, and launch-readiness before go-live." %}</p>
+        <div class="proof-hero-actions">
+          <a href="{% url 'signup_school' %}" class="btn btn-light" data-cta="signup" data-page="setup-simulator">{% trans "Start for real" %}</a>
+          <a href="{% url 'marketing_book_demo' %}" class="btn btn-outline-light">{% trans "Book launch walkthrough" %}</a>
+        </div>
+        <div class="proof-strip">
+          <div class="proof-strip-card"><strong>{% trans "8 steps" %}</strong><span>{% trans "No hidden setup backlog" %}</span></div>
+          <div class="proof-strip-card"><strong>{% trans "Role previews" %}</strong><span>{% trans "Admin, teacher, parent" %}</span></div>
+          <div class="proof-strip-card"><strong>{% trans "Blueprint led" %}</strong><span>{% trans "Start coherent, then customize" %}</span></div>
+        </div>
+      </div>
+      <div class="proof-visual">
+        <img src="{{ school_in_a_box_flow_image_url|default:platform_architecture_diagram_url }}" alt="{% trans 'Setup visual' %}">
+        <div class="proof-visual-caption">{% trans "Setup should feel like a launch studio, not a checklist buried inside settings." %}</div>
+      </div>
+    </div>
   </section>
 
-  <section class="section-shell border-0 bg-transparent pt-0">
-    <div class="d-flex flex-wrap gap-2">
-      <a href="{% url 'signup_school' %}" class="btn btn-primary" data-cta="signup" data-page="setup-simulator">{% trans "Start for real" %}</a>
-      <a href="{% url 'marketing_getting_started' %}" class="btn btn-outline-secondary">{% trans "Getting started" %}</a>
+  <section class="proof-split">
+    <div class="proof-panel">
+      <h2 class="proof-panel-title">{% trans "What the simulator proves" %}</h2>
+      <ul class="proof-bullet-list">
+        <li>{% trans "The platform recommends defaults instead of forcing operators to assemble their own path." %}</li>
+        <li>{% trans "Branding, blueprint, data path, and role previews are visible before launch." %}</li>
+        <li>{% trans "The launch story is compressed into one flow instead of scattered admin pages." %}</li>
+      </ul>
     </div>
+    <div class="proof-panel">
+      <h2 class="proof-panel-title">{% trans "Why this matters" %}</h2>
+      <p class="proof-panel-copy">{% trans "Premium platforms do not make users interpret where to click next. They make the next high-confidence action obvious. That is the bar this setup flow is designed to hit." %}</p>
+    </div>
+  </section>
+
+  <section class="proof-flow">
+    {% for step in steps %}
+    <article class="proof-step">
+      <span class="proof-step-order">{{ step.order }}</span>
+      <h3>{{ step.title }}</h3>
+      <p>{{ step.description }}</p>
+      {% if step.cta_url and step.cta_label %}
+      <div class="proof-hero-actions mt-3">
+        <a href="{{ step.cta_url }}" class="btn btn-outline-primary btn-sm" data-cta="simulator-step" data-step="{{ step.order }}">{{ step.cta_label }}</a>
+      </div>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </section>
+
+  <section class="proof-card-grid">
+    <article class="proof-preview">
+      <div class="proof-preview-frame">
+        <h4>{% trans "Left rail" %}</h4>
+        <p>{% trans "Progress, health score, current step, and launch readiness instead of a loose checklist." %}</p>
+      </div>
+    </article>
+    <article class="proof-preview">
+      <div class="proof-preview-frame">
+        <h4>{% trans "Center task" %}</h4>
+        <p>{% trans "One dominant CTA, recommended defaults, and advanced controls kept secondary." %}</p>
+      </div>
+    </article>
+    <article class="proof-preview">
+      <div class="proof-preview-frame">
+        <h4>{% trans "Right rail" %}</h4>
+        <p>{% trans "Live preview cards for school website, admin shell, teacher dashboard, and parent portal." %}</p>
+      </div>
+    </article>
   </section>
 </section>
 {% endblock %}

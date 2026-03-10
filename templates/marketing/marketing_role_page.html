@@ -1,5 +1,6 @@
 {% extends "marketing/base_marketing.html" %}
 {% load i18n %}
+
 {% block title %}{{ seo_title|default:"RunMyCampus" }}{% endblock %}
 {% block extrahead %}
   <meta name="description" content="{{ seo_description|default:'' }}">
@@ -7,50 +8,73 @@
   <script type="application/ld+json">{{ structured_data_json|safe }}</script>
   {% if breadcrumb_schema_json %}<script type="application/ld+json">{{ breadcrumb_schema_json|safe }}</script>{% endif %}
 {% endblock %}
+
 {% block content %}
-<section class="container py-4 py-lg-5 page-stack">
-  <p class="text-uppercase small text-muted mb-2">RunMyCampus Roles</p>
-  <h1 class="display-6 fw-bold mb-3">{{ page.headline }}</h1>
-  <p class="lead text-muted mb-4">{{ page.subheadline }}</p>
-
-  {% if page.workflows %}
-  <section class="section-shell" aria-label="{% trans 'Workflows' %}">
-    <h2 class="section-heading">{% trans "Workflows" %}</h2>
-    <ul class="mb-0">
-      {% for w in page.workflows %}
-        <li>{{ w }}</li>
-      {% endfor %}
-    </ul>
+<section class="proof-page">
+  <section class="proof-hero">
+    <div class="proof-hero-grid">
+      <div>
+        <div class="proof-kicker"><i class="bi bi-person-badge"></i> {{ page.label }}</div>
+        <h1 class="proof-hero-title">{{ page.headline }}</h1>
+        <p class="proof-hero-copy">{{ page.subheadline }}</p>
+        <div class="proof-hero-actions">
+          <a href="{% url 'signup_school' %}" class="btn btn-light" data-cta="primary" data-page="role">{% trans "Start free trial" %}</a>
+          <a href="{% url 'marketing_book_demo' %}" class="btn btn-outline-light" data-cta="demo" data-page="role">{% trans "Book demo" %}</a>
+        </div>
+        <div class="proof-strip">
+          <div class="proof-strip-card"><strong>{% trans "Role home" %}</strong><span>{% trans "Purpose before navigation" %}</span></div>
+          <div class="proof-strip-card"><strong>{% trans "Flow-driven" %}</strong><span>{% trans "Next action over tool menu" %}</span></div>
+          <div class="proof-strip-card"><strong>{% trans "Unified platform" %}</strong><span>{% trans "One product, not page sprawl" %}</span></div>
+        </div>
+      </div>
+      <div class="proof-visual">
+        <img src="{{ hero_dashboard_image_url|default:platform_architecture_diagram_url }}" alt="{% trans 'Role dashboard preview' %}">
+        <div class="proof-visual-caption">{% trans "Each role page should communicate that the platform already knows why that role came here." %}</div>
+      </div>
+    </div>
   </section>
-  {% endif %}
 
-  {% if page.dashboards %}
-  <section class="section-shell" aria-label="{% trans 'Dashboards' %}">
-    <h2 class="section-heading">{% trans "Dashboards" %}</h2>
-    <ul class="mb-0">
-      {% for d in page.dashboards %}
-        <li>{{ d }}</li>
-      {% endfor %}
-    </ul>
+  <section class="proof-card-grid">
+    <article class="proof-card">
+      <h3>{% trans "Workflows" %}</h3>
+      <ul class="proof-bullet-list">
+        {% for workflow in page.workflows %}
+        <li>{{ workflow }}</li>
+        {% endfor %}
+      </ul>
+    </article>
+    <article class="proof-card">
+      <h3>{% trans "Dashboards" %}</h3>
+      <ul class="proof-bullet-list">
+        {% for dashboard in page.dashboards %}
+        <li>{{ dashboard }}</li>
+        {% endfor %}
+      </ul>
+    </article>
+    <article class="proof-card">
+      <h3>{% trans "Outcomes" %}</h3>
+      <ul class="proof-bullet-list">
+        {% for outcome in page.outcomes %}
+        <li>{{ outcome }}</li>
+        {% endfor %}
+      </ul>
+    </article>
   </section>
-  {% endif %}
 
-  {% if page.outcomes %}
-  <section class="section-shell" aria-label="{% trans 'Outcomes' %}">
-    <h2 class="section-heading">{% trans "Outcomes" %}</h2>
-    <ul class="mb-0">
-      {% for o in page.outcomes %}
-        <li>{{ o }}</li>
-      {% endfor %}
-    </ul>
-  </section>
-  {% endif %}
-
-  <section class="section-shell border-0 bg-transparent pt-0">
-    <div class="d-flex flex-wrap gap-2">
-      <a href="{% url 'signup_school' %}" class="btn btn-primary" data-cta="primary" data-page="role">{% trans "Start free trial" %}</a>
-      <a href="{% url 'marketing_book_demo' %}" class="btn btn-outline-primary" data-cta="demo" data-page="role">{% trans "Book demo" %}</a>
-      <a href="{% url 'marketing_solutions' %}" class="btn btn-outline-secondary">{% trans "Back to solutions" %}</a>
+  <section class="proof-split">
+    <div class="proof-panel">
+      <h2 class="proof-panel-title">{% trans "Why this role should switch" %}</h2>
+      <ul class="proof-bullet-list">
+        <li>{% trans "Replace app juggling with one role-native workspace." %}</li>
+        <li>{% trans "Reduce clicks by ranking the next best action instead of exposing equal-weight menus." %}</li>
+        <li>{% trans "Trust the same platform for family, academic, finance, and compliance workflows." %}</li>
+      </ul>
+    </div>
+    <div class="proof-preview">
+      <div class="proof-preview-frame">
+        <h4>{% trans "Role home mockup" %}</h4>
+        <p>{% trans "A premium role home leads with purpose, priority queue, recommended next, and recent movement. The sidebar is a fallback, not the workflow engine." %}</p>
+      </div>
     </div>
   </section>
 </section>

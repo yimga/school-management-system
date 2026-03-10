@@ -17,6 +17,44 @@ BACKEND_PRIMARY_CTAS = [
     {"label": "School Settings", "icon": "bi-building-gear", "url_name": "siteconfig:customizer", "fallback_url_name": "siteconfig:user_preferences"},
 ]
 
+BACKEND_INTENT_PRIMARY_SPECS = {
+    "executive": {
+        "label": "Review school pulse",
+        "icon": "bi-speedometer2",
+        "url_name": "accounts:workflow_center",
+        "fallback_url_name": "accounts:backend_dashboard",
+        "hint": "See the decision queue, blockers, and operating health in one place.",
+    },
+    "operational": {
+        "label": "Resolve active queues",
+        "icon": "bi-diagram-3",
+        "url_name": "accounts:workflow_center",
+        "fallback_url_name": "accounts:backend_dashboard",
+        "hint": "Work through admissions, finance, and staffing actions from one queue.",
+    },
+    "academic": {
+        "label": "Open academic workbench",
+        "icon": "bi-journal-check",
+        "url_name": "reports:publish_term_results",
+        "fallback_url_name": "accounts:backend_student_list",
+        "hint": "Focus on grading, interventions, and classroom readiness.",
+    },
+    "finance": {
+        "label": "Open finance console",
+        "icon": "bi-cash-stack",
+        "url_name": "finance:dashboard",
+        "fallback_url_name": "accounts:backend_dashboard",
+        "hint": "Prioritize collections, approvals, and billing health before anything else.",
+    },
+    "setup": {
+        "label": "Open Setup Studio",
+        "icon": "bi-magic",
+        "url_name": "siteconfig:guided_onboarding",
+        "fallback_url_name": "accounts:backend_dashboard",
+        "hint": "Clear launch blockers, preview every role, and move toward launch readiness.",
+    },
+}
+
 BACKEND_ACTION_CHIPS = [
     {"label": "Workflow Center", "icon": "bi-diagram-3", "url_name": "accounts:workflow_center", "allow_key": "always"},
     {"label": "Messages", "icon": "bi-chat-dots", "url_name": "accounts:user_messages", "allow_key": "can_use_messages"},
@@ -112,8 +150,7 @@ def _filter_actions_by_intent(
     """By intent: 1 primary CTA and up to max_welcome contextual actions (ordered by intent)."""
     if not intent or intent not in VALID_DASHBOARD_INTENTS:
         return primary_ctas, welcome_action_grid
-    idx = BACKEND_INTENT_PRIMARY_INDEX.get(intent, 0)
-    primary_one = [primary_ctas[idx]] if 0 <= idx < len(primary_ctas) else primary_ctas[:1]
+    primary_one = primary_ctas[:1]
     preferred_ids = BACKEND_INTENT_WELCOME_ITEM_IDS.get(intent, [])
     # Reorder welcome_action_grid by preferred_ids, then cap
     by_id = {str(item.get("id", "")): item for item in welcome_action_grid if item.get("id")}
@@ -148,6 +185,16 @@ def get_backend_dashboard_actions(
     command_palette = _resolve_actions(BACKEND_COMMAND_PALETTE, perms, safe_reverse, build_nav_item, dedupe_nav_items)
 
     if intent and intent in VALID_DASHBOARD_INTENTS:
+        primary_spec = BACKEND_INTENT_PRIMARY_SPECS.get(intent)
+        if primary_spec:
+            primary_url = safe(primary_spec["url_name"], primary_spec.get("fallback_url_name", "#"))
+            if primary_url != "#":
+                primary_ctas = [{
+                    "label": primary_spec["label"],
+                    "icon": primary_spec["icon"],
+                    "url": primary_url,
+                    "hint": primary_spec.get("hint", ""),
+                }]
         primary_ctas, welcome_action_grid = _filter_actions_by_intent(
             primary_ctas, welcome_action_grid, intent, max_welcome=7
         )
@@ -200,12 +247,30 @@ BACKEND_CONTEXTUAL_GROUPS: Dict[str, str] = {
     "announcements": CONTEXTUAL_GROUP_PEOPLE,
 }
 
+BACKEND_CONTEXTUAL_REASONS: Dict[str, str] = {
+    "add_student": "Unblock enrollment and downstream workflows.",
+    "add_teacher": "Get classrooms, reporting, and communication ready faster.",
+    "onboard_student": "Move one admitted learner into an active record.",
+    "roles_permissions": "Tighten access before scaling more users.",
+    "create_invoice": "Convert finance actions into collection progress.",
+    "manage_exams": "Keep academic reporting and interventions on schedule.",
+    "import_grades": "Move marks into reports without manual re-entry.",
+    "exams": "Review result publishing readiness.",
+    "certification": "Track exam and certification milestones.",
+    "document_library": "Give staff and families the latest approved documents.",
+    "workflow_center": "Open the single queue for cross-team work.",
+    "preferences": "Tune the workspace without leaving your current flow.",
+    "announcements": "Push timely updates to the right audience.",
+}
+
 
 def get_contextual_actions(
     context_name: str,
     perms: Dict[str, bool],
     safe_reverse: Callable[[str, str], str],
     *,
+    intent: Optional[str] = None,
+    workflow_progress: Optional[Dict[str, Any]] = None,
     max_items: int = 7,
 ) -> List[Dict[str, Any]]:
     """
@@ -234,11 +299,9 @@ def get_contextual_actions(
                 })
         return out[:max_items]
 
-    # backend_dashboard: welcome grid resolved with perms, add group, cap at max_items
+    # backend_dashboard: welcome grid resolved with perms, ranked by intent and workflow state.
     out = []
     for s in BACKEND_WELCOME_ACTION_GRID:
-        if len(out) >= max_items:
-            break
         allow = perms.get(s.get("allow_key", "always"), True) if s.get("allow_key") != "always" else True
         if not allow:
             continue
@@ -252,5 +315,29 @@ def get_contextual_actions(
             "url": url,
             "id": item_id,
             "group": BACKEND_CONTEXTUAL_GROUPS.get(item_id, CONTEXTUAL_GROUP_NAV),
+            "reason": BACKEND_CONTEXTUAL_REASONS.get(item_id, "Continue the highest-value workflow for this role."),
         })
-    return out
+    preferred_ids = list(BACKEND_INTENT_WELCOME_ITEM_IDS.get(intent or "", []))
+    if workflow_progress:
+        if workflow_progress.get("students", 0) == 0:
+            preferred_ids.insert(0, "add_student")
+        if workflow_progress.get("teachers", 0) == 0:
+            preferred_ids.insert(0, "add_teacher")
+        if workflow_progress.get("classrooms", 0) == 0:
+            preferred_ids.insert(0, "workflow_center")
+
+    by_id = {str(item.get("id", "")): item for item in out if item.get("id")}
+    ordered: List[Dict[str, Any]] = []
+    for item_id in preferred_ids:
+        action = by_id.get(item_id)
+        if action and action not in ordered:
+            ordered.append(action)
+    for item in out:
+        if item not in ordered:
+            ordered.append(item)
+
+    sliced = ordered[:max_items]
+    for index, item in enumerate(sliced):
+        item["priority"] = "now" if index == 0 else "next" if index < 3 else "later"
+        item["featured"] = index == 0
+    return sliced

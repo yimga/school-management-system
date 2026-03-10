@@ -1,30 +1,66 @@
 {% extends "marketing/base_marketing.html" %}
 {% load i18n %}
+
 {% block title %}{{ seo_title|default:"Developers" }}{% endblock %}
 {% block extrahead %}
   <meta name="description" content="{{ seo_description|default:'' }}">
   {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
   <script type="application/ld+json">{{ structured_data_json|safe }}</script>
 {% endblock %}
+
 {% block content %}
-<section class="container py-4 py-lg-5 page-stack">
-  <p class="text-uppercase small text-muted mb-2">Developers</p>
-  <h1 class="display-6 fw-bold mb-3">{{ page.headline }}</h1>
-  <p class="lead text-muted mb-4">{{ page.subheadline }}</p>
-
-  {% if page.sections %}
-  {% for sec in page.sections %}
-  <section class="section-shell" aria-label="{{ sec.title }}">
-    <h2 class="section-heading">{{ sec.title }}</h2>
-    <p class="section-lead mb-0">{{ sec.body }}</p>
+<section class="proof-page">
+  <section class="proof-hero">
+    <div class="proof-hero-grid">
+      <div>
+        <div class="proof-kicker"><i class="bi bi-code-square"></i> {% trans "Developer platform" %}</div>
+        <h1 class="proof-hero-title">{{ page.headline }}</h1>
+        <p class="proof-hero-copy">{{ page.subheadline }}</p>
+        <div class="proof-hero-actions">
+          <a href="{% url 'developer_portal' %}" class="btn btn-light">{% trans "Developer portal" %}</a>
+          <a href="{% url 'marketing_app_marketplace' %}" class="btn btn-outline-light">{% trans "Marketplace story" %}</a>
+        </div>
+        <div class="proof-strip">
+          <div class="proof-strip-card"><strong>{% trans "API" %}</strong><span>{% trans "Open integration surface" %}</span></div>
+          <div class="proof-strip-card"><strong>{% trans "Webhooks" %}</strong><span>{% trans "Event-driven automations" %}</span></div>
+          <div class="proof-strip-card"><strong>{% trans "Sandbox" %}</strong><span>{% trans "Preview before publish" %}</span></div>
+        </div>
+      </div>
+      <div class="proof-visual">
+        <div class="proof-preview-frame h-100">
+          <h4>{% trans "Build loop" %}</h4>
+          <p>{% trans "Design app -> test in sandbox -> submit for review -> install through governed marketplace." %}</p>
+          <div class="proof-chip-row mt-3">
+            <span class="proof-chip"><i class="bi bi-braces"></i> {% trans "SDK" %}</span>
+            <span class="proof-chip"><i class="bi bi-broadcast"></i> {% trans "Webhooks" %}</span>
+            <span class="proof-chip"><i class="bi bi-shield-check"></i> {% trans "Governed review" %}</span>
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
-  {% endfor %}
-  {% endif %}
 
-  <section class="section-shell border-0 bg-transparent pt-0">
-    <div class="d-flex flex-wrap gap-2">
-      <a href="{% url 'developer_portal' %}" class="btn btn-outline-primary">{% trans "Developer portal" %}</a>
-      <a href="{% url 'marketing_developers' %}" class="btn btn-outline-secondary">{% trans "Developers overview" %}</a>
+  <section class="proof-card-grid">
+    {% for sec in page.sections %}
+    <article class="proof-card">
+      <h3>{{ sec.title }}</h3>
+      <p>{{ sec.body }}</p>
+    </article>
+    {% endfor %}
+  </section>
+
+  <section class="proof-split">
+    <div class="proof-panel">
+      <h2 class="proof-panel-title">{% trans "Why this matters for the platform story" %}</h2>
+      <ul class="proof-bullet-list">
+        <li>{% trans "Developer enablement is part of platform seriousness, not an afterthought." %}</li>
+        <li>{% trans "Apps, integrations, and custom extensions should feel curated and safe, not bolted on." %}</li>
+        <li>{% trans "Sandbox and governance turn experimentation into something schools can trust." %}</li>
+      </ul>
+    </div>
+    <div class="proof-panel">
+      <h2 class="proof-panel-title">{% trans "Conversion path" %}</h2>
+      <p class="proof-panel-copy">{% trans "If you are building on RunMyCampus, you need a credible story around APIs, webhooks, marketplace review, and preview-before-commit. This page is designed to make that story visible." %}</p>
     </div>
   </section>
 </section>

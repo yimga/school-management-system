@@ -296,6 +296,28 @@ def app_catalog(request):
 
     listings = (
         MarketplaceListing.objects.select_related("app", "publisher")
+        .prefetch_related("app__scopes")
+        .annotate(
+            active_installations=Count(
+                "app__installations",
+                filter=Q(
+                    app__installations__status=AppInstallation.Status.ACTIVE,
+                    app__installations__uninstalled_at__isnull=True,
+                ),
+                distinct=True,
+            ),
+            sandbox_installations=Count(
+                "app__installations",
+                filter=Q(
+                    app__installations__status=AppInstallation.Status.ACTIVE,
+                    app__installations__install_phase=AppInstallation.InstallPhase.SANDBOX,
+                    app__installations__uninstalled_at__isnull=True,
+                ),
+                distinct=True,
+            ),
+            scope_count=Count("app__scopes", distinct=True),
+            sensitive_scope_count=Count("app__scopes", filter=Q(app__scopes__sensitive=True), distinct=True),
+        )
         .filter(app__is_active=True)
         .order_by("app__name")
     )
@@ -318,18 +340,32 @@ def app_catalog(request):
         app = get_object_or_404(MarketplaceApp, pk=app_id, is_active=True)
         school = get_object_or_404(School, pk=school_id, is_active=True)
         try:
-            install_app(school, app, installed_by=request.user)
-            messages.success(request, f"App “{app.name}” installed for “{school.name}”.")
+            install_app(
+                school,
+                app,
+                installed_by=request.user,
+                install_phase=AppInstallation.InstallPhase.SANDBOX,
+            )
+            messages.success(request, f"App “{app.name}” installed for “{school.name}” in sandbox mode.")
         except ValueError as e:
             messages.error(request, str(e))
         return redirect("super:app_catalog")
 
+    catalog_stats = {
+        "apps": len(installable_listings),
+        "verified_publishers": PublisherOrganization.objects.filter(
+            verification_status=PublisherOrganization.VerificationStatus.VERIFIED
+        ).count(),
+        "sandbox_ready": sum(1 for listing in installable_listings if getattr(listing, "sensitive_scope_count", 0) == 0),
+        "installed_pairs": len(installed),
+    }
     return render(request, "marketplace/app_catalog.html", {
         "listings": installable_listings,
         "schools": schools,
         "school_query": school_query,
         "school_limit": school_limit,
         "installed": installed,
+        "catalog_stats": catalog_stats,
     })
 
 
@@ -489,6 +525,19 @@ def tenant_app_catalog(request):
         return render(request, "marketplace/tenant_app_catalog.html", {"listings": [], "school": None, "installed_slugs": set()})
     listings = (
         MarketplaceListing.objects.select_related("app", "publisher")
+        .prefetch_related("app__scopes")
+        .annotate(
+            active_installations=Count(
+                "app__installations",
+                filter=Q(
+                    app__installations__status=AppInstallation.Status.ACTIVE,
+                    app__installations__uninstalled_at__isnull=True,
+                ),
+                distinct=True,
+            ),
+            scope_count=Count("app__scopes", distinct=True),
+            sensitive_scope_count=Count("app__scopes", filter=Q(app__scopes__sensitive=True), distinct=True),
+        )
         .filter(app__is_active=True, status=MarketplaceListing.Status.APPROVED)
         .order_by("app__name")
     )
@@ -504,10 +553,21 @@ def tenant_app_catalog(request):
             uninstalled_at__isnull=True,
         ).values_list("app__slug", flat=True)
     )
+    catalog_stats = {
+        "apps": len(installable),
+        "installed": len(installed_slugs),
+        "sandbox_ready": sum(1 for listing in installable if getattr(listing, "sensitive_scope_count", 0) == 0),
+        "verified_publishers": sum(
+            1
+            for listing in installable
+            if getattr(getattr(listing, "publisher", None), "verification_status", "") == PublisherOrganization.VerificationStatus.VERIFIED
+        ),
+    }
     return render(request, "marketplace/tenant_app_catalog.html", {
         "listings": installable,
         "school": school,
         "installed_slugs": installed_slugs,
+        "catalog_stats": catalog_stats,
     })
 
 
@@ -526,8 +586,14 @@ def tenant_install_app(request):
         return redirect("tenant_app_catalog")
     app = get_object_or_404(MarketplaceApp, pk=app_id, is_active=True)
     try:
-        install_app(school, app, installed_by=request.user, install_phase="active", skip_compatibility=False)
-        messages.success(request, f"App “{app.name}” has been installed.")
+        install_app(
+            school,
+            app,
+            installed_by=request.user,
+            install_phase=AppInstallation.InstallPhase.SANDBOX,
+            skip_compatibility=False,
+        )
+        messages.success(request, f"App “{app.name}” has been installed in sandbox mode. Review it, then activate.")
     except ValueError as e:
         messages.error(request, str(e))
     return redirect("tenant_installed_apps")

@@ -1,124 +1,399 @@
 {% extends "backend_base.html" %}
 {% load i18n %}
+
 {% block backend_title %}{% trans "Setup Studio" %}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+  .setup-studio-shell { display: grid; gap: 1.25rem; }
+  .setup-studio-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.85fr);
+    gap: 1rem;
+  }
+  .setup-studio-panel {
+    border: 1px solid rgba(226, 232, 240, 0.88);
+    border-radius: 24px;
+    background: rgba(255,255,255,0.96);
+    box-shadow: 0 18px 48px rgba(15, 23, 42, 0.08);
+  }
+  .setup-studio-launch {
+    padding: 1.4rem;
+    background:
+      radial-gradient(circle at top right, rgba(255,255,255,0.2), transparent 38%),
+      linear-gradient(135deg, rgba(13,110,253,0.94), rgba(25,135,84,0.9));
+    color: #fff;
+  }
+  .setup-studio-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: 0.7rem;
+    font-size: 0.76rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.8;
+  }
+  .setup-studio-title { margin: 0; font-size: clamp(1.5rem, 1.15rem + 1vw, 2.2rem); line-height: 1.08; }
+  .setup-studio-subtitle { margin: 0.8rem 0 1rem; color: rgba(255,255,255,0.88); max-width: 44rem; }
+  .setup-studio-summary-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+  }
+  .setup-studio-summary-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.72rem;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.14);
+    font-size: 0.84rem;
+  }
+  .setup-studio-health {
+    padding: 1.35rem;
+    display: grid;
+    gap: 1rem;
+  }
+  .setup-studio-health-top { display: flex; align-items: center; gap: 1rem; }
+  .setup-studio-health-ring {
+    width: 74px;
+    height: 74px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: conic-gradient(var(--bs-primary) {{ setup_health_score|default:0 }}%, rgba(226,232,240,0.92) 0);
+    position: relative;
+  }
+  .setup-studio-health-ring::after {
+    content: "";
+    position: absolute;
+    inset: 8px;
+    border-radius: 50%;
+    background: #fff;
+  }
+  .setup-studio-health-ring strong {
+    position: relative;
+    z-index: 1;
+    font-size: 1.1rem;
+  }
+  .setup-studio-health-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .setup-studio-health-badge.is-ready { background: rgba(34,197,94,0.12); color: #166534; }
+  .setup-studio-health-badge.is-progress { background: rgba(59,130,246,0.12); color: #1d4ed8; }
+  .setup-studio-health-badge.is-risk { background: rgba(245,158,11,0.18); color: #92400e; }
+  .setup-studio-grid {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1.15fr) minmax(300px, 0.95fr);
+    gap: 1rem;
+  }
+  .setup-studio-rail,
+  .setup-studio-center,
+  .setup-studio-preview {
+    padding: 1.2rem;
+  }
+  .setup-studio-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.9rem;
+  }
+  .setup-studio-step-list,
+  .setup-studio-list {
+    display: grid;
+    gap: 0.7rem;
+  }
+  .setup-studio-step {
+    padding: 0.8rem 0.85rem;
+    border-radius: 16px;
+    border: 1px solid rgba(226, 232, 240, 0.88);
+    background: rgba(248, 250, 252, 0.94);
+  }
+  .setup-studio-step.is-current {
+    border-color: rgba(13,110,253,0.35);
+    background: rgba(13,110,253,0.05);
+  }
+  .setup-studio-step.is-done {
+    border-color: rgba(34,197,94,0.22);
+    background: rgba(34,197,94,0.06);
+  }
+  .setup-studio-step-order {
+    display: inline-flex;
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    align-items: center;
+    justify-content: center;
+    background: rgba(13,110,253,0.12);
+    color: var(--bs-primary);
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 0.55rem;
+  }
+  .setup-studio-checklist-item,
+  .setup-studio-blocker,
+  .setup-studio-recommendation,
+  .setup-studio-preview-card {
+    padding: 0.9rem;
+    border-radius: 18px;
+    border: 1px solid rgba(226, 232, 240, 0.92);
+    background: rgba(248,250,252,0.88);
+  }
+  .setup-studio-preview-card.is-ready { border-color: rgba(34,197,94,0.22); background: rgba(34,197,94,0.06); }
+  .setup-studio-preview-card.is-pending { border-color: rgba(245,158,11,0.22); background: rgba(245,158,11,0.08); }
+  .setup-studio-mini-title { font-size: 0.92rem; font-weight: 700; margin-bottom: 0.25rem; }
+  .setup-studio-muted { color: var(--bs-secondary-color); font-size: 0.9rem; }
+  .setup-studio-actions { display: flex; flex-wrap: wrap; gap: 0.65rem; margin-top: 1rem; }
+  .setup-studio-bullet-list { display: grid; gap: 0.45rem; padding-left: 1rem; margin: 0; }
+  .setup-studio-role-preview {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(226,232,240,0.9);
+  }
+  .setup-studio-role-preview:last-child { border-bottom: 0; padding-bottom: 0; }
+  @media (max-width: 1199px) {
+    .setup-studio-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 991px) {
+    .setup-studio-hero { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid py-4 setup-studio-shell">
-  {# Top: setup health score + recommended next #}
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="card shadow-sm border-0">
-        <div class="card-body d-flex flex-wrap align-items-center justify-content-between gap-3">
-          <div class="d-flex align-items-center gap-3">
-            <div class="setup-health-circle rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 56px; height: 56px;">
-              <span class="fw-bold text-primary">{{ setup_health_score|default:0 }}</span>
-            </div>
-            <div>
-              <h6 class="mb-0">{% trans "Setup health" %}</h6>
-              <p class="text-muted small mb-0">{% trans "Based on completed steps" %}</p>
-            </div>
-          </div>
-          {% if recommended_next %}
-          <div class="d-flex align-items-center gap-2">
-            <span class="text-muted small">{% trans "Recommended next:" %}</span>
-            <a href="{{ recommended_next.link }}" class="btn btn-sm btn-primary">{{ recommended_next.label }}</a>
-          </div>
-          {% else %}
-          <span class="text-success small">{% trans "All steps complete." %}</span>
-          {% endif %}
-        </div>
+  <section class="setup-studio-hero">
+    <div class="setup-studio-panel setup-studio-launch">
+      <div class="setup-studio-eyebrow">
+        <i class="bi bi-rocket-takeoff"></i>
+        <span>{% trans "Setup Studio" %}</span>
+      </div>
+      <h1 class="setup-studio-title">{% trans "Launch your school as one guided product flow." %}</h1>
+      <p class="setup-studio-subtitle">
+        {% trans "Move from setup state to launch readiness with one dominant task, one recommended path, and role-by-role previews before go-live." %}
+      </p>
+      <div class="setup-studio-summary-strip">
+        <span class="setup-studio-summary-chip"><i class="bi bi-check2-circle"></i> {{ progress_percent|default:0 }}% {% trans "complete" %}</span>
+        <span class="setup-studio-summary-chip"><i class="bi bi-bullseye"></i> {% if current_step %}{{ current_step.label }}{% else %}{% trans "No active step" %}{% endif %}</span>
+        <span class="setup-studio-summary-chip"><i class="bi bi-shield-check"></i> {% if launch_ready %}{% trans "Launch ready" %}{% else %}{% trans "Blockers remain" %}{% endif %}</span>
       </div>
     </div>
-  </div>
-  <div class="row g-4">
-    {# Left: progress rail #}
-    <aside class="col-lg-3">
-      <div class="card shadow-sm h-100">
-        <div class="card-header bg-light">
-          <h5 class="mb-0">{% trans "Setup progress" %}</h5>
-        </div>
-        <div class="card-body py-3">
-          {% for step in steps %}
-            <div class="d-flex align-items-center gap-2 py-2 border-bottom border-light">
-              {% if step.done %}
-                <span class="text-success flex-shrink-0" aria-hidden="true">✓</span>
-                <span class="text-muted small">{{ step.label }}</span>
-              {% else %}
-                <span class="text-muted flex-shrink-0" aria-hidden="true">○</span>
-                <span class="small">{{ step.label }}</span>
-              {% endif %}
-            </div>
-          {% empty %}
-            <p class="text-muted small mb-0">{% trans "No steps configured." %}</p>
-          {% endfor %}
+    <div class="setup-studio-panel setup-studio-health">
+      <div class="setup-studio-health-top">
+        <div class="setup-studio-health-ring"><strong>{{ setup_health_score|default:0 }}</strong></div>
+        <div>
+          <span class="setup-studio-health-badge {% if health_summary.tone == 'ready' %}is-ready{% elif health_summary.tone == 'progress' %}is-progress{% else %}is-risk{% endif %}">
+            {{ health_summary.label }}
+          </span>
+          <div class="mt-2 fw-semibold">{% trans "Setup health" %}</div>
+          <div class="setup-studio-muted">{{ health_summary.detail }}</div>
         </div>
       </div>
-    </aside>
-    {# Center: current step / step list #}
-    <main class="col-lg-6">
-      <div class="card shadow-sm">
-        <div class="card-header d-flex align-items-center justify-content-between">
-          <h5 class="mb-0">{% trans "Setup Studio" %}</h5>
-          <span class="badge bg-primary">{% trans "Get your school ready" %}</span>
-        </div>
-        <div class="card-body">
-          <p class="text-muted small mb-4">{% trans "Complete these steps to get your school set up. Each action opens the right place to finish the step." %}</p>
-          <ul class="list-group list-group-flush">
-            {% for step in steps %}
-              <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                {% if step.done %}
-                  <span class="text-success">✓ {{ step.label }}</span>
-                  <span class="badge bg-success">{% trans "Done" %}</span>
-                {% else %}
-                  <span>{{ step.label }}</span>
-                  {% if step.link %}
-                    <a href="{{ step.link }}" class="btn btn-sm btn-primary">{% trans "Do it" %}</a>
-                  {% else %}
-                    <span class="text-muted small">—</span>
-                  {% endif %}
-                {% endif %}
-              </li>
-            {% empty %}
-              <li class="list-group-item text-muted">{% trans "No steps configured." %}</li>
-            {% endfor %}
-          </ul>
-        </div>
-        <div class="card-footer bg-light d-flex flex-wrap justify-content-between align-items-center gap-2">
-          <a href="{% url 'accounts:backend_dashboard' %}" class="btn btn-outline-secondary btn-sm">{% trans "Back" %}</a>
-          <div class="d-flex align-items-center gap-2">
-            {% if recommended_next %}
-            <a href="{{ recommended_next.link }}" class="btn btn-sm btn-primary">{% trans "Next" %}: {{ recommended_next.label }}</a>
-            <span class="text-muted small">{% trans "or" %}</span>
-            <a href="{% url 'accounts:backend_dashboard' %}" class="btn btn-sm btn-link text-muted">{% trans "Skip for now" %}</a>
-            {% else %}
-            <a href="{% url 'accounts:backend_dashboard' %}" class="btn btn-sm btn-primary">{% trans "Back to dashboard" %}</a>
-            <span class="text-muted small">{% trans "All set." %}</span>
-            {% endif %}
-          </div>
-        </div>
-      </div>
-    </main>
-    {# Right: live preview where applicable + tips #}
-    <aside class="col-lg-3">
-      {% if recommended_next and recommended_next.key == 'branding' %}
-      <div class="card shadow-sm mb-3">
-        <div class="card-header bg-light">
-          <h6 class="mb-0">{% trans "Live preview" %}</h6>
-        </div>
-        <div class="card-body">
-          <p class="small text-muted mb-0">{% trans "After you set school branding (name, logo, colors), your portal and backend header will reflect it. Open Customizer to see changes in real time." %}</p>
+      {% if recommended_next %}
+      <div class="setup-studio-blocker">
+        <div class="setup-studio-mini-title">{% trans "Dominant next action" %}</div>
+        <div class="setup-studio-muted">{{ recommended_next.description|default:recommended_next.evidence }}</div>
+        <div class="setup-studio-actions">
+          <a href="{{ recommended_next.link }}" class="btn btn-primary btn-sm">{{ recommended_next.label }}</a>
+          <a href="{% url 'accounts:backend_dashboard' %}" class="btn btn-outline-secondary btn-sm">{% trans "Back to role home" %}</a>
         </div>
       </div>
       {% endif %}
-      <div class="card shadow-sm h-100">
-        <div class="card-header bg-light">
-          <h6 class="mb-0">{% trans "Tips" %}</h6>
+    </div>
+  </section>
+
+  <section class="setup-studio-grid">
+    <aside class="setup-studio-panel setup-studio-rail">
+      <div class="setup-studio-section-head">
+        <div>
+          <div class="fw-semibold">{% trans "Progress rail" %}</div>
+          <div class="setup-studio-muted">{% trans "Eight steps, no hidden setup debt." %}</div>
         </div>
-        <div class="card-body">
-          <p class="small text-muted mb-2">{% trans "Setup in order for best results: academic year first, then classrooms and people, then grading and reports." %}</p>
-          <p class="small text-muted mb-0">{% trans "You can return to this page anytime from the dashboard or Backend to see your progress." %}</p>
+        <span class="badge text-bg-light">{{ steps|length }}</span>
+      </div>
+      <div class="setup-studio-step-list">
+        {% for step in steps %}
+        <div class="setup-studio-step {% if current_step and current_step.key == step.key %}is-current{% elif step.done %}is-done{% endif %}">
+          <span class="setup-studio-step-order">{{ step.order }}</span>
+          <div class="setup-studio-mini-title">{{ step.label }}</div>
+          <div class="setup-studio-muted">{{ step.description }}</div>
+          <div class="setup-studio-muted mt-2">{{ step.status }} • {{ step.recommended_choice }}</div>
         </div>
+        {% empty %}
+        <div class="setup-studio-muted">{% trans "No steps configured." %}</div>
+        {% endfor %}
       </div>
     </aside>
-  </div>
+
+    <main class="setup-studio-panel setup-studio-center">
+      <div class="setup-studio-section-head">
+        <div>
+          <div class="fw-semibold">{% trans "Current task" %}</div>
+          <div class="setup-studio-muted">{% trans "One dominant task. Advanced controls stay secondary." %}</div>
+        </div>
+        <span class="badge text-bg-primary">{{ current_step.group|default:"launch" }}</span>
+      </div>
+
+      {% if current_step %}
+      <div class="setup-studio-checklist-item mb-3">
+        <div class="setup-studio-mini-title">{{ current_step.label }}</div>
+        <p class="setup-studio-muted mb-2">{{ current_step.description }}</p>
+        <p class="mb-0"><strong>{% trans "Recommended choice:" %}</strong> {{ current_step.recommended_choice }}</p>
+        <p class="setup-studio-muted mt-2 mb-0">{{ current_step.evidence }}</p>
+        <div class="setup-studio-actions">
+          <a href="{{ current_step.link }}" class="btn btn-primary btn-sm">{{ current_step.cta_label }}</a>
+          <a href="{% url 'siteconfig:guided_onboarding' %}" class="btn btn-outline-secondary btn-sm">{% trans "Refresh readiness" %}</a>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if launch_blockers %}
+      <div class="setup-studio-section-head">
+        <div>
+          <div class="fw-semibold">{% trans "Launch blockers" %}</div>
+          <div class="setup-studio-muted">{% trans "Clear these before go-live." %}</div>
+        </div>
+        <span class="badge text-bg-warning">{{ launch_blockers|length }}</span>
+      </div>
+      <div class="setup-studio-list mb-3">
+        {% for blocker in launch_blockers %}
+        <div class="setup-studio-blocker">
+          <div class="setup-studio-mini-title">{{ blocker.label }}</div>
+          <div class="setup-studio-muted">{{ blocker.detail }}</div>
+          <div class="setup-studio-actions">
+            <a href="{{ blocker.link }}" class="btn btn-outline-primary btn-sm">{{ blocker.cta_label }}</a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="setup-studio-section-head">
+        <div>
+          <div class="fw-semibold">{% trans "Launch checklist" %}</div>
+          <div class="setup-studio-muted">{% trans "Every required step mapped to a clear action." %}</div>
+        </div>
+      </div>
+      <div class="setup-studio-list">
+        {% for item in launch_checklist %}
+        <div class="setup-studio-checklist-item">
+          <div class="d-flex justify-content-between align-items-start gap-3">
+            <div>
+              <div class="setup-studio-mini-title">{{ item.label }}</div>
+              <div class="setup-studio-muted">{{ item.description }}</div>
+            </div>
+            <span class="badge {% if item.done %}text-bg-success{% elif item.is_blocker %}text-bg-warning{% else %}text-bg-light{% endif %}">{{ item.status }}</span>
+          </div>
+          {% if not item.done %}
+          <div class="setup-studio-actions">
+            <a href="{{ item.link }}" class="btn btn-outline-primary btn-sm">{% trans "Open step" %}</a>
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </main>
+
+    <aside class="setup-studio-panel setup-studio-preview">
+      <div class="setup-studio-section-head">
+        <div>
+          <div class="fw-semibold">{% trans "Live previews" %}</div>
+          <div class="setup-studio-muted">{% trans "Preview website, admin, teacher, and parent surfaces." %}</div>
+        </div>
+      </div>
+      <div class="setup-studio-list mb-3">
+        {% for preview in preview_cards %}
+        <div class="setup-studio-preview-card {% if preview.tone == 'ready' %}is-ready{% else %}is-pending{% endif %}">
+          <div class="setup-studio-mini-title">{{ preview.title }}</div>
+          <div class="setup-studio-muted">{{ preview.description }}</div>
+          <div class="d-flex justify-content-between align-items-center gap-2 mt-2">
+            <span class="badge {% if preview.tone == 'ready' %}text-bg-success{% else %}text-bg-warning{% endif %}">{{ preview.status }}</span>
+            {% if preview.url %}
+            <a href="{{ preview.url }}" class="btn btn-outline-primary btn-sm">{% trans "Open" %}</a>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      {% if recommended_blueprint %}
+      <div class="setup-studio-recommendation mb-3">
+        <div class="setup-studio-mini-title">{{ recommended_blueprint.title }}</div>
+        <div class="setup-studio-muted">{{ recommended_blueprint.detail }}</div>
+        <div class="setup-studio-actions">
+          <a href="{{ recommended_blueprint.cta_url }}" class="btn btn-outline-primary btn-sm">{{ recommended_blueprint.cta_label }}</a>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if recommended_starter_stack %}
+      <div class="setup-studio-recommendation mb-3">
+        <div class="setup-studio-mini-title">{{ recommended_starter_stack.title }}</div>
+        <div class="setup-studio-muted">{{ recommended_starter_stack.detail }}</div>
+        <ul class="setup-studio-bullet-list mt-2">
+          {% for item in recommended_starter_stack.items %}
+          <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      <div class="setup-studio-section-head">
+        <div>
+          <div class="fw-semibold">{% trans "Role previews" %}</div>
+          <div class="setup-studio-muted">{% trans "Operator spot-checks before launch." %}</div>
+        </div>
+      </div>
+      <div>
+        {% for preview in role_previews %}
+        <div class="setup-studio-role-preview">
+          <div>
+            <div class="setup-studio-mini-title mb-1">{{ preview.label }}</div>
+            <div class="setup-studio-muted">{{ preview.description }}</div>
+          </div>
+          {% if preview.url and preview.url != '#' %}
+          <a href="{{ preview.url }}" class="btn btn-outline-primary btn-sm">{% trans "Open" %}</a>
+          {% else %}
+          <span class="badge text-bg-light">{% trans "Unavailable" %}</span>
+          {% endif %}
+        </div>
+        {% empty %}
+        <div class="setup-studio-muted">{% trans "No role previews available yet." %}</div>
+        {% endfor %}
+      </div>
+
+      <div class="setup-studio-section-head mt-4">
+        <div>
+          <div class="fw-semibold">{% trans "Recommendations" %}</div>
+          <div class="setup-studio-muted">{% trans "Default choices that compress setup time." %}</div>
+        </div>
+      </div>
+      <div class="setup-studio-list">
+        {% for recommendation in recommendations %}
+        <div class="setup-studio-recommendation">
+          <div class="setup-studio-mini-title">{{ recommendation.title }}</div>
+          <div class="setup-studio-muted">{{ recommendation.detail }}</div>
+          <div class="setup-studio-actions">
+            <a href="{{ recommendation.cta_url }}" class="btn btn-outline-primary btn-sm">{{ recommendation.cta_label }}</a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </aside>
+  </section>
 </div>
 {% endblock %}

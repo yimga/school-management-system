@@ -4,7 +4,6 @@ Usage: python manage.py test_core_workflows
 """
 from django.core.management.base import BaseCommand
 from django.test.runner import DiscoverRunner
-from io import StringIO
 import sys
 
 
@@ -22,6 +21,16 @@ class Command(BaseCommand):
             action='store_true',
             help='Stop on first test failure',
         )
+        parser.add_argument(
+            '--keepdb',
+            action='store_true',
+            help='Preserve and reuse the test database between runs.',
+        )
+        parser.add_argument(
+            '--noinput',
+            action='store_true',
+            help='Run non-interactively.',
+        )
 
     def handle(self, *args, **options):
         self.stdout.write(self.style.SUCCESS("\n" + "="*70))
@@ -32,7 +41,8 @@ class Command(BaseCommand):
         test_runner = DiscoverRunner(
             verbosity=2 if options['verbose'] else 1,
             failfast=options['failfast'],
-            keepdb=False
+            keepdb=options['keepdb'],
+            interactive=not options['noinput'],
         )
 
         # Run specific test module
@@ -49,9 +59,9 @@ class Command(BaseCommand):
         # Report results
         self.stdout.write("\n" + "="*70)
         if failures == 0:
-            self.stdout.write(self.style.SUCCESS("✓ All workflow tests passed!"))
+            self.stdout.write(self.style.SUCCESS("OK: All workflow tests passed."))
         else:
-            self.stdout.write(self.style.ERROR(f"✗ {failures} test(s) failed"))
+            self.stdout.write(self.style.ERROR(f"FAIL: {failures} test(s) failed."))
         self.stdout.write("="*70 + "\n")
 
         # Exit with appropriate code

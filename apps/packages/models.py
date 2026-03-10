@@ -42,6 +42,32 @@ class InstalledPackage(models.Model):
     applied_at = models.DateTimeField(auto_now_add=True)
     applied_by_id = models.IntegerField(null=True, blank=True)
     rollback_token = models.CharField(max_length=64, blank=True, db_index=True)
+    dependency_snapshot = models.JSONField(default=list, blank=True)
+    impact_summary = models.JSONField(default=dict, blank=True)
+    apply_stage = models.CharField(
+        max_length=20,
+        choices=[
+            ("sandbox", "Sandbox"),
+            ("test", "Test"),
+            ("production", "Production"),
+            ("rollback", "Rollback"),
+            ("promoted", "Promoted"),
+        ],
+        default="production",
+    )
+    reconciliation_status = models.CharField(
+        max_length=20,
+        choices=[
+            ("pending", "Pending"),
+            ("applied", "Applied"),
+            ("reconciled", "Reconciled"),
+            ("rolled_back", "Rolled Back"),
+            ("promoted", "Promoted"),
+            ("failed", "Failed"),
+        ],
+        default="pending",
+    )
+    promoted_from_mode = models.CharField(max_length=20, blank=True)
     is_active = models.BooleanField(default=True)
 
     class Meta:
@@ -60,8 +86,10 @@ class PackageVersion(models.Model):
 
     package_id = models.CharField(max_length=120, db_index=True)
     version = models.CharField(max_length=80)
+    dependencies = models.JSONField(default=list, blank=True, help_text="Package dependencies.")
     compatibility = models.JSONField(default=dict, blank=True, help_text="Platform/region constraints.")
     payload_sections = models.JSONField(default=dict, blank=True, help_text="Blueprint/workflow/dashboard/policy/theme payloads.")
+    impact_summary = models.JSONField(default=dict, blank=True, help_text="Computed impact preview snapshot.")
     changelog_summary = models.CharField(max_length=500, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -82,10 +110,32 @@ class PackageChangeLog(models.Model):
     package_id = models.CharField(max_length=120, db_index=True)
     version = models.CharField(max_length=80)
     school_id = models.UUIDField(null=True, blank=True, db_index=True)
-    mode = models.CharField(max_length=20, choices=[("sandbox", "Sandbox"), ("production", "Production")], default="production")
-    action = models.CharField(max_length=20, choices=[("apply", "Apply"), ("rollback", "Rollback")], default="apply")
+    mode = models.CharField(
+        max_length=20,
+        choices=[("sandbox", "Sandbox"), ("test", "Test"), ("production", "Production")],
+        default="production",
+    )
+    action = models.CharField(
+        max_length=20,
+        choices=[("apply", "Apply"), ("rollback", "Rollback"), ("promote", "Promote")],
+        default="apply",
+    )
     rollback_token = models.CharField(max_length=64, blank=True, db_index=True)
     actor_id = models.IntegerField(null=True, blank=True)
+    dependency_snapshot = models.JSONField(default=list, blank=True)
+    impact_summary = models.JSONField(default=dict, blank=True)
+    reconciliation_status = models.CharField(
+        max_length=20,
+        choices=[
+            ("pending", "Pending"),
+            ("applied", "Applied"),
+            ("reconciled", "Reconciled"),
+            ("rolled_back", "Rolled Back"),
+            ("promoted", "Promoted"),
+            ("failed", "Failed"),
+        ],
+        default="pending",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
