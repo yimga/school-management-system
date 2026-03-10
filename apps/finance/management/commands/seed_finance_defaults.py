@@ -83,7 +83,7 @@ class Command(BaseCommand):
         site = SiteSettings.get_solo()
         if not getattr(site, "compliance_profile_id", None):
             site.compliance_profile = cameroon
-            site.save(update_fields=["compliance_profile"])
+            site.save(update_fields=["compliance_profile_id"])
 
         self.stdout.write(self.style.SUCCESS("Finance defaults seeded."))
 

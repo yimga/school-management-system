@@ -82,18 +82,21 @@ body:not(.portal-backend-dark) #page > #main::-webkit-scrollbar-thumb:hover {
   scroll-margin-top: 1rem;
 }
 
-/* ----- Vertical scroll: only the main app list area scrolls (header + user stay fixed) ----- */
+/* ----- Vertical scroll: sidebar fixed height; only the app list area scrolls (header + user stay fixed) ----- */
 #nav-sidebar {
-  height: 100vh;
-  max-height: 100vh;
+  height: 100vh !important;
+  max-height: 100vh !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 #nav-sidebar-inner {
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 0;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 0 !important;
   min-height: 0 !important; /* override min-h-screen so scroll area can shrink */
-  height: 100%;
+  height: 100% !important;
 }
 #nav-sidebar-apps,
 .admin-sidebar-apps {

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import tempfile
 
 from django.conf import settings
 from django.core.management import call_command
@@ -63,9 +64,17 @@ class Command(BaseCommand):
         config stale and breaks parity checks. Keep the import scoped to the
         current schema and let deploy/runtime choose the correct connection.
         """
-        self._ensure_dependencies(data)
+        normalized_data = self._normalize_fixture_fields(data)
+        self._ensure_dependencies(normalized_data)
         self._clear_themepack_default_before_load()
-        call_command("loaddata", str(input_path))
+        with tempfile.NamedTemporaryFile("w", encoding="utf-8", suffix=".json", delete=False) as tmp:
+            tmp.write(json.dumps(normalized_data, indent=2, ensure_ascii=False))
+            tmp.write("\n")
+            temp_path = tmp.name
+        try:
+            call_command("loaddata", temp_path)
+        finally:
+            Path(temp_path).unlink(missing_ok=True)
         if not options["skip_normalize"]:
             call_command("normalize_ui_config")
 
@@ -84,7 +93,7 @@ class Command(BaseCommand):
             if row.get("model") != "siteconfig.sitesettings":
                 continue
             fields = row.get("fields") or {}
-            profile_id = fields.get("compliance_profile")
+            profile_id = fields.get("compliance_profile_id", fields.get("compliance_profile"))
             if isinstance(profile_id, int):
                 compliance_ids.add(profile_id)
 
@@ -113,3 +122,13 @@ class Command(BaseCommand):
                 "Error: %s. Run: python manage.py migrate_schemas --tenant --noinput"
                 % (e,)
             ) from e
+
+    def _normalize_fixture_fields(self, data: list[dict]) -> list[dict]:
+        normalized = json.loads(json.dumps(data))
+        for row in normalized:
+            if not isinstance(row, dict) or row.get("model") != "siteconfig.sitesettings":
+                continue
+            fields = row.get("fields") or {}
+            if "compliance_profile" in fields and "compliance_profile_id" not in fields:
+                fields["compliance_profile_id"] = fields.pop("compliance_profile")
+        return normalized

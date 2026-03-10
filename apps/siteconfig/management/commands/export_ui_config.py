@@ -13,11 +13,13 @@ def _canonicalize_optional_blank_fields(records: list[dict]) -> list[dict]:
     for row in records:
         if not isinstance(row, dict):
             continue
-        if row.get("model") != "siteconfig.themepack":
-            continue
         fields = row.get("fields") or {}
-        if fields.get("backend_console_theme", None) == "":
-            fields.pop("backend_console_theme", None)
+        if row.get("model") == "siteconfig.themepack":
+            if fields.get("backend_console_theme", None) == "":
+                fields.pop("backend_console_theme", None)
+            continue
+        if row.get("model") == "siteconfig.sitesettings" and "compliance_profile_id" in fields:
+            fields["compliance_profile"] = fields.pop("compliance_profile_id")
     return records
 
 

@@ -34,9 +34,28 @@ body > .topbar {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 .portal-layout-wrap .portal-layout-row {
   min-height: 0;
+  overflow: hidden;
+}
+/* Sidebar column: fixed height, inner .sidebar scrolls */
+@media (min-width: 992px) {
+  .portal-layout-wrap .portal-sidebar-col {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .portal-layout-wrap .portal-sidebar-col .sidebar {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    max-height: none; /* override inline max-height so flex controls height */
+  }
 }
 
 /* ===== Page & content containment ===== */

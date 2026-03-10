@@ -4,7 +4,8 @@
 {% block title %}{% block cp_title %}RunMyCampus Manager{% endblock %}{% endblock %}
 
 {% block content %}
-<nav class="navbar navbar-expand-lg navbar-dark cp-navbar" style="background: var(--cp-bg, #0B0E14); border-bottom: 1px solid rgba(125,152,187,0.18);">
+<div class="cp-shell-content d-flex flex-column flex-grow-1 min-h-0 overflow-hidden">
+<nav class="navbar navbar-expand-lg navbar-dark cp-navbar flex-shrink-0" style="background: var(--cp-bg, #0B0E14); border-bottom: 1px solid rgba(125,152,187,0.18);">
   <div class="container-fluid px-3">
     <a class="navbar-brand fw-bold d-flex align-items-center gap-2 text-white" href="{% url 'super:dashboard' %}">
       {% if PUBLIC_BRAND_FAVICON_URL %}
@@ -51,8 +52,8 @@
   </div>
 </nav>
 
-<div class="container-fluid px-3 py-2 cp-layout">
-  <div class="row g-3">
+<div class="container-fluid px-3 py-2 cp-layout flex-grow-1 min-h-0 d-flex flex-column overflow-hidden">
+  <div class="row g-3 flex-grow-1 min-h-0">
     <aside class="cp-sidebar-col col-lg-3 col-xl-2 d-none d-lg-block" id="cp-sidebar-col">
       <div class="cp-sidebar-inner p-3 rounded" style="background: var(--cp-panel-bg, rgba(8,16,30,0.78)); border: 1px solid var(--cp-panel-border);">
         {% block control_plane_sidebar %}
@@ -78,6 +79,7 @@
     </main>
   </div>
 </div>
+</div>{# end .cp-shell-content #}
 
 {# Mobile sidebar (offcanvas) — same nav as desktop #}
 <div class="offcanvas offcanvas-start d-lg-none cp-sidebar-offcanvas" tabindex="-1" id="cpSidebarOffcanvas" aria-labelledby="cpSidebarOffcanvasLabel" style="background: var(--cp-panel-bg, rgba(8,16,30,0.98)); border-right: 1px solid var(--cp-panel-border);">

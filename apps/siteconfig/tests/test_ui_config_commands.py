@@ -45,6 +45,21 @@ class UIConfigCommandTests(TestCase):
             self.assertIn("siteconfig.sitesettings", text)
             self.assertIn("siteconfig.themepack", text)
 
+    def test_export_ui_config_uses_legacy_compliance_profile_key(self):
+        profile = ComplianceProfile.objects.create(name="CM Default", country_code="CM")
+        site = SiteSettings.objects.order_by("pk").first()
+        site.compliance_profile = profile
+        site.save()
+
+        with self.workspace_tempdir() as tmp:
+            output = tmp / "ui_export.json"
+            call_command("export_ui_config", "--output", str(output))
+            payload = json.loads(output.read_text(encoding="utf-8"))
+            site_row = next(row for row in payload if row.get("model") == "siteconfig.sitesettings")
+            fields = site_row.get("fields") or {}
+            self.assertEqual(fields.get("compliance_profile"), profile.pk)
+            self.assertNotIn("compliance_profile_id", fields)
+
     def test_import_ui_config_rejects_empty_file(self):
         with self.workspace_tempdir() as tmp:
             empty = tmp / "empty.json"

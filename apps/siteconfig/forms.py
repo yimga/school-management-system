@@ -4,6 +4,7 @@ import pytz
 
 from django import forms
 from django.conf import settings
+from django.db import OperationalError, ProgrammingError
 from django.db.models import Q
 
 from apps.academics.models import Classroom
@@ -297,10 +298,22 @@ SITESETTINGS_FIELD_ORDER = [
 
 def _valid_sitesettings_fields() -> list[str]:
     model_fields = {field.name for field in SiteSettings._meta.get_fields() if not field.auto_created}
-    return [field for field in SITESETTINGS_FIELD_ORDER if field in model_fields]
+    return [
+        field
+        for field in SITESETTINGS_FIELD_ORDER
+        if field in model_fields or field == "compliance_profile"
+    ]
 
 
 class SiteSettingsForm(forms.ModelForm):
+    compliance_profile = forms.TypedChoiceField(
+        required=False,
+        choices=(),
+        coerce=lambda value: int(value) if value not in ("", None) else None,
+        empty_value=None,
+        widget=forms.Select(attrs={"class": "form-select"}),
+        label="Compliance profile",
+    )
     portal_features = forms.MultipleChoiceField(
         choices=PORTAL_FEATURE_OPTIONS,
         widget=forms.CheckboxSelectMultiple,
@@ -411,6 +424,23 @@ class SiteSettingsForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["compliance_profile"].choices = [("", "---------")]
+        current_profile_id = getattr(self.instance, "compliance_profile_id", None)
+        try:
+            from apps.finance.models import ComplianceProfile
+
+            profiles = list(
+                ComplianceProfile.objects.order_by("-is_active", "name").values_list("pk", "name")
+            )
+            self.fields["compliance_profile"].choices += [
+                (profile_id, name) for profile_id, name in profiles
+            ]
+        except (ImportError, OperationalError, ProgrammingError):
+            if current_profile_id:
+                self.fields["compliance_profile"].choices.append(
+                    (current_profile_id, f"Profile #{current_profile_id}")
+                )
+        self.initial["compliance_profile"] = current_profile_id
         if self.instance and self.instance.portal_features:
             enabled = [
                 key
@@ -476,6 +506,7 @@ class SiteSettingsForm(forms.ModelForm):
         pack = self.cleaned_data.get("theme_pack")
         instance = super().save(commit=False)
         instance.social_links = self.cleaned_data.get("social_links") or []
+        instance.compliance_profile_id = self.cleaned_data.get("compliance_profile")
         if pack:
             instance.apply_theme_pack(pack, save=False)
         if commit:

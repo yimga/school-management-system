@@ -8,7 +8,7 @@ from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect
 from django.utils.safestring import mark_safe
 from django.utils import timezone
-from django.db import models
+from django.db import models, OperationalError, ProgrammingError
 import csv
 from datetime import datetime
 from django.core.exceptions import ValidationError
@@ -110,6 +110,15 @@ class DashboardUserPreferenceForm(forms.ModelForm):
         }
 
 class SiteSettingsForm(forms.ModelForm):
+    compliance_profile = forms.TypedChoiceField(
+        required=False,
+        choices=(),
+        coerce=lambda value: int(value) if value not in ("", None) else None,
+        empty_value=None,
+        widget=forms.Select(attrs={"class": "form-select"}),
+        label="Compliance profile",
+    )
+
     class Meta:
         model = SiteSettings
         fields = "__all__"
@@ -153,6 +162,23 @@ class SiteSettingsForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["compliance_profile"].choices = [("", "---------")]
+        current_profile_id = getattr(self.instance, "compliance_profile_id", None)
+        try:
+            from apps.finance.models import ComplianceProfile
+
+            profiles = list(
+                ComplianceProfile.objects.order_by("-is_active", "name").values_list("pk", "name")
+            )
+            self.fields["compliance_profile"].choices += [
+                (profile_id, name) for profile_id, name in profiles
+            ]
+        except (ImportError, OperationalError, ProgrammingError):
+            if current_profile_id:
+                self.fields["compliance_profile"].choices.append(
+                    (current_profile_id, f"Profile #{current_profile_id}")
+                )
+        self.initial["compliance_profile"] = current_profile_id
         flags = self.instance.backend_feature_flags if self.instance else default_backend_feature_flags()
         self.fields["allowed_roles_entity_console"].initial = flags.get("allowed_roles_entity_console", [])
         self.fields["allowed_roles_entity_import"].initial = flags.get("allowed_roles_entity_import", [])
@@ -240,6 +266,13 @@ class SiteSettingsForm(forms.ModelForm):
             raise ValidationError({"max_bulk_import_rows": "max_bulk_import_rows cannot be negative."})
 
         return merged
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.compliance_profile_id = self.cleaned_data.get("compliance_profile")
+        if commit:
+            instance.save()
+        return instance
 
 class DashboardUserPreferenceAdmin(ModelAdmin):
     form = DashboardUserPreferenceForm
@@ -360,11 +393,35 @@ class SiteSettingsAdmin(ModelAdmin):
         """
         fields = kwargs.get("fields")
         if fields:
+            blocked_fields = {
+                "backend_flags_summary",
+                "theme_color_tools_link_block",
+                "portal_features_help",
+                "automation_overview_block",
+                "rbac_discovery_block",
+                "integrations_api_center_block",
+            }
+            if self.admin_site.is_platform_site():
+                blocked_fields.add("compliance_profile")
             kwargs["fields"] = [
                 f for f in fields
-                if f not in ("backend_flags_summary", "theme_color_tools_link_block", "portal_features_help", "automation_overview_block", "rbac_discovery_block", "integrations_api_center_block")
+                if f not in blocked_fields
             ]
         return super().get_form(request, obj=obj, **kwargs)
+
+    def get_fieldsets(self, request, obj=None):
+        fieldsets = list(super().get_fieldsets(request, obj))
+        if not self.admin_site.is_platform_site():
+            return fieldsets
+        filtered = []
+        for title, options in fieldsets:
+            field_names = options.get("fields")
+            if not field_names or "compliance_profile" not in field_names:
+                filtered.append((title, options))
+                continue
+            filtered_fields = tuple(field for field in field_names if field != "compliance_profile")
+            filtered.append((title, {**options, "fields": filtered_fields}))
+        return filtered
 
     # Only allow ONE row
     def has_add_permission(self, request):
