@@ -1,7 +1,9 @@
 # RunMyCampus Consolidated Architecture — Plan Audit
 
+**Doc status: Closed.** Partial/Not done items are reconciled with **`docs/MASTER_PLATFORM_CHECKLIST.md`** and **`docs/PHASE_10_BACKLOG.md`**; no open work remains on this doc. For Path-to-10 execution use PHASE_10_BACKLOG and WHATS_LEFT_COMPLETE_BACKLOG_DEFERRED.
+
 **Source:** `RUNMYCAMPUS_CONSOLIDATED_ARCHITECTURE_AND_REFACTOR.md`  
-**Purpose:** Classify every checklist item (Sections 1–31) as **Done**, **Partial**, **Not done**, or **Missed**; list what is **missing**, **not done**, or **partially done and needs completion**.  
+**Purpose:** Classify every checklist item (Sections 1–31) as **Done**, **Partial**, **Not done**, or **Missed**.  
 **Date:** 2026-03-06  
 **Last verified against codebase:** 2026-03-06
 

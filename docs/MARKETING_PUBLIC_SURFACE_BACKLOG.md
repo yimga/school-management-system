@@ -1,5 +1,7 @@
 # Public Marketing Surface Backlog (RunMyCampus)
 
+**Doc status: Closed.** All items in MARKETING_NON_NEGOTIABLES; reconciled with **`docs/PHASE_10_BACKLOG.md`** and **`docs/WHATS_LEFT_COMPLETE_BACKLOG_DEFERRED.md`**.
+
 ## Goal
 Build a clean, conversion-first, enterprise-grade public surface for `runmycampus.com` with strict host clarity and measurable pipeline outcomes.
 

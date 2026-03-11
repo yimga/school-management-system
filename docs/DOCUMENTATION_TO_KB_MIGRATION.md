@@ -1,5 +1,7 @@
 # Documentation to Knowledge Base Migration
 
+**Doc status: Closed.** Migration and import command are in place; any remaining steps are in **`docs/PHASE_10_BACKLOG.md`** and **`docs/WHATS_LEFT_COMPLETE_BACKLOG_DEFERRED.md`**. No open required work on this doc.
+
 ## Summary
 
 All documentation has been organized for import into the Knowledge Base (KB) system, making it accessible to users through the portal interface.

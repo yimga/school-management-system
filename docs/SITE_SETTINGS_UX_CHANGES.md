@@ -1,5 +1,7 @@
 # Site Settings UX Changes – Summary
 
+**Doc status: Closed.** Optional items (keyboard shortcuts modal, etc.) are **Closed optional**; see **`docs/WHATS_LEFT_COMPLETE_BACKLOG_DEFERRED.md`** and **`docs/PHASE_10_BACKLOG.md`**.
+
 All changes made to make the Site Settings admin page easier to use. Site Settings is the Django admin change form at **`/admin/siteconfig/sitesettings/1/change/`**.
 
 ---

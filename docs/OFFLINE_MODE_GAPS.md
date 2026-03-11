@@ -1,5 +1,7 @@
 # Offline Mode – What’s Missing in the Codebase
 
+**Doc status: Closed.** Open gap rows are reconciled with **`docs/PHASE_10_BACKLOG.md`** and **`docs/WHATS_LEFT_COMPLETE_BACKLOG_DEFERRED.md`**. No open required work on this doc.
+
 This document lists gaps and improvements for the offline mode implementation. See also `OFFLINE_MODE_AUDIT.md` and `OFFLINE_PLATFORM_AND_DATA_INTEGRITY.md`.
 
 ---

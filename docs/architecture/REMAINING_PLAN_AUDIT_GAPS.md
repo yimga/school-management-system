@@ -1,5 +1,7 @@
 # Remaining PLAN_AUDIT gaps (prioritised)
 
+**Doc status: Closed.** All items below are either **Done** or **Closed (Phase 10 / deferred)**. Optional work (tenant "Get blueprints" entry, pack versioning UX, 26.5 remaining lists) is in **`docs/PHASE_10_BACKLOG.md`** and **`docs/WHATS_LEFT_COMPLETE_BACKLOG_DEFERRED.md`**.
+
 Short checklist for items from the execution map and plan audit. Use for prioritisation and sprint planning. **Current status:** [SCOPED_WORK_VERIFICATION.md](SCOPED_WORK_VERIFICATION.md) — all items are either completed or explicitly deferred. **Every deferred refinement from the consolidated checklist (6.3, 11.2, 29.10) is listed here so nothing is left behind.** See RUNMYCAMPUS_CONSOLIDATED_ARCHITECTURE_AND_REFACTOR.md “Deferred and optional items register”.
 
 ---

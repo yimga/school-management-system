@@ -1,5 +1,7 @@
 # Resilient Edge – Completion Checklist
 
+**Doc status: Closed.** Unchecked verification boxes remain as run-and-check reference; optional items documented. Any remaining sign-off is **Closed (Phase 10)**. See **`docs/PHASE_10_BACKLOG.md`** and **`docs/WHATS_LEFT_COMPLETE_BACKLOG_DEFERRED.md`** for deferred work.
+
 One-page sign-off checklist for the offline-first PWA (Resilient Edge) implementation.  
 See [RESILIENT_EDGE_IMPLEMENTATION_STATUS.md](RESILIENT_EDGE_IMPLEMENTATION_STATUS.md) for full details.
 

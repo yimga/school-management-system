@@ -1,5 +1,7 @@
 # Security & Penetration Testing Checklist
 
+**Doc status: Closed.** Unchecked items are reference for audits; no open doc work. Deferred or optional items in **`docs/PHASE_10_BACKLOG.md`** and **`docs/WHATS_LEFT_COMPLETE_BACKLOG_DEFERRED.md`**.
+
 ## Overview
 This document provides a comprehensive security checklist for Phase 7 of the Gilead School Management System. Use this checklist for regular security audits and before production deployments.
 

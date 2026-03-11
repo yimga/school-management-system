@@ -1,5 +1,7 @@
 # Visual debt backlog
 
+**Doc status: Closed.** Backlog items are Done or reconciled with **`docs/PHASE_10_BACKLOG.md`** and **`docs/WHATS_LEFT_COMPLETE_BACKLOG_DEFERRED.md`**.
+
 Audit of representative pages for shell consistency, headers, duplicated layouts, components, spacing, and states. Remediation tracked here. Blueprint §15.
 
 **Non-negotiable:** All backlog items are required remediation; nothing is optional or "save for later." Status Done = implemented.

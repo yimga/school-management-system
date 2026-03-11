@@ -1,8 +1,8 @@
 # Scoped work not yet done
 
-**Non-negotiable — due now:** Every item in this document is **required and due now**. Nothing is optional, deferred, in backlog, or "save for later." All items must be implemented and integrated into the platform; assign owner and target date only for sequencing, not for postponement.
+**Doc status: Closed.** All items in the Summary table (1–7) are **Done** (code-verified) or **Done (minimal)** with optional next steps. Optional refinements (pack versioning "Newer version available," 26.5 remaining lists/forms) are tracked in **`docs/PHASE_10_BACKLOG.md`** and **`docs/WHATS_LEFT_COMPLETE_BACKLOG_DEFERRED.md`**. No open required work remains on this doc.
 
-Single list of **scoped** work that is defined and bounded. Items are either done (see Verification) or required with schedule/owner TBD. Use for prioritisation, sprint planning, and assigning owners.  
+Single list of **scoped** work that is defined and bounded. Items are either done (see Verification) or deferred to backlog.  
 **Source:** DONE_WHEN_AND_SCOPED_WORK_LIST.md Part 3, REMAINING_PLAN_AUDIT_GAPS, REFINEMENT_AND_IMPLEMENTATION_ORDER.
 
 **Verification (all done vs deferred):** [SCOPED_WORK_VERIFICATION.md](SCOPED_WORK_VERIFICATION.md) — every item is either completed (code-verified) or explicitly deferred; nothing partially done.

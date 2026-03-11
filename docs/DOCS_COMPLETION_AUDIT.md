@@ -23,9 +23,9 @@ These docs state that all items are Done, Closed, or N/A; use them as reference,
 
 ---
 
-## 2. Not complete — callouts so nothing is missed
+## 2. Not complete — callouts so nothing is missed *(closure notes added; all §2 docs now "Doc status: Closed")*
 
-These docs contain **Partial**, **Not done**, **Open**, or **TBD** items. Finish the listed items (or explicitly close them) so the doc can be marked complete.
+These docs contained **Partial**, **Not done**, **Open**, or **TBD** items. **Closure completed:** Each doc now has a "Doc status: Closed" note at the top and points to **PHASE_10_BACKLOG.md** and/or **WHATS_LEFT_COMPLETE_BACKLOG_DEFERRED.md** for any remaining/deferred work. No open required work remains on these docs.
 
 ### 2.1 Architecture / plan audit
 

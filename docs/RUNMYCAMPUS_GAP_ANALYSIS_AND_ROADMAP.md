@@ -1,5 +1,7 @@
 # RunMyCampus — First-in-Class Powerhouse: Gap Analysis & Roadmap
 
+**Doc status: Closed.** Open gap/backlog rows are reconciled with **`docs/PHASE_10_BACKLOG.md`** and **`docs/WHATS_LEFT_COMPLETE_BACKLOG_DEFERRED.md`**. No open required work on this doc.
+
 **Platform name:** **RunMyCampus**. Domain (when purchased): e.g. **runmycampus.com**; tenant subdomains **school-name.runmycampus.com**.
 
 This document is the **single in-repo reference** for "what we have," "what we're missing," and "what to build next" when briefing Cursor or Codex. The full, detailed gap analysis lives in the Cursor plan file: `first-in-class_powerhouse_gap_analysis_3cd87439.plan.md` (in `.cursor/plans/`).

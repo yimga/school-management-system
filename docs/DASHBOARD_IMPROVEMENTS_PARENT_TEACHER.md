@@ -1,5 +1,7 @@
 # Parent & Teacher Dashboard – Analysis & Improvement Ideas
 
+**Doc status: Closed.** Improvement bullets (profile editing, labels, quick actions) are **Closed (Phase 10 / deferred)**. See **`docs/PHASE_10_BACKLOG.md`** and **`docs/WHATS_LEFT_COMPLETE_BACKLOG_DEFERRED.md`**.
+
 Based on review of the Parent Portal and Teacher/Parent dashboard screens, here are focused improvements.
 
 ---

@@ -1,4 +1,6 @@
-﻿# Master Execution Checklist (Phases 0-16)
+# Master Execution Checklist (Phases 0-16)
+
+**Doc status: Closed.** Any phase not Done is reconciled with **`docs/PHASE_10_BACKLOG.md`** and **`docs/WHATS_LEFT_COMPLETE_BACKLOG_DEFERRED.md`**. No open required work on this doc.
 
 This checklist is the execution contract for the approved plan:
 - Theme catalog size: 24 ThemePacks + 12 Presets.

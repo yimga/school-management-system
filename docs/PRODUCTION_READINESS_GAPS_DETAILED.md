@@ -1,5 +1,7 @@
 # Production Readiness – Detailed Gaps & Test Plan
 
+**Doc status: Closed.** Open gaps are reconciled with **`docs/PHASE_10_BACKLOG.md`** and **`docs/WHATS_LEFT_COMPLETE_BACKLOG_DEFERRED.md`**. Use this doc as reference; complete or align remaining items via backlog.
+
 **Purpose:** Before sending to production, fix these gaps and run the suggested tests so the platform is professional, secure, and stable.
 
 ---

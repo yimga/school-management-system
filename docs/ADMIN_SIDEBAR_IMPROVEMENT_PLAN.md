@@ -1,5 +1,7 @@
 # Admin Sidebar Improvement Plan
 
+**Doc status: Closed.** Remaining work (remove background/watermark sources in admin per §2) is **Closed (Phase 10 / deferred)**. Tracked in **`docs/PHASE_10_BACKLOG.md`**. No open required work on this doc.
+
 ## 1. Drag and Drop on /admin – Recommendation
 
 **Should we add it?** **No** – keep the admin dashboard as a fixed layout for now.

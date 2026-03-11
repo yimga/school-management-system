@@ -1,5 +1,7 @@
 # Metadata-driven platform gap closure — completion status
 
+**Doc status: Closed.** All plan todos completed; reconciled with **`docs/PHASE_10_BACKLOG.md`**. No open required work on this doc.
+
 **Plan:** `metadata-driven-platform-gap-closure_5b36c906.plan.md`
 
 **Short answer:** The plan is **fully completed** (all todos done; no half or partial work). Baseline, resolvers, decomposition shells, catalog MVP, package engine, governance, Setup Studio wire, marketplace alignment doc, and CI tests are in place.

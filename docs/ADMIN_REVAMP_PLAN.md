@@ -1,5 +1,7 @@
 # Admin Revamp Plan
 
+**Doc status: Closed.** Phase 1–3 tasks (remaining admin hex, Quick actions strip, inline styles) are **Closed (Phase 10 / deferred)**. Tracked in **`docs/PHASE_10_BACKLOG.md`** and **`docs/WHATS_LEFT_COMPLETE_BACKLOG_DEFERRED.md`**.
+
 A phased plan to revamp `/admin`: what’s done, what’s next, and how to execute it.
 
 ---

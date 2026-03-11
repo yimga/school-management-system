@@ -1,5 +1,7 @@
 # Automation, Guardrails, EVAL–Reportcard Linkage & Gaps
 
+**Doc status: Closed.** Remaining gaps (warn/block publish when pending grade approvals; optional “approved grades only”; eval status on publish page; remove GradingDeadline refs) are **Closed (Phase 10 / deferred)**. See **`docs/PHASE_10_BACKLOG.md`** and **`docs/WHATS_LEFT_COMPLETE_BACKLOG_DEFERRED.md`**.
+
 **Purpose**: Which modules benefit from automation, what to automate vs not, guardrails so automation cannot do things admin cannot override, EVAL ↔ Reportcard tie-in, gaps to close, and zero-cost MFA for compliance.
 
 ---

@@ -1,5 +1,7 @@
 # Pre-Testing Checklist: Onboarding Improvements
 
+**Doc status: Closed.** Checklist is reference for onboarding testing; remaining verification is **Closed (Phase 10)**. See **`docs/PHASE_10_BACKLOG.md`** and **`docs/WHATS_LEFT_COMPLETE_BACKLOG_DEFERRED.md`**.
+
 ## Before Testing
 
 ### 1. Run Database Migration

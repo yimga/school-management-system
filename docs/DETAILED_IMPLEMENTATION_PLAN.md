@@ -1,6 +1,8 @@
 # Detailed Implementation Plan – Sidebars, Back Buttons, Site Settings, Color & Harmony
 
-This document answers: **Was the previous work complete?** and provides a **detailed plan** so we can decide how to proceed on each area. It maps your requirements to current state, gaps, and concrete steps.
+**Doc status: Closed.** Remaining "What's not done" (sidebar verification, back buttons in a few places, Site Settings tabs/accordions, full-page iframe preview, harmony types square/achromatic/polychromatic/diad) is **Closed (Phase 10 / deferred)**. Tracked in **`docs/PHASE_10_BACKLOG.md`** and **`docs/WHATS_LEFT_COMPLETE_BACKLOG_DEFERRED.md`**. No open required work on this doc.
+
+This document answers: **Was the previous work complete?** and provides a **detailed plan** for each area. It maps requirements to current state, gaps, and concrete steps.
 
 ---
 
