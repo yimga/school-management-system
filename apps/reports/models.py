@@ -74,7 +74,7 @@ class ReportCard(models.Model):
         # Fall back to region-configured language
         if self.region_code:
             try:
-                from apps.siteconfig.models import RegionConfig
+                from apps.global_registries.models import RegionConfig
 
                 region = RegionConfig.objects.filter(code=self.region_code).only("default_language").first()
                 if region and region.default_language:
@@ -85,7 +85,7 @@ class ReportCard(models.Model):
     
     def get_region(self):
         """Get region for this report card."""
-        from apps.siteconfig.models import RegionConfig
+        from apps.global_registries.models import RegionConfig
         
         if self.region_code:
             try:

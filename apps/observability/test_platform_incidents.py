@@ -3,9 +3,9 @@ import json
 from django.test import TestCase, override_settings
 
 from apps.accounts.models import User
+from apps.global_registries.models import RegionConfig
 from apps.observability.models import PlatformIncident
 from apps.schools.models import School
-from apps.siteconfig.models import RegionConfig
 
 
 class PlatformIncidentConsoleTests(TestCase):

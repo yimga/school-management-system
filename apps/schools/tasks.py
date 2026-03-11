@@ -273,7 +273,7 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
         if not profile_codes and profile and getattr(profile, "code", None):
             profile_codes = [profile.code]
         if profile_codes:
-            from apps.siteconfig.models import EducationSystemProfile, TenantSystem
+            from apps.global_registries.models import EducationSystemProfile, TenantSystem
             approved = EducationSystemProfile.objects.filter(
                 code__in=profile_codes,
                 is_active=True,

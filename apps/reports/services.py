@@ -5,9 +5,9 @@ from typing import Any, Dict, Iterable, Optional
 from django.conf import settings
 from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
 from django.urls import reverse
+from apps.global_registries.models import EducationSystemProfile, RegionConfig
 from apps.platform_runtime.helpers import get_effective_site_settings, get_platform_defaults
 from apps.policies.policy_registry import get_effective_policy
-from apps.siteconfig.models import RegionConfig, EducationSystemProfile
 
 from apps.academics.models import Term
 from apps.evals.models import AssessmentWeights, Evaluation

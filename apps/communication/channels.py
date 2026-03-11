@@ -40,7 +40,7 @@ class PushProvider(ABC):
 
 def _get_whatsapp_config(school) -> dict | None:
     from apps.siteconfig.integration_registry import resolve_active_integration, resolve_service_integration
-    from apps.siteconfig.models import ServiceIntegration
+    from apps.integrations_marketplace.models import ServiceIntegration
 
     rec = resolve_active_integration(school, "whatsapp")
     if rec and rec.is_active and rec.config:
@@ -106,7 +106,7 @@ def send_whatsapp(
 
 def _get_push_config(school) -> dict | None:
     from apps.siteconfig.integration_registry import resolve_active_integration, resolve_service_integration
-    from apps.siteconfig.models import ServiceIntegration
+    from apps.integrations_marketplace.models import ServiceIntegration
 
     rec = resolve_active_integration(school, "push")
     if rec and rec.is_active and rec.config:

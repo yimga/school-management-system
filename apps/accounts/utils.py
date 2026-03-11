@@ -36,8 +36,8 @@ def get_dashboard_context(user, page: str) -> dict:
     from django.urls import reverse
     from django.utils.safestring import mark_safe
     import json
+    from apps.runtime_blueprints.models import get_dashboard_widget_metadata
     from apps.siteconfig.dashboard_views import load_dashboard_layout_settings, _can_customize, _can_light_customize
-    from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata
 
     can_customize = _can_customize(user)
     can_light_customize = _can_light_customize(user)

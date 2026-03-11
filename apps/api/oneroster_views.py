@@ -6,7 +6,6 @@ import secrets
 from typing import Any
 
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET
 
 from apps.academics.models import Classroom
@@ -21,7 +20,7 @@ from apps.interop.oneroster.adapter import (
 from apps.people.models import StudentProfile, TeacherProfile
 from apps.schools.models import School
 from apps.siteconfig.integration_registry import resolve_service_integration
-from apps.siteconfig.models import ServiceIntegration
+from apps.integrations_marketplace.models import ServiceIntegration
 
 ONEROSTER_RATE_LIMIT_WINDOW = 60 * 15
 ONEROSTER_RATE_LIMIT_MAX = 300
@@ -110,7 +109,6 @@ def _oneroster_response(*, key: str, rows: list[dict[str, Any]], offset: int, li
     return JsonResponse(payload, status=200)
 
 
-@csrf_exempt
 @require_GET
 def manifest(request):
     rl = _oneroster_rate_limited(request, "manifest")
@@ -136,7 +134,6 @@ def manifest(request):
     return JsonResponse(payload, status=200)
 
 
-@csrf_exempt
 @require_GET
 def classes(request):
     rl = _oneroster_rate_limited(request, "classes")
@@ -152,7 +149,6 @@ def classes(request):
     return _oneroster_response(key="classes", rows=rows, offset=offset, limit=limit)
 
 
-@csrf_exempt
 @require_GET
 def students(request):
     rl = _oneroster_rate_limited(request, "students")
@@ -169,7 +165,6 @@ def students(request):
     return _oneroster_response(key="users", rows=rows, offset=offset, limit=limit)
 
 
-@csrf_exempt
 @require_GET
 def teachers(request):
     rl = _oneroster_rate_limited(request, "teachers")
@@ -193,7 +188,6 @@ def teachers(request):
     return _oneroster_response(key="users", rows=rows, offset=offset, limit=limit)
 
 
-@csrf_exempt
 @require_GET
 def enrollments(request):
     rl = _oneroster_rate_limited(request, "enrollments")

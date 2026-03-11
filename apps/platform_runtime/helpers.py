@@ -226,7 +226,7 @@ def get_platform_defaults(use_db: bool = True) -> dict:
     from django.conf import settings
     if use_db:
         try:
-            from apps.siteconfig.models import RegionConfig
+            from apps.global_registries.models import RegionConfig
             r = RegionConfig.get_default()
             return {
                 "region_code": getattr(r, "code", "GLOBAL"),

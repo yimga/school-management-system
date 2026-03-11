@@ -34,7 +34,6 @@ CADDY_CHECK_RATE_LIMIT_MAX = 180
 
 
 @require_GET
-@csrf_exempt
 def verify_caddy_domain(request):
     """
     Section 8.5: Caddy on-demand TLS "ask" endpoint.
@@ -491,7 +490,7 @@ def _decode_unverified_jwt(id_token: str) -> dict:
 
 
 def _resolve_lti_integration_for_request(request, tool_id):
-    from apps.siteconfig.models import ServiceIntegration
+    from apps.integrations_marketplace.models import ServiceIntegration
     from apps.schools.models import School
 
     try:
@@ -742,7 +741,6 @@ def lti_ags_scores(request, tool_id, lineitem_id):
     return JsonResponse(entry, status=201)
 
 
-@csrf_exempt
 @require_http_methods(["GET"])
 def lti_ags_results(request, tool_id, lineitem_id):
     rl = _lti_rate_limited(request, "ags_results")
@@ -786,7 +784,6 @@ def _map_membership_role(role: str) -> str:
     return "Learner"
 
 
-@csrf_exempt
 @require_http_methods(["GET"])
 def lti_nrps_memberships(request, tool_id):
     """
@@ -882,7 +879,7 @@ def jwks_json(request):
     rl = _lti_rate_limited(request, "jwks")
     if rl:
         return rl
-    from apps.siteconfig.models import ServiceIntegration
+    from apps.integrations_marketplace.models import ServiceIntegration
 
     school = getattr(request, "school", None)
     qs = ServiceIntegration.objects.filter(

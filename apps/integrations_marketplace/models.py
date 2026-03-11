@@ -18,6 +18,7 @@ from apps.marketplace.models import (
     PublisherOrganization,
     ScopeGrant,
 )
+from apps.siteconfig.models import Integration, ServiceIntegration
 
 __all__ = [
     "AppAuditLog",
@@ -26,9 +27,11 @@ __all__ = [
     "AppScope",
     "AppVersionCompat",
     "CapabilityRegistry",
+    "Integration",
     "MarketplaceApp",
     "MarketplaceListing",
     "MarketplaceReview",
     "PublisherOrganization",
     "ScopeGrant",
+    "ServiceIntegration",
 ]

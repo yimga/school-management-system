@@ -6,8 +6,9 @@ from apps.events.legacy_bridge import (
     sync_legacy_webhook_subscriptions,
 )
 from apps.events.models import WebhookSubscription as CanonicalWebhookSubscription
+from apps.global_registries.models import RegionConfig
 from apps.schools.models import School
-from apps.siteconfig.models import RegionConfig, WebhookSubscription as LegacyWebhookSubscription
+from apps.siteconfig.models import WebhookSubscription as LegacyWebhookSubscription
 
 
 class LegacyWebhookBridgeTests(TestCase):

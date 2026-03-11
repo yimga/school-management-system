@@ -306,6 +306,33 @@
         </div>
         {% endfor %}
       </div>
+
+      {% if launch_orchestration %}
+      <div class="setup-studio-section-head mt-4">
+        <div>
+          <div class="fw-semibold">{% trans "Launch orchestration" %}</div>
+          <div class="setup-studio-muted">{% trans "Preflight, preview, launch control, and post-launch sequencing in one rail." %}</div>
+        </div>
+      </div>
+      <div class="setup-studio-list">
+        {% for stage in launch_orchestration %}
+        <div class="setup-studio-checklist-item">
+          <div class="d-flex justify-content-between align-items-start gap-3">
+            <div>
+              <div class="setup-studio-mini-title">{{ stage.label }}</div>
+              <div class="setup-studio-muted">{{ stage.detail }}</div>
+            </div>
+            <span class="badge {% if stage.done %}text-bg-success{% else %}text-bg-warning{% endif %}">{{ stage.status }}</span>
+          </div>
+          {% if stage.link and stage.link != '#' %}
+          <div class="setup-studio-actions">
+            <a href="{{ stage.link }}" class="btn btn-outline-primary btn-sm">{% trans "Open stage" %}</a>
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
     </main>
 
     <aside class="setup-studio-panel setup-studio-preview">
@@ -330,13 +357,64 @@
         {% endfor %}
       </div>
 
+      {% if preview_workspace.surfaces %}
+      <div class="setup-studio-recommendation mb-3">
+        <div class="setup-studio-mini-title">{{ preview_workspace.title }}</div>
+        <div class="setup-studio-muted">{{ preview_workspace.detail }}</div>
+        <div class="setup-studio-list mt-3">
+          {% for surface in preview_workspace.surfaces %}
+          <div class="setup-studio-role-preview">
+            <div>
+              <div class="setup-studio-mini-title mb-1">{{ surface.title }}</div>
+              <div class="setup-studio-muted">{{ surface.status }}</div>
+            </div>
+            {% if surface.url and surface.url != '#' %}
+            <a href="{{ surface.url }}" class="btn btn-outline-primary btn-sm">{% trans "Open" %}</a>
+            {% else %}
+            <span class="badge text-bg-light">{% trans "Unavailable" %}</span>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
       {% if recommended_blueprint %}
       <div class="setup-studio-recommendation mb-3">
         <div class="setup-studio-mini-title">{{ recommended_blueprint.title }}</div>
         <div class="setup-studio-muted">{{ recommended_blueprint.detail }}</div>
+        {% if recommended_blueprint.fit_label %}
+        <div class="setup-studio-muted mt-2">{{ recommended_blueprint.fit_label }}</div>
+        {% endif %}
         <div class="setup-studio-actions">
           <a href="{{ recommended_blueprint.cta_url }}" class="btn btn-outline-primary btn-sm">{{ recommended_blueprint.cta_label }}</a>
         </div>
+      </div>
+      {% endif %}
+
+      {% if blueprint_rankings %}
+      <div class="setup-studio-section-head">
+        <div>
+          <div class="fw-semibold">{% trans "Blueprint rankings" %}</div>
+          <div class="setup-studio-muted">{% trans "Use ranked baselines instead of trial-and-error configuration." %}</div>
+        </div>
+      </div>
+      <div class="setup-studio-list mb-3">
+        {% for blueprint in blueprint_rankings %}
+        <div class="setup-studio-recommendation">
+          <div class="d-flex justify-content-between align-items-start gap-3">
+            <div>
+              <div class="setup-studio-mini-title">{{ blueprint.title }}</div>
+              <div class="setup-studio-muted">{{ blueprint.detail }}</div>
+              <div class="setup-studio-muted mt-2">{{ blueprint.fit_label }}{% if blueprint.reason_summary %} • {{ blueprint.reason_summary }}{% endif %}</div>
+            </div>
+            <span class="badge text-bg-light">{{ blueprint.fit_score }}</span>
+          </div>
+          <div class="setup-studio-actions">
+            <a href="{{ blueprint.cta_url }}" class="btn btn-outline-primary btn-sm">{{ blueprint.cta_label }}</a>
+          </div>
+        </div>
+        {% endfor %}
       </div>
       {% endif %}
 

@@ -21,7 +21,7 @@ from apps.siteconfig.dashboard_views import (
     _normalize_dashboard_settings,
     get_layout_for_page,
 )
-from apps.siteconfig.models_dashboard import DashboardWidget, DashboardLayout
+from apps.runtime_blueprints.models import DashboardLayout, DashboardWidget
 
 # Backend dashboard widgets that must never be hidden (no user preference, no persist).
 BACKEND_ALWAYS_VISIBLE_WIDGET_IDS = frozenset({

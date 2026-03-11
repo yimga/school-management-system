@@ -1,7 +1,6 @@
 """CEDS API endpoints: serve CEDS-aligned K12 data from canonical models via mapping layer (US reporting)."""
 
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET
 
 from apps.academics.models import Classroom
@@ -66,7 +65,6 @@ def _pagination(request):
     return offset, limit
 
 
-@csrf_exempt
 @require_GET
 def ceds_students(request):
     """GET CEDS-aligned K12 students for the school."""
@@ -87,7 +85,6 @@ def ceds_students(request):
     )
 
 
-@csrf_exempt
 @require_GET
 def ceds_enrollments(request):
     """GET CEDS-aligned K12 enrollments for the school (one per student, optional section)."""
@@ -109,7 +106,6 @@ def ceds_enrollments(request):
     )
 
 
-@csrf_exempt
 @require_GET
 def ceds_grades(request):
     """GET CEDS-aligned grades (from Evaluation) for the school."""

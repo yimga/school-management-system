@@ -49,9 +49,9 @@ Handles multi-language certificate generation and score conversion.
 """
 
 from django.utils import translation
+from apps.global_registries.models import GradingScaleConfig, RegionConfig
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
 from apps.siteconfig.translations import Regionalizer, TranslationManager, SUPPORTED_LANGUAGES
-from apps.siteconfig.models import RegionConfig, GradingScaleConfig
 from apps.evals.grading import convert_score, get_grade_letter, format_score
 from decimal import Decimal
 from typing import Optional, Dict, Any

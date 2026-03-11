@@ -60,8 +60,8 @@ from apps.siteconfig.models import (
     filter_portal_items,
     default_backend_feature_flags,
 )
+from apps.runtime_blueprints.models import get_dashboard_widget_metadata
 from apps.siteconfig.dashboard_resolver import for_role as dashboard_for_role
-from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata
 from apps.siteconfig.dashboard_views import load_dashboard_layout_settings
 from apps.platform_runtime.helpers import get_effective_flags, get_effective_site_settings, get_site_display_name
 from .runtime_helpers import get_policy_for_request

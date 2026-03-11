@@ -6,7 +6,7 @@ from django.urls import reverse
 from apps.api.rate_limit import throttle_ip_request
 from apps.schools.models import School
 from apps.siteconfig.integration_registry import resolve_active_integration
-from apps.siteconfig.models import ServiceIntegration
+from apps.integrations_marketplace.models import ServiceIntegration
 
 INTEROP_DISCOVERY_RATE_LIMIT_WINDOW = 60 * 15
 INTEROP_DISCOVERY_RATE_LIMIT_MAX = 120

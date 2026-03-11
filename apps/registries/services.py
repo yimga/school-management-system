@@ -127,7 +127,7 @@ def ensure_taxonomy_seed() -> None:
 
 
 def sync_subdivisions_from_legacy_provinces() -> int:
-    from apps.siteconfig.models import Province
+    from apps.global_registries.models import Province
 
     created = 0
     for province in Province.objects.select_related("region").all():

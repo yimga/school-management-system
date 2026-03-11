@@ -3501,7 +3501,7 @@ def _sitemap_entries(request) -> list[tuple[str, str, str]]:
         path_specs[f"/{seo_slug}/"] = ("0.85", "monthly")
 
     try:
-        from apps.siteconfig.models import GlobalBrandRegistry
+        from apps.brand_experience.models import GlobalBrandRegistry
 
         countries = list(
             GlobalBrandRegistry.objects.filter(is_active=True)

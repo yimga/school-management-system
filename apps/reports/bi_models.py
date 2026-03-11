@@ -3,7 +3,7 @@ Phase 9 Task 1: Business Intelligence & Reporting Platform
 Executive dashboards, ad-hoc reports, data export, scheduled reporting
 
 INTEGRATION NOTE: This module extends existing infrastructure:
-- Uses existing DashboardWidget from apps.siteconfig.models_dashboard
+- Uses existing DashboardWidget from apps.runtime_blueprints.models
 - Extends AdminDashboardService and AdvancedAnalyticsService
 - Adds ReportDefinition, ScheduledReport, MaterializedReportCache
 """
@@ -12,7 +12,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.core.cache import cache
-from apps.siteconfig.models_dashboard import DashboardWidget  # Use existing
+from apps.runtime_blueprints.models import DashboardWidget
 import json
 
 User = get_user_model()

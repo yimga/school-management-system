@@ -16,7 +16,7 @@ from apps.schools.models import School
 
 
 def _get_region_for_school(school, region_code_hint: str | None):
-    from apps.siteconfig.models import RegionConfig
+    from apps.global_registries.models import RegionConfig
 
     if region_code_hint:
         code = (region_code_hint or "").strip().upper()

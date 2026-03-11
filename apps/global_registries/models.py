@@ -20,6 +20,16 @@ from apps.registries.models import (
     SubdivisionRegistry,
     TimeZoneRegistry,
 )
+from apps.siteconfig.models import (
+    EducationSystemProfile,
+    GradingScaleConfig,
+    HolidayCalendar,
+    Province,
+    RegionConfig,
+    SystemFeature,
+    TenantSystem,
+    WeatherLocation,
+)
 
 __all__ = [
     "AcademicTerminologyRegistry",
@@ -27,12 +37,20 @@ __all__ = [
     "CountryRegistry",
     "CurrencyRegistry",
     "DocumentTypeRegistry",
+    "EducationSystemProfile",
     "EducationLevelRegistry",
     "EducationSystemTypeRegistry",
     "FeeCategoryRegistry",
     "GradeScaleRegistry",
+    "GradingScaleConfig",
+    "HolidayCalendar",
     "InstitutionTypeRegistry",
     "LocaleRegistry",
+    "Province",
+    "RegionConfig",
     "SubdivisionRegistry",
+    "SystemFeature",
+    "TenantSystem",
     "TimeZoneRegistry",
+    "WeatherLocation",
 ]

@@ -17,7 +17,7 @@ from .views import _is_admin_user
 def dismiss_first_login_checklist(request):
     """W1-6: Dismiss the first-login checklist for this user (persisted in DashboardUserPreference)."""
     try:
-        from apps.siteconfig.models_dashboard import DashboardUserPreference
+        from apps.runtime_blueprints.models import DashboardUserPreference
         pref, _ = DashboardUserPreference.objects.get_or_create(user=request.user, defaults={"dashboard_layout": {}})
         layout = dict(pref.dashboard_layout or {})
         layout["first_login_checklist_dismissed"] = True

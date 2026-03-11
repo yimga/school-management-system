@@ -27,7 +27,7 @@ from apps.people.models import TeacherProfile, StudentProfile
 from apps.finance.models import Invoice, Payment, ComplianceProfile
 from apps.accounts.models import User
 from apps.compliance.models_audit import AuditLog, AccessLog
-from apps.siteconfig.models import RegionConfig
+from apps.global_registries.models import RegionConfig
 
 
 class Command(BaseCommand):

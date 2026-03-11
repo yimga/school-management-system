@@ -38,10 +38,13 @@ def guided_onboarding_view(request):
             "recommendations": [],
             "role_previews": [],
             "preview_cards": [],
+            "preview_workspace": {"title": "Live preview workspace", "detail": "", "website_url": "#", "surfaces": []},
             "launch_checklist": [],
             "launch_blockers": [],
+            "launch_orchestration": [],
             "launch_ready": False,
             "recommended_blueprint": None,
+            "blueprint_rankings": [],
             "recommended_starter_stack": None,
         })
 
@@ -57,9 +60,12 @@ def guided_onboarding_view(request):
         "recommendations": studio["recommendations"],
         "role_previews": studio["role_previews"],
         "preview_cards": studio["preview_cards"],
+        "preview_workspace": studio["preview_workspace"],
         "launch_checklist": studio["launch_checklist"],
         "launch_blockers": studio["launch_blockers"],
+        "launch_orchestration": studio["launch_orchestration"],
         "launch_ready": studio["launch_ready"],
         "recommended_blueprint": studio["recommended_blueprint"],
+        "blueprint_rankings": studio["blueprint_rankings"],
         "recommended_starter_stack": studio["recommended_starter_stack"],
     })

@@ -793,7 +793,7 @@ class Command(BaseCommand):
             )
 
     def _ensure_siteconfig_extras(self):
-        from apps.siteconfig.models import HolidayCalendar, RegionConfig
+        from apps.global_registries.models import HolidayCalendar, RegionConfig
         reg, _ = RegionConfig.objects.get_or_create(
             code="CM-BUE",
             defaults={"name": "Buea (Cameroon)", "timezone": "Africa/Douala", "grading_scale": "0-20", "default_currency": "XAF", "academic_year_start_month": 9},

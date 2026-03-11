@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 
 from apps.platform_runtime.helpers import get_effective_site_settings
-from apps.siteconfig.models_dashboard import DashboardUserPreference
+from apps.runtime_blueprints.models import DashboardUserPreference
 from apps.siteconfig.portal_sidebar_items import build_portal_sidebar_items
 
 

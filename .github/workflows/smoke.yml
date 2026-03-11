@@ -19,10 +19,21 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          npm ci
+
+      - name: Install Playwright Chromium
+        run: |
+          node node_modules/playwright/cli.js install --with-deps chromium
 
       - name: Dependency vulnerability check (pip-audit)
         run: |
@@ -55,3 +66,15 @@ jobs:
             python manage.py makemessages -l en -a --no-obsolete --no-wrap 2>/dev/null || true
             python manage.py compilemessages 2>/dev/null || true
           fi
+
+      - name: Upload visual QA artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-qa-artifacts
+          path: |
+            artifacts/visual-qa
+            test-results
+            playwright-report
+          if-no-files-found: ignore
+          retention-days: 14

@@ -9,9 +9,9 @@ from apps.events.models import (
     WebhookDelivery as CanonicalWebhookDelivery,
     WebhookSubscription as CanonicalWebhookSubscription,
 )
+from apps.global_registries.models import RegionConfig
 from apps.schools.models import School
 from apps.siteconfig.models import (
-    RegionConfig,
     SyncConflict,
     WebhookDelivery as LegacyWebhookDelivery,
     WebhookSubscription as LegacyWebhookSubscription,

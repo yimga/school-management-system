@@ -17,7 +17,7 @@ from django.views.decorators.http import require_GET
 from apps.accounts.models import User
 from apps.schools.models import School, SchoolMembership
 from apps.siteconfig.integration_registry import resolve_service_integration
-from apps.siteconfig.models import ServiceIntegration
+from apps.integrations_marketplace.models import ServiceIntegration
 
 
 def _resolve_school(request):

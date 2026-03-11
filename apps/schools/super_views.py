@@ -32,7 +32,7 @@ from apps.siteconfig.education_profile_engine import (
     list_profile_options,
 )
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
-from apps.siteconfig.models import EducationSystemProfile
+from apps.global_registries.models import EducationSystemProfile
 from apps.platform_runtime.helpers import get_platform_defaults
 from apps.siteconfig.tenant_config import apply_tenant_settings_overrides
 from .control_plane_lifecycle import apply_school_lifecycle_action, get_lifecycle_snapshot
@@ -91,7 +91,7 @@ def _resolve_subdivision(country_code: str | None, *, subdivision_id=None, provi
         province_id = int(province_id)
     except (TypeError, ValueError):
         return None
-    from apps.siteconfig.models import Province
+    from apps.global_registries.models import Province
 
     province = Province.objects.select_related("region").filter(pk=province_id).first()
     if not province:
@@ -397,7 +397,7 @@ def _month_options(last_n=12):
 
 def _get_super_dashboard_section_order(user):
     """Return the section order for the super dashboard (per-user, from DB)."""
-    from apps.siteconfig.models_dashboard import SuperAdminDashboardPreference, SUPER_DASHBOARD_DEFAULT_SECTION_ORDER
+    from apps.runtime_blueprints.models import SuperAdminDashboardPreference, SUPER_DASHBOARD_DEFAULT_SECTION_ORDER
     if not user or not user.is_authenticated:
         return list(SUPER_DASHBOARD_DEFAULT_SECTION_ORDER)
     pref = SuperAdminDashboardPreference.objects.filter(user=user).first()
@@ -716,7 +716,7 @@ def export_super_dashboard_pdf(request):
 @require_http_methods(["GET", "POST", "PUT", "PATCH"])
 def api_super_dashboard_layout(request):
     """GET: return section_order for current user. POST/PUT/PATCH: save section_order (JSON body)."""
-    from apps.siteconfig.models_dashboard import (
+    from apps.runtime_blueprints.models import (
         SuperAdminDashboardPreference,
         SUPER_DASHBOARD_DEFAULT_SECTION_ORDER,
     )
@@ -750,7 +750,8 @@ def super_dashboard_v2(request):
     from apps.events.legacy_bridge import legacy_webhook_sync_snapshot
     from apps.observability.models import PlatformIncident
     from apps.observability.monitoring import SystemHealthMonitor
-    from apps.siteconfig.models import BrandProfile, RevenueSnapshot
+    from apps.brand_experience.models import BrandProfile
+    from apps.siteconfig.models import RevenueSnapshot
 
     first_of_month = _parse_month_param(request)
     month_options = _month_options(12)
@@ -1545,7 +1546,7 @@ def super_control_health_dashboard(request):
 
 def super_workflow_packs_catalog(request):
     """Phase 4: Control-plane workflow pack catalog."""
-    from apps.siteconfig.models_workflow import WorkflowPack
+    from apps.runtime_blueprints.models import WorkflowPack
 
     packs = list(WorkflowPack.objects.filter(is_active=True).order_by("family", "name").values("id", "code", "name", "family", "version"))
     try:
@@ -1561,7 +1562,7 @@ def super_workflow_packs_catalog(request):
 
 def super_dashboard_packs_catalog(request):
     """Phase 4: Control-plane dashboard pack catalog."""
-    from apps.siteconfig.models_dashboard import DashboardPack
+    from apps.runtime_blueprints.models import DashboardPack
 
     packs = list(DashboardPack.objects.filter(is_active=True).order_by("family", "name").values("id", "code", "name", "family", "version"))
     try:
@@ -2005,11 +2006,8 @@ def billing_dashboard(request):
 @require_http_methods(["GET", "POST"])
 def create_school_wizard(request):
     """Multi-step wizard: Step 1 identity, Step 2 region, Step 3 branding. POST submits to API."""
-    from apps.siteconfig.models import (
-        RegionConfig,
-        WeatherLocation,
-        default_header_weather_config,
-    )
+    from apps.global_registries.models import RegionConfig, WeatherLocation
+    from apps.siteconfig.models import default_header_weather_config
 
     if request.method == "POST":
         # Wizard form submitted via JS to api_create_school; this is fallback or redirect
@@ -2205,7 +2203,7 @@ def api_plans_configurator(request):
     Same contract for onboarding billing step and PlanConfigurator component.
     Version: 1.
     """
-    from apps.siteconfig.models import Plan, PlanAddon, CountryMultiplier
+    from apps.plans_entitlements.models import CountryMultiplier, Plan, PlanAddon
     from decimal import Decimal
 
     country_code = GlobalGeoCatalog.normalize_country_code((request.GET.get("country_code") or "").strip())
@@ -2499,7 +2497,7 @@ def api_create_school(request):
     if errors:
         return JsonResponse({"errors": errors}, status=400)
 
-    from apps.siteconfig.models import RegionConfig, WeatherLocation
+    from apps.global_registries.models import RegionConfig, WeatherLocation
     default_region = None
     selected_city = GlobalGeoCatalog.get_city(city_id, country_code=country_code)
     selected_location = None
@@ -2622,7 +2620,7 @@ def api_create_school(request):
     if hasattr(School, "theme_choice"):
         create_kw["theme_choice"] = theme_choice
     if plan_id and hasattr(School, "plan_id"):
-        from apps.siteconfig.models import Plan
+        from apps.plans_entitlements.models import Plan
         if Plan.objects.filter(pk=plan_id, is_active=True).exists():
             create_kw["plan_id"] = plan_id
     if addons and hasattr(School, "addons"):

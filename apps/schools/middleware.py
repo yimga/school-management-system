@@ -5,6 +5,7 @@ set request.school and session school_id, and set PostgreSQL app.current_school_
 import os
 import logging
 from django.conf import settings
+from django.db import DatabaseError
 from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, JsonResponse
 from django.shortcuts import redirect
 from django.utils.deprecation import MiddlewareMixin
@@ -628,7 +629,7 @@ class TenantMiddleware(MiddlewareMixin):
                     id=request.session["school_id"],
                     is_active=True,
                 ).first()
-        except Exception as e:
+        except (AttributeError, DatabaseError, KeyError, TypeError, ValueError) as e:
             logger.warning("Tenant resolution failed: %s", e, exc_info=True)
             school = None
 
@@ -643,7 +644,7 @@ class TenantMiddleware(MiddlewareMixin):
             try:
                 from apps.schools.tenant_url import build_tenant_backend_url
                 return HttpResponseRedirect(build_tenant_backend_url(request, school, path="/authentication/backend/"))
-            except Exception:
+            except (AttributeError, ImportError, TypeError, ValueError):
                 pass
         if school:
             request.session["school_id"] = str(school.id)
@@ -652,7 +653,7 @@ class TenantMiddleware(MiddlewareMixin):
                 from apps.siteconfig.tenant_config import get_tenant_locale
                 locale = get_tenant_locale(school=school)
                 tz.activate(locale.get("timezone") or locale.get("default_timezone") or "UTC")
-            except Exception as e:
+            except (AttributeError, ImportError, TypeError, ValueError) as e:
                 logger.debug("Could not activate school timezone: %s", e)
             try:
                 from django.db import connection
@@ -663,7 +664,7 @@ class TenantMiddleware(MiddlewareMixin):
                             [str(school.id)],
                         )
                     request._rls_school_id_set = True
-            except Exception as e:
+            except DatabaseError as e:
                 logger.debug("Could not set app.current_school_id: %s", e)
         else:
             request.session.pop("school_id", None)
@@ -678,7 +679,7 @@ class TenantMiddleware(MiddlewareMixin):
                 if connection.vendor == "postgresql":
                     with connection.cursor() as cursor:
                         cursor.execute("RESET app.current_school_id")
-            except Exception as e:
+            except DatabaseError as e:
                 logger.debug("Could not reset app.current_school_id: %s", e)
             request._rls_school_id_set = False
         return response
@@ -693,7 +694,7 @@ def _reset_rls_school_id_if_set(request):
         if connection.vendor == "postgresql":
             with connection.cursor() as cursor:
                 cursor.execute("RESET app.current_school_id")
-    except Exception as e:
+    except DatabaseError as e:
         logger.debug("Could not reset app.current_school_id (finally): %s", e)
     request._rls_school_id_set = False
 
@@ -764,7 +765,7 @@ class ModuleActivationMiddleware(MiddlewareMixin):
         try:
             from apps.siteconfig.tenant_config import get_tenant_modules
             request.active_modules = get_tenant_modules(school)
-        except Exception:
+        except (AttributeError, ImportError, TypeError, ValueError):
             request.active_modules = []
         return None
 
@@ -794,7 +795,7 @@ class TenantApiQuotaMiddleware(MiddlewareMixin):
                     status=429,
                     headers={"Retry-After": str(retry_after)} if retry_after else None,
                 )
-        except Exception as e:
+        except (AttributeError, ImportError, TypeError, ValueError) as e:
             logger.debug("Tenant API quota check failed: %s", e)
         return None
 
@@ -808,7 +809,7 @@ class SentryTenantTagMiddleware(MiddlewareMixin):
                 import sentry_sdk
                 sentry_sdk.set_tag("school_id", str(school.id))
                 sentry_sdk.set_tag("school_slug", getattr(school, "slug", "") or "")
-            except Exception:
+            except (AttributeError, ImportError):
                 pass
         return None
 
@@ -828,7 +829,7 @@ class TenantLastActivityMiddleware(MiddlewareMixin):
             cache.set(cache_key, True, timeout=3600)
             from apps.schools.models import School
             School.objects.filter(pk=school.id).update(last_activity=timezone.now())
-        except Exception:
+        except (AttributeError, DatabaseError, ImportError, TypeError, ValueError):
             pass
         return response
 
@@ -849,14 +850,14 @@ class TenantSuperAdminRequiredMiddleware(MiddlewareMixin):
             if not flags.get("enable_super_admin_ui", True):
                 from django.http import HttpResponseForbidden
                 return HttpResponseForbidden("Super Admin is disabled.")
-        except Exception:
+        except (AttributeError, TypeError, ValueError):
             pass
         if not request.user.is_authenticated:
             from django.contrib.auth.views import redirect_to_login
             return redirect_to_login(request.get_full_path())
         try:
             from apps.schools.control_plane import user_has_control_plane_access
-        except Exception:
+        except ImportError:
             user_has_control_plane_access = None
         if callable(user_has_control_plane_access) and user_has_control_plane_access(request.user):
             return None
@@ -891,7 +892,7 @@ class ManagerHostControlPlaneRequiredMiddleware(MiddlewareMixin):
 
         try:
             from apps.schools.control_plane import user_has_control_plane_access
-        except Exception:
+        except ImportError:
             user_has_control_plane_access = None
 
         if callable(user_has_control_plane_access) and user_has_control_plane_access(request.user):
@@ -929,7 +930,7 @@ class SuperAdminRateLimitMiddleware(MiddlewareMixin):
                 r["Retry-After"] = "60"
                 return r
             cache.set(key, count + 1, timeout=120)
-        except Exception:
+        except (AttributeError, TypeError, ValueError):
             pass
         return None
 

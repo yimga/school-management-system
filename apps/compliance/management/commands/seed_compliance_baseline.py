@@ -28,8 +28,8 @@ class Command(BaseCommand):
     @transaction.atomic
     def handle(self, *args, **options):
         from apps.compliance.models import RegionFeatureCompliance
+        from apps.global_registries.models import RegionConfig
         from apps.schools.models import School
-        from apps.siteconfig.models import RegionConfig
 
         default_region = RegionConfig.get_default()
         core_features = self._core_feature_codes()

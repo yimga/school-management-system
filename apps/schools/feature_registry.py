@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from typing import TypedDict
 
-from apps.siteconfig.models import FeatureToggleDefinition
+from apps.policies_rules.models import FeatureToggleDefinition
 
 
 class ModuleSpec(TypedDict, total=False):

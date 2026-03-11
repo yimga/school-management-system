@@ -17,7 +17,7 @@ from apps.reports.localization import (
     get_transcript_localizer,
 )
 from apps.siteconfig.translations import SUPPORTED_LANGUAGES
-from apps.siteconfig.models import RegionConfig
+from apps.global_registries.models import RegionConfig
 from apps.evals.models import Evaluation
 from decimal import Decimal
 

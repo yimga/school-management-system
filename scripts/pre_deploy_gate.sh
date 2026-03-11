@@ -73,6 +73,9 @@ python manage.py test_core_workflows --keepdb --noinput
 echo "[pre_deploy_gate] UX completion audit"
 python scripts/verify_ux_completion.py
 
+echo "[pre_deploy_gate] Browser visual QA"
+bash scripts/run_visual_qa.sh
+
 echo "[pre_deploy_gate] Multi-tenant coverage checks"
 # Run only tests that are committed on main (omit test_global_catalog, test_tenant_audit if not yet merged)
 MULTI_TENANT_TESTS=(

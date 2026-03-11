@@ -15,7 +15,7 @@ from apps.accounts.models import AccessRole, User
 from apps.api.rate_limit import throttle_ip_request
 from apps.schools.models import School, SchoolMembership
 from apps.siteconfig.integration_registry import resolve_service_integration
-from apps.siteconfig.models import ServiceIntegration
+from apps.integrations_marketplace.models import ServiceIntegration
 
 SCIM_USER_SCHEMA = "urn:ietf:params:scim:schemas:core:2.0:User"
 SCIM_GROUP_SCHEMA = "urn:ietf:params:scim:schemas:core:2.0:Group"
@@ -161,7 +161,6 @@ def _parse_filter_username(filter_expr: str) -> str:
     return ""
 
 
-@csrf_exempt
 @require_http_methods(["GET"])
 def scim_service_provider_config(request: HttpRequest):
     rl = _scim_rate_limited(request, "service_provider_config")
@@ -369,7 +368,6 @@ def _group_payload(role: AccessRole, school) -> dict[str, Any]:
     }
 
 
-@csrf_exempt
 @require_http_methods(["GET"])
 def scim_groups(request: HttpRequest):
     rl = _scim_rate_limited(request, "groups")

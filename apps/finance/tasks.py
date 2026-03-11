@@ -30,9 +30,10 @@ from apps.finance.services import generate_payment_link, create_fee_invoices, re
 from apps.finance.receipt_verification import ReceiptVerificationService
 from apps.finance.fraud_detection import ReceiptFraudDetector
 from apps.apicenter.gating import is_integration_allowed
+from apps.global_registries.models import RegionConfig
+from apps.integrations_marketplace.models import Integration
 from apps.people.models import StudentGuardian
 from apps.platform_runtime.helpers import get_effective_flags_for_school
-from apps.siteconfig.models import Integration
 from apps.automation.models import AutomationExecutionLog, AutomationApprovalQueue
 from apps.automation.helpers import get_cached_site_settings, get_current_academic_year, get_current_term, get_notification_channels
 from apps.evals.notifications import NotificationService
@@ -79,8 +80,6 @@ def _get_payment_instructions(invoice: Invoice) -> dict:
     Returns dict with payment instruction variables for template formatting.
     """
     from apps.finance.models import BankAccount
-    from apps.siteconfig.models import RegionConfig
-    
     instructions = {
         "bank_account": "",
         "bank_name": "",

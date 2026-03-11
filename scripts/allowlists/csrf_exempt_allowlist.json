@@ -4,25 +4,13 @@
       "expected_count": 1,
       "reason": "SAML ACS callback accepts IdP POST without browser session CSRF token."
     },
-    "apps/api/ceds_views.py": {
-      "expected_count": 3,
-      "reason": "Machine-to-machine CEDS endpoints."
-    },
-    "apps/api/edfi_views.py": {
-      "expected_count": 3,
-      "reason": "Machine-to-machine Ed-Fi endpoints."
-    },
     "apps/api/lead_capture_api.py": {
       "expected_count": 1,
       "reason": "Public lead capture endpoint guarded by rate limiting."
     },
-    "apps/api/oneroster_views.py": {
-      "expected_count": 5,
-      "reason": "Machine-to-machine OneRoster endpoints."
-    },
     "apps/api/scim_views.py": {
-      "expected_count": 5,
-      "reason": "Bearer-token SCIM provisioning endpoints."
+      "expected_count": 3,
+      "reason": "Bearer-token SCIM provisioning mutation and detail endpoints."
     },
     "apps/billing/api_views.py": {
       "expected_count": 1,
@@ -33,12 +21,8 @@
       "reason": "Payment provider webhook callback."
     },
     "apps/schools/section8_views.py": {
-      "expected_count": 8,
-      "reason": "External section-8 integration endpoints pending refactor."
-    },
-    "apps/schools/signup_views.py": {
-      "expected_count": 2,
-      "reason": "Public signup verification callbacks pending auth normalization."
+      "expected_count": 5,
+      "reason": "Cross-origin LTI callback and service endpoints that still accept external tool traffic."
     },
     "config/graphql_view.py": {
       "expected_count": 1,

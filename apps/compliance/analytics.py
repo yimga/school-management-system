@@ -6,7 +6,7 @@ from apps.compliance.models import (
     ComplianceCheck, RegionalComplianceRequirement, ComplianceAuditLog, 
     LegalDocument, CertificateTemplate
 )
-from apps.siteconfig.models import RegionConfig
+from apps.global_registries.models import RegionConfig
 
 
 class ComplianceAnalytics:

@@ -7,8 +7,18 @@ module.exports = defineConfig({
   testDir: 'tests/e2e',
   timeout: 30000,
   use: {
-    baseURL: process.env.BASE_URL || 'http://localhost:8000',
+    baseURL: process.env.BASE_URL || 'http://127.0.0.1:8000',
     trace: 'on-first-retry',
   },
-  projects: [{ name: 'chromium', use: { channel: 'chromium' } }],
+  projects: [{
+    name: 'chromium',
+    use: {
+      channel: 'chromium',
+      launchOptions: {
+        args: [
+          '--host-resolver-rules=MAP runmycampus.com 127.0.0.1,MAP manager.runmycampus.com 127.0.0.1',
+        ],
+      },
+    },
+  }],
 });

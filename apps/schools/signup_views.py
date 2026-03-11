@@ -15,7 +15,6 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import never_cache
 
 from apps.platform_runtime.helpers import get_platform_defaults
@@ -151,7 +150,7 @@ def signup_school(request: HttpRequest):
 def _get_plans_for_onboarding():
     """Return active plans for public onboarding (platform/public schema). Empty list if unavailable."""
     try:
-        from apps.siteconfig.models import Plan
+        from apps.plans_entitlements.models import Plan
         return list(Plan.objects.filter(is_active=True).order_by("name")[:20])
     except Exception:
         return []
@@ -160,7 +159,7 @@ def _get_plans_for_onboarding():
 def _get_templates_for_onboarding():
     """Return active theme packs as templates for public onboarding. Empty list if unavailable."""
     try:
-        from apps.siteconfig.models import ThemePack
+        from apps.brand_experience.models import ThemePack
         return list(ThemePack.objects.filter(is_active=True).order_by("-is_default", "name")[:30])
     except Exception:
         return []
@@ -300,7 +299,6 @@ def verify_signup(request: HttpRequest):
 
 
 @require_POST
-@csrf_exempt
 def api_trial_school(request: HttpRequest):
     """
     W1-2: Self-service trial API. POST JSON: name, contact_email, country_code (optional).
@@ -340,7 +338,7 @@ def api_trial_school(request: HttpRequest):
     default_region = None
     if country_code:
         from apps.siteconfig.education_profile_engine import ensure_region_for_country
-        from apps.siteconfig.models import RegionConfig
+        from apps.global_registries.models import RegionConfig
         default_region = RegionConfig.objects.filter(code=region_code).first()
         if not default_region:
             default_region = ensure_region_for_country(region_code or country_code, timezone_hint="UTC")
@@ -422,7 +420,6 @@ def api_trial_school(request: HttpRequest):
 
 @never_cache
 @require_POST
-@csrf_exempt
 @ratelimit(key="ip", rate="10/h", method="POST", block=True)
 def brand_import_api(request: HttpRequest):
     """

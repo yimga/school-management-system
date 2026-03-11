@@ -63,7 +63,7 @@ from apps.platform_runtime.helpers import get_effective_flags, get_effective_sit
 from apps.siteconfig.models import default_backend_feature_flags
 from apps.siteconfig.dashboard_resolver import for_role as dashboard_for_role
 from apps.siteconfig.workflow_resolver import get_approval_workflow as workflow_get_approval
-from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata
+from apps.runtime_blueprints.models import get_dashboard_widget_metadata
 from apps.siteconfig.dashboard_views import load_dashboard_layout_settings
 from apps.siteconfig.dashboard_views import _can_customize
 from apps.finance.models import Notification

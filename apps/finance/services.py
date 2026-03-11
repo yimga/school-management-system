@@ -15,9 +15,10 @@ from django.urls import reverse
 from django.utils import timezone
 
 from apps.apicenter.gating import is_integration_allowed
+from apps.global_registries.models import RegionConfig
+from apps.integrations_marketplace.models import Integration
 from apps.people.models import StudentProfile, StudentGuardian
 from apps.platform_runtime.helpers import get_effective_site_settings, get_platform_defaults
-from apps.siteconfig.models import Integration
 
 from .models import (
     ComplianceProfile,
@@ -767,7 +768,6 @@ def carry_forward_arrears(source_year, target_year) -> int:
 
 def _get_region_for_refund(invoice: Invoice):
     """Get RegionConfig for refund/overpayment (use first region)."""
-    from apps.siteconfig.models import RegionConfig
     return RegionConfig.objects.first()
 
 

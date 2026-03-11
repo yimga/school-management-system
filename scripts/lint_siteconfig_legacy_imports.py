@@ -1,26 +1,93 @@
 #!/usr/bin/env python3
 """
-Block new app code from importing legacy siteconfig domain wrappers.
-
-These wrappers still exist for cutover compatibility, but new code must import
-from the bounded-context surfaces instead.
+Block new app code from importing legacy siteconfig modules for domain-owned
+objects that already have bounded-context import surfaces.
 """
 from __future__ import annotations
 
-import re
+import ast
 import sys
 from pathlib import Path
 
 BASE = Path(__file__).resolve().parent.parent
 SKIP_PARTS = {"migrations", "__pycache__", "venv", ".venv", "node_modules", "tests"}
-FORBIDDEN = (
-    (re.compile(r"\bfrom\s+apps\.siteconfig\.models_brand\s+import\b"), "apps.brand_experience.models"),
-    (re.compile(r"\bfrom\s+apps\.siteconfig\.models_runtime_blueprints\s+import\b"), "apps.runtime_blueprints.models"),
-    (re.compile(r"\bfrom\s+apps\.siteconfig\.models_policies_rules\s+import\b"), "apps.policies_rules.models"),
-    (re.compile(r"\bfrom\s+apps\.siteconfig\.models_global_registries\s+import\b"), "apps.global_registries.models"),
-    (re.compile(r"\bfrom\s+apps\.siteconfig\.models_integrations_marketplace\s+import\b"), "apps.integrations_marketplace.models"),
-    (re.compile(r"\bfrom\s+apps\.siteconfig\.models_plans_entitlements\s+import\b"), "apps.plans_entitlements.models"),
-)
+SKIP_PATHS = {
+    "apps/brand_experience/models.py",
+    "apps/global_registries/models.py",
+    "apps/integrations_marketplace/models.py",
+    "apps/plans_entitlements/models.py",
+    "apps/policies_rules/models.py",
+    "apps/runtime_blueprints/models.py",
+}
+FORBIDDEN_IMPORTS = {
+    "apps.siteconfig.models": {
+        "BrandProfile": "apps.brand_experience.models",
+        "BrandSettings": "apps.brand_experience.models",
+        "DesignTemplate": "apps.brand_experience.models",
+        "GlobalBrandRegistry": "apps.brand_experience.models",
+        "ThemePack": "apps.brand_experience.models",
+        "EducationSystemProfile": "apps.global_registries.models",
+        "GradingScaleConfig": "apps.global_registries.models",
+        "HolidayCalendar": "apps.global_registries.models",
+        "Province": "apps.global_registries.models",
+        "RegionConfig": "apps.global_registries.models",
+        "SystemFeature": "apps.global_registries.models",
+        "TenantSystem": "apps.global_registries.models",
+        "WeatherLocation": "apps.global_registries.models",
+        "Integration": "apps.integrations_marketplace.models",
+        "ServiceIntegration": "apps.integrations_marketplace.models",
+        "Plan": "apps.plans_entitlements.models",
+        "PlanAddon": "apps.plans_entitlements.models",
+        "CountryMultiplier": "apps.plans_entitlements.models",
+        "FeatureToggleDefinition": "apps.policies_rules.models",
+        "FeatureToggleState": "apps.policies_rules.models",
+        "TourStep": "apps.policies_rules.models",
+    },
+    "apps.siteconfig.models_dashboard": {
+        "DashboardLayout": "apps.runtime_blueprints.models",
+        "DashboardPack": "apps.runtime_blueprints.models",
+        "DashboardPackAssignment": "apps.runtime_blueprints.models",
+        "DashboardTemplate": "apps.runtime_blueprints.models",
+        "DashboardUserPreference": "apps.runtime_blueprints.models",
+        "DashboardWidget": "apps.runtime_blueprints.models",
+        "SUPER_DASHBOARD_DEFAULT_SECTION_ORDER": "apps.runtime_blueprints.models",
+        "SuperAdminDashboardPreference": "apps.runtime_blueprints.models",
+        "TenantLayoutAssignment": "apps.runtime_blueprints.models",
+        "get_dashboard_widget_metadata": "apps.runtime_blueprints.models",
+    },
+    "apps.siteconfig.models_workflow": {
+        "TenantWorkflow": "apps.runtime_blueprints.models",
+        "WorkflowPack": "apps.runtime_blueprints.models",
+        "WorkflowPackAssignment": "apps.runtime_blueprints.models",
+        "WorkflowTemplate": "apps.runtime_blueprints.models",
+    },
+}
+
+
+def _iter_violations(path: Path, rel: str) -> list[tuple[int, str]]:
+    text = path.read_text(encoding="utf-8", errors="replace")
+    tree = ast.parse(text, filename=rel)
+    violations: list[tuple[int, str]] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom):
+            module = node.module
+            if not module or module not in FORBIDDEN_IMPORTS:
+                continue
+            replacements = {
+                FORBIDDEN_IMPORTS[module][alias.name]
+                for alias in node.names
+                if alias.name in FORBIDDEN_IMPORTS[module]
+            }
+            for replacement in sorted(replacements):
+                violations.append((node.lineno, replacement))
+        elif isinstance(node, ast.Import):
+            for alias in node.names:
+                module = alias.name
+                if module in FORBIDDEN_IMPORTS:
+                    replacements = sorted(set(FORBIDDEN_IMPORTS[module].values()))
+                    for replacement in replacements:
+                        violations.append((node.lineno, replacement))
+    return violations
 
 
 def main() -> int:
@@ -33,19 +100,14 @@ def main() -> int:
             if any(part in SKIP_PARTS for part in path.parts):
                 continue
             rel = path.relative_to(BASE).as_posix()
-            text = path.read_text(encoding="utf-8", errors="replace")
-            for line_no, line in enumerate(text.splitlines(), start=1):
-                stripped = line.lstrip()
-                if stripped.startswith("#"):
-                    continue
-                for pattern, replacement in FORBIDDEN:
-                    if pattern.search(line):
-                        violations.append((rel, line_no, replacement))
-                        break
+            if rel in SKIP_PATHS or rel.startswith("apps/siteconfig/"):
+                continue
+            for line_no, replacement in _iter_violations(path, rel):
+                violations.append((rel, line_no, replacement))
     if not violations:
-        print("lint_siteconfig_legacy_imports: no legacy siteconfig domain wrapper imports found.")
+        print("lint_siteconfig_legacy_imports: no legacy direct siteconfig domain imports found.")
         return 0
-    print("lint_siteconfig_legacy_imports: legacy siteconfig wrapper imports must move to bounded-context surfaces:\n", file=sys.stderr)
+    print("lint_siteconfig_legacy_imports: legacy direct siteconfig imports must move to bounded-context surfaces:\n", file=sys.stderr)
     for rel, line_no, replacement in violations:
         print(f"  {rel}:{line_no} -> import from {replacement}", file=sys.stderr)
     return 1

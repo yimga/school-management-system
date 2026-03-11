@@ -19,9 +19,11 @@ from django_ratelimit.decorators import ratelimit
 from config.admin import admin_site
 from apps.finance.models import Invoice, ReferralReward, PaymentReminder, Notification as FinanceNotification
 from apps.finance.services import finance_dashboard_data
+from apps.integrations_marketplace.models import ServiceIntegration
 from apps.people.models import StudentGuardian, StudentProfile, TeacherAttendance, TeacherProfile, Badge, BadgeType
 from apps.academics.models import AcademicYear, Classroom
 from apps.reports.models import TermPublishStatus
+from apps.runtime_blueprints.models import DashboardWidget, get_dashboard_widget_metadata
 from apps.siteconfig.models import SiteSettings, default_backend_feature_flags
 from apps.academics.services import get_active_year_and_term
 from apps.academics.services_year_setup import clone_academic_year
@@ -30,7 +32,6 @@ from apps.dashboard.context import build_dashboard_extras
 from apps.dashboard.recommendation_service import get_recommended_next_steps
 from apps.siteconfig.templatetags.admin_health import admin_section_stats
 from apps.siteconfig.templatetags.admin_kpis import admin_kpis
-from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata, DashboardWidget
 from apps.siteconfig.dashboard_views import effective_chart_types
 from apps.accounts.utils import get_dashboard_context
 from apps.platform_runtime.helpers import get_effective_flags, get_effective_site_settings
@@ -61,7 +62,7 @@ def _notify_new_direct_message(sender, recipient, message):
             message=msg_preview,
             link=link,
         )
-    except Exception:
+    except (DatabaseError, NoReverseMatch):
         pass
 
 
@@ -152,7 +153,7 @@ def _teacher_org_tree(user):
                 photo_url = profile_photo.url
             elif user_photo and getattr(user_photo, "url", ""):
                 photo_url = user_photo.url
-        except Exception:
+        except (OSError, ValueError):
             photo_url = ""
         return {
             "id": profile.pk,
@@ -299,7 +300,7 @@ def user_profile(request):
     try:
         from django_otp import user_has_device
         context["mfa_enabled"] = user_has_device(request.user)
-    except Exception:
+    except (AttributeError, ImportError):
         pass
     # Optional teacher_pay_leave when payroll exposes data (e.g. next pay date, leave balance)
     # Parent upcoming fees summary when finance exposes it
@@ -308,7 +309,7 @@ def user_profile(request):
         parent_fees = get_parent_fees_summary(request.user)
         if parent_fees:
             context["parent_fees_summary"] = parent_fees
-    except Exception:
+    except (AttributeError, DatabaseError, ImportError):
         pass
     # Profile completion: photo + email + first_name + last_name (25% each)
     filled = []
@@ -1287,7 +1288,7 @@ def backend_dashboard(request):
     dashboard_layout_url = dashboard_context.get("dashboard_layout_url", "")
     widget_meta_json = dashboard_context.get("widget_meta_json", "")
     try:
-        from apps.siteconfig.models_dashboard import DashboardUserPreference
+        from apps.runtime_blueprints.models import DashboardUserPreference
         pref, created = DashboardUserPreference.objects.get_or_create(
             user=request.user,
             defaults={"sidebar_collapsed": bool(getattr(site, "default_sidebar_collapsed", False))},
@@ -1759,7 +1760,7 @@ def backend_dashboard(request):
     }
     # W1-6: First-login checklist aligned with Setup Studio (same labels, same deep links); thin entry to Setup Studio.
     try:
-        from apps.siteconfig.models_dashboard import DashboardUserPreference
+        from apps.runtime_blueprints.models import DashboardUserPreference
         from apps.customersuccess.services import get_guided_onboarding_steps
         pref, _ = DashboardUserPreference.objects.get_or_create(user=request.user, defaults={"dashboard_layout": {}})
         layout = pref.dashboard_layout or {}
@@ -3047,7 +3048,6 @@ def _get_login_sso_integrations(request):
     if not school:
         return []
     try:
-        from apps.siteconfig.models import ServiceIntegration
         qs = ServiceIntegration.objects.filter(
             school=school,
             service_type=ServiceIntegration.ServiceType.OAUTH,

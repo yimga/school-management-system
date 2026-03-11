@@ -9,7 +9,7 @@
 | Signal | Current state |
 |-------|----------------|
 | `apps/siteconfig` Python files | 318 after deleting six unused legacy wrapper shims |
-| `csrf_exempt` decorator hits | 86 total matches across 24 files; machine-classified by allowlist |
+| `csrf_exempt` decorator hits | 13 total matches across 7 files; machine-classified by allowlist |
 | `cursor.execute(` hits | 349 total matches across 89 files; non-migration usage is machine-classified by allowlist |
 | Broad `except Exception` hits | 1,025 total matches across 333 files; high-risk files are baseline-enforced and ratcheted down |
 | `gilead` references | 54 files / 177 matches, now concentrated in docs, migrations, and approved residue paths |
@@ -68,14 +68,17 @@
 - [x] Added a secret exposure gate that blocks provider-secret identifiers in client assets and tracked config files
 - [x] Removed unnecessary `csrf_exempt` from `apps/siteconfig/views_verify.py`
 - [x] Removed `csrf_exempt` from `apps/api/views_v1.EnrollmentApplyView`; browser-facing POST aliases now require CSRF
+- [x] Removed redundant GET-only `csrf_exempt` usage from CEDS, Ed-Fi, OneRoster, and selected SCIM/LTI discovery endpoints
+- [x] Removed browser-facing `csrf_exempt` usage from self-service trial signup and brand import flows
 - [x] Enforced a strict broad-exception baseline for the highest-risk files while remediation continues
 - [x] Reduced `apps/portal/views_ai_copilot.py` broad exception usage from 17 to 3, reduced `apps/api/views_v1.py` from 18 to 6, reduced `apps/siteconfig/context_processors.py` from 23 to 22, and corrected the gate to count `except Exception as e` forms too
-- [ ] Replace or narrow remaining `csrf_exempt` usage, starting with browser-like flows
+- [ ] Replace or narrow the remaining `csrf_exempt` usage, which is now concentrated in SAML, SCIM mutation/detail flows, LTI callbacks, GraphQL, and webhook endpoints
 - [ ] Replace broad `except Exception` in the highest-risk files until the baseline can ratchet downward
 
 ### Phase 2
 - [x] Turned the bounded-context shell apps into real import surfaces for brand, runtime, plans, registries, marketplace, and policies
 - [x] Added a CI gate blocking new imports from legacy `apps.siteconfig.models_*` domain wrappers
+- [x] Expanded the bounded-context surfaces and cut live app/test imports over from direct `apps.siteconfig.models*` usage to brand, runtime, plans, registries, marketplace, and policies surfaces
 - [x] Deleted six unused legacy `apps/siteconfig/models_*` compatibility shims after confirming no app code still imported them
 - [ ] Move database ownership out of `siteconfig` with state-safe migrations and delete the remaining legacy ownership paths
 
@@ -97,7 +100,8 @@
 - [x] Re-backed guided onboarding to use `setup_studio` instead of ad hoc customer-success heuristics
 - [x] Updated the Setup Studio UI to show blockers, role previews, and recommendations
 - [x] Changed Setup Studio’s dominant next action to follow ranked recommendations/blockers instead of blindly choosing the first incomplete step
-- [ ] Add live preview, blueprint recommendation ranking, and launch orchestration beyond inferred readiness
+- [x] Added a live preview workspace, ranked blueprint recommendations, and explicit launch-orchestration stages to Setup Studio
+- [ ] Continue expanding Setup Studio with deeper preview fidelity and operator-triggered launch execution
 
 ### Phase 8
 - [x] Unified backend next-action ranking so the recommendation service and contextual action registry now prioritize the same setup, workflow, finance, and academic actions

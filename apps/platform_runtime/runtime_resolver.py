@@ -306,7 +306,7 @@ def _step8_workflows(school: Any) -> WorkflowsContext:
         return WorkflowsContext(by_module=by_module)
     try:
         from apps.siteconfig.workflow_resolver import for_action
-        from apps.siteconfig.models_workflow import WorkflowPackAssignment
+        from apps.runtime_blueprints.models import WorkflowPackAssignment
         assigned = {
             a.module_slug: a
             for a in WorkflowPackAssignment.objects.filter(school=school, is_active=True).select_related("workflow_pack")
@@ -344,7 +344,7 @@ def _step9_dashboards(school: Any) -> DashboardsContext:
         return DashboardsContext(by_role=by_role, by_section=by_section)
     try:
         from apps.siteconfig.dashboard_resolver import for_role
-        from apps.siteconfig.models_dashboard import DashboardPackAssignment
+        from apps.runtime_blueprints.models import DashboardPackAssignment
         assigned = {
             a.role.lower(): a
             for a in DashboardPackAssignment.objects.filter(school=school, is_active=True).select_related("dashboard_pack")
@@ -456,7 +456,7 @@ def _step10_integrations_marketplace(school: Any) -> tuple:
     enabled_providers: List[str] = []
     if school:
         try:
-            from apps.siteconfig.models import ServiceIntegration
+            from apps.integrations_marketplace.models import ServiceIntegration
             qs = ServiceIntegration.objects.filter(school=school, is_active=True)
             for si in qs:
                 name = getattr(si, "service_name", None) or ""

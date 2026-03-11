@@ -111,13 +111,30 @@ def _ensure_step_definitions() -> None:
         )
 
 
-def _build_role_previews() -> list[dict[str, Any]]:
+def _school_surface_url(school, path: str = "/") -> str:
+    host = ""
+    if getattr(school, "custom_domain", None) and getattr(school, "custom_domain_verified", False):
+        host = str(school.custom_domain).strip()
+    if not host:
+        try:
+            from apps.schools.domain_sync import school_subdomain_fqdn
+
+            host = school_subdomain_fqdn(school)
+        except Exception:
+            host = ""
+    if not host:
+        return "#"
+    normalized_path = path if str(path or "").startswith("/") else f"/{path}"
+    return f"https://{host}{normalized_path}"
+
+
+def _build_role_previews(school) -> list[dict[str, Any]]:
     return [
         {
             "role": "admin",
             "label": "Admin shell",
             "description": "Role home, urgent queue, command search, and operating metrics.",
-            "url": _safe_reverse("accounts:backend_dashboard"),
+            "url": _school_surface_url(school, "/authentication/backend/"),
             "status": "ready",
         },
         {
@@ -137,7 +154,7 @@ def _build_role_previews() -> list[dict[str, Any]]:
     ]
 
 
-def _build_preview_cards(step_state: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
+def _build_preview_cards(school, step_state: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
     branding_ready = step_state["branding"]["done"]
     role_ready = step_state["role_preview"]["done"]
     return [
@@ -146,13 +163,14 @@ def _build_preview_cards(step_state: dict[str, dict[str, Any]]) -> list[dict[str
             "description": "Public-facing identity, brand colors, and trust signals.",
             "status": "Ready to preview" if branding_ready else "Branding needed",
             "tone": "ready" if branding_ready else "pending",
+            "url": _school_surface_url(school, "/"),
         },
         {
             "title": "Admin shell",
             "description": "Role home, command center, urgent queue, and setup readiness.",
             "status": "Ready to preview" if role_ready else "Preview pending",
             "tone": "ready" if role_ready else "pending",
-            "url": _safe_reverse("accounts:backend_dashboard"),
+            "url": _school_surface_url(school, "/authentication/backend/"),
         },
         {
             "title": "Teacher dashboard",
@@ -182,7 +200,7 @@ def _step_state_for_school(school) -> dict[str, dict[str, Any]]:
     has_branding = bool(getattr(school, "theme_pack_id", None) or getattr(school, "primary_color", None))
     has_students = StudentProfile.objects.filter(school=school, is_active=True).exists()
     has_addons = bool(getattr(school, "addons", None))
-    role_previews = _build_role_previews()
+    role_previews = _build_role_previews(school)
     definitions = _definition_by_key()
 
     evidence_map = {
@@ -359,12 +377,16 @@ def _health_summary(score: int, blocker_count: int) -> dict[str, Any]:
 
 
 def _recommended_blueprint(school) -> dict[str, Any]:
+    ranked = _rank_blueprints(school)
+    if ranked:
+        return ranked[0]
     region = getattr(school, "default_region_id", None) or "Global"
     return {
         "title": f"{region} launch baseline",
         "detail": "Blueprints align policies, workflows, and dashboard behavior before local customization begins.",
         "cta_label": "Review blueprints",
         "cta_url": _safe_reverse("siteconfig:get_blueprints"),
+        "fit_label": "Baseline match",
     }
 
 
@@ -374,6 +396,137 @@ def _recommended_starter_stack() -> dict[str, Any]:
         "detail": "Admissions, academics, finance, and family communication cover the most important day-one workflows.",
         "items": ["Admissions & onboarding", "Academic structure", "Fees & collections", "Parent communication"],
     }
+
+
+def _rank_blueprints(school) -> list[dict[str, Any]]:
+    try:
+        from apps.policies.models import BlueprintPack
+    except Exception:
+        return []
+
+    country_code = str(getattr(school, "country_code", "") or "").strip().upper()[:2]
+    region_code = str(getattr(school, "default_region_id", "") or "").strip().upper()
+    level_codes = set(school.education_levels.values_list("code", flat=True)) if getattr(school, "pk", None) else set()
+    system_codes = set(school.education_system_types.values_list("code", flat=True)) if getattr(school, "pk", None) else set()
+
+    ranked: list[dict[str, Any]] = []
+    for pack in BlueprintPack.objects.filter(is_active=True).order_by("category", "name")[:24]:
+        score = 0
+        reasons: list[str] = []
+        supported_countries = {str(code or "").strip().upper() for code in (pack.supported_country_scope or []) if str(code or "").strip()}
+        supported_systems = {str(code or "").strip().upper() for code in (pack.supported_education_system_types or []) if str(code or "").strip()}
+        recommended_levels = {str(code or "").strip().upper() for code in (pack.recommended_education_levels or []) if str(code or "").strip()}
+        pack_country = str(getattr(pack, "country_code", "") or "").strip().upper()
+
+        if country_code and (country_code in supported_countries or country_code == pack_country):
+            score += 40
+            reasons.append(f"Country match: {country_code}")
+        elif region_code and region_code in supported_countries:
+            score += 35
+            reasons.append(f"Region match: {region_code}")
+        if system_codes and supported_systems.intersection(system_codes):
+            score += 20
+            reasons.append("Education system fit")
+        if level_codes and recommended_levels.intersection(level_codes):
+            score += 15
+            reasons.append("Education level fit")
+        if getattr(pack, "default_dashboard_pack_id", None):
+            score += 10
+            reasons.append("Includes dashboard baseline")
+        if getattr(pack, "default_workflow_pack_id", None):
+            score += 10
+            reasons.append("Includes workflow baseline")
+        if getattr(pack, "branding_family_hint", ""):
+            score += 5
+            reasons.append("Brand alignment hint available")
+        if not reasons:
+            reasons.append("General launch baseline")
+
+        ranked.append(
+            {
+                "title": str(pack.name),
+                "detail": str(pack.description or "Blueprints align policy, workflow, and dashboard defaults before local customization."),
+                "cta_label": "Review blueprints",
+                "cta_url": _safe_reverse("siteconfig:get_blueprints"),
+                "fit_score": score,
+                "fit_label": "Strong fit" if score >= 55 else ("Recommended" if score >= 30 else "Baseline option"),
+                "reason_summary": ", ".join(reasons[:3]),
+                "pack_slug": str(pack.slug),
+            }
+        )
+
+    ranked.sort(key=lambda item: (-int(item["fit_score"]), str(item["title"]).lower()))
+    return ranked[:3]
+
+
+def _build_preview_workspace(school, role_previews: list[dict[str, Any]], preview_cards: list[dict[str, Any]]) -> dict[str, Any]:
+    surfaces = []
+    for card in preview_cards:
+        surfaces.append(
+            {
+                "title": card["title"],
+                "status": card["status"],
+                "url": card.get("url") or "#",
+                "tone": card["tone"],
+                "audience": "public" if card["title"] == "School website" else "operator",
+            }
+        )
+    for preview in role_previews:
+        surfaces.append(
+            {
+                "title": preview["label"],
+                "status": "Ready to review" if preview.get("url") and preview["url"] != "#" else "Preview unavailable",
+                "url": preview.get("url") or "#",
+                "tone": "ready" if preview.get("url") and preview["url"] != "#" else "pending",
+                "audience": preview["role"],
+            }
+        )
+    return {
+        "title": "Live preview workspace",
+        "detail": "Use one preview rail to validate public branding, operator flow, and role clarity before launch.",
+        "website_url": _school_surface_url(school, "/"),
+        "surfaces": surfaces,
+    }
+
+
+def _build_launch_orchestration(
+    step_state: dict[str, dict[str, Any]],
+    launch_blockers: list[dict[str, Any]],
+    preview_workspace: dict[str, Any],
+) -> list[dict[str, Any]]:
+    stages = [
+        {
+            "key": "preflight",
+            "label": "Preflight",
+            "detail": "Lock plan, blueprint, and starter stack before opening previews.",
+            "done": all(step_state[key]["done"] for key in ("plan_choice", "blueprint", "starter_stack")),
+            "link": step_state["blueprint"]["link"],
+        },
+        {
+            "key": "preview",
+            "label": "Preview",
+            "detail": "Review website, admin, teacher, and parent experiences in the live preview workspace.",
+            "done": step_state["branding"]["done"] and step_state["role_preview"]["done"],
+            "link": preview_workspace.get("website_url") or step_state["role_preview"]["link"],
+        },
+        {
+            "key": "launch_control",
+            "label": "Launch control",
+            "detail": "Resolve every blocker, confirm roster data, and prepare the go-live motion.",
+            "done": not launch_blockers and step_state["launch"]["done"],
+            "link": step_state["launch"]["link"],
+        },
+        {
+            "key": "post_launch",
+            "label": "Post-launch",
+            "detail": "Assign operators, monitor queue health, and keep role-home confidence high after go-live.",
+            "done": not launch_blockers and all(step["done"] for step in step_state.values()),
+            "link": _safe_reverse("accounts:backend_dashboard"),
+        },
+    ]
+    for stage in stages:
+        stage["status"] = "Ready" if stage["done"] else "Needs action"
+    return stages
 
 
 def _recommended_next_step(
@@ -416,10 +569,13 @@ def compile_setup_studio(school) -> dict[str, Any]:
     _ensure_step_definitions()
     step_state = _step_state_for_school(school)
     recommendations = _build_recommendations(school, step_state)
-    role_previews = _build_role_previews()
-    preview_cards = _build_preview_cards(step_state)
+    role_previews = _build_role_previews(school)
+    preview_cards = _build_preview_cards(school, step_state)
     launch_checklist = _build_launch_checklist(step_state)
     health_score, health_breakdown, launch_blockers = _score(step_state)
+    preview_workspace = _build_preview_workspace(school, role_previews, preview_cards)
+    blueprint_rankings = _rank_blueprints(school)
+    launch_orchestration = _build_launch_orchestration(step_state, launch_blockers, preview_workspace)
     current_step_key = next((key for key, state in step_state.items() if not state["done"]), "launch")
     completed_keys = [key for key, state in step_state.items() if state["done"]]
     launch_ready = not launch_blockers
@@ -439,13 +595,16 @@ def compile_setup_studio(school) -> dict[str, Any]:
         "recommendations": recommendations,
         "role_previews": role_previews,
         "preview_cards": preview_cards,
+        "preview_workspace": preview_workspace,
         "launch_checklist": launch_checklist,
         "launch_blockers": launch_blockers,
+        "launch_orchestration": launch_orchestration,
         "health_score": health_score,
         "health_breakdown": health_breakdown,
         "health_summary": _health_summary(health_score, len(launch_blockers)),
         "launch_ready": launch_ready,
         "recommended_blueprint": _recommended_blueprint(school),
+        "blueprint_rankings": blueprint_rankings,
         "recommended_starter_stack": _recommended_starter_stack(),
         "recommended_next": recommended_next,
     }

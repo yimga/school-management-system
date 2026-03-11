@@ -9,7 +9,8 @@ from django.views.decorators.http import require_GET, require_POST
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_protect
 
-from apps.siteconfig.models import Integration, SiteSettings
+from apps.integrations_marketplace.models import Integration
+from apps.siteconfig.models import SiteSettings
 from apps.platform_runtime.helpers import get_effective_flags
 from apps.schools.control_plane import user_has_control_plane_access
 from .models import APIAuditLog

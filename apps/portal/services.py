@@ -24,11 +24,11 @@ from apps.finance.models import Invoice, PaymentReminder, ReferralReward
 from apps.people.models import StudentGuardian, StudentProfile, TeacherProfile
 from apps.accounts.permissions import _guardian_finance_qs
 from apps.evals.models import TeacherAssignment
+from apps.integrations_marketplace.models import Integration
 from apps.payroll.models import LeaveRequest, Payslip, PayrollEmployee
 from apps.platform_runtime.helpers import get_effective_site_settings
 from apps.reports.services import term_report_context
 from apps.apicenter.gating import is_integration_allowed
-from apps.siteconfig.models import Integration
 from apps.siteconfig.cache_utils import get_tenant_cache_prefix
 from apps.siteconfig.integration_registry import resolve_active_integration
 from apps.communication.models import ClassAnnouncement, MessageThread, ThreadReadState

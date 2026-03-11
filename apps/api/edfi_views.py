@@ -1,7 +1,6 @@
 """Ed-Fi API endpoints: serve Ed-Fi resource shapes from canonical models via mapping layer."""
 
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET
 
 from apps.academics.models import Classroom
@@ -70,7 +69,6 @@ def _pagination(request):
     return offset, limit
 
 
-@csrf_exempt
 @require_GET
 def edfi_students(request):
     """GET Ed-Fi shaped students for the school (mapping layer)."""
@@ -91,7 +89,6 @@ def edfi_students(request):
     )
 
 
-@csrf_exempt
 @require_GET
 def edfi_student_school_associations(request):
     """GET Ed-Fi studentSchoolAssociations for the school."""
@@ -115,7 +112,6 @@ def edfi_student_school_associations(request):
     )
 
 
-@csrf_exempt
 @require_GET
 def edfi_grades(request):
     """GET Ed-Fi-style grades (from Evaluation) for the school."""

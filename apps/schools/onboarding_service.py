@@ -128,7 +128,7 @@ def onboard_tenant(
     Returns dict with keys: success, school_id, client_id, message, error (if failed).
     """
     from apps.schools.models import School
-    from apps.siteconfig.models import RegionConfig
+    from apps.global_registries.models import RegionConfig
 
     slug = (slug or "").strip().lower().replace(" ", "-")
     name = (name or "").strip()

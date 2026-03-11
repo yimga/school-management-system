@@ -1,7 +1,7 @@
 """Management command to generate legal documents in multiple languages."""
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
-from apps.siteconfig.models import RegionConfig
+from apps.global_registries.models import RegionConfig
 from apps.compliance.models import LegalDocument
 
 class Command(BaseCommand):
