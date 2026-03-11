@@ -1,10 +1,59 @@
 {% extends "control_plane_base.html" %}
 {% load static %}
 
-{% block cp_title %}Create School{% endblock %}
+{% block cp_title %}Tenant Studio{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">Tenant Mission Control</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Tenant Studio</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block breadcrumb_actions %}
+  <a href="{% url 'super:dashboard' %}" class="btn btn-sm btn-outline-light js-return-to-origin" data-fallback="{% url 'super:dashboard' %}">Back to Dashboard</a>
+  <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:workflow_center' %}" target="_blank" rel="noopener" title="Help: Tenant Studio and provisioning">
+    <i class="bi bi-question-circle"></i>
+    <span class="ms-1">Help</span>
+  </a>
+{% endblock %}
 
 {% block cp_content %}
   <div class="container-fluid py-4">
+    <section class="cp-hero cp-hero-compact mb-4">
+      <div class="cp-hero-grid">
+        <div>
+          <div class="cp-eyebrow">RunMyCampus Manager</div>
+          <h1 class="cp-hero-title">Tenant Studio</h1>
+          <p class="cp-hero-copy">
+            Create a school through one guided launch flow: identity, region, branding, domain, and plan posture in one surface instead of scattered settings.
+          </p>
+          <div class="cp-chip-row">
+            <span class="cp-chip">Identity and domain</span>
+            <span class="cp-chip">Registry-backed region defaults</span>
+            <span class="cp-chip">Brand and theme bootstrap</span>
+            <span class="cp-chip">Plan and provisioning setup</span>
+          </div>
+        </div>
+        <div class="cp-hero-actions">
+          <div class="cp-action-stack">
+            <div class="cp-hero-stat">
+              <span class="cp-hero-stat-label">Launch flow</span>
+              <strong class="cp-hero-stat-value">4 steps</strong>
+              <span class="cp-hero-stat-subtitle">Identity, region, branding, and domain before provisioning.</span>
+            </div>
+            <div class="cp-action-row">
+              <a href="{% url 'super:tenant_health' %}" class="btn btn-outline-light btn-sm">Tenant health</a>
+              <a href="{% url 'super:blueprints_catalog' %}" class="btn btn-outline-light btn-sm">Blueprints</a>
+              <a href="{% url 'super:billing_dashboard' %}" class="btn btn-outline-light btn-sm">Billing</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <div class="row justify-content-center">
       <div class="col-lg-8">
         <div class="card shadow-sm">
@@ -26,7 +75,7 @@
             </ul>
             <p class="mb-0 mt-2 small text-muted" id="wizard-progress-text">Step 1 of 4</p>
             </div>
-            <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:workflow_center' %}" target="_blank" rel="noopener" title="Help: Create School and setup"><i class="bi bi-question-circle"></i> Help</a>
+            <div class="text-muted small">Tenant Studio keeps the full provisioning flow visible from one page.</div>
           </div>
           <div class="card-body">
             <form
@@ -208,7 +257,7 @@
               <div class="d-flex justify-content-between mt-4">
                 <a href="{% url 'super:dashboard' %}" class="btn btn-outline-secondary js-return-to-origin" data-fallback="{% url 'super:dashboard' %}">Cancel</a>
                 <button type="button" class="btn btn-primary" id="btn-next">Next</button>
-                <button type="submit" class="btn btn-success d-none" id="btn-submit">Create School</button>
+                <button type="submit" class="btn btn-success d-none" id="btn-submit">Create Tenant</button>
               </div>
             </form>
             <div id="wizard-success" class="alert alert-success mt-3 d-none" role="alert"></div>

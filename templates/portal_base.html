@@ -396,8 +396,8 @@
           border: 1px solid rgba(15,23,42,.08);
         {% endif %}
         position: sticky;
-        top: 10px;
-        max-height: calc(100vh - 80px);
+        top: calc(var(--portal-shell-sticky-offset, 4.75rem) + 0.75rem);
+        max-height: calc(100vh - var(--portal-shell-sticky-offset, 4.75rem) - 1.5rem);
         overflow-y: auto;
         overflow-x: hidden;
       }
@@ -425,6 +425,7 @@
         --portal-sidebar-width: 280px;
         --portal-sidebar-min: 200px;
         --portal-sidebar-max: 420px;
+        --portal-shell-sticky-offset: 4.75rem;
       }
       @media (min-width: 992px) {
         .portal-layout-row {

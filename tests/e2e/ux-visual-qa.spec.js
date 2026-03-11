@@ -40,6 +40,16 @@ const AUTHENTICATED_SURFACES = [
   { slug: 'control-plane-app-catalog', url: '/super/marketplace/apps/', marker: 'Install with trust, not guesswork.' },
 ];
 
+const AUTHENTICATED_SCROLL_SURFACES = [
+  { slug: 'manager-marketplace-governance', url: '/super/marketplace/', marker: 'Marketplace governance', scrollRoot: '#cp-main-content' },
+  { slug: 'manager-workflow-packs', url: '/super/workflow-packs/', marker: 'Workflow Packs', scrollRoot: '#cp-main-content' },
+  { slug: 'manager-dashboard-packs', url: '/super/dashboard-packs/', marker: 'Dashboard Packs', scrollRoot: '#cp-main-content' },
+  { slug: 'manager-blueprint-marketplace', url: '/super/marketplace/blueprints/', marker: 'Blueprint marketplace', scrollRoot: '#cp-main-content' },
+  { slug: 'manager-tenant-studio', url: '/super/create/', marker: 'Tenant Studio', scrollRoot: '#cp-main-content' },
+  { slug: 'tenant-backend-role-home', url: '/authentication/backend/', marker: 'Command center', scrollRoot: '#main-content' },
+  { slug: 'tenant-setup-studio', url: '/siteconfig/guided-onboarding/', marker: 'Setup Studio', scrollRoot: '#main-content' },
+];
+
 function ensureDir(dirPath) {
   fs.mkdirSync(dirPath, { recursive: true });
 }
@@ -63,6 +73,60 @@ async function assertNoHorizontalOverflow(page, label) {
     metrics.bodyScrollWidth,
     `${label} body has horizontal overflow (bodyScrollWidth=${metrics.bodyScrollWidth}, innerWidth=${metrics.innerWidth})`
   ).toBeLessThanOrEqual(metrics.innerWidth + 1);
+}
+
+async function assertVerticalShellScroll(page, label, scrollRootSelector) {
+  const metrics = await page.evaluate((selector) => {
+    const target = document.querySelector(selector) || document.querySelector('main') || document.body;
+    const scroller = document.scrollingElement || document.documentElement;
+    const existingSpacer = document.querySelector('[data-scroll-audit-spacer]');
+    if (existingSpacer) existingSpacer.remove();
+
+    const spacer = document.createElement('div');
+    spacer.setAttribute('data-scroll-audit-spacer', '1');
+    spacer.style.height = '1800px';
+    spacer.style.marginTop = '24px';
+    spacer.style.opacity = '0';
+    spacer.style.pointerEvents = 'none';
+    target.appendChild(spacer);
+
+    const doc = document.documentElement;
+    const rootOverflowY = window.getComputedStyle(doc).overflowY;
+    const bodyOverflowY = window.getComputedStyle(document.body).overflowY;
+    const targetOverflowY = window.getComputedStyle(target).overflowY;
+
+    const previousRootBehavior = doc.style.scrollBehavior;
+    const previousBodyBehavior = document.body.style.scrollBehavior;
+    doc.style.scrollBehavior = 'auto';
+    document.body.style.scrollBehavior = 'auto';
+    scroller.scrollTop = 0;
+    const before = scroller.scrollTop || 0;
+    scroller.scrollTop = scroller.scrollHeight;
+    const after = scroller.scrollTop || 0;
+    const maxScroll = Math.max(doc.scrollHeight - window.innerHeight, 0);
+
+    spacer.remove();
+    scroller.scrollTop = 0;
+    doc.style.scrollBehavior = previousRootBehavior;
+    document.body.style.scrollBehavior = previousBodyBehavior;
+
+    return {
+      before,
+      after,
+      maxScroll,
+      innerHeight: window.innerHeight,
+      rootOverflowY,
+      bodyOverflowY,
+      targetOverflowY,
+    };
+  }, scrollRootSelector);
+
+  expect(metrics.bodyOverflowY, `${label} body overflowY should not be hidden`).not.toBe('hidden');
+  expect(metrics.rootOverflowY, `${label} root overflowY should not be hidden`).not.toBe('hidden');
+  expect(
+    metrics.after,
+    `${label} did not vertically scroll after injected content (target overflowY=${metrics.targetOverflowY}, maxScroll=${metrics.maxScroll})`
+  ).toBeGreaterThan(200);
 }
 
 async function captureSurface(page, viewportName, surface, category) {
@@ -125,6 +189,23 @@ test.describe('UX visual QA', () => {
       await login(page);
       for (const surface of AUTHENTICATED_SURFACES) {
         await captureSurface(page, view.name, { ...surface, url: `${MANAGER_BASE_URL}${surface.url}` }, 'authenticated');
+      }
+
+      await context.close();
+    });
+
+    test(`${view.name}: authenticated scroll contract`, async ({ browser }) => {
+      const context = await newContext(browser, view);
+      const page = await context.newPage();
+
+      await login(page);
+      for (const surface of AUTHENTICATED_SCROLL_SURFACES) {
+        await page.goto(`${MANAGER_BASE_URL}${surface.url}`, { waitUntil: 'networkidle' });
+        await expect(page.getByText(surface.marker, { exact: false }).first()).toBeVisible();
+        await expect(page.locator('body')).not.toContainText('Server Error (500)');
+        await expect(page.locator('body')).not.toContainText('Traceback');
+        await assertNoHorizontalOverflow(page, `${view.name}:${surface.slug}`);
+        await assertVerticalShellScroll(page, `${view.name}:${surface.slug}`, surface.scrollRoot);
       }
 
       await context.close();

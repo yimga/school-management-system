@@ -50,7 +50,7 @@
             <strong class="cp-hero-stat-value">{{ north_star_formatted }}</strong>
             <span class="cp-hero-stat-subtitle">{{ revenue_snapshot_month|date:"F Y" }}</span>
           </div>
-          <a href="{% url 'super:create_school_wizard' %}" class="btn btn-primary cp-primary-action">Provision tenant</a>
+          <a href="{% url 'super:create_school_wizard' %}" class="btn btn-primary cp-primary-action">Tenant Studio</a>
           <div class="cp-action-row">
             <a href="{{ command_center_url|default:'#' }}" class="btn btn-outline-light btn-sm">Queues</a>
             <a href="{% url 'super:billing_dashboard' %}" class="btn btn-outline-light btn-sm">Billing</a>

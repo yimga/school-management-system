@@ -10,39 +10,41 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 body.portal-body-with-layout,
 body:has(.portal-layout-wrap) {
-  height: 100vh;
-  max-height: 100vh;
-  overflow: hidden;
+  height: auto;
+  max-height: none;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 body > nav.topbar,
 body > .topbar {
   flex-shrink: 0;
 }
 .portal-layout-wrap {
-  flex: 1 1 0;
-  min-height: 0;
-  overflow: hidden;
+  flex: 1 1 auto;
+  min-height: auto;
+  overflow: visible;
   display: flex;
   flex-direction: column;
 }
 @media (min-width: 992px) {
   .portal-layout-wrap {
     flex-direction: row;
+    align-items: flex-start;
   }
   .portal-layout-wrap .portal-layout-row {
-    flex: 0 0 auto;
+    flex: 1 1 auto;
   }
 }
 /* Main content: always scrollable so all page/dashboard content is reachable */
 .portal-layout-wrap .portal-main-col,
 .portal-layout-wrap #main-content {
-  flex: 1 1 0 !important;
-  min-height: 0 !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
+  flex: 1 1 auto !important;
+  min-height: auto !important;
+  overflow: visible !important;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
   padding-bottom: 2.5rem; /* breathing room so last section is not flush */
@@ -101,25 +103,27 @@ body.portal-backend-dark .portal-layout-wrap #main-content::-webkit-scrollbar-th
   }
 }
 .portal-layout-wrap .portal-layout-row {
-  min-height: 0;
-  overflow: hidden;
+  min-height: auto;
+  overflow: visible;
+  align-items: flex-start;
 }
 /* Sidebar column: fixed height, inner .sidebar scrolls */
 @media (min-width: 992px) {
   .portal-layout-wrap .portal-sidebar-col {
     display: flex;
     flex-direction: column;
-    min-height: 0;
-    overflow: hidden;
+    min-height: auto;
+    overflow: visible;
+    align-self: flex-start;
   }
   .portal-layout-wrap .portal-sidebar-col .sidebar {
-    flex: 1 1 0;
-    min-height: 0;
+    flex: 0 0 auto;
+    min-height: auto;
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
-    max-height: none; /* override inline max-height so flex controls height */
+    max-height: calc(100vh - var(--portal-shell-sticky-offset, 5rem) - 1.5rem);
     scrollbar-width: thin;
     scrollbar-color: rgba(15, 23, 42, 0.25) rgba(15, 23, 42, 0.04);
   }

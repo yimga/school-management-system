@@ -14,12 +14,12 @@
   --cp-shadow: 0 24px 80px rgba(3, 8, 18, 0.42);
 }
 
-.control-plane-shell {
+body.control-plane-shell {
   color: var(--cp-text);
   font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
 }
 
-.control-plane-shell .btn {
+body.control-plane-shell .btn {
   border-radius: 999px;
 }
 
@@ -633,15 +633,15 @@ a.cp-queue-card-header:hover {
 
 /* ========== Layout: sticky scrollable sidebar + scrollable main ========== */
 /* Body: full viewport flex column; one scrollable main area, sidebar fixed height and scrolls internally */
-.control-plane-shell {
+body.control-plane-shell {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  height: 100vh;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 /* Skip link: out of flow so flex layout has one growing child (cp-shell-content) */
-.control-plane-shell .skip-link {
+body.control-plane-shell .skip-link {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -652,49 +652,56 @@ a.cp-queue-card-header:hover {
   margin: -1px;
   padding: 0;
 }
-.control-plane-shell .cp-shell-content {
-  flex: 1 1 0;
-  min-height: 0;
+body.control-plane-shell .cp-shell-content {
+  flex: 1 1 auto;
+  min-height: auto;
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
   display: flex;
   flex-direction: column;
 }
-.control-plane-shell .cp-navbar {
+body.control-plane-shell .cp-navbar {
   flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 1030;
 }
 .cp-layout {
-  flex: 1 1 0;
-  min-height: 0;
-  overflow: hidden;
+  flex: 1 1 auto;
+  min-height: auto;
+  overflow: visible;
   min-width: 0;
   display: flex;
   flex-direction: column;
 }
 .cp-layout .row {
-  flex: 1 1 0;
-  min-height: 0;
-  overflow: hidden;
-  align-items: stretch;
+  flex: 1 1 auto;
+  min-height: auto;
+  overflow: visible;
+  align-items: flex-start;
   flex-wrap: nowrap;
 }
 /* Sidebar: sticky in layout; inner scrolls when content overflows */
 .cp-sidebar-col {
   min-width: 0;
-  min-height: 0; /* allow shrink so column is bounded by row height */
+  min-height: auto;
   position: relative;
   display: flex !important;
   flex-direction: column !important;
-  height: 100%;
-  max-height: 100%;
-  overflow: hidden !important;
+  height: auto;
+  max-height: none;
+  overflow: visible !important;
   flex-shrink: 0;
+  align-self: flex-start;
 }
 .cp-sidebar-col .cp-sidebar-inner {
+  position: sticky;
+  top: calc(var(--cp-shell-sticky-offset, 4.75rem) + 0.75rem);
+  max-height: calc(100vh - var(--cp-shell-sticky-offset, 4.75rem) - 1.5rem);
   overflow-y: auto !important;
   overflow-x: hidden !important;
-  flex: 1 1 0 !important;
-  min-height: 0 !important;
+  flex: 0 0 auto !important;
+  min-height: auto !important;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
@@ -735,11 +742,10 @@ a.cp-queue-card-header:hover {
 /* Main content column: must scroll when content overflows (viewport-bound via flex min-height: 0 chain) */
 .cp-main-col,
 #cp-main-content {
-  flex: 1 1 0 !important;
+  flex: 1 1 auto !important;
   min-width: 0 !important;
-  min-height: 0 !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
+  min-height: auto !important;
+  overflow: visible !important;
   overflow-wrap: break-word;
   padding-bottom: 2.5rem; /* breathing room so last section is not flush */
   scroll-behavior: smooth;
@@ -789,6 +795,7 @@ a.cp-queue-card-header:hover {
   }
   .cp-sidebar-col .cp-sidebar-inner {
     max-height: none;
+    position: static;
   }
 }
 

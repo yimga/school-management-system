@@ -1115,11 +1115,11 @@ def super_dashboard_v2(request):
             "cta": "Health hub",
         },
         {
-            "title": "Create school",
+            "title": "Tenant Studio",
             "metric": registry_counts["education_system_types"],
             "meta": "Registry-backed onboarding with branding and control-plane defaults",
             "url": reverse("super:create_school_wizard"),
-            "cta": "Provision tenant",
+            "cta": "Open tenant studio",
         },
     ]
     readiness_cards = [

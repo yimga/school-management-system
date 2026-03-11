@@ -151,3 +151,22 @@ class SuperCommandCenterTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Metadata Catalog")
         self.assertContains(response, "Platform catalog")
+
+    def test_super_tenant_studio_route_renders(self):
+        response = self.client.get("/super/create/", HTTP_HOST="manager.runmycampus.com")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Tenant Studio")
+        self.assertContains(response, "Create Tenant")
+
+    def test_super_scroll_sensitive_routes_render(self):
+        surfaces = [
+            ("/super/marketplace/", "Marketplace governance"),
+            ("/super/workflow-packs/", "Workflow Packs"),
+            ("/super/dashboard-packs/", "Dashboard Packs"),
+            ("/super/marketplace/blueprints/", "Blueprint marketplace"),
+        ]
+        for path, marker in surfaces:
+            with self.subTest(path=path):
+                response = self.client.get(path, HTTP_HOST="manager.runmycampus.com")
+                self.assertEqual(response.status_code, 200)
+                self.assertContains(response, marker)

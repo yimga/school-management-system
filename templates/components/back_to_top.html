@@ -47,11 +47,20 @@
     var scrollThreshold = 400;
     var btn = document.getElementById('back-to-top-btn');
     if (!btn) return;
+    function isScrollable(el) {
+      if (!el) return false;
+      var style = window.getComputedStyle(el);
+      var overflowY = style.overflowY;
+      var canScroll = overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay';
+      return canScroll && el.scrollHeight > el.clientHeight + 1;
+    }
     function getScrollContainer() {
       var main = document.getElementById('main');
-      if (main && main.scrollHeight > main.clientHeight) return main;
+      if (isScrollable(main)) return main;
       var cpMain = document.getElementById('cp-main-content') || document.querySelector('.cp-main-col');
-      if (cpMain && cpMain.scrollHeight > cpMain.clientHeight) return cpMain;
+      if (isScrollable(cpMain)) return cpMain;
+      var portalMain = document.getElementById('main-content') || document.querySelector('.portal-main-col');
+      if (isScrollable(portalMain)) return portalMain;
       return null;
     }
     function getScrollTop(container) {
