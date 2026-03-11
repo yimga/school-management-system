@@ -9,6 +9,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
+OPTIONAL_EXTRACTION_ERRORS = (AttributeError, OSError, RuntimeError, TypeError, ValueError)
 
 
 class DocumentExtractionProvider(ABC):
@@ -39,7 +40,7 @@ class TesseractDocumentExtractionProvider(DocumentExtractionProvider):
             if self._cmd:
                 pytesseract.pytesseract.tesseract_cmd = self._cmd
             self._configured = True
-        except Exception:
+        except (ImportError, AttributeError, OSError, RuntimeError, TypeError, ValueError):
             pass
 
     def is_available(self) -> bool:
@@ -48,7 +49,7 @@ class TesseractDocumentExtractionProvider(DocumentExtractionProvider):
             self._configure()
             pytesseract.get_tesseract_version()
             return True
-        except Exception:
+        except (ImportError, AttributeError, OSError, RuntimeError, TypeError, ValueError):
             return False
 
     def extract_text(self, image: Any) -> str:
@@ -59,7 +60,7 @@ class TesseractDocumentExtractionProvider(DocumentExtractionProvider):
                 from PIL import Image
                 image = Image.open(image)
             return pytesseract.image_to_string(image, lang="eng") or ""
-        except Exception as e:
+        except (ImportError, AttributeError, OSError, RuntimeError, TypeError, ValueError) as e:
             logger.warning("Tesseract extract_text failed: %s", e)
             return ""
 
@@ -99,7 +100,7 @@ class GoogleVisionDocumentExtractionProvider(DocumentExtractionProvider):
         except ImportError:
             logger.warning("google-cloud-vision not installed")
             return ""
-        except Exception as e:
+        except (AttributeError, OSError, RuntimeError, TypeError, ValueError) as e:
             logger.warning("Google Vision extract_text failed: %s", e)
             return ""
 
@@ -134,7 +135,7 @@ class AWSTextractDocumentExtractionProvider(DocumentExtractionProvider):
         except ImportError:
             logger.warning("boto3 not installed")
             return ""
-        except Exception as e:
+        except (AttributeError, OSError, RuntimeError, TypeError, ValueError) as e:
             logger.warning("AWS Textract extract_text failed: %s", e)
             return ""
 

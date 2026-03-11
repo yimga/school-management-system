@@ -1,10 +1,19 @@
-from django.db.models.signals import pre_save, post_save, post_delete
-from django.dispatch import receiver
-from .models import SiteSettings, ThemePack, TenantSystem
-from django.contrib.auth import get_user_model
 import logging
 
+from django.db.models.signals import post_delete, post_save, pre_save
+from django.dispatch import receiver
+
+from .models import SiteSettings, TenantSystem, ThemePack
+
 logger = logging.getLogger("siteconfig.audit")
+SIGNAL_SOFT_FAILURES = (
+    AttributeError,
+    ImportError,
+    LookupError,
+    RuntimeError,
+    TypeError,
+    ValueError,
+)
 
 # Helper to get changed fields
 
@@ -24,7 +33,7 @@ def get_changed_fields(instance):
         try:
             old_val = getattr(old, attr, None)
             new_val = getattr(instance, attr, None)
-        except Exception:
+        except (AttributeError, TypeError, ValueError):
             continue
         if old_val != new_val:
             changes[fname] = (old_val, new_val)
@@ -52,7 +61,7 @@ def invalidate_effective_site_settings_runtime_cache(sender, instance, **kwargs)
         from apps.platform_runtime.helpers import invalidate_effective_site_settings_cache
 
         invalidate_effective_site_settings_cache()
-    except Exception as exc:
+    except SIGNAL_SOFT_FAILURES as exc:
         logger.debug("invalidate_effective_site_settings_cache: %s", exc)
 
 
@@ -68,7 +77,7 @@ def sync_school_features_on_tenant_system(sender, instance, **kwargs):
             school = School.objects.filter(pk=school_id).first()
             if school:
                 sync_tenant_modules_to_school_features(school, persist=True)
-    except Exception as e:
+    except SIGNAL_SOFT_FAILURES as e:
         logger.debug("sync_tenant_modules_to_school_features after TenantSystem change: %s", e)
 
 
@@ -89,7 +98,7 @@ def _on_workflow_pack_assignment_save(sender, instance, created, **kwargs):
             payload_sections={"workflow": {"module_slug": getattr(instance, "module_slug", "")}},
             mode="production",
         )
-    except Exception as e:
+    except SIGNAL_SOFT_FAILURES as e:
         logger.debug("PackageEngine after WorkflowPackAssignment: %s", e)
 
 
@@ -109,7 +118,7 @@ def _on_dashboard_pack_assignment_save(sender, instance, created, **kwargs):
             payload_sections={"dashboard": {"role": getattr(instance, "role", "")}},
             mode="production",
         )
-    except Exception as e:
+    except SIGNAL_SOFT_FAILURES as e:
         logger.debug("PackageEngine after DashboardPackAssignment: %s", e)
 
 
@@ -119,5 +128,5 @@ def _connect_pack_assignment_signals():
         from .models_dashboard import DashboardPackAssignment
         post_save.connect(_on_workflow_pack_assignment_save, sender=WorkflowPackAssignment, weak=False)
         post_save.connect(_on_dashboard_pack_assignment_save, sender=DashboardPackAssignment, weak=False)
-    except Exception:
+    except (AttributeError, ImportError, RuntimeError):
         pass

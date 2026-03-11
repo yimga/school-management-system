@@ -2,11 +2,24 @@
 Minimal workflow execution engine (Part 2c). Evaluates conditions and runs actions; logs each run.
 """
 import logging
+from smtplib import SMTPException
 from typing import Any
 
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
+WORKFLOW_SOFT_FAILURES = (
+    AttributeError,
+    ImportError,
+    LookupError,
+    RuntimeError,
+    TypeError,
+    ValueError,
+)
+
+
+class WorkflowActionExecutionError(RuntimeError):
+    """Raised when a workflow action fails but execution should degrade safely."""
 
 
 def evaluate_conditions(conditions: list, context: dict) -> bool:
@@ -65,9 +78,9 @@ def _run_action_notify(params: dict, context: dict, school=None) -> None:
                 school=school,
                 fail_silently=True,
             )
-        except Exception as e:
+        except (*WORKFLOW_SOFT_FAILURES, SMTPException) as e:
             logger.warning("Workflow notify email failed: %s", e)
-            raise
+            raise WorkflowActionExecutionError(str(e)) from e
     # In-app / push can be wired here via notification backend
     return
 
@@ -89,9 +102,9 @@ def _run_action_emit_event(params: dict, context: dict, school=None) -> None:
             school_id=school_id,
             schema_name=schema_name,
         )
-    except Exception as e:
+    except WORKFLOW_SOFT_FAILURES as e:
         logger.warning("Workflow emit_event failed: %s", e)
-        raise
+        raise WorkflowActionExecutionError(str(e)) from e
 
 
 def run_actions(actions: list, context: dict, school=None) -> list:
@@ -128,7 +141,7 @@ def run_actions(actions: list, context: dict, school=None) -> list:
                 "params": params,
                 "run_at": timezone.now().isoformat(),
             })
-        except Exception as e:
+        except WorkflowActionExecutionError as e:
             logger.warning("Workflow action failed: type=%s error=%s", action_type, e)
             results.append({
                 "type": action_type,
@@ -204,7 +217,7 @@ def run_workflow(tenant_workflow, context: dict) -> dict:
                 context_keys=context_keys,
             )
             audit_ref = str(log.id)
-        except Exception as e:
+        except WORKFLOW_SOFT_FAILURES as e:
             logger.warning("WorkflowRunLog create failed: %s", e)
         return {"ok": True, "conditions_passed": False, "actions_run": [], "audit_ref": audit_ref}
 
@@ -221,7 +234,7 @@ def run_workflow(tenant_workflow, context: dict) -> dict:
             context_keys=context_keys,
         )
         audit_ref = str(log.id)
-    except Exception as e:
+    except WORKFLOW_SOFT_FAILURES as e:
         logger.warning("WorkflowRunLog create failed: %s", e)
     try:
         from apps.schools.models import SchoolProvisioningEvent
@@ -233,7 +246,7 @@ def run_workflow(tenant_workflow, context: dict) -> dict:
                 message=f"Workflow {template.code} ran; {len(actions_run)} action(s).",
                 payload={"template": template.code, "actions_run": actions_run, "context_keys": context_keys},
             )
-    except Exception as e:
+    except WORKFLOW_SOFT_FAILURES as e:
         logger.warning("Workflow audit log failed: %s", e)
 
     # Section 11.4: Record workflow failure for customer success (health, auto-ticket)
@@ -249,7 +262,7 @@ def run_workflow(tenant_workflow, context: dict) -> dict:
                 error_summary=error_summary or "One or more actions failed",
                 payload={"actions_run": actions_run},
             )
-        except Exception as e:
+        except WORKFLOW_SOFT_FAILURES as e:
             logger.warning("Workflow failure event record failed: %s", e)
 
     return {
@@ -279,7 +292,7 @@ def run_workflows_for_trigger(school, trigger_type: str, context: dict) -> list:
         try:
             r = run_workflow(tw, context)
             results.append({"tenant_workflow_id": tw.pk, "template_code": tw.template.code, **r})
-        except Exception as e:
+        except WORKFLOW_SOFT_FAILURES as e:
             logger.warning("run_workflow failed: tw=%s error=%s", tw.pk, e)
             results.append({
                 "tenant_workflow_id": tw.pk,

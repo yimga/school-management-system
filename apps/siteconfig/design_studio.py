@@ -3,10 +3,12 @@ Phase F: Design Studio — hydrate DesignTemplate layout with context and render
 One document type (e.g. certificate) first; extend to report_card and others.
 """
 import logging
+
 from django.template import Context, Template
 from django.http import HttpResponse
 
 logger = logging.getLogger(__name__)
+OPTIONAL_DESIGN_STUDIO_ERRORS = (AttributeError, OSError, RuntimeError, TypeError, ValueError)
 
 
 def render_template_to_html(template, context: dict) -> str:
@@ -34,7 +36,7 @@ def render_template_to_pdf(template, context: dict, base_url: str | None = None)
     try:
         from weasyprint import HTML
         return HTML(string=html, base_url=base_url or "/").write_pdf()
-    except Exception as e:
+    except (ImportError, AttributeError, OSError, RuntimeError, TypeError, ValueError) as e:
         logger.warning("Design Studio PDF render failed: %s", e)
         return None
 

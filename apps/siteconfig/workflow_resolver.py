@@ -9,9 +9,14 @@ from __future__ import annotations
 
 from typing import Any
 
-from django.contrib.auth import get_user_model
-
-User = get_user_model()
+WORKFLOW_RESOLVER_SOFT_FAILURES = (
+    AttributeError,
+    ImportError,
+    LookupError,
+    RuntimeError,
+    TypeError,
+    ValueError,
+)
 
 
 def for_action(school, action_slug: str) -> dict[str, Any]:
@@ -45,7 +50,7 @@ def for_action(school, action_slug: str) -> dict[str, Any]:
                 "actions": tw.template.actions or [],
                 "overrides": tw.overrides or {},
             }
-    except Exception:
+    except WORKFLOW_RESOLVER_SOFT_FAILURES:
         pass
     return {}
 
@@ -71,7 +76,7 @@ def get_approval_workflow(school, workflow_key: str) -> dict[str, Any]:
             "approver_ids": [u.pk for u in approvers],
             "approver_count": len(approvers),
         }
-    except Exception:
+    except WORKFLOW_RESOLVER_SOFT_FAILURES:
         return {
             "type": "approval",
             "workflow_key": workflow_key,

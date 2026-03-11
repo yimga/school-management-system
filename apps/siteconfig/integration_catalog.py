@@ -13,6 +13,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
+from django.db import DatabaseError
+
 # Service key → config schema and provider/category for API Center
 INTEGRATION_CATALOG: dict[str, dict[str, Any]] = {
     "whatsapp": {
@@ -174,7 +176,7 @@ def check_integration_guardrail(
     if usage_getter:
         try:
             today_count, last_ts = usage_getter(school_id, service_key)
-        except Exception:
+        except (AttributeError, DatabaseError, RuntimeError, TypeError, ValueError):
             pass
 
     if daily_cap is not None and today_count >= daily_cap:

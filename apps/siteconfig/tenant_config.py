@@ -12,9 +12,20 @@ import logging
 from copy import deepcopy
 from typing import Any
 
-from django.db.models import QuerySet
+from django.core.exceptions import ObjectDoesNotExist
+from django.db.utils import DatabaseError
 
 logger = logging.getLogger(__name__)
+SOFT_TENANT_CONFIG_ERRORS = (
+    AttributeError,
+    DatabaseError,
+    ImportError,
+    LookupError,
+    ObjectDoesNotExist,
+    RuntimeError,
+    TypeError,
+    ValueError,
+)
 
 
 def get_tenant_modules(school) -> list[str]:
@@ -37,7 +48,7 @@ def get_tenant_modules(school) -> list[str]:
         for app in (cfg.get("required_apps") or []):
             if app and isinstance(app, str):
                 keys.add(app.strip().lower())
-    except Exception:
+    except SOFT_TENANT_CONFIG_ERRORS:
         pass
 
     try:
@@ -98,7 +109,7 @@ def get_compliance_region(school) -> str | None:
                 return "US"
             if code == "NG":
                 return "NDPR"
-    except Exception:
+    except SOFT_TENANT_CONFIG_ERRORS:
         pass
     return None
 
@@ -202,7 +213,7 @@ def get_tenant_locale(request=None, school=None) -> dict[str, Any]:
             if ui_cfg.get("timezone"):
                 out["timezone"] = ui_cfg["timezone"]
                 out["default_timezone"] = ui_cfg["timezone"]
-    except Exception:
+    except SOFT_TENANT_CONFIG_ERRORS:
         pass
 
     try:
@@ -276,7 +287,7 @@ def get_tenant_locale(request=None, school=None) -> dict[str, Any]:
                     out["date_format"] = getattr(region, "date_format", None) or out["date_format"]
                 if not out.get("grading_scale"):
                     out["grading_scale"] = getattr(region, "grading_scale", None) or out["grading_scale"]
-        except Exception:
+        except SOFT_TENANT_CONFIG_ERRORS:
             pass
 
     out["default_timezone"] = out.get("timezone") or out.get("default_timezone") or "UTC"
@@ -323,7 +334,7 @@ def get_report_template_family_for_school(school) -> str:
             profile = EducationSystemProfile.objects.filter(id=system_ids[0]).first()
             if profile and isinstance(getattr(profile, "config", None), dict):
                 return (profile.config.get("report_template_family") or profile.config.get("report_template") or "").strip()
-    except Exception:
+    except SOFT_TENANT_CONFIG_ERRORS:
         pass
     return ""
 
@@ -353,7 +364,7 @@ def get_grading_schema_for_school(school) -> dict[str, Any]:
                 cfg = profile.config
                 out["grade_bands"] = cfg.get("grade_bands") or cfg.get("letter_bands")
                 out["pass_mark"] = cfg.get("pass_mark") or cfg.get("pass_threshold")
-    except Exception:
+    except SOFT_TENANT_CONFIG_ERRORS:
         pass
     return out
 
@@ -390,7 +401,7 @@ def format_date_tenant(dt, request=None, school=None) -> str:
     fmt = pattern.replace("YYYY", "Y").replace("DD", "d").replace("MM", "m")
     try:
         return dateformat.format(dt, fmt)
-    except Exception:
+    except (AttributeError, TypeError, ValueError):
         return str(dt)
 
 
@@ -435,7 +446,7 @@ def sync_tenant_modules_to_school_features(school, *, persist: bool = True) -> d
         try:
             from apps.policies.policy_registry import invalidate_policy_cache
             invalidate_policy_cache(school)
-        except Exception:
+        except SOFT_TENANT_CONFIG_ERRORS:
             pass
     return features
 
@@ -653,7 +664,7 @@ def compile_effective_tenant_config(
     try:
         from apps.siteconfig.education_profile_engine import resolve_profile_for_school
         profile = resolve_profile_for_school(school, auto_create=True)
-    except Exception:
+    except SOFT_TENANT_CONFIG_ERRORS:
         profile = None
     if profile:
         profile_values = {
@@ -770,7 +781,7 @@ def persist_compiled_tenant_config(
     try:
         from apps.policies.policy_registry import invalidate_policy_cache
         invalidate_policy_cache(school)
-    except Exception:
+    except SOFT_TENANT_CONFIG_ERRORS:
         pass
     return compiled
 
@@ -833,7 +844,7 @@ def apply_tenant_settings_overrides(
         try:
             from apps.policies.policy_registry import invalidate_policy_cache
             invalidate_policy_cache(school)
-        except Exception:
+        except SOFT_TENANT_CONFIG_ERRORS:
             pass
         saved = True
 

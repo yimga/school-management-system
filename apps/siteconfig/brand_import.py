@@ -8,11 +8,15 @@ from html.parser import HTMLParser
 from urllib.parse import urljoin, urlparse
 
 import requests
+from django.db import DatabaseError
+from apps.brand_experience.models import ThemePack
 
 logger = logging.getLogger(__name__)
 
 DEFAULT_TIMEOUT = 10
 USER_AGENT = "RunMyCampus-BrandImport/1.0"
+OPTIONAL_BRAND_IMPORT_ERRORS = (AttributeError, DatabaseError, ImportError, TypeError, ValueError)
+OPTIONAL_BRAND_PARSE_ERRORS = (AttributeError, TypeError, ValueError, re.error)
 
 
 class MetaParser(HTMLParser):
@@ -70,7 +74,7 @@ def fetch_and_parse_brand_url(url: str, timeout: int = DEFAULT_TIMEOUT) -> dict:
         if parsed.scheme not in ("http", "https") or not parsed.netloc:
             result["error"] = "Invalid URL"
             return result
-    except Exception as e:
+    except OPTIONAL_BRAND_PARSE_ERRORS:
         result["error"] = "Invalid URL"
         return result
 
@@ -88,7 +92,7 @@ def fetch_and_parse_brand_url(url: str, timeout: int = DEFAULT_TIMEOUT) -> dict:
         logger.warning("Brand import fetch failed: %s", e)
         result["error"] = "Could not fetch URL. Check the address and try again."
         return result
-    except Exception as e:
+    except (AttributeError, TypeError, ValueError) as e:
         logger.exception("Brand import unexpected error")
         result["error"] = "Import failed. Use manual upload instead."
         return result
@@ -106,20 +110,17 @@ def fetch_and_parse_brand_url(url: str, timeout: int = DEFAULT_TIMEOUT) -> dict:
             m = re.search(r"<title[^>]*>([^<]+)</title>", html, re.I | re.DOTALL)
             if m:
                 result["site_name"] = (m.group(1).strip() or "")[:200] or None
-    except Exception as e:
+    except OPTIONAL_BRAND_PARSE_ERRORS as e:
         logger.warning("Brand import parse failed: %s", e)
         result["error"] = "Could not read page. Use manual upload instead."
 
     # Suggest a theme pack (metadata plan todo 7: brand import assistant).
     try:
-        from django.apps import apps
-        if apps.is_installed("siteconfig"):
-            ThemePack = apps.get_model("siteconfig", "ThemePack")
-            default = ThemePack.objects.filter(is_active=True).order_by("-is_default", "name").first()
-            if default:
-                result["suggested_theme_pack_slug"] = getattr(default, "slug", None) or ""
-                result["suggested_theme_pack_name"] = getattr(default, "name", None) or ""
-    except Exception:
+        default = ThemePack.objects.filter(is_active=True).order_by("-is_default", "name").first()
+        if default:
+            result["suggested_theme_pack_slug"] = getattr(default, "slug", None) or ""
+            result["suggested_theme_pack_name"] = getattr(default, "name", None) or ""
+    except OPTIONAL_BRAND_IMPORT_ERRORS:
         result["suggested_theme_pack_slug"] = None
         result["suggested_theme_pack_name"] = None
 
