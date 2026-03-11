@@ -97,10 +97,10 @@
     <style>
                               {% if PUBLIC_BRAND_MODE %}
                               :root {
-                                --school-primary: #0B0E14;
-                                --school-accent: #d4af37;
-                                --platform-navy: #0B0E14;
-                                --platform-gold: #d4af37;
+                                --school-primary: var(--public-brand-school-primary, #0B0E14);
+                                --school-accent: var(--public-brand-school-accent, #d4af37);
+                                --platform-navy: var(--public-brand-platform-navy, #0B0E14);
+                                --platform-gold: var(--public-brand-platform-gold, #d4af37);
                               }
                               {% elif SITE %}
                               :root {
@@ -222,14 +222,14 @@
       body {
         font-family: var(--school-font), system-ui, sans-serif;
         {% if SITE_BASE_FONT_SIZE %}font-size: var(--base-font-size);{% endif %}
-        background: linear-gradient(135deg, rgba(13,110,253,.08), rgba(25,135,84,.05));
+        background: linear-gradient(135deg, var(--base-body-bg-start, rgba(13,110,253,.08)), var(--base-body-bg-end, rgba(25,135,84,.05)));
         color: var(--admin-content-text);
       }
       body.host-kind-manager {
-        background: radial-gradient(circle at 15% 20%, rgba(52, 211, 153, 0.16), transparent 35%),
-                    radial-gradient(circle at 85% 0%, rgba(14, 165, 233, 0.14), transparent 30%),
-                    rgb(15 23 42);
-        color: rgb(226 232 240);
+        background: radial-gradient(circle at 15% 20%, var(--manager-body-accent-a, rgba(52, 211, 153, 0.16)), transparent 35%),
+                    radial-gradient(circle at 85% 0%, var(--manager-body-accent-b, rgba(14, 165, 233, 0.14)), transparent 30%),
+                    var(--manager-body-bg, rgb(15 23 42));
+        color: var(--manager-body-fg, rgb(226 232 240));
       }
 
       .navbar {
@@ -282,8 +282,8 @@
         left: -999px;
         top: 0;
         padding: 0.5rem 0.75rem;
-        background: rgb(15 23 42);
-        color: rgb(249 250 251);
+        background: var(--skip-link-bg, rgb(15 23 42));
+        color: var(--skip-link-fg, rgb(249 250 251));
         z-index: 2000;
       }
       .skip-link:focus {
@@ -296,12 +296,12 @@
         border: 0;
         border-radius: 16px;
         transition: transform .2s ease, box-shadow .2s ease;
-        background: rgba(255, 255, 255, 0.95);
+        background: var(--base-card-bg, rgba(255, 255, 255, 0.95));
       }
 
       .card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 10px 20px rgba(0,0,0,.10);
+        box-shadow: 0 10px 20px var(--base-card-hover-shadow, rgba(0,0,0,.10));
       }
 
       /* Make alerts readable in dark mode */

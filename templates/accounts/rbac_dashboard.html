@@ -20,9 +20,9 @@
   }
   html[data-bs-theme="dark"] #rbac-page .rbac-badge,
   body.portal-backend-dark #rbac-page .rbac-badge {
-    border-color: rgba(148, 163, 184, 0.45);
-    background: rgba(30, 41, 59, 0.72) !important;
-    color: #e2e8f0 !important;
+    border-color: var(--rbac-badge-dark-border, rgba(148, 163, 184, 0.45));
+    background: var(--rbac-badge-dark-bg, rgba(30, 41, 59, 0.72)) !important;
+    color: var(--rbac-badge-dark-fg, #e2e8f0) !important;
   }
 
   /* Roles wrapper: CSS grid - clean columns, no spill */

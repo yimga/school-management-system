@@ -1,6 +1,6 @@
-# Preview System – Site Settings & System Configuration
+# Preview System – Platform-Wide Live Preview (Site Settings & System Configuration)
 
-How preview works across the app and how to extend it for any site-setting or system-config section. Preview is heavily used when editing **Site Settings** (header, footer, theme, branding, etc.) so admins can see exactly which parts of the site their changes affect.
+This is the **platform-wide Live Preview** system for site settings and system configuration. Any section can participate (see **`docs/PLATFORM_LIVE_PREVIEW.md`** for the single contract and how report/Setup Studio previews fit in). The following describes how full-page config preview works and how to extend it for any site-setting or system-config section. Preview is heavily used when editing **Site Settings** (header, footer, theme, branding, etc.) so admins can see exactly which parts of the site their changes affect.
 
 ---
 
@@ -115,6 +115,8 @@ In the Site Settings (or other) form, when the user clicks Preview, send that va
 
 | File | Role |
 |------|------|
+| **`docs/PLATFORM_LIVE_PREVIEW.md`** | **Platform-wide live preview:** one contract; config, report, Setup Studio; how to add sections; reusable button. |
+| **`templates/components/live_preview_button.html`** | **Reusable Live preview button** for any form using `preview_from_form`; pass `preview_section`, optional `form_id`, `show_keep_checkbox`. |
 | `apps/siteconfig/views.py` | `preview_from_form`: reads `preview_section`, appends it to redirect URL. |
 | `apps/accounts/views.py` | `redirect_view`: preserves GET params (e.g. `preview_section`) to final URL. |
 | `templates/portal_base.html` | Loads `preview-highlights.css` and `preview-highlights.js` when `SITE.is_preview`; banner with Save / Back / Discard. |

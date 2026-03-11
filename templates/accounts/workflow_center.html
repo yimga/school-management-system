@@ -12,8 +12,8 @@
 </script>
 <style>
   .workflow-hero {
-    background: linear-gradient(135deg, rgba(102,126,234,0.14), rgba(118,75,162,0.12));
-    border: 1px solid rgba(148,163,184,0.22);
+    background: linear-gradient(135deg, var(--workflow-hero-bg-start, rgba(102,126,234,0.14)), var(--workflow-hero-bg-end, rgba(118,75,162,0.12)));
+    border: 1px solid var(--workflow-hero-border, rgba(148,163,184,0.22));
     border-radius: 18px;
     padding: 1.25rem 1.25rem;
     margin-bottom: 1rem;
@@ -26,7 +26,7 @@
     gap: 0.75rem;
     margin-top: 0.75rem;
     padding-top: 0.75rem;
-    border-top: 1px solid rgba(148,163,184,0.2);
+    border-top: 1px solid var(--workflow-progress-divider, rgba(148,163,184,0.2));
   }
   .workflow-progress-summary .badge {
     font-size: 0.8rem;
@@ -41,7 +41,7 @@
     border: 1px solid var(--admin-border);
     border-radius: 18px;
     background: var(--admin-surface);
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    box-shadow: 0 8px 24px var(--workflow-card-shadow, rgba(15, 23, 42, 0.06));
     overflow: hidden;
   }
   .workflow-card .card-body { padding: 1.1rem 1.1rem; }
@@ -59,13 +59,13 @@
   .workflow-step-icon { font-size: 1.25rem; color: var(--brand-primary); margin-right: 0.5rem; }
   .workflow-step-meta { font-size: 0.8rem; color: var(--admin-muted); margin-bottom: 0.35rem; }
   .workflow-tip {
-    font-size: 0.85rem; color: var(--admin-muted); background: rgba(99, 102, 241, 0.08);
+    font-size: 0.85rem; color: var(--admin-muted); background: var(--workflow-tip-bg, rgba(99, 102, 241, 0.08));
     border-left: 3px solid var(--brand-primary); padding: 0.4rem 0.6rem; border-radius: 0 8px 8px 0; margin-top: 0.5rem;
   }
   .workflow-quick-jump { font-size: 0.9rem; }
   .workflow-quick-jump a { text-decoration: none; color: var(--admin-muted); }
   .workflow-quick-jump a:hover { color: var(--brand-primary); }
-  .workflow-progress-bar { height: 6px; border-radius: 3px; background: rgba(148, 163, 184, 0.25); }
+  .workflow-progress-bar { height: 6px; border-radius: 3px; background: var(--workflow-progress-bar-bg, rgba(148, 163, 184, 0.25)); }
   @media (max-width: 575px) {
     .workflow-hero { padding: 1rem; }
     .workflow-grid { grid-template-columns: 1fr; }
@@ -112,7 +112,7 @@
     </div>
     {% endif %}
     {% if steps %}
-    <div class="workflow-quick-jump mt-2 pt-2" style="border-top: 1px solid rgba(148,163,184,0.2);">
+    <div class="workflow-quick-jump mt-2 pt-2" style="border-top: 1px solid var(--workflow-quick-jump-divider, rgba(148,163,184,0.2));">
       <span class="text-muted me-2">Jump to:</span>
       {% for step in steps %}
         <a href="#step-{{ step.step_key }}" class="me-2"><i class="bi {{ step.icon|default:'bi-circle' }} me-1"></i>{{ step.title }}</a>
@@ -163,4 +163,3 @@
   </div>
 </div>
 {% endblock %}
-
