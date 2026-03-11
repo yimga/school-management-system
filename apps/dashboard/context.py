@@ -206,6 +206,7 @@ ROLE_HOME_CONFIG = {
         "eyebrow": "Principal home",
         "title": "Lead with status and decisions",
         "purpose": "See academic, people, finance, and launch signals without reconstructing the story from separate pages.",
+        "focus_areas": ["School pulse", "Decision queue", "Escalations"],
         "default_intent": "executive",
         "queue_label": "Decision queue",
         "next_label": "Recommended next",
@@ -218,6 +219,7 @@ ROLE_HOME_CONFIG = {
         "eyebrow": "Teacher home",
         "title": "Stay focused on class outcomes",
         "purpose": "This role home favors grading, attendance, and classroom actions over admin navigation.",
+        "focus_areas": ["Class flow", "Assessment", "Family communication"],
         "default_intent": "academic",
         "queue_label": "Academic queue",
         "next_label": "Teaching next steps",
@@ -230,6 +232,7 @@ ROLE_HOME_CONFIG = {
         "eyebrow": "Admissions home",
         "title": "Move applicants into active enrollment",
         "purpose": "Keep enrollment, onboarding, and records flowing without bouncing across utility pages.",
+        "focus_areas": ["Applicant flow", "Onboarding", "Record quality"],
         "default_intent": "operational",
         "queue_label": "Admissions queue",
         "next_label": "Enrollment next",
@@ -242,6 +245,7 @@ ROLE_HOME_CONFIG = {
         "eyebrow": "Finance home",
         "title": "Collections and approvals first",
         "purpose": "Every block in this mode is tuned for payment health, approvals, and billing follow-through.",
+        "focus_areas": ["Collections", "Approvals", "Reconciliation"],
         "default_intent": "finance",
         "queue_label": "Collections queue",
         "next_label": "Finance next",
@@ -254,6 +258,7 @@ ROLE_HOME_CONFIG = {
         "eyebrow": "District leader home",
         "title": "See school health before drilling down",
         "purpose": "Monitor cross-team movement and intervene only where the platform shows risk or friction.",
+        "focus_areas": ["Portfolio pulse", "Priority risks", "Cross-school movement"],
         "default_intent": "executive",
         "queue_label": "Leadership queue",
         "next_label": "Leadership next",
@@ -266,6 +271,7 @@ ROLE_HOME_CONFIG = {
         "eyebrow": "Implementation home",
         "title": "Launch readiness is the main job",
         "purpose": "Use Setup Studio, queue health, and role previews to remove launch blockers in the right order.",
+        "focus_areas": ["Blueprint", "Preview", "Launch readiness"],
         "default_intent": "setup",
         "queue_label": "Launch blockers",
         "next_label": "Launch next",
@@ -278,6 +284,7 @@ ROLE_HOME_CONFIG = {
         "eyebrow": "Parent home",
         "title": "One place for family follow-through",
         "purpose": "Stay on top of attendance, grades, fees, and messages without chasing separate tools.",
+        "focus_areas": ["Child context", "Fees", "Messages"],
         "default_intent": "operational",
         "queue_label": "Family queue",
         "next_label": "Family next",
@@ -290,6 +297,7 @@ ROLE_HOME_CONFIG = {
         "eyebrow": "Student home",
         "title": "Keep learning work obvious",
         "purpose": "Assignments, results, and resources should feel like one path instead of separate utilities.",
+        "focus_areas": ["Schedule", "Deadlines", "Progress"],
         "default_intent": "academic",
         "queue_label": "Student queue",
         "next_label": "Student next",
@@ -386,6 +394,38 @@ def _prioritize_destinations(
         if item not in prioritized and _remember(item):
             prioritized.append(item)
     return prioritized[:5]
+
+
+def _select_role_home_actions(
+    dashboard_next_best_actions: list[Dict[str, Any]],
+    primary_ctas: list[Dict[str, Any]],
+    role_home_destinations: list[Dict[str, Any]],
+) -> tuple[Dict[str, Any] | None, list[Dict[str, Any]]]:
+    combined = _dedupe_nav_items(
+        list(dashboard_next_best_actions or []) + list(primary_ctas or []) + list(role_home_destinations or [])
+    )
+    primary_action = combined[0] if combined else None
+    supporting_actions: list[Dict[str, Any]] = []
+    seen: set[tuple[str, str]] = set()
+    if primary_action:
+        seen.add(
+            (
+                str(primary_action.get("label", "") or "").strip().lower(),
+                str(primary_action.get("url", "") or "").strip().lower(),
+            )
+        )
+    for item in combined[1:]:
+        key = (
+            str(item.get("label", "") or "").strip().lower(),
+            str(item.get("url", "") or "").strip().lower(),
+        )
+        if key in seen:
+            continue
+        seen.add(key)
+        supporting_actions.append(item)
+        if len(supporting_actions) >= 3:
+            break
+    return primary_action, supporting_actions
 
 
 def _select_kpis_for_intent(kpis: list[Dict[str, Any]], intent: str) -> list[Dict[str, Any]]:
@@ -911,6 +951,11 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
             }
             for item in contextual_actions[:3]
         ]
+    role_home_primary_action, role_home_supporting_actions = _select_role_home_actions(
+        dashboard_next_best_actions,
+        primary_ctas,
+        role_home_destinations,
+    )
     dashboard_contract = {
         "dominant_purpose": role_home["purpose"],
         "primary_action_count": len(primary_ctas[:1]),
@@ -952,6 +997,9 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
         "backend_intent_emphasize_setup": intent == "setup",
         "contextual_actions": contextual_actions,
         "role_home": role_home,
+        "role_home_focus_areas": list(role_home.get("focus_areas") or []),
+        "role_home_primary_action": role_home_primary_action,
+        "role_home_supporting_actions": role_home_supporting_actions,
         "role_home_destinations": role_home_destinations,
         "dashboard_priority_queue": dashboard_priority_queue,
         "dashboard_recent_activity": dashboard_recent_activity,

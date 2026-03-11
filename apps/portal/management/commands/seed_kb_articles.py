@@ -86,7 +86,7 @@ class Command(BaseCommand):
                 }
             )
             categories[slug] = cat
-            self.stdout.write(f"  ✓ Category: {data['name']}")
+            self.stdout.write(f"  [ok] Category: {data['name']}")
 
         # Get admin user for article author
         try:
@@ -1073,11 +1073,11 @@ First of month: Full system backup</pre>
 
             if created:
                 created_count += 1
-                self.stdout.write(f"  ✓ Article: {article_data['title']}")
+                self.stdout.write(f"  [ok] Article: {article_data['title']}")
             else:
                 self.stdout.write(f"  - Article already exists: {article_data['title']}")
 
         self.stdout.write(
-            self.style.SUCCESS(f'\n✓ Successfully created {created_count} KB articles!')
+            self.style.SUCCESS(f"\n[ok] Successfully created {created_count} KB articles!")
         )
-        self.stdout.write(self.style.SUCCESS('✓ KB seeding complete!'))
+        self.stdout.write(self.style.SUCCESS("[ok] KB seeding complete!"))

@@ -2262,6 +2262,8 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
     hero_dashboard_image_url = getattr(settings, "MARKETING_HERO_IMAGE_URL", None) or ""
     if not hero_dashboard_image_url:
         hero_dashboard_image_url = static("images/marketing/hero-placeholder.svg")
+    # 9.5 proof-rich marketing: key for asset governance (style guide, versioning, approval).
+    proof_hero_image_key = getattr(settings, "MARKETING_PROOF_HERO_IMAGE_KEY", None) or "hero_dashboard"
     hero_video_url = getattr(settings, "MARKETING_HERO_VIDEO_URL", None) or ""
     hero_video_poster_url = getattr(settings, "MARKETING_HERO_VIDEO_POSTER_URL", None) or hero_dashboard_image_url or ""
     product_demo_image_url = getattr(settings, "MARKETING_PRODUCT_DEMO_IMAGE_URL", None) or getattr(settings, "MARKETING_HERO_IMAGE_URL", None) or ""
@@ -2440,6 +2442,16 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
     support_implementation_copy = "We set you up. Dedicated onboarding and support when you need it—so you're not just buying software, you're getting a partner for go-live."
     accessibility_line = "Accessible by design. We align with inclusive design practices and regional accessibility requirements."
     why_switch_path = _safe_reverse("marketing_why_switch") or "/why-switch/"
+    # Explicit "Why switch now" messaging (9.5/10 marketing — plan Section 12.4)
+    why_switch_bullets = [
+        "Replace legacy SIS pain with one modern platform.",
+        "Easier onboarding: Setup Studio gets you live in days, not months.",
+        "Better family experience: one portal for attendance, grades, and payments.",
+        "Stronger district governance: control plane for multi-school operators.",
+        "Safer migration: mapping, validation, and rollback before go-live.",
+        "Richer extensibility: marketplace, blueprints, and workflow packs.",
+        "Lower-click workflows: command palette and role-native homes.",
+    ]
 
     # Non-negotiables: 3-step get started
     get_started_three_steps = [
@@ -2545,6 +2557,7 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         "security_badges": security_badges,
         "final_cta_headline": final_cta_headline,
         "hero_dashboard_image_url": hero_dashboard_image_url,
+        "proof_hero_image_key": proof_hero_image_key,
         "hero_dashboard_image_srcset": getattr(settings, "MARKETING_HERO_IMAGE_SRCSET", None) or "",
         "hero_dashboard_image_sizes": getattr(settings, "MARKETING_HERO_IMAGE_SIZES", None) or "(max-width: 800px) 100vw, 800px",
         "hero_video_url": hero_video_url,
@@ -2598,6 +2611,7 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         "support_implementation_copy": support_implementation_copy,
         "accessibility_line": accessibility_line,
         "why_switch_path": why_switch_path,
+        "why_switch_bullets": why_switch_bullets,
         "get_started_three_steps": get_started_three_steps,
         "product_pillars_home": product_pillars_home,
         "hero_ai_line": hero_ai_line,

@@ -2,6 +2,13 @@
 """
 Feature Control Panel - toggle modules and features at runtime.
 Access: settings.feature_control permission or superuser.
+
+9.5/10 Feature-flag governance (non-negotiable):
+- Every flag should have owner, scope (tenant/region/plan), and expiry/review policy.
+- Single registry; no permanent mystery flags. See FeatureControlAudit for change history.
+- Roadmap: merge with runtime inspector so operators see why a feature is enabled
+  (plan/pack/policy) and what would disable it. See docs/RUNMYCAMPUS_FINAL_UNADDRESSED_GAPS_CHECKLIST.md
+  and docs/PLATFORM_9.5_TOOLSETS_EXECUTION.md.
 """
 import json
 import logging

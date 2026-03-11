@@ -1,10 +1,12 @@
 """
 Section 11.4: Tenant-facing customer success - support co-pilot, guided onboarding.
 """
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
+from django.shortcuts import redirect, render
+from django.views.decorators.http import require_POST
 
-from apps.setup_studio.services import get_setup_studio_payload
+from apps.setup_studio.services import execute_launch, get_setup_studio_payload
 
 from .services import get_support_copilot_suggestions
 
@@ -46,6 +48,8 @@ def guided_onboarding_view(request):
             "recommended_blueprint": None,
             "blueprint_rankings": [],
             "recommended_starter_stack": None,
+            "data_path_choices": [],
+            "ai_recommended": False,
         })
 
     studio = get_setup_studio_payload(school)
@@ -68,4 +72,23 @@ def guided_onboarding_view(request):
         "recommended_blueprint": studio["recommended_blueprint"],
         "blueprint_rankings": studio["blueprint_rankings"],
         "recommended_starter_stack": studio["recommended_starter_stack"],
+        "data_path_choices": studio["data_path_choices"],
+        "ai_recommended": studio.get("ai_recommended", False),
     })
+
+
+@login_required
+@require_POST
+def execute_launch_view(request):
+    """Operator-triggered go-live: call execute_launch and redirect back to Setup Studio with message."""
+    school = getattr(request, "school", None)
+    if not school:
+        messages.error(request, "No school context. Go-live is only available in tenant context.")
+        return redirect("siteconfig:guided_onboarding")
+    result = execute_launch(school.pk, actor_id=request.user.pk)
+    if result.get("ok"):
+        messages.success(request, "Launch executed. Your school is now approved and launch is recorded.")
+    else:
+        for err in result.get("errors", []):
+            messages.error(request, err)
+    return redirect("siteconfig:guided_onboarding")

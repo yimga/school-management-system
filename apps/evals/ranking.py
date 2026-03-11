@@ -43,7 +43,8 @@ class RankingCache:
     @staticmethod
     def get_cache_key(term: Term, classroom: Optional[Classroom] = None, use_mock_blending: bool = False) -> str:
         """Generate cache key for rankings (tenant-scoped to avoid cross-tenant leakage)."""
-        prefix = get_tenant_cache_prefix(None)
+        school_id = getattr(classroom, "school_id", None) or getattr(term, "school_id", None)
+        prefix = f"school:{school_id}" if school_id else get_tenant_cache_prefix()
         mock_suffix = ":mock" if use_mock_blending else ""
         if classroom:
             return f"{prefix}:ranking:term:{term.id}:class:{classroom.id}{mock_suffix}"

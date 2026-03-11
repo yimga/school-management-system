@@ -43,6 +43,19 @@ def log_theme_pack_change(sender, instance, **kwargs):
         logger.info(f"ThemePack changed: {changes}")
 
 
+@receiver(post_save, sender=SiteSettings)
+@receiver(post_delete, sender=SiteSettings)
+@receiver(post_save, sender=ThemePack)
+@receiver(post_delete, sender=ThemePack)
+def invalidate_effective_site_settings_runtime_cache(sender, instance, **kwargs):
+    try:
+        from apps.platform_runtime.helpers import invalidate_effective_site_settings_cache
+
+        invalidate_effective_site_settings_cache()
+    except Exception as exc:
+        logger.debug("invalidate_effective_site_settings_cache: %s", exc)
+
+
 # Phase A optional: sync School.features when TenantSystem is added or removed
 @receiver(post_save, sender=TenantSystem)
 @receiver(post_delete, sender=TenantSystem)

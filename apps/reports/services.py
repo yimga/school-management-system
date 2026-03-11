@@ -324,7 +324,8 @@ def notify_parent_report_blocked_by_debt(student: StudentProfile, academic_year,
     from apps.people.models import StudentGuardian
     from apps.siteconfig.cache_utils import get_tenant_cache_prefix
 
-    prefix = get_tenant_cache_prefix(None)
+    school_id = getattr(student, "school_id", None)
+    prefix = f"school:{school_id}" if school_id else get_tenant_cache_prefix()
     cache_key = f"{prefix}:report_block_sms:{student.id}:{getattr(academic_year, 'id', academic_year)}"
     if cache.get(cache_key):
         return False

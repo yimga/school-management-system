@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4 proof-page">
+<div class="container-fluid py-4 proof-page" data-page-archetype="catalog">
   {% if not school %}
   <div class="proof-panel">
     <h1 class="proof-panel-title">{% trans "App catalog" %}</h1>
@@ -66,6 +66,9 @@
             <div class="text-muted small">{{ listing.app.slug }} • v{{ listing.app.version }}</div>
           </div>
           <div class="proof-app-meta">
+            {% if listing.app.kind == 'first_party' %}
+            <span class="badge text-bg-primary" title="{% trans 'Built and supported by RunMyCampus' %}"><i class="bi bi-star-fill"></i> {% trans "First-party" %}</span>
+            {% endif %}
             <span class="badge {% if listing.publisher and listing.publisher.verification_status == 'verified' %}text-bg-success{% else %}text-bg-secondary{% endif %}">
               {% if listing.publisher and listing.publisher.verification_status == 'verified' %}{% trans "Verified" %}{% else %}{% trans "Review required" %}{% endif %}
             </span>
@@ -93,6 +96,9 @@
           {% trans "Declared for regions:" %} {{ listing.compatibility.countries|join:", " }}
           {% else %}
           {% trans "Compatibility details will be confirmed during install review." %}
+          {% endif %}
+          {% if listing.app.slug not in installed_slugs %}
+          <span class="d-block mt-1">{% trans "Preview in sandbox before going live. Uninstall available from Installed apps anytime." %}</span>
           {% endif %}
         </div>
 
@@ -144,6 +150,7 @@
         <li>{% trans "Sandbox install keeps new capabilities out of live navigation until you activate." %}</li>
         <li>{% trans "Pending scope grants remain visible so sensitive access is not hidden." %}</li>
         <li>{% trans "Installed apps page gives the team one place to activate or uninstall." %}</li>
+        <li>{% trans "Uninstall from Installed apps at any time; no long-term lock-in." %}</li>
       </ul>
     </div>
   </section>

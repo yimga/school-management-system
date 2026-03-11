@@ -1,10 +1,10 @@
 {% load i18n %}
 {% comment %}
-Reusable empty state component for dashboards
+Design-system: empty state = action state (Path-to-10). Never dead-end "nothing here."
 Usage: {% include 'components/dashboard_empty_state.html' with icon='bi-inbox' title='No items' message='...' action_url='...' action_text='...' %}
-Optional: illustration_url='...' for an image above the icon (e.g. empty-state SVG).
+Optional: illustration_url, purpose (short "why this matters"), secondary_action_url, secondary_action_text, demo_url (sample/demo link).
 {% endcomment %}
-<div class="dashboard-empty-state">
+<div class="dashboard-empty-state" data-empty-state="action-state">
   {% if illustration_url %}
   <div class="dashboard-empty-illustration mb-3">
     <img src="{{ illustration_url }}" alt="" class="img-fluid" style="max-height: 160px; width: auto;">
@@ -16,14 +16,27 @@ Optional: illustration_url='...' for an image above the icon (e.g. empty-state S
   </div>
   {% endif %}
   <h3 class="dashboard-empty-title">{{ title|default:"No items found" }}</h3>
+  {% if purpose %}
+  <p class="dashboard-empty-purpose small text-muted mb-1">{{ purpose }}</p>
+  {% endif %}
   {% if message %}
   <p class="dashboard-empty-message">{{ message }}</p>
   {% endif %}
-  {% if action_url and action_text %}
-  <a href="{{ action_url }}" class="btn btn-primary dashboard-empty-action">
-    <i class="bi bi-plus-circle me-2"></i>{{ action_text }}
-  </a>
-  {% endif %}
+  <div class="dashboard-empty-actions">
+    {% if action_url and action_text %}
+    <a href="{{ action_url }}" class="btn btn-primary dashboard-empty-action me-2">
+      <i class="bi bi-plus-circle me-2"></i>{{ action_text }}
+    </a>
+    {% endif %}
+    {% if secondary_action_url and secondary_action_text %}
+    <a href="{{ secondary_action_url }}" class="btn btn-outline-secondary dashboard-empty-action-secondary">
+      {{ secondary_action_text }}
+    </a>
+    {% endif %}
+    {% if demo_url %}
+    <a href="{{ demo_url }}" class="btn btn-link text-secondary ms-2" target="_blank" rel="noopener">{% trans "View sample" %}</a>
+    {% endif %}
+  </div>
 </div>
 
 <style>
@@ -56,8 +69,23 @@ Optional: illustration_url='...' for an image above the icon (e.g. empty-state S
   margin-right: auto;
 }
 
-.dashboard-empty-action {
+.dashboard-empty-purpose {
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.dashboard-empty-actions {
   margin-top: var(--token-space-md, 1rem);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dashboard-empty-action {
+  margin-top: 0;
 }
 
 /* Dark mode */

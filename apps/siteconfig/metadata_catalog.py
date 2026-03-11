@@ -190,6 +190,28 @@ def get_governance_metadata(school_id: Optional[Any] = None) -> Dict[str, Any]:
     }
 
 
+def get_glossary_metadata(school_id: Optional[Any] = None) -> Dict[str, Any]:
+    """
+    Business glossary: education terms mapped to entity/field codes (Path-to-10).
+    Seed via: python manage.py seed_business_glossary
+    """
+    try:
+        from apps.metadata.models import BusinessGlossaryEntry
+        entries = list(
+            BusinessGlossaryEntry.objects.filter(is_active=True)
+            .values("term", "definition", "entity_code", "field_name", "locale")
+            .order_by("term", "locale")[:500]
+        )
+    except Exception:
+        entries = []
+    return {
+        "schema_version": "1.0",
+        "entries": entries,
+        "scope": "platform",
+        "documentation": "docs/PATH_TO_10_SCORECARD.md",
+    }
+
+
 def get_catalog(school_id: Optional[Any] = None) -> Dict[str, Any]:
     """Return full catalog (all categories)."""
     return {
@@ -199,4 +221,5 @@ def get_catalog(school_id: Optional[Any] = None) -> Dict[str, Any]:
         "registry": get_registry_metadata(school_id),
         "integration": get_integration_metadata(school_id),
         "governance": get_governance_metadata(school_id),
+        "glossary": get_glossary_metadata(school_id),
     }

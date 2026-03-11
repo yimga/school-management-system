@@ -78,6 +78,7 @@ def main() -> int:
     ap.add_argument("--exit-zero", action="store_true", help="Always exit 0 (report only).")
     ap.add_argument("--check-get-solo-only", action="store_true", help="Only check get_solo(); ignore hardcoded (for CI).")
     ap.add_argument("--check-school-settings-features", action="store_true", help="Flag direct school.settings/school.features in tenant apps (use runtime).")
+    ap.add_argument("--report-allowlisted", action="store_true", help="Report get_solo() in allowlisted paths only (migration backlog for path to 10).")
     ap.add_argument("--base", default=".", help="Base directory (default: .)")
     args = ap.parse_args()
     base = Path(args.base).resolve()
@@ -119,6 +120,28 @@ def main() -> int:
                         break
 
     get_solo_hits = [(p, ln, sn, lb) for p, ln, sn, lb in hits if "get_solo" in lb]
+    if getattr(args, "report_allowlisted", False):
+        # Path to 10: report get_solo() only in ALLOWED_GET_SOLO_PREFIXES (migration backlog).
+        allowlisted_hits: list[tuple[str, int, str, str]] = []
+        for py in base.rglob("*.py"):
+            rel = py.relative_to(base)
+            path_str = str(rel).replace("\\", "/")
+            if not any(path_str.startswith(p) for p in ALLOWED_GET_SOLO_PREFIXES):
+                continue
+            if any(part in SKIP_DIRS for part in rel.parts) or py.name in SKIP_FILES:
+                continue
+            try:
+                text = py.read_text(encoding="utf-8", errors="replace")
+            except Exception:
+                continue
+            for i, line in enumerate(text.splitlines(), 1):
+                if SITESETTINGS_PATTERN[0].search(line):
+                    allowlisted_hits.append((path_str, i, line.strip()[:90], SITESETTINGS_PATTERN[1]))
+        print("get_solo() in allowlisted paths (path to 10 — migrate to runtime/helpers):")
+        for path, line_no, snippet, label in allowlisted_hits:
+            print(f"  {path}:{line_no}")
+        print(f"Total allowlisted: {len(allowlisted_hits)}")
+        return 0
     if args.check_get_solo_only:
         hits = get_solo_hits
     elif getattr(args, "check_school_settings_features", False):

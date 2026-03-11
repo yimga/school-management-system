@@ -1,0 +1,65 @@
+{% extends "control_plane_base.html" %}
+{% load static i18n %}
+
+{% block cp_title %}{% trans "Package rollout" %}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-4 control-plane-shell">
+  <section class="cp-hero cp-hero-compact mb-4">
+    <div class="cp-hero-grid">
+      <div>
+        <div class="cp-eyebrow">RunMyCampus Manager</div>
+        <h1 class="cp-hero-title">{% trans "Package rollout" %}</h1>
+        <p class="cp-hero-copy">
+          {% trans "Blueprint, workflow, dashboard, and policy packs in sandbox. Promote to production when the tenant has validated." %}
+        </p>
+      </div>
+      <div class="cp-hero-actions">
+        <a href="{% url 'super:marketplace_sandbox_inspector' %}" class="btn btn-outline-light btn-sm">{% trans "App sandbox" %}</a>
+        <a href="{% url 'super:app_catalog' %}" class="btn btn-outline-light btn-sm">{% trans "App catalog" %}</a>
+        <a href="{% url 'super:dashboard' %}" class="btn btn-outline-light btn-sm">{% trans "Control plane" %}</a>
+      </div>
+    </div>
+  </section>
+
+  {% if messages %}
+  <div class="mb-3">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <section class="cp-panel">
+    <div class="cp-panel-header">
+      <span class="cp-panel-eyebrow">apply_stage = sandbox</span>
+      <h2 class="cp-panel-title">{% trans "Sandbox packages" %}</h2>
+    </div>
+    <div class="cp-list">
+      {% for pkg in packages %}
+      <div class="cp-list-row d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div>
+          <strong>{{ pkg.package_id }}</strong>
+          <span class="text-muted small ms-1">v{{ pkg.version }}</span>
+          <span class="badge bg-secondary ms-1">{{ pkg.get_package_type_display }}</span>
+          <span class="badge bg-secondary ms-1">@ {{ pkg.school.name }}</span>
+          <span class="small text-muted">applied {{ pkg.applied_at|timesince }} ago</span>
+        </div>
+        <form method="post" action="{% url 'super:package_promote' %}" class="d-inline">
+          {% csrf_token %}
+          <input type="hidden" name="installed_id" value="{{ pkg.pk }}">
+          <button type="submit" class="btn btn-primary btn-sm" title="{% trans 'Promote to production (staged rollout)' %}">{% trans "Promote to production" %}</button>
+        </form>
+      </div>
+      {% empty %}
+      <div class="cp-list-row text-muted">{% trans "No sandbox packages." %}</div>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

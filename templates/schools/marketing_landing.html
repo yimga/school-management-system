@@ -604,6 +604,14 @@
       <li>{{ item }}</li>
       {% endfor %}
     </ul>
+    {% if why_switch_bullets %}
+    <h3 class="h6 mt-4 mb-2">{% trans "Why switch now" %}</h3>
+    <ul class="mkt-migration-list">
+      {% for bullet in why_switch_bullets %}
+      <li>{{ bullet }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
     {% if why_switch_path %}
     <p class="text-center mt-3">
       <a href="{{ why_switch_path }}" class="btn btn-outline-primary">{% trans "Why switch" %}</a>

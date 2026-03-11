@@ -479,6 +479,49 @@ def super_activate_sandbox(request):
 
 
 @login_required
+@user_passes_test(_control_plane_access)
+@require_GET
+def package_rollout(request):
+    """Control plane: list InstalledPackage (packages engine) with apply_stage=sandbox; offer Promote to production (Phase 4)."""
+    from apps.packages.models import InstalledPackage
+
+    sandbox_packages = list(
+        InstalledPackage.objects.filter(
+            apply_stage="sandbox",
+            is_active=True,
+            school_id__isnull=False,
+        )
+        .select_related("school")
+        .order_by("-applied_at")
+    )
+    return render(request, "marketplace/package_rollout.html", {"packages": sandbox_packages})
+
+
+@login_required
+@user_passes_test(_control_plane_access)
+@require_POST
+def package_promote(request):
+    """Control plane: promote an InstalledPackage from sandbox to production (Phase 4)."""
+    from apps.packages.engine import promote_package
+    from apps.packages.models import InstalledPackage
+
+    pk = request.POST.get("installed_id") or request.POST.get("id")
+    if not pk:
+        messages.error(request, "Select a package.")
+        return redirect("super:package_rollout")
+    inst = get_object_or_404(
+        InstalledPackage,
+        pk=pk,
+        apply_stage="sandbox",
+        is_active=True,
+        school_id__isnull=False,
+    )
+    promote_package(inst, actor_id=getattr(request.user, "id", None), target_mode="production")
+    messages.success(request, f"“{inst.package_id}” at “{inst.school.name}” promoted to production.")
+    return redirect("super:package_rollout")
+
+
+@login_required
 @user_passes_test(_tenant_marketplace_allowed)
 @require_GET
 def tenant_installed_apps(request):

@@ -1,5 +1,7 @@
 # Resolver precedence chain
 
+**Runtime as law:** All tenant-facing behavior must resolve through the runtime; no direct global/singleton config reads should decide tenant behavior. Implementation: [apps/platform_runtime/precedence.py](apps/platform_runtime/precedence.py), [apps/platform_runtime/runtime_resolver.py](apps/platform_runtime/runtime_resolver.py), and runtime inspector for observability.
+
 **Purpose:** Single documented order in which tenant behavior is resolved. Every resolver should follow this precedence when merging platform, region, blueprint, policy, plan, tenant, and sandbox values.
 
 ## Order (lowest to highest priority)

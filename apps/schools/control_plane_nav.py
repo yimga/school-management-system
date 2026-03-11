@@ -73,6 +73,7 @@ def build_control_plane_nav(request):
         {"id": "super_governance", "label": "Governance", "url_name": "super:marketplace_governance", "icon": "bi-shield-check"},
         {"id": "super_blueprint_marketplace", "label": "Blueprints", "url_name": "super:blueprint_marketplace", "icon": "bi-collection"},
         {"id": "super_app_catalog", "label": "App catalog", "url_name": "super:app_catalog", "icon": "bi-grid-3x3-gap"},
+        {"id": "super_package_rollout", "label": "Package rollout", "url_name": "super:package_rollout", "icon": "bi-box-arrow-up"},
         {"id": "super_customer_success", "label": "Customer Success", "url_name": "super:customer_success_dashboard", "icon": "bi-graph-up-arrow"},
     ])
     add_group("Migration Cloud", [

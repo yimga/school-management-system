@@ -152,9 +152,8 @@ def calculate_profile_strength(user, school=None, use_cache=True) -> float:
         return 0.0
     try:
         from apps.siteconfig.cache_utils import get_tenant_cache_prefix
-        prefix = get_tenant_cache_prefix(None)
-        if school is not None:
-            prefix = f"school:{getattr(school, 'id', '')}"
+        school_id = getattr(school, "id", None) or getattr(user, "school_id", None)
+        prefix = f"school:{school_id}" if school_id else get_tenant_cache_prefix()
     except Exception:
         prefix = "public"
     cache_key = f"{prefix}:security_strength:{user.pk}"

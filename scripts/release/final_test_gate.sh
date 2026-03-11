@@ -32,6 +32,12 @@ run_cmd "${PYTHON_BIN}" manage.py import_ui_config fixtures/ui_config.json
 echo "[Phase 15] Verifying UI parity fixture matches DB..."
 run_cmd "${PYTHON_BIN}" manage.py check_ui_parity --input-file fixtures/ui_config.json --strict
 
+echo "[Phase 15] Seeding KB articles..."
+run_cmd "${PYTHON_BIN}" manage.py seed_kb_articles
+
+echo "[Phase 15] Generating KB exports (ODT + DOCX)..."
+run_cmd "${PYTHON_BIN}" manage.py generate_kb_odt --all --formats odt,docx --overwrite
+
 echo "[Phase 15] Verifying KB exports (ODT + DOCX) are present..."
 run_cmd "${PYTHON_BIN}" manage.py verify_kb_exports --formats odt,docx --strict
 

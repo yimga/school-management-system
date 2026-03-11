@@ -14,6 +14,30 @@ from typing import Any, Optional
 from django.core.cache import cache
 
 
+EFFECTIVE_SITE_SETTINGS_VERSION_KEY = "platform_runtime:effective_site_settings:version"
+
+
+def _get_effective_site_settings_cache_version() -> int:
+    version = cache.get(EFFECTIVE_SITE_SETTINGS_VERSION_KEY)
+    if version is None:
+        cache.set(EFFECTIVE_SITE_SETTINGS_VERSION_KEY, 1, None)
+        return 1
+    try:
+        return int(version)
+    except (TypeError, ValueError):
+        cache.set(EFFECTIVE_SITE_SETTINGS_VERSION_KEY, 1, None)
+        return 1
+
+
+def invalidate_effective_site_settings_cache() -> None:
+    try:
+        cache.incr(EFFECTIVE_SITE_SETTINGS_VERSION_KEY)
+    except ValueError:
+        cache.set(EFFECTIVE_SITE_SETTINGS_VERSION_KEY, 2, None)
+    except Exception:
+        cache.set(EFFECTIVE_SITE_SETTINGS_VERSION_KEY, 2, None)
+
+
 def get_tenant_runtime(request: Any) -> Optional[Any]:
     """Return request.tenant_runtime or None (e.g. on public/control plane)."""
     return getattr(request, "tenant_runtime", None)
@@ -134,7 +158,18 @@ def get_effective_site_settings(request: Any = None, school: Any = None) -> Any:
             return cached
 
     school_id = getattr(school, "id", None) if school else None
-    cache_key = f"platform_runtime:effective_site_settings:{school_id or 'platform'}"
+    version = _get_effective_site_settings_cache_version()
+    school_updated_at = getattr(school, "updated_at", None) if school else None
+    school_token = ""
+    if school_updated_at is not None:
+        try:
+            school_token = f":{int(school_updated_at.timestamp())}"
+        except (AttributeError, OSError, OverflowError, TypeError, ValueError):
+            school_token = ""
+    cache_key = (
+        f"platform_runtime:effective_site_settings:v{version}:{school_id or 'platform'}"
+        f"{school_token}"
+    )
 
     resolved = cache.get(cache_key)
     if resolved is not None:

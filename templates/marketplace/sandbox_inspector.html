@@ -52,7 +52,7 @@
         <form method="post" action="{% url 'super:marketplace_activate_sandbox' %}" class="d-inline">
           {% csrf_token %}
           <input type="hidden" name="installation_id" value="{{ inst.pk }}">
-          <button type="submit" class="btn btn-primary btn-sm">Activate</button>
+          <button type="submit" class="btn btn-primary btn-sm" title="Promote to production (staged rollout)">Promote to production</button>
         </form>
       </div>
       {% empty %}

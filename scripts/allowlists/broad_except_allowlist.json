@@ -1,6 +1,6 @@
 {
   "allowed_counts": {
-    "apps/accounts/views.py": 45,
+    "apps/accounts/views.py": 42,
     "apps/api/views_v1.py": 6,
     "apps/portal/views_ai_copilot.py": 3,
     "apps/schools/middleware.py": 22,

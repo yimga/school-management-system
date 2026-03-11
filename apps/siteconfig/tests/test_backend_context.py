@@ -147,11 +147,51 @@ class DashboardExtrasTests(TestCase):
         self.assertIn("dashboard_next_best_actions", extras)
         self.assertIn("dashboard_recent_activity", extras)
         self.assertIn("role_home_destinations", extras)
+        self.assertIn("role_home_focus_areas", extras)
+        self.assertIn("role_home_primary_action", extras)
+        self.assertIn("role_home_supporting_actions", extras)
         self.assertIn("contextual_actions", extras)
         self.assertEqual(extras["role_home"]["default_intent"], "setup")
+        self.assertEqual(extras["role_home_primary_action"]["label"], "Setup Studio")
         self.assertTrue(extras["contextual_actions"])
         self.assertEqual(extras["contextual_actions"][0]["id"], "setup_studio")
         self.assertEqual(extras["dashboard_next_best_actions"][0]["label"], "Setup Studio")
+
+    def test_finance_role_home_promotes_finance_console(self):
+        from apps.dashboard.context import build_dashboard_extras
+
+        finance_user = User.objects.create_user(
+            username="dash-finance",
+            password="test",
+            email="dash-finance@example.com",
+            role=User.Role.BURSAR,
+        )
+        finance_user.is_staff = True
+        finance_user.save(update_fields=["is_staff"])
+
+        request = self.factory.get("/authentication/backend/")
+        request.user = finance_user
+        request.session = {}
+        base = {
+            "stats": {"overdue_invoices": 8},
+            "pending_approvals_count": 2,
+            "dashboard_intent": "finance",
+            "workflow_progress": {"students": 120, "teachers": 9, "classrooms": 6},
+            "recommended_next_steps": [
+                {
+                    "label": "Review collections",
+                    "url": reverse("finance:dashboard"),
+                    "icon": "bi-cash-stack",
+                    "reason": "Collections are the dominant finance action right now.",
+                    "category": "Finance",
+                    "id": "finance_console",
+                }
+            ],
+        }
+        extras = build_dashboard_extras(request, base=base)
+
+        self.assertEqual(extras["role_home"]["key"], "finance")
+        self.assertEqual(extras["role_home_primary_action"]["label"], "Review collections")
 
 
 class RecommendationServiceTests(TestCase):

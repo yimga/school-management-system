@@ -43,4 +43,11 @@ def for_role(
     if include_registry or page:
         result["registry"] = get_tenant_dashboard_registry(school, role=role, page=page or "backend")
 
+    # Phase 3 lineage: register dashboard resolution for this role (consumer_type=dashboard, consumer_code=role).
+    try:
+        from apps.metadata.usage_registry import register_usage
+        register_usage("dashboard", (role or "unknown").lower(), "dashboard", "widget_keys")
+    except (ImportError, AttributeError, TypeError, ValueError):
+        pass
+
     return result

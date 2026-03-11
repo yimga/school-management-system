@@ -29,9 +29,14 @@ python scripts/lint_no_print_in_apps.py
 echo "[pre_deploy_gate] Django check"
 python manage.py check
 
+echo "[pre_deploy_gate] Packages and setup_studio migrations applied"
+python manage.py showmigrations packages setup_studio | grep -E '^\s+\[ \]' && { echo "Unapplied migrations in packages or setup_studio" >&2; exit 1; } || true
+
 echo "[pre_deploy_gate] Architecture laws (no hardcoding; lint reports SiteSettings usage)"
 python scripts/check_no_hardcoding.py --allow-tests
 python scripts/lint_tenant_settings.py --check-get-solo-only
+# Path to 10: report allowlisted get_solo (migration backlog); optional visibility
+python scripts/lint_tenant_settings.py --report-allowlisted --base . 2>/dev/null || true
 python scripts/lint_csrf_exempt_usage.py
 python scripts/lint_raw_sql_usage.py
 python scripts/lint_broad_except.py --allowlist scripts/allowlists/broad_except_allowlist.json --strict

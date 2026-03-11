@@ -1,6 +1,10 @@
 """
 PackageEngine: validate_package, preview_diff, apply_package, rollback, promote_package.
 Canonical format: docs/architecture/PACKAGE_FORMAT.md.
+
+Reconciliation after apply/rollback: reconciliation_status is set on InstalledPackage
+and PackageChangeLog (reconciled, rolled_back, promoted). For lineage visibility,
+call apps.metadata.services.get_package_lineage_registry(package_id=...).
 """
 from __future__ import annotations
 
@@ -456,6 +460,17 @@ def apply_package(
             impact_summary=applied_impact_summary,
             reconciliation_status=reconciliation_status,
         )
+    try:
+        from apps.platform_runtime.events import emit_platform_event
+        emit_platform_event(
+            "package_applied",
+            {"package_id": package_id, "package_type": preview["package_type"], "version": version, "mode": mode},
+            tenant_id=str(tenant_id) if tenant_id else None,
+            school_id=tenant_id,
+            idempotency_key=f"apply:{package_id}:{version}:{tenant_id}:{rollback_token}",
+        )
+    except Exception:
+        pass
     return {
         "ok": True,
         "installed_id": inst.pk,
@@ -493,6 +508,16 @@ def rollback(installed_package: InstalledPackage, actor_id: Optional[int] = None
             impact_summary=installed_package.impact_summary,
             reconciliation_status="rolled_back",
         )
+    try:
+        from apps.platform_runtime.events import emit_platform_event
+        emit_platform_event(
+            "package_rolled_back",
+            {"package_id": installed_package.package_id, "version": installed_package.version},
+            tenant_id=str(installed_package.school_id) if installed_package.school_id else None,
+            school_id=installed_package.school_id,
+        )
+    except Exception:
+        pass
     return {
         "ok": True,
         "changelog_id": log.pk,

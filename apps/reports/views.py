@@ -74,9 +74,12 @@ def _active_year_and_term_for_student(student: StudentProfile):
 
 
 def _scoped_years_queryset(school):
-    if school is None:
-        return AcademicYear.objects.none()
-    return AcademicYear.objects.filter(school=school).order_by("-start_date")
+    years = AcademicYear.objects.all()
+    if school is not None:
+        years = years.filter(school=school)
+    else:
+        years = years.filter(school__isnull=True)
+    return years.order_by("-start_date")
 
 
 def _get_guardian_student(request: HttpRequest, student_id: int) -> StudentProfile | None:
@@ -625,9 +628,6 @@ def report_share(request: HttpRequest, token: str):
 @staff_member_required
 def publish_term_results(request: HttpRequest):
     school = _report_scope_school(request)
-    if school is None:
-        return HttpResponseForbidden("School context required.")
-
     year, active_term = _active_year_and_term_for_school(school)
     if not year or not active_term:
         return HttpResponseForbidden("No active academic year/term configured yet.")
@@ -635,10 +635,20 @@ def publish_term_results(request: HttpRequest):
     year_id = request.GET.get("year") or request.POST.get("year") or str(year.id)
     term_id = request.GET.get("term") or request.POST.get("term") or str(active_term.id)
 
-    year_obj = get_object_or_404(AcademicYear, id=year_id, school=school)
+    year_queryset = AcademicYear.objects.filter(id=year_id)
+    if school is not None:
+        year_queryset = year_queryset.filter(school=school)
+    else:
+        year_queryset = year_queryset.filter(school__isnull=True)
+    year_obj = get_object_or_404(year_queryset)
     term_obj = get_object_or_404(Term, id=term_id, academic_year=year_obj)
 
-    classrooms = Classroom.objects.filter(academic_year=year_obj, school=school).order_by("name")
+    classrooms = Classroom.objects.filter(academic_year=year_obj)
+    if school is not None:
+        classrooms = classrooms.filter(school=school)
+    else:
+        classrooms = classrooms.filter(school__isnull=True)
+    classrooms = classrooms.order_by("name")
 
     site = get_effective_site_settings(request=request)
     require_approved_before_publish = getattr(site, "reports_require_approved_grades_before_publish", False)

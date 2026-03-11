@@ -110,7 +110,12 @@ def audit_setup_studio_contract(failures: list[str]) -> None:
         _check(bool(payload.get("launch_checklist")), "setup.launch_checklist", "launch checklist missing", failures)
         _check(bool(payload.get("launch_blockers")), "setup.launch_blockers", "launch blockers missing", failures)
         _check({"School website", "Admin shell", "Teacher dashboard", "Parent portal"} <= preview_titles, "setup.live_previews", f"preview cards missing: {sorted({'School website', 'Admin shell', 'Teacher dashboard', 'Parent portal'} - preview_titles)}", failures)
-        _check(role_codes == {"admin", "teacher", "parent"}, "setup.role_previews", f"unexpected role previews: {sorted(role_codes)}", failures)
+        _check(
+            role_codes == {"admin", "teacher", "parent", "finance", "student"},
+            "setup.role_previews",
+            f"unexpected role previews: {sorted(role_codes)}",
+            failures,
+        )
     finally:
         school.delete()
 

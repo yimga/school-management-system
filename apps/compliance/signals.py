@@ -153,13 +153,13 @@ def _bump_rules_version():
     """Increment a cached version key used by access control cache keys (tenant-scoped)."""
     try:
         from apps.siteconfig.cache_utils import get_tenant_cache_prefix
-        prefix = get_tenant_cache_prefix(None)
+        prefix = get_tenant_cache_prefix()
         key = f"{prefix}:access_rules_version"
         cache.incr(key)
     except Exception:
         try:
             from apps.siteconfig.cache_utils import get_tenant_cache_prefix
-            prefix = get_tenant_cache_prefix(None)
+            prefix = get_tenant_cache_prefix()
             cache.set(f"{prefix}:access_rules_version", 1, None)
         except Exception:
             pass

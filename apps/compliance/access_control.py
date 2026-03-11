@@ -15,7 +15,7 @@ def _access_control_prefix():
     """Tenant-scoped prefix for access rule cache keys."""
     try:
         from apps.siteconfig.cache_utils import get_tenant_cache_prefix
-        return get_tenant_cache_prefix(None)
+        return get_tenant_cache_prefix()
     except Exception:
         return "public"
 

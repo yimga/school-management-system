@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from decimal import Decimal
 import logging
@@ -19,6 +19,9 @@ from apps.people.models import StudentProfile, TeacherProfile, StudentGuardian
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
 
 logger = logging.getLogger(__name__)
+
+# Phase 2/7: Tenant behavior must not be sourced from SiteSettings; use runtime resolvers and
+# bounded-context services. Migration plan: docs/SITECONFIG_OWNERSHIP_MIGRATION.md
 
 REPORT_CARD_TYPE_TERM = "TERM"
 REPORT_CARD_TYPE_ANNUAL = "ANNUAL"
@@ -428,6 +431,8 @@ def resolve_dashboard_widgets(role: str | None, preference: "UserPreference | No
     return allowed
 
 
+# DEPRECATED: Prefer apps.platform_runtime.helpers.get_effective_site_settings and bounded-context
+# services for tenant behavior. Use SiteSettings only for platform defaults. Removal target: post Phase 10.
 class SiteSettings(models.Model):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

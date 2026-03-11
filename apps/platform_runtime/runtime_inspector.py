@@ -9,6 +9,7 @@ from typing import Any, Dict, Optional
 
 from .runtime_resolver import build_tenant_runtime
 from .contracts import TenantRuntime
+from .governor_limits import get_governor_usage_for_tenant
 from apps.tenancy.context import TenantContext
 
 
@@ -104,13 +105,17 @@ def get_runtime_inspection(request: Any) -> Dict[str, Any]:
             from apps.tenancy.middleware import build_tenant_context_from_request
             tenant_ctx = build_tenant_context_from_request(request)
         if tenant_ctx is None:
-            return {"error": "no_tenant_context", "effective_blueprint": {}, "override_sources": {}}
+            return {"error": "no_tenant_context", "effective_blueprint": {}, "override_sources": {}, "governor_limits": get_governor_usage_for_tenant()}
         school = getattr(request, "school", None) or getattr(getattr(request, "tenant", None), "school", None)
         try:
             rt = build_tenant_runtime(tenant_ctx, request=request, school=school)
         except Exception as e:
-            return {"error": str(e), "effective_blueprint": {}, "override_sources": {}}
-    return inspect_runtime(rt)
+            return {"error": str(e), "effective_blueprint": {}, "override_sources": {}, "governor_limits": None}
+    out = inspect_runtime(rt)
+    tid = rt.tenant_ctx.tenant_id if rt.tenant_ctx else None
+    sid = rt.tenant_ctx.school_id if rt.tenant_ctx else None
+    out["governor_limits"] = get_governor_usage_for_tenant(tenant_id=tid, school_id=sid)
+    return out
 
 
 def get_runtime_inspection_for_school(school: Any) -> Dict[str, Any]:
@@ -119,7 +124,7 @@ def get_runtime_inspection_for_school(school: Any) -> Dict[str, Any]:
     without a request; use for background or super views.
     """
     if school is None:
-        return {"error": "no_school", "effective_blueprint": {}, "override_sources": {}}
+        return {"error": "no_school", "effective_blueprint": {}, "override_sources": {}, "governor_limits": get_governor_usage_for_tenant()}
     tenant_ctx = TenantContext(
         tenant_id=str(getattr(school, "id", "")),
         schema_name=getattr(school, "schema_name", None),
@@ -132,6 +137,11 @@ def get_runtime_inspection_for_school(school: Any) -> Dict[str, Any]:
     )
     try:
         rt = build_tenant_runtime(tenant_ctx, request=None, school=school)
-        return inspect_runtime(rt)
+        out = inspect_runtime(rt)
+        out["governor_limits"] = get_governor_usage_for_tenant(
+            tenant_id=str(getattr(school, "id", "")),
+            school_id=getattr(school, "id", None),
+        )
+        return out
     except Exception as e:
-        return {"error": str(e), "effective_blueprint": {}, "override_sources": {}}
+        return {"error": str(e), "effective_blueprint": {}, "override_sources": {}, "governor_limits": None}

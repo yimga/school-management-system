@@ -24,6 +24,12 @@ Invoke-StrictCommand -CommandParts @("python", "manage.py", "import_ui_config", 
 Write-Host "[Phase 15] Verifying UI parity fixture matches DB..."
 Invoke-StrictCommand -CommandParts @("python", "manage.py", "check_ui_parity", "--input-file", "fixtures/ui_config.json", "--strict")
 
+Write-Host "[Phase 15] Seeding KB articles..."
+Invoke-StrictCommand -CommandParts @("python", "manage.py", "seed_kb_articles")
+
+Write-Host "[Phase 15] Generating KB exports (ODT + DOCX)..."
+Invoke-StrictCommand -CommandParts @("python", "manage.py", "generate_kb_odt", "--all", "--formats", "odt,docx", "--overwrite")
+
 Write-Host "[Phase 15] Verifying KB exports (ODT + DOCX) are present..."
 Invoke-StrictCommand -CommandParts @("python", "manage.py", "verify_kb_exports", "--formats", "odt,docx", "--strict")
 

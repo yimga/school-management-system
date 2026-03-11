@@ -23,8 +23,14 @@ Tests and scripts are excluded from the CI deny-list; they may call `get_solo()`
 2. Add a row to the table above with the path and reason.
 3. Prefer migrating the call to `get_effective_site_settings(request)` or another runtime helper instead of expanding the allowlist.
 
+## 9.5/10 minimum enforcement
+
+- **Runtime as law:** No new tenant-facing behavior may be driven by direct `SiteSettings` or `get_solo()` reads. New code must use runtime resolvers and precedence (see `docs/architecture/RESOLUTION_CHAIN.md`). CI enforces via `scripts/lint_tenant_settings.py --check-get-solo-only` in `scripts/pre_deploy_gate.sh`; any new allowlist entry must be justified and documented here.
+- **Path to 10:** Migrate remaining allowlisted call sites to `get_effective_site_settings(request)` or resolver layer; shrink allowlist over time. To list allowlisted get_solo() usages (migration backlog), run: `python scripts/lint_tenant_settings.py --report-allowlisted --base .`
+
 ## References
 
 - `docs/architecture/SITESETTINGS_AUDIT.md`
+- `docs/architecture/RESOLUTION_CHAIN.md`
 - `docs/PLATFORM_TRANSITION_AUDIT_REPORT.md`
 - `apps/platform_runtime/helpers.py` (canonical helpers)

@@ -296,6 +296,7 @@ class SecurityAuditLog(models.Model):
     """
     class EventType(models.TextChoices):
         LOGIN = "LOGIN", "Login"
+        LOGOUT = "LOGOUT", "Logout"
         LOGIN_FAILED = "LOGIN_FAILED", "Login failed"
         MFA_CHANGE = "MFA_CHANGE", "MFA changed"
         PWD_RESET = "PWD_RESET", "Password reset"

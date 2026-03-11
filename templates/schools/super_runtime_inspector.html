@@ -121,6 +121,34 @@
     </div>
   </div>
   <div class="card shadow-sm border-0 page-family-content-card card-grammar mb-3">
+    <div class="card-header bg-dark text-light">{% trans "Governor limits" %}</div>
+    <div class="card-body">
+      {% if inspection.governor_limits %}
+      <p class="small text-secondary mb-2">{{ inspection.governor_limits.note|default:"" }}</p>
+      <div class="row">
+        <div class="col-md-6">
+          <h6 class="text-secondary">{% trans "Limits (platform)" %}</h6>
+          <ul class="list-unstyled small mb-0">
+            {% for key, value in inspection.governor_limits.limits.items %}
+            <li><strong>{{ key }}:</strong> {{ value }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="col-md-6">
+          <h6 class="text-secondary">{% trans "Usage vs limit" %}</h6>
+          <ul class="list-unstyled small mb-0">
+            {% for key, status in inspection.governor_limits.status.items %}
+            <li><strong>{{ key }}:</strong> {{ status.used }} / {{ status.limit }} {% if not status.enforced %}(not enforced){% endif %}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+      {% else %}
+      <p class="text-secondary mb-0">—</p>
+      {% endif %}
+    </div>
+  </div>
+  <div class="card shadow-sm border-0 page-family-content-card card-grammar mb-3">
     <div class="card-header bg-dark text-light">{% trans "Localization &amp; integrations" %}</div>
     <div class="card-body">
       <div class="row">

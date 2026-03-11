@@ -7,15 +7,26 @@ from django.utils import timezone
 from django.db.models import Avg, Count
 from decimal import Decimal
 
-from apps.academics.models import AcademicYear, Term
+from apps.academics.models import AcademicYear, Classroom, Term
 from apps.evals.models import Evaluation
 from apps.siteconfig.models import SiteSettings
 from apps.siteconfig.cache_utils import get_tenant_cache_prefix
 
 
+def _rankings_cache_prefix(subject_id=None, classroom_id=None, year_id=None, term_id=None):
+    school_id = None
+    if classroom_id:
+        school_id = Classroom.objects.filter(pk=classroom_id).values_list("school_id", flat=True).first()
+    if school_id is None and term_id:
+        school_id = Term.objects.filter(pk=term_id).values_list("school_id", flat=True).first()
+    if school_id is None and year_id:
+        school_id = AcademicYear.objects.filter(pk=year_id).values_list("school_id", flat=True).first()
+    return f"school:{school_id}" if school_id else get_tenant_cache_prefix()
+
+
 def get_cache_key(subject_id=None, classroom_id=None, year_id=None, term_id=None):
     """Generate cache key for rankings (tenant-scoped to avoid cross-tenant leakage)."""
-    prefix = get_tenant_cache_prefix(None)
+    prefix = _rankings_cache_prefix(subject_id, classroom_id, year_id, term_id)
     return f"{prefix}:rankings_{subject_id}_{classroom_id}_{year_id}_{term_id}"
 
 
@@ -97,7 +108,7 @@ def invalidate_rankings_cache(year_id=None, term_id=None, subject_id=None, class
     """Invalidate cache for specific rankings."""
     if not year_id and not term_id:
         # Invalidate all rankings caches
-        prefix = get_tenant_cache_prefix(None)
+        prefix = _rankings_cache_prefix(subject_id, classroom_id, year_id, term_id)
         cache.delete_pattern(f"{prefix}:rankings_*")
     else:
         cache_key = get_cache_key(subject_id, classroom_id, year_id, term_id)

@@ -28,7 +28,7 @@ from apps.siteconfig.cache_utils import get_tenant_cache_prefix
 def _report_cache_prefix(school_id: Optional[str] = None) -> str:
     if school_id is not None:
         return f"school:{school_id}"
-    return get_tenant_cache_prefix(None)
+    return get_tenant_cache_prefix()
 
 
 class ExecutiveReportingService:

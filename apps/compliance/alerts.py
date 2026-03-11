@@ -257,7 +257,8 @@ def notify_audit_event(audit_log):
     ts_token = int(event_ts.timestamp()) if event_ts else "na"
     try:
         from apps.siteconfig.cache_utils import get_tenant_cache_prefix
-        prefix = get_tenant_cache_prefix(None)
+        school_id = getattr(audit_log, "school_id", None)
+        prefix = f"school:{school_id}" if school_id else get_tenant_cache_prefix()
     except Exception:
         prefix = "public"
     dedupe_key = f"{prefix}:audit_alert_sent:{audit_log.id}:{ts_token}"

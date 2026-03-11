@@ -715,7 +715,7 @@ def redirect_view(request):
         host = (request.get_host() or "").split(":")[0].lower()
         if public_host_kind(host) == "manager":
             return redirect("super:dashboard")
-    except Exception:
+    except (ImportError, AttributeError, TypeError, ValueError):
         pass
 
     from apps.schools.tenant_url import get_tenant_prefix
@@ -772,7 +772,7 @@ def redirect_view(request):
 
         pref = PortalUserPreference.objects.filter(user=user).only("dashboard_view").first()
         dash_view = getattr(pref, "dashboard_view", None)
-    except Exception:
+    except (DatabaseError, ImportError, AttributeError):
         dash_view = None
 
     from apps.accounts.portal_roles import get_effective_portal_role
@@ -824,11 +824,13 @@ def switch_portal_role(request):
         return redirect(reverse("accounts:redirect"))
     request.session[ACTIVE_PORTAL_ROLE_KEY] = role
     try:
+        from django.db import IntegrityError
+        from django.core.exceptions import ValidationError
         from apps.siteconfig.models import UserPreference
         pref, _ = UserPreference.objects.get_or_create(user=request.user, defaults={})
         pref.last_portal_role = role
         pref.save(update_fields=["last_portal_role", "updated_at"])
-    except Exception:
+    except (IntegrityError, ValidationError, OSError):
         pass
     return redirect(reverse("accounts:redirect"))
 
@@ -3247,6 +3249,17 @@ def login_view(request):
     return render(request, template, context)
 
 def logout_view(request):
+    if request.user.is_authenticated:
+        try:
+            from apps.accounts.security_audit import log_security_event
+            from apps.accounts.models import SecurityAuditLog
+            log_security_event(
+                request.user,
+                SecurityAuditLog.EventType.LOGOUT,
+                request=request,
+            )
+        except (ImportError, AttributeError, DatabaseError):
+            pass
     logout(request)
     return redirect(reverse("accounts:login"))
 

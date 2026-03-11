@@ -34,10 +34,10 @@ def _find_soffice() -> str | None:
     # Common Windows locations
     if os.name == "nt":
         win_candidates = [
-            r"C:\Program Files\LibreOffice\program\soffice.exe",
             r"C:\Program Files\LibreOffice\program\soffice.com",
-            r"C:\Program Files (x86)\LibreOffice\program\soffice.exe",
+            r"C:\Program Files\LibreOffice\program\soffice.exe",
             r"C:\Program Files (x86)\LibreOffice\program\soffice.com",
+            r"C:\Program Files (x86)\LibreOffice\program\soffice.exe",
         ]
         for path in win_candidates:
             if os.path.isfile(path):
@@ -148,7 +148,11 @@ def convert_html_to_odt(html_content: str, title: str = "Document") -> bytes:
 
 def convert_html_to_docx(html_content: str, title: str = "Document") -> bytes:
     """
-    Convert HTML content directly to DOCX using LibreOffice headless.
+    Convert HTML content to DOCX.
+
+    LibreOffice reliably converts HTML -> ODT, but some Windows builds fail on
+    direct HTML -> DOCX export filters. Use an ODT intermediate so KB exports
+    remain reproducible in release gates.
     """
     with tempfile.TemporaryDirectory(prefix="portal_convert_html_") as tmp_dir:
         html_path = Path(tmp_dir) / "input.html"
@@ -156,4 +160,7 @@ def convert_html_to_docx(html_content: str, title: str = "Document") -> bytes:
             f"<!doctype html><html><head><meta charset='utf-8'><title>{title}</title></head><body>{html_content}</body></html>",
             encoding="utf-8",
         )
-        return convert_to_docx(str(html_path))
+        odt_bytes = convert_to_odt(str(html_path))
+        odt_path = Path(tmp_dir) / "input.odt"
+        odt_path.write_bytes(odt_bytes)
+        return convert_to_docx(str(odt_path))

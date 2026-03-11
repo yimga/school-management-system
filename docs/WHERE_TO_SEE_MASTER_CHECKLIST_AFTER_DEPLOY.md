@@ -22,6 +22,7 @@ Log in as a **super-admin** and open the **Control plane** (manager host, e.g. `
 | **Runtime inspector** | `/super/runtime-inspector/` | Inspect a school: effective blueprint, active packs, route, override sources, compilation trace, localization, integrations. Quick-pick list of schools. |
 | **Metadata catalog** | `/super/metadata-catalog/` | **Platform catalog** card at top (schema, experience, runtime, registry, integration, governance). Below: entity/field catalog when metadata app is seeded. |
 | **Registries** | `/super/registries/` | Existing registries overview. |
+| **System Configuration (tenant)** | `/siteconfig/console/` (tenant backend) | Seven domains (Brand & experience, Runtime & blueprints, Policies & rules, Plans & entitlements, Global registries, Integrations & marketplace, Metadata catalog) with Search and Preview links per domain. |
 | **Tenant Health**, **Migration**, **Support**, etc. | (existing) | Unchanged; still in sidebar. |
 
 **Direct URLs (bookmark these):**
@@ -84,8 +85,10 @@ Log in as a **super-admin** and open the **Control plane** (manager host, e.g. `
    Should show the Master Platform Checklist commit.
    ```bash
    python manage.py check
+   python manage.py showmigrations packages setup_studio
    python manage.py shell -c "from django.core.cache import cache; cache.clear(); print('Cache cleared')"
    ```
+   **Mandatory:** `check` must pass with no errors; `showmigrations packages setup_studio` must show all migrations applied (no `[ ]` unapplied).
 
 ### In the browser
 

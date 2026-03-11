@@ -78,6 +78,21 @@ FIRST_PARTY_APPS = [
         "version": "1.0",
         "manifest": {"scopes": ["transport"], "widgets": []},
     },
+    {"slug": "district-pack", "name": "District Pack", "description": "First-party district and multi-school governance and reporting.", "version": "1.0", "manifest": {"scopes": ["district"], "widgets": []}},
+    {"slug": "private-school-pack", "name": "Private School Pack", "description": "First-party private-school lifecycle and family engagement.", "version": "1.0", "manifest": {"scopes": ["admissions", "finance"], "widgets": []}},
+    {"slug": "admissions-lead-tracker", "name": "Admissions Lead Tracker", "description": "First-party admissions pipeline and lead management.", "version": "1.0", "manifest": {"scopes": ["admissions"], "widgets": []}},
+    {"slug": "billing-fees-pack", "name": "Billing & Fees Pack", "description": "First-party fee schedules, payment plans, and collections.", "version": "1.0", "manifest": {"scopes": ["finance"], "widgets": []}},
+    {"slug": "parent-engagement-pack", "name": "Parent Engagement Pack", "description": "First-party parent portal, notices, and consent workflows.", "version": "1.0", "manifest": {"scopes": ["communication"], "widgets": []}},
+    {"slug": "analytics-insights-pack", "name": "Analytics & Insights Pack", "description": "First-party analytics and BI for academics and operations.", "version": "1.0", "manifest": {"scopes": ["analytics"], "widgets": []}},
+    {"slug": "attendance-intervention-pack", "name": "Attendance Intervention Pack", "description": "First-party attendance alerts and intervention workflows.", "version": "1.0", "manifest": {"scopes": ["attendance", "workflow"], "widgets": []}},
+    {"slug": "grade-publishing-pack", "name": "Grade Publishing Pack", "description": "First-party grade approval and publishing workflows.", "version": "1.0", "manifest": {"scopes": ["evals"], "widgets": []}},
+    {"slug": "compliance-audit-pack", "name": "Compliance & Audit Pack", "description": "First-party compliance reporting and audit trails.", "version": "1.0", "manifest": {"scopes": ["compliance"], "widgets": []}},
+    {"slug": "ai-skills-pack", "name": "AI Skills Pack", "description": "First-party AI-assisted workflows and recommendations.", "version": "1.0", "manifest": {"scopes": ["ai"], "widgets": []}},
+    {"slug": "reporting-export-pack", "name": "Reporting & Export Pack", "description": "First-party report builder and data export.", "version": "1.0", "manifest": {"scopes": ["reports"], "widgets": []}},
+    {"slug": "portal-themes-pack", "name": "Portal Themes Pack", "description": "First-party portal and marketing theme templates.", "version": "1.0", "manifest": {"scopes": ["brand"], "widgets": []}},
+    {"slug": "onboarding-wizard-pack", "name": "Onboarding Wizard Pack", "description": "First-party school and tenant onboarding flows.", "version": "1.0", "manifest": {"scopes": ["setup"], "widgets": []}},
+    {"slug": "api-webhooks-pack", "name": "API & Webhooks Pack", "description": "First-party API and webhook integration tools.", "version": "1.0", "manifest": {"scopes": ["integrations"], "widgets": []}},
+    {"slug": "student-360-pack", "name": "Student 360 Pack", "description": "First-party holistic student view and intervention dashboard.", "version": "1.0", "manifest": {"scopes": ["academics", "people"], "widgets": []}},
 ]
 
 

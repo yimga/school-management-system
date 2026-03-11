@@ -4,7 +4,7 @@
 {% block title %}{% trans "Config console" %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" data-page-archetype="decision-console">
   <header class="mb-4">
     <h1 class="h2">{% trans "Config console" %}</h1>
     <p class="text-muted">{% trans "Seven domains — guided, search, preview, diff, rollback. Outcomes not jargon." %}</p>
@@ -21,6 +21,14 @@
             <li><a href="{{ link.url }}">{{ link.label }}</a></li>
             {% endfor %}
           </ul>
+          <div class="mt-2 pt-2 border-top small text-muted">
+            {% if domain.search_url %}<a href="{{ domain.search_url }}" class="me-2">{% trans "Search" %}</a>{% endif %}
+            {% if domain.preview_url %}<a href="{{ domain.preview_url }}" class="me-2">{% trans "Preview" %}</a>{% endif %}
+            {% if domain.diff_url %}<a href="{{ domain.diff_url }}" class="me-2">{% trans "Compare" %}</a>{% endif %}
+            {% if domain.audit_url %}<a href="{{ domain.audit_url }}" class="me-2">{% trans "Audit" %}</a>{% endif %}
+            {% if domain.rollback_url %}<a href="{{ domain.rollback_url }}">{% trans "Rollback" %}</a>{% endif %}
+          </div>
+          <p class="mt-1 mb-0 small text-muted">{% trans "Outcomes not jargon. Compare before apply; view change history; revert if needed." %}</p>
         </div>
       </div>
     </div>

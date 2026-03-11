@@ -50,7 +50,7 @@ from .views_workflow_api import (
     dashboard_registry_api,
 )
 from apps.marketplace.views import sandbox_embed as marketplace_sandbox_embed
-from apps.customersuccess.views_tenant import support_copilot_view, guided_onboarding_view
+from apps.customersuccess.views_tenant import execute_launch_view, guided_onboarding_view, support_copilot_view
 from .dashboard_views import (
     update_theme,
 )
@@ -63,6 +63,7 @@ from .views_impersonation_consent import grant_impersonation_consent, revoke_imp
 from .views_form_draft import form_draft_api
 from .views import feedback_roadmap
 from .views_console_domains import console_domains_hub
+from .views_tour import tour_steps_api
 from apps.schools.views_domains import custom_domain_wizard
 
 app_name = "siteconfig"
@@ -122,6 +123,8 @@ urlpatterns = [
     path("app-sandbox/", marketplace_sandbox_embed, name="marketplace_sandbox_embed"),
     path("support-copilot/", support_copilot_view, name="support_copilot"),
     path("guided-onboarding/", guided_onboarding_view, name="guided_onboarding"),
+    path("guided-onboarding/execute-launch/", execute_launch_view, name="execute_launch"),
+    path("api/tour-steps/", tour_steps_api, name="tour_steps_api"),
     path("impersonation-consent/grant/", grant_impersonation_consent, name="grant_impersonation_consent"),
     path("impersonation-consent/revoke/", revoke_impersonation_consent, name="revoke_impersonation_consent"),
     path("feedback-roadmap/", feedback_roadmap, name="feedback_roadmap"),
