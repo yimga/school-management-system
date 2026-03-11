@@ -1,6 +1,7 @@
 """
 World Engine D.2: AI memory service using PGVector / AIEmbeddingStore.
 Single store for embeddings; used by chat or support agent when enabled.
+Uses services.embeddings get_embedding_provider() for pluggable Ollama / OpenAI-compatible backends.
 """
 from __future__ import annotations
 
@@ -11,27 +12,14 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 
-def _get_embedding_from_ollama(text: str, base_url: str) -> list[float] | None:
-    """Call Ollama embeddings API; return list of floats or None."""
+def get_embedding_for_text(text: str, *, max_tokens: int = 8192) -> list[float] | None:
+    """Return embedding for text using the configured embedding provider (router)."""
     try:
-        import urllib.request
-        import json
-        url = f"{base_url.rstrip('/')}/api/embeddings"
-        payload = {"model": "nomic-embed-text", "prompt": text[:8192]}
-        req = urllib.request.Request(
-            url,
-            data=json.dumps(payload).encode("utf-8"),
-            headers={"Content-Type": "application/json"},
-            method="POST",
-        )
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-        emb = data.get("embedding")
-        if isinstance(emb, list) and emb:
-            return [float(x) for x in emb]
+        from services.embeddings import get_embedding_provider
+        return get_embedding_provider().embed(text, max_tokens=max_tokens)
     except Exception as e:
-        logger.debug("Ollama embeddings failed: %s", e)
-    return None
+        logger.warning("get_embedding_for_text failed: %s", e)
+        return None
 
 
 class AIMemoryService:
@@ -53,9 +41,7 @@ class AIMemoryService:
             return False
         try:
             from apps.siteconfig.models import AIEmbeddingStore
-            from services.inference import _get_regional_config
-            base_url, _, _ = _get_regional_config()
-            embedding = _get_embedding_from_ollama(text, base_url)
+            embedding = get_embedding_for_text(text, max_tokens=8192)
             if not embedding:
                 return False
             text_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()

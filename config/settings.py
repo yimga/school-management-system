@@ -150,6 +150,7 @@ INSTALLED_APPS = [
     "apps.global_registries.apps.GlobalRegistriesConfig",
     "apps.integrations_marketplace.apps.IntegrationsMarketplaceConfig",
     "apps.setup_studio.apps.SetupStudioConfig",
+    "apps.studio_os.apps.StudioOsConfig",
     "emis",
     # Celery result/beat (optional: used when REDIS_URL is set for background tasks)
     "django_celery_results",
@@ -907,6 +908,19 @@ PLATFORM_DEFAULT_GRADING_SCALE = os.getenv('PLATFORM_DEFAULT_GRADING_SCALE', '')
 
 # Optional: exchange rates for GET /api/v1/finance/exchange-rate (e.g. {"USD_XAF": 600, "BASE": "USD"} or Fixer.io key)
 # EXCHANGE_RATES = {}
+
+# --- AI Gateway (RunMyCampus Open-Source AI Adoption Blueprint) ---
+# All product AI goes through services.ai_gateway. No browser calls Ollama/vLLM/LiteLLM directly.
+AI_GATEWAY_ENABLED = os.getenv("AI_GATEWAY_ENABLED", "1").strip().lower() in ("1", "true", "yes")
+# Per-tenant daily request cap; 0 = disabled. Env: AI_GATEWAY_BUDGET_REQUESTS_PER_TENANT_DAY
+AI_GATEWAY_BUDGET_REQUESTS_PER_TENANT_DAY = int(os.getenv("AI_GATEWAY_BUDGET_REQUESTS_PER_TENANT_DAY", "0"))
+# Task-to-tier mapping: override via AI_GATEWAY_TASK_TIERS dict (e.g. workflow_draft -> ["vllm","ollama","rules"])
+# VLLM_ENDPOINT, VLLM_MODEL: OpenAI-compatible vLLM server for structured outputs
+# LITELLM_PROXY_URL, LITELLM_MODEL: LiteLLM proxy for routing/fallback/premium
+# Embeddings: AI_EMBEDDING_BACKEND=ollama|openai_compatible; AI_EMBEDDING_ENDPOINT, AI_EMBEDDING_MODEL, AI_EMBEDDING_API_KEY
+# Request metadata: sensitivity_class, latency_target, output_type, allowed_backends (see ai_orchestration.md)
+# Optional: internal Open WebUI URL for Control Plane "AI Ops" link (env: OPEN_WEBUI_URL)
+OPEN_WEBUI_URL = os.getenv("OPEN_WEBUI_URL", "").strip() or None
 
 # --- Application Version ---
 APP_VERSION = '3.2.1'  # System version for dashboard footer

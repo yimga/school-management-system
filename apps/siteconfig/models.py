@@ -383,7 +383,11 @@ ROLE_WIDGET_DEFAULTS = {
 def default_dashboard_widgets(role: str | None) -> list[str]:
     role_key = (role or "").upper()
     try:
-        site = SiteSettings.get_solo()
+        from apps.platform_runtime.helpers import get_effective_site_settings
+
+        site = get_effective_site_settings()
+        if site is None:
+            raise LookupError("effective site settings unavailable")
         per_role = getattr(site, "default_widgets_per_role", None) or {}
         if isinstance(per_role, dict) and role_key in per_role:
             role_list = per_role.get(role_key)
@@ -392,7 +396,7 @@ def default_dashboard_widgets(role: str | None) -> list[str]:
                 filtered = [w for w in role_list if str(w).strip() in valid_ids]
                 if filtered:
                     return filtered
-    except Exception:
+    except (AttributeError, ImportError, LookupError, TypeError, ValueError):
         pass
     return list(ROLE_WIDGET_DEFAULTS.get(role_key, [key for key, _ in DASHBOARD_WIDGET_OPTIONS]))
 
@@ -1481,7 +1485,7 @@ class SiteSettings(models.Model):
             except OperationalError:
                 try:
                     connection.rollback()
-                except Exception:
+                except DatabaseError:
                     pass
                 return
 
@@ -1493,7 +1497,7 @@ class SiteSettings(models.Model):
                 except OperationalError:
                     try:
                         connection.rollback()
-                    except Exception:
+                    except DatabaseError:
                         pass
                     pass
 
@@ -3078,6 +3082,97 @@ class AIEmbeddingStore(models.Model):
         verbose_name_plural = "AI embedding stores"
 
 
+# Prompt classes (families) for gateway and productized AI; used by AIPromptRegistry and docs.
+class AIPromptClass:
+    SETUP = "setup"
+    WORKFLOW = "workflow"
+    POLICY = "policy"
+    MIGRATION = "migration"
+    DOCUMENT = "document"
+    SUPPORT = "support"
+    MARKETPLACE = "marketplace"
+    DESIGN_EXPERIENCE = "design_experience"
+    ANALYTICS = "analytics"
+    ADMIN = "admin"
+
+
+class AIPromptRegistry(models.Model):
+    """
+    Registry of prompts for gateway and productized AI: owner, purpose, allowed data sources,
+    expected output shape, model/backend policy, review status. Single source of truth for
+    prompt templates used by setup, workflow, policy, migration, document, support,
+    marketplace, design/experience, analytics, and admin features.
+    """
+    prompt_key = models.CharField(max_length=64, unique=True, db_index=True)
+    prompt_class = models.CharField(
+        max_length=32,
+        db_index=True,
+        help_text="Family: setup, workflow, policy, migration, document, support, marketplace, design_experience, analytics, admin",
+    )
+    owner = models.CharField(max_length=128, blank=True)
+    purpose = models.CharField(max_length=256, blank=True)
+    template_body = models.TextField(
+        help_text="Prompt template; use {context}, {query}, {user_query} etc. as placeholders",
+    )
+    allowed_data_sources = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of allowed RAG scopes or data source identifiers",
+    )
+    expected_output_shape = models.CharField(max_length=64, blank=True)
+    model_backend_policy = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="E.g. allowed_backends, preferred_tier, max_tokens",
+    )
+    is_active = models.BooleanField(default=True, db_index=True)
+    review_status = models.CharField(
+        max_length=20,
+        choices=[
+            ("draft", "Draft"),
+            ("pending_review", "Pending review"),
+            ("approved", "Approved"),
+            ("archived", "Archived"),
+        ],
+        default="draft",
+        db_index=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "siteconfig_aipromptregistry"
+        ordering = ["prompt_class", "prompt_key"]
+        verbose_name = "AI prompt registry"
+        verbose_name_plural = "AI prompt registries"
+
+    def __str__(self):
+        return f"{self.prompt_key} ({self.prompt_class})"
+
+
+class AIGatewayMetric(models.Model):
+    """
+    Aggregated observability metrics for AI Gateway: volume, latency, backend, failure rate,
+    schema-validation failure rate. Populated by aggregate_ai_metrics management command
+    from cache counters (or from audit log aggregation). Used for dashboards and quality review.
+    """
+    date = models.DateField(db_index=True)
+    tenant_id = models.UUIDField(db_index=True, null=True, blank=True)
+    task_type = models.CharField(max_length=64, db_index=True)
+    tier = models.CharField(max_length=32, db_index=True)
+    request_count = models.PositiveIntegerField(default=0)
+    total_latency_ms = models.FloatField(default=0)
+    failure_count = models.PositiveIntegerField(default=0)
+    schema_validation_failures = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        db_table = "siteconfig_aigatewaymetric"
+        ordering = ["-date", "tenant_id", "task_type"]
+        unique_together = [("date", "tenant_id", "task_type", "tier")]
+        verbose_name = "AI gateway metric"
+        verbose_name_plural = "AI gateway metrics"
+
+
 class RevenueSnapshot(models.Model):
     """
     Monthly revenue snapshot per tenant for Financial Mission Control.
@@ -4005,6 +4100,7 @@ def _emit_global_change_alert(sender, instance: SiteSettings, **kwargs) -> None:
     def _post():
         try:
             import urllib.request
+            import urllib.error
             import json
             req = urllib.request.Request(
                 url,
@@ -4013,7 +4109,7 @@ def _emit_global_change_alert(sender, instance: SiteSettings, **kwargs) -> None:
                 method="POST",
             )
             urllib.request.urlopen(req, timeout=5)
-        except Exception:
+        except (OSError, TimeoutError, TypeError, ValueError, urllib.error.URLError):
             logger = logging.getLogger(__name__)
             logger.warning("Global change alert webhook failed", exc_info=True)
     t = threading.Thread(target=_post, daemon=True)

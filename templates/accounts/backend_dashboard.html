@@ -345,6 +345,12 @@ backend-shell dashboard-page-backend
                 <span>{{ cta.label }}</span>
               </a>
               {% endfor %}
+              {% if open_webui_url %}
+              <a class="backend-v2-cta" href="{{ open_webui_url }}" target="_blank" rel="noopener noreferrer" title="{% trans 'Internal AI ops: prompt testing, model comparison' %}">
+                <i class="bi bi-cpu"></i>
+                <span>{% trans "AI Ops (Open WebUI)" %}</span>
+              </a>
+              {% endif %}
             </div>
           </div>
           <div class="backend-v2-metrics">

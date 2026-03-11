@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.views import PasswordChangeView as DjangoPasswordChangeView
 from django.db import DatabaseError, OperationalError, ProgrammingError
 from django.db.models import Avg, Count, Q
+from django.conf import settings
 from django.shortcuts import redirect, render, get_object_or_404
 from django.http import HttpResponseForbidden, JsonResponse
 from django.urls import reverse, reverse_lazy, NoReverseMatch
@@ -1809,6 +1810,7 @@ def backend_dashboard(request):
         context.setdefault("overview_cards", [])
         context.setdefault("contextual_actions", [])
         context.setdefault("kpi_strip_cards", [])
+    context["open_webui_url"] = getattr(settings, "OPEN_WEBUI_URL", None) or ""
     return render(request, "accounts/backend_dashboard.html", context)
 
 

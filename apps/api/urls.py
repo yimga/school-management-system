@@ -74,6 +74,27 @@ from apps.schools.api_views import SchoolConfigAPI
 from apps.analytics.benchmark_views import BenchmarkComparisonAPI
 from apps.api.offline_replay_views import OfflineReplayBatchAPI, PrefetchUrlsAPI, QueueMetricsAPI
 from apps.api.sync_delta_api import DeltaSyncAPI
+from apps.portal.views_ai_gateway import (
+    api_setup_assistant,
+    api_workflow_draft,
+    api_policy_explain,
+    api_document_classify,
+    api_semantic_search,
+    api_migration_suggest,
+    api_admin_copilot,
+    api_theme_recommend,
+    api_feature_control_explain,
+    api_report_recommend,
+    api_design_studio_draft,
+    api_live_preview_explain,
+    api_system_config_explain,
+    api_dashboard_pack_recommend,
+    api_support_assistant,
+    api_tenant_maturity,
+    api_data_quality_assistant,
+    api_marketplace_recommend,
+    api_control_plane_intelligence,
+)
 from apps.api.lead_capture_api import LeadCaptureAPI
 from apps.api.rosetta_views import RosettaStoneConvertAPI, RosettaStoneScalesAPI
 from apps.api.interop_stubs import oneroster_readiness, lti13_readiness, edfi_readiness, ceds_readiness
@@ -164,6 +185,26 @@ urlpatterns = [
     # Search APIs
     path('search/', GlobalSearchAPI.as_view(), name='global-search'),
     path('search/suggestions/', SearchSuggestionsAPI.as_view(), name='search-suggestions'),
+    # AI Gateway productized endpoints (RunMyCampus blueprint; all via backend gateway)
+    path('ai/setup-assistant/', api_setup_assistant, name='ai-setup-assistant'),
+    path('ai/workflow-draft/', api_workflow_draft, name='ai-workflow-draft'),
+    path('ai/policy-explain/', api_policy_explain, name='ai-policy-explain'),
+    path('ai/document-classify/', api_document_classify, name='ai-document-classify'),
+    path('ai/semantic-search/', api_semantic_search, name='ai-semantic-search'),
+    path('ai/migration-suggest/', api_migration_suggest, name='ai-migration-suggest'),
+    path('ai/admin-copilot/', api_admin_copilot, name='ai-admin-copilot'),
+    path('ai/theme-recommend/', api_theme_recommend, name='ai-theme-recommend'),
+    path('ai/feature-control-explain/', api_feature_control_explain, name='ai-feature-control-explain'),
+    path('ai/report-recommend/', api_report_recommend, name='ai-report-recommend'),
+    path('ai/design-studio-draft/', api_design_studio_draft, name='ai-design-studio-draft'),
+    path('ai/live-preview-explain/', api_live_preview_explain, name='ai-live-preview-explain'),
+    path('ai/system-config-explain/', api_system_config_explain, name='ai-system-config-explain'),
+    path('ai/dashboard-pack-recommend/', api_dashboard_pack_recommend, name='ai-dashboard-pack-recommend'),
+    path('ai/support-assistant/', api_support_assistant, name='ai-support-assistant'),
+    path('ai/tenant-maturity/', api_tenant_maturity, name='ai-tenant-maturity'),
+    path('ai/data-quality-assistant/', api_data_quality_assistant, name='ai-data-quality-assistant'),
+    path('ai/marketplace-recommend/', api_marketplace_recommend, name='ai-marketplace-recommend'),
+    path('ai/control-plane-intelligence/', api_control_plane_intelligence, name='ai-control-plane-intelligence'),
     # Scheduling (Wave 5): conflict check
     path('schedules/<int:schedule_id>/conflicts/', ScheduleConflictsAPI.as_view(), name='schedule-conflicts'),
     

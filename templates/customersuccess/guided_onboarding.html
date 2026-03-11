@@ -267,7 +267,10 @@
         <div class="setup-studio-actions">
           <a href="{{ current_step.link }}" class="btn btn-primary btn-sm">{{ current_step.cta_label }}</a>
           <a href="{% url 'siteconfig:guided_onboarding' %}" class="btn btn-outline-secondary btn-sm">{% trans "Refresh readiness" %}</a>
+          <button type="button" class="btn btn-outline-primary btn-sm" id="ai-explain-step" data-step-label="{{ current_step.label|default:'' }}" data-step-desc="{{ current_step.description|default:'' }}">{% trans "Explain" %}</button>
+          <button type="button" class="btn btn-outline-primary btn-sm" id="ai-suggest-workflow">{% trans "Suggest workflow" %}</button>
         </div>
+        <div id="ai-assist-result" class="mt-2 p-2 rounded small" style="display: none; background: rgba(13,110,253,0.06); border: 1px solid rgba(13,110,253,0.2);"></div>
       </div>
       {% endif %}
 
@@ -553,4 +556,57 @@
     </aside>
   </section>
 </div>
+<script>
+(function() {
+  function getCsrf() {
+    var name = 'csrftoken';
+    var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return match ? match[2] : '';
+  }
+  function showResult(el, text, err) {
+    el.style.display = 'block';
+    el.innerHTML = err ? '<span class="text-danger">' + (err || 'Request failed') + '</span>' : ('<strong>AI:</strong> ' + (text || ''));
+  }
+  var resultEl = document.getElementById('ai-assist-result');
+  if (!resultEl) return;
+  var explainBtn = document.getElementById('ai-explain-step');
+  if (explainBtn) {
+    explainBtn.addEventListener('click', function() {
+      var q = (explainBtn.getAttribute('data-step-label') || '') + ' ' + (explainBtn.getAttribute('data-step-desc') || '');
+      if (!q.trim()) q = 'Setup Studio: what should I do next?';
+      resultEl.style.display = 'block';
+      resultEl.innerHTML = 'Loading…';
+      fetch('/api/ai/setup-assistant/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
+        body: JSON.stringify({ query: q }),
+        credentials: 'same-origin'
+      }).then(function(r) { return r.json(); }).then(function(d) {
+        showResult(resultEl, d.success && d.response ? d.response : (d.error || 'No response'), !d.success);
+      }).catch(function() { showResult(resultEl, null, 'Service unavailable'); });
+    });
+  }
+  var workflowBtn = document.getElementById('ai-suggest-workflow');
+  if (workflowBtn) {
+    workflowBtn.addEventListener('click', function() {
+      var desc = 'When a student is absent 3 days, notify the counselor and log a note.';
+      resultEl.style.display = 'block';
+      resultEl.innerHTML = 'Loading…';
+      fetch('/api/ai/workflow-draft/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
+        body: JSON.stringify({ description: desc }),
+        credentials: 'same-origin'
+      }).then(function(r) { return r.json(); }).then(function(d) {
+        var text = '';
+        if (d.success && d.draft) {
+          if (typeof d.draft === 'object' && d.draft.name) text = 'Draft: ' + d.draft.name + (d.draft.description ? ' — ' + d.draft.description : '');
+          else text = JSON.stringify(d.draft);
+        } else text = d.error || 'No draft';
+        showResult(resultEl, text, !d.success);
+      }).catch(function() { showResult(resultEl, null, 'Service unavailable'); });
+    });
+  }
+})();
+</script>
 {% endblock %}
