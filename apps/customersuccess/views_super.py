@@ -2,12 +2,20 @@
 Section 11: Super-admin API and HTML views for benchmark intelligence (11.3) and customer success (11.4).
 All views require Super Admin access (use require_super_access in urlconf).
 """
+from django.db import DatabaseError
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.http import require_GET, require_http_methods
 from django.utils import timezone
 
 from apps.schools.models import School
+
+CUSTOMER_SUCCESS_VIEW_SOFT_FAILURES = (
+    AttributeError,
+    DatabaseError,
+    TypeError,
+    ValueError,
+)
 
 
 def _bounded_limit(raw_value, default: int, maximum: int) -> int:
@@ -260,7 +268,7 @@ def customer_success_dashboard(request):
     for school in active_schools:
         try:
             ensure_health_score_record(school)
-        except Exception:
+        except CUSTOMER_SUCCESS_VIEW_SOFT_FAILURES:
             pass
 
     alerts = TenantRiskAlert.objects.filter(acknowledged_at__isnull=True).select_related("school").order_by("-created_at")[:20]

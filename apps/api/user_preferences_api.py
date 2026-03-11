@@ -1,6 +1,7 @@
 """
 API for user portal preferences (e.g. pinned sidebar items for Quick access).
 """
+from django.db import DatabaseError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -9,6 +10,15 @@ from rest_framework import status
 from apps.platform_runtime.helpers import get_effective_site_settings
 from apps.runtime_blueprints.models import DashboardUserPreference
 from apps.siteconfig.portal_sidebar_items import build_portal_sidebar_items
+
+PREFERENCE_NAV_FAILURES = (
+    AttributeError,
+    DatabaseError,
+    ImportError,
+    LookupError,
+    TypeError,
+    ValueError,
+)
 
 
 class PortalPreferencesAPI(APIView):
@@ -29,7 +39,7 @@ class PortalPreferencesAPI(APIView):
                 site = get_effective_site_settings(request=request)
             items = build_portal_sidebar_items(request, site)
             return {str(item.get("id")) for item in items if item.get("id") and item.get("url")}
-        except Exception:
+        except PREFERENCE_NAV_FAILURES:
             return set()
 
     def get(self, request):
@@ -93,7 +103,7 @@ class ControlPlanePreferencesAPI(APIView):
                     if iid and it.get("url"):
                         allowed.add(str(iid))
             return allowed
-        except Exception:
+        except PREFERENCE_NAV_FAILURES:
             return set()
 
     def get(self, request):

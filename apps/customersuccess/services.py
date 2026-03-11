@@ -2,8 +2,27 @@
 Section 11: Services for benchmark intelligence (11.3) and customer success (11.4).
 """
 from decimal import Decimal
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import DatabaseError
 from django.db.models import Count, Avg, Q
 from django.utils import timezone
+
+CUSTOMER_SUCCESS_SOFT_FAILURES = (
+    AttributeError,
+    DatabaseError,
+    ObjectDoesNotExist,
+    TypeError,
+    ValueError,
+)
+OPTIONAL_ONBOARDING_STEP_FAILURES = (
+    AttributeError,
+    DatabaseError,
+    ImportError,
+    LookupError,
+    ObjectDoesNotExist,
+    TypeError,
+    ValueError,
+)
 
 
 def get_peer_school_ids(school, cohort=None):
@@ -20,7 +39,7 @@ def get_peer_school_ids(school, cohort=None):
     # Infer size band from student count if available
     try:
         cnt = school.student_profiles.count() if hasattr(school, "student_profiles") else 0
-    except Exception:
+    except CUSTOMER_SUCCESS_SOFT_FAILURES:
         cnt = 0
     if cnt < 100:
         size_band = "micro"
@@ -225,7 +244,7 @@ def get_guided_onboarding_steps(school):
             "done": has_year,
             "link": "/admin/academics/academicyear/add/" if not has_year else "",
         })
-    except Exception:
+    except OPTIONAL_ONBOARDING_STEP_FAILURES:
         pass
     try:
         from apps.people.models import StudentProfile
@@ -236,7 +255,7 @@ def get_guided_onboarding_steps(school):
             "done": has_students,
             "link": "/authentication/backend/students/" if not has_students else "",
         })
-    except Exception:
+    except OPTIONAL_ONBOARDING_STEP_FAILURES:
         pass
     try:
         from apps.platform_runtime.helpers import get_effective_site_settings
@@ -259,7 +278,7 @@ def get_guided_onboarding_steps(school):
             "done": has_branding,
             "link": "/siteconfig/customizer/" if not has_branding else "",
         })
-    except Exception:
+    except OPTIONAL_ONBOARDING_STEP_FAILURES:
         pass
     steps.append({
         "key": "dashboard",
