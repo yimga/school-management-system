@@ -21,7 +21,7 @@
     <div class="collapse navbar-collapse" id="cpNavbarContent">
       <div class="d-flex align-items-center gap-3 ms-lg-auto">
         <div class="cp-header-search d-none d-md-block position-relative">
-          <input type="search" class="form-control form-control-sm bg-dark border-secondary text-white" placeholder="{% trans 'Search tenants, incidents… (Ctrl+K)' %}" aria-label="Search" id="cpSearchInput" style="min-width: 220px;" autocomplete="off">
+          <input type="search" class="form-control form-control-sm bg-dark border-secondary text-white" placeholder="{% trans 'Search schools, incidents… (Ctrl+K)' %}" aria-label="Search" id="cpSearchInput" style="min-width: 220px;" autocomplete="off">
           <div id="cpSearchResults" class="dropdown-menu position-absolute start-0 mt-1 shadow" style="min-width: 280px; max-height: 70vh; overflow-y: auto;" aria-label="Search results"></div>
         </div>
         <button type="button" class="btn btn-sm btn-outline-light d-none d-md-inline-flex align-items-center" onclick="typeof window.cpShowShortcutsHelp === 'function' && window.cpShowShortcutsHelp();" aria-label="{% trans 'Keyboard shortcuts' %}" title="{% trans 'Keyboard shortcuts (?)' %}"><span aria-hidden="true">?</span><span class="ms-1 d-none d-lg-inline">{% trans "Shortcuts" %}</span></button>
@@ -288,7 +288,7 @@
     s: { url: '/super/support/', label: 'Support' },
     m: { url: '/super/migration/', label: 'Migration' },
     u: { url: '/super/usage/', label: 'Usage' },
-    h: { url: '/super/tenant-health/', label: 'Tenant Health' },
+    h: { url: '/super/tenant-health/', label: 'School Health' },
     p: { url: '/super/pulse/', label: 'Pulse' }
   };
   var helpEl = null;

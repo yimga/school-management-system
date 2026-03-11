@@ -1,12 +1,12 @@
 {% extends "control_plane_base.html" %}
 {% load static i18n %}
 
-{% block cp_title %}Tenant Health Monitor{% endblock %}
+{% block cp_title %}School Health Monitor{% endblock %}
 
 {% block cp_content %}
   <div class="container-fluid py-4">
     {% url 'super:dashboard' as super_dashboard_url %}
-    {% include "partials/page_families/title_block.html" with title="Tenant Health Monitor" subtitle="Last activity and status per school. API: GET /api/v1/super/tenant-health" action_url=super_dashboard_url action_label="Back to Schools" return_to_origin=1 %}
+    {% include "partials/page_families/title_block.html" with title="School Health Monitor" subtitle="Last activity and status per school. API: GET /api/v1/super/tenant-health" action_url=super_dashboard_url action_label="Back to Schools" return_to_origin=1 %}
     <div class="card shadow-sm border-0 page-family-content-card">
       <div class="card-body p-0">
         {% if tenants %}

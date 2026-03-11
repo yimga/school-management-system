@@ -312,6 +312,7 @@ def preview_from_form(request):
     return JsonResponse({"redirect_url": redirect_url})
 
 
+@staff_member_required
 def maintenance_view(request):
     return render(request, "siteconfig/maintenance.html")
 
@@ -1654,10 +1655,13 @@ def branding_api(request):
     )
 
 
+@login_required
 def workflow_clues_api(request):
     """
     World Engine: workflow setup suggestions by country (Ollama). GET params: workflow_key, country_code.
     """
+    if not (request.user.is_superuser or request.user.has_feature_permission("settings.manage")):
+        return JsonResponse({"error": "Forbidden"}, status=403)
     workflow_key = (request.GET.get("workflow_key") or "").strip()
     country_code = (request.GET.get("country_code") or "").strip()[:10]
     if not workflow_key or not country_code:

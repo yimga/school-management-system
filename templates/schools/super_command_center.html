@@ -6,7 +6,7 @@
 {% block breadcrumbs %}
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb mb-0">
-    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Tenant Mission Control" %}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Control Plane" %}</a></li>
     <li class="breadcrumb-item active" aria-current="page">{% trans "Operational queues" %}</li>
   </ol>
 </nav>
@@ -78,7 +78,7 @@
         <div class="cp-panel-header">
           <div>
             <span class="cp-panel-eyebrow">Approvals</span>
-            <h2 class="cp-panel-title">Tenant approvals</h2>
+            <h2 class="cp-panel-title">Pending approvals</h2>
           </div>
         </div>
         <div class="cp-list">
@@ -91,7 +91,7 @@
             <span class="cp-status-badge cp-status-badge-pending">Pending</span>
           </div>
           {% empty %}
-          <div class="cp-empty-state">No tenant approvals waiting.</div>
+          <div class="cp-empty-state">No pending approvals.</div>
           {% endfor %}
         </div>
       </section>
@@ -235,7 +235,7 @@
             <span class="cp-status-badge cp-status-badge-warning">{{ row.risk_score }}</span>
           </div>
           {% empty %}
-          <div class="cp-empty-state">No churn-risk tenants detected.</div>
+          <div class="cp-empty-state">No churn-risk schools detected.</div>
           {% endfor %}
         </div>
       </section>

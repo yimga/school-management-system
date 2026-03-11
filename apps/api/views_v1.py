@@ -19,6 +19,18 @@ from apps.platform_runtime.helpers import get_effective_flags
 
 logger = logging.getLogger(__name__)
 
+FINANCE_OPERATOR_ROLES = {
+    "ADMIN",
+    "LEADERSHIP",
+    "PRINCIPAL",
+    "VICE_PRINCIPAL",
+    "DEAN",
+    "BURSAR",
+    "FINANCE_STAFF",
+    "IT_ADMIN",
+    "PROPRIETOR",
+}
+
 
 def _require_super_or_school(request, school_id=None):
     """Return (True, None) if allowed; else (False, JsonResponse)."""
@@ -38,6 +50,53 @@ def _require_super_or_school(request, school_id=None):
 def _get_school_from_request(request):
     """Return request.school (set by tenant middleware) or None."""
     return getattr(request, "school", None)
+
+
+def _user_has_any_role(user, allowed_roles: set[str]) -> bool:
+    from apps.accounts.permissions import has_role
+
+    normalized_roles = {str(role).strip().upper() for role in allowed_roles if role}
+    return any(has_role(user, role) for role in normalized_roles)
+
+
+def _require_finance_operator(request):
+    """Require tenant context plus a finance-capable operator role."""
+    user = getattr(request, "user", None)
+    if not user or not user.is_authenticated:
+        return False, JsonResponse({"error": "Authentication required"}, status=401)
+    school = _get_school_from_request(request)
+    if not school:
+        return False, JsonResponse({"error": "Tenant context required"}, status=400)
+    if getattr(user, "is_superuser", False) or getattr(user, "is_staff", False):
+        return True, None
+    if _user_has_any_role(user, FINANCE_OPERATOR_ROLES):
+        return True, None
+    return False, JsonResponse({"error": "Forbidden"}, status=403)
+
+
+def _require_parent_finance_or_operator_access(request):
+    """Allow finance operators, or a parent with valid guardian finance access."""
+    user = getattr(request, "user", None)
+    if not user or not user.is_authenticated:
+        return False, JsonResponse({"error": "Authentication required"}, status=401)
+    school = _get_school_from_request(request)
+    if not school:
+        return False, JsonResponse({"error": "Tenant context required"}, status=400)
+    if getattr(user, "is_superuser", False) or getattr(user, "is_staff", False):
+        return True, None
+    if _user_has_any_role(user, FINANCE_OPERATOR_ROLES):
+        return True, None
+    if not _user_has_any_role(user, {"PARENT"}):
+        return False, JsonResponse({"error": "Forbidden"}, status=403)
+
+    from apps.finance.views import _finance_access_state
+
+    access_state = _finance_access_state(user, request)
+    if access_state.get("guardian_count", 0) <= 0:
+        return False, JsonResponse({"error": "Guardian finance access required"}, status=403)
+    if access_state.get("require_opt_in") and access_state.get("finance_count", 0) <= 0:
+        return False, JsonResponse({"error": "Finance access approval required"}, status=403)
+    return True, None
 
 
 def _backend_flag_enabled(flag_name: str, request=None, *, default: bool = False) -> bool:
@@ -390,11 +449,10 @@ class FinanceGenerateBatchView(View):
     """POST /api/v1/finance/generate-batch - One-click batch billing (async)."""
 
     def post(self, request):
+        allowed, err = _require_finance_operator(request)
+        if not allowed:
+            return err
         school = _get_school_from_request(request)
-        if not school:
-            return JsonResponse({"error": "Tenant context required"}, status=400)
-        if not getattr(request, "user", None) or not request.user.is_authenticated:
-            return JsonResponse({"error": "Authentication required"}, status=401)
         try:
             from apps.finance.tasks import auto_generate_fee_invoices_task
             result = auto_generate_fee_invoices_task.apply_async(kwargs={})
@@ -416,9 +474,10 @@ class FinanceExchangeRateView(View):
     """GET /api/v1/finance/exchange-rate - Exchange rate for reporting (e.g. from_currency, to_currency)."""
 
     def get(self, request):
+        allowed, err = _require_finance_operator(request)
+        if not allowed:
+            return err
         school = _get_school_from_request(request)
-        if not getattr(request, "user", None) or not request.user.is_authenticated:
-            return JsonResponse({"error": "Authentication required"}, status=401)
         from_currency = (request.GET.get("from_currency") or request.GET.get("from") or "USD").strip().upper()[:3]
         _to = (getattr(school.default_region, "default_currency", None) if school and getattr(school, "default_region", None) else None)
         if _to is None:
@@ -1238,11 +1297,10 @@ class FinanceWalletTopUpView(View):
     """POST /api/v1/finance/wallet/top-up - Credit parent wallet. Body: { \"amount\": \"100.00\", \"reference\": \"optional\" }."""
 
     def post(self, request):
-        if not getattr(request, "user", None) or not request.user.is_authenticated:
-            return JsonResponse({"error": "Authentication required"}, status=401)
+        allowed, err = _require_parent_finance_or_operator_access(request)
+        if not allowed:
+            return err
         school = _get_school_from_request(request)
-        if not school:
-            return JsonResponse({"error": "Tenant context required"}, status=400)
         try:
             data = json.loads(request.body) if request.body else {}
         except json.JSONDecodeError:
@@ -1452,11 +1510,10 @@ class PaymentDisputeCreateView(View):
     """POST /api/v1/finance/disputes - Raise a payment dispute."""
 
     def post(self, request):
-        if not getattr(request, "user", None) or not request.user.is_authenticated:
-            return JsonResponse({"error": "Authentication required"}, status=401)
+        allowed, err = _require_finance_operator(request)
+        if not allowed:
+            return err
         school = _get_school_from_request(request)
-        if not school:
-            return JsonResponse({"error": "Tenant context required"}, status=400)
         try:
             data = json.loads(request.body) if request.body else {}
         except json.JSONDecodeError:

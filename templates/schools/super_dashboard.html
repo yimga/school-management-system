@@ -1,12 +1,12 @@
 {% extends "control_plane_base.html" %}
 {% load static i18n %}
 
-{% block cp_title %}Tenant Mission Control{% endblock %}
+{% block cp_title %}Control Plane{% endblock %}
 
 {% block breadcrumbs %}
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb mb-0">
-    <li class="breadcrumb-item active" aria-current="page">{% trans "Tenant Mission Control" %}</li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Control Plane" %}</li>
   </ol>
 </nav>
 {% endblock %}
@@ -21,11 +21,11 @@
   <section class="cp-hero mb-4">
     <div class="cp-hero-grid">
       <div>
-        <div class="cp-eyebrow">RunMyCampus Manager</div>
-        <h1 class="cp-hero-title">Tenant Mission Control</h1>
+        <div class="cp-eyebrow">RunMyCampus Platform</div>
+        <h1 class="cp-hero-title">Control Plane</h1>
         <p class="cp-hero-copy">
-          Operate the platform here, not inside tenant product surfaces. Provisioning, billing, incidents,
-          readiness, branding, and global rollout posture all converge in one control plane.
+          Operate the platform from one place: provisioning, billing, incidents,
+          readiness, branding, and global rollout. The command center for every school.
         </p>
         <div class="cp-chip-row">
           <span class="cp-chip cp-chip-{{ platform_health.overall_status|default:'warning' }}">Platform {{ platform_health.overall_status|default:"warning"|upper }}</span>
@@ -37,9 +37,9 @@
           <span class="cp-chip">Countries live {{ countries_live_count }}/{{ registry_counts.countries }}</span>
           <span class="cp-chip">Webhook drift {{ webhook_stack.unsynced_legacy_groups|default:0 }}</span>
           {% if command_center_url and attention_school_count %}
-          <a href="{{ command_center_url }}" class="cp-chip text-decoration-none" title="{% trans 'Open operational queues' %}">Attention tenants {{ attention_school_count }}</a>
+          <a href="{{ command_center_url }}" class="cp-chip text-decoration-none" title="{% trans 'Open operational queues' %}">Schools needing attention {{ attention_school_count }}</a>
           {% else %}
-          <span class="cp-chip">Attention tenants {{ attention_school_count }}</span>
+          <span class="cp-chip">Schools needing attention {{ attention_school_count }}</span>
           {% endif %}
         </div>
       </div>
@@ -50,7 +50,7 @@
             <strong class="cp-hero-stat-value">{{ north_star_formatted }}</strong>
             <span class="cp-hero-stat-subtitle">{{ revenue_snapshot_month|date:"F Y" }}</span>
           </div>
-          <a href="{% url 'super:create_school_wizard' %}" class="btn btn-primary cp-primary-action">Tenant Studio</a>
+          <a href="{% url 'super:create_school_wizard' %}" class="btn btn-primary cp-primary-action">Setup Studio</a>
           <div class="cp-action-row">
             <a href="{{ command_center_url|default:'#' }}" class="btn btn-outline-light btn-sm">Queues</a>
             <a href="{% url 'super:billing_dashboard' %}" class="btn btn-outline-light btn-sm">Billing</a>
@@ -78,7 +78,7 @@
     <a href="#cp-action-queue" class="cp-section-link">Action queue</a>
     <a href="#cp-fleet-health" class="cp-section-link">Fleet health</a>
     <a href="#cp-global-footprint" class="cp-section-link">Global footprint</a>
-    <a href="#cp-tenant-registry" class="cp-section-link">Tenant registry</a>
+    <a href="#cp-tenant-registry" class="cp-section-link">School registry</a>
     <a href="#cp-readiness" class="cp-section-link">Readiness</a>
     <button type="button" class="btn btn-sm btn-outline-secondary ms-2" id="cp-customize-layout-btn" aria-label="Customize section order">Customize layout</button>
   </nav>
@@ -192,7 +192,7 @@
                 <span class="cp-status-badge cp-status-badge-{{ subscription.status|lower }}">{{ subscription.status|title }}</span>
               </div>
               {% empty %}
-              <div class="cp-empty-state">No tenants are past due or suspended.</div>
+              <div class="cp-empty-state">No schools are past due or suspended.</div>
               {% endfor %}
             </div>
             <a href="{% url 'super:billing_dashboard' %}" class="cp-subtle-link">Open billing console</a>
@@ -389,7 +389,7 @@
               <div class="table-responsive">
                 <table class="table table-sm mb-0 cp-table">
                   <thead>
-                    <tr><th>Country</th><th>Tenants</th><th>Students</th><th>Revenue</th><th>Waived</th></tr>
+                    <tr><th>Country</th><th>Schools</th><th>Students</th><th>Revenue</th><th>Waived</th></tr>
                   </thead>
                   <tbody>
                     {% for row in country_rollup %}
@@ -437,24 +437,24 @@
       <section class="cp-panel" id="cp-tenant-registry">
         <div class="cp-panel-header">
           <div>
-            <span class="cp-panel-eyebrow">Tenant registry</span>
-            <h2 class="cp-panel-title">Search, triage, and drill into every tenant</h2>
+            <span class="cp-panel-eyebrow">School registry</span>
+            <h2 class="cp-panel-title">Search, triage, and drill into every school</h2>
           </div>
           <div class="cp-panel-header-actions">
             <a href="{% url 'super:export_schools_csv' %}" class="btn btn-outline-secondary btn-sm">Export schools</a>
-            <a href="{% url 'super:tenant_health' %}" class="btn btn-outline-secondary btn-sm">Tenant health</a>
+            <a href="{% url 'super:tenant_health' %}" class="btn btn-outline-secondary btn-sm">School health</a>
           </div>
         </div>
         <div class="cp-toolbar">
           <input type="search" id="cp-school-search" class="form-control" placeholder="Search schools, countries, systems, risk flags">
           <select id="cp-school-filter" class="form-select">
-            <option value="all">All tenants</option>
+            <option value="all">All schools</option>
             <option value="attention">Needs attention</option>
             <option value="pending">Pending approval</option>
             <option value="inactive">Inactive</option>
             <option value="healthy">Healthy</option>
           </select>
-          <div class="cp-toolbar-summary"><span id="cp-visible-school-count">{{ schools|length }}</span> of {{ schools|length }} tenants visible</div>
+          <div class="cp-toolbar-summary"><span id="cp-visible-school-count">{{ schools|length }}</span> of {{ schools|length }} schools visible</div>
         </div>
         <div class="table-responsive cp-table-wrap">
           <table class="table table-hover mb-0 cp-table">
@@ -540,7 +540,7 @@
                     <form method="post" action="{% url 'super:switch_to_tenant' %}" class="d-inline">
                       {% csrf_token %}
                       <input type="hidden" name="school_id" value="{{ school.id }}">
-                      <button type="submit" class="btn btn-sm btn-outline-primary">View as tenant</button>
+                      <button type="submit" class="btn btn-sm btn-outline-primary">Open as school</button>
                     </form>
                     {% if school.timeline_url %}<a href="{{ school.timeline_url }}" class="btn btn-sm btn-outline-info">Timeline</a>{% endif %}
                     {% if school.sync_repair_url %}<a href="{{ school.sync_repair_url }}" class="btn btn-sm btn-outline-warning">Sync repair</a>{% endif %}
@@ -551,7 +551,7 @@
               {% empty %}
               <tr>
                 <td colspan="7" class="text-center py-5">
-                  <p class="text-muted mb-2">No tenants yet.</p>
+                  <p class="text-muted mb-2">No schools yet.</p>
                   <a href="{% url 'super:create_school_wizard' %}" class="btn btn-primary">Create the first school</a>
                 </td>
               </tr>
@@ -625,7 +625,7 @@
       <section class="cp-panel">
         <div class="cp-panel-header">
           <div>
-            <span class="cp-panel-eyebrow">Recent tenants</span>
+            <span class="cp-panel-eyebrow">Recent schools</span>
             <h2 class="cp-panel-title">Newest fleet entries</h2>
           </div>
         </div>
@@ -659,7 +659,7 @@
     'cp-action-queue': 'Action queue',
     'cp-fleet-health': 'Fleet health',
     'cp-global-footprint': 'Global footprint',
-    'cp-tenant-registry': 'Tenant registry',
+    'cp-tenant-registry': 'School registry',
     'cp-readiness': 'Readiness'
   };
   var modal = document.getElementById('cp-layout-modal');

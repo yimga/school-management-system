@@ -12,7 +12,7 @@
       <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:bulk_letters' %}">
         <i class="bi bi-envelope-paper"></i> Bulk Letters
       </a>
-      <a class="btn btn-sm btn-outline-secondary" href="{% url 'kb:kb_search' %}?q=reports+downloads" title="Search help articles">
+      <a class="btn btn-sm btn-outline-secondary" href="{% if request.public_host_kind == 'manager' %}{% url 'manager_help' %}{% else %}{% url 'kb:kb_search' %}?q=reports+downloads{% endif %}" title="Search help articles">
         <i class="bi bi-question-circle"></i> Help
       </a>
       <span class="badge bg-success">CSV · Excel · ODS · PDF</span>

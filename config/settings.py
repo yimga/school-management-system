@@ -982,6 +982,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.policies",
         "apps.events",
         "apps.marketplace",
+        "apps.packages.apps.PackagesConfig",  # Package engine (InstalledPackage, etc.) in public schema for manager package_rollout
         "apps.customersuccess",
     ]
     TENANT_APPS = [

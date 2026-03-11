@@ -1,13 +1,13 @@
 {% extends "control_plane_base.html" %}
 {% load i18n %}
 
-{% block cp_title %}{% trans "Tenant 360" %}: {{ school.name }}{% endblock %}
+{% block cp_title %}{% trans "School 360" %}: {{ school.name }}{% endblock %}
 
 {% block breadcrumbs %}
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb mb-0">
-    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Tenant Mission Control" %}</a></li>
-    <li class="breadcrumb-item"><a href="{% url 'super:tenant_health' %}">{% trans "Tenant Health" %}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Control Plane" %}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'super:tenant_health' %}">{% trans "School Health" %}</a></li>
     <li class="breadcrumb-item active" aria-current="page">{% trans "360" %} — {{ school.name }}</li>
   </ol>
 </nav>

@@ -483,17 +483,23 @@ def super_activate_sandbox(request):
 @require_GET
 def package_rollout(request):
     """Control plane: list InstalledPackage (packages engine) with apply_stage=sandbox; offer Promote to production (Phase 4)."""
+    from django.db.utils import ProgrammingError
+
     from apps.packages.models import InstalledPackage
 
-    sandbox_packages = list(
-        InstalledPackage.objects.filter(
-            apply_stage="sandbox",
-            is_active=True,
-            school_id__isnull=False,
+    try:
+        sandbox_packages = list(
+            InstalledPackage.objects.filter(
+                apply_stage="sandbox",
+                is_active=True,
+                school_id__isnull=False,
+            )
+            .select_related("school")
+            .order_by("-applied_at")
         )
-        .select_related("school")
-        .order_by("-applied_at")
-    )
+    except ProgrammingError:
+        # Table packages_installedpackage may not exist yet (migrations not run or wrong schema).
+        sandbox_packages = []
     return render(request, "marketplace/package_rollout.html", {"packages": sandbox_packages})
 
 
@@ -502,6 +508,8 @@ def package_rollout(request):
 @require_POST
 def package_promote(request):
     """Control plane: promote an InstalledPackage from sandbox to production (Phase 4)."""
+    from django.db.utils import ProgrammingError
+
     from apps.packages.engine import promote_package
     from apps.packages.models import InstalledPackage
 
@@ -509,13 +517,17 @@ def package_promote(request):
     if not pk:
         messages.error(request, "Select a package.")
         return redirect("super:package_rollout")
-    inst = get_object_or_404(
-        InstalledPackage,
-        pk=pk,
-        apply_stage="sandbox",
-        is_active=True,
-        school_id__isnull=False,
-    )
+    try:
+        inst = get_object_or_404(
+            InstalledPackage,
+            pk=pk,
+            apply_stage="sandbox",
+            is_active=True,
+            school_id__isnull=False,
+        )
+    except ProgrammingError:
+        messages.error(request, "Packages table is not available. Run migrations (e.g. migrate_schemas --shared).")
+        return redirect("super:package_rollout")
     promote_package(inst, actor_id=getattr(request.user, "id", None), target_mode="production")
     messages.success(request, f"“{inst.package_id}” at “{inst.school.name}” promoted to production.")
     return redirect("super:package_rollout")

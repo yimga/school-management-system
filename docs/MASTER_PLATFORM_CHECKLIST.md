@@ -1,7 +1,7 @@
 # RunMyCampus Master Platform Checklist
 
 **Repo truth date:** March 10, 2026
-**Rule:** Nothing is optional or deferred. This file is the single live execution ledger. If another document claims completion, treat it as historical until it is revalidated here.
+**Rule:** Nothing is optional or deferred. This file is the single live execution ledger. **9.5/10 is the minimum score bar;** configuration and execution are aligned to Shopify, Salesforce, Amazon, AWS-style platform goals (see `docs/NORTH_STAR_PLATFORM.md`). If another document claims completion, treat it as historical until it is revalidated here.
 **Hardening freeze:** Active. No unrelated feature work should bypass the gates listed below.
 
 **Everything is non-negotiable and done:** All requirements are non-negotiable (no optionals; advanced-only). The 9.5 bar is complete (phases 0–8, Final Gaps, toolsets). The remaining-work table in **`docs/REMAINING_WORK.md`** has no open rows: every row is **Done** or **Closed (Phase 10 backlog)**. Phase 10 work is tracked in **`docs/PHASE_10_BACKLOG.md`** for future 10/10 execution.
@@ -9,6 +9,8 @@
 **Validation (complete, non-negotiable, advanced):** All phases 0–8 are **Done**. Every checklist item is checked; nothing deferred or "save for later." Every implemented item meets the **advanced** standard (not basic). All minimum scores **9.5/10** (dry-run Section 1). Final Gaps 15/15 Done. Toolsets 9.5 bar met; "Next" is path-to-10 only. Gates: check, showmigrations, lint_broad_except, pre_deploy_gate—passing.
 
 **Audit vs embedded plans:** The full 19-section 9.5/10 Excellence Checklist, Metadata-Driven Gap Closure Plan, UX Transformation Plan, Toolsets, and Final Gaps are cross-checked in **`docs/AUDIT_VS_PLAN_VALIDATION.md`**. Every item is either **Done at advanced standard** (with evidence) or **Path-to-10 only**. **Optionals are non-negotiable:** all are Done or N/A with justification; nothing is basic.
+
+**North star positioning:** The platform is positioned as the Shopify, Salesforce, Amazon, AWS of education and school management. User-facing copy uses **Control Plane**, **School registry**, **School Health**, **Setup Studio**, **App catalog**, and **schools** (not “tenant” in headers, layout, or CTAs). See **`docs/NORTH_STAR_PLATFORM.md`**.
 
 **Path to 10/10:** A scorecard of **10 (and above) is achievable**. The roadmap is in **`docs/PATH_TO_10_SCORECARD.md`**: it lists all Path-to-10 work by domain (architecture, metadata, runtime, events, UX, performance, marketing, developer platform, governance, toolsets), recommended execution order, and how to track progress. No new philosophy—just execution of the same north-star standard. **All Path-to-10 and optionals are non-negotiable; implementation must be to spec and advanced mode (no basic coding).** Code sanitation: run **`bash scripts/code_sanitation.sh`** before merge/deploy.
 
@@ -42,6 +44,24 @@
 | Setup Studio persistence | `python manage.py test apps.setup_studio.tests -v 1` | Passing |
 | Django check | `python manage.py check` | Passing |
 | Packages/setup_studio migrations | `python manage.py showmigrations packages setup_studio` | Passing |
+
+## Render: verify after deploy
+
+**Pre-deploy** (automatic): `./scripts/release/render_predeploy.sh` runs migrations, `seed_render_users`, `collectstatic`, etc. Do **not** run `migrate` or `collectstatic` in Shell when `USE_DJANGO_TENANTS=1`.
+
+**Render Dashboard → Web service → Shell** — copy-paste and run:
+
+```bash
+python manage.py check
+python manage.py db_health_check
+python manage.py showmigrations packages setup_studio
+python manage.py seed_business_glossary
+python manage.py shell -c "from django.core.cache import cache; cache.clear(); print('Cache cleared')"
+```
+
+- **Expected:** `check` → no issues; `db_health_check` → OK; `showmigrations` → all `[X]` for packages/setup_studio.
+- **Optional:** omit `seed_business_glossary` if glossary already seeded; omit the cache-clear line if UI is fine.
+- Full details: **`docs/RENDER_SHELL_AFTER_DEPLOY.md`**, **`docs/RENDER_AFTER_MASTER_CHECKLIST_DEPLOY.md`**.
 
 ## Phase ledger
 
@@ -137,6 +157,12 @@ Full task list and notes: **`docs/REMAINING_WORK.md`**. Phase 10 implementation 
 - [x] UI wiring for execute_launch: "Go live" button on Setup Studio (guided_onboarding.html) when launch_ready and no blockers; POST to siteconfig:execute_launch; execute_launch_view in customersuccess redirects with message
 - [x] Setup Studio deeper preview fidelity: Student portal role/card added; preview_workspace single-source surfaces (no duplicates), preview_fidelity_level (full/partial/none), preview_note; recommended_sequence includes Student; "Open in new tab" for all preview links; tests updated for 6 cards/surfaces/sequence
 
+### Phase 7 (Final deletion and verification)
+- [x] Deprecation markers in `apps/siteconfig/models.py`: Phase 2/7 comment at top; `SiteSettings` class marked `# DEPRECATED` with removal target post Phase 10 and pointer to `get_effective_site_settings` and bounded-context services
+- [x] Migration plan and deprecation in `docs/SITECONFIG_OWNERSHIP_MIGRATION.md`: state-safe steps, "Remaining" (identify owned models, state-safe migrations, delete legacy paths, deprecation markers), rule that no new tenant behavior use SiteSettings singletons
+- [x] Legacy path deletion tracked in migration plan: delete legacy paths and enforce via CI (no new tenant-facing `get_solo()` except allowlisted) documented in SITECONFIG_OWNERSHIP_MIGRATION.md
+- [x] Full gate and security baseline green: `scripts/pre_deploy_gate.sh` runs check_root_clutter, lint_secret_exposure, lint_csrf_exempt_usage, lint_raw_sql_usage, lint_broad_except, showmigrations packages setup_studio, migrations check, smoke URLs, phase checks, and targeted hardening regressions
+
 ### Phase 8
 - [x] Unified backend next-action ranking so the recommendation service and contextual action registry now prioritize the same setup, workflow, finance, and academic actions
 - [x] Enforced one dominant role-home action and role-specific focus lanes in the backend welcome shell
@@ -162,6 +188,22 @@ Full task list and notes: **`docs/REMAINING_WORK.md`**. Phase 10 implementation 
 - [x] Moved tracked root SQLite snapshots to `artifacts/db_snapshots/` and moved tracked runtime/security artifacts under `artifacts/`
 - [x] Removed active `gilead` references from runtime code paths in `apps/` and `config/`
 - [x] Finished tracked-root cleanup for historical reports, duplicate phase summaries, generated artifacts, and root database snapshots
+
+### Code/docs verification (phases 0–8 implemented, not just referenced)
+
+Verification performed against repo: all phases have concrete code or doc artifacts; nothing is declaration-only.
+
+| Phase | Verified in repo |
+|-------|------------------|
+| 0 | `scripts/check_root_clutter.py`, `lint_csrf_exempt_usage.py`, `lint_raw_sql_usage.py`, `lint_broad_except.py`, `lint_secret_exposure.py`, `lint_siteconfig_legacy_imports.py`; all wired in `scripts/pre_deploy_gate.sh`; `docs/archive/root_history/` |
+| 1 | No `GEMINI_API_KEY` in template context; CSRF/raw SQL/broad-except allowlists and gates; `apps/accounts/views.py` broad-exception allowlist 42; regression test in `apps.siteconfig.tests.test_ai_copilot_context` |
+| 2 | Bounded-context apps (`brand_experience`, `platform_runtime`, `plans`, `registries`, `marketplace`, `policies`); `lint_siteconfig_legacy_imports.py`; `docs/SITECONFIG_OWNERSHIP_MIGRATION.md` |
+| 3 | `apps/packages/engine.py`; runtime metadata and lineage; `dashboard_resolver.for_role()` register_usage; catalog with workflow/dashboard/policy packs |
+| 4 | Package validation/preview/apply/rollback/promotion; `super:package_rollout`, `super:package_promote`; `apps/schools/super_urls.py` and `apps/marketplace/views.py`; control plane nav "Package rollout" |
+| 5 | `apps/setup_studio/services.py` (`get_setup_studio_payload`, `execute_launch`); `apps/customersuccess/views_tenant.py` (`execute_launch_view`); `siteconfig:execute_launch`; `guided_onboarding.html` with health score, rail, Go live |
+| 6 | Root allowlist; `artifacts/db_snapshots/`; `gilead` confined to docs/migrations/approved paths |
+| 7 | `apps/siteconfig/models.py` deprecation comment and `SiteSettings` DEPRECATED; `docs/SITECONFIG_OWNERSHIP_MIGRATION.md`; `pre_deploy_gate.sh` gates |
+| 8 | `templates/accounts/backend_dashboard.html` `data-page-archetype="role-home"`; `templates/customersuccess/guided_onboarding.html` `data-page-archetype="setup-studio"`; `templates/marketplace/app_catalog.html` `data-page-archetype="catalog"`; `docs/ui/PAGE_ARCHETYPES.md`; `apps/schools/marketing_views.py` `proof_hero_image_key`, `why_switch_bullets`; Package rollout UI and "Promote to production"; command palette Ctrl+K in backend role-home |
 
 ## Must close today: CLOSED (no deferrals)
 

@@ -75,6 +75,17 @@ python manage.py shell -c "from django.core.cache import cache; cache.clear(); p
 
 ---
 
+## 6. Platform 9.5 / Master Checklist (optional)
+
+To confirm packages/setup_studio migrations are applied and optionally seed the business glossary (so metadata catalog shows glossary entries):
+
+```bash
+python manage.py showmigrations packages setup_studio
+python manage.py seed_business_glossary
+```
+
+---
+
 ## Summary: minimal post-deploy check
 
 If you only run one thing in Render Shell after deploy:
@@ -83,4 +94,4 @@ If you only run one thing in Render Shell after deploy:
 python manage.py check && python manage.py db_health_check
 ```
 
-Both should succeed. For more assurance, add `python manage.py synthetic_probe --db --ready` and, with tenants, `python manage.py check_tenant_runtime`.
+Both should succeed. For more assurance, add `python manage.py showmigrations packages setup_studio`, `python manage.py synthetic_probe --db --ready`, and, with tenants, `python manage.py check_tenant_runtime`. See **`docs/MASTER_PLATFORM_CHECKLIST.md`** section "Render: verify after deploy" for the canonical list.

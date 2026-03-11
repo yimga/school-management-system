@@ -6,7 +6,7 @@
 {% block breadcrumbs %}
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb mb-0">
-    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">Tenant Mission Control</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">Control Plane</a></li>
     <li class="breadcrumb-item active" aria-current="page">Tenant Studio</li>
   </ol>
 </nav>
@@ -45,7 +45,7 @@
               <span class="cp-hero-stat-subtitle">Identity, region, branding, and domain before provisioning.</span>
             </div>
             <div class="cp-action-row">
-              <a href="{% url 'super:tenant_health' %}" class="btn btn-outline-light btn-sm">Tenant health</a>
+              <a href="{% url 'super:tenant_health' %}" class="btn btn-outline-light btn-sm">School health</a>
               <a href="{% url 'super:blueprints_catalog' %}" class="btn btn-outline-light btn-sm">Blueprints</a>
               <a href="{% url 'super:billing_dashboard' %}" class="btn btn-outline-light btn-sm">Billing</a>
             </div>

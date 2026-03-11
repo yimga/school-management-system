@@ -6,7 +6,7 @@
 {% block breadcrumbs %}
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb mb-0">
-    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Tenant Mission Control" %}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Control Plane" %}</a></li>
     <li class="breadcrumb-item active" aria-current="page">{% trans "Policy Bundles" %}</li>
   </ol>
 </nav>
@@ -19,7 +19,7 @@
 {% block cp_content %}
 <div class="container-fluid py-2">
   {% comment %}Operational workbench: status bar, work queue, one primary action per row. See docs/ui/OPERATIONAL_WORKBENCH.md.{% endcomment %}
-  <p class="text-secondary small mb-2">{% trans "Behavioral rules by country/region. Platform bundles (no school) and per-tenant bundles." %}</p>
+  <p class="text-secondary small mb-2">{% trans "Behavioral rules by country/region. Platform bundles (no school) and per-school bundles." %}</p>
   <div class="d-flex flex-wrap align-items-center gap-3 mb-3 py-2 border-bottom">
     <span class="text-muted small"><strong>{{ bundles_total|default:0 }}</strong> {% trans "bundle" %}{{ bundles_total|default:0|pluralize }}</span>
     <a href="{{ request.path }}" class="btn btn-sm btn-outline-secondary">{% trans "Refresh" %}</a>

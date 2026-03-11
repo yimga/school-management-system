@@ -22,7 +22,7 @@
         <div class="proof-kicker"><i class="bi bi-box-seam"></i> {{ school.name }}</div>
         <h1 class="proof-hero-title">{% trans "Install with confidence." %}</h1>
         <p class="proof-hero-copy">
-          This tenant catalog is now sandbox-first. Every install is staged so your team can preview impact, review scopes, and activate deliberately.
+          This app catalog is sandbox-first. Every install is staged so your team can preview impact, review scopes, and activate deliberately.
         </p>
         <div class="proof-hero-actions">
           <a href="{% url 'tenant_installed_apps' %}" class="btn btn-light btn-sm">{% trans "Installed apps" %}</a>
@@ -36,7 +36,7 @@
       </div>
       <div class="proof-visual">
         <div class="proof-app-screen h-100">
-          <strong>{% trans "Tenant install path" %}</strong>
+          <strong>{% trans "Install path" %}</strong>
           <p class="mb-2">{% trans "Choose app, review trust signals, install to sandbox, approve scopes if needed, then activate." %}</p>
           <div class="proof-chip-row">
             <span class="proof-chip"><i class="bi bi-shield-check"></i> {% trans "Verified" %}</span>
@@ -51,7 +51,7 @@
   <section class="proof-panel">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
       <div>
-        <h2 class="proof-panel-title">{% trans "Tenant marketplace" %}</h2>
+        <h2 class="proof-panel-title">{% trans "App catalog" %}</h2>
         <p class="proof-panel-copy">{% trans "Browse governed apps, then install to sandbox instead of pushing directly into live use." %}</p>
       </div>
       <a href="{% url 'tenant_installed_apps' %}" class="btn btn-outline-primary">{% trans "Review sandbox installs" %}</a>
@@ -117,7 +117,7 @@
       {% empty %}
       <div class="proof-panel">
         <h3 class="proof-panel-title">{% trans "No installable apps available." %}</h3>
-        <p class="proof-panel-copy">{% trans "Approved catalog entries will appear here when governance allows them for this tenant." %}</p>
+        <p class="proof-panel-copy">{% trans "Approved catalog entries will appear here when governance allows them for this school." %}</p>
       </div>
       {% endfor %}
     </div>

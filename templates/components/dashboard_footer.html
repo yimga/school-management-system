@@ -70,7 +70,7 @@
             {% if request.public_host_kind == 'manager' %}
               <a href="{% url 'super:dashboard' %}"><i class="bi bi-kanban"></i> Control Plane</a>
               <a href="{% url 'super:billing_dashboard' %}"><i class="bi bi-receipt"></i> Platform Billing</a>
-              <a href="{% url 'super:create_school_wizard' %}"><i class="bi bi-building-add"></i> Provision Tenant</a>
+              <a href="{% url 'super:create_school_wizard' %}"><i class="bi bi-building-add"></i> Add school</a>
             {% elif can_settings or can_data_access %}
               <a href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-kanban"></i> Backend Dashboard</a>
             {% endif %}

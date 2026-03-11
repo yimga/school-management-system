@@ -6,7 +6,7 @@
 {% block breadcrumbs %}
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb mb-0">
-    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Tenant Mission Control" %}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Control Plane" %}</a></li>
     <li class="breadcrumb-item active" aria-current="page">{% trans "Control Plane Health" %}</li>
   </ol>
 </nav>
@@ -18,7 +18,7 @@
 
 {% block cp_content %}
 <div class="container-fluid py-2">
-  <p class="text-secondary small mb-4">{% trans "Single entry for runbooks, SLOs, incidents, and tenant health. Use these links for operational visibility and response." %}</p>
+  <p class="text-secondary small mb-4">{% trans "Single entry for runbooks, SLOs, incidents, and school health. Use these links for operational visibility and response." %}</p>
   <div class="card shadow-sm border-secondary" style="background: var(--cp-panel-bg, rgba(8,16,30,0.6)); border-color: var(--cp-panel-border) !important;">
     <div class="card-body p-0">
       <ul class="list-group list-group-flush" style="background: transparent;">

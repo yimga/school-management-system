@@ -6,7 +6,7 @@
 {% block breadcrumbs %}
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb mb-0">
-    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Tenant Mission Control" %}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Control Plane" %}</a></li>
     <li class="breadcrumb-item active" aria-current="page">{% trans "Blueprint Packs" %}</li>
   </ol>
 </nav>
@@ -18,7 +18,7 @@
 
 {% block cp_content %}
 <div class="container-fluid py-2">
-  <p class="text-secondary small mb-4">{% trans "Institution archetypes: assign to tenants for default structure, workflow and dashboard recommendations." %}</p>
+  <p class="text-secondary small mb-4">{% trans "Institution archetypes: assign to schools for default structure, workflow and dashboard recommendations." %}</p>
   <div class="card shadow-sm border-secondary">
     <div class="card-body p-0">
       <table class="table table-dark table-hover mb-0">

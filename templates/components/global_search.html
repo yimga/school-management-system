@@ -20,7 +20,7 @@
             type="text" 
             class="search-input" 
             id="searchInput" 
-            placeholder="{% if request.public_host_kind == 'manager' %}Search tenants, incidents, subscriptions...{% else %}Search students, teachers, classes, invoices...{% endif %}"
+            placeholder="{% if request.public_host_kind == 'manager' %}Search schools, incidents, subscriptions...{% else %}Search students, teachers, classes, invoices...{% endif %}"
             autocomplete="off"
           >
           <button type="button" class="search-clear" id="searchClear" style="display: none;">
@@ -56,8 +56,8 @@
                 <i class="bi bi-building-add"></i>
               </div>
               <div class="search-item-content">
-                <div class="search-item-title">Tenant Studio</div>
-                <div class="search-item-desc">Launch the guided tenant provisioning flow</div>
+                <div class="search-item-title">Setup Studio</div>
+                <div class="search-item-desc">Launch the guided school onboarding flow</div>
               </div>
             </a>
             <a href="{% url 'super:billing_dashboard' %}" class="search-item">
@@ -198,7 +198,7 @@
           <ul class="small text-muted mb-0 ps-3">
             <li>Use at least 2 characters for better results</li>
             <li>Check spelling or try a different keyword</li>
-            <li>{% if request.public_host_kind == 'manager' %}Search by tenant, incident, subscription, or billing status{% else %}Search by student name, teacher, class, or invoice number{% endif %}</li>
+            <li>{% if request.public_host_kind == 'manager' %}Search by school, incident, subscription, or billing status{% else %}Search by student name, teacher, class, or invoice number{% endif %}</li>
           </ul>
         </div>
       </div>

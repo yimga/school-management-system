@@ -22,6 +22,14 @@ PUBLIC_ROUTE_EXACT = {
     "portal",
     "robots.txt",
     "sitemap.xml",
+    "backend/",
+    "api/weather/context/",
+    "api/admissions/lead/",
+    "api/interop/oneroster/",
+    "api/interop/lti13/",
+    "api/interop/edfi/",
+    "api/interop/ceds/",
+    "api/v1/enrollment/apply",
 }
 
 PUBLIC_ROUTE_PREFIXES = (
@@ -181,6 +189,10 @@ class Command(BaseCommand):
             or self._has_decorator(func, 'role_required')
             for func in view_funcs
         )
+        has_observability_auth = any(
+            self._has_decorator(func, 'observability_auth_required')
+            for func in view_funcs
+        )
         has_staff_member_required = any(self._has_staff_member_protection(func) for func in view_funcs)
         has_user_passes_test = any(self._has_decorator(func, 'user_passes_test') for func in view_funcs)
         has_drf_permission_control = self._has_drf_permission_control(view)
@@ -193,6 +205,7 @@ class Command(BaseCommand):
                 has_login_required,
                 has_permission_required,
                 has_role_required,
+                has_observability_auth,
                 has_staff_member_required,
                 has_user_passes_test,
                 has_drf_permission_control,
@@ -226,6 +239,7 @@ class Command(BaseCommand):
             if not (
                 has_permission_required
                 or has_role_required
+                or has_observability_auth
                 or has_staff_member_required
                 or has_drf_permission_control
                 or has_manual_permission_guard
@@ -245,6 +259,8 @@ class Command(BaseCommand):
                 decorators.append('permission_required')
             if has_role_required:
                 decorators.append('require_role')
+            if has_observability_auth:
+                decorators.append('observability_auth_required')
             if has_staff_member_required:
                 decorators.append('staff_member_required')
             if has_user_passes_test:
@@ -360,6 +376,9 @@ class Command(BaseCommand):
             return False
         permission_markers = (
             "_require_super_or_school(",
+            "_require_finance_operator(",
+            "_require_parent_finance_or_operator_access(",
+            "_require_staff(",
             "_finance_access_state(",
             "HttpResponseForbidden(",
             "return err",

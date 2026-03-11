@@ -6,7 +6,7 @@
 {% block content %}
   {% if request.session.impersonation %}
   <div class="alert alert-warning d-flex align-items-center justify-content-between flex-wrap gap-2 mb-0 rounded-0 border-0 border-bottom" role="alert">
-    <span><strong>{% trans "Viewing as tenant" %}</strong> — {% trans "You are impersonating this school. Actions are audited." %}</span>
+    <span><strong>{% trans "Viewing as school" %}</strong> — {% trans "You are impersonating this school. Actions are audited." %}</span>
     <a href="{% url 'accounts:end_impersonation' %}" class="btn btn-sm btn-outline-dark">{% trans "Exit impersonation" %}</a>
   </div>
   {% endif %}

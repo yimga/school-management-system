@@ -218,7 +218,7 @@
           <div>
             {% if is_manager_host %}
               <strong>RunMyCampus</strong>
-              <small>{% trans "Platform & tenant management" %}</small>
+              <small>{% trans "Platform & school management" %}</small>
               <small class="d-block mt-1 opacity-75">{% trans "You're signing in to manage schools and tenants" %}</small>
             {% else %}
               <strong>{% if PUBLIC_BRAND_MODE %}{{ PUBLIC_BRAND_NAME }}{% elif SITE.login_hero_heading %}{{ SITE.login_hero_heading }}{% else %}{{ SITE.site_name|default:"School Management System" }}{% endif %}</strong>
@@ -355,7 +355,7 @@
               </div>
               <p class="small text-muted mt-3 mb-0">
                 {% if is_manager_host %}
-                  {% trans "Control-plane operators can manage tenants from the manager host. Everyone else should continue through their tenant login or invite flow." %}
+                  {% trans "Control-plane operators can manage schools from the manager host. Everyone else should sign in through their school or use an invite link." %}
                 {% else %}
                   {% trans "Customizer controls now live inside Site Settings or your Preferences so you can always control how the dashboard looks." %}
                 {% endif %}
