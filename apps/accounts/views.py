@@ -228,9 +228,9 @@ def _admin_context(user):
     site_settings_url = None
     if getattr(user, "has_feature_permission", lambda _: False)("settings.manage"):
         try:
-            site = get_effective_site_settings(request=request)
+            site = get_effective_site_settings()
             site_settings_url = reverse("admin:siteconfig_sitesettings_change", args=[site.pk])
-        except Exception:
+        except (AttributeError, NoReverseMatch, TypeError, ValueError):
             try:
                 site_settings_url = reverse("admin:siteconfig_sitesettings_changelist")
             except NoReverseMatch:
@@ -344,7 +344,7 @@ def user_profile(request):
             if str(request.user.pk) == data.get("_auth_user_id"):
                 count += 1
         context["active_sessions_count"] = count
-    except Exception:
+    except (AttributeError, DatabaseError, ImportError, RuntimeError, TypeError, ValueError):
         context["active_sessions_count"] = None
 
     # PII masking (plan 3.21): full address/DOB masked until re-auth.
@@ -358,7 +358,7 @@ def user_profile(request):
             context["pii_masked_dob"] = mask_date(dob)
         else:
             context["pii_masked_dob"] = None
-    except Exception:
+    except (AttributeError, ImportError, TypeError, ValueError):
         context["can_show_pii"] = True
         context["pii_masked_dob"] = None
 
@@ -485,12 +485,12 @@ def user_messages(request):
         active_tab = request.GET.get("tab", "groups")
         try:
             threads = threads_for_user(request.user, limit=12)
-        except Exception:
+        except (AttributeError, DatabaseError, ImportError, TypeError, ValueError):
             threads = []
 
     try:
         direct_list = _direct_conversations(request.user)
-    except Exception:
+    except (AttributeError, DatabaseError, ImportError, TypeError, ValueError):
         direct_list = []
 
     context = {
@@ -762,7 +762,7 @@ def redirect_view(request):
                 if m and m.school:
                     target = build_tenant_backend_url(request, m.school)
                     return redirect(target)
-        except Exception:
+        except (AttributeError, DatabaseError, ImportError, TypeError, ValueError):
             pass
 
     # Respect the user's "Dashboard view" preference (Portal Preferences) when possible.
@@ -1301,12 +1301,12 @@ def backend_dashboard(request):
                 "preferences",
             ]
             pref.save(update_fields=["pinned_sidebar_items", "updated_at"])
-    except Exception:
+    except DatabaseError:
         pass
     def _safe_reverse(name, default="#", kwargs=None):
         try:
             return reverse(name, kwargs=kwargs)
-        except Exception:
+        except NoReverseMatch:
             return default
 
     portal_cfg = getattr(site, "portal_features", {}) or {}
@@ -1488,7 +1488,7 @@ def backend_dashboard(request):
                     },
                 }
             )
-    except Exception:
+    except DatabaseError:
         chart_enrollment_trend_json = ""
 
     try:
@@ -1503,7 +1503,7 @@ def backend_dashboard(request):
                     "admission_number": student.admission_number or student.student_code or "--",
                 }
             )
-    except Exception:
+    except DatabaseError:
         recent_admissions = []
 
     score_rows = []

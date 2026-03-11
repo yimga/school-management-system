@@ -127,6 +127,25 @@ VERIFY_HOST_ALLOWED_PREFIXES = (
     "/favicon.ico",
     "/offline/",
 )
+
+
+def _cache_get_optional(key, default=None):
+    try:
+        from django.core.cache import cache
+
+        return cache.get(key, default)
+    except Exception:
+        return default
+
+
+def _cache_set_optional(key, value, timeout=None) -> bool:
+    try:
+        from django.core.cache import cache
+
+        cache.set(key, value, timeout)
+        return True
+    except Exception:
+        return False
 SUPPORT_HOST_ALLOWED_PREFIXES = (
     "/support/",
     "/discover/",
@@ -440,15 +459,11 @@ def _resolve_school_from_request(request) -> "School | None":
     base_domain = _get_base_domain()
 
     # Optional: Redis (or any cache backend) tenant lookup for <10ms resolution
-    try:
-        from django.core.cache import cache
-        cached_id = cache.get(_tenant_cache_key(host, "host"))
-        if cached_id:
-            school = School.objects.filter(pk=cached_id, is_active=True).first()
-            if school:
-                return school
-    except Exception:
-        pass
+    cached_id = _cache_get_optional(_tenant_cache_key(host, "host"))
+    if cached_id:
+        school = School.objects.filter(pk=cached_id, is_active=True).first()
+        if school:
+            return school
 
     # 1. Canonical verified domain registry (SchoolDomain)
     try:
@@ -461,10 +476,7 @@ def _resolve_school_from_request(request) -> "School | None":
         school_domain = None
     if school_domain and school_domain.school_id:
         school = school_domain.school
-        try:
-            cache.set(_tenant_cache_key(host, "host"), str(school.id), cache_ttl)
-        except Exception:
-            pass
+        _cache_set_optional(_tenant_cache_key(host, "host"), str(school.id), cache_ttl)
         return school
 
     # 2. Legacy custom_domain fallback
@@ -474,33 +486,23 @@ def _resolve_school_from_request(request) -> "School | None":
         is_active=True,
     ).first()
     if school:
-        try:
-            cache.set(_tenant_cache_key(host, "host"), str(school.id), cache_ttl)
-        except Exception:
-            pass
+        _cache_set_optional(_tenant_cache_key(host, "host"), str(school.id), cache_ttl)
         return school
 
     # 3. Subdomain
     subdomain = _extract_subdomain(host, base_domain or None)
     if subdomain:
-        cached_id = None
-        try:
-            cached_id = cache.get(_tenant_cache_key(subdomain, "subdomain"))
-            if cached_id:
-                school = School.objects.filter(pk=cached_id, is_active=True).first()
-                if school:
-                    return school
-        except Exception:
-            pass
+        cached_id = _cache_get_optional(_tenant_cache_key(subdomain, "subdomain"))
+        if cached_id:
+            school = School.objects.filter(pk=cached_id, is_active=True).first()
+            if school:
+                return school
         school = School.objects.filter(
             subdomain__iexact=subdomain,
             is_active=True,
         ).first()
         if school:
-            try:
-                cache.set(_tenant_cache_key(subdomain, "subdomain"), str(school.id), cache_ttl)
-            except Exception:
-                pass
+            _cache_set_optional(_tenant_cache_key(subdomain, "subdomain"), str(school.id), cache_ttl)
             return school
         # Also match by slug
         school = School.objects.filter(
@@ -508,10 +510,7 @@ def _resolve_school_from_request(request) -> "School | None":
             is_active=True,
         ).first()
         if school:
-            try:
-                cache.set(_tenant_cache_key(subdomain, "subdomain"), str(school.id), cache_ttl)
-            except Exception:
-                pass
+            _cache_set_optional(_tenant_cache_key(subdomain, "subdomain"), str(school.id), cache_ttl)
             return school
 
     # Base/public hosts never resolve to tenant context.
@@ -990,7 +989,7 @@ class FeatureGatekeeperMiddleware(MiddlewareMixin):
                         capability=code,
                     )
                     enabled = policy_result.get("enabled", False) if isinstance(policy_result, dict) else False
-                except Exception:
+                except (AttributeError, ImportError, TypeError, ValueError):
                     from apps.schools.models import is_feature_enabled
                     enabled = is_feature_enabled(school, code)
                 if not enabled:

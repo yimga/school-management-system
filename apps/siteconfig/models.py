@@ -16,10 +16,12 @@ from django.apps import apps as django_apps
 from apps.accounts.models import User
 from apps.academics.models import Classroom, Subject
 from apps.people.models import StudentProfile, TeacherProfile, StudentGuardian
-from apps.reports.models import ReportCard
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
 
 logger = logging.getLogger(__name__)
+
+REPORT_CARD_TYPE_TERM = "TERM"
+REPORT_CARD_TYPE_ANNUAL = "ANNUAL"
 
 
 def _tenant_upload_to(subpath):
@@ -2238,7 +2240,7 @@ class ReportCardStyle(models.Model):
         return self.name
 
     def template_for(self, report_type: str) -> str:
-        if report_type == ReportCard.Type.TERM:
+        if report_type == REPORT_CARD_TYPE_TERM:
             return self.term_template
         return self.annual_template
 
@@ -2267,7 +2269,7 @@ def get_report_card_style_for_student(student: StudentProfile, report_type: str)
     from apps.platform_runtime.helpers import get_effective_site_settings
 
     site = get_effective_site_settings(school=getattr(student, "school", None))
-    default_field = "default_term_report_style" if report_type == ReportCard.Type.TERM else "default_annual_report_style"
+    default_field = "default_term_report_style" if report_type == REPORT_CARD_TYPE_TERM else "default_annual_report_style"
     style = getattr(site, default_field, None)
     if style and style.is_active:
         return style
