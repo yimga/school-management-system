@@ -1,0 +1,14 @@
+{
+  "files": {
+    "apps/schools/api_views.py": {
+      "expected_count": 2,
+      "owner": "tenant_bootstrap_api",
+      "verdict": "keep",
+      "auth_model": "public_host_resolved_read_only",
+      "data_exposure": "branding_and_feature_flags_only",
+      "rate_limiting": "implemented",
+      "audit_logging": "manual_review_required",
+      "notes": "SchoolConfigAPI exposes host-resolved branding and offline capability to SPA/mobile clients without authentication."
+    }
+  }
+}

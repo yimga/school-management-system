@@ -7,6 +7,11 @@ from __future__ import annotations
 import re
 from typing import Any, Dict, Optional
 
+from django.db import DatabaseError
+
+
+OPTIONAL_POLICY_ERRORS = (AttributeError, DatabaseError, ImportError, TypeError, ValueError)
+
 
 def default_school_code_for(school=None, fallback: str = "SCH") -> str:
     raw = (getattr(school, "slug", None) or getattr(school, "name", None) or "").strip().upper()
@@ -40,7 +45,7 @@ def get_admissions_policy(school) -> Dict[str, Any]:
                 "seq_width": getattr(policy_model, "seq_width", 4),
                 "reset_frequency": getattr(policy_model, "reset_frequency", "YEARLY"),
             }
-    except Exception:
+    except OPTIONAL_POLICY_ERRORS:
         pass
     from apps.policies.policy_registry import get_effective_policy
     out = get_effective_policy(school)

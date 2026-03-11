@@ -1,6 +1,6 @@
 import json
 from django.db import DatabaseError, connection, transaction
-from .models import SiteSettings, RegionConfig, default_backend_feature_flags, default_header_weather_config
+from .models import SiteSettings, default_backend_feature_flags, default_header_weather_config
 from .translations import TranslationManager, SUPPORTED_LANGUAGES
 from .models_dashboard import DashboardUserPreference
 from django.core.files.storage import default_storage
@@ -10,6 +10,7 @@ from django.utils import translation
 from django.utils.translation import gettext as _
 from apps.accounts.models import User
 from apps.finance.models import Notification
+from apps.global_registries.models import RegionConfig
 from apps.platform_runtime.helpers import get_effective_site_settings, get_platform_defaults
 from .preview_state import PREVIEW_MODE_SESSION_KEY, ACT_AS_ROLE_SESSION_KEY
 from .portal_sidebar_items import build_portal_sidebar_items
@@ -101,7 +102,7 @@ BREADCRUMB_LABELS = {
     "payroll": "Payroll",
     "reports": "Reports",
     "siteconfig": "Site Settings",
-    "customizer": "Customizer",
+    "customizer": "Studio",
     "preferences": "Preferences",
     "reports": "Reports",
     "reports/download": "Download",
@@ -561,7 +562,6 @@ def region_settings(request):
     """
     from types import SimpleNamespace
     from django.conf import settings
-    from .models import RegionConfig
     from apps.siteconfig.currency import get_currency_symbol
 
     school = _request_school(request)

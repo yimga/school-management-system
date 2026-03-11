@@ -5,7 +5,7 @@ calculate_monthly_stats fills RevenueSnapshot; run on schedule (e.g. Celery Beat
 from datetime import date
 from decimal import Decimal
 
-from django.db import transaction
+from django.db import DatabaseError, transaction
 from django.utils import timezone
 
 from apps.schools.models import School
@@ -71,7 +71,7 @@ def calculate_monthly_stats(snapshot_date: date | None = None) -> dict:
                 try:
                     from apps.people.models import StudentProfile
                     student_count = StudentProfile.objects.filter(school=school).count()
-                except Exception:
+                except (AttributeError, DatabaseError, ImportError, TypeError, ValueError):
                     student_count = 0
 
             snapshot, _ = RevenueSnapshot.objects.update_or_create(

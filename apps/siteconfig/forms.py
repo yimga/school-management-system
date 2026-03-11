@@ -4,7 +4,7 @@ import pytz
 
 from django import forms
 from django.conf import settings
-from django.db import OperationalError, ProgrammingError
+from django.db import DatabaseError, OperationalError, ProgrammingError
 from django.db.models import Q
 
 from apps.academics.models import Classroom
@@ -586,7 +586,7 @@ class UserPreferenceForm(forms.ModelForm):
         try:
             region_choices = [("", "Default")] + list(RegionConfig.objects.values_list("code", "name").order_by("name"))
             self.fields["preferred_region"].choices = region_choices
-        except Exception:
+        except (AttributeError, DatabaseError, TypeError, ValueError):
             self.fields["preferred_region"].widget = forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. CMR"})
         self.fields["preferred_region"].required = False
         
@@ -658,7 +658,7 @@ class UserPreferenceForm(forms.ModelForm):
                 if visual_preset:
                     dashboard_pref.set_visual_preset(getattr(preference.user, "role", None), visual_preset)
                 dashboard_pref.save()
-            except Exception:
+            except (AttributeError, DatabaseError, TypeError, ValueError):
                 # Avoid blocking preference updates if dashboard prefs aren't migrated yet.
                 pass
         return preference

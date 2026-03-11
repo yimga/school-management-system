@@ -5,7 +5,12 @@ Aggregates built-in DashboardWidget catalog + marketplace installed widgets for 
 
 from typing import Any
 
+from django.db import DatabaseError
+
 from .models_dashboard import DashboardWidget, get_dashboard_widget_metadata
+
+
+OPTIONAL_DASHBOARD_ERRORS = (AttributeError, DatabaseError, ImportError, TypeError, ValueError)
 
 
 def get_tenant_dashboard_registry(
@@ -59,7 +64,7 @@ def get_tenant_dashboard_registry(
                     "config": item.get("config") or {},
                     "source": "marketplace",
                 })
-        except Exception:
+        except OPTIONAL_DASHBOARD_ERRORS:
             pass
     metadata = get_dashboard_widget_metadata(widget_ids) if widget_ids else {}
     # Register usage for metadata catalog (plan todo 4: hooks in dashboard definitions)
@@ -71,7 +76,7 @@ def get_tenant_dashboard_registry(
         register_usage("dashboard", consumer, "student", "admission_number")
         register_usage("dashboard", consumer, "person", "first_name")
         register_usage("dashboard", consumer, "invoice", "amount")
-    except Exception:
+    except OPTIONAL_DASHBOARD_ERRORS:
         pass
     return {
         "widgets": widgets,

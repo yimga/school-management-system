@@ -2,31 +2,73 @@
   "files": {
     "apps/accounts/views_saml.py": {
       "expected_count": 1,
-      "reason": "SAML ACS callback accepts IdP POST without browser session CSRF token."
+      "owner": "identity_access",
+      "verdict": "keep",
+      "auth_model": "signed_saml_assertion",
+      "replay_protection": "idp_assertion_validity_window",
+      "rate_limiting": "not_applicable",
+      "audit_logging": "manual_review_required",
+      "notes": "SAML ACS callback accepts IdP POST without browser session CSRF token."
     },
     "apps/api/lead_capture_api.py": {
       "expected_count": 1,
-      "reason": "Public lead capture endpoint guarded by rate limiting."
+      "owner": "marketing_leads",
+      "verdict": "keep",
+      "auth_model": "public_form_post",
+      "replay_protection": "not_applicable",
+      "rate_limiting": "implemented",
+      "audit_logging": "manual_review_required",
+      "notes": "Public lead capture endpoint guarded by rate limiting."
     },
     "apps/api/scim_views.py": {
       "expected_count": 3,
-      "reason": "Bearer-token SCIM provisioning mutation and detail endpoints."
+      "owner": "identity_provisioning",
+      "verdict": "keep",
+      "auth_model": "bearer_token_scim",
+      "replay_protection": "token_auth_only_manual_review_required",
+      "rate_limiting": "manual_review_required",
+      "audit_logging": "manual_review_required",
+      "notes": "Bearer-token SCIM provisioning mutation and detail endpoints."
     },
     "apps/billing/api_views.py": {
       "expected_count": 1,
-      "reason": "Billing webhook callback."
+      "owner": "billing",
+      "verdict": "keep",
+      "auth_model": "provider_webhook_signature",
+      "replay_protection": "provider_signature_timestamp_manual_review_required",
+      "rate_limiting": "not_applicable",
+      "audit_logging": "manual_review_required",
+      "notes": "Billing webhook callback."
     },
     "apps/finance/views.py": {
       "expected_count": 1,
-      "reason": "Payment provider webhook callback."
+      "owner": "finance_payments",
+      "verdict": "keep",
+      "auth_model": "payment_webhook_signature",
+      "replay_protection": "provider_signature_timestamp_manual_review_required",
+      "rate_limiting": "not_applicable",
+      "audit_logging": "manual_review_required",
+      "notes": "Payment provider webhook callback."
     },
     "apps/schools/section8_views.py": {
       "expected_count": 5,
-      "reason": "Cross-origin LTI callback and service endpoints that still accept external tool traffic."
+      "owner": "interop_lti",
+      "verdict": "keep_with_hardening",
+      "auth_model": "external_tool_callback",
+      "replay_protection": "tool_signature_manual_review_required",
+      "rate_limiting": "manual_review_required",
+      "audit_logging": "manual_review_required",
+      "notes": "Cross-origin LTI callback and service endpoints that still accept external tool traffic."
     },
     "config/graphql_view.py": {
       "expected_count": 1,
-      "reason": "GraphQL endpoint still supports non-browser API clients."
+      "owner": "api_platform",
+      "verdict": "keep_with_hardening",
+      "auth_model": "mixed_client_access",
+      "replay_protection": "not_applicable",
+      "rate_limiting": "manual_review_required",
+      "audit_logging": "manual_review_required",
+      "notes": "GraphQL endpoint still supports non-browser API clients."
     }
   }
 }

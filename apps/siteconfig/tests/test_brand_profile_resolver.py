@@ -1,8 +1,9 @@
 from django.test import TestCase
 
+from apps.brand_experience.models import BrandProfile, BrandSettings
 from apps.schools.models import School
 from apps.siteconfig.branding import brand_css_vars, resolve_brand_profile
-from apps.siteconfig.models import BrandProfile, BrandSettings, SiteSettings
+from apps.siteconfig.models import SiteSettings
 
 
 class BrandProfileResolverTests(TestCase):

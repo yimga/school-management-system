@@ -178,7 +178,7 @@ Default Region: CAMEROON_ANGLOPHONE | CAMEROON_FRANCOPHONE | GLOBAL
 SMS Provider: twilio | africastalking | console
 SMS API Key: [Your API key]
 SMS Sender ID: [Your sender ID]
-Email From Address: noreply@gilead.school
+Email From Address: noreply@runmycampus.com
 ```
 
 **Deadlines:**

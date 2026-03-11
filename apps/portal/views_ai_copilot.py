@@ -16,7 +16,10 @@ from django.views.decorators.http import require_GET, require_http_methods
 
 from apps.compliance.models import AuditLog
 from django.core.cache import cache
-from apps.portal.ai_provider import generate_ai_response, get_ai_provider_status
+from apps.portal.ai_provider import (
+    generate_ai_response,
+    get_public_ai_provider_status,
+)
 from apps.siteconfig.cache_utils import tenant_cache_key
 
 logger = logging.getLogger(__name__)
@@ -390,15 +393,17 @@ def ai_copilot_limits(request):
 @login_required
 def ai_copilot_config(request):
     """Return AI Copilot backend config visibility for frontend widgets."""
-    status = get_ai_provider_status()
+    status = get_public_ai_provider_status()
     enabled = bool(status.get("has_live_provider")) or bool(status.get("rules_fallback_enabled"))
     model = None
+    providers = status.get("providers", {})
     for provider in status.get("preference", []):
-        if provider == "ollama" and status.get("ollama", {}).get("configured"):
-            model = status.get("ollama", {}).get("model")
+        provider_state = providers.get(provider, {})
+        if provider == "ollama" and provider_state.get("configured"):
+            model = provider_state.get("model")
             break
-        if provider == "gemini" and status.get("gemini", {}).get("configured"):
-            model = status.get("gemini", {}).get("model")
+        if provider == "gemini" and provider_state.get("configured"):
+            model = provider_state.get("model")
             break
         if provider == "rules":
             model = "rules-fallback"

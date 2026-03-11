@@ -23,6 +23,9 @@ python scripts/lint_siteconfig_legacy_imports.py
 echo "[pre_deploy_gate] Provider secret exposure"
 python scripts/lint_secret_exposure.py
 
+echo "[pre_deploy_gate] Runtime-visible branding residue"
+python scripts/lint_gilead_residue.py
+
 echo "[pre_deploy_gate] No print() in application code"
 python scripts/lint_no_print_in_apps.py
 
@@ -35,9 +38,12 @@ python manage.py showmigrations packages setup_studio | grep -E '^\s+\[ \]' && {
 echo "[pre_deploy_gate] Architecture laws (no hardcoding; lint reports SiteSettings usage)"
 python scripts/check_no_hardcoding.py --allow-tests
 python scripts/lint_tenant_settings.py --check-get-solo-only
+python scripts/lint_tenant_settings.py --check-school-settings-features
 # Path to 10: report allowlisted get_solo (migration backlog); optional visibility
 python scripts/lint_tenant_settings.py --report-allowlisted --base . 2>/dev/null || true
+python scripts/generate_platform_inventory.py --check
 python scripts/lint_csrf_exempt_usage.py
+python scripts/lint_allow_any_usage.py
 python scripts/lint_raw_sql_usage.py
 python scripts/lint_broad_except.py --allowlist scripts/allowlists/broad_except_allowlist.json --strict
 echo "[pre_deploy_gate] Codex guardrails (mega-files)"
@@ -60,8 +66,13 @@ echo "[pre_deploy_gate] Targeted hardening regressions"
 TARGETED_HARDENING_TESTS=(
   apps.siteconfig.tests.test_ai_copilot_context
   apps.siteconfig.tests.test_backend_context
+  apps.siteconfig.tests.test_bounded_context_ownership
   apps.siteconfig.tests.test_metadata_catalog
   apps.packages.tests.test_engine
+  apps.platform_runtime.tests.test_precedence
+  apps.platform_runtime.tests.test_public_api_lints
+  apps.portal.tests.test_ai_copilot_config
+  apps.portal.tests.test_ai_gateway_smoke
   apps.setup_studio.tests
 )
 run_django_tests "${TARGETED_HARDENING_TESTS[@]}"
@@ -103,6 +114,11 @@ fi
 if [[ "${POWERHOUSE_WAVE0_STRICT:-0}" == "1" ]]; then
   echo "[pre_deploy_gate] Powerhouse Wave 0 strict gate"
   bash scripts/release/powerhouse_wave0_gate.sh
+fi
+
+if [[ "${PERF_BUDGET_STRICT:-0}" == "1" ]]; then
+  echo "[pre_deploy_gate] Performance budgets (strict)"
+  python scripts/check_performance_budgets.py
 fi
 
 echo "[pre_deploy_gate] PASSED"

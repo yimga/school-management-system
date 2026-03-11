@@ -2,17 +2,18 @@ from django.contrib import admin
 from config.admin import register_both, register_platform_admin, register_tenant_admin
 
 from unfold.admin import ModelAdmin
+from django.template import TemplateDoesNotExist
 from django.template.loader import render_to_string
 from django.utils.html import format_html
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect
 from django.utils.safestring import mark_safe
 from django.utils import timezone
-from django.db import models, OperationalError, ProgrammingError
+from django.db import DatabaseError, models, OperationalError, ProgrammingError
 import csv
 from datetime import datetime
 from django.core.exceptions import ValidationError
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 from urllib.parse import quote
 
 from .models import (
@@ -93,11 +94,11 @@ class DashboardLayoutWidget(forms.Textarea):
         if isinstance(value, str):
             try:
                 value = json.loads(value)
-            except Exception:
+            except (TypeError, ValueError):
                 return value
         try:
             return json.dumps(value, indent=2, ensure_ascii=False)
-        except Exception:
+        except (TypeError, ValueError):
             return value
 
 class DashboardUserPreferenceForm(forms.ModelForm):
@@ -260,7 +261,7 @@ class SiteSettingsForm(forms.ModelForm):
             merged["max_bulk_import_rows"] = int(
                 self.cleaned_data.get("max_bulk_import_rows", merged.get("max_bulk_import_rows", defaults["max_bulk_import_rows"]))
             )
-        except Exception:
+        except (TypeError, ValueError):
             raise ValidationError({"max_bulk_import_rows": "max_bulk_import_rows must be an integer."})
         if merged["max_bulk_import_rows"] < 0:
             raise ValidationError({"max_bulk_import_rows": "max_bulk_import_rows cannot be negative."})
@@ -857,7 +858,7 @@ class SiteSettingsAdmin(ModelAdmin):
             url = reverse("siteconfig:theme_colors")
             next_path = reverse("admin:siteconfig_sitesettings_change", args=[obj.pk]) + "?stay_theme=1#section-theme-experience"
             url += "?next=" + quote(next_path, safe="/#")
-        except Exception:
+        except NoReverseMatch:
             url = "/siteconfig/theme-colors/"
         return format_html(
             '<p class="mb-2 text-muted">{}</p><a href="{}" class="btn btn-primary">{}</a>',
@@ -878,7 +879,7 @@ class SiteSettingsAdmin(ModelAdmin):
                 'use <a href="{}" class="underline">Feature Control</a>.</p>',
                 url,
             )
-        except Exception:
+        except NoReverseMatch:
             return ""
     portal_features_help.short_description = ""
 
@@ -892,7 +893,7 @@ class SiteSettingsAdmin(ModelAdmin):
                     "approval_queue_url": reverse("admin:automation_automationapprovalqueue_changelist"),
                 },
             )
-        except Exception:
+        except (NoReverseMatch, TemplateDoesNotExist):
             return ""
     automation_overview_block.short_description = ""
 
@@ -907,7 +908,7 @@ class SiteSettingsAdmin(ModelAdmin):
                 '<a href="{}" class="btn btn-outline-primary btn-sm">Groups (roles)</a>',
                 users_url, groups_url,
             )
-        except Exception:
+        except NoReverseMatch:
             return ""
     rbac_discovery_block.short_description = "User permissions (who can do what)"
 
@@ -924,7 +925,7 @@ class SiteSettingsAdmin(ModelAdmin):
                 integrations_url,
                 api_center_url,
             )
-        except Exception:
+        except NoReverseMatch:
             return ""
     integrations_api_center_block.short_description = "Integrations & API Center"
 
@@ -1482,7 +1483,7 @@ class RegionConfigAdmin(ModelAdmin):
             # Check currency
             try:
                 from apps.registries.services import is_known_currency_code
-            except Exception:
+            except (AttributeError, ImportError, TypeError, ValueError):
                 is_known_currency_code = lambda code: bool((code or "").strip())
             if not is_known_currency_code(region.default_currency):
                 issues.append(f"⚠️  {region.name}: Unknown currency '{region.default_currency}'")
@@ -1980,18 +1981,11 @@ class TenantAdmissionNumberPolicyAdmin(ModelAdmin):
 # Register: both = platform backoffice + tenant config; platform = manager only; tenant = tenant only
 register_both(SiteSettings, SiteSettingsAdmin)
 register_tenant_admin(TenantAdmissionNumberPolicy, TenantAdmissionNumberPolicyAdmin)
-register_both(ThemePack, ThemePackAdmin)
 register_tenant_admin(UserPreference, UserPreferenceAdmin)
 register_both(ReportTemplate, ReportTemplateAdmin)
 register_both(OfficialReportTemplate, OfficialReportTemplateAdmin)
 register_both(ReportCardStyle, ReportCardStyleAdmin)
 register_tenant_admin(ReportCardStyleAssignment, ReportCardStyleAssignmentAdmin)
-register_both(Integration, IntegrationAdmin)
-register_platform_admin(RegionConfig, RegionConfigAdmin)
-register_platform_admin(EducationSystemProfile, EducationSystemProfileAdmin)
-register_both(GradingScaleConfig, GradingScaleConfigAdmin)
-register_tenant_admin(HolidayCalendar, HolidayCalendarAdmin)
-register_both(WeatherLocation, WeatherLocationAdmin)
 register_both(FeatureToggleDefinition, FeatureToggleDefinitionAdmin)
 register_both(FeatureToggleState, FeatureToggleStateAdmin)
 
@@ -2028,25 +2022,16 @@ class PlanAdmin(ModelAdmin):
     )
 
 
-register_platform_admin(Plan, PlanAdmin)
-
-
 class PlanAddonAdmin(ModelAdmin):
     list_display = ("code", "name", "price", "is_active", "created_at")
     list_filter = ("is_active",)
     search_fields = ("code", "name")
 
 
-register_platform_admin(PlanAddon, PlanAddonAdmin)
-
-
 class CountryMultiplierAdmin(ModelAdmin):
     list_display = ("country_code", "name", "zone", "multiplier", "is_active", "created_at")
     list_filter = ("is_active", "zone")
     search_fields = ("country_code", "name")
-
-
-register_platform_admin(CountryMultiplier, CountryMultiplierAdmin)
 
 
 class RegionalAIConfigAdmin(ModelAdmin):
@@ -2287,25 +2272,16 @@ class DesignTemplateAdmin(ModelAdmin):
     readonly_fields = ("created_at", "updated_at")
 
 
-register_both(DesignTemplate, DesignTemplateAdmin)
-
-
 class BrandProfileAdmin(ModelAdmin):
     list_display = ("school", "primary_color", "accent_color", "tagline", "updated_at")
     raw_id_fields = ("school",)
     readonly_fields = ("created_at", "updated_at")
 
 
-register_both(BrandProfile, BrandProfileAdmin)
-
-
 class BrandSettingsAdmin(ModelAdmin):
     list_display = ("school", "primary_color", "accent_color", "updated_at")
     raw_id_fields = ("school",)
     readonly_fields = ("created_at", "updated_at")
-
-
-register_both(BrandSettings, BrandSettingsAdmin)
 
 
 class GlobalBrandRegistryAdmin(ModelAdmin):
@@ -2324,9 +2300,6 @@ class GlobalBrandRegistryAdmin(ModelAdmin):
     readonly_fields = ("created_at", "updated_at")
 
 
-register_platform_admin(GlobalBrandRegistry, GlobalBrandRegistryAdmin)
-
-
 # Register dashboard preference and widget models for admin configurability
 register_tenant_admin(DashboardUserPreference, DashboardUserPreferenceAdmin)
 
@@ -2337,18 +2310,7 @@ class SuperAdminDashboardPreferenceAdmin(ModelAdmin):
     raw_id_fields = ("user",)
 
 
-register_platform_admin(SuperAdminDashboardPreference, SuperAdminDashboardPreferenceAdmin)
-register_both(DashboardWidget, DashboardWidgetAdmin)
-register_both(DashboardLayout, DashboardLayoutAdmin)
-register_both(DashboardTemplate, admin.ModelAdmin)
-register_tenant_admin(TenantLayoutAssignment, admin.ModelAdmin)
-register_both(WorkflowTemplate, admin.ModelAdmin)
-register_tenant_admin(TenantWorkflow, admin.ModelAdmin)
 register_both(WorkflowRunLog, admin.ModelAdmin)
-register_both(WorkflowPack, admin.ModelAdmin)
-register_both(WorkflowPackAssignment, admin.ModelAdmin)
-register_both(DashboardPack, admin.ModelAdmin)
-register_both(DashboardPackAssignment, admin.ModelAdmin)
 
 
 class FeatureControlAuditAdmin(ModelAdmin):
@@ -2377,7 +2339,6 @@ class ServiceIntegrationAdmin(ModelAdmin):
     ordering = ("school", "service_name")
 
 
-register_both(ServiceIntegration, ServiceIntegrationAdmin)
 
 
 # Section 15.2: DynamicFieldDefinition, DynamicFieldValue (custom attributes per entity)

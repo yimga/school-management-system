@@ -3,6 +3,10 @@ from __future__ import annotations
 from copy import deepcopy
 from typing import Any
 
+from django.db import DatabaseError
+
+from apps.brand_experience.models import GlobalBrandRegistry
+
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
 
 
@@ -37,6 +41,9 @@ DEFAULT_UI_CONFIG = {
     "number_thousands_separator": ",",
     "is_rtl": False,
 }
+
+
+OPTIONAL_BRAND_REGISTRY_ERRORS = (AttributeError, DatabaseError, ImportError, TypeError, ValueError)
 
 
 def _normalize_country_codes(country_code: str | None) -> tuple[str, str]:
@@ -155,13 +162,11 @@ def resolve_global_brand_context(
     }
 
     try:
-        from apps.siteconfig.models import GlobalBrandRegistry
-
         if alpha2:
             row = GlobalBrandRegistry.objects.filter(iso_code=alpha2, is_active=True).first()
         else:
             row = None
-    except Exception:
+    except OPTIONAL_BRAND_REGISTRY_ERRORS:
         row = None
 
     if row is not None:

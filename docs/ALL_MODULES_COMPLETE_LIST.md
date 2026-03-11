@@ -1,7 +1,8 @@
 # Complete List of All Modules - School Management System
 
-**Last Updated**: February 3, 2026  
-**Total Apps**: 17 Django Apps + 1 External Module (emis)  
+**Last Updated**: March 11, 2026  
+**Status**: Legacy narrative doc. The generated source of truth is `docs/generated/platform_inventory.md`.  
+**Total Apps**: 38 Installed App Modules + 1 External Module (`emis`)  
 **Total Models**: 100+ database models  
 **Total Views**: 200+ view functions  
 **Total API Endpoints**: 50+ REST endpoints

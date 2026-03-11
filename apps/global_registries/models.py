@@ -1,8 +1,8 @@
 """
-Global registries bounded-context surface.
+Global registries bounded-context ownership surface.
 
-These state-compatible re-exports provide a stable domain import path while
-storage ownership is still moving out of legacy apps.
+These proxy-owner models provide a stable registry import layer while current
+data is still stored across `apps.registries` and legacy siteconfig models.
 """
 
 from apps.registries.models import (
@@ -21,14 +21,78 @@ from apps.registries.models import (
     TimeZoneRegistry,
 )
 from apps.siteconfig.models import (
-    EducationSystemProfile,
-    GradingScaleConfig,
-    HolidayCalendar,
-    Province,
-    RegionConfig,
-    SystemFeature,
-    TenantSystem,
-    WeatherLocation,
+    EducationSystemProfile as LegacyEducationSystemProfile,
+    GradingScaleConfig as LegacyGradingScaleConfig,
+    HolidayCalendar as LegacyHolidayCalendar,
+    Province as LegacyProvince,
+    RegionConfig as LegacyRegionConfig,
+    SystemFeature as LegacySystemFeature,
+    TenantSystem as LegacyTenantSystem,
+    WeatherLocation as LegacyWeatherLocation,
+)
+
+
+def _proxy_model(legacy_model, *, app_label: str, doc: str):
+    meta = type(
+        "Meta",
+        (),
+        {
+            "proxy": True,
+            "app_label": app_label,
+            "verbose_name": legacy_model._meta.verbose_name,
+            "verbose_name_plural": legacy_model._meta.verbose_name_plural,
+        },
+    )
+    return type(
+        legacy_model.__name__,
+        (legacy_model,),
+        {
+            "__module__": __name__,
+            "__doc__": doc,
+            "Meta": meta,
+        },
+    )
+
+
+EducationSystemProfile = _proxy_model(
+    LegacyEducationSystemProfile,
+    app_label="global_registries",
+    doc="Global Registries owner surface for education system profiles.",
+)
+GradingScaleConfig = _proxy_model(
+    LegacyGradingScaleConfig,
+    app_label="global_registries",
+    doc="Global Registries owner surface for grading scale configurations.",
+)
+HolidayCalendar = _proxy_model(
+    LegacyHolidayCalendar,
+    app_label="global_registries",
+    doc="Global Registries owner surface for holiday calendars.",
+)
+Province = _proxy_model(
+    LegacyProvince,
+    app_label="global_registries",
+    doc="Global Registries owner surface for province/state registry entries.",
+)
+RegionConfig = _proxy_model(
+    LegacyRegionConfig,
+    app_label="global_registries",
+    doc="Global Registries owner surface for region configuration.",
+)
+SystemFeature = _proxy_model(
+    LegacySystemFeature,
+    app_label="global_registries",
+    doc="Global Registries owner surface for system feature registry data.",
+)
+TenantSystem = _proxy_model(
+    LegacyTenantSystem,
+    app_label="global_registries",
+    doc="Global Registries owner surface for tenant education system attachments.",
+)
+WeatherLocation = _proxy_model(
+    LegacyWeatherLocation,
+    app_label="global_registries",
+    doc="Global Registries owner surface for weather and location registry entries.",
 )
 
 __all__ = [

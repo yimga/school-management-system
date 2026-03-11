@@ -1,8 +1,12 @@
 from typing import Optional
 
 from django.conf import settings
+from django.db import DatabaseError
 
 from .preview_state import is_preview_mode
+
+
+OPTIONAL_DB_ROUTER_ERRORS = (AttributeError, DatabaseError, ImportError, RuntimeError, TypeError, ValueError)
 
 
 def _get_tenant_db_alias() -> Optional[str]:
@@ -27,7 +31,7 @@ def _get_tenant_db_alias() -> Optional[str]:
             region = getattr(school, "regional_cluster", None) or ""
             if region.strip() and region.strip() in settings.DATABASES:
                 return region.strip()
-    except Exception:
+    except OPTIONAL_DB_ROUTER_ERRORS:
         pass
     return None
 

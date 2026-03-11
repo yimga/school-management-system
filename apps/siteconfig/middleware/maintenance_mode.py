@@ -1,4 +1,5 @@
 from django.core.cache import cache
+from django.db import DatabaseError
 from django.shortcuts import render
 
 from apps.platform_runtime.helpers import get_effective_site_settings
@@ -6,6 +7,7 @@ from apps.siteconfig.cache_utils import tenant_cache_key
 
 CACHE_KEY = "site_settings_v1"
 CACHE_TTL = 60
+OPTIONAL_CACHE_ERRORS = (AttributeError, DatabaseError, OSError, RuntimeError, TypeError, ValueError)
 
 
 class MaintenanceModeMiddleware:
@@ -24,10 +26,10 @@ class MaintenanceModeMiddleware:
         cached = None
         try:
             cached = cache.get(cache_key)
-        except Exception:
+        except OPTIONAL_CACHE_ERRORS:
             try:
                 cache.delete(cache_key)
-            except Exception:
+            except OPTIONAL_CACHE_ERRORS:
                 pass
 
         if isinstance(cached, dict) and "maintenance_mode" in cached:
@@ -38,7 +40,7 @@ class MaintenanceModeMiddleware:
 
         try:
             cache.set(cache_key, {"maintenance_mode": enabled}, CACHE_TTL)
-        except Exception:
+        except OPTIONAL_CACHE_ERRORS:
             pass
 
         return enabled

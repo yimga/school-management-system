@@ -69,8 +69,11 @@ def get_tenant_cached_segment(school_id: Any, segment: str, loader: Callable[[],
         from django.core.cache import cache
         from django.conf import settings
         ttl = getattr(settings, "RUNTIME_TENANT_CACHE_TTL", RUNTIME_TENANT_CACHE_TTL)
-        if ttl <= 0:
-            return loader()
+    except (AttributeError, ImportError, OSError, RuntimeError, TypeError, ValueError):
+        return loader()
+    if ttl <= 0:
+        return loader()
+    try:
         key = tenant_runtime_cache_key(school_id, segment)
         value = cache.get(key)
         if value is not None:
@@ -78,7 +81,7 @@ def get_tenant_cached_segment(school_id: Any, segment: str, loader: Callable[[],
         value = loader()
         cache.set(key, value, timeout=ttl)
         return value
-    except Exception:
+    except (AttributeError, OSError, RuntimeError, TypeError, ValueError):
         return loader()
 
 
@@ -94,7 +97,7 @@ def invalidate_tenant_runtime_cache(school_id: Any) -> None:
         key_prefix = f"{RUNTIME_TENANT_CACHE_PREFIX}{school_id}:"
         for segment in ("registry", "blueprint", "policy", "branding", "workflows", "dashboards", "marketplace"):
             cache.delete(f"{key_prefix}{segment}")
-    except Exception:
+    except (AttributeError, ImportError, OSError, RuntimeError, TypeError, ValueError):
         pass
 
 
@@ -103,7 +106,7 @@ def invalidate_policy_and_runtime_caches(school: Any) -> None:
     try:
         from apps.policies.policy_registry import invalidate_policy_cache
         invalidate_policy_cache(school)
-    except Exception:
+    except (AttributeError, ImportError, TypeError, ValueError):
         pass
     sid = getattr(school, "id", None)
     if sid is not None:

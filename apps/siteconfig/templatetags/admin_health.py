@@ -1,5 +1,6 @@
 from django import template
 from django.db import connections
+from django.db import DatabaseError
 from django.db.migrations.loader import MigrationLoader
 from django.utils import timezone
 import os
@@ -17,6 +18,7 @@ from apps.payroll.models import PayrollEmployee, PayrollRun
 
 
 register = template.Library()
+OPTIONAL_ADMIN_HEALTH_ERRORS = (AttributeError, DatabaseError, OSError, RuntimeError, TypeError, ValueError)
 
 
 @register.simple_tag(takes_context=True)
@@ -46,7 +48,7 @@ def admin_health(context):
             if node not in applied and not graph.node_map[node].replaces
         ]
         metrics["pending_migrations"] = len(unapplied)
-    except Exception:
+    except OPTIONAL_ADMIN_HEALTH_ERRORS:
         # If anything fails (e.g., no DB), leave as "N/A"
         pass
 
@@ -68,7 +70,7 @@ def admin_health(context):
         site = get_effective_site_settings(request=request)
         metrics["portal_parent_enabled"] = getattr(site, "enable_parent_portal", True)
         metrics["portal_teacher_enabled"] = getattr(site, "enable_teacher_portal", True)
-    except Exception:
+    except OPTIONAL_ADMIN_HEALTH_ERRORS:
         pass
 
     # Backup status: check env hint or file marker
@@ -84,7 +86,7 @@ def admin_health(context):
         else:
             metrics["backup_status"] = "Not configured"
             metrics["backup_last"] = "N/A"
-    except Exception:
+    except OPTIONAL_ADMIN_HEALTH_ERRORS:
         metrics["backup_status"] = "Not configured"
         metrics["backup_last"] = "N/A"
 
@@ -95,7 +97,7 @@ def admin_health(context):
 def get_item(obj, key):
     try:
         return obj.get(key, {})
-    except Exception:
+    except (AttributeError, TypeError, ValueError):
         return {}
 
 
@@ -109,7 +111,7 @@ def admin_section_stats(context):
     eval_complete = Evaluation.objects.filter().count()
     try:
         eval_complete = sum(1 for e in Evaluation.objects.all().iterator() if e.is_complete_for_ranking)
-    except Exception:
+    except OPTIONAL_ADMIN_HEALTH_ERRORS:
         eval_complete = 0
     completion_pct = round((eval_complete / eval_total) * 100, 2) if eval_total else 0
 

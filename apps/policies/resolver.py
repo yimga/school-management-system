@@ -231,8 +231,7 @@ def get_effective_policy(
         try:
             site = get_effective_site_settings(school=school)
             if site is None:
-                from apps.siteconfig.models import SiteSettings
-                site = SiteSettings.get_solo()
+                raise LookupError("effective site settings unavailable")
             out["admissions"] = {
                 **out["admissions"],
                 "admission_number_mode": getattr(site, "admission_number_mode", "AUTO_OR_MANUAL") or "AUTO_OR_MANUAL",
@@ -241,7 +240,7 @@ def get_effective_policy(
                 "admission_number_pattern": (getattr(site, "admission_number_pattern", None) or "") or "",
                 "school_code": (getattr(site, "school_code", None) or default_school_code_for(school)) or default_school_code_for(school),
             }
-        except Exception as e:
+        except (AttributeError, LookupError, TypeError, ValueError) as e:
             logger.debug("Admissions backfill from SiteSettings failed: %s", e)
             out["admissions"].setdefault("admission_number_mode", "AUTO_OR_MANUAL")
             out["admissions"].setdefault("admission_number_strategy", "FULL")
@@ -272,8 +271,7 @@ def get_effective_policy(
             from apps.siteconfig.models import default_grade_approval_roles, default_grade_post_roles
             site = get_effective_site_settings(school=school)
             if site is None:
-                from apps.siteconfig.models import SiteSettings
-                site = SiteSettings.get_solo()
+                raise LookupError("effective site settings unavailable")
             out["grade_approval"] = {
                 **out["grade_approval"],
                 "grade_post_roles": getattr(site, "grade_post_roles", None) or default_grade_post_roles(),
@@ -283,7 +281,7 @@ def get_effective_policy(
                 "grade_approval_auto_validate": getattr(site, "grade_approval_auto_validate", True),
                 "grade_approval_enabled": getattr(site, "grade_approval_enabled", False),
             }
-        except Exception as e:
+        except (AttributeError, ImportError, LookupError, TypeError, ValueError) as e:
             logger.debug("Grade approval backfill from SiteSettings failed: %s", e)
             from apps.siteconfig.models import default_grade_approval_roles, default_grade_post_roles
 

@@ -7,9 +7,13 @@ from __future__ import annotations
 
 from typing import Any, Dict, Optional
 
+from django.db import DatabaseError
+
 from .runtime_resolver import build_tenant_runtime
 from .contracts import TenantRuntime
 from .governor_limits import get_governor_usage_for_tenant
+from .precedence import describe_precedence_chain
+from .exceptions import RuntimeResolutionError
 from apps.tenancy.context import TenantContext
 
 
@@ -66,6 +70,7 @@ def inspect_runtime(runtime: TenantRuntime) -> Dict[str, Any]:
     """
     debug = runtime.debug or {}
     return {
+        "precedence_chain": describe_precedence_chain(),
         "effective_blueprint": _serialize_blueprint(runtime.blueprint),
         "active_packs": {
             "workflow": getattr(getattr(runtime, "workflows", None), "pack_code", None),
@@ -82,6 +87,12 @@ def inspect_runtime(runtime: TenantRuntime) -> Dict[str, Any]:
             "source_policy_bundle_id": getattr(debug, "source_policy_bundle_id", None),
             "compilation_trace": list(getattr(debug, "compilation_trace", [])),
             "compilation_timestamp": getattr(debug, "compilation_timestamp", None),
+        },
+        "source_summary": {
+            "blueprint_id": getattr(debug, "source_blueprint_id", None),
+            "policy_bundle_id": getattr(debug, "source_policy_bundle_id", None),
+            "preview_mode": getattr(getattr(runtime, "route", None), "is_preview", False),
+            "sandbox_mode": getattr(getattr(runtime, "route", None), "is_sandbox", False),
         },
         "route": {
             "surface": getattr(getattr(runtime, "route", None), "surface", None),
@@ -109,7 +120,7 @@ def get_runtime_inspection(request: Any) -> Dict[str, Any]:
         school = getattr(request, "school", None) or getattr(getattr(request, "tenant", None), "school", None)
         try:
             rt = build_tenant_runtime(tenant_ctx, request=request, school=school)
-        except Exception as e:
+        except (AttributeError, DatabaseError, RuntimeResolutionError, TypeError, ValueError) as e:
             return {"error": str(e), "effective_blueprint": {}, "override_sources": {}, "governor_limits": None}
     out = inspect_runtime(rt)
     tid = rt.tenant_ctx.tenant_id if rt.tenant_ctx else None
@@ -143,5 +154,5 @@ def get_runtime_inspection_for_school(school: Any) -> Dict[str, Any]:
             school_id=getattr(school, "id", None),
         )
         return out
-    except Exception as e:
+    except (AttributeError, DatabaseError, RuntimeResolutionError, TypeError, ValueError) as e:
         return {"error": str(e), "effective_blueprint": {}, "override_sources": {}, "governor_limits": None}

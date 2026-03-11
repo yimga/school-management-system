@@ -22,6 +22,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
+from django.db import DatabaseError
+
 from apps.tenancy.context import TenantContext
 
 
@@ -285,7 +287,7 @@ class TenantRuntime:
         try:
             from apps.siteconfig.workflow_resolver import for_action
             return for_action(self._school, action_slug)
-        except Exception:
+        except (AttributeError, DatabaseError, ImportError, TypeError, ValueError):
             return {}
 
     def get_approval_workflow(self, workflow_key: str) -> Dict[str, Any]:
@@ -295,7 +297,7 @@ class TenantRuntime:
         try:
             from apps.siteconfig.workflow_resolver import get_approval_workflow
             return get_approval_workflow(self._school, workflow_key)
-        except Exception:
+        except (AttributeError, DatabaseError, ImportError, TypeError, ValueError):
             return {"type": "approval", "workflow_key": workflow_key, "approval_roles": [], "approver_ids": [], "approver_count": 0}
 
     def dashboard_for(self, role: Optional[str] = None, user: Any = None, **kwargs: Any) -> Dict[str, Any]:
@@ -305,5 +307,5 @@ class TenantRuntime:
         try:
             from apps.siteconfig.dashboard_resolver import for_role
             return for_role(self._school, role or "", user=user, **kwargs)
-        except Exception:
+        except (AttributeError, DatabaseError, ImportError, TypeError, ValueError):
             return {"role": role or "", "widget_keys": [], "page": kwargs.get("page")}

@@ -7,8 +7,12 @@ from __future__ import annotations
 
 from typing import Any, Dict, Optional
 
+from django.db import DatabaseError
 from django.db.models import Count
 
+from apps.brand_experience.models import ThemePack
+from apps.global_registries.models import CountryRegistry
+from apps.integrations_marketplace.models import Integration
 from apps.metadata.services import (
     get_package_lineage_registry,
     summarize_dependency_consumers,
@@ -16,6 +20,9 @@ from apps.metadata.services import (
 from apps.policies_rules.models import PolicyBundle
 from apps.runtime_blueprints.models import Blueprint, DashboardPack, DashboardWidget, WorkflowPack
 from apps.siteconfig.workflow_registry import get_workflow_catalog
+
+
+OPTIONAL_METADATA_ERRORS = (AttributeError, DatabaseError, ImportError, TypeError, ValueError)
 
 # Canonical entity list aligned with docs/architecture/canonical_education_graph.md
 _SCHEMA_ENTITIES = [
@@ -47,11 +54,10 @@ def get_experience_metadata(school_id: Optional[Any] = None) -> Dict[str, Any]:
     Experience metadata: layouts, forms, navigation, dashboards, widgets, portal, themes.
     """
     try:
-        from apps.siteconfig.models import ThemePack
         theme_packs = list(
             ThemePack.objects.filter(is_active=True).values("id", "name", "slug").order_by("name")[:100]
         )
-    except Exception:
+    except OPTIONAL_METADATA_ERRORS:
         theme_packs = []
     try:
         widgets = list(
@@ -59,7 +65,7 @@ def get_experience_metadata(school_id: Optional[Any] = None) -> Dict[str, Any]:
             .annotate(count=Count("id"))
             .order_by("code")[:100]
         )
-    except Exception:
+    except OPTIONAL_METADATA_ERRORS:
         widgets = []
     return {
         "schema_version": "1.0",
@@ -78,29 +84,29 @@ def get_runtime_metadata(school_id: Optional[Any] = None) -> Dict[str, Any]:
         blueprints = list(
             Blueprint.objects.filter(is_active=True).values("id", "code", "family", "name").order_by("code")[:200]
         )
-    except Exception:
+    except OPTIONAL_METADATA_ERRORS:
         blueprints = []
     try:
         workflow_packs = list(
             WorkflowPack.objects.filter(is_active=True).values("id", "code", "family", "name", "version").order_by("code")[:200]
         )
-    except Exception:
+    except OPTIONAL_METADATA_ERRORS:
         workflow_packs = []
     try:
         dashboard_packs = list(
             DashboardPack.objects.filter(is_active=True).values("id", "code", "family", "name", "version").order_by("code")[:200]
         )
-    except Exception:
+    except OPTIONAL_METADATA_ERRORS:
         dashboard_packs = []
     try:
         policy_bundles = list(
             PolicyBundle.objects.filter(is_active=True).values("id", "code", "name", "version", "country_scope").order_by("code", "name")[:200]
         )
-    except Exception:
+    except OPTIONAL_METADATA_ERRORS:
         policy_bundles = []
     try:
         workflow_catalog = get_workflow_catalog()
-    except Exception:
+    except OPTIONAL_METADATA_ERRORS:
         workflow_catalog = {}
     try:
         lineage_registry = {
@@ -110,7 +116,7 @@ def get_runtime_metadata(school_id: Optional[Any] = None) -> Dict[str, Any]:
             "apis": summarize_dependency_consumers(consumer_type="api"),
             "templates": summarize_dependency_consumers(consumer_type="template"),
         }
-    except Exception:
+    except OPTIONAL_METADATA_ERRORS:
         lineage_registry = {
             "dashboards": [],
             "workflows": [],
@@ -120,7 +126,7 @@ def get_runtime_metadata(school_id: Optional[Any] = None) -> Dict[str, Any]:
         }
     try:
         package_registry = get_package_lineage_registry(limit=100)
-    except Exception:
+    except OPTIONAL_METADATA_ERRORS:
         package_registry = []
     return {
         "schema_version": "1.0",
@@ -141,11 +147,10 @@ def get_registry_metadata(school_id: Optional[Any] = None) -> Dict[str, Any]:
     Registry metadata: country, locale, calendar, terminology, grading scale, education system.
     """
     try:
-        from apps.registries.models import CountryRegistry
         countries = list(
             CountryRegistry.objects.filter(is_active=True).values("code", "name").order_by("name")[:300]
         )
-    except Exception:
+    except OPTIONAL_METADATA_ERRORS:
         countries = []
     return {
         "schema_version": "1.0",
@@ -160,11 +165,10 @@ def get_integration_metadata(school_id: Optional[Any] = None) -> Dict[str, Any]:
     Integration metadata: providers, connectors, scopes, webhooks, sync mappings.
     """
     try:
-        from apps.siteconfig.models import Integration
         integrations = list(
             Integration.objects.values("provider", "slug", "enabled").distinct()[:100]
         )
-    except Exception:
+    except OPTIONAL_METADATA_ERRORS:
         integrations = []
     return {
         "schema_version": "1.0",
@@ -202,7 +206,7 @@ def get_glossary_metadata(school_id: Optional[Any] = None) -> Dict[str, Any]:
             .values("term", "definition", "entity_code", "field_name", "locale")
             .order_by("term", "locale")[:500]
         )
-    except Exception:
+    except OPTIONAL_METADATA_ERRORS:
         entries = []
     return {
         "schema_version": "1.0",

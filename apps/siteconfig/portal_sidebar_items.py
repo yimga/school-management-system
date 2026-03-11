@@ -14,11 +14,15 @@ Section order (by role):
 Visibility is permission- and role-based; teachers never see Admin/People/Finance/Analytics.
 No duplicate sections or links: each item appears in one section only (same for staff, teachers, parents).
 """
+from django.db import DatabaseError
 from django.urls import reverse
+from django.urls import NoReverseMatch
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 
 User = get_user_model()
+OPTIONAL_SIDEBAR_ERRORS = (AttributeError, DatabaseError, ImportError, RuntimeError, TypeError, ValueError)
+OPTIONAL_REVERSE_ERRORS = (AttributeError, NoReverseMatch, TypeError, ValueError)
 
 
 def _dashboard_layout_url(request, user):
@@ -28,7 +32,7 @@ def _dashboard_layout_url(request, user):
         if not _can_customize(user):
             return None
         return _safe_reverse("accounts:backend_dashboard") + "?customize=1"
-    except Exception:
+    except OPTIONAL_SIDEBAR_ERRORS:
         return _safe_reverse("accounts:backend_dashboard") + "?customize=1"
 
 
@@ -37,7 +41,7 @@ def _safe_reverse(url_name, kwargs=None, args=None, default=None):
         if args is not None:
             return reverse(url_name, args=args)
         return reverse(url_name, kwargs=kwargs or {})
-    except Exception:
+    except OPTIONAL_REVERSE_ERRORS:
         return default
 
 
@@ -81,7 +85,7 @@ def _sidebar_badge_counts(user, role, staff_like):
                     status=TeacherLeaveRequest.Status.PENDING,
                 ).count()
                 workflow_pending = _badge_or_none(pending_marks + pending_leaves)
-        except Exception:
+        except OPTIONAL_SIDEBAR_ERRORS:
             workflow_pending = None
         return workflow_pending, finance_pending, signatures_pending
 
@@ -99,7 +103,7 @@ def _sidebar_badge_counts(user, role, staff_like):
             signatures_pending = _badge_or_none(
                 FormSignature.objects.filter(parent=user, status="PENDING").count()
             )
-        except Exception:
+        except OPTIONAL_SIDEBAR_ERRORS:
             pass
         return workflow_pending, finance_pending, signatures_pending
 
@@ -113,7 +117,7 @@ def _sidebar_badge_counts(user, role, staff_like):
                     is_read=False,
                 ).count()
             )
-        except Exception:
+        except OPTIONAL_SIDEBAR_ERRORS:
             finance_pending = None
 
         try:
@@ -121,7 +125,7 @@ def _sidebar_badge_counts(user, role, staff_like):
             signatures_pending = _badge_or_none(
                 FormSignature.objects.filter(status="PENDING").count()
             )
-        except Exception:
+        except OPTIONAL_SIDEBAR_ERRORS:
             signatures_pending = None
 
         try:
@@ -139,7 +143,7 @@ def _sidebar_badge_counts(user, role, staff_like):
                 if not TeacherProfile.objects.filter(is_active=True).exists():
                     missing_steps += 1
                 workflow_pending = _badge_or_none(missing_steps)
-        except Exception:
+        except OPTIONAL_SIDEBAR_ERRORS:
             workflow_pending = None
 
     return workflow_pending, finance_pending, signatures_pending
@@ -156,7 +160,7 @@ def _cached_sidebar_badge_counts(user, role, staff_like, request=None):
     try:
         from apps.siteconfig.cache_utils import get_tenant_cache_prefix
         prefix = get_tenant_cache_prefix(request)
-    except Exception:
+    except OPTIONAL_SIDEBAR_ERRORS:
         prefix = "public"
     cache_key = f"{prefix}:portal_sidebar_badges:{user_id}:{role}:{1 if staff_like else 0}"
     cached = cache.get(cache_key)
@@ -172,7 +176,7 @@ def _backend_flags_for_sidebar(request, site):
     try:
         from apps.platform_runtime.helpers import get_effective_flags
         return get_effective_flags(request) or getattr(site, "backend_feature_flags", None) or {}
-    except Exception:
+    except OPTIONAL_SIDEBAR_ERRORS:
         return getattr(site, "backend_feature_flags", None) or {}
 
 
@@ -230,7 +234,7 @@ def build_portal_sidebar_items(request, site):
                 items.append({"id": "announcements", "label": "School-wide Announcements", "url": _safe_reverse("communication:announcement_create"), "icon": "bi-megaphone", "section": "Communication", "badge": None})
             if _can_create_school_wide_announcement(user):
                 items.append({"id": "announcements_pending", "label": "Pending approval", "url": _safe_reverse("communication:announcement_list_pending"), "icon": "bi-hourglass-split", "section": "Communication", "badge": None})
-        except Exception:
+        except OPTIONAL_SIDEBAR_ERRORS:
             pass
 
     # --- Teacher ---
@@ -353,7 +357,7 @@ def build_portal_sidebar_items(request, site):
         if import_hub_url:
             items.append({"id": "import_hub", "label": "Import & bulk", "url": import_hub_url, "icon": "bi-upload", "section": "Admin Panel", "badge": None})
         if can_manage_site:
-            items.append({"id": "customizer", "label": "Customizer", "url": _safe_reverse("siteconfig:customizer"), "icon": "bi-palette", "section": "Admin Panel", "badge": None})
+            items.append({"id": "studio", "label": "Studio", "url": _safe_reverse("studio_os:shell"), "icon": "bi-grid-3x3-gap", "section": "Admin Panel", "badge": None})
         # Multi-tenant: Modules and Grading are per-school; show only when a school is in context.
         _school = getattr(request, "school", None)
         if _school and (role in ("ADMIN", "LEADERSHIP", "IT_ADMIN", "PRINCIPAL", "VICE_PRINCIPAL") or is_staff or is_superuser):

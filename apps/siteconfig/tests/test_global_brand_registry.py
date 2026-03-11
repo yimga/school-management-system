@@ -1,8 +1,9 @@
 from django.test import TestCase
 
+from apps.brand_experience.models import GlobalBrandRegistry
+from apps.global_registries.models import RegionConfig
 from apps.schools.models import School
 from apps.siteconfig.brand_registry import resolve_global_brand_context
-from apps.siteconfig.models import GlobalBrandRegistry, RegionConfig
 from apps.siteconfig.tenant_config import get_tenant_locale
 
 

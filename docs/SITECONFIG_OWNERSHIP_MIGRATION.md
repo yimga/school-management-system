@@ -13,8 +13,8 @@
 
 ## Remaining
 
-1. **Identify owned models**  
-   For each model still under `siteconfig` (e.g. `SiteSettings`, `ThemePack`, `FeatureControlAudit`, report/library config): decide target bounded context (e.g. platform_runtime for defaults, brand_experience for theme, plans for entitlements).
+1. **Identify owned models** — **Done (1.1).**  
+   Full assignment in `docs/SITECONFIG_OWNED_MODELS.md`; Python registry in `apps/siteconfig/owned_models_registry.py` (`get_target_app_for_model`, `OWNED_MODELS_TARGET`). Every siteconfig model (models.py, models_dashboard.py, models_workflow.py) has a target bounded context.
 
 2. **State-safe migrations**  
    Create Django migrations that move tables or add FK to new app without breaking existing code: e.g. add `runtime.Defaults` and backfill from `SiteSettings`; switch reads to resolver; then deprecate direct `SiteSettings` for tenant behavior.

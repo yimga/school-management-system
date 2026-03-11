@@ -10,6 +10,7 @@ import logging
 from typing import Any
 
 from django.contrib.auth.decorators import login_required
+from django.db import DatabaseError
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_http_methods
@@ -22,6 +23,7 @@ from services.ai_memory import AIMemoryService, get_embedding_for_text
 from services.inference import strip_pii_for_inference
 
 logger = logging.getLogger(__name__)
+OPTIONAL_GATEWAY_ERRORS = (AttributeError, DatabaseError, ImportError, TypeError, ValueError)
 
 # Rate limit: same as copilot (per-user sliding window)
 def _gateway_rate_limit(request):
@@ -117,9 +119,8 @@ def api_setup_assistant(request):
                 })
         context = "\n".join(context_parts)[:1200] if context_parts else ""
         try:
-            from apps.siteconfig.prompt_registry import get_prompt_template
             prompt = get_prompt_template("setup_assistant", {"query": query, "context_block": context})
-        except Exception:
+        except OPTIONAL_GATEWAY_ERRORS:
             prompt = f"You are a Setup Studio assistant. Answer concisely and helpfully.\n\n"
             if context:
                 prompt += f"Relevant context:\n{context}\n\n"
@@ -203,9 +204,8 @@ def api_policy_explain(request):
                 citations.append({"id": r.get("id"), "scope": "default", "metadata": {k: v for k, v in (r.get("metadata") or {}).items() if k not in ("embedding", "raw_text")}})
         context = "\n".join(context_parts)[:1200] if context_parts else ""
         try:
-            from apps.siteconfig.prompt_registry import get_prompt_template
             prompt = get_prompt_template("policy_explain", {"query": query, "context_block": context})
-        except Exception:
+        except OPTIONAL_GATEWAY_ERRORS:
             prompt = "You are a policy explainer. Explain or compare policies in plain language.\n\n"
             if context:
                 prompt += f"Relevant context:\n{context}\n\n"

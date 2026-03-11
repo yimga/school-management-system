@@ -7,6 +7,10 @@ from __future__ import annotations
 
 from typing import Any
 
+from django.db import DatabaseError
+
+from apps.global_registries.models import RegionConfig
+
 # Built-in Education DNA template (plan XXI). Keys match preset names for Apply Template.
 EDUCATION_DNA_CURRICULUMS = {
     "british_igcse": {
@@ -42,17 +46,16 @@ def get_education_dna(school=None, region_code: str | None = None) -> dict[str, 
     if school:
         if getattr(school, "default_region_id", None):
             try:
-                from apps.siteconfig.models import RegionConfig
                 r = RegionConfig.objects.filter(pk=school.default_region_id).first()
                 if r:
                     code = getattr(r, "code", None)
-            except Exception:
+            except (AttributeError, DatabaseError, ImportError, TypeError, ValueError):
                 pass
         if not code:
             try:
                 from apps.policies.policy_registry import get_effective_policy
                 code = get_effective_policy(school).get("education_dna_preset")
-            except Exception:
+            except (AttributeError, DatabaseError, ImportError, TypeError, ValueError):
                 pass
     code = code or region_code or "british_igcse"
     preset = EDUCATION_DNA_CURRICULUMS.get(code) or EDUCATION_DNA_CURRICULUMS.get("british_igcse", {})

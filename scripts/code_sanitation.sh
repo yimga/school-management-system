@@ -26,6 +26,9 @@ python scripts/lint_tenant_settings.py --check-get-solo-only
 echo "[code_sanitation] CSRF exempt allowlist"
 python scripts/lint_csrf_exempt_usage.py
 
+echo "[code_sanitation] AllowAny allowlist"
+python scripts/lint_allow_any_usage.py
+
 echo "[code_sanitation] Raw SQL allowlist"
 python scripts/lint_raw_sql_usage.py
 

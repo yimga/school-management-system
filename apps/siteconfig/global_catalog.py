@@ -16,12 +16,12 @@ import pytz
 
 try:
     import pycountry
-except Exception:  # pragma: no cover - fallback path
+except ImportError:  # pragma: no cover - fallback path
     pycountry = None
 
 try:
     import geonamescache
-except Exception:  # pragma: no cover - fallback path
+except ImportError:  # pragma: no cover - fallback path
     geonamescache = None
 
 

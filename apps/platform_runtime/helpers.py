@@ -12,6 +12,7 @@ from copy import copy
 from typing import Any, Optional
 
 from django.core.cache import cache
+from django.db import DatabaseError
 
 
 EFFECTIVE_SITE_SETTINGS_VERSION_KEY = "platform_runtime:effective_site_settings:version"
@@ -34,7 +35,7 @@ def invalidate_effective_site_settings_cache() -> None:
         cache.incr(EFFECTIVE_SITE_SETTINGS_VERSION_KEY)
     except ValueError:
         cache.set(EFFECTIVE_SITE_SETTINGS_VERSION_KEY, 2, None)
-    except Exception:
+    except (AttributeError, OSError, RuntimeError, TypeError):
         cache.set(EFFECTIVE_SITE_SETTINGS_VERSION_KEY, 2, None)
 
 
@@ -105,14 +106,15 @@ def get_effective_flags(request: Any) -> dict:
     try:
         from apps.siteconfig.models import default_backend_feature_flags
         defaults = default_backend_feature_flags() or {}
-    except Exception:
+    except (AttributeError, ImportError, TypeError, ValueError):
         defaults = {}
     if rt and getattr(rt, "flags", None) and getattr(rt.flags, "flags", None):
         return {**defaults, **rt.flags.flags}
     try:
-        from apps.siteconfig.models import SiteSettings
-        site = SiteSettings.get_solo()
-        site_overrides = getattr(site, "backend_feature_flags", None) or {}
+        platform_site = get_effective_site_settings(request=None, school=None)
+        if platform_site is None:
+            raise LookupError("effective platform site settings unavailable")
+        site_overrides = getattr(platform_site, "backend_feature_flags", None) or {}
         school_overrides = {}
         school_settings = getattr(school, "settings", None) or {}
         if isinstance(school_settings, dict):
@@ -120,7 +122,7 @@ def get_effective_flags(request: Any) -> dict:
             if isinstance(maybe_flags, dict):
                 school_overrides = maybe_flags
         return {**defaults, **site_overrides, **school_overrides}
-    except Exception:
+    except (AttributeError, LookupError, TypeError, ValueError):
         return defaults
 
 
@@ -180,8 +182,19 @@ def get_effective_site_settings(request: Any = None, school: Any = None) -> Any:
     try:
         from apps.siteconfig.models import SiteSettings
 
-        base = SiteSettings.get_solo()
-    except Exception:
+        base = copy(SiteSettings.get_solo())
+        # Phase 10 — 1.2: overlay runtime defaults when present (state-safe migration path)
+        try:
+            from apps.platform_runtime.models import RuntimeDefaults
+
+            rt_defaults = RuntimeDefaults.get_singleton()
+            if rt_defaults is not None and isinstance(getattr(rt_defaults, "payload", None), dict):
+                for key, value in rt_defaults.payload.items():
+                    if hasattr(base, key):
+                        setattr(base, key, value)
+        except (AttributeError, DatabaseError, ImportError, OSError, RuntimeError, TypeError, ValueError):
+            pass
+    except (AttributeError, DatabaseError, ImportError, OSError, RuntimeError, TypeError, ValueError):
         return None
     if school is None:
         cache.set(cache_key, base, 60)
@@ -224,15 +237,16 @@ def get_site_display_name(request: Any) -> str:
             school = School.objects.filter(pk=rt.tenant_ctx.school_id).values_list("name", flat=True).first()
             if school:
                 return str(school)
-        except Exception:
+        except (AttributeError, DatabaseError, TypeError, ValueError):
             pass
     if rt and rt.branding and getattr(rt.branding, "tagline", None):
         return str(rt.branding.tagline)
     try:
-        from apps.siteconfig.models import SiteSettings
-        site = SiteSettings.get_solo()
+        site = get_effective_site_settings(request=request)
+        if site is None:
+            raise LookupError("effective site settings unavailable")
         return getattr(site, "site_name", None) or "School System"
-    except Exception:
+    except (AttributeError, LookupError, TypeError, ValueError):
         return "School System"
 
 
@@ -269,7 +283,7 @@ def get_platform_defaults(use_db: bool = True) -> dict:
                 "timezone": getattr(r, "timezone", "UTC"),
                 "grading_scale": getattr(r, "grading_scale", "0-100"),
             }
-        except Exception:
+        except (AttributeError, DatabaseError, ImportError, TypeError, ValueError):
             pass
     return {
         "region_code": getattr(settings, "PLATFORM_DEFAULT_REGION_CODE", "GLOBAL"),

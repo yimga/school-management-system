@@ -7,7 +7,10 @@ Redis-backed tenant resolution: when cache backend is Redis, tenant resolution
 from typing import Any, Optional
 
 from django.core.cache import cache
-from django.db import connection
+from django.db import DatabaseError, connection
+
+
+OPTIONAL_CACHE_ERRORS = (AttributeError, DatabaseError, OSError, RuntimeError, TypeError, ValueError)
 
 
 def _current_rls_school_id() -> str | None:
@@ -26,7 +29,7 @@ def _current_rls_school_id() -> str | None:
             row = cursor.fetchone()
         value = str(row[0]).strip() if row and row[0] is not None else ""
         return value or None
-    except Exception:
+    except OPTIONAL_CACHE_ERRORS:
         return None
 
 
@@ -42,7 +45,7 @@ def get_tenant_cache_prefix(request=None) -> str:
             schema = getattr(tenant, "schema_name", None)
             if schema:
                 return f"tenant:{schema}"
-    except Exception:
+    except OPTIONAL_CACHE_ERRORS:
         pass
     current_school_id = _current_rls_school_id()
     if current_school_id:
@@ -74,7 +77,7 @@ def get_tenant_cached(lookup_key: str) -> Optional[Any]:
     key = f"{TENANT_RESOLUTION_CACHE_PREFIX}:{lookup_key}"
     try:
         return cache.get(key)
-    except Exception:
+    except OPTIONAL_CACHE_ERRORS:
         return None
 
 
@@ -86,5 +89,5 @@ def set_tenant_cached(lookup_key: str, payload: Any, timeout: int = TENANT_RESOL
     key = f"{TENANT_RESOLUTION_CACHE_PREFIX}:{lookup_key}"
     try:
         cache.set(key, payload, timeout=timeout)
-    except Exception:
+    except OPTIONAL_CACHE_ERRORS:
         pass

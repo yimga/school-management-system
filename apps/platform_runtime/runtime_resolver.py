@@ -24,6 +24,7 @@ import time
 from typing import Any, Dict, List, Optional
 
 from django.core.cache import cache
+from django.db import DatabaseError
 
 logger = logging.getLogger(__name__)
 
@@ -163,7 +164,7 @@ def _step3_registry_context(school: Any, tenant_ctx: TenantContext) -> RegistryC
                     cr = CurrencyRegistry.objects.first()
                     if cr:
                         currency_dict = {"code": cr.code, "name": cr.name, "symbol": getattr(cr, "symbol", cr.code)}
-                except Exception as e:
+                except (AttributeError, DatabaseError, TypeError, ValueError) as e:
                     logger.warning(
                         "Registry currency fallback failed (%s): %s",
                         RuntimeResolutionError.__name__,
@@ -181,7 +182,7 @@ def _step3_registry_context(school: Any, tenant_ctx: TenantContext) -> RegistryC
                 fee_categories.append({"code": f.code, "name": f.name, "category": f.category})
             for g in GradeScaleRegistry.objects.filter(is_active=True)[:40]:
                 grade_scale_families.append({"code": g.code, "name": g.name, "family": g.family, "range_definition": g.range_definition or {}})
-    except Exception as e:
+    except (AttributeError, DatabaseError, ImportError, TypeError, ValueError) as e:
         logger.warning(
             "Registry context load failed (optional) (%s): %s",
             RuntimeResolutionError.__name__,
@@ -224,7 +225,7 @@ def _step4_blueprint(school: Any, policy: Dict[str, Any]) -> BlueprintContext:
                         default_workflow_pack=getattr(pack, "default_workflow_pack_id", None),
                         institution_type=getattr(pack, "country_code", None),
                     )
-    except Exception as e:
+    except (AttributeError, DatabaseError, TypeError, ValueError) as e:
         logger.debug(
             "Blueprint context load failed (optional) (%s): %s",
             BlueprintCompatibilityError.__name__,
@@ -323,11 +324,11 @@ def _step8_workflows(school: Any) -> WorkflowsContext:
                     code = getattr(pack, "code", None) or slug
                     register_usage("workflow", f"workflow:{code}", "application", "admission_number")
                     register_usage("workflow", f"workflow:{code}", "attendance", "status")
-                except Exception:
+                except (AttributeError, ImportError, TypeError, ValueError):
                     pass
             if w:
                 by_module[slug] = w
-    except Exception as e:
+    except (AttributeError, DatabaseError, ImportError, TypeError, ValueError) as e:
         logger.warning(
             "Workflows context load failed (optional) (%s): %s",
             RuntimeResolutionError.__name__,
@@ -361,11 +362,11 @@ def _step9_dashboards(school: Any) -> DashboardsContext:
                     from apps.metadata.usage_registry import register_usage
                     code = getattr(pack, "code", None) or rk
                     register_usage("dashboard", f"dashboard_pack:{code}", "student", "admission_number")
-                except Exception:
+                except (AttributeError, ImportError, TypeError, ValueError):
                     pass
             if d:
                 by_role[role] = d
-    except Exception as e:
+    except (AttributeError, DatabaseError, ImportError, TypeError, ValueError) as e:
         logger.warning(
             "Dashboards context load failed (optional) (%s): %s",
             RuntimeResolutionError.__name__,
@@ -432,7 +433,7 @@ def _step10_marketplace(school: Any) -> MarketplaceContext:
             for cap in manifest.get("integration_adapters") or []:
                 if isinstance(cap, dict) and cap not in integration_adapters:
                     integration_adapters.append(cap)
-    except Exception as e:
+    except (AttributeError, DatabaseError, ImportError, TypeError, ValueError) as e:
         logger.warning(
             "Marketplace context load failed (optional) (%s): %s",
             RuntimeResolutionError.__name__,
@@ -468,7 +469,7 @@ def _step10_integrations_marketplace(school: Any) -> tuple:
                     messaging_channels.append(name)
                     messaging_provider = messaging_provider or name
                 enabled_providers.append(name)
-        except Exception as e:
+        except (AttributeError, DatabaseError, ImportError, TypeError, ValueError) as e:
             logger.warning(
                 "Integrations context load failed (optional) (%s): %s",
                 RuntimeResolutionError.__name__,
@@ -579,7 +580,7 @@ def build_tenant_runtime(
             from apps.policies.policy_registry import get_effective_policy
             user = getattr(request, "user", None)
             policy = get_effective_policy(school, user=user)
-        except Exception as e:
+        except (AttributeError, DatabaseError, ImportError, TypeError, ValueError) as e:
             logger.warning(
                 "get_effective_policy failed, using empty policy (%s): %s",
                 RuntimeResolutionError.__name__,
@@ -697,7 +698,7 @@ def build_tenant_runtime_for_tenant(tenant: Any, mode: str = "job") -> TenantRun
             if hasattr(tenant, "schema_name"):
                 # In schema-per-tenant, School may live in tenant schema; use public or default
                 school = getattr(tenant, "school", None)
-        except Exception as e:
+        except (AttributeError, DatabaseError, ImportError, TypeError, ValueError) as e:
             logger.debug(
                 "School from tenant (job mode) failed (%s): %s",
                 RuntimeResolutionError.__name__,

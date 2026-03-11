@@ -27,7 +27,7 @@ def get_manifest() -> dict:
         with open(path, "r", encoding="utf-8") as f:
             _manifest_cache = json.load(f)
         return _manifest_cache
-    except Exception as e:
+    except (OSError, TypeError, ValueError, json.JSONDecodeError) as e:
         logger.warning("Failed to load module_manifest.json: %s", e)
         _manifest_cache = {}
         return _manifest_cache

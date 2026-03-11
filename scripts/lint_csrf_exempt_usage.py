@@ -13,6 +13,15 @@ from pathlib import Path
 
 SKIP_DIRS = {".git", ".venv", "node_modules", "__pycache__"}
 PATTERN = re.compile(r"^\s*@csrf_exempt\b|method_decorator\(\s*csrf_exempt\b")
+REQUIRED_METADATA_FIELDS = (
+    "owner",
+    "verdict",
+    "auth_model",
+    "replay_protection",
+    "rate_limiting",
+    "audit_logging",
+    "notes",
+)
 
 
 def _load_allowlist(path: Path) -> dict[str, dict[str, object]]:
@@ -59,6 +68,15 @@ def main() -> int:
         if count != expected_count:
             violations.append(
                 f"csrf_exempt count changed in {rel}: expected {expected_count}, found {count}"
+            )
+        missing_metadata = [
+            field
+            for field in REQUIRED_METADATA_FIELDS
+            if not str(entry.get(field, "")).strip()
+        ]
+        if missing_metadata:
+            violations.append(
+                f"csrf_exempt allowlist entry for {rel} is missing metadata: {', '.join(missing_metadata)}"
             )
 
     for rel in sorted(set(allowlist) - set(counts)):

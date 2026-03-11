@@ -2,7 +2,14 @@ from __future__ import annotations
 
 from typing import Any
 
+from django.db import DatabaseError
+
+from apps.brand_experience.models import BrandProfile, BrandSettings
+
 from .brand_registry import resolve_global_brand_context
+
+
+OPTIONAL_BRANDING_ERRORS = (AttributeError, DatabaseError, TypeError, ValueError)
 
 
 def _school_theme_pack(school, site):
@@ -11,7 +18,7 @@ def _school_theme_pack(school, site):
     if site and hasattr(site, "get_portal_theme"):
         try:
             return site.get_portal_theme()
-        except Exception:
+        except OPTIONAL_BRANDING_ERRORS:
             return None
     return None
 
@@ -46,8 +53,6 @@ def resolve_brand_profile(*, school=None, site=None) -> dict[str, Any]:
     4. ThemePack tokens
     5. Site settings / global defaults
     """
-    from .models import BrandProfile, BrandSettings
-
     site_primary = getattr(site, "primary_color", None) or "#0d6efd"
     site_accent = getattr(site, "accent_color", None) or "#198754"
     theme_pack = _school_theme_pack(school, site)
@@ -59,11 +64,11 @@ def resolve_brand_profile(*, school=None, site=None) -> dict[str, Any]:
     if school is not None:
         try:
             profile = getattr(school, "brand_profile", None) or BrandProfile.objects.filter(school=school).first()
-        except Exception:
+        except OPTIONAL_BRANDING_ERRORS:
             profile = None
         try:
             legacy = getattr(school, "brand_settings", None) or BrandSettings.objects.filter(school=school).first()
-        except Exception:
+        except OPTIONAL_BRANDING_ERRORS:
             legacy = None
 
     primary_color = (

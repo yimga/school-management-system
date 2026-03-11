@@ -195,6 +195,34 @@ def get_ai_provider_status() -> dict[str, Any]:
     }
 
 
+def get_public_ai_provider_status() -> dict[str, Any]:
+    """
+    Return frontend-safe provider status.
+
+    This intentionally omits provider secrets and internal connection details such
+    as the Ollama endpoint URL. Frontend widgets need capability/state visibility,
+    not infrastructure coordinates.
+    """
+    status = get_ai_provider_status()
+    return {
+        "preference": list(status.get("preference", [])),
+        "has_live_provider": bool(status.get("has_live_provider")),
+        "rules_fallback_enabled": bool(status.get("rules_fallback_enabled")),
+        "providers": {
+            "ollama": {
+                "configured": bool(status.get("ollama", {}).get("configured")),
+                "model": status.get("ollama", {}).get("model"),
+                "exposure": "local",
+            },
+            "gemini": {
+                "configured": bool(status.get("gemini", {}).get("configured")),
+                "model": status.get("gemini", {}).get("model"),
+                "exposure": "external",
+            },
+        },
+    }
+
+
 def generate_ai_response(
     prompt: str,
     *,
@@ -202,7 +230,7 @@ def generate_ai_response(
     metadata: dict[str, Any] | None = None,
 ) -> tuple[str, dict[str, Any]]:
     """
-    Return (response_text, metadata).
+    Return (response_text, metadata). All AI traffic goes through the AI Gateway when enabled.
     metadata is kept for logs/observability only and never added to prompt text.
     """
     _ = metadata or {}
@@ -215,6 +243,19 @@ def generate_ai_response(
                 "denied": True,
             },
         )
+    if getattr(settings, "AI_GATEWAY_ENABLED", True):
+        try:
+            from services.ai_gateway import invoke
+            result, meta = invoke(
+                "general_chat",
+                prompt,
+                user_query=user_query,
+                metadata={**_},
+            )
+            text = result if isinstance(result, str) else str(result)
+            return text, {**meta, "gateway": True}
+        except Exception as e:
+            logger.warning("AI gateway invoke failed, falling back to legacy chain: %s", e)
     errors: dict[str, str] = {}
     for provider in _provider_preference():
         if provider == "ollama":
@@ -252,7 +293,7 @@ def generate_ai_response(
 
 def get_workflow_clues(workflow_key: str, country_code: str) -> tuple[str | None, dict[str, Any]]:
     """
-    World Engine: workflow setup suggestions by country. Delegates to OllamaInferenceService with country_code.
+    World Engine: workflow setup suggestions by country. Uses AI gateway (setup_recommend) when enabled.
     Returns (suggestions_text, metadata). Use for onboarding/setup wizards.
     """
     prompt = (
@@ -260,6 +301,16 @@ def get_workflow_clues(workflow_key: str, country_code: str) -> tuple[str | None
         "List 3–5 short, actionable tips (local regulations, common practices, or checklist items). "
         "Keep the response under 400 words."
     )
+    if getattr(settings, "AI_GATEWAY_ENABLED", True):
+        try:
+            from services.ai_gateway import invoke
+            result, meta = invoke("setup_recommend", prompt, user_query=prompt[:200], metadata={"country_code": country_code})
+            text = result if isinstance(result, str) else None
+            if text:
+                return text.strip(), {**meta, "gateway": True}
+            return None, {**meta, "error": meta.get("error", "unavailable")}
+        except Exception as e:
+            logger.warning("Gateway get_workflow_clues failed, falling back to Ollama: %s", e)
     text = _call_ollama(prompt, metadata={"country_code": country_code})
     if text:
         return text.strip(), {"provider": "ollama"}
@@ -275,24 +326,38 @@ def suggest_support_ticket_response(
 ) -> tuple[dict | None, dict]:
     """
     World Engine: FAISS/Llama support-ticket agent — suggest category/priority/response from ticket text.
-    Delegates to OllamaInferenceService. Pass country_code/school for regional dossier.
-    Returns (suggestions_dict, meta). suggestions_dict can include category, priority, suggested_reply.
+    Uses AI gateway (support_suggest) when enabled. Returns (suggestions_dict, meta).
     """
     prompt = (
         f"Support ticket — Subject: {subject[:200]}. Body: {body[:800]}.\n"
         "Respond with a short JSON only: {\"category\": \"...\", \"priority\": \"LOW|NORMAL|HIGH|URGENT\", \"suggested_reply\": \"...\"}. "
         "Keep suggested_reply under 200 words."
     )
-    text = _call_ollama(prompt, metadata={"country_code": country_code, "school": school})
-    if not text:
-        return None, {"provider": "ollama", "error": "unavailable"}
-    import json
+    text = None
+    meta: dict[str, Any] = {}
+    if getattr(settings, "AI_GATEWAY_ENABLED", True):
+        try:
+            from services.ai_gateway import invoke
+            result, meta = invoke(
+                "support_suggest",
+                prompt,
+                user_query=subject[:200],
+                metadata={"country_code": country_code, "school": school},
+            )
+            text = result if isinstance(result, str) else (str(result) if result is not None else None)
+            meta.setdefault("gateway", True)
+        except Exception as e:
+            logger.warning("Gateway suggest_support_ticket failed, falling back to Ollama: %s", e)
+    if text is None:
+        text = _call_ollama(prompt, metadata={"country_code": country_code, "school": school})
+        if text is None:
+            return None, {"provider": "ollama", "error": "unavailable"}
+        meta = {"provider": "ollama"}
     try:
-        # Extract JSON from response (in case Ollama adds prose)
         start = text.find("{")
         end = text.rfind("}") + 1
         if start >= 0 and end > start:
-            return json.loads(text[start:end]), {"provider": "ollama"}
+            return json.loads(text[start:end]), meta
     except Exception:
         pass
-    return {"suggested_reply": text.strip()[:500]}, {"provider": "ollama"}
+    return {"suggested_reply": text.strip()[:500]}, meta

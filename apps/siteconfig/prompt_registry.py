@@ -8,6 +8,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from django.db import DatabaseError
+
 logger = logging.getLogger(__name__)
 
 # Built-in templates (fallback when DB has no active approved prompt)
@@ -62,6 +64,8 @@ BUILTIN_PROMPTS: dict[str, str] = {
     ),
 }
 
+OPTIONAL_PROMPT_ERRORS = (AttributeError, DatabaseError, ImportError, TypeError, ValueError)
+
 
 def get_prompt_template(
     prompt_key: str,
@@ -92,7 +96,7 @@ def get_prompt_template(
             for k, v in context.items():
                 body = body.replace("{" + k + "}", str(v))
             return body
-    except Exception as e:
+    except OPTIONAL_PROMPT_ERRORS as e:
         logger.debug("Prompt registry lookup failed for %s: %s", prompt_key, e)
     template = BUILTIN_PROMPTS.get(prompt_key)
     if not template:
