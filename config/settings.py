@@ -1001,6 +1001,8 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.accounts",
         "apps.schools",
         "apps.siteconfig",
+        "apps.runtime_blueprints.apps.RuntimeBlueprintsConfig",  # Proxy-owner for DashboardWidget; required by reports
+        "apps.global_registries.apps.GlobalRegistriesConfig",   # Proxy-owner for RegionConfig; required by compliance
         "apps.registries",
         "apps.compliance",
         "apps.observability",
