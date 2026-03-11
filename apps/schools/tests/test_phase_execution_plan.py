@@ -145,3 +145,9 @@ class SuperCommandCenterTests(TestCase):
         self.assertContains(response, "Operational queues")
         self.assertContains(response, "Platform incidents")
         self.assertContains(response, "Schools needing intervention")
+
+    def test_super_metadata_catalog_route_renders(self):
+        response = self.client.get("/super/metadata-catalog/", HTTP_HOST="manager.runmycampus.com")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Metadata Catalog")
+        self.assertContains(response, "Platform catalog")

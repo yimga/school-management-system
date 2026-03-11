@@ -35,7 +35,7 @@
         {% if platform_catalog.experience %}
         <div class="col-md-6 col-lg-4">
           <h6 class="text-secondary">{% trans "Experience" %}</h6>
-          <p class="small mb-0">{% trans "Theme packs:" %} {{ platform_catalog.experience.theme_packs|length|default:0 %}, {% trans "widgets:" %} {{ platform_catalog.experience.dashboard_widgets|length|default:0 }}</p>
+          <p class="small mb-0">{% trans "Theme packs:" %} {{ platform_catalog.experience.theme_packs|default:''|length }}, {% trans "widgets:" %} {{ platform_catalog.experience.dashboard_widgets|default:''|length }}</p>
         </div>
         {% endif %}
         {% if platform_catalog.runtime %}
@@ -90,8 +90,8 @@
           <tr>
             <td><code>{{ ent.code }}</code></td>
             <td>{{ ent.name }}</td>
-            <td class="text-end">{{ ent._field_count }}</td>
-            <td class="text-end">{{ ent._sample_deps }}</td>
+            <td class="text-end">{{ ent.field_count }}</td>
+            <td class="text-end">{{ ent.sample_deps }}</td>
             <td>—</td>
           </tr>
           {% for f in ent.fields.all|slice:":10" %}

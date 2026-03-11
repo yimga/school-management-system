@@ -1720,8 +1720,8 @@ def super_metadata_catalog(request):
             )
         entities = list(qs[:200])
         for ent in entities:
-            ent._field_count = ent.fields.count()
-            ent._sample_deps = MetadataDependency.objects.filter(field__entity=ent).count()
+            ent.field_count = ent.fields.count()
+            ent.sample_deps = MetadataDependency.objects.filter(field__entity=ent).count()
     except Exception:
         pass
 
