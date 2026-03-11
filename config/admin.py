@@ -4,6 +4,8 @@ Custom admin site configuration.
 The platform control plane and tenant admin now run on separate admin site
 instances so manager-host routes no longer behave like a tenant surface.
 """
+import logging
+
 from apps.dashboard.admin_context import build_admin_dashboard_context
 
 from django.http import HttpResponseRedirect
@@ -377,7 +379,12 @@ class PlatformAdminSite(BaseRunMyCampusAdminSite):
 
     def get_app_list(self, request, app_label=None):
         """AdminOpsShell: group and order apps by platform IA (Platform Configuration, Catalog Records, etc.)."""
-        app_dict = self._build_app_dict(request, app_label)
+        try:
+            app_dict = self._build_app_dict(request, app_label)
+        except LookupError as e:
+            # Missing app (e.g. brand_experience not in INSTALLED_APPS on some envs) — skip so admin index still loads
+            logging.getLogger(__name__).warning("Admin app list skip missing app: %s", e)
+            app_dict = {}
         section_order = {s: i for i, s in enumerate(self.PLATFORM_APP_SECTIONS)}
         # Map app_label to section (one app can only be in one section; use primary section)
         app_list = []
