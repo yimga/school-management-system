@@ -15,12 +15,22 @@ from .preview_state import PREVIEW_MODE_SESSION_KEY, ACT_AS_ROLE_SESSION_KEY
 from .portal_sidebar_items import build_portal_sidebar_items
 from apps.policies.policy_registry import get_effective_policy
 
+OPTIONAL_CONTEXT_ERRORS = (
+    AttributeError,
+    DatabaseError,
+    ImportError,
+    RuntimeError,
+    TypeError,
+    ValueError,
+)
+OPTIONAL_STORAGE_ERRORS = (AttributeError, OSError, RuntimeError, TypeError, ValueError)
+
 
 def _get_portal_sidebar_items(request, site):
     """Return portal sidebar items (optionally sorted by portal_sidebar_order)."""
     try:
         return build_portal_sidebar_items(request, site)
-    except Exception:
+    except OPTIONAL_CONTEXT_ERRORS:
         return []
 
 
@@ -38,7 +48,7 @@ def _get_pinned_sidebar_items(request, all_items):
         if not prefs:
             try:
                 prefs, prefs_created = DashboardUserPreference.objects.get_or_create(user=request.user)
-            except Exception:
+            except DatabaseError:
                 prefs = None
 
         raw_pinned_ids = getattr(prefs, "pinned_sidebar_items", None) if prefs is not None else None
@@ -48,7 +58,7 @@ def _get_pinned_sidebar_items(request, all_items):
             try:
                 from apps.accounts.portal_roles import get_effective_portal_role
                 role = (get_effective_portal_role(request) or getattr(request.user, "role", "") or "").upper()
-            except Exception:
+            except OPTIONAL_CONTEXT_ERRORS:
                 role = (getattr(request.user, "role", "") or "").upper()
             default_pin_map = {
                 "TEACHER": ["teacher_workflow", "preferences"],
@@ -64,7 +74,7 @@ def _get_pinned_sidebar_items(request, all_items):
                     try:
                         prefs.pinned_sidebar_items = seeded_pins
                         prefs.save(update_fields=["pinned_sidebar_items", "updated_at"])
-                    except Exception:
+                    except (DatabaseError, TypeError, ValueError):
                         pass
         if not pinned_ids:
             return [], set()
@@ -73,7 +83,7 @@ def _get_pinned_sidebar_items(request, all_items):
             if pid in by_id and by_id[pid].get("url"):
                 ordered.append(by_id[pid])
         return ordered, set(str(item.get("id")) for item in ordered)
-    except Exception:
+    except OPTIONAL_CONTEXT_ERRORS:
         return [], set()
 
 SESSION_KEY = "site_preview_settings"
@@ -106,7 +116,7 @@ def _reset_db_state() -> None:
             transaction.set_rollback(False)
         else:
             connection.rollback()
-    except Exception:
+    except (DatabaseError, RuntimeError):
         pass
 
 
@@ -159,7 +169,7 @@ def _resolve_media_url(file_field, fallback: str | None = None) -> str:
     try:
         if default_storage.exists(name):
             return file_field.url
-    except Exception:
+    except OPTIONAL_STORAGE_ERRORS:
         pass
 
     return static(fallback) if fallback else ""
@@ -247,7 +257,7 @@ def site_settings(request):
         except DatabaseError:
             _reset_db_state()
             theme_pref = "system"
-        except Exception:
+        except (AttributeError, TypeError, ValueError):
             # Keep context resilient if dashboard preference schema is mid-migration.
             user_visual_preset = "soft-glass"
 
@@ -316,7 +326,7 @@ def site_settings(request):
             request._portal_teacher_hat = has_teacher_hat(user)
             request._portal_parent_hat = has_parent_hat(user)
             effective_portal_role = get_effective_portal_role(request)
-        except Exception:
+        except OPTIONAL_CONTEXT_ERRORS:
             request._portal_teacher_hat = False
             request._portal_parent_hat = False
     _get_theme = getattr(site, "get_portal_theme", None)
@@ -329,7 +339,7 @@ def site_settings(request):
             school_pack = ThemePack.objects.filter(pk=school.theme_pack_id, is_active=True).first()
             if school_pack:
                 site_theme = school_pack
-        except Exception:
+        except OPTIONAL_CONTEXT_ERRORS:
             pass
     weather_defaults = default_header_weather_config()
     ctx = {
@@ -406,7 +416,7 @@ def site_settings(request):
             ctx["EFFECTIVE_PORTAL_ROLE"] = get_effective_portal_role(request) or (getattr(user, "role", "") or "").upper()
             ctx["HAS_TEACHER_HAT"] = has_teacher
             ctx["HAS_PARENT_HAT"] = has_parent
-        except Exception:
+        except OPTIONAL_CONTEXT_ERRORS:
             ctx["SHOW_ROLE_SWITCHER"] = False
             ctx["EFFECTIVE_PORTAL_ROLE"] = (getattr(user, "role", "") or "").upper()
             ctx["HAS_TEACHER_HAT"] = False
@@ -423,7 +433,7 @@ def site_settings(request):
             from .branding import brand_css_vars, resolve_brand_profile
 
             tenant_brand = resolve_brand_profile(school=school, site=site)
-        except Exception:
+        except OPTIONAL_CONTEXT_ERRORS:
             tenant_brand = {}
         if tenant_brand.get("logo_url"):
             ctx["SITE_LOGO_URL"] = tenant_brand.get("logo_url")
@@ -438,7 +448,7 @@ def site_settings(request):
         try:
             from .tenant_config import use_local_settings
             ctx["TENANT_LOCALE"] = use_local_settings(request=request, school=school)
-        except Exception:
+        except OPTIONAL_CONTEXT_ERRORS:
             ctx["TENANT_LOCALE"] = {}
         try:
             from .brand_registry import resolve_global_brand_context
@@ -447,7 +457,7 @@ def site_settings(request):
                 school=school,
                 language_code=(ctx.get("TENANT_LOCALE") or {}).get("locale"),
             )
-        except Exception:
+        except OPTIONAL_CONTEXT_ERRORS:
             brand_ctx = {}
         ctx["TENANT_BRAND_CONTEXT"] = brand_ctx
         ctx["TENANT_LABELS"] = (
@@ -482,11 +492,10 @@ def site_settings(request):
             # Phase 8: Pinned control plane items (Quick access)
             pinned_cp_ids = []
             try:
-                from apps.siteconfig.models_dashboard import DashboardUserPreference
                 prefs = DashboardUserPreference.objects.filter(user=request.user).only("control_plane_pinned_items").first()
                 if prefs and isinstance(prefs.control_plane_pinned_items, list):
                     pinned_cp_ids = [str(x).strip() for x in prefs.control_plane_pinned_items if str(x).strip()]
-            except Exception:
+            except (DatabaseError, ImportError, TypeError, ValueError):
                 pass
             by_id = {}
             for grp in ctx["CONTROL_PLANE_NAV"]:
@@ -496,7 +505,7 @@ def site_settings(request):
                         by_id[iid] = it
             ctx["PINNED_CONTROL_PLANE_ITEMS"] = [by_id[pid] for pid in pinned_cp_ids if pid in by_id]
             ctx["PINNED_CONTROL_PLANE_IDS"] = set(pinned_cp_ids)
-        except Exception:
+        except OPTIONAL_CONTEXT_ERRORS:
             ctx["CONTROL_PLANE_NAV"] = []
             ctx["PINNED_CONTROL_PLANE_ITEMS"] = []
             ctx["PINNED_CONTROL_PLANE_IDS"] = set()
@@ -525,7 +534,7 @@ def site_settings(request):
     if school:
         try:
             offline_enabled = get_effective_policy(school, user=getattr(request, "user", None), capability="offline_mode").get("enabled", False)
-        except Exception:
+        except OPTIONAL_CONTEXT_ERRORS:
             offline_enabled = False
     else:
         offline_enabled = True
@@ -574,7 +583,7 @@ def region_settings(request):
                     pref = getattr(_user, 'preferences', None)
                     if pref and getattr(pref, 'preferred_region', ''):
                         region_code = pref.preferred_region
-                except Exception:
+                except (AttributeError, DatabaseError, TypeError, ValueError):
                     pass
             region = RegionConfig.objects.get(code=region_code)
             grading_scale = getattr(region, "grading_scale", "default")
@@ -590,7 +599,7 @@ def region_settings(request):
             region = RegionConfig.get_default()
             grading_scale = getattr(region, "grading_scale", "default")
             default_language = getattr(region, "default_language", "en")
-        except Exception:
+        except (AttributeError, DatabaseError, TypeError, ValueError):
             _pd = get_platform_defaults(use_db=False)
             region = SimpleNamespace(
                 code=_pd["region_code"],
@@ -620,7 +629,7 @@ def region_settings(request):
             from .tenant_config import get_tenant_locale
 
             tenant_locale = get_tenant_locale(school=school)
-        except Exception:
+        except OPTIONAL_CONTEXT_ERRORS:
             tenant_locale = {}
 
     effective_currency = (
@@ -690,7 +699,7 @@ def language_context(request):
                     lang = pref.preferred_language
                     if lang in SUPPORTED_LANGUAGES:
                         current_language = lang
-            except Exception:
+            except (AttributeError, DatabaseError, TypeError, ValueError):
                 pass
         if current_language == translation.get_language():
             # Multi-tenant: prefer school default language from Policy Registry when request.school is set
@@ -716,14 +725,14 @@ def language_context(request):
                                 region = RegionConfig.objects.get(code=pref.preferred_region)
                             else:
                                 region = RegionConfig.objects.get(code=region.code)
-                        except (RegionConfig.DoesNotExist, Exception):
+                        except (RegionConfig.DoesNotExist, AttributeError, DatabaseError, TypeError, ValueError):
                             pass
                     default_language = getattr(region, "default_language", None) or "en"
                     if default_language in SUPPORTED_LANGUAGES:
                         current_language = default_language
                 except DatabaseError:
                     _reset_db_state()
-                except Exception:
+                except (AttributeError, TypeError, ValueError):
                     pass
     
     # Get available languages

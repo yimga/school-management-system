@@ -30,7 +30,7 @@ RATE_LIMIT_WINDOW = int(os.environ.get('AI_COPILOT_RATE_WINDOW', '60'))  # secon
 def _cache_get(key, default=None):
     try:
         return cache.get(key, default)
-    except Exception:
+    except (AttributeError, OSError, RuntimeError, TypeError, ValueError):
         logger.debug("AI copilot cache get failed for %s", key, exc_info=True)
         return default
 
@@ -39,7 +39,7 @@ def _cache_set(key, value, timeout=None):
     try:
         cache.set(key, value, timeout)
         return True
-    except Exception:
+    except (AttributeError, OSError, RuntimeError, TypeError, ValueError):
         logger.debug("AI copilot cache set failed for %s", key, exc_info=True)
         return False
 
@@ -50,7 +50,7 @@ def _cache_incr_or_set(key, amount: int = 1):
         return True
     except (ValueError, TypeError):
         return _cache_set(key, amount, None)
-    except Exception:
+    except (AttributeError, OSError, RuntimeError):
         logger.debug("AI copilot cache incr failed for %s", key, exc_info=True)
         return False
 

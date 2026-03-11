@@ -757,7 +757,7 @@ class VocationalLogHoursView(View):
                 recorded_by=teacher,
             )
             return JsonResponse({"ok": True, "id": rec.id, "hours": str(rec.hours), "date": rec.date.isoformat()}, status=201)
-        except Exception as e:
+        except (AttributeError, DatabaseError, ImportError, TypeError, ValueError) as e:
             logger.exception("vocational/log-hours")
             return JsonResponse({"error": str(e)}, status=500)
 
@@ -804,7 +804,7 @@ class VocationalVerifySkillView(View):
             return JsonResponse({"ok": True, "id": rec.id, "level": rec.level})
         except CompetencyItem.DoesNotExist:
             return JsonResponse({"error": "Competency item not found"}, status=404)
-        except Exception as e:
+        except (AttributeError, DatabaseError, ImportError, TypeError, ValueError) as e:
             logger.exception("vocational/verify-skill")
             return JsonResponse({"error": str(e)}, status=500)
 
@@ -832,7 +832,7 @@ class VocationalDigitalBadgeView(View):
             return JsonResponse({"student_id": student_id, "skills": skills, "school_id": str(school.id)})
         except StudentProfile.DoesNotExist:
             return JsonResponse({"error": "Student not found"}, status=404)
-        except Exception as e:
+        except (AttributeError, DatabaseError, ImportError, TypeError, ValueError) as e:
             logger.exception("vocational/digital-badge")
             return JsonResponse({"error": str(e)}, status=500)
 
@@ -873,7 +873,7 @@ class SchedulerGenerateView(View):
             return JsonResponse({"ok": True, "schedule_id": schedule.id, "status": schedule.status}, status=202)
         except (Term.DoesNotExist, AcademicYear.DoesNotExist) as e:
             return JsonResponse({"error": "Term or academic year not found"}, status=404)
-        except Exception as e:
+        except (AttributeError, DatabaseError, ImportError, TypeError, ValueError) as e:
             logger.exception("scheduler/generate")
             return JsonResponse({"error": str(e)}, status=500)
 
@@ -960,7 +960,7 @@ class SyllabusPacingView(View):
             completed = sum(1 for s in sections if isinstance(s, dict) and s.get("completed")) if total else 0
             actual_pct = round(100 * completed / total, 1) if total else 0
             return JsonResponse({"subject_assignment_id": sa_id, "planned_pct": 100, "actual_pct": actual_pct, "total_topics": total, "completed_topics": completed})
-        except Exception as e:
+        except (AttributeError, DatabaseError, ImportError, TypeError, ValueError) as e:
             logger.exception("syllabus/pacing")
             return JsonResponse({"error": str(e)}, status=500)
 
@@ -1063,7 +1063,7 @@ class SuperRecoveryRateView(View):
                 "interventions_total": total_interventions,
                 "recovery_rate_pct": recovery_rate_pct,
             })
-        except Exception as e:
+        except (AttributeError, DatabaseError, ImportError, TypeError, ValueError) as e:
             logger.exception("super/recovery-rate")
             return JsonResponse({"error": str(e)}, status=500)
 
