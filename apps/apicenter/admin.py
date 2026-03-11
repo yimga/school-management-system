@@ -1,7 +1,14 @@
 from django.contrib import admin
 
 from config.admin import register_tenant_admin
-from .models import APIAuditLog
+from .models import APIAuditLog, APIKey
+
+
+class APIKeyAdmin(admin.ModelAdmin):
+    list_display = ("name", "key_prefix", "school", "created_by", "created_at", "last_used_at", "revoked_at")
+    list_filter = ("revoked_at", "created_at")
+    search_fields = ("name", "key_prefix")
+    readonly_fields = ("key_prefix", "secret_hash", "created_at", "last_used_at", "revoked_at")
 
 
 class APIAuditLogAdmin(admin.ModelAdmin):
@@ -16,4 +23,5 @@ class APIAuditLogAdmin(admin.ModelAdmin):
     reason_short.short_description = "Reason"
 
 
+register_tenant_admin(APIKey, APIKeyAdmin)
 register_tenant_admin(APIAuditLog, APIAuditLogAdmin)

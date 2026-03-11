@@ -10,4 +10,6 @@ urlpatterns = [
     path("docs/", views.api_portal_docs, name="api_portal_docs"),
     path("webhooks/", views.webhook_docs, name="webhook_docs"),
     path("keys/", views.api_keys, name="api_keys"),
+    path("keys/create/", views.api_key_create, name="api_key_create"),
+    path("keys/<int:key_id>/revoke/", views.api_key_revoke, name="api_key_revoke"),
 ]

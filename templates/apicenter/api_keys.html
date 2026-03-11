@@ -6,13 +6,77 @@
 {% block content %}
 <div class="container-fluid py-4">
   <h4 class="mb-3">{% trans "API keys & quotas" %}</h4>
-  <p class="text-muted">{% trans "Developer platform (8.1): Create and manage API keys; view usage quotas. Full CRUD and scopes in a future sprint." %}</p>
+  <p class="text-muted">{% trans "Create and manage API keys for external API authentication. Usage quotas (8.1) coming in a future update." %}</p>
+
+  {% if new_key_display %}
+  <div class="alert alert-success alert-dismissible fade show" role="alert">
+    <strong>{% trans "Key created. Copy it now — it will not be shown again." %}</strong>
+    <div class="mt-2 font-monospace bg-dark text-light p-2 rounded small" style="word-break: break-all;">{{ new_key_display.raw_secret }}</div>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+  {% endif %}
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h5 class="card-title">{% trans "Create key" %}</h5>
+      <form method="post" action="{% url 'apicenter:api_key_create' %}" class="row g-2 align-items-end">
+        {% csrf_token %}
+        <div class="col-auto">
+          <label for="key_name" class="form-label">{% trans "Key name" %}</label>
+          <input type="text" class="form-control" id="key_name" name="name" placeholder="e.g. Production, CI" maxlength="120" required>
+        </div>
+        <div class="col-auto">
+          <button type="submit" class="btn btn-primary">{% trans "Create API key" %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div class="card shadow-sm">
     <div class="card-body">
       <h5 class="card-title">{% trans "Keys" %}</h5>
-      <p class="card-text">{% trans "API keys are used to authenticate external API requests. Create keys from the Admin or via the API when the developer platform is fully shipped." %}</p>
-      <a href="{% url 'apicenter:dashboard' %}" class="btn btn-outline-primary">{% trans "Back to API Center" %}</a>
+      {% if api_keys %}
+      <div class="table-responsive">
+        <table class="table table-sm">
+          <thead>
+            <tr>
+              <th>{% trans "Name" %}</th>
+              <th>{% trans "Prefix" %}</th>
+              <th>{% trans "Created" %}</th>
+              <th>{% trans "Last used" %}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for key in api_keys %}
+            <tr>
+              <td>{{ key.name }}</td>
+              <td><code>{{ key.key_prefix }}…</code></td>
+              <td>{{ key.created_at|date:"M j, Y H:i" }}{% if key.created_by %} {% trans "by" %} {{ key.created_by.get_full_name|default:key.created_by.username }}{% endif %}</td>
+              <td>{% if key.last_used_at %}{{ key.last_used_at|date:"M j, Y H:i" }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+              <td>
+                {% if not key.revoked_at %}
+                <form method="post" action="{% url 'apicenter:api_key_revoke' key.pk %}" class="d-inline" onsubmit="return confirm('{% trans "Revoke this key? It will stop working immediately." %}');">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-outline-danger btn-sm">{% trans "Revoke" %}</button>
+                </form>
+                {% else %}
+                <span class="badge bg-secondary">{% trans "Revoked" %}</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="text-muted mb-0">{% trans "No API keys yet. Create one above to authenticate external API requests." %}</p>
+      {% endif %}
     </div>
   </div>
+
+  <p class="mt-3">
+    <a href="{% url 'apicenter:dashboard' %}" class="btn btn-outline-primary">{% trans "Back to API Center" %}</a>
+  </p>
 </div>
 {% endblock %}

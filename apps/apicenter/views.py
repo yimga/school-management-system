@@ -1,7 +1,6 @@
 """
 API Center: one page for all Integrations (config + governance). Toggle enabled with reason; audit log.
 """
-from django.contrib import messages
 from django.db.models import Q
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
@@ -9,11 +8,13 @@ from django.views.decorators.http import require_GET, require_POST
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_protect
 
+from django.contrib import messages
+from django.utils import timezone
+
 from apps.integrations_marketplace.models import Integration
-from apps.siteconfig.models import SiteSettings
 from apps.platform_runtime.helpers import get_effective_flags
 from apps.schools.control_plane import user_has_control_plane_access
-from .models import APIAuditLog
+from .models import APIAuditLog, APIKey, _hash_secret
 
 
 def _api_center_allowed(request):
@@ -121,7 +122,66 @@ def webhook_docs(request):
 @login_required
 @require_GET
 def api_keys(request):
-    """Developer platform (8.1): API keys and quotas stub. Full keys CRUD in future sprint."""
+    """Developer platform (8.1): List API keys. Create via api_key_create (POST); revoke via api_key_revoke (POST)."""
     if not _api_center_allowed(request):
         return HttpResponseForbidden("API Center is disabled or you do not have permission.")
-    return render(request, "apicenter/api_keys.html", {})
+    school = getattr(request, "school", None)
+    qs = APIKey.objects.select_related("created_by", "school").order_by("-created_at")
+    if school is not None:
+        qs = qs.filter(Q(school__isnull=True) | Q(school=school))
+    keys = list(qs[:100])
+    # One-time display: raw key shown once after create (stored in session, popped after render)
+    new_key_display = request.session.pop("apicenter_new_key_display", None)
+    return render(
+        request,
+        "apicenter/api_keys.html",
+        {"api_keys": keys, "new_key_display": new_key_display},
+    )
+
+
+@login_required
+@require_POST
+@csrf_protect
+def api_key_create(request):
+    """Create an API key; show raw secret once in session, then redirect to keys list."""
+    if not _api_center_allowed(request):
+        return HttpResponseForbidden("API Center is disabled or you do not have permission.")
+    school = getattr(request, "school", None)
+    if school is None and getattr(request, "public_host_kind", None) != "manager":
+        return HttpResponseForbidden("School context required.")
+    name = (request.POST.get("name") or "").strip()
+    if not name:
+        messages.error(request, "Key name is required.")
+        return redirect("apicenter:api_keys")
+    key_prefix, raw_secret = APIKey.generate_key_pair()
+    key = APIKey.objects.create(
+        school=school,
+        name=name,
+        key_prefix=key_prefix,
+        secret_hash=_hash_secret(raw_secret),
+        created_by=request.user,
+    )
+    request.session["apicenter_new_key_display"] = {"name": key.name, "raw_secret": raw_secret, "key_prefix": key.key_prefix}
+    messages.success(request, "API key created. Copy the key below; it will not be shown again.")
+    return redirect("apicenter:api_keys")
+
+
+@login_required
+@require_POST
+@csrf_protect
+def api_key_revoke(request, key_id):
+    """Revoke an API key (set revoked_at)."""
+    if not _api_center_allowed(request):
+        return HttpResponseForbidden("API Center is disabled or you do not have permission.")
+    school = getattr(request, "school", None)
+    qs = APIKey.objects.all()
+    if school is not None:
+        qs = qs.filter(Q(school__isnull=True) | Q(school=school))
+    key = get_object_or_404(qs, pk=key_id)
+    if key.revoked_at:
+        messages.warning(request, "This key is already revoked.")
+    else:
+        key.revoked_at = timezone.now()
+        key.save(update_fields=["revoked_at"])
+        messages.success(request, f"Key {key.key_prefix}… revoked.")
+    return redirect("apicenter:api_keys")

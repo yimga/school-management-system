@@ -16,7 +16,7 @@
 
 ## Architecture
 
-- **2.1** Giant-file decomposition: split siteconfig/models.py, accounts/views.py, schools/super_views.py, portal/views.py, finance/views.py, api/views_v1.py; enforce file-line thresholds in CI. **Started:** siteconfig AI → `models_ai.py`; accounts migration hub → `views_migration.py`, rollover → `views_rollover.py` (re-exported from `views.py`). Remaining: schools/super_views, portal/views, finance/views, api/views_v1.
+- **2.1** Giant-file decomposition: split siteconfig/models.py, accounts/views.py, schools/super_views.py, portal/views.py, finance/views.py, api/views_v1.py; enforce file-line thresholds in CI. **Started:** siteconfig AI → `models_ai.py`; accounts migration hub → `views_migration.py`, rollover → `views_rollover.py` (re-exported from `views.py`); schools migration/sync-repair → `super_views_migration.py` (re-exported from `super_views.py`). Remaining: portal/views, finance/views, api/views_v1.
 
 ## Runtime & multitenancy
 
@@ -36,7 +36,7 @@
 
 ## Developer platform
 
-- **8.1** External dev platform: public API portal (docs, keys, quotas); webhook docs and subscription UI; SDKs; app certification; partner sandbox and scope review. **Done (UI):** API portal docs (`/api-center/docs/`), webhook docs with subscription list from `events.WebhookSubscription` (`/api-center/webhooks/`), API keys stub page (`/api-center/keys/`); apicenter views and templates.
+- **8.1** External dev platform: public API portal (docs, keys, quotas); webhook docs and subscription UI; SDKs; app certification; partner sandbox and scope review. **Done (UI + keys CRUD):** API portal docs (`/api-center/docs/`), webhook docs with subscription list (`/api-center/webhooks/`), API keys list/create/revoke (`/api-center/keys/`) with `APIKey` model (tenant-scoped, prefix + hash, one-time secret display); apicenter views and templates. Remaining: quotas display/enforcement, webhook create/edit subscription UI, SDK/cert/sandbox stubs.
 
 ## Governance
 

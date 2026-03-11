@@ -12,7 +12,7 @@
 |------|----------------|------|
 | `apps/siteconfig/models.py` | &lt; 2500 | **Started:** AI models moved to `siteconfig/models_ai.py`; re-export from `models.py`. |
 | `apps/accounts/views.py` | &lt; 1500 | Split by domain: auth, dashboard, profile, approvals, etc. |
-| `apps/schools/super_views.py` | &lt; 1500 | Split: super dashboard, tenant CRUD, runtime inspector, workflow simulator, etc. |
+| `apps/schools/super_views.py` | &lt; 1500 | **Started:** migration cloud, profile registry, rollback, sync_repair → `super_views_migration.py` (re-exported). Remainder: dashboard, tenant CRUD, runtime inspector, workflow simulator, etc. |
 | `apps/portal/views.py` | &lt; 1500 | Split: dashboard, documents, features, AI gateway, etc. |
 | `apps/finance/views.py` | &lt; 1200 | Split: invoices, fees, reports, permissions. |
 | `apps/api/views_v1.py` | &lt; 1200 | Split by resource: dashboard, schools, reports, etc. |
