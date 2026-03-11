@@ -8,11 +8,14 @@ from apps.metadata.models import (
     MetadataDependency,
 )
 from apps.metadata.services import (
+    build_metadata_blast_radius,
     export_entity_catalog_bundle,
+    get_package_lineage_registry,
     get_downstream_dependencies,
     get_dynamic_field_map,
     get_dynamic_field_value,
     set_dynamic_field_value,
+    summarize_dependency_consumers,
 )
 from apps.people.models import StudentProfile
 from apps.schools.models import School
@@ -138,3 +141,59 @@ class LineageAndCatalogExportTests(TestCase):
                 for d in ent["dependencies"]
             )
         )
+
+    def test_summarize_dependency_consumers_groups_by_consumer(self):
+        MetadataDependency.objects.create(
+            consumer_type="api",
+            consumer_code="api:student-record",
+            field=self.field,
+        )
+
+        rows = summarize_dependency_consumers()
+
+        self.assertTrue(any(row["consumer_code"] == "principal_home" for row in rows))
+        api_row = next(row for row in rows if row["consumer_code"] == "api:student-record")
+        self.assertEqual(api_row["entity_codes"], ["student"])
+        self.assertEqual(api_row["field_names"], ["admission_number"])
+
+    def test_build_metadata_blast_radius_counts_consumers(self):
+        MetadataDependency.objects.create(
+            consumer_type="template",
+            consumer_code="template:student-card",
+            field=self.field,
+        )
+
+        blast_radius = build_metadata_blast_radius(entity_codes=["student"])
+
+        self.assertEqual(blast_radius["consumer_count"], 2)
+        self.assertEqual(blast_radius["consumer_type_counts"]["dashboard"], 1)
+        self.assertEqual(blast_radius["consumer_type_counts"]["template"], 1)
+
+    def test_get_package_lineage_registry_includes_rollback_events(self):
+        from apps.packages.engine import apply_package, rollback
+        from apps.packages.models import InstalledPackage
+
+        result = apply_package(
+            tenant_id=None,
+            package_id="metadata-lineage-pack",
+            version="1.0",
+            payload_sections={
+                "dashboard": {
+                    "dashboards": [
+                        {
+                            "code": "principal-home",
+                            "entity_code": "student",
+                            "field_names": ["admission_number"],
+                        }
+                    ]
+                }
+            },
+            actor_id=None,
+        )
+        rollback(InstalledPackage.objects.get(pk=result["installed_id"]), actor_id=None)
+
+        rows = get_package_lineage_registry(package_id="metadata-lineage-pack")
+
+        self.assertEqual(rows[0]["package_id"], "metadata-lineage-pack")
+        self.assertEqual(rows[0]["rollback_event_count"], 1)
+        self.assertGreaterEqual(rows[0]["blast_radius"]["consumer_count"], 1)

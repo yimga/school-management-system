@@ -20,6 +20,7 @@ class PackageEngineValidateTests(TestCase):
         self.assertTrue(result["ok"], result)
         self.assertEqual(result["package_type"], "policy")
         self.assertIn("impact_summary", result)
+        self.assertIn("rollback_blast_radius", result["impact_summary"])
 
     def test_validate_builds_metadata_usage_preview(self):
         result = validate_package(
@@ -123,6 +124,8 @@ class PackageEngineApplyRollbackTests(TestCase):
             actor_id=None,
         )
         self.assertTrue(result["ok"], result)
+        self.assertIn("rollback_blast_radius", result)
+        self.assertGreaterEqual(result["rollback_blast_radius"]["consumer_count"], 1)
         self.assertTrue(
             MetadataDependency.objects.filter(
                 consumer_type="dashboard",
@@ -160,6 +163,7 @@ class PackageEngineApplyRollbackTests(TestCase):
         rollback_result = rollback(inst, actor_id=None)
         inst.refresh_from_db()
         self.assertTrue(rollback_result["ok"])
+        self.assertIn("rollback_blast_radius", rollback_result)
         self.assertFalse(inst.is_active)
         self.assertEqual(inst.reconciliation_status, "rolled_back")
         self.assertEqual(PackageChangeLog.objects.filter(package_id="ci-rollback-pack", action="rollback").count(), 1)

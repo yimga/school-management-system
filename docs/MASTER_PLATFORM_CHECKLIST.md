@@ -86,11 +86,14 @@
 - [x] Fixed runtime metadata to use real bounded-context pack models instead of the broken legacy `Blueprint` import
 - [x] Extended runtime metadata output with workflow pack, dashboard pack, and policy bundle catalogs
 - [x] Extended package preview/apply to register metadata dependencies for dashboards, templates, APIs, workflows, policies, and package ownership when payload fields are declared
-- [ ] Extend lineage coverage to more runtime API/template call sites and rollback blast radius
+- [x] Added runtime lineage registries for dashboards, workflows, policies, APIs, and templates plus package rollout/rollback metadata in the catalog
+- [x] Added rollback blast radius summaries to package validation, preview, apply, rollback, and catalog registry output
+- [ ] Extend automatic lineage registration to more runtime API/template call sites beyond package-driven declarations
 
 ### Phase 4
 - [x] Expanded `apps.packages.engine` to return structured validation, compatibility, dependency, impact, rollback, and promotion data
 - [x] Added persisted package dependency, impact, apply-stage, and reconciliation metadata
+- [x] Added package registry visibility for active installs, rollback events, and rollback blast radius
 - [x] Added package tests for validation, incompatibility, promotion, rollback, and tenant scoping
 - [ ] Wire staged rollout and promotion into UI and operator workflows
 
@@ -123,7 +126,7 @@
 
 - Broad exception volume is still high; the corrected high-risk baseline is enforced, but counts in `accounts/views.py`, `api/views_v1.py`, `schools/middleware.py`, `schools/super_views.py`, and `siteconfig/context_processors.py` still need to be driven down.
 - `siteconfig` remains the dominant domain gravity well; import surfaces now exist, but ownership migrations have not landed yet.
-- Metadata lineage is still incomplete for APIs, templates, policies, package ownership, and rollback blast radius.
+- Metadata lineage now covers registered dashboards, workflows, policies, APIs, templates, package ownership, and rollback blast radius, but more runtime call sites still need automatic registration.
 - CSRF and raw SQL are now inventoried and locked, but most legacy entries are still present.
 - Repo de-branding is still incomplete; `gilead` references remain outside approved archive paths.
 - UI/UX closure is still incomplete: dashboard intent needs role-native homes, Setup Studio still lacks live preview and launch orchestration, quick actions are not yet a contextual action engine, marketplace install UX is still too utility-first, and marketing pages still need proof-rich product storytelling.

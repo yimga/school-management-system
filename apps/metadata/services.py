@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import defaultdict
 from typing import Any
 
 from apps.metadata.models import (
@@ -159,6 +160,203 @@ def get_downstream_dependencies(
     ]
 
 
+def summarize_dependency_consumers(
+    *,
+    consumer_type: str | None = None,
+    limit: int = 200,
+) -> list[dict[str, Any]]:
+    """
+    Group metadata dependencies by consumer so operator tooling can answer
+    which APIs, templates, dashboards, workflows, and policies touch which
+    entities and fields.
+    """
+    queryset = MetadataDependency.objects.select_related("field", "field__entity").order_by(
+        "consumer_type",
+        "consumer_code",
+        "field__entity__code",
+        "field__field_name",
+    )
+    if consumer_type:
+        queryset = queryset.filter(consumer_type=consumer_type)
+
+    grouped: dict[tuple[str, str], dict[str, Any]] = {}
+    for dep in queryset:
+        key = (dep.consumer_type, dep.consumer_code)
+        entry = grouped.setdefault(
+            key,
+            {
+                "consumer_type": dep.consumer_type,
+                "consumer_code": dep.consumer_code,
+                "entity_codes": set(),
+                "field_names": set(),
+                "dependency_count": 0,
+            },
+        )
+        entry["entity_codes"].add(dep.field.entity.code)
+        entry["field_names"].add(dep.field.field_name)
+        entry["dependency_count"] += 1
+
+    items = []
+    for entry in grouped.values():
+        items.append(
+            {
+                "consumer_type": entry["consumer_type"],
+                "consumer_code": entry["consumer_code"],
+                "entity_codes": sorted(entry["entity_codes"]),
+                "field_names": sorted(entry["field_names"]),
+                "dependency_count": entry["dependency_count"],
+            }
+        )
+    items.sort(key=lambda item: (item["consumer_type"], item["consumer_code"]))
+    return items[:limit]
+
+
+def build_metadata_blast_radius(
+    *,
+    entity_codes: list[str] | None = None,
+    field_ids: list[int] | None = None,
+    exclude_consumers: set[tuple[str, str]] | None = None,
+) -> dict[str, Any]:
+    """
+    Summarize downstream consumers affected by changing or rolling back metadata.
+    This powers package impact previews and rollback safety checks.
+    """
+    entity_codes = [str(code).strip() for code in (entity_codes or []) if str(code).strip()]
+    field_ids = [int(field_id) for field_id in (field_ids or []) if field_id is not None]
+    exclude_consumers = exclude_consumers or set()
+
+    queryset = MetadataDependency.objects.select_related("field", "field__entity")
+    if field_ids:
+        queryset = queryset.filter(field_id__in=field_ids)
+    elif entity_codes:
+        queryset = queryset.filter(field__entity__code__in=entity_codes)
+    else:
+        return {
+            "entity_codes": [],
+            "field_ids": [],
+            "consumer_count": 0,
+            "consumer_type_counts": {},
+            "consumers": [],
+        }
+
+    grouped: dict[tuple[str, str], dict[str, Any]] = {}
+    for dep in queryset.order_by("consumer_type", "consumer_code", "field__entity__code", "field__field_name"):
+        key = (dep.consumer_type, dep.consumer_code)
+        if key in exclude_consumers:
+            continue
+        entry = grouped.setdefault(
+            key,
+            {
+                "consumer_type": dep.consumer_type,
+                "consumer_code": dep.consumer_code,
+                "entity_codes": set(),
+                "field_names": set(),
+                "dependency_count": 0,
+            },
+        )
+        entry["entity_codes"].add(dep.field.entity.code)
+        entry["field_names"].add(dep.field.field_name)
+        entry["dependency_count"] += 1
+
+    consumer_type_counts: dict[str, int] = defaultdict(int)
+    consumers: list[dict[str, Any]] = []
+    for entry in grouped.values():
+        consumer_type_counts[entry["consumer_type"]] += 1
+        consumers.append(
+            {
+                "consumer_type": entry["consumer_type"],
+                "consumer_code": entry["consumer_code"],
+                "entity_codes": sorted(entry["entity_codes"]),
+                "field_names": sorted(entry["field_names"]),
+                "dependency_count": entry["dependency_count"],
+            }
+        )
+    consumers.sort(key=lambda item: (item["consumer_type"], item["consumer_code"]))
+    return {
+        "entity_codes": sorted(set(entity_codes)),
+        "field_ids": field_ids,
+        "consumer_count": len(consumers),
+        "consumer_type_counts": dict(sorted(consumer_type_counts.items())),
+        "consumers": consumers,
+    }
+
+
+def get_package_lineage_registry(
+    *,
+    package_id: str | None = None,
+    version: str | None = None,
+    limit: int = 100,
+) -> list[dict[str, Any]]:
+    """
+    Return package lineage with rollout and rollback visibility for operator
+    tooling and the metadata catalog.
+    """
+    from apps.packages.models import InstalledPackage, PackageChangeLog, PackageVersion
+
+    queryset = PackageVersion.objects.order_by("-created_at", "package_id")
+    if package_id:
+        queryset = queryset.filter(package_id=package_id)
+    if version:
+        queryset = queryset.filter(version=version)
+
+    rows: list[dict[str, Any]] = []
+    for pkg in queryset[:limit]:
+        impact_summary = pkg.impact_summary or {}
+        entity_codes = [
+            str(code).strip()
+            for code in (impact_summary.get("entity_codes") or [])
+            if str(code).strip()
+        ]
+        blast_radius = build_metadata_blast_radius(
+            entity_codes=entity_codes,
+            exclude_consumers={("other", f"package:{pkg.package_id}")},
+        )
+        active_installs = list(
+            InstalledPackage.objects.filter(
+                package_id=pkg.package_id,
+                version=pkg.version,
+                is_active=True,
+            ).values("school_id", "scope", "apply_stage", "reconciliation_status")
+        )
+        rollback_events = [
+            {
+                "rollback_token": row.rollback_token,
+                "school_id": str(row.school_id) if row.school_id else None,
+                "created_at": row.created_at.isoformat() if row.created_at else None,
+                "reconciliation_status": row.reconciliation_status,
+            }
+            for row in PackageChangeLog.objects.filter(
+                package_id=pkg.package_id,
+                version=pkg.version,
+                action="rollback",
+            ).order_by("-created_at")[:20]
+        ]
+        rows.append(
+            {
+                "package_id": pkg.package_id,
+                "version": pkg.version,
+                "dependencies": list(pkg.dependencies or []),
+                "entity_codes": entity_codes,
+                "sections": list((pkg.payload_sections or {}).keys()),
+                "active_install_count": len(active_installs),
+                "active_installs": [
+                    {
+                        "school_id": str(item["school_id"]) if item["school_id"] else None,
+                        "scope": item["scope"],
+                        "apply_stage": item["apply_stage"],
+                        "reconciliation_status": item["reconciliation_status"],
+                    }
+                    for item in active_installs
+                ],
+                "rollback_event_count": len(rollback_events),
+                "rollback_events": rollback_events,
+                "blast_radius": blast_radius,
+            }
+        )
+
+    return rows
+
+
 def export_entity_catalog_bundle(
     *,
     entity_codes: list[str] | None = None,
@@ -301,4 +499,3 @@ def import_entity_catalog_bundle(
                 else:
                     summary["updated_fields"] += 1
     return summary
-

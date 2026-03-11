@@ -9,7 +9,7 @@ from typing import Any, Optional
 
 from django.db import transaction
 
-from apps.metadata.services import get_downstream_dependencies
+from apps.metadata.services import build_metadata_blast_radius, get_downstream_dependencies
 
 from .models import InstalledPackage, PackageChangeLog, PackageVersion
 
@@ -201,6 +201,7 @@ def _build_impact_summary(payload_sections: dict[str, Any]) -> dict[str, Any]:
     for code in impacted["entity_codes"]:
         dependencies.extend(get_downstream_dependencies(entity_code=code))
     impacted["dependencies"] = dependencies
+    impacted["rollback_blast_radius"] = build_metadata_blast_radius(entity_codes=impacted["entity_codes"])
     return impacted
 
 
@@ -367,6 +368,7 @@ def preview_diff(
         "compatibility": compatibility_report,
         "package_type": validation["package_type"],
         "impacted_artifacts": validation["impact_summary"],
+        "rollback_blast_radius": validation["impact_summary"].get("rollback_blast_radius", {}),
         "metadata_usage_preview": validation["metadata_usage_preview"],
         "proposed": {
             "package_id": package_id,
@@ -413,6 +415,11 @@ def apply_package(
     rollback_token = uuid.uuid4().hex[:32]
     reconciliation_status = "reconciled" if mode == "production" else "applied"
     with transaction.atomic():
+        _register_metadata_usages(preview["metadata_usage_preview"])
+        applied_impact_summary = dict(preview["impacted_artifacts"])
+        applied_impact_summary["rollback_blast_radius"] = build_metadata_blast_radius(
+            entity_codes=applied_impact_summary.get("entity_codes") or []
+        )
         PackageVersion.objects.update_or_create(
             package_id=package_id,
             version=version,
@@ -420,7 +427,7 @@ def apply_package(
                 "dependencies": preview["dependencies"],
                 "compatibility": preview["compatibility"]["compatibility"],
                 "payload_sections": payload_sections,
-                "impact_summary": preview["impacted_artifacts"],
+                "impact_summary": applied_impact_summary,
                 "changelog_summary": ", ".join(preview["proposed"]["sections"]),
             },
         )
@@ -433,7 +440,7 @@ def apply_package(
             applied_by_id=actor_id,
             rollback_token=rollback_token,
             dependency_snapshot=preview["dependencies"],
-            impact_summary=preview["impacted_artifacts"],
+            impact_summary=applied_impact_summary,
             apply_stage=mode,
             reconciliation_status=reconciliation_status,
         )
@@ -446,10 +453,9 @@ def apply_package(
             rollback_token=rollback_token,
             actor_id=actor_id,
             dependency_snapshot=preview["dependencies"],
-            impact_summary=preview["impacted_artifacts"],
+            impact_summary=applied_impact_summary,
             reconciliation_status=reconciliation_status,
         )
-        _register_metadata_usages(preview["metadata_usage_preview"])
     return {
         "ok": True,
         "installed_id": inst.pk,
@@ -459,7 +465,8 @@ def apply_package(
         "reconciliation_status": reconciliation_status,
         "dependencies": preview["dependencies"],
         "compatibility": preview["compatibility"],
-        "impacted_artifacts": preview["impacted_artifacts"],
+        "impacted_artifacts": applied_impact_summary,
+        "rollback_blast_radius": applied_impact_summary["rollback_blast_radius"],
         "metadata_usage_preview": preview["metadata_usage_preview"],
         "warnings": preview["warnings"],
     }
@@ -493,6 +500,7 @@ def rollback(installed_package: InstalledPackage, actor_id: Optional[int] = None
         "rollback_token": installed_package.rollback_token,
         "dependencies": installed_package.dependency_snapshot,
         "impacted_artifacts": installed_package.impact_summary,
+        "rollback_blast_radius": (installed_package.impact_summary or {}).get("rollback_blast_radius", {}),
     }
 
 

@@ -9,6 +9,10 @@ from typing import Any, Dict, Optional
 
 from django.db.models import Count
 
+from apps.metadata.services import (
+    get_package_lineage_registry,
+    summarize_dependency_consumers,
+)
 from apps.policies_rules.models import PolicyBundle
 from apps.runtime_blueprints.models import Blueprint, DashboardPack, DashboardWidget, WorkflowPack
 from apps.siteconfig.workflow_registry import get_workflow_catalog
@@ -98,6 +102,26 @@ def get_runtime_metadata(school_id: Optional[Any] = None) -> Dict[str, Any]:
         workflow_catalog = get_workflow_catalog()
     except Exception:
         workflow_catalog = {}
+    try:
+        lineage_registry = {
+            "dashboards": summarize_dependency_consumers(consumer_type="dashboard"),
+            "workflows": summarize_dependency_consumers(consumer_type="workflow"),
+            "policies": summarize_dependency_consumers(consumer_type="policy"),
+            "apis": summarize_dependency_consumers(consumer_type="api"),
+            "templates": summarize_dependency_consumers(consumer_type="template"),
+        }
+    except Exception:
+        lineage_registry = {
+            "dashboards": [],
+            "workflows": [],
+            "policies": [],
+            "apis": [],
+            "templates": [],
+        }
+    try:
+        package_registry = get_package_lineage_registry(limit=100)
+    except Exception:
+        package_registry = []
     return {
         "schema_version": "1.0",
         "blueprints": blueprints,
@@ -105,6 +129,8 @@ def get_runtime_metadata(school_id: Optional[Any] = None) -> Dict[str, Any]:
         "dashboard_packs": dashboard_packs,
         "policy_bundles": policy_bundles,
         "workflow_catalog": workflow_catalog,
+        "lineage_registry": lineage_registry,
+        "package_registry": package_registry,
         "scope": "platform",
         "documentation": "docs/architecture/orchestration_layer.md",
     }
