@@ -42,7 +42,7 @@ STEP_DEFINITIONS = (
         "label": "Import branding",
         "description": "Set logo, color system, and surface styling so every role preview looks launch-ready.",
         "step_group": "brand",
-        "link_name": "siteconfig:customizer",
+        "link_name": "studio_os:experience",
         "weight": 15,
         "recommended_choice": "Use one approved logo pack and a single color system before go-live.",
     },

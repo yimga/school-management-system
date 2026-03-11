@@ -53,14 +53,23 @@ def get_governor_usage_for_tenant(
     school_id: Optional[int] = None,
 ) -> Dict[str, Any]:
     """
-    Return current usage vs limits for a tenant. Phase 1: return limits and
-    placeholder usage (not yet instrumented). Phase 2: wire to real counters.
+    Return current usage vs limits for a tenant. API requests per minute are
+    wired to the tenant throttle cache; other counters remain placeholder until instrumented.
     """
     limits = get_platform_governor_limits()
-    # Placeholder: no counters yet; all usage reported as 0 / "not tracked".
+    # API requests: read from rate_limit throttle cache when tenant/school is known.
+    api_requests_last_minute = 0
+    if tenant_id or school_id:
+        try:
+            from apps.api.rate_limit import get_tenant_api_request_count
+            tid = tenant_id or (str(school_id) if school_id else None)
+            if tid:
+                api_requests_last_minute = get_tenant_api_request_count(tid)
+        except Exception:
+            pass
     usage = {
         "workflow_runs_today": 0,
-        "api_requests_last_minute": 0,
+        "api_requests_last_minute": api_requests_last_minute,
         "dashboard_refreshes_last_hour": 0,
         "active_migrations": 0,
         "dynamic_field_count": 0,
@@ -68,17 +77,18 @@ def get_governor_usage_for_tenant(
     }
     status = {
         "workflow_runs_per_day": {"limit": limits["workflow_runs_per_day"], "used": usage["workflow_runs_today"], "enforced": False},
-        "api_requests_per_minute": {"limit": limits["api_requests_per_minute"], "used": usage["api_requests_last_minute"], "enforced": False},
+        "api_requests_per_minute": {"limit": limits["api_requests_per_minute"], "used": usage["api_requests_last_minute"], "enforced": True},
         "dashboard_refresh_per_hour": {"limit": limits["dashboard_refresh_per_hour"], "used": usage["dashboard_refreshes_last_hour"], "enforced": False},
         "migration_concurrency": {"limit": limits["migration_concurrency"], "used": usage["active_migrations"], "enforced": False},
         "dynamic_field_count_max": {"limit": limits["dynamic_field_count_max"], "used": usage["dynamic_field_count"], "enforced": False},
         "ai_invocations_per_day": {"limit": limits["ai_invocations_per_day"], "used": usage["ai_invocations_today"], "enforced": False},
     }
+    note = "API requests per minute from throttle cache; other counters placeholder."
     return {
         "limits": limits,
         "usage": usage,
         "status": status,
         "tenant_id": tenant_id,
         "school_id": school_id,
-        "note": "Usage counters not yet instrumented; limits are defined and visible for operator awareness.",
+        "note": note,
     }

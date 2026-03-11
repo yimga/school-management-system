@@ -36,13 +36,13 @@ class ReportLibraryRBACTestCase(TestCase):
 
     def test_report_library_superuser_200(self):
         self.client.login(username="super_rl", password="testpass123")
-        response = self.client.get(reverse("siteconfig:report_library"))
+        response = self.client.get(reverse("siteconfig:report_library") + "?embed=1")
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"Reports", response.content)
 
     def test_report_library_staff_without_permission_forbidden(self):
         self.client.login(username="staff_rl", password="testpass123")
-        response = self.client.get(reverse("siteconfig:report_library"))
+        response = self.client.get(reverse("siteconfig:report_library") + "?embed=1")
         self.assertIn(response.status_code, (302, 403))
 
 

@@ -1,0 +1,33 @@
+"""
+Orchestration operator workbench (Phase 10 — 4.1 stub).
+Long-running process list, status, retry, compensation. Full UI in future sprints.
+"""
+from django.contrib.admin.views.decorators import staff_member_required
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+
+from .models import OrchestrationRun
+
+
+@staff_member_required
+def operator_workbench(request):
+    """Operator view: list recent orchestration runs and status."""
+    runs = OrchestrationRun.objects.select_related("definition", "school").order_by("-created_at")[:100]
+    return render(
+        request,
+        "orchestration/operator_workbench.html",
+        {"runs": runs},
+    )
+
+
+@staff_member_required
+def retry_run(request, run_id: int):
+    """Re-queue a failed run (set status to PENDING, clear completed_at). Phase 10 — 4.1."""
+    run = get_object_or_404(OrchestrationRun, pk=run_id)
+    if run.status != OrchestrationRun.Status.FAILED:
+        return redirect(reverse("super:orchestration_workbench"))
+    run.status = OrchestrationRun.Status.PENDING
+    run.completed_at = None
+    run.error_message = ""
+    run.save(update_fields=["status", "completed_at", "error_message", "updated_at"])
+    return redirect(reverse("super:orchestration_workbench"))

@@ -13,9 +13,9 @@ from django.urls import reverse
 # Use None to hide; reverse() name or path string. Operator-safe: outcomes not jargon.
 CONSOLE_ACTIONS = {
     "brand_experience": {
-        "search": "siteconfig:customizer",
+        "search": "studio_os:experience",
         "preview": "siteconfig:preview_from_form",
-        "diff": "siteconfig:customizer",
+        "diff": "studio_os:experience",
         "audit": None,
         "rollback": None,
     },
@@ -71,7 +71,7 @@ CONSOLE_DOMAINS = [
         "outcome": "Configure branding and themes",
         "links": [
             ("Theme & colors", "siteconfig:theme_colors"),
-            ("Customizer", "siteconfig:customizer"),
+            ("Studio", "studio_os:shell"),
             ("School theme", "siteconfig:school_theme_settings"),
             ("Brand import from URL", "siteconfig:brand_import_from_url"),
         ],

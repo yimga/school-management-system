@@ -83,7 +83,10 @@
             <span class="cp-status-badge cp-status-badge-{{ review.status }}">{{ review.status|title }}</span>
           </div>
           {% empty %}
-          <div class="cp-empty-state">No pending marketplace reviews.</div>
+          <div class="py-3 px-2">
+            {% load i18n %}
+            {% include "components/dashboard_empty_state.html" with icon="bi-clipboard-check" title=_("No pending marketplace reviews.") message=_("New reviews will appear when listings are submitted for review.") %}
+          </div>
           {% endfor %}
         </div>
       </section>
@@ -105,7 +108,11 @@
             <span class="cp-status-badge cp-status-badge-{{ payout.status|lower }}">${{ payout.net_amount|floatformat:2 }}</span>
           </div>
           {% empty %}
-          <div class="cp-empty-state">No queued publisher payouts.</div>
+          <div class="py-3 px-2">
+            {% load i18n %}
+            {% url 'super:billing_dashboard' as billing_url %}
+            {% include "components/dashboard_empty_state.html" with icon="bi-cash-stack" title=_("No queued publisher payouts.") message=_("Payouts will appear when revenue share is due.") action_url=billing_url action_text=_("Billing dashboard") %}
+          </div>
           {% endfor %}
         </div>
       </section>
@@ -147,7 +154,15 @@
                 <td>{% if listing.kill_switch_active %}<span class="cp-status-badge cp-status-badge-danger">Active</span>{% else %}<span class="cp-status-badge cp-status-badge-success">Off</span>{% endif %}</td>
               </tr>
               {% empty %}
-              <tr><td colspan="7" class="text-muted">No governed listings yet.</td></tr>
+              <tr>
+                <td colspan="7" class="p-0">
+                  <div class="py-3 px-2">
+                    {% load i18n %}
+                    {% url 'super:marketplace_governance' as gov_url %}
+                    {% include "components/dashboard_empty_state.html" with icon="bi-box-seam" title=_("No governed listings yet.") message=_("Seed marketplace apps or add listings in admin.") action_url=gov_url action_text=_("Governance") %}
+                  </div>
+                </td>
+              </tr>
               {% endfor %}
             </tbody>
           </table>

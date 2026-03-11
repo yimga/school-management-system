@@ -43,7 +43,12 @@
           </div>
         </li>
         {% empty %}
-        <li class="list-group-item text-muted">{% trans "No apps installed." %}</li>
+        <li class="list-group-item p-0">
+          <div class="py-4">
+            {% url 'tenant_app_catalog' as catalog_url %}
+            {% include "components/dashboard_empty_state.html" with icon="bi-box-seam" title=_("No apps installed.") message=_("Install apps from the catalog to sandbox first, then activate when ready.") action_url=catalog_url action_text=_("Browse app catalog") %}
+          </div>
+        </li>
         {% endfor %}
       </ul>
     </div>

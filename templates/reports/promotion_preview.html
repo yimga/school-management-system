@@ -80,7 +80,15 @@
               <td>{% if row.is_borderline %}<span class="badge bg-warning text-dark">Yes</span>{% else %}—{% endif %}</td>
             </tr>
             {% empty %}
-            <tr><td colspan="5" class="text-muted">No students in {{ year.name }}.</td></tr>
+            <tr>
+              <td colspan="5" class="p-0">
+                <div class="py-3 px-2">
+                  {% load i18n %}
+                  {% url 'reports:promotion_preview' as preview_url %}
+                  {% include "components/dashboard_empty_state.html" with icon="bi-people" title=_("No students in this year.") message=_("Students will appear when enrolled in this year group.") action_url=preview_url action_text=_("Refresh") %}
+                </div>
+              </td>
+            </tr>
             {% endfor %}
           </tbody>
         </table>

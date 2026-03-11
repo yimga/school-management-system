@@ -8,6 +8,8 @@ from datetime import timedelta
 from io import StringIO
 
 from django.contrib import messages
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.db import DatabaseError
 from django.db.models import Count, OuterRef, Q, Subquery, Sum
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import NoReverseMatch, reverse
@@ -38,13 +40,38 @@ from apps.siteconfig.tenant_config import apply_tenant_settings_overrides
 from .control_plane_lifecycle import apply_school_lifecycle_action, get_lifecycle_snapshot
 from .models import School, SchoolProvisioningEvent, TenantApiUsage, TenantQuotaLimit
 
+CONTROL_PLANE_METRIC_FAILURES = (
+    AttributeError,
+    DatabaseError,
+    ImportError,
+    LookupError,
+    TypeError,
+    ValueError,
+)
+CONTROL_PLANE_AUDIT_FAILURES = (
+    AttributeError,
+    DatabaseError,
+    ImportError,
+    LookupError,
+    TypeError,
+    ValidationError,
+    ValueError,
+)
+ASYNC_PROVISIONING_FALLBACKS = (
+    AttributeError,
+    ConnectionError,
+    ImportError,
+    OSError,
+    RuntimeError,
+    TypeError,
+    ValueError,
+)
+
 
 def _safe_school_admin_change_url(school_id) -> str:
     try:
         return reverse("admin:schools_school_change", args=[school_id])
     except NoReverseMatch:
-        return ""
-    except Exception:
         return ""
 
 
@@ -52,8 +79,6 @@ def _safe_school_timeline_url(school_id) -> str:
     try:
         return reverse("super:api_school_timeline", args=[school_id])
     except NoReverseMatch:
-        return ""
-    except Exception:
         return ""
 
 
@@ -164,7 +189,7 @@ def _safe_platform_incidents_url() -> str:
 def _brand_profile_for_school(school):
     try:
         return school.brand_profile
-    except Exception:
+    except (AttributeError, ObjectDoesNotExist):
         return None
 
 
@@ -265,7 +290,7 @@ def _build_command_center_data() -> dict:
         data["provisioning_sla_avg_hours"] = round(sum(durations) / len(durations), 1) if durations else 0.0
         data["provisioning_sla_breaches"] = len(breach_rows)
         data["provisioning_breach_rows"] = breach_rows[:20]
-    except Exception:
+    except CONTROL_PLANE_METRIC_FAILURES:
         pass
 
     # Support backlog aging
@@ -295,7 +320,7 @@ def _build_command_center_data() -> dict:
         data["support_backlog_7d_count"] = sum(1 for row in stale_rows if row["age_hours"] >= (24 * 7))
         data["support_oldest_open_hours"] = round(oldest_open_hours, 1)
         data["support_stale_rows"] = stale_rows[:25]
-    except Exception:
+    except CONTROL_PLANE_METRIC_FAILURES:
         pass
 
     # Tenant churn risk heuristic
@@ -339,7 +364,7 @@ def _build_command_center_data() -> dict:
         data["tenant_churn_risk_rows"] = risk_rows[:25]
         data["tenant_inactive_30d_count"] = inactive_count
         data["trial_ending_soon_count"] = trial_soon_count
-    except Exception:
+    except CONTROL_PLANE_METRIC_FAILURES:
         pass
 
     # Phase 4 differentiator metrics
@@ -351,7 +376,7 @@ def _build_command_center_data() -> dict:
         data["total_interventions"] = total_interventions
         data["resolved_interventions"] = resolved
         data["recovery_rate_pct"] = round((resolved / total_interventions) * 100, 1) if total_interventions else 0.0
-    except Exception:
+    except CONTROL_PLANE_METRIC_FAILURES:
         pass
 
     try:
@@ -359,7 +384,7 @@ def _build_command_center_data() -> dict:
 
         data["student_passport_count"] = StudentPassport.objects.count()
         data["student_passport_invite_count"] = PassportSchoolInvite.objects.count()
-    except Exception:
+    except CONTROL_PLANE_METRIC_FAILURES:
         pass
 
     return data
@@ -455,7 +480,7 @@ def super_dashboard(request):
             .annotate(count=Count("id"), actual=Sum("actual_revenue"), waived=Sum("waived_amount"))
             .order_by("-actual", "-waived")
         )
-    except Exception:
+    except DatabaseError:
         pass
 
     # Phase H optional: approval workflow — count and list pending schools
@@ -479,7 +504,7 @@ def super_dashboard(request):
         from .health_utils import get_top_tables_by_size, get_global_health_stats
         health_top_tables = get_top_tables_by_size(limit=10)
         health_schema_stats = get_global_health_stats()
-    except Exception:
+    except CONTROL_PLANE_METRIC_FAILURES:
         pass
 
     command_center = _build_command_center_data()
@@ -624,7 +649,7 @@ def export_super_dashboard_pdf(request):
             .annotate(actual=Sum("actual_revenue"), waived=Sum("waived_amount"))
             .order_by("-actual", "-waived")[:10]
         )
-    except Exception:
+    except DatabaseError:
         pass
 
     school_count = School.objects.filter(is_active=True).count()
@@ -799,7 +824,7 @@ def super_dashboard_v2(request):
             .annotate(count=Count("id"), actual=Sum("actual_revenue"), waived=Sum("waived_amount"))
             .order_by("-actual", "-waived")
         )
-    except Exception:
+    except CONTROL_PLANE_METRIC_FAILURES:
         pass
 
     pending_schools = list(
@@ -823,7 +848,7 @@ def super_dashboard_v2(request):
 
         health_top_tables = get_top_tables_by_size(limit=10)
         health_schema_stats = get_global_health_stats()
-    except Exception:
+    except CONTROL_PLANE_METRIC_FAILURES:
         pass
 
     command_center = _build_command_center_data()
@@ -862,7 +887,7 @@ def super_dashboard_v2(request):
     webhook_stack = legacy_webhook_sync_snapshot()
     try:
         platform_health = SystemHealthMonitor.get_comprehensive_health()
-    except Exception:
+    except CONTROL_PLANE_METRIC_FAILURES:
         platform_health = {
             "overall_status": "warning",
             "cpu": {"usage_percent": 0.0, "threshold": 80.0, "status": "warning"},
@@ -1238,7 +1263,7 @@ def export_revenue_csv(request):
             .annotate(actual=Sum("actual_revenue"), waived=Sum("waived_amount"))
             .order_by("-actual", "-waived")
         )
-    except Exception:
+    except DatabaseError:
         revenue_by_country = []
 
     buf = StringIO()
@@ -1418,7 +1443,7 @@ def super_pulse(request):
             total=Sum("actual_revenue"), waived=Sum("waived_amount")
         )
         total_revenue = (snapshots["total"] or 0) + (snapshots["waived"] or 0)
-    except Exception:
+    except DatabaseError:
         total_revenue = 0
     total_students = sum(s["student_count"] for s in schools)
     by_country = list(
@@ -1473,7 +1498,7 @@ def super_tenant_360(request, school_id):
     )
     try:
         runtime = build_tenant_runtime(tenant_ctx, request=None, school=school)
-    except Exception:
+    except CONTROL_PLANE_METRIC_FAILURES:
         runtime = None
 
     identity = None
@@ -1522,17 +1547,17 @@ def super_control_health_dashboard(request):
     links = []
     try:
         links.append({"label": "Tenant health", "url": reverse("super:tenant_health"), "description": "Per-tenant roster and activity"})
-    except Exception:
+    except NoReverseMatch:
         pass
     try:
         url = reverse("platform_incidents_console")
         links.append({"label": "Incident console", "url": url, "description": "Platform incidents and status"})
-    except Exception:
+    except NoReverseMatch:
         pass
     try:
         url = reverse("api_operational_slo_dashboard") + "?format=html"
         links.append({"label": "SLO dashboard", "url": url, "description": "Operational SLO metrics (webhook & sync)"})
-    except Exception:
+    except NoReverseMatch:
         pass
     runbooks_url = getattr(settings, "CONTROL_PLANE_RUNBOOKS_URL", None) or ""
     if runbooks_url:
@@ -1551,7 +1576,7 @@ def super_workflow_packs_catalog(request):
     packs = list(WorkflowPack.objects.filter(is_active=True).order_by("family", "name").values("id", "code", "name", "family", "version"))
     try:
         admin_url = reverse("admin:siteconfig_workflowpack_changelist")
-    except Exception:
+    except NoReverseMatch:
         admin_url = None
     return render(
         request,
@@ -1567,7 +1592,7 @@ def super_dashboard_packs_catalog(request):
     packs = list(DashboardPack.objects.filter(is_active=True).order_by("family", "name").values("id", "code", "name", "family", "version"))
     try:
         admin_url = reverse("admin:siteconfig_dashboardpack_changelist")
-    except Exception:
+    except NoReverseMatch:
         admin_url = None
     return render(
         request,
@@ -1583,7 +1608,7 @@ def super_blueprints_catalog(request):
     try:
         from config.admin import admin_site
         admin_site_to_use = admin_site
-    except Exception:
+    except (AttributeError, ImportError):
         from django.contrib.admin.sites import site as admin_site_to_use
 
     packs = list(BlueprintPack.objects.filter(is_active=True).order_by("category", "name").values("id", "slug", "name", "family", "category", "version"))
@@ -1593,7 +1618,7 @@ def super_blueprints_catalog(request):
                 f"{admin_site_to_use.name}:policies_blueprintpack_change",
                 args=[p["id"]],
             )
-        except Exception:
+        except NoReverseMatch:
             p["admin_url"] = None
     return render(
         request,
@@ -1614,12 +1639,12 @@ def super_policies_catalog(request):
     try:
         from config.admin import admin_site
         admin_site_to_use = admin_site
-    except Exception:
+    except (AttributeError, ImportError):
         from django.contrib.admin.sites import site as admin_site_to_use
     for b in bundles:
         try:
             b["admin_url"] = reverse(f"{admin_site_to_use.name}:policies_policybundle_change", args=[b["id"]])
-        except Exception:
+        except NoReverseMatch:
             b["admin_url"] = None
     return render(
         request,
@@ -1654,7 +1679,7 @@ def super_registries_overview(request):
     try:
         from config.admin import admin_site
         admin_site_to_use = admin_site
-    except Exception:
+    except (AttributeError, ImportError):
         admin_site_to_use = default_admin_site
 
     def _count(model):
@@ -1665,7 +1690,7 @@ def super_registries_overview(request):
             return reverse(
                 f"{admin_site_to_use.name}:{model._meta.app_label}_{model_name}_changelist"
             )
-        except Exception:
+        except (AttributeError, NoReverseMatch):
             return None
 
     registries = [
@@ -1722,14 +1747,14 @@ def super_metadata_catalog(request):
         for ent in entities:
             ent.field_count = ent.fields.count()
             ent.sample_deps = MetadataDependency.objects.filter(field__entity=ent).count()
-    except Exception:
+    except CONTROL_PLANE_METRIC_FAILURES:
         pass
 
     platform_catalog = None
     try:
         from apps.siteconfig.metadata_catalog import get_catalog
         platform_catalog = get_catalog()
-    except Exception:
+    except CONTROL_PLANE_METRIC_FAILURES:
         pass
 
     return render(
@@ -1851,7 +1876,7 @@ def super_command_center_v2(request):
     webhook_stack = legacy_webhook_sync_snapshot()
     try:
         platform_health = SystemHealthMonitor.get_comprehensive_health()
-    except Exception:
+    except CONTROL_PLANE_METRIC_FAILURES:
         platform_health = {"overall_status": "warning", "database": {"status": "unhealthy"}, "cache": {"status": "unhealthy"}}
 
     school_map = {
@@ -2644,13 +2669,13 @@ def api_create_school(request):
             sensitivity=AuditLog.Sensitivity.HIGH,
             new_values={"name": school.name, "slug": school.slug, "subdomain": school.subdomain},
         )
-    except Exception:
+    except CONTROL_PLANE_AUDIT_FAILURES:
         pass
     try:
         from apps.billing.services import ensure_subscription_for_school
 
         ensure_subscription_for_school(school)
-    except Exception:
+    except CONTROL_PLANE_AUDIT_FAILURES:
         pass
     apply_tenant_settings_overrides(
         school=school,
@@ -2695,7 +2720,7 @@ def api_create_school(request):
             payload={"job_id": job_id or ""},
             created_by=request.user if getattr(request, "user", None) and request.user.is_authenticated else None,
         )
-    except Exception:
+    except ASYNC_PROVISIONING_FALLBACKS:
         # Run synchronously if Celery not available
         from apps.schools.tasks import provision_school_sync
         SchoolProvisioningEvent.log_event(
@@ -2786,7 +2811,7 @@ def sync_repair(request, school_id):
                         sensitivity=AuditLog.Sensitivity.HIGH,
                         new_values={"status": "RESOLVED_CLIENT", "school_id": str(school_id)},
                     )
-                except Exception:
+                except CONTROL_PLANE_AUDIT_FAILURES:
                     pass
                 messages.success(request, f"Conflict #{conflict_id} resolved (client version applied).")
             return redirect("super:sync_repair", school_id=school_id)
@@ -3134,7 +3159,7 @@ def switch_to_tenant(request):
             reason="Impersonation switch (control plane)",
             sensitivity=AuditLog.Sensitivity.CRITICAL,
         )
-    except Exception:
+    except CONTROL_PLANE_AUDIT_FAILURES:
         pass
     entry_path = "/authentication/impersonate/"
     next_url = request.POST.get("next", "/").strip() or "/"

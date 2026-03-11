@@ -32,7 +32,15 @@
               <td>{{ r.computed_at|date:"M d, Y H:i" }}</td>
             </tr>
             {% empty %}
-            <tr><td colspan="5" class="text-muted">No risk data yet. Run the nightly at-risk computation task.</td></tr>
+            <tr>
+              <td colspan="5" class="p-0">
+                <div class="py-3 px-2">
+                  {% load i18n %}
+                  {% url 'analytics:master_sheet' as master_url %}
+                  {% include "components/dashboard_empty_state.html" with icon="bi-graph-up" title=_("No risk data yet.") message=_("Run the nightly at-risk computation task or open the master sheet.") action_url=master_url action_text=_("Open master sheet") %}
+                </div>
+              </td>
+            </tr>
             {% endfor %}
           </tbody>
         </table>

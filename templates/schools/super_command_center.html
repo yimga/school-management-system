@@ -41,6 +41,7 @@
             <a href="{{ support_dashboard_url }}" class="btn btn-outline-light btn-sm">Support</a>
             <a href="{{ billing_dashboard_url }}" class="btn btn-outline-light btn-sm">Billing</a>
             <a href="{% url 'super:marketplace_governance' %}" class="btn btn-outline-light btn-sm">Marketplace</a>
+            <a href="{% url 'super:orchestration_workbench' %}" class="btn btn-outline-light btn-sm">{% trans "Orchestration" %}</a>
             <a href="{{ usage_url }}" class="btn btn-outline-light btn-sm">Usage</a>
             {% if platform_incidents_url %}<a href="{{ platform_incidents_url }}" class="btn btn-outline-light btn-sm">Incidents</a>{% endif %}
           </div>

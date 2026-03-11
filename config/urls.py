@@ -100,13 +100,8 @@ def schema_view(request):
 
 
 def admin_siteconfig_customizer_redirect(request):
-    """Backward compatible URL.
-
-    The customizer lives at /siteconfig/customizer/.
-    Many people will naturally try /admin/siteconfig/customizer/.
-    Keep it working to reduce support headaches.
-    """
-    return redirect('/siteconfig/customizer/')
+    """Backward compatible URL: /admin/siteconfig/customizer/ → Studio Experience."""
+    return redirect(reverse("studio_os:experience"))
 
 
 def permission_denied(request, exception):
@@ -199,6 +194,7 @@ urlpatterns = [
 
     # Apps
     path('siteconfig/', include(('apps.siteconfig.urls', 'siteconfig'), namespace='siteconfig')),
+    path('studio/', include(('apps.studio_os.urls', 'studio_os'), namespace='studio_os')),
     path('api-center/', include(('apps.apicenter.urls', 'apicenter'), namespace='apicenter')),
     path('authentication/', include(('apps.accounts.urls', 'accounts'), namespace='accounts')),
     path('evals/', include(('apps.evals.urls', 'evals'), namespace='evals')),

@@ -88,3 +88,40 @@ def api_center_toggle(request, slug):
     )
     messages.success(request, f'"{integration.name}" is now {"enabled" if new_enabled else "disabled"}.')
     return redirect("apicenter:dashboard")
+
+
+@login_required
+@require_GET
+def api_portal_docs(request):
+    """Developer platform (8.1): public API portal — docs stub. Keys, quotas, SDK links later."""
+    if not _api_center_allowed(request):
+        return HttpResponseForbidden("API Center is disabled or you do not have permission.")
+    return render(request, "apicenter/api_portal_docs.html", {})
+
+
+@login_required
+@require_GET
+def webhook_docs(request):
+    """Developer platform (8.1): webhook docs and subscription list UI."""
+    if not _api_center_allowed(request):
+        return HttpResponseForbidden("API Center is disabled or you do not have permission.")
+    from apps.events.models import WebhookSubscription
+
+    school = getattr(request, "school", None)
+    subscriptions = WebhookSubscription.objects.all().order_by("-created_at")
+    if school is not None:
+        subscriptions = subscriptions.filter(school_id=getattr(school, "id", None))
+    return render(
+        request,
+        "apicenter/webhook_docs.html",
+        {"subscriptions": subscriptions[:50]},
+    )
+
+
+@login_required
+@require_GET
+def api_keys(request):
+    """Developer platform (8.1): API keys and quotas stub. Full keys CRUD in future sprint."""
+    if not _api_center_allowed(request):
+        return HttpResponseForbidden("API Center is disabled or you do not have permission.")
+    return render(request, "apicenter/api_keys.html", {})

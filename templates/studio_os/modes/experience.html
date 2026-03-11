@@ -1,0 +1,30 @@
+{% extends "studio_os/shell.html" %}
+{% load static i18n %}
+
+{% block studio_canvas %}
+  {% if use_experience_in_page and form %}
+  <div class="d-flex gap-3 flex-wrap flex-lg-nowrap">
+    <nav class="studio-os__experience-rail flex-shrink-0 mb-2 mb-lg-0" aria-label="{% trans 'Experience' %}" style="width: 180px;">
+      <div class="studio-os__card py-2">
+        <div class="h6 mb-2">{% trans "Experience" %}</div>
+        <ul class="list-unstyled small mb-0">
+          <li><a href="#theme-colors-form">{% trans "Brand identity" %}</a></li>
+          <li><a href="#theme-colors-form">{% trans "Theme packs" %}</a></li>
+          {% if legacy_urls.customizer %}<li><a href="{{ legacy_urls.customizer }}">{% trans "Layout presets" %}</a></li>{% endif %}
+          {% if legacy_urls.customizer %}<li><a href="{{ legacy_urls.customizer }}">{% trans "Portal shells" %}</a></li>{% endif %}
+        </ul>
+      </div>
+    </nav>
+    <div class="flex-grow-1 min-w-0">
+      {% include "siteconfig/partials/theme_colors_content.html" %}
+    </div>
+  </div>
+  {% elif embed_url %}
+    <iframe src="{{ embed_url }}" class="studio-os-iframe" title="{% trans 'Theme & Experience' %}"></iframe>
+  {% else %}
+    <div class="studio-os__card">
+      <p class="text-muted mb-0">{% trans "Load theme & experience in the canvas." %}</p>
+      {% if legacy_urls.theme_colors %}<a href="{{ legacy_urls.theme_colors }}" class="btn btn-primary btn-sm mt-2">{% trans "Theme & colors" %}</a>{% endif %}
+    </div>
+  {% endif %}
+{% endblock %}

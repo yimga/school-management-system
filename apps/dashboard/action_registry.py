@@ -13,8 +13,8 @@ from typing import Any, Callable, Dict, List, Optional
 
 # Backend dashboard: primary CTAs in Overview head (no allow_key = always show)
 BACKEND_PRIMARY_CTAS = [
+    {"label": "Studio", "icon": "bi-grid-3x3-gap", "url_name": "studio_os:shell", "fallback_url_name": "siteconfig:user_preferences"},
     {"label": "Manage Staff", "icon": "bi-person-gear", "url_name": "accounts:backend_teacher_list", "fallback_url_name": "accounts:backend_dashboard"},
-    {"label": "School Settings", "icon": "bi-building-gear", "url_name": "siteconfig:customizer", "fallback_url_name": "siteconfig:user_preferences"},
 ]
 
 BACKEND_INTENT_PRIMARY_SPECS = {
@@ -64,6 +64,7 @@ BACKEND_ACTION_CHIPS = [
 ]
 
 BACKEND_WELCOME_ACTION_GRID = [
+    {"label": "Studio", "icon": "bi-grid-3x3-gap", "url_name": "studio_os:shell", "item_id": "studio_os", "allow_key": "can_manage_settings"},
     {"label": "Setup Studio", "icon": "bi-magic", "url_name": "siteconfig:guided_onboarding", "item_id": "setup_studio", "allow_key": "can_manage_settings"},
     {"label": "Workflow Center", "icon": "bi-diagram-3", "url_name": "accounts:workflow_center", "item_id": "workflow_center", "allow_key": "always"},
     {"label": "Finance Console", "icon": "bi-cash-stack", "url_name": "finance:dashboard", "item_id": "finance_console", "allow_key": "can_manage_finance"},
@@ -87,12 +88,13 @@ BACKEND_QUICK_LINKS = [
 ]
 
 BACKEND_COMMAND_PALETTE = [
+    {"label": "Studio", "icon": "bi-grid-3x3-gap", "url_name": "studio_os:shell", "fallback_url_name": "accounts:backend_dashboard", "allow_key": "can_manage_settings"},
     {"label": "Add Student", "icon": "bi-person-plus", "url_name": "accounts:backend_student_create", "fallback_url_name": "admin:index", "allow_key": "can_manage_people"},
     {"label": "Manage Staff", "icon": "bi-people", "url_name": "accounts:backend_teacher_list", "fallback_url_name": "accounts:backend_dashboard", "allow_key": "can_manage_people"},
     {"label": "Manage Exams", "icon": "bi-journal-check", "url_name": "reports:publish_term_results", "allow_key": "can_manage_reports"},
     {"label": "Import Grades", "icon": "bi-upload", "url_name": "evals:grade_import_upload", "allow_key": "can_manage_reports"},
     {"label": "Finance Dashboard", "icon": "bi-cash-stack", "url_name": "finance:dashboard", "allow_key": "can_manage_finance"},
-    {"label": "School Settings", "icon": "bi-building-gear", "url_name": "siteconfig:customizer", "fallback_url_name": "siteconfig:user_preferences", "allow_key": "can_manage_settings"},
+    {"label": "Experience", "icon": "bi-palette", "url_name": "studio_os:experience", "fallback_url_name": "studio_os:shell", "allow_key": "can_manage_settings"},
     {"label": "Workflow Center", "icon": "bi-diagram-3", "url_name": "accounts:workflow_center", "allow_key": "always"},
 ]
 
@@ -105,11 +107,11 @@ BACKEND_INTENT_PRIMARY_INDEX = {
     "setup": 0,
 }
 BACKEND_INTENT_WELCOME_ITEM_IDS = {
-    "executive": ["workflow_center", "setup_studio", "roles_permissions", "manage_exams", "document_library", "add_student"],
+    "executive": ["studio_os", "workflow_center", "setup_studio", "roles_permissions", "manage_exams", "document_library", "add_student"],
     "operational": ["workflow_center", "add_student", "add_teacher", "manage_exams", "create_invoice", "announcements"],
     "academic": ["manage_exams", "workflow_center", "add_student", "onboard_student", "add_teacher", "document_library"],
     "finance": ["finance_console", "create_invoice", "workflow_center", "document_library", "roles_permissions"],
-    "setup": ["setup_studio", "workflow_center", "add_student", "add_teacher", "onboard_student", "document_library", "manage_exams"],
+    "setup": ["studio_os", "setup_studio", "workflow_center", "add_student", "add_teacher", "onboard_student", "document_library", "manage_exams"],
 }
 VALID_DASHBOARD_INTENTS = frozenset(BACKEND_INTENT_PRIMARY_INDEX.keys())
 
@@ -117,7 +119,7 @@ VALID_DASHBOARD_INTENTS = frozenset(BACKEND_INTENT_PRIMARY_INDEX.keys())
 ADMIN_HEADER_ACTIONS = [
     {"label": "My Preferences", "url_name": "siteconfig:user_preferences", "fallback_url_name": "admin:index", "css_class": "admin-dash__header-action", "append_next": True},
     {"label": "Backend Console", "url_name": "accounts:backend_dashboard", "fallback_url_name": "admin:index", "css_class": "admin-dash__header-action"},
-    {"label": "Customizer", "url_name": "siteconfig:customizer", "fallback_url_name": "siteconfig:user_preferences", "css_class": "admin-dash__header-action admin-dash__header-action--primary"},
+    {"label": "Studio", "url_name": "studio_os:shell", "fallback_url_name": "siteconfig:user_preferences", "css_class": "admin-dash__header-action admin-dash__header-action--primary"},
 ]
 
 

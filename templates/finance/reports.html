@@ -129,7 +129,15 @@
                   <td class="text-end">{{ row.overdue_total|format_currency }}</td>
                 </tr>
               {% empty %}
-                <tr><td colspan="2" class="text-muted">No overdue invoices.</td></tr>
+                <tr>
+                  <td colspan="2" class="p-0">
+                    <div class="py-3 px-2">
+                      {% load i18n %}
+                      {% url 'finance:invoices' as invoices_url %}
+                      {% include "components/dashboard_empty_state.html" with icon="bi-receipt" title=_("No overdue invoices.") message=_("Overdue amounts by classroom will appear here when applicable.") action_url=invoices_url action_text=_("View invoices") %}
+                    </div>
+                  </td>
+                </tr>
               {% endfor %}
             </tbody>
           </table>
@@ -159,7 +167,15 @@
                   <td>{{ req.created_at|format_date }}</td>
                 </tr>
               {% empty %}
-                <tr><td colspan="4" class="text-muted">No report requests yet.</td></tr>
+                <tr>
+                  <td colspan="4" class="p-0">
+                    <div class="py-3 px-2">
+                      {% load i18n %}
+                      {% url 'finance:reports' as reports_url %}
+                      {% include "components/dashboard_empty_state.html" with icon="bi-file-earmark-text" title=_("No report requests yet.") message=_("Request a custom report using the form to the right.") action_url=reports_url action_text=_("Request a report") %}
+                    </div>
+                  </td>
+                </tr>
               {% endfor %}
             </tbody>
           </table>

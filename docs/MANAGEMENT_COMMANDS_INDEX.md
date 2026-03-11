@@ -29,6 +29,7 @@
 | marketplace | marketplace_health_check, marketplace_report_updates, seed_capability_registry, seed_marketplace_apps | ops / seed | |
 | metadata | seed_business_glossary, seed_entity_catalog | seed | |
 | observability | db_health_check, synthetic_probe | ops | |
+| orchestration | seed_process_definitions | seed | Phase 10 — 4.1: ProcessDefinition rows for workbench. |
 | payroll | run_payroll_cycle | ops | |
 | people | attach_audit_triggers, check_badge_expiry_alerts, revoke_audit_log_permissions | ops / dev | |
 | policies | seed_blueprint_policy_packs, update_blueprint_bundles | seed / ops | |
@@ -40,8 +41,8 @@
 
 ## Next steps (Phase 10)
 
-- Delete obsolete commands (e.g. ensure_gilead_admin if fully superseded by ensure_superuser/ensure_default_tenant_admin).
-- Expose critical ops (tenant_health_check, marketplace_health_check, db_health_check, etc.) via control-plane UI or scheduled jobs with visibility.
-- Document owner per command family.
+- ~~Delete obsolete commands~~ **Done:** ensure_gilead_admin kept as deprecated alias (calls ensure_default_tenant_admin); no other obsolete commands to remove.
+- Expose critical ops (tenant_health_check, marketplace_health_check, db_health_check, etc.) via control-plane UI or scheduled jobs with visibility (future).
+- Document owner per command family (future).
 
 **Reference:** `docs/REMAINING_WORK.md` task 9.1; `docs/PHASE_10_BACKLOG.md`.

@@ -56,7 +56,11 @@
         </form>
       </div>
       {% empty %}
-      <div class="cp-list-row text-muted">No sandbox installations.</div>
+      <div class="py-3 px-2">
+        {% load i18n %}
+        {% url 'tenant_app_catalog' as catalog_url %}
+        {% include "components/dashboard_empty_state.html" with icon="bi-box-seam" title=_("No sandbox installations.") message=_("Install apps from the catalog to sandbox first, then they will appear here.") action_url=catalog_url action_text=_("App catalog") %}
+      </div>
       {% endfor %}
     </div>
   </section>

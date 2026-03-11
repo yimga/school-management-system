@@ -29,8 +29,10 @@ from .document_conversion import convert_to_pdf
 def document_library_manage(request):
     """
     Backend UI for managing documents in the Document Library.
-    Admin can upload, edit, delete documents.
+    When not embedded in Studio, redirect to Studio Output (pane=documents).
     """
+    if request.GET.get("embed") != "1":
+        return redirect(reverse("studio_os:output") + "?pane=documents")
     # Get all documents
     qs = PortalFeatureItem.objects.filter(feature=PortalFeatureItem.Feature.DOCUMENTS)
     school = getattr(request, "school", None)

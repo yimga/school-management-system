@@ -1,9 +1,9 @@
 """
-Unified feature-toggle resolver.
+Unified feature-toggle resolver (Phase 10 — 10.2: capability registry with expiry).
 
 Priority order:
-1) School-specific override (FeatureToggleState with school set)
-2) Global override (FeatureToggleState with school null)
+1) School-specific override (FeatureToggleState with school set, not expired)
+2) Global override (FeatureToggleState with school null, not expired)
 3) Definition default
 4) Caller fallback
 """
@@ -13,6 +13,8 @@ from __future__ import annotations
 from typing import Optional
 
 from django.db import DatabaseError, OperationalError, ProgrammingError
+from django.db.models import Q
+from django.utils import timezone
 
 from apps.siteconfig.models import FeatureToggleDefinition, FeatureToggleState
 
@@ -62,9 +64,11 @@ def resolve_toggle(
         if not definition:
             return fallback
 
+        now = timezone.now()
+        q_expiry = Q(expires_at__isnull=True) | Q(expires_at__gt=now)
         if school is not None:
             school_state = (
-                FeatureToggleState.objects.filter(definition=definition, school=school)
+                FeatureToggleState.objects.filter(definition=definition, school=school).filter(q_expiry)
                 .values_list("is_enabled", flat=True)
                 .first()
             )
@@ -72,7 +76,7 @@ def resolve_toggle(
                 return bool(school_state)
 
         global_state = (
-            FeatureToggleState.objects.filter(definition=definition, school__isnull=True)
+            FeatureToggleState.objects.filter(definition=definition, school__isnull=True).filter(q_expiry)
             .values_list("is_enabled", flat=True)
             .first()
         )

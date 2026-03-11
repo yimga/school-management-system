@@ -48,7 +48,14 @@
             <td>{% if b.admin_url %}<a href="{{ b.admin_url }}" class="btn btn-sm btn-primary">{% trans "Manage" %}</a>{% endif %}</td>
           </tr>
           {% empty %}
-          <tr><td colspan="6" class="text-secondary">{% trans "No policy bundles." %}</td></tr>
+          <tr>
+            <td colspan="6" class="p-0">
+              <div class="py-3 px-2">
+                {% url 'super:super_dashboard' as dashboard_url %}
+                {% include "components/dashboard_empty_state.html" with icon="bi-shield-check" title=_("No policy bundles.") message=_("Add policy bundles in admin or run seed commands.") action_url=dashboard_url action_text=_("Control plane") %}
+              </div>
+            </td>
+          </tr>
           {% endfor %}
         </tbody>
       </table>

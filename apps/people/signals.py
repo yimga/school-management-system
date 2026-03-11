@@ -35,12 +35,12 @@ def emit_attendance_recorded_teacher(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=StudentProfile)
 def emit_student_created_event(sender, instance, created, **kwargs):
-    """Emit domain event when a student profile is created (service-layer contract)."""
+    """Emit domain event when a student profile is created (service-layer contract). Path-to-10: also emit platform event catalog."""
     if not created:
         return
+    school_id = getattr(instance, "school_id", None)
     try:
         from apps.events.services import emit_event
-        school_id = getattr(instance, "school_id", None)
         emit_event(
             "student.created",
             {
@@ -52,6 +52,15 @@ def emit_student_created_event(sender, instance, created, **kwargs):
         )
     except Exception as e:
         logger.debug("emit student.created skipped: %s", e)
+    try:
+        from apps.platform_runtime.events import emit_platform_event
+        emit_platform_event(
+            "student_created",
+            {"student_id": instance.id, "school_id": school_id},
+            school_id=school_id,
+        )
+    except Exception as e:
+        logger.debug("emit_platform_event student_created skipped: %s", e)
 
 
 @receiver(post_save, sender=StudentGuardian)

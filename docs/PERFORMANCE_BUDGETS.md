@@ -16,8 +16,8 @@
 
 ## Enforcement
 
-- **Phase 1 (current):** Budgets are documented; manual and automated profiling can compare against these numbers.
-- **Phase 2:** Add `scripts/check_performance_budgets.py` that runs a small set of smoke requests and fails if any budget is exceeded (e.g. in CI or pre_deploy_gate when `PERF_BUDGET_STRICT=1`).
+- **Phase 1:** Budgets are documented; manual and automated profiling can compare against these numbers.
+- **Phase 2 (in place):** `scripts/check_performance_budgets.py` runs smoke requests for role home, Setup Studio, and metadata catalog; when `PERF_BUDGET_STRICT=1` it fails the gate. Pre-deploy gate runs it when `PERF_BUDGET_STRICT=1` (see `scripts/pre_deploy_gate.sh`).
 - **Phase 3:** Per-request middleware or APM that records p95 and query count per route and alerts when over budget.
 
 ## Query budgets

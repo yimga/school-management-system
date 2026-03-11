@@ -266,6 +266,29 @@ class EMISSubmission(models.Model):
         return f"{self.school.name} — {self.report_type} {self.period_label} ({self.status})"
 
 
+class ReportPack(models.Model):
+    """
+    Phase 10 — 10.3: Report library. Pack of report definitions; preview with seeded sample data; dependency mapping.
+    """
+    code = models.SlugField(max_length=80, unique=True)
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    dependency_schema = models.JSONField(default=dict, blank=True, help_text="Fields, policies, templates dependencies.")
+    sample_data_config = models.JSONField(default=dict, blank=True, help_text="Seeded sample data for preview.")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "reports"
+        verbose_name = "Report Pack"
+        verbose_name_plural = "Report Packs"
+        ordering = ["code"]
+
+    def __str__(self):
+        return self.name or self.code
+
+
 # ReportDefinition and MaterializedReportCache are defined in `apps.reports.bi_models`.
 # Import them here for backwards compatibility so existing imports continue to work.
 from .bi_models import ReportDefinition, MaterializedReportCache

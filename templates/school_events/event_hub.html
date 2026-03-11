@@ -50,7 +50,12 @@
     {% empty %}
     <div class="col-12">
       <div class="card shadow-sm">
-        <div class="card-body text-muted">No school events have been configured yet.</div>
+        <div class="card-body p-0">
+          <div class="py-4 px-3">
+            {% load i18n %}
+            {% include "components/dashboard_empty_state.html" with icon="bi-calendar-event" title=_("No school events have been configured yet.") message=_("Add events in the events module to display them here.") %}
+          </div>
+        </div>
       </div>
     </div>
     {% endfor %}

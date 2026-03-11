@@ -1,0 +1,33 @@
+{% extends "studio_os/shell.html" %}
+{% load static i18n %}
+
+{% block studio_canvas %}
+  <div class="d-flex gap-3 flex-wrap flex-lg-nowrap">
+    <nav class="studio-os__output-rail flex-shrink-0 mb-2 mb-lg-0" aria-label="{% trans 'Outputs' %}" style="width: 180px;">
+      <div class="studio-os__card py-2">
+        <div class="h6 mb-2">{% trans "Output types" %}</div>
+        <ul class="list-unstyled small mb-0">
+          <li><a href="{% url 'studio_os:output' %}">{% trans "Reports" %}</a></li>
+          <li><a href="{% url 'studio_os:output' %}?pane=documents">{% trans "Documents" %}</a></li>
+          <li><a href="{% url 'siteconfig:reportcard_builder' %}">{% trans "Report cards" %}</a></li>
+        </ul>
+      </div>
+    </nav>
+    <div class="flex-grow-1 min-w-0">
+      <ul class="nav nav-tabs mb-3" role="tablist">
+        <li class="nav-item"><a class="nav-link {% if not request.GET.pane or request.GET.pane == 'reports' %}active{% endif %}" href="{% url 'studio_os:output' %}">{% trans "Reports" %}</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.GET.pane == 'documents' %}active{% endif %}" href="{% url 'studio_os:output' %}?pane=documents">{% trans "Documents" %}</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'siteconfig:reportcard_builder' %}">{% trans "Report cards" %}</a></li>
+      </ul>
+      {% if request.GET.pane == 'documents' %}
+      <iframe src="{% url 'portal:document_library_manage' %}?embed=1" class="studio-os-iframe" title="{% trans 'Document library' %}"></iframe>
+      {% else %}
+        {% if embed_url %}
+        <iframe src="{{ embed_url }}" class="studio-os-iframe" title="{% trans 'Report library' %}"></iframe>
+        {% else %}
+        <div class="studio-os__card"><a href="{{ legacy_urls.report_library }}" class="btn btn-primary btn-sm">{% trans "Report library" %}</a></div>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

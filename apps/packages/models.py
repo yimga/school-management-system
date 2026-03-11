@@ -146,3 +146,60 @@ class PackageChangeLog(models.Model):
 
     def __str__(self):
         return f"{self.action} {self.package_id}@{self.version} {self.created_at}"
+
+
+class ExperiencePack(models.Model):
+    """
+    Phase 10 — 10.1: Theme & Experience as packageable unit.
+    Theme + layout + dashboard visual + communication style. Runtime-only theme resolution; compare/rollback.
+    """
+    code = models.SlugField(max_length=80, unique=True)
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    theme_pack_id = models.IntegerField(null=True, blank=True, help_text="FK to ThemePack when migrated.")
+    layout_schema = models.JSONField(default=dict, blank=True)
+    communication_style = models.JSONField(default=dict, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "packages"
+        verbose_name = "Experience Pack"
+        verbose_name_plural = "Experience Packs"
+        ordering = ["code"]
+
+    def __str__(self):
+        return self.name or self.code
+
+
+class DocumentPack(models.Model):
+    """
+    Phase 10 — 10.4: Document Library. Pack of documents with lifecycle states and retention rules.
+    Lifecycle states (draft → review → approved → archived); retention_rule for auto-archival/expiry.
+    """
+    code = models.SlugField(max_length=80, unique=True)
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    lifecycle_states = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Ordered list of state codes, e.g. ['draft', 'review', 'approved', 'archived'].",
+    )
+    retention_rule = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Retention policy: e.g. {\"archive_after_days\": 365, \"expire_after_days\": null}.",
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "packages"
+        verbose_name = "Document Pack"
+        verbose_name_plural = "Document Packs"
+        ordering = ["code"]
+
+    def __str__(self):
+        return self.name or self.code

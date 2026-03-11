@@ -2,7 +2,7 @@ from django.contrib import admin
 from config.admin import register_tenant_admin
 
 from unfold.admin import ModelAdmin
-from .models import TermPublishStatus, ReportCard, PromotionRule, EMISSubmission
+from .models import TermPublishStatus, ReportCard, PromotionRule, EMISSubmission, ReportPack
 
 
 class TermPublishStatusAdmin(ModelAdmin):
@@ -27,8 +27,16 @@ class EMISSubmissionAdmin(ModelAdmin):
     raw_id_fields = ("school", "academic_year", "term", "submitted_by")
 
 
+class ReportPackAdmin(ModelAdmin):
+    """Phase 10 — 10.3: Report library pack (preview, dependency mapping)."""
+    list_display = ("code", "name", "is_active", "created_at")
+    list_filter = ("is_active",)
+    search_fields = ("code", "name")
+
+
 # Register all models with tenant admin only
 register_tenant_admin(TermPublishStatus, TermPublishStatusAdmin)
 register_tenant_admin(ReportCard, ReportCardAdmin)
 register_tenant_admin(PromotionRule, PromotionRuleAdmin)
 register_tenant_admin(EMISSubmission, EMISSubmissionAdmin)
+register_tenant_admin(ReportPack, ReportPackAdmin)

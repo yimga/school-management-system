@@ -54,7 +54,15 @@
             <td>{% if row.plan_tiers %}{{ row.plan_tiers|join:", " }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
           </tr>
           {% empty %}
-          <tr><td colspan="4" class="text-muted">No listings with compatibility data. Edit listing compatibility in admin.</td></tr>
+          <tr>
+            <td colspan="4" class="p-0">
+              <div class="py-3 px-2">
+                {% load i18n %}
+                {% url 'tenant_app_catalog' as catalog_url %}
+                {% include "components/dashboard_empty_state.html" with icon="bi-grid-3x3" title=_("No listings with compatibility data") message=_("Edit listing compatibility in admin or browse the app catalog.") action_url=catalog_url action_text=_("App catalog") %}
+              </div>
+            </td>
+          </tr>
           {% endfor %}
         </tbody>
       </table>

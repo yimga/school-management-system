@@ -8,6 +8,9 @@ import logging
 from datetime import timedelta
 
 from django.contrib.sessions.models import Session
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.signing import BadSignature
+from django.db import DatabaseError
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
@@ -35,26 +38,31 @@ def _get_location_data(ip):
         return {}
     try:
         import geoip2.database
+        from geoip2.errors import GeoIP2Error
         import os
-        path = os.getenv("GEOIP2_DB_PATH") or "/usr/share/GeoIP/GeoLite2-City.mmdb"
-        if os.path.isfile(path):
-            with geoip2.database.Reader(path) as reader:
-                rec = reader.city(ip)
-                out = {
-                    "city": getattr(rec, "city", None) and rec.city.name or "",
-                    "country": getattr(rec, "country", None) and rec.country.name or "",
-                    "country_code": getattr(rec, "country", None) and rec.country.iso_code or "",
-                }
-                loc = getattr(rec, "location", None)
-                if loc is not None:
-                    lat = getattr(loc, "latitude", None)
-                    lon = getattr(loc, "longitude", None)
-                    if lat is not None and lon is not None:
-                        out["latitude"] = float(lat)
-                        out["longitude"] = float(lon)
-                return out
-    except Exception:
-        pass
+    except ImportError:
+        return {}
+    path = os.getenv("GEOIP2_DB_PATH") or "/usr/share/GeoIP/GeoLite2-City.mmdb"
+    if not os.path.isfile(path):
+        return {}
+    try:
+        with geoip2.database.Reader(path) as reader:
+            rec = reader.city(ip)
+            out = {
+                "city": getattr(rec, "city", None) and rec.city.name or "",
+                "country": getattr(rec, "country", None) and rec.country.name or "",
+                "country_code": getattr(rec, "country", None) and rec.country.iso_code or "",
+            }
+            loc = getattr(rec, "location", None)
+            if loc is not None:
+                lat = getattr(loc, "latitude", None)
+                lon = getattr(loc, "longitude", None)
+                if lat is not None and lon is not None:
+                    out["latitude"] = float(lat)
+                    out["longitude"] = float(lon)
+            return out
+    except (AttributeError, GeoIP2Error, OSError, TypeError, ValueError):
+        return {}
     return {}
 
 
@@ -94,7 +102,7 @@ def log_security_event(
             region_code = getattr(school.default_region, "code", None) or getattr(school.default_region, "country_code", None)
             if region_code and location_data.get("country_code") != region_code:
                 is_suspicious = True
-        except Exception:
+        except (AttributeError, ObjectDoesNotExist):
             pass
     if is_suspicious is None:
         is_suspicious = False
@@ -162,7 +170,7 @@ def lockdown_user_account(user, request=None, initiator: str = "self", school=No
             data = session.get_decoded()
             if data.get("_auth_user_id") == uid:
                 session.delete()
-    except Exception as e:
+    except (AttributeError, BadSignature, DatabaseError, KeyError, TypeError, ValueError) as e:
         logger.exception("Session purge failed: %s", e)
     if request and request.session.session_key:
         request.session.flush()
@@ -176,10 +184,7 @@ def lockdown_user_account(user, request=None, initiator: str = "self", school=No
         initiator=initiator,
     )
 
-    try:
-        _notify_admin_lockdown(user, school, initiator)
-    except Exception as e:
-        logger.exception("Lockdown admin notify failed: %s", e)
+    _notify_admin_lockdown(user, school, initiator)
 
     return True
 
@@ -253,7 +258,7 @@ def check_impossible_travel(request, user):
                 initiator="self",
             )
             lockdown_user_account(user, request=request, initiator="self", school=getattr(request, "school", None))
-    except Exception as e:
+    except (AttributeError, DatabaseError, TypeError, ValueError) as e:
         logger.exception("check_impossible_travel: %s", e)
 
 

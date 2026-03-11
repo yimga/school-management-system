@@ -27,7 +27,12 @@
       </div>
     </div>
     {% empty %}
-    <div class="col-12"><p class="text-muted mb-0">{% trans "No templates available. Theme packs can be added by your platform administrator." %}</p></div>
+    <div class="col-12">
+      <div class="py-4 px-2">
+        {% url 'siteconfig:template_gallery' as gallery_url %}
+        {% include "components/dashboard_empty_state.html" with icon="bi-palette" title=_("No templates available.") message=_("Theme packs can be added by your platform administrator.") action_url=gallery_url action_text=_("Refresh") %}
+      </div>
+    </div>
     {% endfor %}
   </div>
 </div>

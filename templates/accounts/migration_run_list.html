@@ -43,7 +43,14 @@
           </td>
         </tr>
         {% empty %}
-        <tr><td colspan="7" class="text-muted">{% trans "No migration runs yet." %}</td></tr>
+        <tr>
+          <td colspan="7" class="p-0">
+            <div class="py-3 px-2">
+              {% url 'accounts:backend_dashboard' as dashboard_url %}
+              {% include "components/dashboard_empty_state.html" with icon="bi-arrow-repeat" title=_("No migration runs yet.") message=_("Migration runs will appear here after you start a migration.") action_url=dashboard_url action_text=_("Backend dashboard") %}
+            </div>
+          </td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>

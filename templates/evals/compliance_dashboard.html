@@ -132,7 +132,13 @@
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="6" class="text-center text-muted py-4">No teachers found</td>
+                                <td colspan="6" class="p-0">
+                                    <div class="py-3 px-2">
+                                        {% load i18n %}
+                                        {% url 'evals:evaluation_admin' as evals_url %}
+                                        {% include "components/dashboard_empty_state.html" with icon="bi-people" title=_("No teachers found") message=_("Add teachers and compliance deadlines to see them here.") action_url=evals_url action_text=_("Evaluation admin") %}
+                                    </div>
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>

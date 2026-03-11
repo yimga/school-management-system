@@ -8,6 +8,7 @@ from __future__ import annotations
 from typing import Any, Dict, Optional
 
 from django.db import DatabaseError
+from django.db.models import Q
 
 from .runtime_resolver import build_tenant_runtime
 from .contracts import TenantRuntime
@@ -129,6 +130,45 @@ def get_runtime_inspection(request: Any) -> Dict[str, Any]:
     return out
 
 
+def get_feature_toggle_inspection(school: Any) -> list:
+    """
+    Phase 10 — 10.2: Active feature toggle overrides for a school (why this feature is on, expiry).
+    Returns list of dicts: key, is_enabled, expires_at, source (school|global).
+    """
+    from django.utils import timezone
+    out = []
+    try:
+        from apps.siteconfig.models import FeatureToggleState
+        now = timezone.now()
+        q = FeatureToggleState.objects.filter(
+            Q(expires_at__isnull=True) | Q(expires_at__gt=now)
+        ).select_related("definition").order_by("definition__key")
+        # School-specific first, then global (school__isnull=True)
+        for state in q.filter(school=school):
+            key = None
+            if getattr(state, "definition", None):
+                key = getattr(state.definition, "key", None)
+            out.append({
+                "key": key or str(state.definition_id) if state.definition_id else "—",
+                "is_enabled": state.is_enabled,
+                "expires_at": state.expires_at.strftime("%Y-%m-%d %H:%M") if state.expires_at else None,
+                "source": "school",
+            })
+        for state in q.filter(school__isnull=True):
+            key = None
+            if getattr(state, "definition", None):
+                key = getattr(state.definition, "key", None)
+            out.append({
+                "key": key or str(state.definition_id) if state.definition_id else "—",
+                "is_enabled": state.is_enabled,
+                "expires_at": state.expires_at.strftime("%Y-%m-%d %H:%M") if state.expires_at else None,
+                "source": "global",
+            })
+    except Exception:
+        pass
+    return out
+
+
 def get_runtime_inspection_for_school(school: Any) -> Dict[str, Any]:
     """
     Inspect runtime for a school (e.g. control-plane operator view). Builds runtime
@@ -153,6 +193,8 @@ def get_runtime_inspection_for_school(school: Any) -> Dict[str, Any]:
             tenant_id=str(getattr(school, "id", "")),
             school_id=getattr(school, "id", None),
         )
+        # Phase 10 — 10.2: why this feature is on (toggle state + expiry)
+        out["feature_toggles"] = get_feature_toggle_inspection(school)
         return out
     except (AttributeError, DatabaseError, RuntimeResolutionError, TypeError, ValueError) as e:
         return {"error": str(e), "effective_blueprint": {}, "override_sources": {}, "governor_limits": None}

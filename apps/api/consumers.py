@@ -157,8 +157,7 @@ class ClassroomSyncConsumer(AsyncWebsocketConsumer):
 class AIChatConsumer(AsyncWebsocketConsumer):
     """
     World Engine B.3: Real-time AI chat over WebSocket.
-    On message receive, calls OllamaInferenceService (sync_to_async) and sends reply.
-    Single implementation path; no second AI code path.
+    On message receive, calls services.ai_gateway.invoke("general_chat", ...) so all AI goes through the gateway.
     """
     async def connect(self):
         self.user = self.scope.get("user")
@@ -181,21 +180,23 @@ class AIChatConsumer(AsyncWebsocketConsumer):
             await self.send(text_data=json.dumps({"error": "message required"}))
             return
         from asgiref.sync import sync_to_async
-        from services.inference import OllamaInferenceService
+        from services.ai_gateway import invoke
 
         school = getattr(self.scope.get("request", None), "school", None) or getattr(self.user, "school", None)
         country_code = payload.get("country_code") or (getattr(school, "default_region", None) and getattr(school.default_region, "code", None))
+        prompt = "You are a helpful assistant for the school platform. Answer concisely.\n\nUser: " + message
 
-        def _infer():
-            return OllamaInferenceService.infer(
-                system_prompt="You are a helpful assistant for the school platform. Answer concisely.",
-                user_prompt=message,
-                request=getattr(self.scope, "request", None),
-                school=school,
-                country_code=country_code,
+        def _gateway_infer():
+            result, meta = invoke(
+                "general_chat",
+                prompt,
+                user_query=message,
+                metadata={"request": getattr(self.scope, "request", None), "school": school, "country_code": country_code},
             )
+            text = result if isinstance(result, str) else (str(result) if result is not None else None)
+            return text, meta
 
-        text, meta = await sync_to_async(_infer)()
+        text, meta = await sync_to_async(_gateway_infer)()
         if text is None:
             await self.send(text_data=json.dumps({"reply": "", "error": meta.get("error", "unavailable")}))
         else:

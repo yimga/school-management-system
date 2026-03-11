@@ -49,6 +49,7 @@ npm-debug.log*
 htmlcov/
 .pytest_cache/
 .tmp_test_artifacts/
+.django_test_dbs/
 full_test_run.txt
 test_output.txt
 

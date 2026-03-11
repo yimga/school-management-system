@@ -151,6 +151,8 @@ INSTALLED_APPS = [
     "apps.integrations_marketplace.apps.IntegrationsMarketplaceConfig",
     "apps.setup_studio.apps.SetupStudioConfig",
     "apps.studio_os.apps.StudioOsConfig",
+    "apps.orchestration.apps.OrchestrationConfig",  # Phase 10 — 4.1 long-running process support
+    "apps.platform_runtime.apps.PlatformRuntimeConfig",  # Phase 10 — 1.2 runtime defaults (state-safe migration)
     "emis",
     # Celery result/beat (optional: used when REDIS_URL is set for background tasks)
     "django_celery_results",
@@ -320,6 +322,26 @@ if PREVIEW_DATABASE_URL:
     DATABASES["preview"] = _preview_db
 else:
     DATABASES["preview"] = DATABASES["default"].copy()
+
+# Django defaults sqlite test databases to in-memory databases when no explicit
+# TEST NAME is provided. That makes `--keepdb` ineffective across separate
+# manage.py invocations, because each process rebuilds the full test schema.
+# Force file-backed sqlite test DBs so repeated local test runs can reuse the
+# migrated schema and avoid multi-minute bootstrap penalties.
+_sqlite_test_db_dir = BASE_DIR / ".django_test_dbs"
+for _alias, _db_config in DATABASES.items():
+    if _db_config.get("ENGINE") != "django.db.backends.sqlite3":
+        continue
+    _sqlite_test_db_dir.mkdir(parents=True, exist_ok=True)
+    _test_name_env = "DJANGO_TEST_DB_FILE" if _alias == "default" else f"DJANGO_{_alias.upper()}_TEST_DB_FILE"
+    _test_name_default = _sqlite_test_db_dir / f"{_alias}.sqlite3"
+    _test_name_raw = (os.getenv(_test_name_env) or "").strip()
+    _test_name = Path(_test_name_raw) if _test_name_raw else _test_name_default
+    if not _test_name.is_absolute():
+        _test_name = BASE_DIR / _test_name
+    _test_name.parent.mkdir(parents=True, exist_ok=True)
+    _db_config.setdefault("TEST", {})
+    _db_config["TEST"]["NAME"] = str(_test_name)
 
 # PERFORMANCE: Enable persistent database connections (600 seconds = 10 minutes)
 # Reduces overhead of creating new connection for each request

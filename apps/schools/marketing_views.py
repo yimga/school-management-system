@@ -2259,12 +2259,15 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         or getattr(settings, "MARKETING_MIGRATION_CLOUD_DIAGRAM_URL", None)
         or static("images/marketing/platform-diagram-marketing.svg")
     )
-    hero_dashboard_image_url = getattr(settings, "MARKETING_HERO_IMAGE_URL", None) or ""
+    # 7.1: Prefer AI-generated / governed assets from marketing_ai when set
+    from apps.schools.marketing_ai import get_marketing_ai_asset_url
+
+    hero_dashboard_image_url = get_marketing_ai_asset_url("hero_dashboard") or getattr(settings, "MARKETING_HERO_IMAGE_URL", None) or ""
     if not hero_dashboard_image_url:
         hero_dashboard_image_url = static("images/marketing/hero-placeholder.svg")
     # 9.5 proof-rich marketing: key for asset governance (style guide, versioning, approval).
     proof_hero_image_key = getattr(settings, "MARKETING_PROOF_HERO_IMAGE_KEY", None) or "hero_dashboard"
-    hero_video_url = getattr(settings, "MARKETING_HERO_VIDEO_URL", None) or ""
+    hero_video_url = get_marketing_ai_asset_url("hero_video") or getattr(settings, "MARKETING_HERO_VIDEO_URL", None) or ""
     hero_video_poster_url = getattr(settings, "MARKETING_HERO_VIDEO_POSTER_URL", None) or hero_dashboard_image_url or ""
     product_demo_image_url = getattr(settings, "MARKETING_PRODUCT_DEMO_IMAGE_URL", None) or getattr(settings, "MARKETING_HERO_IMAGE_URL", None) or ""
     # Product visualization strip: 5 slides required (Batch 1 — admin, teacher, parent, student, analytics).

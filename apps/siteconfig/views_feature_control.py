@@ -530,7 +530,11 @@ def feature_control_export(request):
 @never_cache
 @require_http_methods(["GET", "POST"])
 def feature_control_panel(request):
-    """Feature Control Panel - toggle modules system-wide."""
+    """Feature Control Panel - toggle modules system-wide. When not embedded, redirect to Studio Control."""
+    if request.GET.get("embed") != "1":
+        from django.shortcuts import redirect
+        from django.urls import reverse
+        return redirect(reverse("studio_os:control"))
     site = get_effective_site_settings(request=request)
     if site is None:
         site = SiteSettings()
@@ -557,6 +561,11 @@ def feature_control_panel(request):
                 _log_audit(request, "revert", changes)
                 logger.info("Feature control reverted by %s", request.user.username)
                 messages.success(request, "Reverted to previous settings.")
+                next_url = request.POST.get("next") or request.GET.get("next")
+                if next_url:
+                    from django.utils.http import url_has_allowed_host_and_scheme
+                    if url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+                        return redirect(next_url)
                 return redirect("siteconfig:feature_control_panel")
 
         form_data = {}
@@ -674,6 +683,11 @@ def feature_control_panel(request):
             "at": now.strftime("%Y-%m-%d %H:%M"),
         }, timeout=60 * 60 * 24 * 7)
         messages.success(request, "Feature settings saved. Changes take effect immediately.")
+        next_url = request.POST.get("next") or request.GET.get("next")
+        if next_url:
+            from django.utils.http import url_has_allowed_host_and_scheme
+            if url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+                return redirect(next_url)
         return redirect("siteconfig:feature_control_panel")
 
     # Build rows for template
@@ -739,6 +753,18 @@ def feature_control_panel(request):
         "weather_cities": weather_state.get("cities", []),
         "backend_layout_max_items_per_list": backend_layout_max_items_per_list,
     })
+
+
+def get_feature_control_audit_entries(request, limit=20):
+    """
+    Return recent Feature Control audit entries for Studio or other callers.
+    No permission check (caller must ensure access). Returns list of dicts.
+    """
+    return list(
+        FeatureControlAudit.objects.select_related("user")
+        .order_by("-created_at")[:limit]
+        .values("id", "action", "created_at", "user_id")
+    )
 
 
 @permission_required("settings.feature_control")

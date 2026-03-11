@@ -152,6 +152,21 @@ def throttle_tenant_request(
     return allowed, retry
 
 
+def get_tenant_api_request_count(tenant_id: str | int) -> int:
+    """
+    Return current per-minute request count for the tenant (from throttle cache).
+    Used by governor limits / runtime inspector. Returns 0 if no key or cache unavailable.
+    """
+    if not tenant_id:
+        return 0
+    key = f"rate_limit:{API_TENANT_RATE_LIMIT_KEY}:tenant:{tenant_id}"
+    try:
+        val = cache.get(key)
+        return int(val) if val is not None else 0
+    except Exception:
+        return 0
+
+
 def record_tenant_api_usage(school, limit_type: str = "api_calls"):
     """
     Record one API request for the tenant (for billing/usage dashboard).

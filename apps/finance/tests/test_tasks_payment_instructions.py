@@ -1,4 +1,5 @@
 from decimal import Decimal
+from unittest.mock import patch
 
 from django.test import TestCase
 from django.utils import timezone
@@ -103,3 +104,18 @@ class PaymentInstructionsResolutionTests(TestCase):
         self.assertEqual(instructions["branch"], "Buea")
         self.assertEqual(instructions["mtn_momo_number"], "237670000000")
         self.assertEqual(instructions["orange_money_number"], "237690000000")
+
+    def test_returns_blank_instruction_defaults_when_region_lookup_fails(self):
+        with patch("apps.finance.tasks.RegionConfig.objects.filter", side_effect=RuntimeError("registry unavailable")):
+            instructions = _get_payment_instructions(self.invoice)
+
+        self.assertEqual(
+            instructions,
+            {
+                "bank_account": "",
+                "bank_name": "",
+                "branch": "",
+                "mtn_momo_number": "",
+                "orange_money_number": "",
+            },
+        )

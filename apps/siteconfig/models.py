@@ -3873,6 +3873,11 @@ class FeatureToggleState(models.Model):
     )
     is_enabled = models.BooleanField(default=False)
     value = models.JSONField(default=dict, blank=True)
+    expires_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When set, this override is ignored after this time (Phase 10 — 10.2 capability expiry).",
+    )
     updated_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,

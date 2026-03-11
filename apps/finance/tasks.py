@@ -12,8 +12,9 @@ from datetime import timedelta
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.core.cache import cache
+from django.core.exceptions import ValidationError
 from django.utils import timezone
-from django.db import transaction
+from django.db import DatabaseError, transaction
 
 from celery import shared_task
 
@@ -40,6 +41,15 @@ from apps.evals.notifications import NotificationService
 from apps.schools.celery_tasks import _run_with_tenant_context, get_active_school_ids
 
 logger = logging.getLogger(__name__)
+FINANCE_TASK_SOFT_FAILURES = (
+    AttributeError,
+    DatabaseError,
+    LookupError,
+    RuntimeError,
+    TypeError,
+    ValidationError,
+    ValueError,
+)
 
 ALPHA2_TO_ALPHA3_COUNTRY_CODE = {
     "CM": "CMR",
@@ -133,7 +143,7 @@ def _get_payment_instructions(invoice: Invoice) -> dict:
             orange_account = bank_accounts.filter(account_type=BankAccount.AccountType.ORANGE_MONEY).first()
             if orange_account:
                 instructions["orange_money_number"] = orange_account.account_number
-    except Exception as e:
+    except FINANCE_TASK_SOFT_FAILURES as e:
         logger.error(f"Error getting payment instructions: {str(e)}")
     
     return instructions
@@ -454,7 +464,7 @@ def run_payment_reminders(dry_run: bool = False) -> dict:
                                 sent_count += 1
                                 guardian_reminded = True
 
-                    except Exception as e:
+                    except FINANCE_TASK_SOFT_FAILURES as e:
                         logger.error("Error sending %s reminder for invoice %s: %s", channel, invoice.reference or invoice.id, str(e))
                         PaymentReminderLog.objects.create(
                             reminder=reminder,
@@ -497,7 +507,7 @@ def _send_payment_reminders_body(dry_run: bool) -> dict:
             summary={"channels": result.get("channels", {}), "count": count, "dry_run": dry_run},
         )
         return result
-    except Exception as e:
+    except FINANCE_TASK_SOFT_FAILURES as e:
         logger.exception("send_payment_reminders_task failed")
         execution_log.mark_completed(
             AutomationExecutionLog.Status.FAILED,
@@ -570,7 +580,7 @@ def _retry_failed_payment_reminders_body(dry_run: bool) -> dict:
             summary={"reset": reset_count, "dry_run": dry_run},
         )
         return {"reset": reset_count, "dry_run": dry_run}
-    except Exception as e:
+    except FINANCE_TASK_SOFT_FAILURES as e:
         logger.exception("retry_failed_payment_reminders_task failed")
         execution_log.mark_completed(
             AutomationExecutionLog.Status.FAILED,
@@ -614,7 +624,7 @@ def _apply_split_late_fees_body(dry_run: bool) -> dict:
             },
         )
         return result
-    except Exception as e:
+    except FINANCE_TASK_SOFT_FAILURES as e:
         logger.exception("apply_split_late_fees_task failed")
         execution_log.mark_completed(
             AutomationExecutionLog.Status.FAILED,
@@ -784,7 +794,7 @@ def _auto_generate_fee_invoices_body(dry_run: bool) -> dict:
                     "plan_name": plan.name,
                     "invoices_created": len(invoices),
                 })
-            except Exception as e:
+            except FINANCE_TASK_SOFT_FAILURES as e:
                 logger.error("Error generating invoices for plan %s: %s", plan.name, str(e))
                 total_failed += 1
         
@@ -802,7 +812,7 @@ def _auto_generate_fee_invoices_body(dry_run: bool) -> dict:
             "failed": total_failed,
         }
     
-    except Exception as e:
+    except FINANCE_TASK_SOFT_FAILURES as e:
         logger.error("Error in auto_generate_fee_invoices_task: %s", str(e))
         execution_log.mark_completed(
             AutomationExecutionLog.Status.FAILED,
@@ -912,7 +922,7 @@ def _auto_copy_fee_plans_body(dry_run: bool) -> dict:
             try:
                 copy_fee_plan_to_year(plan, target_year, increase_pct)
                 copied += 1
-            except Exception as e:
+            except FINANCE_TASK_SOFT_FAILURES as e:
                 errors += 1
                 logger.error(
                     "Error auto-copying fee plan %s from %s to %s: %s",
@@ -951,7 +961,7 @@ def _auto_copy_fee_plans_body(dry_run: bool) -> dict:
             "errors": errors,
             "dry_run": dry_run,
         }
-    except Exception as e:
+    except FINANCE_TASK_SOFT_FAILURES as e:
         logger.error("Error in auto_copy_fee_plans_task: %s", str(e))
         execution_log.mark_completed(
             AutomationExecutionLog.Status.FAILED,
@@ -1045,7 +1055,7 @@ def _update_invoice_statuses_body(dry_run: bool) -> dict:
             "marked_paid": paid_updated,
         }
 
-    except Exception as e:
+    except FINANCE_TASK_SOFT_FAILURES as e:
         logger.error("Error in update_invoice_statuses_task: %s", str(e))
         execution_log.mark_completed(
             AutomationExecutionLog.Status.FAILED,
@@ -1122,7 +1132,7 @@ def _process_payment_receipt_upload_impl(proof_upload_id: int) -> dict:
                 receipt_date = fraud_detector._parse_date(receipt_date_str)
                 if receipt_date:
                     proof_upload.receipt_date = receipt_date
-            except:
+            except (AttributeError, TypeError, ValueError):
                 pass
         
         # Use extracted amount if available, otherwise use uploaded amount
@@ -1323,7 +1333,7 @@ def _process_payment_receipt_upload_impl(proof_upload_id: int) -> dict:
                     message=message,
                     channels=channels,
                 )
-            except Exception as e:
+            except FINANCE_TASK_SOFT_FAILURES as e:
                 logger.error("Failed to send notification for verified payment: %s", str(e))
             
             logger.info(
@@ -1379,7 +1389,7 @@ def _process_payment_receipt_upload_impl(proof_upload_id: int) -> dict:
             error_message="Proof upload not found",
         )
         return {"status": "error", "error": "Proof upload not found"}
-    except Exception as e:
+    except FINANCE_TASK_SOFT_FAILURES as e:
         logger.error("Error processing payment receipt upload %s: %s", proof_upload_id, str(e))
         execution_log.mark_completed(
             AutomationExecutionLog.Status.FAILED,
@@ -1391,7 +1401,7 @@ def _process_payment_receipt_upload_impl(proof_upload_id: int) -> dict:
             proof_upload.status = PaymentProofUpload.Status.DISCREPANCY
             proof_upload.verification_notes = f"Error during verification: {str(e)}"
             proof_upload.save()
-        except Exception:
+        except FINANCE_TASK_SOFT_FAILURES:
             pass
         raise
 
@@ -1435,10 +1445,10 @@ def _notify_finance_staff_suspicious_receipt(proof_upload: PaymentProofUpload, f
                     message=message,
                     channels=["email"],  # Always email for critical alerts
                 )
-            except Exception as e:
+            except FINANCE_TASK_SOFT_FAILURES as e:
                 logger.error(f"Failed to notify finance staff {staff_member.id}: {str(e)}")
     
-    except Exception as e:
+    except FINANCE_TASK_SOFT_FAILURES as e:
         logger.error(f"Error notifying finance staff about suspicious receipt: {str(e)}")
 
 
@@ -1544,7 +1554,7 @@ def _retry_bank_verification_body(days_old: int) -> dict:
 
                 receipt_upload.save()
                 retried_count += 1
-            except Exception as e:
+            except FINANCE_TASK_SOFT_FAILURES as e:
                 error_count += 1
                 logger.error("Error retrying bank verification for receipt %s: %s", receipt_upload.id, str(e))
 
@@ -1570,7 +1580,7 @@ def _retry_bank_verification_body(days_old: int) -> dict:
             "still_pending": still_pending_count,
             "errors": error_count,
         }
-    except Exception as e:
+    except FINANCE_TASK_SOFT_FAILURES as e:
         logger.exception("retry_bank_verification_task failed")
         execution_log.mark_completed(
             AutomationExecutionLog.Status.FAILED,

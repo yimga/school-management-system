@@ -1,0 +1,18 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "API keys" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <h4 class="mb-3">{% trans "API keys & quotas" %}</h4>
+  <p class="text-muted">{% trans "Developer platform (8.1): Create and manage API keys; view usage quotas. Full CRUD and scopes in a future sprint." %}</p>
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h5 class="card-title">{% trans "Keys" %}</h5>
+      <p class="card-text">{% trans "API keys are used to authenticate external API requests. Create keys from the Admin or via the API when the developer platform is fully shipped." %}</p>
+      <a href="{% url 'apicenter:dashboard' %}" class="btn btn-outline-primary">{% trans "Back to API Center" %}</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -31,7 +31,12 @@
           <a href="{{ link.url }}" class="btn btn-sm btn-outline-light">{% trans "Open" %}</a>
         </li>
         {% empty %}
-        <li class="list-group-item text-secondary border-secondary" style="background: transparent;">{% trans "No health links configured." %}</li>
+        <li class="list-group-item p-0 border-secondary" style="background: transparent;">
+          <div class="py-3 px-2">
+            {% url 'super:super_dashboard' as dashboard_url %}
+            {% include "components/dashboard_empty_state.html" with icon="bi-heart-pulse" title=_("No health links configured.") message=_("Configure health check URLs in platform settings.") action_url=dashboard_url action_text=_("Control plane") %}
+          </div>
+        </li>
         {% endfor %}
       </ul>
     </div>

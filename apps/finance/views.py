@@ -14,7 +14,8 @@ logger = logging.getLogger(__name__)
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
-from django.db import models, transaction
+from django.core.exceptions import ValidationError
+from django.db import DatabaseError, IntegrityError, models, transaction
 from django.db.models import Count, Q, Sum, Prefetch
 from django.db.models.functions import Coalesce
 from typing import Optional
@@ -90,6 +91,16 @@ from .security import (
 from apps.communication.models import Message
 
 logger = logging.getLogger(__name__)
+FINANCE_SOFT_FAILURES = (
+    AttributeError,
+    DatabaseError,
+    IntegrityError,
+    LookupError,
+    RuntimeError,
+    TypeError,
+    ValidationError,
+    ValueError,
+)
 
 
 def _active_profile(request: HttpRequest | None = None) -> ComplianceProfile | None:
@@ -106,7 +117,7 @@ def _backend_flags(request: HttpRequest | None = None) -> dict:
     """
     try:
         return get_effective_flags(request)
-    except Exception:
+    except FINANCE_SOFT_FAILURES:
         return {}
 
 
@@ -1281,7 +1292,7 @@ def resend_reminder(request: HttpRequest, invoice_id: int) -> HttpResponse:
             )
         else:
             messages.info(request, "Reminder queued but no sends occurred (may have been sent recently or no guardians configured).")
-    except Exception as e:
+    except FINANCE_SOFT_FAILURES as e:
         logger.error("Error resending reminder: %s", str(e))
         messages.error(request, f"Error resending reminder: {str(e)}")
     
@@ -1327,10 +1338,10 @@ def _notify_finance_staff_suspicious_receipt(proof_upload: PaymentProofUpload, f
                     message=message,
                     channels=["email"],  # Always email for critical alerts
                 )
-            except Exception as e:
+            except FINANCE_SOFT_FAILURES as e:
                 logger.error(f"Failed to notify finance staff {staff_member.id}: {str(e)}")
     
-    except Exception as e:
+    except FINANCE_SOFT_FAILURES as e:
         logger.error(f"Error notifying finance staff about suspicious receipt: {str(e)}")
 
 
@@ -1425,7 +1436,7 @@ def request_finance_access(request: HttpRequest, invoice_id: int | None = None):
                 if phone:
                     try:
                         notifier.send_sms(phone, f"Finance access granted for {student}.")
-                    except Exception:
+                    except FINANCE_SOFT_FAILURES:
                         logger.exception("Failed to send finance access SMS.")
             if "email" in channels and from_email and user.email:
                 try:
@@ -1435,7 +1446,7 @@ def request_finance_access(request: HttpRequest, invoice_id: int | None = None):
                         from_email=from_email,
                         recipient_list=[user.email],
                     )
-                except Exception:
+                except FINANCE_SOFT_FAILURES:
                     logger.exception("Failed to send finance access email.")
 
         if messages_out:
@@ -1550,7 +1561,7 @@ def request_finance_access(request: HttpRequest, invoice_id: int | None = None):
                     from_email=from_email,
                     recipient_list=recipient_emails,
                 )
-            except Exception:
+            except FINANCE_SOFT_FAILURES:
                 logger.exception("Failed to send finance access email notification.")
 
     if "sms" in channels:
@@ -1564,7 +1575,7 @@ def request_finance_access(request: HttpRequest, invoice_id: int | None = None):
             if phone:
                 try:
                     notifier.send_sms(phone, f"Finance access request from {request.user.get_full_name() or request.user.username}.")
-                except Exception:
+                except FINANCE_SOFT_FAILURES:
                     logger.exception("Failed to send finance access SMS notification.")
 
     # Notify requesting guardian for confirmation if access already granted
@@ -1655,7 +1666,7 @@ def finance_access_bulk(request: HttpRequest):
                     if phone:
                         try:
                             notifier.send_sms(phone, f"Finance access granted for {link.student}.")
-                        except Exception:
+                        except FINANCE_SOFT_FAILURES:
                             logger.exception("Failed to send finance access SMS.")
                 if "email" in channels and from_email and user.email:
                     try:
@@ -1665,7 +1676,7 @@ def finance_access_bulk(request: HttpRequest):
                             from_email=from_email,
                             recipient_list=[user.email],
                         )
-                    except Exception:
+                    except FINANCE_SOFT_FAILURES:
                         logger.exception("Failed to send finance access email.")
 
         if messages_out:
@@ -2041,7 +2052,7 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
                 "reference": reference_id,
             })
 
-    except Exception as e:
+    except FINANCE_SOFT_FAILURES as e:
         # Handle any transaction errors
         logger.exception(f"Transaction error processing webhook {reference_id}: {e}")
         try:
@@ -2359,7 +2370,7 @@ def claim_suspense_payment(request: HttpRequest, suspense_id: int):
             claimed_by=request.user,
             notes=notes,
         )
-    except Exception as exc:
+    except FINANCE_SOFT_FAILURES as exc:
         messages.error(request, f"Failed to allocate suspense payment: {exc}")
         return redirect("finance:suspense_queue")
 

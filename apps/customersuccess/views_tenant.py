@@ -26,7 +26,10 @@ def support_copilot_view(request):
 
 @login_required
 def guided_onboarding_view(request):
-    """Section 11.4: Guided onboarding - Setup Studio backed by persisted setup state."""
+    """Section 11.4: Guided onboarding - Setup Studio. When not embedded, redirect to Studio Launch."""
+    if request.GET.get("embed") != "1":
+        from django.urls import reverse
+        return redirect(reverse("studio_os:launch"))
     school = getattr(request, "school", None)
     if not school:
         return render(request, "customersuccess/guided_onboarding.html", {

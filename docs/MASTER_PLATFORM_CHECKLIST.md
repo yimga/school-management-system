@@ -81,8 +81,8 @@ python manage.py shell -c "from django.core.cache import cache; cache.clear(); p
 
 **Nothing is left open on the table.** Every row in **`docs/REMAINING_WORK.md`** is either **Done** or **Closed (Phase 10 backlog)**.
 
-- **Done in this pass:** Deprecation markers (1.4), empty-state component rollout (5.1), performance budget script (6.1), management commands index (9.1).
-- **Closed (Phase 10):** All other items are tracked in **`docs/PHASE_10_BACKLOG.md`** for future implementation. No Open rows remain.
+- **Done in this pass:** Deprecation markers (1.4). Empty-state rollout (5.1) **complete** — all catalog/list/workbench pages use `dashboard_empty_state` (tenant catalog/installed apps, payroll, finance reports, evals, marketplace, accounts, schools super_*, reports, analytics, customersuccess, school_events, siteconfig). Performance budget script (6.1); platform events `student_created`/`invoice_created`; governor API usage wired (3.1); management command rationalization (9.1). **Everything finishable in this pass is done.**
+- **Closed (Phase 10):** Remaining backlog is in **`docs/PHASE_10_BACKLOG.md`** for phased execution. **Phase 10 implementation:** 1.1 done; 1.2 started (RuntimeDefaults, backfill, resolver overlay); 2.1 `docs/GIANT_FILE_DECOMPOSITION.md` + lint_mega_files in gate; 4.1 workbench SLA column + overdue badge + Retry action, `sla_overdue` property; 10.2 runtime inspector "Feature toggles (why on)" + `get_feature_toggle_inspection(school)`; 10.4–10.8 `docs/TOOLSETS_PHASE_10_STUBS.md` + `apps/portal/document_lifecycle.py`; 7.1/8.1/10.9 as before. Run `python manage.py migrate` and `python manage.py seed_process_definitions` after pulling. No Open rows in REMAINING_WORK.
 
 Full task list and notes: **`docs/REMAINING_WORK.md`**. Phase 10 implementation backlog: **`docs/PHASE_10_BACKLOG.md`**.
 
@@ -178,7 +178,7 @@ Full task list and notes: **`docs/REMAINING_WORK.md`**. Phase 10 implementation 
 - [x] PATH_TO_10_SCORECARD.md: non-negotiable and advanced-only rule; all Path-to-10 and optionals must be done to spec; code sanitation required before merge/deploy
 - [x] scripts/code_sanitation.sh: single script running repo hygiene, lint_no_print_in_apps, root clutter, secret exposure, bounded-context/legacy imports, tenant settings, CSRF/raw SQL/broad-except gates
 - [x] Governor limits: apps/platform_runtime/governor_limits.py (constants + get_governor_usage_for_tenant); runtime inspector and super_runtime_inspector template show limits and usage
-- [x] Event catalog: apps/platform_runtime/events.py (EVENT_CATALOG, emit_platform_event); package engine emits package_applied and package_rolled_back
+- [x] Event catalog: apps/platform_runtime/events.py (EVENT_CATALOG, emit_platform_event); package engine emits package_applied and package_rolled_back; people/finance signals emit student_created and invoice_created
 - [x] Empty state = action state: templates/components/dashboard_empty_state.html extended with purpose, secondary_action_url/secondary_action_text, demo_url; data-empty-state="action-state"
 - [x] Performance budgets: docs/PERFORMANCE_BUDGETS.md (response-time and query-count budgets for role home, Setup Studio, catalog, etc.)
 - [x] Business glossary: apps/metadata/management/commands/seed_business_glossary.py; get_glossary_metadata() in siteconfig/metadata_catalog.py; catalog get_catalog() includes glossary

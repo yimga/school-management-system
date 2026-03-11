@@ -82,7 +82,15 @@
               </td>
             </tr>
           {% empty %}
-            <tr><td colspan="4" class="text-muted">No payroll runs yet.</td></tr>
+            <tr>
+              <td colspan="4" class="p-0">
+                <div class="py-3 px-2">
+                  {% load i18n %}
+                  {% url 'payroll:create_run' as create_run_url %}
+                  {% include "components/dashboard_empty_state.html" with icon="bi-calendar-check" title=_("No payroll runs yet.") message=_("Create a payroll run to process payslips for a period.") action_url=create_run_url action_text=_("New Payroll Run") %}
+                </div>
+              </td>
+            </tr>
           {% endfor %}
         </tbody>
       </table>

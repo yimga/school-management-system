@@ -1,0 +1,258 @@
+{% extends "portal_base.html" %}
+{% load static i18n %}
+
+{% block title %}{% if current_mode %}{% for m in studio_modes %}{% if m.id == current_mode %}{{ m.label }}{% endif %}{% endfor %} – {% endif %}{% trans "Studio" %} · {{ SITE.site_name|default:"Portal" }}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+  .studio-os { display: flex; min-height: calc(100vh - 120px); }
+  .studio-os__rail { width: 240px; flex-shrink: 0; border-right: 1px solid var(--color-base-200, #e2e8f0); background: var(--color-base-50, #f8fafc); padding: 1rem 0; }
+  .studio-os__rail a { display: block; padding: 0.6rem 1.25rem; color: var(--color-base-700, #334155); text-decoration: none; font-weight: 500; border-left: 3px solid transparent; }
+  .studio-os__rail a:hover { background: var(--color-base-100, #f1f5f9); color: var(--color-base-900, #0f172a); }
+  .studio-os__rail a.active { background: var(--color-primary-50, #eff6ff); color: var(--color-primary-700, #1d4ed8); border-left-color: var(--color-primary-500, #3b82f6); }
+  .studio-os__rail .studio-os__home { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-base-500, #64748b); padding: 0.5rem 1.25rem; margin-bottom: 0.25rem; }
+  .studio-os__canvas { flex: 1; overflow: auto; padding: 1.5rem; background: var(--color-base-100, #f1f5f9); }
+  .studio-os__right { width: 280px; flex-shrink: 0; border-left: 1px solid var(--color-base-200, #e2e8f0); background: #fff; padding: 1rem; }
+  .studio-os__card { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); padding: 1.25rem; margin-bottom: 1rem; }
+  .studio-os__card h2 { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; }
+  .studio-os__card p { font-size: 0.875rem; color: var(--color-base-600, #475569); margin-bottom: 0.75rem; }
+  .studio-os__card .btn { font-size: 0.875rem; }
+  .studio-os-iframe { width: 100%; min-height: 80vh; border: 0; border-radius: 8px; background: #fff; display: block; }
+  .studio-os-topbar { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
+  .studio-os-search { max-width: 20rem; }
+  .studio-os-cmd-btn { font-size: 0.875rem; }
+  .studio-os-bottom-bar { position: sticky; bottom: 0; left: 0; right: 0; background: var(--color-base-100, #f1f5f9); border-top: 1px solid var(--color-base-200, #e2e8f0); padding: 0.5rem 1rem; display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+  .studio-os-activity-list { list-style: none; padding: 0; margin: 0; font-size: 0.8125rem; }
+  .studio-os-activity-list li { padding: 0.25rem 0; border-bottom: 1px solid var(--color-base-200, #e2e8f0); }
+  .studio-os-cmd-palette { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1050; background: #fff; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); max-width: 28rem; width: 90%; max-height: 70vh; overflow: auto; padding: 0.5rem; }
+  .studio-os-cmd-palette input { width: 100%; padding: 0.5rem; margin-bottom: 0.5rem; }
+  .studio-os-cmd-palette ul { list-style: none; padding: 0; margin: 0; }
+  .studio-os-cmd-palette li a { display: block; padding: 0.5rem 0.75rem; text-decoration: none; color: inherit; border-radius: 4px; }
+  .studio-os-cmd-palette li a:hover { background: var(--color-base-100, #f1f5f9); }
+  .studio-os-cmd-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 1040; }
+  [data-theme="dark"] .studio-os-iframe { background: var(--color-base-800); }
+  [data-theme="dark"] .studio-os-bottom-bar { background: var(--color-base-800); border-color: var(--color-base-700); }
+  [data-theme="dark"] .studio-os-cmd-palette { background: var(--color-base-800); }
+  [data-theme="dark"] .studio-os__rail { background: var(--color-base-900); border-color: var(--color-base-700); }
+  [data-theme="dark"] .studio-os__rail a { color: var(--color-base-300); }
+  [data-theme="dark"] .studio-os__rail a:hover { background: var(--color-base-800); color: var(--color-base-100); }
+  [data-theme="dark"] .studio-os__canvas { background: var(--color-base-900); }
+  [data-theme="dark"] .studio-os__right { background: var(--color-base-800); border-color: var(--color-base-700); }
+  [data-theme="dark"] .studio-os__card { background: var(--color-base-800); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-2">
+  <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+    <a href="{% url 'studio_os:shell' %}" class="btn btn-sm btn-outline-secondary" aria-label="{% trans 'Studio home' %}">
+      <i class="bi bi-grid-3x3-gap"></i>
+    </a>
+    <input type="search" class="form-control form-control-sm studio-os-search" id="studio-global-search" placeholder="{% trans 'Search Studio...' %}" aria-label="{% trans 'Search' %}" style="max-width: 16rem;">
+    <button type="button" class="btn btn-sm btn-outline-secondary studio-os-cmd-btn" id="studio-command-palette-btn" aria-label="{% trans 'Commands' %}">{% trans "Commands" %}</button>
+    <h1 class="h5 mb-0 ms-auto">
+      {% if current_mode %}
+        {% for m in studio_modes %}{% if m.id == current_mode %}{{ m.label }}{% endif %}{% endfor %} – {% trans "Studio" %}
+      {% else %}
+        {% trans "Studio" %}
+      {% endif %}
+    </h1>
+  </div>
+
+  <div class="studio-os">
+    <nav class="studio-os__rail" aria-label="{% trans 'Studio modes' %}">
+      <div class="studio-os__home">{% trans "Work modes" %}</div>
+      <a href="{% url 'studio_os:shell' %}" class="{% if not current_mode %}active{% endif %}">{% trans "Overview" %}</a>
+      <a href="{% url 'studio_os:experience' %}" class="{% if current_mode == 'experience' %}active{% endif %}">{% trans "Experience" %}</a>
+      <a href="{% url 'studio_os:automation' %}" class="{% if current_mode == 'automation' %}active{% endif %}">{% trans "Automation" %}</a>
+      <a href="{% url 'studio_os:output' %}" class="{% if current_mode == 'output' %}active{% endif %}">{% trans "Outputs" %}</a>
+      <a href="{% url 'studio_os:launch' %}" class="{% if current_mode == 'launch' %}active{% endif %}">{% trans "Launch" %}</a>
+      <a href="{% url 'studio_os:control' %}" class="{% if current_mode == 'control' %}active{% endif %}">{% trans "Control" %}</a>
+    </nav>
+
+    <main class="studio-os__canvas" id="studio-canvas">
+      {% block studio_canvas %}
+        {% if not current_mode %}
+          <p class="text-muted mb-3">{% trans "One workspace for experience, automation, outputs, launch, and control. Choose a mode to start." %}</p>
+          <div class="row g-3">
+            {% for m in studio_modes %}
+              <div class="col-md-6 col-lg-4">
+                <div class="studio-os__card h-100">
+                  <h2>{{ m.label }}</h2>
+                  <p>{{ m.description }}</p>
+                  {% if m.id == 'experience' %}<a href="{% url 'studio_os:experience' %}" class="btn btn-primary btn-sm">{% trans "Open" %}</a>{% endif %}
+                  {% if m.id == 'automation' %}<a href="{% url 'studio_os:automation' %}" class="btn btn-primary btn-sm">{% trans "Open" %}</a>{% endif %}
+                  {% if m.id == 'output' %}<a href="{% url 'studio_os:output' %}" class="btn btn-primary btn-sm">{% trans "Open" %}</a>{% endif %}
+                  {% if m.id == 'launch' %}<a href="{% url 'studio_os:launch' %}" class="btn btn-primary btn-sm">{% trans "Open" %}</a>{% endif %}
+                  {% if m.id == 'control' %}<a href="{% url 'studio_os:control' %}" class="btn btn-primary btn-sm">{% trans "Open" %}</a>{% endif %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% elif embed_url %}
+          <iframe src="{{ embed_url }}" class="studio-os-iframe" title="{% trans 'Studio mode content' %}"></iframe>
+        {% else %}
+          <div class="studio-os__card">
+            <p class="text-muted mb-0">{% trans "This mode is loading. If nothing appears, use the links in the right rail." %}</p>
+            {% if legacy_urls.theme_colors and current_mode == 'experience' %}<a href="{{ legacy_urls.theme_colors }}" class="btn btn-primary btn-sm mt-2">{% trans "Theme & colors" %}</a>{% endif %}
+            {% if legacy_urls.workflow_hub and current_mode == 'automation' %}<a href="{{ legacy_urls.workflow_hub }}" class="btn btn-primary btn-sm mt-2">{% trans "Workflow hub" %}</a>{% endif %}
+            {% if legacy_urls.report_library and current_mode == 'output' %}<a href="{{ legacy_urls.report_library }}" class="btn btn-primary btn-sm mt-2">{% trans "Report library" %}</a>{% endif %}
+            {% if legacy_urls.guided_onboarding and current_mode == 'launch' %}<a href="{{ legacy_urls.guided_onboarding }}" class="btn btn-primary btn-sm mt-2">{% trans "Guided onboarding" %}</a>{% endif %}
+            {% if legacy_urls.feature_control and current_mode == 'control' %}<a href="{{ legacy_urls.feature_control }}" class="btn btn-primary btn-sm mt-2">{% trans "Feature control" %}</a>{% endif %}
+          </div>
+        {% endif %}
+      {% endblock %}
+    </main>
+
+    <aside class="studio-os__right" aria-label="{% trans 'Impact and actions' %}">
+      {% if studio_recommendations %}
+      <div class="studio-os__card">
+        <h2 class="h6">{% trans "Recommended" %}</h2>
+        <ul class="studio-os-activity-list mb-2">
+          {% for r in studio_recommendations %}
+          <li><a href="{{ r.url }}">{{ r.label }}</a>{% if r.detail %} <span class="text-muted small">— {{ r.detail }}</span>{% endif %}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+      {% if studio_activity_feed %}
+      <div class="studio-os__card">
+        <h2 class="h6">{% trans "Recent activity" %}</h2>
+        <ul class="studio-os-activity-list mb-2">
+          {% for a in studio_activity_feed|slice:":8" %}
+          <li><a href="{{ a.url }}">{{ a.label }}</a> <span class="text-muted small">{{ a.timestamp }}</span></li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+      <div class="studio-os__card">
+        <h2 class="h6">{% trans "Impact & publish" %}</h2>
+        {% if current_mode == 'experience' %}
+          {% if theme_contrast_report %}
+          <p class="small mb-2"><span class="badge {% if theme_contrast_report.status == 'ok' %}text-bg-success-subtle{% else %}text-bg-warning{% endif %}">{% if theme_contrast_report.status == "ok" %}{% trans "Contrast: pass" %}{% else %}{% trans "Contrast: check" %}{% endif %}</span></p>
+          {% endif %}
+          <p class="small text-muted mb-2">{% trans "Use Live preview in the canvas, then confirm and save. Changes apply to portal and admin theme." %}</p>
+          {% if legacy_urls.customizer %}<a href="{{ legacy_urls.customizer }}" class="btn btn-outline-secondary btn-sm w-100">{% trans "Customizer overview" %}</a>{% endif %}
+        {% elif current_mode == 'automation' %}
+          <p class="small text-muted mb-2">{% trans "Open approval hub or workflow gallery in the canvas. Simulate before activating." %}</p>
+          {% if legacy_urls.workflow_flow_gallery %}<a href="{{ legacy_urls.workflow_flow_gallery }}" class="btn btn-outline-secondary btn-sm w-100">{% trans "Flow gallery" %}</a>{% endif %}
+        {% elif current_mode == 'output' %}
+          <p class="small text-muted mb-2">{% trans "Reports, documents, and report cards. Download or design from the canvas." %}</p>
+          {% if legacy_urls.document_library %}<a href="{{ legacy_urls.document_library }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">{% trans "Document library" %}</a>{% endif %}
+          {% if legacy_urls.reportcard_builder %}<a href="{{ legacy_urls.reportcard_builder }}" class="btn btn-outline-secondary btn-sm w-100">{% trans "Report card builder" %}</a>{% endif %}
+        {% elif current_mode == 'launch' %}
+          <p class="small text-muted mb-2">{% trans "Complete setup steps and preview by role. Execute launch when ready." %}</p>
+        {% elif current_mode == 'control' %}
+          {% if control_audit_entries %}
+          <ul class="studio-os-activity-list mb-2">
+            {% for e in control_audit_entries|slice:":5" %}
+            <li><span class="small">{{ e.action|default:"save" }}</span> <span class="text-muted small">{{ e.created_at|date:"M j H:i" }}</span></li>
+            {% endfor %}
+          </ul>
+          <a href="{% url 'siteconfig:feature_control_audit' %}" class="btn btn-outline-secondary btn-sm w-100">{% trans "Full audit" %}</a>
+          {% else %}
+          <p class="small text-muted mb-2">{% trans "Capabilities and feature flags. Check audit trail before rolling back." %}</p>
+          {% endif %}
+        {% else %}
+          <p class="small text-muted mb-0">{% trans "Preview, compare, and publish from the canvas." %}</p>
+        {% endif %}
+      </div>
+    </aside>
+  </div>
+
+  {% if studio_show_bottom_bar and studio_bottom_bar_actions %}
+  <div class="studio-os-bottom-bar mt-3" id="studio-bottom-bar" data-preview-url="{{ studio_preview_from_form_url|default:'' }}" data-rollback-url="{{ studio_rollback_url|default:'' }}">
+    {% for a in studio_bottom_bar_actions %}
+    <button type="button" class="btn btn-sm {% if a.primary %}btn-primary{% else %}btn-outline-secondary{% endif %}" data-studio-action="{{ a.id }}">{{ a.label }}</button>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+
+<div class="studio-os-cmd-backdrop d-none" id="studio-cmd-backdrop" aria-hidden="true"></div>
+<div class="studio-os-cmd-palette d-none" id="studio-cmd-palette" role="dialog" aria-label="{% trans 'Command palette' %}">
+  <input type="text" class="form-control" id="studio-cmd-filter" placeholder="{% trans 'Type to filter...' %}" autocomplete="off">
+  <ul id="studio-cmd-list">
+    {% for e in studio_command_palette_entries %}
+    <li><a href="{{ e.url }}" data-keywords="{{ e.keywords|default:'' }}">{{ e.label }}</a></li>
+    {% endfor %}
+  </ul>
+</div>
+
+<script>
+(function() {
+  var btn = document.getElementById('studio-command-palette-btn');
+  var backdrop = document.getElementById('studio-cmd-backdrop');
+  var palette = document.getElementById('studio-cmd-palette');
+  var filter = document.getElementById('studio-cmd-filter');
+  var list = document.getElementById('studio-cmd-list');
+  var search = document.getElementById('studio-global-search');
+  if (!btn || !palette) return;
+  function openPalette() {
+    backdrop.classList.remove('d-none');
+    palette.classList.remove('d-none');
+    filter.value = '';
+    filter.focus();
+    filter.dispatchEvent(new Event('input'));
+  }
+  function closePalette() {
+    backdrop.classList.add('d-none');
+    palette.classList.add('d-none');
+  }
+  btn.addEventListener('click', openPalette);
+  backdrop.addEventListener('click', closePalette);
+  filter.addEventListener('input', function() {
+    var q = (this.value || '').toLowerCase();
+    var items = list.querySelectorAll('li a');
+    items.forEach(function(a) {
+      var text = (a.textContent + ' ' + (a.getAttribute('data-keywords') || '')).toLowerCase();
+      a.parentElement.style.display = text.indexOf(q) !== -1 ? '' : 'none';
+    });
+  });
+  filter.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closePalette();
+  });
+  list.addEventListener('click', function(e) {
+    if (e.target.tagName === 'A') closePalette();
+  });
+  if (search && list) {
+    search.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); openPalette(); filter.value = search.value; filter.dispatchEvent(new Event('input')); }
+    });
+  }
+})();
+
+(function() {
+  var bar = document.getElementById('studio-bottom-bar');
+  if (!bar) return;
+  var previewUrl = bar.getAttribute('data-preview-url') || '';
+  var rollbackUrl = bar.getAttribute('data-rollback-url') || '';
+  bar.addEventListener('click', function(e) {
+    var btn = e.target.closest('[data-studio-action]');
+    if (!btn) return;
+    var action = btn.getAttribute('data-studio-action');
+    if (action === 'preview' && previewUrl) {
+      var form = document.getElementById('theme-colors-form');
+      if (form) {
+        e.preventDefault();
+        var fd = new FormData(form);
+        fd.append('preview_section', 'theme-experience');
+        var csrf = form.querySelector('input[name="csrfmiddlewaretoken"]');
+        fetch(previewUrl, { method: 'POST', body: fd, headers: { 'X-CSRFToken': csrf ? csrf.value : '', 'Accept': 'application/json' }, credentials: 'same-origin' })
+          .then(function(r) { return r.json().then(function(data) { return { ok: r.ok, data: data }; }); })
+          .then(function(res) {
+            if (res.ok && res.data.redirect_url) window.open(res.data.redirect_url, '_blank', 'noopener');
+          });
+      }
+    } else if (action === 'publish') {
+      var form = document.getElementById('theme-colors-form');
+      if (form) { e.preventDefault(); form.submit(); }
+    } else if (action === 'rollback' && rollbackUrl) {
+      e.preventDefault();
+      window.location.href = rollbackUrl;
+    }
+  });
+})();
+</script>
+{% endblock %}

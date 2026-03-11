@@ -64,7 +64,14 @@
             <td>{% if e.actor %}{{ e.actor.get_full_name|default:e.actor.email }}{% else %}—{% endif %}</td>
           </tr>
           {% empty %}
-          <tr><td colspan="5" class="text-muted">No recent marketplace audit events.</td></tr>
+          <tr>
+            <td colspan="5" class="p-0">
+              <div class="py-3 px-2">
+                {% load i18n %}
+                {% include "components/dashboard_empty_state.html" with icon="bi-journal-text" title=_("No recent marketplace audit events.") message=_("Audit events will appear when installs or reviews occur.") %}
+              </div>
+            </td>
+          </tr>
           {% endfor %}
         </tbody>
       </table>

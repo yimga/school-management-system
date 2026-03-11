@@ -63,9 +63,14 @@ Intent → Orchestrator → Context + permission → Action plan → Preview/sim
 - **AI observability:** task success rate, acceptance rate, error rate, rollback rate, time saved; dashboards
 - **AI marketplace (installable AI skills):** e.g. Admissions AI, Attendance Risk AI, Finance Collections AI, Student Success AI, Counselor Assistant AI
 
+## Gateway and tiered implementation
+
+All product AI goes through the **RunMyCampus AI Gateway** (`services.ai_gateway`): task-based routing (Ollama, vLLM, LiteLLM, rules), structured output validation, audit, data-tier governance. Scope, phases, and deliverables are tracked only in the **RunMyCampus Open-Source AI Adoption Blueprint** (single plan); do not duplicate in other backlog files. See [docs/architecture/ai_orchestration.md](architecture/ai_orchestration.md) and [docs/architecture/ai_tiered_ollama.md](architecture/ai_tiered_ollama.md).
+
 ## References
 
 - [AI_MODEL_LIFECYCLE.md](AI_MODEL_LIFECYCLE.md)
+- [architecture/ai_orchestration.md](architecture/ai_orchestration.md), [architecture/ai_tiered_ollama.md](architecture/ai_tiered_ollama.md)
 - RegionalAIConfig, AIEmbeddingStore, AIModelRegistry
-- services/inference.py, services/ai_memory.py
+- services/inference.py, services/ai_gateway.py, services/ai_schemas.py, services/embeddings.py, services/ai_memory.py
 - Super AI model hub

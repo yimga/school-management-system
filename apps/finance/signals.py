@@ -13,6 +13,23 @@ def ensure_invoice_reference(sender, instance: Invoice, created: bool, **kwargs)
 
 
 @receiver(post_save, sender=Invoice)
+def emit_invoice_created_platform_event(sender, instance: Invoice, created: bool, **kwargs):
+    """Path-to-10: emit platform event catalog for automation/analytics."""
+    if not created:
+        return
+    try:
+        from apps.platform_runtime.events import emit_platform_event
+        school_id = getattr(instance, "school_id", None)
+        emit_platform_event(
+            "invoice_created",
+            {"invoice_id": instance.id, "school_id": school_id},
+            school_id=school_id,
+        )
+    except Exception:
+        pass
+
+
+@receiver(post_save, sender=Invoice)
 def notify_guardians_new_invoice_signal(sender, instance: Invoice, created: bool, **kwargs):
     """Phase 2.3: In-app (and optional email) notification when a new invoice is issued."""
     if not created or not instance.student_id or instance.invoice_type != Invoice.InvoiceType.AR:

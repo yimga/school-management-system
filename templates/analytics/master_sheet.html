@@ -117,7 +117,15 @@
               <td class="text-end">{{ e.total_score|format_number:2 }}</td>
             </tr>
           {% empty %}
-            <tr><td colspan="12" class="text-muted">No evaluations found. <a href="{% url 'evals:evaluation_admin' %}">Create evaluations</a> or adjust the filters above.</td></tr>
+            <tr>
+              <td colspan="12" class="p-0">
+                <div class="py-3 px-2">
+                  {% load i18n %}
+                  {% url 'evals:evaluation_admin' as evals_url %}
+                  {% include "components/dashboard_empty_state.html" with icon="bi-table" title=_("No evaluations found.") message=_("Create evaluations or adjust the filters above.") action_url=evals_url action_text=_("Create evaluations") %}
+                </div>
+              </td>
+            </tr>
           {% endfor %}
         </tbody>
       </table>

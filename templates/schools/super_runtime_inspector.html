@@ -156,6 +156,31 @@
     </div>
   </div>
   <div class="card shadow-sm border-0 page-family-content-card card-grammar mb-3">
+    <div class="card-header bg-dark text-light">{% trans "Feature toggles (why on)" %}</div>
+    <div class="card-body">
+      {% if inspection.feature_toggles %}
+      <p class="small text-secondary mb-2">{% trans "Active overrides (school or global) with expiry. Source: school = tenant override, global = platform override." %}</p>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0">
+          <thead><tr><th>{% trans "Key" %}</th><th>{% trans "On" %}</th><th>{% trans "Source" %}</th><th>{% trans "Expires" %}</th></tr></thead>
+          <tbody>
+            {% for t in inspection.feature_toggles %}
+            <tr>
+              <td><code>{{ t.key }}</code></td>
+              <td>{{ t.is_enabled|yesno:"Yes,No" }}</td>
+              <td>{{ t.source }}</td>
+              <td class="text-muted small">{{ t.expires_at|default:"—" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="text-secondary mb-0 small">{% trans "No feature toggle overrides for this school (or registry not in use)." %}</p>
+      {% endif %}
+    </div>
+  </div>
+  <div class="card shadow-sm border-0 page-family-content-card card-grammar mb-3">
     <div class="card-header bg-dark text-light">{% trans "Governor limits" %}</div>
     <div class="card-body">
       {% if inspection.governor_limits %}

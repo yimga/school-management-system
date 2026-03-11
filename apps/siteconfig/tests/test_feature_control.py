@@ -24,7 +24,7 @@ class FeatureControlPanelTest(TestCase):
     def test_superuser_can_access(self):
         """Superuser can access Feature Control Panel."""
         self.client.login(username="super", password="testpass123")
-        url = reverse("siteconfig:feature_control_panel")
+        url = reverse("siteconfig:feature_control_panel") + "?embed=1"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"Feature Control Panel", response.content)
@@ -33,7 +33,7 @@ class FeatureControlPanelTest(TestCase):
     def test_user_without_permission_forbidden(self):
         """User without settings.feature_control receives 403."""
         self.client.login(username="staff", password="testpass123")
-        url = reverse("siteconfig:feature_control_panel")
+        url = reverse("siteconfig:feature_control_panel") + "?embed=1"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 403)
 
@@ -51,14 +51,14 @@ class FeatureControlPanelTest(TestCase):
         self.staff_user.save()
 
         self.client.login(username="staff", password="testpass123")
-        url = reverse("siteconfig:feature_control_panel")
+        url = reverse("siteconfig:feature_control_panel") + "?embed=1"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"Feature Control Panel", response.content)
 
     def test_anonymous_redirected_to_login(self):
         """Anonymous user redirected to login."""
-        url = reverse("siteconfig:feature_control_panel")
+        url = reverse("siteconfig:feature_control_panel") + "?embed=1"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 302)
         self.assertIn("login", response["Location"].lower())
@@ -66,7 +66,7 @@ class FeatureControlPanelTest(TestCase):
     def test_offline_feature_flags_rendered(self):
         """New offline/PWA toggles are visible in Feature Control."""
         self.client.login(username="super", password="testpass123")
-        response = self.client.get(reverse("siteconfig:feature_control_panel"))
+        response = self.client.get(reverse("siteconfig:feature_control_panel") + "?embed=1")
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"Portal PWA", response.content)
         self.assertIn(b"Offline Attendance Sync", response.content)
@@ -76,7 +76,8 @@ class FeatureControlPanelTest(TestCase):
     def test_offline_feature_flags_persist(self):
         """Posting Feature Control saves new backend offline flags."""
         self.client.login(username="super", password="testpass123")
-        page = self.client.get(reverse("siteconfig:feature_control_panel"))
+        panel_url = reverse("siteconfig:feature_control_panel") + "?embed=1"
+        page = self.client.get(panel_url)
         self.assertEqual(page.status_code, 200)
 
         # Minimal post only sets selected switches to on.
@@ -91,7 +92,7 @@ class FeatureControlPanelTest(TestCase):
             "feature_backend_flags.show_offline_status_bar": "on",
             "feature_backend_flags.request_persistent_browser_storage": "on",
         }
-        response = self.client.post(reverse("siteconfig:feature_control_panel"), data=payload, follow=True)
+        response = self.client.post(panel_url, data=payload, follow=True)
         self.assertEqual(response.status_code, 200)
 
         site = SiteSettings.get_solo()
@@ -107,7 +108,7 @@ class FeatureControlPanelTest(TestCase):
     def test_ministry_feature_flags_render_and_persist(self):
         """Ministry integrations should be togglable from Feature Control."""
         self.client.login(username="super", password="testpass123")
-        response = self.client.get(reverse("siteconfig:feature_control_panel"))
+        response = self.client.get(reverse("siteconfig:feature_control_panel") + "?embed=1")
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"Ministry API (Cartescolaire)", response.content)
         self.assertIn(b"Ministry API (DGI)", response.content)
@@ -119,7 +120,7 @@ class FeatureControlPanelTest(TestCase):
             "feature_backend_flags.enable_ministry_api_dgi": "on",
             "feature_backend_flags.enable_ministry_live_sync": "on",
         }
-        response = self.client.post(reverse("siteconfig:feature_control_panel"), data=payload, follow=True)
+        response = self.client.post(reverse("siteconfig:feature_control_panel") + "?embed=1", data=payload, follow=True)
         self.assertEqual(response.status_code, 200)
 
         site = SiteSettings.get_solo()
@@ -131,7 +132,7 @@ class FeatureControlPanelTest(TestCase):
     def test_backend_experience_flags_and_list_density(self):
         """Backend dashboard module/viz toggles and list density are configurable."""
         self.client.login(username="super", password="testpass123")
-        response = self.client.get(reverse("siteconfig:feature_control_panel"))
+        response = self.client.get(reverse("siteconfig:feature_control_panel") + "?embed=1")
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"Backend Warm Palette", response.content)
         self.assertIn(b"Backend Module: Overview", response.content)
@@ -149,7 +150,7 @@ class FeatureControlPanelTest(TestCase):
             "feature_backend_flags.backend_module_planner": "on",
             "backend_layout_max_items_per_list": "7",
         }
-        response = self.client.post(reverse("siteconfig:feature_control_panel"), data=payload, follow=True)
+        response = self.client.post(reverse("siteconfig:feature_control_panel") + "?embed=1", data=payload, follow=True)
         self.assertEqual(response.status_code, 200)
 
         site = SiteSettings.get_solo()
@@ -192,7 +193,7 @@ class FeatureControlPanelTest(TestCase):
             "weather_country_code": "JPN",
             "weather_city_id": str(city["id"]),
         }
-        response = self.client.post(reverse("siteconfig:feature_control_panel"), data=payload, follow=True)
+        response = self.client.post(reverse("siteconfig:feature_control_panel") + "?embed=1", data=payload, follow=True)
         self.assertEqual(response.status_code, 200)
 
         site = SiteSettings.get_solo()

@@ -115,9 +115,9 @@
         {% endif %}
       </article>
       {% empty %}
-      <div class="proof-panel">
-        <h3 class="proof-panel-title">{% trans "No installable apps available." %}</h3>
-        <p class="proof-panel-copy">{% trans "Approved catalog entries will appear here when governance allows them for this school." %}</p>
+      <div class="proof-panel w-100">
+        {% url 'tenant_installed_apps' as installed_apps_url %}
+        {% include "components/dashboard_empty_state.html" with icon="bi-box-seam" title=_("No installable apps available.") message=_("Approved catalog entries will appear here when governance allows them for this school.") action_url=installed_apps_url action_text=_("Review installed apps") purpose=_("Browse governed apps, then install to sandbox instead of pushing directly into live use.") %}
       </div>
       {% endfor %}
     </div>

@@ -1,0 +1,33 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Webhook docs" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <h4 class="mb-3">{% trans "Webhook documentation" %}</h4>
+  <p class="text-muted">{% trans "Event types, payload schemas, and subscription UI (Phase 10 — 8.1)." %}</p>
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h5 class="card-title">{% trans "Subscriptions" %}</h5>
+      <p class="card-text">{% trans "Subscribe to platform events (e.g. student_created, invoice_created). Manage endpoints below." %}</p>
+      <table class="table table-sm">
+        <thead><tr><th>URL</th><th>{% trans "Events" %}</th><th>{% trans "Active" %}</th><th>{% trans "Updated" %}</th></tr></thead>
+        <tbody>
+          {% for sub in subscriptions %}
+          <tr>
+            <td><code>{{ sub.url|truncatechars:60 }}</code></td>
+            <td>{{ sub.event_types|join:", "|default:"all" }}</td>
+            <td>{% if sub.is_active %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</td>
+            <td>{{ sub.updated_at|date:"Y-m-d H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="text-muted">{% trans "No webhook subscriptions yet. Create via Admin or API." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <a href="{% url 'apicenter:dashboard' %}" class="btn btn-outline-primary">{% trans "Back to API Center" %}</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

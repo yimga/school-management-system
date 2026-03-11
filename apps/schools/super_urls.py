@@ -1,6 +1,7 @@
 from django.urls import path
 from apps.marketplace import views as marketplace_views
 from apps.customersuccess import views_super as cs_views
+from apps.orchestration import views as orchestration_views
 from . import super_views
 from .control_plane import require_super_access_with_host
 
@@ -77,4 +78,6 @@ urlpatterns = [
     path("global-ai-version/progress/<str:run_id>/", require_super_access_with_host(super_views.global_ai_version_progress), name="global_ai_version_progress"),
     path("runtime-inspector/", require_super_access_with_host(super_views.super_runtime_inspector), name="runtime_inspector"),
     path("workflow-simulator/", require_super_access_with_host(super_views.super_workflow_simulator), name="workflow_simulator"),
+    path("orchestration/", require_super_access_with_host(orchestration_views.operator_workbench), name="orchestration_workbench"),
+    path("orchestration/runs/<int:run_id>/retry/", require_super_access_with_host(orchestration_views.retry_run), name="orchestration_retry_run"),
 ]

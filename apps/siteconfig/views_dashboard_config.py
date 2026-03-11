@@ -53,9 +53,12 @@ def dashboard_hub(request):
 @login_required
 def workflow_hub(request):
     """
-    Phase 4: Workflow hub — single tenant-facing entry. Browse approval workflows and
-    workflow templates; customize within guardrails; rollback via flow gallery.
+    Phase 4: Workflow hub — single tenant-facing entry. When not embedded in Studio, redirect to Studio Automation.
     """
+    if request.GET.get("embed") != "1":
+        from django.shortcuts import redirect
+        from django.urls import reverse
+        return redirect(reverse("studio_os:automation"))
     if not getattr(request.user, "is_staff", False):
         messages.warning(request, "Access restricted to staff.")
         return redirect(reverse("accounts:backend_dashboard"))

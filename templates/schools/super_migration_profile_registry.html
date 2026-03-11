@@ -49,7 +49,11 @@
       </div>
     </div>
     {% empty %}
-    <div class="alert alert-info">No migration profiles. Run <code>python manage.py seed_migration_profiles</code>.</div>
+    <div class="py-3 px-2">
+      {% load i18n %}
+      {% url 'super:super_migration_cloud' as cloud_url %}
+      {% include "components/dashboard_empty_state.html" with icon="bi-cloud-arrow-up" title=_("No migration profiles.") message=_("Run: python manage.py seed_migration_profiles") action_url=cloud_url action_text=_("Migration cloud") %}
+    </div>
     {% endfor %}
   </div>
 {% endblock %}

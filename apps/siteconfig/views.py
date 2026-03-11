@@ -319,18 +319,8 @@ def maintenance_view(request):
 
 @permission_required("settings.manage")
 def customizer(request):
-    settings_obj = get_effective_site_settings(request=request)
-    messages.info(
-        request,
-        "Customizer now lives inside Site Settings (admin-only) and Preferences (staff).",
-    )
-    theme_packs = ThemePack.objects.filter(is_active=True).order_by("-is_default", "name")
-    return render(request, "siteconfig/customizer.html", {
-        "settings": settings_obj,
-        "site_settings_url": reverse("admin:siteconfig_sitesettings_change", args=(settings_obj.pk,)),
-        "preferences_url": reverse("siteconfig:user_preferences"),
-        "theme_packs": theme_packs,
-    })
+    """Redirect to Studio Experience (Phase 5: single workspace)."""
+    return redirect("studio_os:experience")
 
 
 # Neutral fallback when no region scales (Phase 2: no country names in tenant-facing form)
@@ -874,6 +864,8 @@ def user_preferences(request):
 
 @permission_required("settings.manage")
 def report_library(request):
+    if request.GET.get("embed") != "1":
+        return redirect("studio_os:output")
     from django.db.models import Q
     from apps.siteconfig.tenant_config import get_report_template_family_for_school
     templates = ReportTemplate.objects.filter(is_active=True)
@@ -1024,7 +1016,9 @@ def bulk_letters(request):
 
 @permission_required("settings.manage")
 def theme_colors_page(request):
-    """Standalone Color & harmony page: palette studio, presets, preview; save colors to SiteSettings."""
+    """Standalone Color & harmony page: palette studio, presets, preview; save colors to SiteSettings. When not embedded, redirect to Studio Experience."""
+    if request.GET.get("embed") != "1":
+        return redirect("studio_os:experience")
     site = get_effective_site_settings(request=request)
     if site is None:
         site = SiteSettings()
@@ -1182,6 +1176,52 @@ def theme_colors_page(request):
             "skip_theme_publish_guard": getattr(site, "skip_theme_publish_guard", False),
         },
     )
+
+
+def get_theme_colors_context(request):
+    """
+    Build theme & experience context for Studio OS or other callers.
+    Same keys as theme_colors_page (GET path). No permission check (caller must ensure access).
+    """
+    site = get_effective_site_settings(request=request)
+    if site is None:
+        site = SiteSettings()
+    form = ThemeColorsForm(instance=site)
+    all_packs = list(
+        ThemePack.objects.filter(is_active=True).order_by("-applies_to_admin", "-is_default", "name")
+    )
+    admin_theme_packs = all_packs
+    admin_theme_packs_by_group = build_theme_pack_groups(admin_theme_packs, THEME_PALETTE_GROUPS)
+    try:
+        admin_change_url = reverse("admin:siteconfig_sitesettings_change", args=[site.pk])
+    except Exception:
+        admin_change_url = None
+    back_url = _safe_next_url(request, request.GET.get("next"), admin_change_url or "")
+    preview_mode_active = bool(request.session.get("preview_mode_enabled") or getattr(site, "preview_mode_enabled", False))
+    theme_recent_change_meta = request.session.get("theme_recent_change_meta")
+    contrast_values = {}
+    for field_name in (
+        "primary_color", "accent_color", "header_bg_color", "footer_bg_color",
+        "success_color", "warning_color", "danger_color",
+    ):
+        incoming = form.data.get(field_name) if form.is_bound else None
+        if incoming in (None, ""):
+            incoming = getattr(site, field_name, "")
+        contrast_values[field_name] = incoming
+    contrast_report = build_theme_contrast_report(contrast_values)
+    return {
+        "form": form,
+        "site_settings": site,
+        "preview_mode_active": preview_mode_active,
+        "admin_theme_packs": admin_theme_packs,
+        "admin_theme_packs_by_group": admin_theme_packs_by_group,
+        "admin_change_url": admin_change_url,
+        "back_url": back_url,
+        "theme_recent_change_meta": theme_recent_change_meta,
+        "theme_contrast_report": contrast_report,
+        "theme_publish_guarded_count": len(THEME_PUBLISH_GUARDED_FIELDS),
+        "skip_theme_publish_guard": getattr(site, "skip_theme_publish_guard", False),
+    }
 
 
 @permission_required("settings.manage")
