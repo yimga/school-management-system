@@ -136,7 +136,7 @@ def _sidebar_badge_counts(user, role, staff_like):
             year, _term = get_active_year_and_term()
             if year:
                 missing_steps = 0
-                if not Classroom.objects.filter(academic_year=year, is_active=True).exists():
+                if not Classroom.objects.filter(academic_year=year).exists():
                     missing_steps += 1
                 if not StudentProfile.objects.filter(academic_year=year, is_active=True).exists():
                     missing_steps += 1
