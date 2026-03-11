@@ -6,7 +6,7 @@ from django.conf import settings
 from django.core.management import call_command
 from django.test import SimpleTestCase, TestCase
 
-from apps.siteconfig.models import ThemePack
+from apps.brand_experience.models import ThemePack
 from apps.siteconfig.theme_palette_groups import THEME_PALETTE_GROUPS, build_theme_pack_groups
 
 

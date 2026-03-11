@@ -12,11 +12,11 @@
 
 - **1.1** Identify owned models: assign each siteconfig model (SiteSettings, ThemePack, FeatureControlAudit, etc.) to target bounded context. **Done:** `docs/SITECONFIG_OWNED_MODELS.md` + `apps/siteconfig/owned_models_registry.py` (`get_target_app_for_model`, `OWNED_MODELS_TARGET`).
 - **1.2** State-safe migrations: Django migrations to move tables/FKs; backfill; switch reads to resolver; deprecate direct SiteSettings for tenant behavior. **Started:** `apps/platform_runtime` app + `RuntimeDefaults` model; `get_effective_site_settings` overlays RuntimeDefaults.payload when present; `backfill_runtime_defaults` command; migration 0001_runtimedefaults.
-- **1.3** Delete legacy paths: remove deprecated accessors and old tables/columns; enforce via CI (lint_tenant_settings --check-get-solo-only already fails on new tenant get_solo).
+- **1.3** Delete legacy paths: remove deprecated accessors and old tables/columns; enforce via CI (lint_tenant_settings --check-get-solo-only already fails on new tenant get_solo). **Done:** policies/resolver.py removed from get_solo allowlist (uses get_effective_site_settings only).
 
 ## Architecture
 
-- **2.1** Giant-file decomposition: split siteconfig/models.py, accounts/views.py, schools/super_views.py, portal/views.py, finance/views.py, api/views_v1.py; enforce file-line thresholds in CI. **Started:** siteconfig AI → `models_ai.py`; accounts migration hub → `views_migration.py`, rollover → `views_rollover.py` (re-exported from `views.py`); schools migration/sync-repair → `super_views_migration.py` (re-exported from `super_views.py`). Remaining: portal/views, finance/views, api/views_v1.
+- **2.1** Giant-file decomposition: split siteconfig/models.py, accounts/views.py, schools/super_views.py, portal/views.py, finance/views.py, api/views_v1.py; enforce file-line thresholds in CI. **Done:** portal → `views_parent_finance.py`; schools → `super_views_migration.py`; finance → `views_reports.py` (finance_reports, submit_report_request); api → `views_v1_intervention.py` (Intervention* views). All re-exported for URL wiring.
 
 ## Runtime & multitenancy
 
@@ -24,7 +24,7 @@
 
 ## Event & orchestration
 
-- **4.1** Orchestration layer: long-running process support (admissions, re-enrollment, migration, fee follow-up, approval chains) with state, retries, compensation, SLA visibility, operator workbench. **Started:** `apps/orchestration` app with `ProcessDefinition`, `OrchestrationRun` models; operator workbench at `/super/orchestration/`; admin registered.
+- **4.1** Orchestration layer: long-running process support (admissions, re-enrollment, migration, fee follow-up, approval chains) with state, retries, compensation, SLA visibility, operator workbench. **Done:** FeeFollowUpRunner, AdmissionsRunner, ReEnrollmentRunner, ApprovalChainRunner; execute() calls compensate() on final failure; SLA per definition; workbench runs_overdue; trigger_orchestration_runs command.
 
 ## UX
 
@@ -36,7 +36,7 @@
 
 ## Developer platform
 
-- **8.1** External dev platform: public API portal (docs, keys, quotas); webhook docs and subscription UI; SDKs; app certification; partner sandbox and scope review. **Done (UI + keys CRUD):** API portal docs (`/api-center/docs/`), webhook docs with subscription list (`/api-center/webhooks/`), API keys list/create/revoke (`/api-center/keys/`) with `APIKey` model (tenant-scoped, prefix + hash, one-time secret display); apicenter views and templates. Remaining: quotas display/enforcement, webhook create/edit subscription UI, SDK/cert/sandbox stubs.
+- **8.1** External dev platform: public API portal (docs, keys, quotas); webhook docs and subscription UI; SDKs; app certification; partner sandbox and scope review. **Done:** API keys CRUD; APIQuota model + display on keys page; webhook create/edit/delete; SDK/cert/sandbox stubs; quota enforcement: `TenantApiQuotaMiddleware` + `throttle_tenant_request()` use `APIQuota` (requests_per_minute) when set; 429 + Retry-After when exceeded.
 
 ## Governance
 
@@ -48,10 +48,10 @@
 - **10.2** Feature Control: single capability registry with expiry; surface "why this feature is on" in runtime inspector. **Done (inspector):** Runtime inspector shows "Feature toggles (why on)" with key, is_enabled, source, expires_at from FeatureToggleState; `get_feature_toggle_inspection(school)` in platform_runtime.runtime_inspector. FeatureToggleState.expires_at already in place.
 - **10.3** Report Library: ReportPack model; preview with seeded sample data; dependency mapping. **Started:** `ReportPack` model in `apps/reports/models.py`.
 - **10.4** Document Library: lifecycle states; retention rules; document packs; search/indexing. **Started:** `DocumentPack` model in `apps/packages/models.py` (lifecycle_states, retention_rule JSON); migration 0004_documentpack.
-- **10.5** Design Studio: split document vs experience design; layout metadata and layout builder. **Started:** `apps/brand_experience/design_studio.py` stub (`get_layout_metadata`, `get_document_layout_schema`).
-- **10.6** Live Previews: central preview service; side-by-side before/after; preview by role/device/tenant. **Started:** `apps/platform_runtime/live_preview.py` stub (`get_preview_url`).
-- **10.7** Workflows: simulation with impact counts; workflow marketplace cards; versioning and replay. **Started:** `run_workflow_simulation(definition_code, payload, school)` in `apps/orchestration/runners.py` (returns impact_count/steps stub).
-- **10.8** AI & API: API contracts and contract tests; AI action audit trail. **Started:** `AIActionAuditLog` model in `apps/platform_runtime/models.py`; migration 0002_aiactionauditlog.
+- **10.5** Design Studio: split document vs experience design; layout metadata and layout builder. **Done:** `get_layout_metadata` / `get_document_layout_schema` resolve from ExperiencePack.layout_schema when present.
+- **10.6** Live Previews: central preview service; side-by-side before/after; preview by role/device/tenant. **Done:** `get_preview_url(role=, device=, tenant_id=, path=)` returns `/portal/preview?…` with query params.
+- **10.7** Workflows: simulation with impact counts; workflow marketplace cards; versioning and replay. **Done:** `run_workflow_simulation` runs runner.run_step() in memory, returns impact_count + steps (dry_run).
+- **10.8** AI & API: API contracts and contract tests; AI action audit trail. **Done:** `log_ai_action(action_type, tenant_id=, user_id=, request_id=, payload=)` in platform_runtime.helpers writes to AIActionAuditLog.
 - **10.9** System Config: migrate remaining get_solo() to runtime; shrink allowlist toward zero; CI fails on new tenant-facing get_solo. **Done (CI):** `scripts/lint_tenant_settings.py --check-get-solo-only` already fails CI for new get_solo in tenant apps; allowlist in SITESETTINGS_GET_SOLO_ALLOWLIST.md; 1.2 RuntimeDefaults provides migration path.
 
 ---

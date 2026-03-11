@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 
 SKIP_DIRS = {"migrations", "__pycache__", "venv", ".venv", "node_modules"}
-DEFAULT_MAX_LINES = 4500  # Plan: reduce over time (e.g. 3500 then 2500) as we decompose; 2.1 accounts split done
+DEFAULT_MAX_LINES = 4500  # 2.1 splits done; lower to 3500 once siteconfig/models + marketing_views decomposed
 
 
 def main() -> int:

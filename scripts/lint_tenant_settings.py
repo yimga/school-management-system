@@ -37,7 +37,7 @@ SKIP_FILES = {"lint_tenant_settings.py"}
 ALLOWED_GET_SOLO_PREFIXES = (
     "apps/siteconfig/models.py",
     "apps/platform_runtime/helpers.py",
-    "apps/policies/resolver.py",
+    # apps/policies/resolver.py removed (1.3): uses get_effective_site_settings(school=) only
     "apps/siteconfig/management/",
     "apps/finance/management/",
     "apps/reports/management/",

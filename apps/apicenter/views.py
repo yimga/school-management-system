@@ -4,7 +4,7 @@ API Center: one page for all Integrations (config + governance). Toggle enabled 
 from django.db.models import Q
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.http import require_GET, require_POST, require_http_methods
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_protect
 
@@ -14,7 +14,7 @@ from django.utils import timezone
 from apps.integrations_marketplace.models import Integration
 from apps.platform_runtime.helpers import get_effective_flags
 from apps.schools.control_plane import user_has_control_plane_access
-from .models import APIAuditLog, APIKey, _hash_secret
+from .models import APIAuditLog, APIKey, APIQuota, _hash_secret
 
 
 def _api_center_allowed(request):
@@ -130,12 +130,12 @@ def api_keys(request):
     if school is not None:
         qs = qs.filter(Q(school__isnull=True) | Q(school=school))
     keys = list(qs[:100])
-    # One-time display: raw key shown once after create (stored in session, popped after render)
+    quotas = list(APIQuota.objects.filter(Q(school__isnull=True) | Q(school=school)).order_by("quota_type")) if school else list(APIQuota.objects.filter(school__isnull=True))
     new_key_display = request.session.pop("apicenter_new_key_display", None)
     return render(
         request,
         "apicenter/api_keys.html",
-        {"api_keys": keys, "new_key_display": new_key_display},
+        {"api_keys": keys, "api_quotas": quotas, "new_key_display": new_key_display},
     )
 
 
@@ -185,3 +185,113 @@ def api_key_revoke(request, key_id):
         key.save(update_fields=["revoked_at"])
         messages.success(request, f"Key {key.key_prefix}… revoked.")
     return redirect("apicenter:api_keys")
+
+
+@login_required
+@require_GET
+def webhook_subscription_list(request):
+    """Webhook subscriptions list (alias for webhook_docs)."""
+    return webhook_docs(request)
+
+
+@login_required
+@csrf_protect
+def webhook_subscription_create(request):
+    """Create webhook subscription (8.1). GET: form; POST: create."""
+    if not _api_center_allowed(request):
+        return HttpResponseForbidden("API Center is disabled or you do not have permission.")
+    from apps.events.models import WebhookSubscription
+    school = getattr(request, "school", None)
+    school_id = getattr(school, "id", None) if school else None
+    if request.method == "POST":
+        url = (request.POST.get("url") or "").strip()
+        if not url:
+            messages.error(request, "URL is required.")
+            return redirect("apicenter:webhook_subscription_create")
+        event_types_raw = (request.POST.get("event_types") or "").strip()
+        event_types = [x.strip() for x in event_types_raw.split(",") if x.strip()] if event_types_raw else []
+        desc = (request.POST.get("description") or "").strip()
+        secret = (request.POST.get("secret") or "").strip()
+        WebhookSubscription.objects.create(
+            school_id=school_id,
+            url=url,
+            event_types=event_types,
+            description=desc[:255],
+            secret=secret[:255] if secret else "",
+            is_active=True,
+        )
+        messages.success(request, "Webhook subscription created.")
+        return redirect("apicenter:webhook_docs")
+    return render(request, "apicenter/webhook_subscription_form.html", {"subscription": None, "is_edit": False})
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+@csrf_protect
+def webhook_subscription_edit(request, pk: int):
+    """Edit webhook subscription (8.1). GET: form; POST: save."""
+    if not _api_center_allowed(request):
+        return HttpResponseForbidden("API Center is disabled or you do not have permission.")
+    from apps.events.models import WebhookSubscription
+    school = getattr(request, "school", None)
+    qs = WebhookSubscription.objects.all()
+    if school is not None:
+        qs = qs.filter(school_id=getattr(school, "id", None))
+    subscription = get_object_or_404(qs, pk=pk)
+    if request.method == "POST":
+        subscription.url = (request.POST.get("url") or "").strip() or subscription.url
+        event_types_raw = (request.POST.get("event_types") or "").strip()
+        subscription.event_types = [x.strip() for x in event_types_raw.split(",") if x.strip()] if event_types_raw else []
+        subscription.description = (request.POST.get("description") or "").strip()[:255]
+        if request.POST.get("secret"):
+            subscription.secret = (request.POST.get("secret") or "").strip()[:255]
+        subscription.is_active = request.POST.get("is_active") == "on" or request.POST.get("is_active") == "1"
+        subscription.save()
+        messages.success(request, "Webhook subscription updated.")
+        return redirect("apicenter:webhook_docs")
+    return render(request, "apicenter/webhook_subscription_form.html", {"subscription": subscription, "is_edit": True})
+
+
+@login_required
+@require_POST
+@csrf_protect
+def webhook_subscription_delete(request, pk: int):
+    """Delete webhook subscription (8.1)."""
+    if not _api_center_allowed(request):
+        return HttpResponseForbidden("API Center is disabled or you do not have permission.")
+    from apps.events.models import WebhookSubscription
+    school = getattr(request, "school", None)
+    qs = WebhookSubscription.objects.all()
+    if school is not None:
+        qs = qs.filter(school_id=getattr(school, "id", None))
+    sub = get_object_or_404(qs, pk=pk)
+    sub.delete()
+    messages.success(request, "Webhook subscription deleted.")
+    return redirect("apicenter:webhook_docs")
+
+
+@login_required
+@require_GET
+def sdk_docs(request):
+    """Developer platform (8.1): SDK / client libraries stub."""
+    if not _api_center_allowed(request):
+        return HttpResponseForbidden("API Center is disabled or you do not have permission.")
+    return render(request, "apicenter/sdk_docs.html", {})
+
+
+@login_required
+@require_GET
+def app_certification(request):
+    """Developer platform (8.1): App certification stub."""
+    if not _api_center_allowed(request):
+        return HttpResponseForbidden("API Center is disabled or you do not have permission.")
+    return render(request, "apicenter/app_certification.html", {})
+
+
+@login_required
+@require_GET
+def partner_sandbox(request):
+    """Developer platform (8.1): Partner sandbox stub."""
+    if not _api_center_allowed(request):
+        return HttpResponseForbidden("API Center is disabled or you do not have permission.")
+    return render(request, "apicenter/partner_sandbox.html", {})

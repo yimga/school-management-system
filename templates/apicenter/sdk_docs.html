@@ -1,0 +1,19 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "SDK & client libraries" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <h4 class="mb-3">{% trans "SDK & client libraries" %}</h4>
+  <p class="text-muted">{% trans "Developer platform (8.1): Client libraries and SDKs for Python, JavaScript, and REST. Full SDK packages coming in a future release." %}</p>
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h5 class="card-title">{% trans "REST API" %}</h5>
+      <p class="card-text">{% trans "Use the REST API with any HTTP client. Authenticate with an API key in the header: Authorization: Bearer &lt;your_key&gt;." %}</p>
+      <a href="{% url 'apicenter:api_portal_docs' %}" class="btn btn-outline-primary">{% trans "API docs" %}</a>
+      <a href="{% url 'apicenter:dashboard' %}" class="btn btn-outline-secondary">{% trans "Back to API Center" %}</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

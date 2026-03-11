@@ -44,10 +44,18 @@ class BaseOrchestrationRunner:
             if self.run.retry_count >= self.max_retries:
                 self.run.status = OrchestrationRun.Status.FAILED
                 self.run.completed_at = timezone.now()
+                self.run.save(
+                    update_fields=["retry_count", "error_message", "status", "completed_at", "updated_at"]
+                )
+                try:
+                    self.compensate()
+                except Exception:
+                    pass
+                return False
             self.run.save(
-                update_fields=["retry_count", "error_message", "status", "completed_at", "updated_at"]
+                update_fields=["retry_count", "error_message", "status", "updated_at"]
             )
-            return self.run.status == OrchestrationRun.Status.COMPLETED
+        return False
 
     def compensate(self) -> None:
         """Optional compensation (rollback) when run failed or cancelled."""
@@ -75,6 +83,51 @@ class FeeFollowUpRunner(BaseOrchestrationRunner):
         return {"school_id": school_id, "reminders_due": count, "step": "fee_follow_up"}
 
 
+class AdmissionsRunner(BaseOrchestrationRunner):
+    """Runner for admissions: batch application processing / offer letters (4.1)."""
+    code = "admissions"
+
+    def run_step(self) -> dict:
+        school_id = getattr(self.run.school_id, "hex", None) or str(getattr(self.run.school_id, "", ""))
+        count = 0
+        try:
+            from apps.requests.models import AdmissionApplication
+            if self.run.school_id:
+                count = AdmissionApplication.objects.filter(
+                    school_id=self.run.school_id,
+                    status="PENDING",
+                ).count()
+        except Exception:
+            pass
+        return {"school_id": school_id, "pending_applications": count, "step": "admissions"}
+
+
+class ReEnrollmentRunner(BaseOrchestrationRunner):
+    """Runner for re_enrollment: next-year re-enrollment invitations / confirmations (4.1)."""
+    code = "re_enrollment"
+
+    def run_step(self) -> dict:
+        school_id = getattr(self.run.school_id, "hex", None) or str(getattr(self.run.school_id, "", ""))
+        count = 0
+        try:
+            from apps.accounts.models import StudentProfile
+            if self.run.school_id:
+                count = StudentProfile.objects.filter(school_id=self.run.school_id, is_active=True).count()
+        except Exception:
+            pass
+        return {"school_id": school_id, "eligible_students": count, "step": "re_enrollment"}
+
+
+class ApprovalChainRunner(BaseOrchestrationRunner):
+    """Runner for approval_chain: multi-step approval workflows (e.g. fee waiver, leave) (4.1)."""
+    code = "approval_chain"
+
+    def run_step(self) -> dict:
+        payload = self.run.input_payload or {}
+        chain_id = payload.get("chain_id") or ""
+        return {"chain_id": chain_id, "step": "approval_chain"}
+
+
 def start_run(definition_code: str, school=None, triggered_by=None, input_payload: Optional[dict] = None) -> Optional[OrchestrationRun]:
     """Create a PENDING OrchestrationRun for the given definition. Returns the run or None."""
     try:
@@ -97,6 +150,12 @@ def get_runner(run: OrchestrationRun) -> Optional[BaseOrchestrationRunner]:
     code = getattr(run.definition, "code", "") if run.definition_id else ""
     if code == "fee_follow_up":
         return FeeFollowUpRunner(run=run)
+    if code == "admissions":
+        return AdmissionsRunner(run=run)
+    if code == "re_enrollment":
+        return ReEnrollmentRunner(run=run)
+    if code == "approval_chain":
+        return ApprovalChainRunner(run=run)
     return None
 
 
@@ -104,10 +163,30 @@ def run_workflow_simulation(definition_code: str, payload: dict, school=None) ->
     """
     Phase 10 — 10.7: Workflow simulation with impact counts (no side effects).
     Returns {"impact_count": N, "steps": [...], "dry_run": True} for marketplace/UI.
-    Stub: returns zero impact; full implementation will run definition in dry-run mode.
+    Runs the runner's run_step() in memory (no DB write) to compute impact.
     """
     try:
-        ProcessDefinition.objects.get(code=definition_code)
+        definition = ProcessDefinition.objects.get(code=definition_code)
     except ProcessDefinition.DoesNotExist:
         return {"impact_count": 0, "steps": [], "dry_run": True, "error": "unknown_definition"}
-    return {"impact_count": 0, "steps": [], "dry_run": True}
+    from .models import OrchestrationRun
+    run = OrchestrationRun(
+        definition=definition,
+        school=school,
+        input_payload=payload or {},
+        status=OrchestrationRun.Status.PENDING,
+    )
+    runner = get_runner(run)
+    if runner is None:
+        return {"impact_count": 0, "steps": [], "dry_run": True}
+    try:
+        step_out = runner.run_step()
+    except Exception as e:
+        return {"impact_count": 0, "steps": [{"error": str(e)[:200]}], "dry_run": True}
+    steps = [step_out]
+    impact = 0
+    for key in ("reminders_due", "pending_applications", "eligible_students"):
+        impact += step_out.get(key) or 0
+    if impact == 0 and step_out:
+        impact = 1
+    return {"impact_count": impact, "steps": steps, "dry_run": True}

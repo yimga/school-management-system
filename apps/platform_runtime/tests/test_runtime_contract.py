@@ -8,6 +8,8 @@ from apps.platform_runtime.helpers import (
     get_effective_flags_for_school,
     get_effective_site_settings,
 )
+from apps.platform_runtime.models import RuntimeDefaults
+from apps.runtime_blueprints.models import ReportCardStyle as OwnedReportCardStyle
 from apps.tenancy.context import TenantContext
 from apps.platform_runtime.contracts import (
     TenantRuntime,
@@ -165,6 +167,125 @@ class TenantRuntimeContractTests(TestCase):
 
 
 class RuntimeHelperResolutionTests(TestCase):
+    def test_site_settings_owned_payload_filters_to_requested_owner(self):
+        site = SiteSettings.get_solo()
+        site.site_name = "Brand Surface"
+        site.backend_feature_flags = {"enable_api_center": True}
+        site.default_dashboard_view = "ACADEMICS"
+        site.save(update_fields=["site_name", "backend_feature_flags", "default_dashboard_view"])
+
+        brand_payload = site.owned_payload("brand_experience")
+        runtime_payload = site.owned_payload("runtime_blueprints")
+        policy_payload = site.owned_payload("policies_rules")
+
+        self.assertEqual(brand_payload["site_name"], "Brand Surface")
+        self.assertIn("default_dashboard_view", runtime_payload)
+        self.assertNotIn("site_name", runtime_payload)
+        self.assertEqual(policy_payload["backend_feature_flags"]["enable_api_center"], True)
+
+    def test_runtime_defaults_sync_from_site_settings_can_scope_to_owner_domains(self):
+        site = SiteSettings.get_solo()
+        site.site_name = "Scoped Brand"
+        site.default_dashboard_view = "ACADEMICS"
+        site.backend_feature_flags = {"enable_api_center": True}
+        site.save(update_fields=["site_name", "default_dashboard_view", "backend_feature_flags"])
+        RuntimeDefaults.objects.all().delete()
+
+        runtime_defaults, _created = RuntimeDefaults.sync_from_site_settings(
+            site,
+            owners=("runtime_blueprints", "policies_rules"),
+        )
+
+        self.assertIn("default_dashboard_view", runtime_defaults.payload)
+        self.assertIn("backend_feature_flags", runtime_defaults.payload)
+        self.assertNotIn("site_name", runtime_defaults.payload)
+
+    def test_runtime_defaults_scoped_sync_preserves_other_owner_domains(self):
+        site = SiteSettings.get_solo()
+        site.site_name = "Brand Baseline"
+        site.default_dashboard_view = "OVERVIEW"
+        site.backend_feature_flags = {"enable_api_center": False}
+        site.save(update_fields=["site_name", "default_dashboard_view", "backend_feature_flags"])
+
+        RuntimeDefaults.objects.update_or_create(
+            pk=1,
+            defaults={
+                "payload": {
+                    "site_name": "Brand Baseline",
+                    "default_dashboard_view": "OVERVIEW",
+                    "backend_feature_flags": {"enable_api_center": False},
+                }
+            },
+        )
+
+        site.backend_feature_flags = {"enable_api_center": True}
+        runtime_defaults, _created = RuntimeDefaults.sync_from_site_settings(
+            site,
+            owners=("policies_rules",),
+        )
+
+        self.assertEqual(runtime_defaults.payload["site_name"], "Brand Baseline")
+        self.assertEqual(runtime_defaults.payload["default_dashboard_view"], "OVERVIEW")
+        self.assertEqual(runtime_defaults.payload["backend_feature_flags"]["enable_api_center"], True)
+
+    def test_site_settings_save_auto_syncs_runtime_defaults_for_changed_owner_domains(self):
+        site = SiteSettings.get_solo()
+        RuntimeDefaults.objects.all().delete()
+
+        site.site_name = "Auto Synced Brand"
+        site.backend_feature_flags = {"enable_api_center": True}
+        site.maintenance_mode = True
+        site.save(update_fields=["site_name", "backend_feature_flags", "maintenance_mode"])
+
+        runtime_defaults = RuntimeDefaults.get_singleton()
+
+        self.assertIsNotNone(runtime_defaults)
+        self.assertEqual(runtime_defaults.payload["site_name"], "Auto Synced Brand")
+        self.assertEqual(runtime_defaults.payload["backend_feature_flags"]["enable_api_center"], True)
+        self.assertNotIn("maintenance_mode", runtime_defaults.payload)
+
+    def test_site_settings_resolve_default_report_style_uses_owner_surface(self):
+        style = OwnedReportCardStyle.objects.create(
+            slug="runtime-owned-style",
+            name="Runtime Owned Style",
+            term_template="reports/term_report_cameroon_modern.html",
+            annual_template="reports/annual_report_cameroon_modern.html",
+            primary_color="#0d173b",
+            accent_color="#007bff",
+            is_active=True,
+        )
+        site = SiteSettings.get_solo()
+        site.default_term_report_style_id = style.pk
+        site.save(update_fields=["default_term_report_style"])
+
+        resolved = site.resolve_default_report_style("TERM")
+
+        self.assertIsNotNone(resolved)
+        self.assertEqual(resolved.pk, style.pk)
+        self.assertEqual(resolved._meta.app_label, "runtime_blueprints")
+
+    def test_get_effective_site_settings_prefers_runtime_defaults_over_legacy_singleton(self):
+        site = SiteSettings.get_solo()
+        site.site_name = "Legacy Site Settings"
+        site.enable_offline_mode = False
+        site.save(update_fields=["site_name", "enable_offline_mode"])
+
+        RuntimeDefaults.objects.update_or_create(
+            pk=1,
+            defaults={
+                "payload": {
+                    "site_name": "Runtime Defaults Platform",
+                    "enable_offline_mode": True,
+                }
+            },
+        )
+
+        resolved = get_effective_site_settings()
+
+        self.assertEqual(resolved.site_name, "Runtime Defaults Platform")
+        self.assertTrue(resolved.enable_offline_mode)
+        self.assertEqual(resolved.pk, site.pk)
+
     def test_get_effective_site_settings_uses_school_overrides(self):
         site = SiteSettings.get_solo()
         site.site_name = "Platform Default"
@@ -206,6 +327,16 @@ class RuntimeHelperResolutionTests(TestCase):
 
         self.assertTrue(flags["enable_api_center"])
         self.assertFalse(flags["require_guardian_finance_opt_in"])
+
+    def test_site_settings_get_backend_feature_flags_merges_defaults(self):
+        site = SiteSettings.get_solo()
+        site.backend_feature_flags = {"enable_api_center": True}
+        site.save(update_fields=["backend_feature_flags"])
+
+        flags = site.get_backend_feature_flags()
+
+        self.assertTrue(flags["enable_api_center"])
+        self.assertIn("backend_module_overview", flags)
 
 
 class IntegrationGovernanceTests(TestCase):

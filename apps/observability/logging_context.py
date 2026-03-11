@@ -20,12 +20,9 @@ def set_request_logging_context(request_id: str = "", tenant_id: str = "", user_
 
 def clear_request_logging_context() -> None:
     """Clear context (called at end of request)."""
-    try:
-        _request_id_ctx.set("")
-        _tenant_id_ctx.set("")
-        _user_id_ctx.set("")
-    except Exception:
-        pass
+    _request_id_ctx.set("")
+    _tenant_id_ctx.set("")
+    _user_id_ctx.set("")
 
 
 class RequestContextFilter(logging.Filter):

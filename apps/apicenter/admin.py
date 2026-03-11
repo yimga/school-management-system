@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from config.admin import register_tenant_admin
-from .models import APIAuditLog, APIKey
+from .models import APIAuditLog, APIKey, APIQuota
 
 
 class APIKeyAdmin(admin.ModelAdmin):
@@ -23,5 +23,11 @@ class APIAuditLogAdmin(admin.ModelAdmin):
     reason_short.short_description = "Reason"
 
 
+class APIQuotaAdmin(admin.ModelAdmin):
+    list_display = ("quota_type", "school", "limit_value", "period_minutes")
+    list_filter = ("quota_type",)
+
+
 register_tenant_admin(APIKey, APIKeyAdmin)
+register_tenant_admin(APIQuota, APIQuotaAdmin)
 register_tenant_admin(APIAuditLog, APIAuditLogAdmin)

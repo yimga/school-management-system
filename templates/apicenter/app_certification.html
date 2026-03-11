@@ -1,0 +1,16 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "App certification" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <h4 class="mb-3">{% trans "App certification" %}</h4>
+  <p class="text-muted">{% trans "Developer platform (8.1): Submit your app for certification to list in the marketplace. Certification criteria and form coming in a future release." %}</p>
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <a href="{% url 'apicenter:dashboard' %}" class="btn btn-outline-primary">{% trans "Back to API Center" %}</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

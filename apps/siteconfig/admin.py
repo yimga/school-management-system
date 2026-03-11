@@ -16,6 +16,14 @@ from django.core.exceptions import ValidationError
 from django.urls import NoReverseMatch, reverse
 from urllib.parse import quote
 
+from apps.brand_experience.models import (
+    BrandProfile,
+    BrandSettings,
+    DesignTemplate,
+    GlobalBrandRegistry,
+    ThemePack,
+)
+from apps.brand_experience.admin import ThemePackAdmin
 from .models import (
     DynamicFieldDefinition,
     DynamicFieldValue,
@@ -27,7 +35,6 @@ from .models import (
     SiteSettings,
     TenantAdmissionNumberPolicy,
     ServiceIntegration,
-    ThemePack,
     UserPreference,
     RegionConfig,
     EducationSystemProfile,
@@ -46,10 +53,6 @@ from .models import (
     RevenueSnapshot,
     BillingWaiverAuditLog,
     WaiverRequest,
-    DesignTemplate,
-    BrandProfile,
-    BrandSettings,
-    GlobalBrandRegistry,
     CustomFeatureTicket,
     FeatureFragment,
     CustomNuance,
@@ -180,7 +183,11 @@ class SiteSettingsForm(forms.ModelForm):
                     (current_profile_id, f"Profile #{current_profile_id}")
                 )
         self.initial["compliance_profile"] = current_profile_id
-        flags = self.instance.backend_feature_flags if self.instance else default_backend_feature_flags()
+        flags = (
+            self.instance.get_backend_feature_flags()
+            if self.instance and callable(getattr(self.instance, "get_backend_feature_flags", None))
+            else default_backend_feature_flags()
+        )
         self.fields["allowed_roles_entity_console"].initial = flags.get("allowed_roles_entity_console", [])
         self.fields["allowed_roles_entity_import"].initial = flags.get("allowed_roles_entity_import", [])
         self.fields["allowed_roles_api_schema"].initial = flags.get("allowed_roles_api_schema", [])
@@ -930,7 +937,10 @@ class SiteSettingsAdmin(ModelAdmin):
     integrations_api_center_block.short_description = "Integrations & API Center"
 
     def backend_flags_summary(self, obj):
-        flags = getattr(obj, "backend_feature_flags", {}) or {}
+        if callable(getattr(obj, "get_backend_feature_flags", None)):
+            flags = obj.get_backend_feature_flags()
+        else:
+            flags = getattr(obj, "backend_feature_flags", {}) or {}
         console = "On" if flags.get("enable_entity_console") else "Off"
         imp = "On" if flags.get("enable_entity_import") else "Off"
         schema = "On" if flags.get("enable_api_schema_ui") else "Off"
@@ -994,52 +1004,6 @@ class SiteSettingsAdmin(ModelAdmin):
             self.log_change(request, obj, f"Updated SiteSettings ({summary})")
         else:
             self.log_addition(request, obj, {"added": True})
-
-
-class ThemePackAdmin(ModelAdmin):
-    change_form_template = "admin/siteconfig/themepack/change_form.html"
-    list_display = ("name", "is_active", "is_default", "layout", "palette_preview")
-    list_filter = ("is_active", "layout")
-    prepopulated_fields = {"slug": ("name",)}
-    search_fields = ("name", "slug")
-    fieldsets = (
-        (
-            "Color Picker",
-            {
-                "description": "Searching for that perfect color? Use our hex color picker to browse millions of colors and harmonies, and export Hex, RGB, HSL and OKLCH codes.",
-                "fields": ("primary_color", "accent_color", "background_color"),
-            },
-        ),
-        (None, {"fields": ("name", "slug", "description", "font_family", "layout", "palette")}),
-        ("Assets", {"fields": ("logo", "background_image", "video_background", "svg_background", "logo_opacity", "logo_background_mode")}),
-        ("Options", {"fields": ("applies_to_admin", "backend_console_theme", "is_active", "is_default", "custom_css")}),
-    )
-
-    # Theme packs are managed from Theme & Experience studio; hide standalone model page.
-    def has_module_permission(self, request):
-        return False
-
-    def get_model_perms(self, request):
-        return {}
-
-    def _studio_redirect(self):
-        return HttpResponseRedirect(reverse("siteconfig:theme_colors"))
-
-    def changelist_view(self, request, extra_context=None):
-        return self._studio_redirect()
-
-    def add_view(self, request, form_url="", extra_context=None):
-        return self._studio_redirect()
-
-    def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
-        return self._studio_redirect()
-
-    def palette_preview(self, obj):
-        start, end = obj.gradient_colors
-        style = f"background: linear-gradient(135deg, {start}, {end}); width: 160px; height: 36px; border-radius: 12px;"
-        return format_html("<div style='{}'></div>", style)
-
-    palette_preview.short_description = "Gradient"
 
 
 class UserPreferenceAdmin(ModelAdmin):
@@ -1459,7 +1423,7 @@ class RegionConfigAdmin(ModelAdmin):
                 f"(Code: {new_code}) with {source_region.gradingscaleconfig_set.count()} grading scales.",
                 messages.SUCCESS
             )
-        except Exception as e:
+        except (DatabaseError, OperationalError, TypeError, ValidationError, ValueError) as e:
             self.message_user(request, f"✗ Error cloning region: {str(e)}", messages.ERROR)
     
     clone_region.short_description = "🔄 Clone selected region"
@@ -2119,7 +2083,7 @@ class WaiverRequestAdmin(ModelAdmin):
                     wr.decided_at = timezone.now()
                     wr.save(update_fields=["status", "decided_by", "decided_at", "updated_at"])
                     count += 1
-            except Exception as e:
+            except (DatabaseError, OperationalError, TypeError, ValueError) as e:
                 self.message_user(request, f"Failed to approve {wr}: {e}", level=messages.ERROR)
         if count:
             self.message_user(request, f"Approved {count} waiver request(s).", level=messages.SUCCESS)
@@ -2229,7 +2193,7 @@ class PendingNuanceAdmin(ModelAdmin):
                     pn.reviewed_at = timezone.now()
                     pn.save(update_fields=["status", "reviewed_by", "reviewed_at", "updated_at"])
                     count += 1
-            except Exception as e:
+            except (DatabaseError, OperationalError, TypeError, ValueError) as e:
                 errors.append(f"{pn.school.name} / {pn.hook_point}: {e}")
         if count:
             self.message_user(request, f"Approved {count} pending nuance(s).", level=messages.SUCCESS)
@@ -2262,42 +2226,6 @@ class FeatureFragmentAdmin(ModelAdmin):
 
 register_platform_admin(CustomFeatureTicket, CustomFeatureTicketAdmin)
 register_platform_admin(FeatureFragment, FeatureFragmentAdmin)
-
-
-class DesignTemplateAdmin(ModelAdmin):
-    list_display = ("name", "school", "document_type", "is_default", "created_at")
-    list_filter = ("document_type", "is_default")
-    search_fields = ("name", "school__name")
-    raw_id_fields = ("school",)
-    readonly_fields = ("created_at", "updated_at")
-
-
-class BrandProfileAdmin(ModelAdmin):
-    list_display = ("school", "primary_color", "accent_color", "tagline", "updated_at")
-    raw_id_fields = ("school",)
-    readonly_fields = ("created_at", "updated_at")
-
-
-class BrandSettingsAdmin(ModelAdmin):
-    list_display = ("school", "primary_color", "accent_color", "updated_at")
-    raw_id_fields = ("school",)
-    readonly_fields = ("created_at", "updated_at")
-
-
-class GlobalBrandRegistryAdmin(ModelAdmin):
-    list_display = (
-        "iso_code",
-        "country_name",
-        "primary_language",
-        "currency_code",
-        "is_active",
-        "source_name",
-        "source_synced_at",
-        "updated_at",
-    )
-    list_filter = ("is_active", "primary_language", "currency_code", "source_name")
-    search_fields = ("iso_code", "country_name")
-    readonly_fields = ("created_at", "updated_at")
 
 
 # Register dashboard preference and widget models for admin configurability

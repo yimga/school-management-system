@@ -11,12 +11,13 @@ from .models import OrchestrationRun
 
 @staff_member_required
 def operator_workbench(request):
-    """Operator view: list recent orchestration runs and status."""
+    """Operator view: list recent orchestration runs, SLA overdue, retries (4.1)."""
     runs = OrchestrationRun.objects.select_related("definition", "school").order_by("-created_at")[:100]
+    runs_overdue = [r for r in runs if getattr(r, "sla_overdue", False)]
     return render(
         request,
         "orchestration/operator_workbench.html",
-        {"runs": runs},
+        {"runs": runs, "runs_overdue": runs_overdue},
     )
 
 

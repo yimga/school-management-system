@@ -6,7 +6,7 @@ Ensures redirect URL includes preview_section and preview_keep when provided.
 from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from django.urls import reverse
-from apps.siteconfig.models import ThemePack
+from apps.brand_experience.models import ThemePack
 from apps.siteconfig.views import SESSION_KEY
 
 User = get_user_model()

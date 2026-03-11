@@ -3,6 +3,7 @@ Tenant-side custom domain API and wizard: list/add/verify domains.
 Requires request.school; used in School Settings.
 """
 import json
+from json import JSONDecodeError
 import re
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -50,7 +51,7 @@ def api_domains_list_or_create(request):
         return JsonResponse({"domains": domains})
     try:
         body = json.loads(request.body) if request.body else {}
-    except Exception:
+    except (JSONDecodeError, TypeError, UnicodeDecodeError, ValueError):
         body = {}
     domain = (request.POST.get("domain") or body.get("domain") or "").strip()
     if not domain:

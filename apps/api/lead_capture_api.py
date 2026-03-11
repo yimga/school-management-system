@@ -24,6 +24,13 @@ logger = logging.getLogger(__name__)
 LEAD_CAPTURE_WINDOW_SECONDS = 60 * 15
 LEAD_CAPTURE_IP_MAX = 30
 LEAD_CAPTURE_SCHOOL_MAX = 200
+LEAD_CAPTURE_SOFT_FAILURES = (
+    AttributeError,
+    OSError,
+    RuntimeError,
+    TypeError,
+    ValueError,
+)
 
 
 def _client_ip(request) -> str:
@@ -43,13 +50,13 @@ def _incr_with_limit(key: str, max_count: int, window_seconds: int) -> tuple[boo
             return True, 0
         try:
             count = cache.incr(key)
-        except Exception:
+        except LEAD_CAPTURE_SOFT_FAILURES:
             count = int(cache.get(key, 0) or 0) + 1
             cache.set(key, count, timeout=window_seconds)
         if int(count) > int(max_count):
             return False, window_seconds
         return True, 0
-    except Exception:
+    except LEAD_CAPTURE_SOFT_FAILURES:
         # Fail-open if cache is unavailable; do not block admissions.
         logger.debug("Lead capture rate-limit cache failure for key=%s", key)
         return True, 0
@@ -66,7 +73,7 @@ class LeadCaptureAPI(View):
     def post(self, request):
         try:
             body = json.loads(request.body) if request.body else {}
-        except Exception:
+        except (TypeError, ValueError):
             return JsonResponse({"error": "Invalid JSON"}, status=400)
 
         school_slug = (body.get("school_slug") or "").strip() or request.GET.get("school_slug", "").strip()

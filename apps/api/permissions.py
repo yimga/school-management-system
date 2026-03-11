@@ -106,14 +106,13 @@ class RoleBasedPermission(permissions.BasePermission):
         role = (getattr(user, "role", "") or "").strip().upper()
         allowed = self.ROLE_PERMISSIONS.get(role, [])
         if not allowed:
-            try:
-                for ac in getattr(user, "roles", []).all():
-                    code = (getattr(ac, "code", None) or "").strip().upper()
-                    if code in self.ROLE_PERMISSIONS:
-                        allowed = self.ROLE_PERMISSIONS[code]
-                        break
-            except Exception:
-                pass
+            role_manager = getattr(user, "roles", None)
+            role_rows = role_manager.all() if hasattr(role_manager, "all") else []
+            for ac in role_rows:
+                code = (getattr(ac, "code", None) or "").strip().upper()
+                if code in self.ROLE_PERMISSIONS:
+                    allowed = self.ROLE_PERMISSIONS[code]
+                    break
         action = getattr(view, "action", None) or "retrieve"
         return action in allowed
 

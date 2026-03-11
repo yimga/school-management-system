@@ -12,10 +12,12 @@ from django.test import RequestFactory, SimpleTestCase, TestCase
 from django.urls import reverse
 
 from apps.accounts.models import Permission
+from apps.brand_experience.models import ThemePack
+from apps.runtime_blueprints.models import ReportCardStyle
 from config.admin import tenant_admin_site
 from apps.siteconfig.context_processors import site_settings
 from apps.siteconfig.forms import THEME_PUBLISH_GUARDED_FIELDS, ThemeColorsForm
-from apps.siteconfig.models import ReportCardStyle, SiteSettings, ThemePack
+from apps.siteconfig.models import SiteSettings
 from apps.siteconfig.admin import ThemePackAdmin
 
 
@@ -313,6 +315,15 @@ class ThemeResolutionTests(TestCase):
         request.user = AnonymousUser()
         request.session = {}
         return site_settings(request)
+
+    def test_site_settings_theme_resolution_prefers_brand_experience_owner_surface(self):
+        self.site.theme_pack = self.admin_pack
+        self.site.save(update_fields=["theme_pack"])
+
+        resolved = self.site.active_theme
+
+        self.assertIsNotNone(resolved)
+        self.assertEqual(resolved._meta.app_label, "brand_experience")
 
     def test_admin_use_site_primary_true_forces_site_colors(self):
         self.site.admin_use_site_primary = True

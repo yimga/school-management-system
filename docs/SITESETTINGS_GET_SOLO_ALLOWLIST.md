@@ -8,7 +8,7 @@
 |------|--------|
 | `apps/siteconfig/models.py` | Definition and internal use of singleton (e.g. `get_solo()` method, default helpers). |
 | `apps/platform_runtime/helpers.py` | Canonical shim layer; uses `get_solo()` as platform fallback for `get_effective_site_settings`, `get_effective_flags`, `get_site_display_name`. |
-| `apps/policies/resolver.py` | Policy builder; backfill from SiteSettings when school-level settings missing (admissions, grade approval). Documented backfill path. |
+| *(removed)* | ~~apps/policies/resolver.py~~ — **1.3 done:** Resolver uses `get_effective_site_settings(school=)` only; no get_solo(). |
 | `apps/siteconfig/management/commands/*` | Control-plane / ops only (seed, export, bootstrap). |
 | `apps/finance/management/commands/*` | Control-plane / ops only (preflight, seed_finance_defaults, report_finance_opt_in_gaps). |
 | `apps/reports/management/commands/*` | Control-plane / ops only (generate_regional_reports). |

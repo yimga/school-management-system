@@ -4,7 +4,7 @@ Builds grouped nav items for /super/ from a single source of truth.
 Used by context processor to inject CONTROL_PLANE_NAV; template renders from it.
 Each item has "id" for favorites/pins (Phase 8).
 """
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 
 
 def _safe_reverse(url_name, urlconf=None, kwargs=None, args=None):
@@ -12,7 +12,7 @@ def _safe_reverse(url_name, urlconf=None, kwargs=None, args=None):
         if args:
             return reverse(url_name, args=args, urlconf=urlconf)
         return reverse(url_name, kwargs=kwargs or {}, urlconf=urlconf)
-    except Exception:
+    except NoReverseMatch:
         return None
 
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+from binascii import Error as BinasciiError
 import secrets
 import xml.etree.ElementTree as ET
 from urllib.parse import urlencode
@@ -67,7 +68,7 @@ def _xml_text(node):
 def _parse_saml_response(xml_bytes: bytes) -> dict:
     try:
         root = ET.fromstring(xml_bytes)
-    except Exception:
+    except ET.ParseError:
         return {}
 
     subject_name_id = ""
@@ -169,12 +170,9 @@ def saml_start(request, integration_ref: str):
 
 
 @csrf_exempt
-@require_http_methods(["GET", "POST"])
+@require_http_methods(["POST"])
 def saml_acs(request, integration_id: int):
-    relay_state = (
-        (request.POST.get("RelayState") or "").strip()
-        or (request.GET.get("RelayState") or "").strip()
-    )
+    relay_state = (request.POST.get("RelayState") or "").strip()
     if not relay_state:
         return JsonResponse({"error": "Missing RelayState"}, status=400)
 
@@ -193,15 +191,12 @@ def saml_acs(request, integration_id: int):
     if str(pending.get("school_id")) != str(school.pk):
         return JsonResponse({"error": "Tenant mismatch"}, status=403)
 
-    saml_response = (
-        (request.POST.get("SAMLResponse") or "").strip()
-        or (request.GET.get("SAMLResponse") or "").strip()
-    )
+    saml_response = (request.POST.get("SAMLResponse") or "").strip()
     if not saml_response:
         return JsonResponse({"error": "Missing SAMLResponse"}, status=400)
     try:
-        xml_bytes = base64.b64decode(saml_response)
-    except Exception:
+        xml_bytes = base64.b64decode(saml_response, validate=True)
+    except (BinasciiError, ValueError):
         return JsonResponse({"error": "Invalid SAMLResponse"}, status=400)
 
     claims = _parse_saml_response(xml_bytes)
@@ -254,11 +249,10 @@ def saml_acs(request, integration_id: int):
         defaults={"role": role, "is_primary": True},
     )
 
-    try:
-        del request.session[f"saml:{integration_id}:{relay_state}"]
+    session_key = f"saml:{integration_id}:{relay_state}"
+    if session_key in request.session:
+        del request.session[session_key]
         request.session.modified = True
-    except Exception:
-        pass
 
     login(request, user, backend="django.contrib.auth.backends.ModelBackend")
     next_url = str(pending.get("next") or "").strip() or str((integration.config or {}).get("post_login_redirect") or "").strip()

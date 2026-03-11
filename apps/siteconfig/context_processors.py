@@ -1,6 +1,6 @@
 import json
 from django.db import DatabaseError, connection, transaction
-from .models import SiteSettings, default_backend_feature_flags, default_header_weather_config
+from .models import SiteSettings, default_header_weather_config
 from .translations import TranslationManager, SUPPORTED_LANGUAGES
 from .models_dashboard import DashboardUserPreference
 from django.core.files.storage import default_storage
@@ -11,7 +11,7 @@ from django.utils.translation import gettext as _
 from apps.accounts.models import User
 from apps.finance.models import Notification
 from apps.global_registries.models import RegionConfig
-from apps.platform_runtime.helpers import get_effective_site_settings, get_platform_defaults
+from apps.platform_runtime.helpers import get_effective_flags, get_effective_site_settings, get_platform_defaults
 from .preview_state import PREVIEW_MODE_SESSION_KEY, ACT_AS_ROLE_SESSION_KEY
 from .portal_sidebar_items import build_portal_sidebar_items
 from apps.policies.policy_registry import get_effective_policy
@@ -176,6 +176,20 @@ def _resolve_media_url(file_field, fallback: str | None = None) -> str:
     return static(fallback) if fallback else ""
 
 
+def _resolve_backend_feature_flags(request, site) -> dict:
+    """Resolve backend feature flags through runtime first, then legacy site fallback."""
+    try:
+        flags = get_effective_flags(request)
+        if isinstance(flags, dict):
+            return flags
+    except OPTIONAL_CONTEXT_ERRORS:
+        pass
+    if callable(getattr(site, "get_backend_feature_flags", None)):
+        return site.get_backend_feature_flags()
+    fallback_flags = getattr(site, "backend_feature_flags", None) or {}
+    return dict(fallback_flags) if isinstance(fallback_flags, dict) else {}
+
+
 def site_settings(request):
     """
     Provides SITE to all templates.
@@ -194,7 +208,20 @@ def site_settings(request):
 
     session = getattr(request, "session", None)
     preview_settings = session.get(SESSION_KEY) if session else None
-    preview_mode_enabled = getattr(request, "preview_mode_enabled", False) or getattr(site, "preview_mode_enabled", False)
+    preview_config = (
+        site.get_preview_platform_config()
+        if callable(getattr(site, "get_preview_platform_config", None))
+        else {
+            "preview_mode_enabled": getattr(site, "preview_mode_enabled", False),
+            "preview_note": getattr(site, "preview_note", ""),
+            "preview_toggle_enabled": getattr(site, "preview_toggle_enabled", True),
+            "preview_toggle_label": getattr(site, "preview_toggle_label", "Toggle preview"),
+            "preview_banner_text": getattr(site, "preview_banner_text", ""),
+        }
+    )
+    preview_mode_enabled = getattr(request, "preview_mode_enabled", False) or bool(
+        preview_config.get("preview_mode_enabled", False)
+    )
     preview_flag = bool(preview_settings) or preview_mode_enabled
 
     if preview_settings:
@@ -280,8 +307,7 @@ def site_settings(request):
             recipient=user,
             is_read=False,
         ).count()
-    feature_flags = dict(default_backend_feature_flags())
-    feature_flags.update(site.backend_feature_flags or {})
+    feature_flags = _resolve_backend_feature_flags(request, site)
     admin_theme = site.get_admin_theme()
     use_site_primary_for_admin = bool(getattr(site, "admin_use_site_primary", False))
     admin_background_url = _resolve_media_url(admin_theme.background_image if admin_theme else None)
@@ -336,7 +362,8 @@ def site_settings(request):
     school = getattr(request, "school", None)
     if school and getattr(school, "theme_pack_id", None):
         try:
-            from .models import ThemePack
+            from apps.brand_experience.models import ThemePack
+
             school_pack = ThemePack.objects.filter(pk=school.theme_pack_id, is_active=True).first()
             if school_pack:
                 site_theme = school_pack
@@ -395,11 +422,11 @@ def site_settings(request):
         "portal_home_url": portal_home_url,
         "PREVIEW_ACT_AS_ROLE": act_as_role,
         "PREVIEW_ACT_AS_CHOICES": act_as_choices,
-        "PREVIEW_NOTE": getattr(site, "preview_note", ""),
+        "PREVIEW_NOTE": str(preview_config.get("preview_note", "") or ""),
         "PREVIEW_MODE_ENABLED": preview_flag,
-        "PREVIEW_TOGGLE_ENABLED": getattr(site, "preview_toggle_enabled", True),
-        "PREVIEW_TOGGLE_LABEL": getattr(site, "preview_toggle_label", "Toggle preview"),
-        "PREVIEW_BANNER_TEXT": getattr(site, "preview_banner_text", ""),
+        "PREVIEW_TOGGLE_ENABLED": bool(preview_config.get("preview_toggle_enabled", True)),
+        "PREVIEW_TOGGLE_LABEL": str(preview_config.get("preview_toggle_label", "Toggle preview") or "Toggle preview"),
+        "PREVIEW_BANNER_TEXT": str(preview_config.get("preview_banner_text", "") or ""),
         "FINANCE_REQUEST_ALERT_COUNT": finance_request_alerts,
         "FINANCE_REQUEST_LINK": finance_request_url,
         "NOTIFICATIONS_UNREAD_COUNT": notifications_unread_count,
@@ -540,7 +567,7 @@ def site_settings(request):
     else:
         offline_enabled = True
     ctx["OFFLINE_ENABLED_FOR_CURRENT_SCHOOL"] = bool(site.enable_offline_mode) and offline_enabled
-    flags_ctx = getattr(site, "backend_feature_flags", None) or {}
+    flags_ctx = _resolve_backend_feature_flags(request, site)
     # Whether to show the connection status bar (offline pill) in the header.
     ctx["SHOW_OFFLINE_STATUS_BAR"] = ctx["OFFLINE_ENABLED_FOR_CURRENT_SCHOOL"] and bool(
         flags_ctx.get("show_offline_status_bar", True)

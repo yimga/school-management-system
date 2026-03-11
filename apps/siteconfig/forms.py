@@ -8,15 +8,15 @@ from django.db import DatabaseError, OperationalError, ProgrammingError
 from django.db.models import Q
 
 from apps.academics.models import Classroom
+from apps.brand_experience.models import ThemePack
 from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.runtime_blueprints.models import ReportCardStyle
 
 from .models import (
     DashboardView,
     PORTAL_FEATURE_DEFAULTS,
     PORTAL_FEATURE_OPTIONS,
     RegionConfig,
-    ThemePack,
-    ReportCardStyle,
     ReportCardStyleAssignment,
     SiteSettings,
     UserPreference,

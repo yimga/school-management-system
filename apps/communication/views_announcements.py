@@ -9,6 +9,8 @@ Views for announcement management with tiered permissions:
 from django import forms
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import DatabaseError
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpRequest, HttpResponseForbidden
 from django.db.models import Q
@@ -35,6 +37,16 @@ from apps.people.models import TeacherProfile
 from apps.academics.models import Department
 from apps.platform_runtime.helpers import get_effective_flags
 from apps.siteconfig.models import default_announcement_submit_for_approval_roles
+
+ANNOUNCEMENT_FLAG_FAILURES = (
+    AttributeError,
+    DatabaseError,
+    ImportError,
+    LookupError,
+    ObjectDoesNotExist,
+    TypeError,
+    ValueError,
+)
 
 
 def _announcement_school(request: HttpRequest):
@@ -71,7 +83,7 @@ def _get_announcement_feature_flags(request=None):
                     or approval_policy.get("submit_for_approval_roles")
                     or []
                 )
-            except Exception:
+            except ANNOUNCEMENT_FLAG_FAILURES:
                 policy_roles = []
         return {
             "allow_submit_for_approval": flags.get("announcement_allow_submit_for_approval", False),
@@ -81,7 +93,7 @@ def _get_announcement_feature_flags(request=None):
                 or default_announcement_submit_for_approval_roles()
             ),
         }
-    except Exception:
+    except ANNOUNCEMENT_FLAG_FAILURES:
         return {
             "allow_submit_for_approval": False,
             "submit_for_approval_roles": default_announcement_submit_for_approval_roles(),

@@ -2,7 +2,7 @@
 
 **Purpose:** Split oversized app files by bounded domain and enforce line thresholds in CI so the codebase stays maintainable.
 
-**CI:** `scripts/lint_mega_files.py` runs in pre-deploy gate. With `CODEX_STRICT=1` it fails when any file in `apps/` exceeds the threshold. Default threshold: **5000 lines** (reduce over time, e.g. 3500 → 2500).
+**CI:** `scripts/lint_mega_files.py` runs in pre-deploy gate. With `CODEX_STRICT=1` it fails when any file in `apps/` exceeds the threshold. Default: **4500 lines**; lower to 3500 after siteconfig/models and schools/marketing_views are split.
 
 ---
 
@@ -13,9 +13,9 @@
 | `apps/siteconfig/models.py` | &lt; 2500 | **Started:** AI models moved to `siteconfig/models_ai.py`; re-export from `models.py`. |
 | `apps/accounts/views.py` | &lt; 1500 | Split by domain: auth, dashboard, profile, approvals, etc. |
 | `apps/schools/super_views.py` | &lt; 1500 | **Started:** migration cloud, profile registry, rollback, sync_repair → `super_views_migration.py` (re-exported). Remainder: dashboard, tenant CRUD, runtime inspector, workflow simulator, etc. |
-| `apps/portal/views.py` | &lt; 1500 | Split: dashboard, documents, features, AI gateway, etc. |
-| `apps/finance/views.py` | &lt; 1200 | Split: invoices, fees, reports, permissions. |
-| `apps/api/views_v1.py` | &lt; 1200 | Split by resource: dashboard, schools, reports, etc. |
+| `apps/portal/views.py` | &lt; 1500 | **Done:** parent_finance, parent_wallet, parent_feed → `views_parent_finance.py`. |
+| `apps/finance/views.py` | &lt; 1200 | **Done:** finance_reports, submit_report_request → `views_reports.py`. |
+| `apps/api/views_v1.py` | &lt; 1200 | **Done:** Intervention* views → `views_v1_intervention.py`. |
 
 ---
 

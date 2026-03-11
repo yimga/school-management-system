@@ -42,7 +42,7 @@ class DomainEventAdmin(admin.ModelAdmin):
         try:
             s = json.dumps(obj.payload)[:500]
             return format_html("<pre>{}</pre>", s)
-        except Exception:
+        except (TypeError, ValueError):
             return str(obj.payload)[:500]
 
     payload_preview.short_description = "Payload (preview)"

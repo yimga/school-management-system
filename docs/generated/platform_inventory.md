@@ -1,16 +1,16 @@
 # Platform Inventory
 
 - Installed app modules: `41`
-- Python files: `1694`
-- HTML templates: `452`
-- Markdown files: `790`
-- Migration files: `578`
-- Management commands: `136`
-- `SiteSettings` refs: `1046`
-- `get_solo()` refs: `201`
-- `except Exception`: `867`
-- `cursor.execute()`: `352`
-- `csrf_exempt`: `80`
+- Python files: `1734`
+- HTML templates: `456`
+- Markdown files: `793`
+- Migration files: `582`
+- Management commands: `137`
+- `SiteSettings` refs: `1070`
+- `get_solo()` refs: `211`
+- `except Exception`: `765`
+- `cursor.execute()`: `351`
+- `csrf_exempt`: `79`
 - `AllowAny`: `34`
 - `print()`: `426`
 - `gilead` matches: `489` across `113` files
@@ -24,16 +24,17 @@
 
 ## SiteSettings Ownership
 
-- `brand_experience`: `41` fields
+- `brand_experience`: `53` fields
+- `delete`: `1` fields
 - `design_studio`: `1` fields
-- `global_registries`: `3` fields
-- `marketplace_integrations`: `1` fields
-- `metadata_governance`: `111` fields
-- `policies_rules`: `3` fields
-- `preview_platform`: `2` fields
-- `reports`: `4` fields
-- `runtime_blueprints`: `13` fields
-- `safe_platform_default`: `1` fields
+- `documents`: `1` fields
+- `global_registries`: `6` fields
+- `marketplace_integrations`: `9` fields
+- `policies_rules`: `80` fields
+- `preview_platform`: `3` fields
+- `reports`: `10` fields
+- `runtime_blueprints`: `14` fields
+- `safe_platform_default`: `2` fields
 
 ## Successor Domain Imports Still Touching siteconfig
 
@@ -46,16 +47,16 @@
 ## Largest Python Files
 
 - `apps/schools/marketing_views.py`: `3632` lines / `209838` bytes
-- `apps/siteconfig/models.py`: `4495` lines / `175005` bytes
-- `apps/accounts/views.py`: `3371` lines / `155296` bytes
-- `apps/schools/super_views.py`: `3202` lines / `137371` bytes
-- `apps/siteconfig/admin.py`: `2508` lines / `108197` bytes
-- `apps/portal/views.py`: `2427` lines / `107839` bytes
+- `apps/siteconfig/models.py`: `4731` lines / `183976` bytes
+- `apps/schools/super_views.py`: `3040` lines / `130154` bytes
+- `apps/accounts/views.py`: `2653` lines / `121002` bytes
 - `apps/evals/views.py`: `2554` lines / `107531` bytes
-- `apps/finance/views.py`: `2381` lines / `103209` bytes
-- `apps/api/views_v1.py`: `1903` lines / `99636` bytes
+- `apps/siteconfig/admin.py`: `2436` lines / `105449` bytes
+- `apps/finance/views.py`: `2297` lines / `97872` bytes
+- `apps/portal/views.py`: `2211` lines / `96382` bytes
 - `apps/finance/models.py`: `2554` lines / `95611` bytes
-- `apps/siteconfig/views.py`: `1774` lines / `74154` bytes
+- `apps/api/views_v1.py`: `1756` lines / `90937` bytes
+- `apps/siteconfig/views.py`: `1788` lines / `75460` bytes
 - `apps/finance/tasks.py`: `1604` lines / `74083` bytes
 
 ## Documentation Drift

@@ -1,0 +1,41 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+
+{% block title %}{% if is_edit %}{% trans "Edit webhook" %}{% else %}{% trans "Create webhook" %}{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <h4 class="mb-3">{% if is_edit %}{% trans "Edit webhook subscription" %}{% else %}{% trans "Create webhook subscription" %}{% endif %}</h4>
+  <form method="post" action="{% if is_edit %}{% url 'apicenter:webhook_subscription_edit' subscription.pk %}{% else %}{% url 'apicenter:webhook_subscription_create' %}{% endif %}">
+    {% csrf_token %}
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div class="mb-3">
+          <label for="url" class="form-label">{% trans "Endpoint URL" %} *</label>
+          <input type="url" class="form-control" id="url" name="url" value="{{ subscription.url|default:'' }}" required maxlength="2048" placeholder="https://your-server.com/webhooks">
+        </div>
+        <div class="mb-3">
+          <label for="event_types" class="form-label">{% trans "Event types (comma-separated; empty = all)" %}</label>
+          <input type="text" class="form-control" id="event_types" name="event_types" value="{{ subscription.event_types|join:', ' }}" placeholder="student.enrolled, invoice.created">
+        </div>
+        <div class="mb-3">
+          <label for="description" class="form-label">{% trans "Description" %}</label>
+          <input type="text" class="form-control" id="description" name="description" value="{{ subscription.description|default:'' }}" maxlength="255">
+        </div>
+        <div class="mb-3">
+          <label for="secret" class="form-label">{% trans "Secret (HMAC signing)" %}</label>
+          <input type="password" class="form-control" id="secret" name="secret" placeholder="{% if is_edit %}{% trans 'Leave blank to keep current' %}{% endif %}">
+        </div>
+        {% if is_edit %}
+        <div class="mb-3 form-check">
+          <input type="checkbox" class="form-check-input" id="is_active" name="is_active" value="on" {% if subscription.is_active %}checked{% endif %}>
+          <label class="form-check-label" for="is_active">{% trans "Active" %}</label>
+        </div>
+        {% endif %}
+        <button type="submit" class="btn btn-primary">{% if is_edit %}{% trans "Save" %}{% else %}{% trans "Create" %}{% endif %}</button>
+        <a href="{% url 'apicenter:webhook_docs' %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

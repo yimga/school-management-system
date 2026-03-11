@@ -1,6 +1,9 @@
 from django.test import SimpleTestCase
 
 from apps.siteconfig import brand_registry, branding, metadata_catalog
+from apps.siteconfig import admin as siteconfig_admin
+from apps.siteconfig import forms as siteconfig_forms
+from apps.siteconfig import views as siteconfig_views
 from apps.siteconfig.models import (
     BrandProfile as LegacyBrandProfile,
     Integration as LegacyIntegration,
@@ -48,6 +51,14 @@ class BoundedContextOwnershipTests(SimpleTestCase):
         self.assertEqual(metadata_catalog.ThemePack._meta.app_label, "brand_experience")
         self.assertEqual(metadata_catalog.CountryRegistry._meta.app_label, "registries")
         self.assertEqual(metadata_catalog.Integration._meta.app_label, "integrations_marketplace")
+
+    def test_siteconfig_operator_surfaces_use_successor_theme_owner_model(self):
+        self.assertEqual(siteconfig_forms.ThemePack._meta.app_label, "brand_experience")
+        self.assertEqual(siteconfig_admin.ThemePack._meta.app_label, "brand_experience")
+        self.assertEqual(siteconfig_admin.BrandProfile._meta.app_label, "brand_experience")
+        self.assertEqual(siteconfig_admin.BrandSettings._meta.app_label, "brand_experience")
+        self.assertEqual(siteconfig_forms.ReportCardStyle._meta.app_label, "runtime_blueprints")
+        self.assertEqual(siteconfig_views.ReportCardStyle._meta.app_label, "runtime_blueprints")
 
     def test_successor_owner_models_are_registered_in_platform_admin(self):
         for model in (

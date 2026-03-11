@@ -2,12 +2,20 @@
 Government / district aggregate API (Section 14.5).
 Permission-gated; returns aggregates only (no PII). Stub for EMIS/reporting extensions.
 """
+from django.db import DatabaseError
 from django.http import JsonResponse
 from django.views import View
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_GET
-from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
+
+GOVERNMENT_AGGREGATE_SOFT_FAILURES = (
+    AttributeError,
+    DatabaseError,
+    LookupError,
+    TypeError,
+    ValueError,
+)
 
 
 @method_decorator(require_GET, name="get")
@@ -48,6 +56,6 @@ class GovernmentAggregatesAPI(View):
                     .annotate(count=Count("id"))
                 )
                 payload["by_region"] = {r["school__country_code"] or "unknown": r["count"] for r in by_region}
-        except Exception:
+        except GOVERNMENT_AGGREGATE_SOFT_FAILURES:
             pass
         return JsonResponse(payload)

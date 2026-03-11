@@ -11,8 +11,9 @@
     <div class="card-body">
       <h5 class="card-title">{% trans "Subscriptions" %}</h5>
       <p class="card-text">{% trans "Subscribe to platform events (e.g. student_created, invoice_created). Manage endpoints below." %}</p>
+      <p><a href="{% url 'apicenter:webhook_subscription_create' %}" class="btn btn-sm btn-primary">{% trans "Create subscription" %}</a></p>
       <table class="table table-sm">
-        <thead><tr><th>URL</th><th>{% trans "Events" %}</th><th>{% trans "Active" %}</th><th>{% trans "Updated" %}</th></tr></thead>
+        <thead><tr><th>URL</th><th>{% trans "Events" %}</th><th>{% trans "Active" %}</th><th>{% trans "Updated" %}</th><th></th></tr></thead>
         <tbody>
           {% for sub in subscriptions %}
           <tr>
@@ -20,9 +21,13 @@
             <td>{{ sub.event_types|join:", "|default:"all" }}</td>
             <td>{% if sub.is_active %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</td>
             <td>{{ sub.updated_at|date:"Y-m-d H:i" }}</td>
+            <td>
+              <a href="{% url 'apicenter:webhook_subscription_edit' sub.pk %}" class="btn btn-outline-secondary btn-sm">{% trans "Edit" %}</a>
+              <form method="post" action="{% url 'apicenter:webhook_subscription_delete' sub.pk %}" class="d-inline" onsubmit="return confirm('{% trans "Delete this subscription?" %}');">{% csrf_token %}<button type="submit" class="btn btn-outline-danger btn-sm">{% trans "Delete" %}</button></form>
+            </td>
           </tr>
           {% empty %}
-          <tr><td colspan="4" class="text-muted">{% trans "No webhook subscriptions yet. Create via Admin or API." %}</td></tr>
+          <tr><td colspan="5" class="text-muted">{% trans "No webhook subscriptions yet. Create one above." %}</td></tr>
           {% endfor %}
         </tbody>
       </table>

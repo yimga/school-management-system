@@ -6,7 +6,19 @@
 {% block content %}
 <div class="container-fluid py-4">
   <h4 class="mb-3">{% trans "API keys & quotas" %}</h4>
-  <p class="text-muted">{% trans "Create and manage API keys for external API authentication. Usage quotas (8.1) coming in a future update." %}</p>
+  <p class="text-muted">{% trans "Create and manage API keys for external API authentication. Quotas (8.1) shown below when configured." %}</p>
+  {% if api_quotas %}
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h5 class="card-title">{% trans "Quotas" %}</h5>
+      <ul class="mb-0">
+        {% for q in api_quotas %}
+        <li><strong>{{ q.get_quota_type_display }}</strong>: {{ q.limit_value }}{% if q.period_minutes %} / {{ q.period_minutes }} min{% endif %}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
 
   {% if new_key_display %}
   <div class="alert alert-success alert-dismissible fade show" role="alert">

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db import DatabaseError
 from django.db.models import Q
 from django.shortcuts import redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -10,6 +11,15 @@ from apps.accounts.models import User
 from apps.communication.models import Message
 
 from .forms_support import SupportRequestForm
+
+SUPPORT_TICKET_SOFT_FAILURES = (
+    AttributeError,
+    DatabaseError,
+    ImportError,
+    LookupError,
+    TypeError,
+    ValueError,
+)
 
 
 def _pick_support_owner() -> User | None:
@@ -78,7 +88,7 @@ def support_request(request):
                     status=GlobalSupportTicket.Status.OPEN,
                     metadata={"country_code": country_code, "plan_slug": plan_slug, "category": form.cleaned_data["category"]},
                 )
-            except Exception:
+            except SUPPORT_TICKET_SOFT_FAILURES:
                 pass
         recipient = _pick_support_owner()
         if recipient:

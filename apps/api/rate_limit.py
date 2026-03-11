@@ -121,6 +121,36 @@ def _check_tenant_quota_limit(school, limit_type: str = "api_calls") -> tuple[bo
         return True, 0
 
 
+def _get_apicenter_quota_for_school(school, quota_type: str = "requests_per_minute") -> tuple[int | None, int | None]:
+    """
+    8.1: If APIQuota exists for this school (or platform-wide) for quota_type, return (limit_value, window_seconds).
+    Otherwise (None, None).
+    """
+    try:
+        from apps.apicenter.models import APIQuota
+        from django.db.models import Q
+        if school and getattr(school, "pk", None):
+            row = (
+                APIQuota.objects.filter(quota_type=quota_type, school_id=school.pk).first()
+                or APIQuota.objects.filter(quota_type=quota_type, school__isnull=True).first()
+            )
+        else:
+            row = APIQuota.objects.filter(quota_type=quota_type, school__isnull=True).first()
+        if not row:
+            return None, None
+        limit = int(row.limit_value) if row.limit_value else None
+        if quota_type == "requests_per_minute":
+            window = (int(row.period_minutes or 1) * 60) if limit else None
+        elif quota_type == "requests_per_day":
+            window = 86400
+        else:
+            window = 60
+        return limit, window
+    except Exception:
+        logger.debug("_get_apicenter_quota_for_school failed", exc_info=True)
+        return None, None
+
+
 def throttle_tenant_request(
     request,
     *,
@@ -131,6 +161,7 @@ def throttle_tenant_request(
     """
     Plan I: Per-tenant API rate limit. Use when request.school is set (e.g. after TenantMiddleware).
     Also enforces TenantQuotaLimit (e.g. api_calls per month) when set for the school.
+    8.1: When APIQuota (requests_per_minute) exists for the school, uses that limit; otherwise settings default.
     Returns (allowed, retry_after_seconds).
     """
     school = getattr(request, "school", None)
@@ -143,8 +174,14 @@ def throttle_tenant_request(
     quota_allowed, quota_retry = _check_tenant_quota_limit(school, limit_type="api_calls")
     if not quota_allowed:
         return False, quota_retry
-    max_count = max_count if max_count is not None else DEFAULT_TENANT_MAX_PER_MINUTE
-    window_seconds = window_seconds if window_seconds is not None else DEFAULT_TENANT_WINDOW_SECONDS
+    # 8.1: Prefer APIQuota (apicenter) when set for this school
+    apicenter_limit, apicenter_window = _get_apicenter_quota_for_school(school, "requests_per_minute")
+    if apicenter_limit is not None and apicenter_window is not None:
+        max_count = apicenter_limit
+        window_seconds = apicenter_window
+    else:
+        max_count = max_count if max_count is not None else DEFAULT_TENANT_MAX_PER_MINUTE
+        window_seconds = window_seconds if window_seconds is not None else DEFAULT_TENANT_WINDOW_SECONDS
     key = f"rate_limit:{scope}:tenant:{tenant_id}"
     allowed, retry = _throttle(key, max_count, window_seconds)
     if allowed:

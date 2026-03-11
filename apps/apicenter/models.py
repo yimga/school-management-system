@@ -74,6 +74,36 @@ class APIKey(models.Model):
         return None
 
 
+class APIQuota(models.Model):
+    """Per-tenant or global API quota (8.1): display and enforcement (e.g. requests per minute)."""
+    QUOTA_TYPES = [
+        ("requests_per_minute", "Requests per minute"),
+        ("requests_per_day", "Requests per day"),
+        ("webhooks_count", "Webhook subscriptions count"),
+    ]
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="api_quotas",
+    )
+    quota_type = models.CharField(max_length=32, choices=QUOTA_TYPES)
+    limit_value = models.PositiveIntegerField(help_text="Max allowed (e.g. 100 for requests_per_minute)")
+    period_minutes = models.PositiveIntegerField(null=True, blank=True, help_text="Optional: period in minutes for rolling window")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["quota_type"]
+        verbose_name = "API Quota"
+        verbose_name_plural = "API Quotas"
+        unique_together = [["school", "quota_type"]]
+
+    def __str__(self):
+        return f"{self.quota_type}: {self.limit_value} (school={self.school_id or 'platform'})"
+
+
 class APIAuditLog(models.Model):
     """Audit trail for Integration enable/disable and other governance changes."""
 

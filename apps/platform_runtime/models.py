@@ -8,6 +8,15 @@ from __future__ import annotations
 from django.db import models
 
 
+def _invalidate_effective_site_settings_cache():
+    """Called when RuntimeDefaults is saved so get_effective_site_settings sees new values."""
+    try:
+        from apps.platform_runtime.helpers import invalidate_effective_site_settings_cache
+        invalidate_effective_site_settings_cache()
+    except (AttributeError, ImportError, OSError, RuntimeError, TypeError, ValueError):
+        pass
+
+
 class RuntimeDefaults(models.Model):
     """
     Platform-level default settings (migrated from SiteSettings).
@@ -24,6 +33,66 @@ class RuntimeDefaults(models.Model):
     @classmethod
     def get_singleton(cls) -> "RuntimeDefaults | None":
         return cls.objects.filter(pk=1).first()
+
+    @classmethod
+    def build_payload_from_site_settings(
+        cls,
+        site_settings,
+        *,
+        owners: list[str] | tuple[str, ...] | set[str] | None = None,
+        exclude_owners: list[str] | tuple[str, ...] | set[str] | None = None,
+    ) -> dict:
+        """Build an ownership-filtered runtime payload from the legacy SiteSettings singleton."""
+        owner_set = set(owners or [])
+        excluded = set(exclude_owners or [])
+        if owner_set:
+            payload: dict = {}
+            for owner in owner_set:
+                payload.update(site_settings.owned_payload(owner=owner, exclude_owners=excluded))
+            return payload
+        return site_settings.owned_payload(exclude_owners=excluded)
+
+    @classmethod
+    def sync_from_site_settings(
+        cls,
+        site_settings=None,
+        *,
+        owners: list[str] | tuple[str, ...] | set[str] | None = None,
+        exclude_owners: list[str] | tuple[str, ...] | set[str] | None = None,
+    ) -> tuple["RuntimeDefaults", bool]:
+        """Persist a filtered RuntimeDefaults payload from SiteSettings and return (object, created)."""
+        if site_settings is None:
+            from apps.siteconfig.models import SiteSettings
+
+            site_settings = SiteSettings.get_solo()
+
+        owner_set = set(owners or [])
+        payload = cls.build_payload_from_site_settings(
+            site_settings,
+            owners=owner_set,
+            exclude_owners=exclude_owners,
+        )
+        obj, created = cls.objects.get_or_create(
+            pk=1,
+            defaults={"payload": payload},
+        )
+        if not created:
+            if owner_set:
+                merged_payload = dict(obj.payload or {})
+                for owner in owner_set:
+                    for field_name in site_settings.owned_field_names(owner=owner):
+                        merged_payload.pop(field_name, None)
+                merged_payload.update(payload)
+                obj.payload = merged_payload
+            else:
+                obj.payload = payload
+            obj.save(update_fields=["payload", "updated_at"])
+        return obj, created
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.pk == 1:
+            _invalidate_effective_site_settings_cache()
 
 
 class AIActionAuditLog(models.Model):

@@ -16,7 +16,7 @@ def _reset_db_state() -> None:
             transaction.set_rollback(False)
         else:
             connection.rollback()
-    except Exception:
+    except (DatabaseError, TransactionManagementError):
         pass
 
 

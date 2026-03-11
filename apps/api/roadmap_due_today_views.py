@@ -83,7 +83,7 @@ class CanaryStatusAPI(View):
         school = getattr(request, "school", None)
         try:
             canary = bool(school and getattr(school, "has_feature", lambda c: False)("canary_tenant"))
-        except Exception:
+        except (AttributeError, TypeError, ValueError):
             canary = False
         return JsonResponse({
             "status": "implemented",

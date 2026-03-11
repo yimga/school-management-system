@@ -2,6 +2,7 @@
 Tenant URL helpers: base-domain detection and building tenant URLs.
 """
 from django.conf import settings
+from django.db import DatabaseError
 from django.urls import reverse
 from apps.schools.host_routing import (
     get_canonical_base_domain,
@@ -21,7 +22,7 @@ def get_single_tenant_slug() -> str | None:
         from apps.schools.models import School
         schools = list(School.objects.filter(is_active=True).values_list("slug", flat=True)[:2])
         return schools[0] if len(schools) == 1 else None
-    except Exception:
+    except (AttributeError, DatabaseError, ImportError, LookupError, TypeError, ValueError):
         return None
 
 

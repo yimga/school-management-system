@@ -2,6 +2,18 @@
 Inject tenant_ctx and global_env (resolved policy) into template context.
 Use request.tenant_ctx and global_env in templates instead of reading school.settings/features directly.
 """
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import DatabaseError
+
+POLICY_CONTEXT_SOFT_FAILURES = (
+    AttributeError,
+    DatabaseError,
+    ImportError,
+    LookupError,
+    ObjectDoesNotExist,
+    TypeError,
+    ValueError,
+)
 
 
 def tenant_policy_context(request):
@@ -19,7 +31,7 @@ def tenant_policy_context(request):
             ctx["tenant_attendance_policy"] = policy.get("attendance") or {}
             ctx["tenant_communication_policy"] = policy.get("communication") or {}
             ctx["tenant_compliance_policy"] = policy.get("compliance") or {}
-        except Exception:
+        except POLICY_CONTEXT_SOFT_FAILURES:
             ctx["global_env"] = {}
             ctx["tenant_attendance_policy"] = {}
             ctx["tenant_communication_policy"] = {}

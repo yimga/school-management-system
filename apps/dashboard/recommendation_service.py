@@ -15,8 +15,6 @@ def _safe_reverse(name: str, fallback: str = "#") -> str:
         return reverse(name)
     except NoReverseMatch:
         return fallback
-    except Exception:
-        return fallback
 
 
 def _append_step(

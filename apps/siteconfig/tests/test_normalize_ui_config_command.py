@@ -3,7 +3,8 @@ from io import StringIO
 from django.core.management import call_command
 from django.test import TestCase
 
-from apps.siteconfig.models import SiteSettings, ThemePack
+from apps.brand_experience.models import ThemePack
+from apps.siteconfig.models import SiteSettings
 
 
 class NormalizeUIConfigCommandTests(TestCase):

@@ -64,6 +64,16 @@ class LeadCaptureAPITests(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json().get("error"), "Invalid email")
 
+    def test_invalid_json_rejected(self):
+        response = self.client.post(
+            self.url,
+            data="{not-valid-json",
+            content_type="application/json",
+            REMOTE_ADDR="127.0.0.1",
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json().get("error"), "Invalid JSON")
+
     def test_rate_limit_returns_429(self):
         payload = {
             "school_slug": self.school.slug,
@@ -85,3 +95,15 @@ class LeadCaptureAPITests(TestCase):
         self.assertEqual(first.status_code, 201)
         self.assertEqual(second.status_code, 429)
         self.assertIn("retry_after", second.json())
+
+    def test_cache_failure_does_not_block_submission(self):
+        with patch("apps.api.lead_capture_api.cache.add", side_effect=OSError("cache down")):
+            response = self._post(
+                {
+                    "school_slug": self.school.slug,
+                    "first_name": "Jane",
+                    "last_name": "Doe",
+                    "email": "cache-failure@example.com",
+                }
+            )
+        self.assertEqual(response.status_code, 201)

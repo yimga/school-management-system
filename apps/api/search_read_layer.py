@@ -13,6 +13,13 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 OPENSEARCH_DSN = getattr(settings, "OPENSEARCH_DSN", None) or None
+OPENSEARCH_SEARCH_FAILURES = (
+    AttributeError,
+    OSError,
+    RuntimeError,
+    TypeError,
+    ValueError,
+)
 
 
 def search(
@@ -31,7 +38,7 @@ def search(
         return None
     try:
         return _search_opensearch(q, search_type=search_type, school_id=school_id, limit=limit)
-    except Exception as e:
+    except OPENSEARCH_SEARCH_FAILURES as e:
         logger.warning("OpenSearch search failed: %s", e)
         return None
 

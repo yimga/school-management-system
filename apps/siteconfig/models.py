@@ -5,6 +5,7 @@ import logging
 import uuid
 
 from django.conf import settings
+from django.core.exceptions import FieldDoesNotExist
 from django.db import models, connection, OperationalError, DatabaseError
 from django.db.models import Q
 from django.db.models.fields.files import FieldFile
@@ -17,6 +18,7 @@ from apps.accounts.models import User
 from apps.academics.models import Classroom, Subject
 from apps.people.models import StudentProfile, TeacherProfile, StudentGuardian
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
+from .domain_ownership import OWNERSHIP_DOMAINS, classify_site_settings_field
 
 logger = logging.getLogger(__name__)
 
@@ -292,6 +294,51 @@ def default_delegation_role_mapping():
     }
 
 
+def get_theme_pack_owner_model():
+    """Resolve the bounded-context owner surface for theme packs, falling back to legacy storage."""
+    try:
+        model = django_apps.get_model("brand_experience", "ThemePack")
+        if model is not None:
+            return model
+    except LookupError:
+        pass
+    return ThemePack
+
+
+def get_report_card_style_owner_model():
+    """Resolve the bounded-context owner surface for report-card styles, falling back to legacy storage."""
+    try:
+        model = django_apps.get_model("runtime_blueprints", "ReportCardStyle")
+        if model is not None:
+            return model
+    except LookupError:
+        pass
+    return ReportCardStyle
+
+
+def _site_settings_json_safe(value):
+    """Serialize SiteSettings field values for ownership payload export."""
+    if value is None:
+        return None
+    if isinstance(value, (str, int, float, bool)):
+        return value
+    if isinstance(value, Decimal):
+        return str(value)
+    if isinstance(value, (list, tuple)):
+        return [_site_settings_json_safe(item) for item in value]
+    if isinstance(value, dict):
+        return {key: _site_settings_json_safe(item) for key, item in value.items()}
+    if hasattr(value, "pk"):
+        return value.pk
+    if isinstance(value, FieldFile):
+        try:
+            return value.url or str(value)
+        except (AttributeError, TypeError, ValueError):
+            name = getattr(value, "name", None)
+            return str(name) if name else None
+    return str(value)
+
+
 _SITE_SETTINGS_CACHE: "SiteSettings | None" = None
 
 def filter_portal_items(items, role: str | None) -> list[dict]:
@@ -498,48 +545,6 @@ class SiteSettings(models.Model):
         help_text="Choose default theme brightness (System/Light/Dark/Classic/High Contrast)."
     )
     background_image = models.ImageField(upload_to="branding/bg/", blank=True, null=True)
-
-    def save(self, *args, **kwargs):
-        before = getattr(self, "_orig_backend_feature_flags", {}) or {}
-        after = self.backend_feature_flags or {}
-        changed_opt_in = before.get("require_guardian_finance_opt_in") != after.get("require_guardian_finance_opt_in")
-
-        # Optimize logo
-        if self.logo and hasattr(self.logo, 'file') and not getattr(self.logo.file, '_optimized', False):
-            optimized = optimize_image(self.logo)
-            if optimized:
-                optimized._optimized = True
-                self.logo.save(self.logo.name, optimized, save=False)
-        # Optimize background image
-        if self.background_image and hasattr(self.background_image, 'file') and not getattr(self.background_image.file, '_optimized', False):
-            optimized = optimize_image(self.background_image)
-            if optimized:
-                optimized._optimized = True
-                self.background_image.save(self.background_image.name, optimized, save=False)
-        # Optimize favicon and sidebar icon
-        for field_name in ("favicon", "sidebar_icon"):
-            field = getattr(self, field_name, None)
-            if field and hasattr(field, "file") and not getattr(field.file, "_optimized", False):
-                optimized = optimize_image(field)
-                if optimized:
-                    optimized._optimized = True
-                    field.save(field.name, optimized, save=False)
-        try:
-            super().save(*args, **kwargs)
-        except DatabaseError as exc:
-            if kwargs.get("update_fields") and "update_fields did not affect any rows" in str(exc):
-                retry_kwargs = dict(kwargs)
-                retry_kwargs.pop("update_fields", None)
-                super().save(*args, **retry_kwargs)
-            else:
-                raise
-
-        if changed_opt_in:
-            logger.info(
-                "require_guardian_finance_opt_in changed",
-                extra={"from": before.get("require_guardian_finance_opt_in"), "to": after.get("require_guardian_finance_opt_in")},
-            )
-        self._orig_backend_feature_flags = after.copy()
 
     brand_font = models.CharField(max_length=120, default="Inter, system-ui, sans-serif")
     school_code = models.CharField(
@@ -1489,16 +1494,15 @@ class SiteSettings(models.Model):
                     pass
                 return
 
-            if "video_background" not in columns:
+        if "video_background" not in columns:
+            try:
+                field = cls._meta.get_field("video_background")
+                with connection.schema_editor() as schema_editor:
+                    schema_editor.add_field(cls, field)
+            except (FieldDoesNotExist, OperationalError, DatabaseError, RuntimeError, TypeError, ValueError):
                 try:
-                    cursor.execute(
-                        f'ALTER TABLE "{cls._meta.db_table}" ADD COLUMN "video_background" VARCHAR(255)'
-                    )
-                except OperationalError:
-                    try:
-                        connection.rollback()
-                    except DatabaseError:
-                        pass
+                    connection.rollback()
+                except DatabaseError:
                     pass
 
     @classmethod
@@ -1539,13 +1543,14 @@ class SiteSettings(models.Model):
         return _SITE_SETTINGS_CACHE
 
     def _sanitize_foreign_keys(self, *, persist: bool = False) -> list[str]:
+        report_style_app = "runtime_blueprints" if django_apps.is_installed("apps.runtime_blueprints") else "siteconfig"
         fk_guards = (
-            ("theme_pack", "siteconfig", "ThemePack"),
-            ("admin_theme_pack", "siteconfig", "ThemePack"),
-            ("teacher_theme_pack", "siteconfig", "ThemePack"),
-            ("parent_theme_pack", "siteconfig", "ThemePack"),
-            ("default_term_report_style", "siteconfig", "ReportCardStyle"),
-            ("default_annual_report_style", "siteconfig", "ReportCardStyle"),
+            ("theme_pack", "brand_experience", "ThemePack"),
+            ("admin_theme_pack", "brand_experience", "ThemePack"),
+            ("teacher_theme_pack", "brand_experience", "ThemePack"),
+            ("parent_theme_pack", "brand_experience", "ThemePack"),
+            ("default_term_report_style", report_style_app, "ReportCardStyle"),
+            ("default_annual_report_style", report_style_app, "ReportCardStyle"),
             ("compliance_profile", "finance", "ComplianceProfile"),
         )
         model_cache: dict[tuple[str, str], object | None] = {}
@@ -1608,14 +1613,219 @@ class SiteSettings(models.Model):
             return theme.logo_background_mode
         return "contain"
 
+    def _optimize_branding_assets(self) -> None:
+        """Optimize image-backed branding assets before persisting changes."""
+        for field_name in ("logo", "background_image", "favicon", "sidebar_icon"):
+            field = getattr(self, field_name, None)
+            if not isinstance(field, FieldFile) or not getattr(field, "name", None):
+                continue
+            try:
+                file_handle = field.file
+            except (FileNotFoundError, OSError, ValueError):
+                logger.warning(
+                    "Skipping branding asset optimization for missing file",
+                    extra={"field_name": field_name, "field_path": getattr(field, "name", "")},
+                )
+                continue
+            if getattr(file_handle, "_optimized", False):
+                continue
+            optimized = optimize_image(field)
+            if not optimized:
+                continue
+            optimized._optimized = True
+            field.save(field.name, optimized, save=False)
+
+    def _normalize_update_field_names(
+        self,
+        update_fields: list[str] | tuple[str, ...] | set[str] | None,
+    ) -> set[str]:
+        """Normalize update_fields to concrete model field names for ownership classification."""
+        normalized: set[str] = set()
+        for field_name in update_fields or ():
+            if not field_name:
+                continue
+            try:
+                normalized.add(self._meta.get_field(field_name).name)
+                continue
+            except FieldDoesNotExist:
+                pass
+            if str(field_name).endswith("_id"):
+                try:
+                    normalized.add(self._meta.get_field(str(field_name)[:-3]).name)
+                except FieldDoesNotExist:
+                    continue
+        return normalized
+
+    def runtime_sync_owners(
+        self,
+        *,
+        update_fields: list[str] | tuple[str, ...] | set[str] | None = None,
+    ) -> tuple[str, ...]:
+        """
+        Return the owner domains that must be synced into RuntimeDefaults.
+
+        The legacy SiteSettings singleton remains the compatibility write-surface,
+        but runtime-facing domains should immediately publish into RuntimeDefaults.
+        """
+        skip_domains = {"safe_platform_default", "delete"}
+        if update_fields is None:
+            return tuple(owner for owner in OWNERSHIP_DOMAINS if owner not in skip_domains)
+
+        owners = {
+            classify_site_settings_field(field_name)
+            for field_name in self._normalize_update_field_names(update_fields)
+        }
+        owners.difference_update(skip_domains)
+        return tuple(sorted(owner for owner in owners if owner in OWNERSHIP_DOMAINS))
+
+    def sync_runtime_defaults(
+        self,
+        *,
+        owners: list[str] | tuple[str, ...] | set[str] | None = None,
+        exclude_owners: list[str] | tuple[str, ...] | set[str] | None = None,
+    ):
+        """Publish the relevant SiteSettings owner domains into RuntimeDefaults."""
+        effective_owners = tuple(
+            owner for owner in (owners or ()) if owner not in {"safe_platform_default", "delete"}
+        )
+        if owners is not None and not effective_owners:
+            return None
+        try:
+            from apps.platform_runtime.models import RuntimeDefaults
+
+            return RuntimeDefaults.sync_from_site_settings(
+                self,
+                owners=effective_owners or None,
+                exclude_owners=exclude_owners,
+            )
+        except (AttributeError, ImportError, LookupError, OperationalError, DatabaseError, RuntimeError, TypeError, ValueError):
+            return None
+
     def save(self, *args, **kwargs):
+        before = getattr(self, "_orig_backend_feature_flags", {}) or {}
+        after = self.backend_feature_flags or {}
+        changed_opt_in = (
+            before.get("require_guardian_finance_opt_in")
+            != after.get("require_guardian_finance_opt_in")
+        )
+        requested_update_fields = kwargs.get("update_fields")
         cleared_fields = self._sanitize_foreign_keys()
-        update_fields = kwargs.get("update_fields")
-        if update_fields is not None and cleared_fields:
-            normalized_update_fields = set(update_fields)
+        if requested_update_fields is not None and cleared_fields:
+            normalized_update_fields = set(requested_update_fields)
             normalized_update_fields.update(cleared_fields)
             kwargs["update_fields"] = list(normalized_update_fields)
-        super().save(*args, **kwargs)
+        else:
+            normalized_update_fields = None
+
+        self._optimize_branding_assets()
+
+        try:
+            super().save(*args, **kwargs)
+        except DatabaseError as exc:
+            if kwargs.get("update_fields") and "update_fields did not affect any rows" in str(exc):
+                retry_kwargs = dict(kwargs)
+                retry_kwargs.pop("update_fields", None)
+                super().save(*args, **retry_kwargs)
+            else:
+                raise
+
+        if changed_opt_in:
+            logger.info(
+                "require_guardian_finance_opt_in changed",
+                extra={
+                    "from": before.get("require_guardian_finance_opt_in"),
+                    "to": after.get("require_guardian_finance_opt_in"),
+                },
+            )
+
+        owners_to_sync = self.runtime_sync_owners(update_fields=normalized_update_fields)
+        if owners_to_sync:
+            self.sync_runtime_defaults(owners=owners_to_sync)
+
+        self._orig_backend_feature_flags = after.copy()
+
+    @classmethod
+    def owned_field_names(
+        cls,
+        owner: str | None = None,
+        *,
+        exclude_owners: set[str] | None = None,
+    ) -> list[str]:
+        """Return concrete SiteSettings field names filtered by ownership domain."""
+        excluded = set(exclude_owners or set())
+        field_names: list[str] = []
+        for field in cls._meta.concrete_fields:
+            name = getattr(field, "name", "")
+            if not name or name == "id":
+                continue
+            field_owner = classify_site_settings_field(name)
+            if owner and field_owner != owner:
+                continue
+            if field_owner in excluded:
+                continue
+            field_names.append(name)
+        return field_names
+
+    def owned_payload(
+        self,
+        owner: str | None = None,
+        *,
+        exclude_owners: set[str] | None = None,
+    ) -> dict[str, object]:
+        """Return JSON-safe SiteSettings payload filtered to one ownership domain or exclusion set."""
+        if owner and owner not in OWNERSHIP_DOMAINS:
+            raise ValueError(f"Unknown SiteSettings ownership domain: {owner}")
+        excluded = set(exclude_owners or set())
+        payload: dict[str, object] = {}
+        for name in self.owned_field_names(owner=owner, exclude_owners=excluded):
+            payload[name] = _site_settings_json_safe(getattr(self, name, None))
+        return payload
+
+    def get_backend_feature_flags(self) -> dict[str, object]:
+        """
+        Return the policy-owned backend flags with defaults merged in.
+
+        This is the compatibility read surface for runtime, admin, and context
+        code while `backend_feature_flags` is being migrated out of the legacy
+        SiteSettings mega-model.
+        """
+        payload = self.owned_payload(owner="policies_rules")
+        raw_flags = payload.get("backend_feature_flags")
+        if not isinstance(raw_flags, dict):
+            raw_flags = {}
+        return {**default_backend_feature_flags(), **raw_flags}
+
+    def get_preview_platform_config(self) -> dict[str, object]:
+        """Return preview-platform config from the ownership-scoped payload."""
+        payload = self.owned_payload(owner="preview_platform")
+        return {
+            "preview_mode_enabled": bool(
+                payload.get("preview_mode_enabled", getattr(self, "preview_mode_enabled", False))
+            ),
+            "preview_note": str(
+                payload.get("preview_note", getattr(self, "preview_note", "")) or ""
+            ),
+            "preview_toggle_enabled": bool(
+                payload.get(
+                    "preview_toggle_enabled",
+                    getattr(self, "preview_toggle_enabled", True),
+                )
+            ),
+            "preview_toggle_label": str(
+                payload.get(
+                    "preview_toggle_label",
+                    getattr(self, "preview_toggle_label", "Toggle preview"),
+                )
+                or "Toggle preview"
+            ),
+            "preview_banner_text": str(
+                payload.get(
+                    "preview_banner_text",
+                    getattr(self, "preview_banner_text", ""),
+                )
+                or ""
+            ),
+        }
 
     @property
     def compliance_profile(self):
@@ -1647,11 +1857,36 @@ class SiteSettings(models.Model):
         self.compliance_profile_id = profile_id or None
         self._state.fields_cache["compliance_profile"] = value if getattr(value, "pk", None) else None
 
+    def resolve_default_report_style(self, report_type: str) -> "ReportCardStyle | None":
+        """Resolve the default report style through the owner surface first, then fallback to active defaults."""
+        field_name = (
+            "default_term_report_style"
+            if report_type == REPORT_CARD_TYPE_TERM
+            else "default_annual_report_style"
+        )
+        style_id = getattr(self, f"{field_name}_id", None)
+        owner_model = get_report_card_style_owner_model()
+        if style_id:
+            try:
+                style = owner_model.objects.filter(pk=style_id).first()
+            except (OperationalError, DatabaseError):
+                style = None
+            if style and style.is_active:
+                self._state.fields_cache[field_name] = style
+                return style
+            if style is None:
+                self._sanitize_foreign_keys(persist=True)
+        try:
+            return owner_model.objects.active().first()
+        except (AttributeError, OperationalError, DatabaseError):
+            return None
+
     @property
     def active_theme(self) -> "ThemePack | None":
+        theme_pack_model = get_theme_pack_owner_model()
         if self.theme_pack_id:
             try:
-                selected = ThemePack.objects.filter(pk=self.theme_pack_id).first()
+                selected = theme_pack_model.objects.filter(pk=self.theme_pack_id).first()
             except (OperationalError, DatabaseError):
                 return None
             if selected:
@@ -1659,10 +1894,10 @@ class SiteSettings(models.Model):
                 return selected
             self._sanitize_foreign_keys(persist=True)
         try:
-            fallback = ThemePack.objects.filter(is_default=True, is_active=True).first()
+            fallback = theme_pack_model.objects.filter(is_default=True, is_active=True).first()
             if fallback:
                 return fallback
-            return ThemePack.objects.filter(is_active=True).order_by("name").first()
+            return theme_pack_model.objects.filter(is_active=True).order_by("name").first()
         except (OperationalError, DatabaseError):
             return None
 
@@ -1689,9 +1924,10 @@ class SiteSettings(models.Model):
         return links
 
     def get_admin_theme(self):
+        theme_pack_model = get_theme_pack_owner_model()
         if self.admin_theme_pack_id:
             try:
-                admin_pack = ThemePack.objects.filter(pk=self.admin_theme_pack_id).first()
+                admin_pack = theme_pack_model.objects.filter(pk=self.admin_theme_pack_id).first()
             except (OperationalError, DatabaseError):
                 admin_pack = None
             if admin_pack and admin_pack.is_active and admin_pack.applies_to_admin:
@@ -1703,7 +1939,7 @@ class SiteSettings(models.Model):
         site_pack = None
         if self.theme_pack_id:
             try:
-                site_pack = ThemePack.objects.filter(pk=self.theme_pack_id).first()
+                site_pack = theme_pack_model.objects.filter(pk=self.theme_pack_id).first()
             except (OperationalError, DatabaseError):
                 site_pack = None
             if site_pack and site_pack.is_active and getattr(site_pack, "applies_to_admin", False):
@@ -1712,7 +1948,7 @@ class SiteSettings(models.Model):
             if site_pack is None:
                 self._sanitize_foreign_keys(persist=True)
         try:
-            fallback = ThemePack.objects.filter(applies_to_admin=True, is_active=True).order_by("-is_default", "name").first()
+            fallback = theme_pack_model.objects.filter(applies_to_admin=True, is_active=True).order_by("-is_default", "name").first()
             return fallback or site_pack
         except (OperationalError, DatabaseError):
             return site_pack
@@ -1727,9 +1963,10 @@ class SiteSettings(models.Model):
         role = (effective_role or "").strip().upper() or (
             getattr(user, "role", "") or ""
         ).strip().upper() if user and getattr(user, "is_authenticated", False) else ""
+        theme_pack_model = get_theme_pack_owner_model()
         if role == "TEACHER" and self.teacher_theme_pack_id:
                 try:
-                    pack = ThemePack.objects.filter(
+                    pack = theme_pack_model.objects.filter(
                         pk=self.teacher_theme_pack_id, is_active=True
                     ).first()
                     if pack:
@@ -1738,7 +1975,7 @@ class SiteSettings(models.Model):
                     pass
         if role == "PARENT" and self.parent_theme_pack_id:
                 try:
-                    pack = ThemePack.objects.filter(
+                    pack = theme_pack_model.objects.filter(
                         pk=self.parent_theme_pack_id, is_active=True
                     ).first()
                     if pack:
@@ -2278,12 +2515,11 @@ def get_report_card_style_for_student(student: StudentProfile, report_type: str)
     from apps.platform_runtime.helpers import get_effective_site_settings
 
     site = get_effective_site_settings(school=getattr(student, "school", None))
-    default_field = "default_term_report_style" if report_type == REPORT_CARD_TYPE_TERM else "default_annual_report_style"
-    style = getattr(site, default_field, None)
+    style = site.resolve_default_report_style(report_type) if site else None
     if style and style.is_active:
         return style
 
-    return ReportCardStyle.objects.active().first()
+    return get_report_card_style_owner_model().objects.active().first()
 
 
 # ============================================================================

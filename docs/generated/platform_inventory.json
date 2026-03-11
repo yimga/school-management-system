@@ -1,19 +1,19 @@
 {
   "baseline_counts": {
     "allow_any": 34,
-    "csrf_exempt": 80,
-    "cursor_execute": 352,
-    "except_exception": 867,
-    "get_solo": 201,
+    "csrf_exempt": 79,
+    "cursor_execute": 351,
+    "except_exception": 765,
+    "get_solo": 211,
     "gilead": 489,
     "gilead_files": 113,
-    "html_files": 452,
-    "management_commands": 136,
-    "markdown_files": 790,
-    "migration_files": 578,
+    "html_files": 456,
+    "management_commands": 137,
+    "markdown_files": 793,
+    "migration_files": 582,
     "print_calls": 426,
-    "python_files": 1694,
-    "site_settings": 1046
+    "python_files": 1734,
+    "site_settings": 1070
   },
   "doc_drift": {
     "actual_installed_app_count": 41,
@@ -28,29 +28,19 @@
       "path": "apps/schools/marketing_views.py"
     },
     {
-      "bytes": 175005,
-      "lines": 4495,
+      "bytes": 183976,
+      "lines": 4731,
       "path": "apps/siteconfig/models.py"
     },
     {
-      "bytes": 155296,
-      "lines": 3371,
-      "path": "apps/accounts/views.py"
-    },
-    {
-      "bytes": 137371,
-      "lines": 3202,
+      "bytes": 130154,
+      "lines": 3040,
       "path": "apps/schools/super_views.py"
     },
     {
-      "bytes": 108197,
-      "lines": 2508,
-      "path": "apps/siteconfig/admin.py"
-    },
-    {
-      "bytes": 107839,
-      "lines": 2427,
-      "path": "apps/portal/views.py"
+      "bytes": 121002,
+      "lines": 2653,
+      "path": "apps/accounts/views.py"
     },
     {
       "bytes": 107531,
@@ -58,14 +48,19 @@
       "path": "apps/evals/views.py"
     },
     {
-      "bytes": 103209,
-      "lines": 2381,
+      "bytes": 105449,
+      "lines": 2436,
+      "path": "apps/siteconfig/admin.py"
+    },
+    {
+      "bytes": 97872,
+      "lines": 2297,
       "path": "apps/finance/views.py"
     },
     {
-      "bytes": 99636,
-      "lines": 1903,
-      "path": "apps/api/views_v1.py"
+      "bytes": 96382,
+      "lines": 2211,
+      "path": "apps/portal/views.py"
     },
     {
       "bytes": 95611,
@@ -73,8 +68,13 @@
       "path": "apps/finance/models.py"
     },
     {
-      "bytes": 74154,
-      "lines": 1774,
+      "bytes": 90937,
+      "lines": 1756,
+      "path": "apps/api/views_v1.py"
+    },
+    {
+      "bytes": 75460,
+      "lines": 1788,
       "path": "apps/siteconfig/views.py"
     },
     {
@@ -188,7 +188,7 @@
     },
     {
       "field_name": "ministry_registration_code",
-      "owner": "metadata_governance"
+      "owner": "global_registries"
     },
     {
       "field_name": "company_slug",
@@ -208,11 +208,11 @@
     },
     {
       "field_name": "primary_color",
-      "owner": "metadata_governance"
+      "owner": "brand_experience"
     },
     {
       "field_name": "accent_color",
-      "owner": "metadata_governance"
+      "owner": "brand_experience"
     },
     {
       "field_name": "header_bg_color",
@@ -224,23 +224,23 @@
     },
     {
       "field_name": "success_color",
-      "owner": "metadata_governance"
+      "owner": "brand_experience"
     },
     {
       "field_name": "warning_color",
-      "owner": "metadata_governance"
+      "owner": "brand_experience"
     },
     {
       "field_name": "danger_color",
-      "owner": "metadata_governance"
+      "owner": "brand_experience"
     },
     {
       "field_name": "use_dark_mode",
-      "owner": "metadata_governance"
+      "owner": "brand_experience"
     },
     {
       "field_name": "backend_console_theme",
-      "owner": "metadata_governance"
+      "owner": "brand_experience"
     },
     {
       "field_name": "custom_css",
@@ -264,7 +264,7 @@
     },
     {
       "field_name": "skip_theme_publish_guard",
-      "owner": "metadata_governance"
+      "owner": "preview_platform"
     },
     {
       "field_name": "preview_mode_enabled",
@@ -300,7 +300,7 @@
     },
     {
       "field_name": "favicon",
-      "owner": "metadata_governance"
+      "owner": "brand_experience"
     },
     {
       "field_name": "layout_style",
@@ -308,7 +308,7 @@
     },
     {
       "field_name": "default_sidebar_collapsed",
-      "owner": "metadata_governance"
+      "owner": "brand_experience"
     },
     {
       "field_name": "branded_domain",
@@ -328,7 +328,7 @@
     },
     {
       "field_name": "use_secondary_font_for_headings",
-      "owner": "metadata_governance"
+      "owner": "brand_experience"
     },
     {
       "field_name": "base_font_size",
@@ -340,7 +340,7 @@
     },
     {
       "field_name": "admin_use_site_primary",
-      "owner": "metadata_governance"
+      "owner": "brand_experience"
     },
     {
       "field_name": "maintenance_mode",
@@ -396,19 +396,19 @@
     },
     {
       "field_name": "whatsapp_support_number",
-      "owner": "metadata_governance"
+      "owner": "marketplace_integrations"
     },
     {
       "field_name": "whatsapp_admissions_number",
-      "owner": "metadata_governance"
+      "owner": "marketplace_integrations"
     },
     {
       "field_name": "enable_whatsapp_parent_portal",
-      "owner": "metadata_governance"
+      "owner": "marketplace_integrations"
     },
     {
       "field_name": "enable_whatsapp_staff_portal",
-      "owner": "metadata_governance"
+      "owner": "marketplace_integrations"
     },
     {
       "field_name": "footer_status_text",
@@ -436,91 +436,91 @@
     },
     {
       "field_name": "default_report_preview_type",
-      "owner": "metadata_governance"
+      "owner": "reports"
     },
     {
       "field_name": "marksheet_ocr_command",
-      "owner": "metadata_governance"
+      "owner": "marketplace_integrations"
     },
     {
       "field_name": "grade_approval_enabled",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "require_mfa_roles",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "require_mfa_all_staff",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "requests_reminder_interval_hours",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "grade_approval_roles",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "grade_approval_auto_validate",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "grade_approval_deadline_days",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "grade_approval_deadline_note",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "grade_post_roles",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "syllabus_approval_roles",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "delegation_max_days",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "delegation_auto_revoke",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "delegation_notify_delegate_on_start",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "delegation_block_delegator_while_ooo",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "delegation_role_mapping",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "delegation_summary_report_on_return",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "enable_parent_portal",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "enable_teacher_portal",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "default_portal_role_dual_role",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "enable_reports_pdf",
-      "owner": "metadata_governance"
+      "owner": "reports"
     },
     {
       "field_name": "report_downloads_enabled",
@@ -528,11 +528,11 @@
     },
     {
       "field_name": "reports_require_approved_grades_before_publish",
-      "owner": "metadata_governance"
+      "owner": "reports"
     },
     {
       "field_name": "reports_use_approved_grades_only",
-      "owner": "metadata_governance"
+      "owner": "reports"
     },
     {
       "field_name": "portal_features",
@@ -540,7 +540,7 @@
     },
     {
       "field_name": "social_links",
-      "owner": "metadata_governance"
+      "owner": "brand_experience"
     },
     {
       "field_name": "backend_feature_flags",
@@ -548,31 +548,31 @@
     },
     {
       "field_name": "default_term_report_style",
-      "owner": "metadata_governance"
+      "owner": "reports"
     },
     {
       "field_name": "default_annual_report_style",
-      "owner": "metadata_governance"
+      "owner": "reports"
     },
     {
       "field_name": "referral_bonus_amount",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "default_grading_scale",
-      "owner": "metadata_governance"
+      "owner": "global_registries"
     },
     {
       "field_name": "default_region",
-      "owner": "metadata_governance"
+      "owner": "global_registries"
     },
     {
       "field_name": "sms_provider",
-      "owner": "metadata_governance"
+      "owner": "marketplace_integrations"
     },
     {
       "field_name": "sms_api_key",
-      "owner": "metadata_governance"
+      "owner": "marketplace_integrations"
     },
     {
       "field_name": "sms_sender_id",
@@ -580,251 +580,251 @@
     },
     {
       "field_name": "email_from_address",
-      "owner": "metadata_governance"
+      "owner": "marketplace_integrations"
     },
     {
       "field_name": "teacher_deadline_reminder_days",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "teacher_reminder_time_of_day",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "cache_rankings_interval_minutes",
-      "owner": "metadata_governance"
+      "owner": "safe_platform_default"
     },
     {
       "field_name": "enable_concurrent_mark_uploads",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "enable_practical_assessment",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "auto_tag_photos_from_exif",
-      "owner": "metadata_governance"
+      "owner": "documents"
     },
     {
       "field_name": "enable_offline_mode",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "offline_sync_conflict_resolution",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "compliance_profile_id",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_auto_generate_invoices_enabled",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_auto_generate_schedule",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_auto_generate_due_date_offset_days",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_auto_generate_require_approval",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_fee_plan_auto_copy_enabled",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_fee_plan_auto_copy_mode",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_fee_plan_copy_increase_percentage",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_payment_reminder_default_channels",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_payment_reminder_default_days",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_payment_reminder_enable_whatsapp",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_invoice_auto_status_updates_enabled",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_invoice_overdue_grace_period_days",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_receipt_upload_enabled",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_receipt_auto_verify_enabled",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_receipt_verification_method",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_receipt_auto_apply_threshold",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_receipt_auto_apply_enabled",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_receipt_require_admin_approval",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_receipt_amount_tolerance",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_bank_verification_enabled",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_bank_verification_auto_approve",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_bank_verification_tolerance_days",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_bank_verification_amount_tolerance",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_payment_instructions_bank",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_payment_instructions_mtn_momo",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_payment_instructions_orange_money",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_payment_instructions_cash",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_receipt_upload_instructions",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_reminder_no_contact_action",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_receipt_max_size_mb",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_receipt_allowed_extensions",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_overpayment_handling",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_overpayment_tolerance_xaf",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_void_invoice_with_payments",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_on_student_withdrawal",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_receipt_idempotency_window_minutes",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_reminder_retry_failed_hours",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_reminder_max_retries",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_receipt_require_verification_reason",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_receipt_second_approval_threshold_xaf",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_notify_guardians_new_invoice",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_notify_guardians_payment_received",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_notify_new_invoice_email",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "finance_notify_payment_received_email",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "notify_parent_welcome_email",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "top_students_default_limit",
-      "owner": "metadata_governance"
+      "owner": "runtime_blueprints"
     },
     {
       "field_name": "pass_mark",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "use_promotion_rule_for_pass",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "weak_subject_threshold",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "improvement_delta_threshold",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "deadline_mode",
-      "owner": "metadata_governance"
+      "owner": "policies_rules"
     },
     {
       "field_name": "updated_at",
-      "owner": "metadata_governance"
+      "owner": "delete"
     }
   ],
   "successor_domain_imports": {

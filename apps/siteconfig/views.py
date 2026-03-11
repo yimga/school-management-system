@@ -11,17 +11,18 @@ from urllib.parse import urlencode
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
-from django.core.management import call_command
+from django.core.management import CommandError, call_command
 from django.db.models import Count
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.clickjacking import xframe_options_exempt, xframe_options_sameorigin
 
 from apps.academics.models import Classroom
 from apps.academics.services import get_active_year_and_term
+from apps.brand_experience.models import ThemePack
 from apps.people.models import StudentProfile
 from apps.platform_runtime.helpers import get_effective_site_settings, get_platform_defaults
 from apps.policies.policy_registry import get_effective_policy
@@ -33,6 +34,7 @@ from apps.reports.services import (
     term_report_context,
 )
 from apps.reports.weasy import render_pdf
+from apps.runtime_blueprints.models import ReportCardStyle, ReportTemplate
 
 from types import SimpleNamespace
 
@@ -47,11 +49,8 @@ from .forms import (
 )
 from .models import (
     DashboardView,
-    ReportCardStyle,
     ReportCardStyleAssignment,
-    ReportTemplate,
     SiteSettings,
-    ThemePack,
     UserPreference,
     RegionConfig,
     GradingScaleConfig,
@@ -168,7 +167,7 @@ def _registry_grade_scale_choices(country_code: str | None = None) -> list[tuple
             seen.add(code)
             choices.append((code, str(row.get("name") or code)))
         return choices
-    except Exception:
+    except (AttributeError, ImportError, LookupError, TypeError, ValueError):
         return []
 
 
@@ -181,7 +180,7 @@ def _language_choices_for_school(school) -> list[tuple[str, str]]:
             from apps.siteconfig.global_catalog import GlobalGeoCatalog
 
             country_code = GlobalGeoCatalog.alpha2_for_country(raw_country) or str(raw_country or "").upper()[:2]
-        except Exception:
+        except (AttributeError, LookupError, TypeError, ValueError):
             country_code = ""
     try:
         from apps.registries.services import get_locales_for_country
@@ -199,13 +198,13 @@ def _language_choices_for_school(school) -> list[tuple[str, str]]:
             choices.append((language_code, str(row.get("name") or language_code.upper())))
         if choices:
             return choices
-    except Exception:
+    except (AttributeError, ImportError, LookupError, TypeError, ValueError):
         pass
     try:
         from apps.siteconfig.translations import SUPPORTED_LANGUAGES
 
         return [(code, label) for code, label in SUPPORTED_LANGUAGES.items()]
-    except Exception:
+    except (AttributeError, ImportError, LookupError):
         return [("en", "English"), ("fr", "Français")]
 
 
@@ -214,7 +213,7 @@ def _is_known_currency_code(currency_code: str | None) -> bool:
         from apps.registries.services import is_known_currency_code
 
         return is_known_currency_code(currency_code)
-    except Exception:
+    except (AttributeError, ImportError, TypeError, ValueError):
         return bool((currency_code or "").strip())
 
 
@@ -267,7 +266,7 @@ def preview_from_form(request):
     request.session.modified = True
     try:
         redirect_url = reverse("accounts:redirect")
-    except Exception:
+    except NoReverseMatch:
         redirect_url = "/"
     # Optional: scroll to the section(s) being previewed. Use query param so it survives redirect.
     # Supports single section or comma-separated (e.g. "footer,header"). preview_keep=1 keeps highlights until dismiss.
@@ -307,7 +306,7 @@ def preview_from_form(request):
             redirect_url = reverse("accounts:login")
             if query_parts:
                 redirect_url += "?" + "&".join(query_parts)
-        except Exception:
+        except NoReverseMatch:
             pass
     return JsonResponse({"redirect_url": redirect_url})
 
@@ -343,7 +342,7 @@ def get_grading_scale_choices_for_school(school):
             from apps.siteconfig.global_catalog import GlobalGeoCatalog
 
             country_code = GlobalGeoCatalog.alpha2_for_country(raw_country) or str(raw_country or "").upper()[:2]
-        except Exception:
+        except (AttributeError, LookupError, TypeError, ValueError):
             country_code = ""
     registry_choices = _registry_grade_scale_choices(country_code)
     if registry_choices:
@@ -354,7 +353,7 @@ def get_grading_scale_choices_for_school(school):
             configs = GradingScaleConfig.objects.filter(region_id=school.default_region_id).order_by("scale_type")
             if configs:
                 return [(c.scale_type, c.display_format or c.scale_type) for c in configs]
-        except Exception:
+        except (DatabaseError, OperationalError, ImportError, TypeError, ValueError):
             pass
     return list(GRADING_SCALE_CHOICES_NEUTRAL)
 
@@ -441,7 +440,7 @@ def module_market(request):
             try:
                 from apps.policies.policy_registry import invalidate_policy_cache
                 invalidate_policy_cache(school)
-            except Exception:
+            except (AttributeError, ImportError, TypeError, ValueError):
                 pass
             set_toggle_state(
                 f"module.{code}",
@@ -560,6 +559,15 @@ def _build_style_metadata(site: SiteSettings) -> dict:
         "region": site.region,
         "ministry": site.ministry,
         "tagline": site.tagline,
+    }
+
+
+def _get_preview_platform_config(site: SiteSettings) -> dict[str, object]:
+    if callable(getattr(site, "get_preview_platform_config", None)):
+        return site.get_preview_platform_config()
+    return {
+        "preview_mode_enabled": getattr(site, "preview_mode_enabled", False),
+        "preview_note": getattr(site, "preview_note", ""),
     }
 
 
@@ -1042,7 +1050,7 @@ def theme_colors_page(request):
                 ThemePack.objects.filter(is_active=True).order_by("-applies_to_admin", "-is_default", "name")
             )
             logger.info("Theme catalog auto-seeded from Theme & Experience page.")
-        except Exception:
+        except (CommandError, OSError, RuntimeError, TypeError, ValueError):
             logger.exception("Unable to auto-seed admin dashboard palettes.")
 
     # Show all active packs (admin and portal) so the catalog does not collapse to a single card.
@@ -1137,10 +1145,13 @@ def theme_colors_page(request):
             "admin:siteconfig_sitesettings_change",
             args=[site.pk],
         )
-    except Exception:
+    except NoReverseMatch:
         admin_change_url = None
     back_url = _safe_next_url(request, request.GET.get("next"), admin_change_url)
-    preview_mode_active = bool(request.session.get("preview_mode_enabled") or site.preview_mode_enabled)
+    preview_config = _get_preview_platform_config(site)
+    preview_mode_active = bool(
+        request.session.get("preview_mode_enabled") or preview_config.get("preview_mode_enabled", False)
+    )
     theme_recent_change_meta = request.session.get("theme_recent_change_meta")
 
     contrast_values = {}
@@ -1194,10 +1205,13 @@ def get_theme_colors_context(request):
     admin_theme_packs_by_group = build_theme_pack_groups(admin_theme_packs, THEME_PALETTE_GROUPS)
     try:
         admin_change_url = reverse("admin:siteconfig_sitesettings_change", args=[site.pk])
-    except Exception:
+    except NoReverseMatch:
         admin_change_url = None
     back_url = _safe_next_url(request, request.GET.get("next"), admin_change_url or "")
-    preview_mode_active = bool(request.session.get("preview_mode_enabled") or getattr(site, "preview_mode_enabled", False))
+    preview_config = _get_preview_platform_config(site)
+    preview_mode_active = bool(
+        request.session.get("preview_mode_enabled") or preview_config.get("preview_mode_enabled", False)
+    )
     theme_recent_change_meta = request.session.get("theme_recent_change_meta")
     contrast_values = {}
     for field_name in (
@@ -1282,7 +1296,7 @@ def brand_import_from_url_view(request):
                         mode="production",
                         actor_id=getattr(request.user, "id", None) if getattr(request, "user", None) else None,
                     )
-                except Exception:
+                except (AttributeError, ImportError, LookupError, OSError, RuntimeError, TypeError, ValueError):
                     pass
                 messages.success(request, f'Theme "{pack.name}" applied. Refine colors below if needed.')
             else:
@@ -1321,7 +1335,7 @@ def template_gallery_page(request):
                         mode="production",
                         actor_id=getattr(request.user, "id", None) if getattr(request, "user", None) else None,
                     )
-                except Exception:
+                except (AttributeError, ImportError, LookupError, OSError, RuntimeError, TypeError, ValueError):
                     pass
                 messages.success(request, f'Template "{pack.name}" applied. You can refine colors in Theme & Experience.')
         return redirect(reverse("siteconfig:theme_colors"))
@@ -1716,7 +1730,7 @@ def workflow_clues_api(request):
             {"suggestions": text, "meta": meta},
             safe=False,
         )
-    except Exception as e:
+    except (AttributeError, ImportError, LookupError, OSError, RuntimeError, TypeError, ValueError) as e:
         return JsonResponse(
             {"error": str(e), "suggestions": None},
             status=500,

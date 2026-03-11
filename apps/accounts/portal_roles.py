@@ -5,6 +5,8 @@ Use these to decide if a user can act as Teacher or Parent in the portal.
 Effective portal role (session) drives sidebar and redirect; these helpers
 drive access control and UI visibility.
 """
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import DatabaseError
 from apps.platform_runtime.helpers import get_effective_site_settings
 from django.contrib.auth import get_user_model
 
@@ -13,6 +15,15 @@ User = get_user_model()
 # Session key and allowed values for active portal context when user has both hats.
 ACTIVE_PORTAL_ROLE_KEY = "active_portal_role"
 ALLOWED_PORTAL_ROLES = ("TEACHER", "PARENT")
+PORTAL_ROLE_SOFT_FAILURES = (
+    AttributeError,
+    DatabaseError,
+    ImportError,
+    LookupError,
+    ObjectDoesNotExist,
+    TypeError,
+    ValueError,
+)
 
 
 def has_teacher_hat(user) -> bool:
@@ -92,6 +103,6 @@ def get_effective_portal_role(request) -> str:
                     pref.last_portal_role = default_role
                     pref.save(update_fields=["last_portal_role", "updated_at"])
                 return default_role
-        except Exception:
+        except PORTAL_ROLE_SOFT_FAILURES:
             pass
     return (getattr(user, "role", "") or "").upper()

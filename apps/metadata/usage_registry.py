@@ -7,7 +7,18 @@ from __future__ import annotations
 import logging
 from typing import Optional
 
+from django.db import DatabaseError
+
 logger = logging.getLogger(__name__)
+
+METADATA_USAGE_SOFT_FAILURES = (
+    AttributeError,
+    DatabaseError,
+    ImportError,
+    LookupError,
+    TypeError,
+    ValueError,
+)
 
 
 def register_usage(
@@ -45,5 +56,5 @@ def register_usage(
             consumer_code=consumer_code,
             field=field,
         )
-    except Exception as e:
+    except METADATA_USAGE_SOFT_FAILURES as e:
         logger.debug("metadata register_usage skipped: %s", e)

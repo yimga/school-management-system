@@ -3,6 +3,7 @@ Tenant-side handling of super-admin impersonation: consume signed token and set 
 exit impersonation and log audit.
 """
 import base64
+import binascii
 import json
 
 from django.conf import settings
@@ -25,7 +26,7 @@ def _parse_impersonation_token(token, max_age_seconds=3600):
         payload = json.loads(base64.b64decode(payload_b64).decode())
         if isinstance(payload.get("school_id"), str) and isinstance(payload.get("user_id"), int):
             return payload
-    except Exception:
+    except (binascii.Error, json.JSONDecodeError, TypeError, UnicodeDecodeError, ValueError):
         pass
     return None
 

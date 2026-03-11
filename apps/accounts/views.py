@@ -25,7 +25,6 @@ from apps.people.models import StudentGuardian, StudentProfile, TeacherAttendanc
 from apps.academics.models import AcademicYear, Classroom
 from apps.reports.models import TermPublishStatus
 from apps.runtime_blueprints.models import DashboardWidget, get_dashboard_widget_metadata
-from apps.siteconfig.models import SiteSettings, default_backend_feature_flags
 from apps.academics.services import get_active_year_and_term
 from apps.academics.services_year_setup import clone_academic_year
 from apps.accounts.decorators import permission_required
@@ -47,6 +46,19 @@ from .forms import (
     UserRoleForm,
 )
 from .models import AccessRole, Permission, User, TemporaryRoleGrant, RolloverProposal, RolloverProposalItem
+
+ACCOUNTS_SOFT_FAILURES = (
+    AttributeError,
+    DatabaseError,
+    ImportError,
+    LookupError,
+    NoReverseMatch,
+    OperationalError,
+    ProgrammingError,
+    RuntimeError,
+    TypeError,
+    ValueError,
+)
 
 
 def _notify_new_direct_message(sender, recipient, message):
@@ -1095,7 +1107,7 @@ def backend_dashboard(request):
                 m = SchoolMembership.objects.filter(user=request.user).select_related("school").order_by("-is_primary").first()
                 if m and m.school:
                     return redirect(build_tenant_backend_url(request, m.school))
-        except Exception:
+        except ACCOUNTS_SOFT_FAILURES:
             pass
 
     from .activity_helper import get_recent_activity
@@ -1103,10 +1115,7 @@ def backend_dashboard(request):
     site = get_effective_site_settings(request=request)
     year, term = get_active_year_and_term()
 
-    backend_defaults = default_backend_feature_flags()
-    backend_flags = dict(getattr(site, "backend_feature_flags", {}) or {})
-    for key, default_val in backend_defaults.items():
-        backend_flags.setdefault(key, default_val)
+    backend_flags = get_effective_flags(request)
 
     def _clamp_backend_int(value, default, minimum=3, maximum=12):
         try:
@@ -1117,7 +1126,7 @@ def backend_dashboard(request):
 
     backend_layout_max_items_per_list = _clamp_backend_int(
         backend_flags.get("backend_layout_max_items_per_list"),
-        backend_defaults.get("backend_layout_max_items_per_list", 5),
+        5,
     )
     backend_max_items_slice = f":{backend_layout_max_items_per_list}"
 
@@ -1549,7 +1558,7 @@ def backend_dashboard(request):
                     "score": score,
                 }
             )
-    except Exception:
+    except (DatabaseError, OperationalError, TypeError, ValueError):
         score_rows = []
 
     score_rows.sort(key=lambda item: item.get("score", 0), reverse=True)
@@ -1608,7 +1617,7 @@ def backend_dashboard(request):
             }
             if len(at_risk_map) >= backend_layout_max_items_per_list:
                 break
-    except Exception:
+    except (DatabaseError, OperationalError, TypeError, ValueError):
         pass
 
     at_risk_students = list(at_risk_map.values())[: backend_layout_max_items_per_list]
@@ -1794,7 +1803,7 @@ def backend_dashboard(request):
         context["first_login_sensible_defaults_copy"] = _(
             "We've set up: academic year, terms, default classrooms, and subjects. You can change these in Settings."
         )
-    except Exception:
+    except ACCOUNTS_SOFT_FAILURES:
         context["first_login_checklist_show"] = False
         context["first_login_checklist_items"] = []
         context["first_login_checklist_dismiss_url"] = ""
@@ -1802,7 +1811,7 @@ def backend_dashboard(request):
         context["first_login_sensible_defaults_copy"] = ""
     try:
         context.update(build_dashboard_extras(request, base=context))
-    except Exception as e:
+    except ACCOUNTS_SOFT_FAILURES as e:
         import logging
         logging.getLogger(__name__).exception("build_dashboard_extras failed: %s", e)
         # Safe defaults so template does not 500; UX plan overview/CTAs/contextual_actions still work when extras succeed
@@ -1837,19 +1846,18 @@ def backend_dashboard_status_fragment(request):
     try:
         from apps.requests.models import AccessRequest
         pending_requests = AccessRequest.objects.filter(status=AccessRequest.Status.PENDING).count()
-    except Exception:
+    except (AttributeError, DatabaseError, ImportError, OperationalError, TypeError, ValueError):
         pass
 
     enable_offline_mode = False
     offline_queue_metrics = None
     try:
-        from apps.siteconfig.models import SiteSettings
         site = get_effective_site_settings(request=request)
         enable_offline_mode = getattr(site, "enable_offline_mode", False)
         if enable_offline_mode:
             from apps.siteconfig.cache_utils import tenant_cache_key
             offline_queue_metrics = cache.get(tenant_cache_key("sms_offline_queue_metrics", request))
-    except Exception:
+    except (AttributeError, DatabaseError, TypeError, ValueError):
         pass
 
     template = loader.get_template("accounts/backend_dashboard_status_fragment.html")
@@ -1868,18 +1876,15 @@ def backend_dashboard_status_fragment(request):
 def backend_ops_watch_data(request):
     """Lightweight JSON payload for live Ops Watch refresh."""
     site = get_effective_site_settings(request=request)
-    backend_defaults = default_backend_feature_flags()
-    backend_flags = dict(getattr(site, "backend_feature_flags", {}) or {})
-    for key, default_val in backend_defaults.items():
-        backend_flags.setdefault(key, default_val)
+    backend_flags = get_effective_flags(request)
 
     if not bool(backend_flags.get("backend_module_ops_watch", True)):
         return JsonResponse({"success": True, "operations_watch": [], "finance_requests": 0, "updated_at": timezone.localtime().isoformat()})
 
     try:
-        max_items = int(backend_flags.get("backend_layout_max_items_per_list", backend_defaults.get("backend_layout_max_items_per_list", 5)))
+        max_items = int(backend_flags.get("backend_layout_max_items_per_list", 5))
     except (TypeError, ValueError):
-        max_items = int(backend_defaults.get("backend_layout_max_items_per_list", 5))
+        max_items = 5
     max_items = max(3, min(12, max_items))
 
     pending_approvals_count = 0
@@ -1888,7 +1893,7 @@ def backend_ops_watch_data(request):
         pending_approvals_count = AccessRequest.objects.filter(
             status=AccessRequest.Status.PENDING
         ).count()
-    except Exception:
+    except (AttributeError, DatabaseError, OperationalError, TypeError, ValueError):
         pending_approvals_count = 0
 
     base_stats = {
@@ -1938,7 +1943,7 @@ def _workflow_progress(year):
             "has_students": students > 0,
             "has_teachers": teachers > 0,
         }
-    except Exception:
+    except (AttributeError, DatabaseError, OperationalError, TypeError, ValueError):
         return {}
 
 
@@ -1992,7 +1997,7 @@ def automation_hub(request):
     try:
         site = get_effective_site_settings(request=request)
         site_settings_url = reverse("admin:siteconfig_sitesettings_change", args=[site.pk])
-    except Exception:
+    except ACCOUNTS_SOFT_FAILURES:
         pass
     return render(request, "accounts/automation_hub.html", {
         "BREADCRUMBS": [
@@ -2040,7 +2045,7 @@ def workflow_center(request):
         student_create_url = reverse("accounts:backend_student_create")
         teacher_list_url = reverse("accounts:backend_teacher_list")
         teacher_create_url = reverse("accounts:backend_teacher_create")
-    except Exception:
+    except ACCOUNTS_SOFT_FAILURES:
         student_list_url = reverse("admin:people_studentprofile_changelist")
         student_create_url = reverse("admin:people_studentprofile_add")
         teacher_list_url = reverse("admin:people_teacherprofile_changelist")
@@ -2274,14 +2279,14 @@ def _get_login_page_language(request):
             from apps.siteconfig.tenant_config import get_tenant_locale
             locale = get_tenant_locale(request=request, school=school)
             lang = (locale.get("default_language") or locale.get("locale") or "").strip() or None
-        except Exception:
+        except ACCOUNTS_SOFT_FAILURES:
             lang = None
         if not lang and school:
             try:
                 from apps.policies.policy_registry import get_effective_policy
                 policy = get_effective_policy(school)
                 lang = (policy.get("default_language") or "").strip() or None
-            except Exception:
+            except ACCOUNTS_SOFT_FAILURES:
                 pass
     else:
         lang = translation.get_language_from_request(request)
@@ -2330,7 +2335,7 @@ def _get_login_sso_integrations(request):
             ) or integration.service_name or "Single Sign-On"
             out.append({"url": url, "label": label})
         return out
-    except Exception:
+    except ACCOUNTS_SOFT_FAILURES:
         return []
 
 
@@ -2400,7 +2405,7 @@ def login_view(request):
                 )
                 # Impossible-travel check: deferred to ImpossibleTravelMiddleware (single trigger).
                 request._post_login_user = user
-            except Exception:
+            except (AttributeError, DatabaseError, ImportError):
                 pass
 
             # Enforce requires_password_change (e.g. after Emergency Lockdown).
@@ -2451,7 +2456,7 @@ def login_view(request):
                             until_dt = timezone.make_aware(until_dt, timezone.get_current_timezone())
                         if timezone.now() <= until_dt:
                             return True
-                    except Exception:
+                    except (TypeError, ValueError):
                         pass
                     request.session.pop("mfa_verified_until", None)
                     return False
@@ -2466,7 +2471,7 @@ def login_view(request):
                     if next_url:
                         request.session["mfa_next"] = next_url
                     return redirect(reverse("accounts:mfa_verify"))
-            except Exception:
+            except ACCOUNTS_SOFT_FAILURES:
                 pass
 
             # When on base domain and user has a school membership, send them to tenant subdomain (Backend is subdomain-only)
@@ -2486,7 +2491,7 @@ def login_view(request):
                             else:
                                 target = build_tenant_backend_url(request, m.school)
                             return redirect(target)
-                except Exception:
+                except ACCOUNTS_SOFT_FAILURES:
                     pass
 
             if next_url:
@@ -2502,7 +2507,7 @@ def login_view(request):
         try:
             from apps.schools.tenant_url import build_public_absolute_url
             context["public_site_url"] = build_public_absolute_url(request, "/")
-        except Exception:
+        except ACCOUNTS_SOFT_FAILURES:
             context["public_site_url"] = "https://runmycampus.com"
     else:
         context["public_site_url"] = None

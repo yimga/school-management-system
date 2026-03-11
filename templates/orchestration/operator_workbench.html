@@ -7,7 +7,12 @@
 <div class="container-fluid py-4">
   <h4 class="mb-3">{% trans "Orchestration workbench" %}</h4>
   <p class="text-muted small">{% trans "Long-running process runs (admissions, re-enrollment, fee follow-up, approval chains). State, retries, compensation, SLA visibility." %}</p>
-  <div class="card shadow-sm">
+  {% if runs_overdue %}
+  <div class="alert alert-warning mb-3">
+    <strong>{% trans "SLA overdue" %}:</strong> {{ runs_overdue|length }} run(s) past deadline — <a href="#runs">{% trans "View below" %}</a>
+  </div>
+  {% endif %}
+  <div class="card shadow-sm" id="runs">
     <div class="card-body p-0">
       <div class="table-responsive">
         <table class="table table-sm align-middle mb-0">

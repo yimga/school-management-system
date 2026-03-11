@@ -9,10 +9,14 @@ and docs/PLATFORM_AUDIT_REMEDIATION_BACKLOG.md.
 from __future__ import annotations
 
 from copy import copy
+import logging
 from typing import Any, Optional
 
 from django.core.cache import cache
 from django.db import DatabaseError
+
+
+logger = logging.getLogger(__name__)
 
 
 EFFECTIVE_SITE_SETTINGS_VERSION_KEY = "platform_runtime:effective_site_settings:version"
@@ -114,7 +118,10 @@ def get_effective_flags(request: Any) -> dict:
         platform_site = get_effective_site_settings(request=None, school=None)
         if platform_site is None:
             raise LookupError("effective platform site settings unavailable")
-        site_overrides = getattr(platform_site, "backend_feature_flags", None) or {}
+        if callable(getattr(platform_site, "get_backend_feature_flags", None)):
+            site_overrides = platform_site.get_backend_feature_flags()
+        else:
+            site_overrides = getattr(platform_site, "backend_feature_flags", None) or {}
         school_overrides = {}
         school_settings = getattr(school, "settings", None) or {}
         if isinstance(school_settings, dict):
@@ -180,21 +187,11 @@ def get_effective_site_settings(request: Any = None, school: Any = None) -> Any:
         return resolved
 
     try:
-        from apps.siteconfig.models import SiteSettings
-
-        base = copy(SiteSettings.get_solo())
-        # Phase 10 — 1.2: overlay runtime defaults when present (state-safe migration path)
-        try:
-            from apps.platform_runtime.models import RuntimeDefaults
-
-            rt_defaults = RuntimeDefaults.get_singleton()
-            if rt_defaults is not None and isinstance(getattr(rt_defaults, "payload", None), dict):
-                for key, value in rt_defaults.payload.items():
-                    if hasattr(base, key):
-                        setattr(base, key, value)
-        except (AttributeError, DatabaseError, ImportError, OSError, RuntimeError, TypeError, ValueError):
-            pass
+        base = _build_platform_site_settings_base()
     except (AttributeError, DatabaseError, ImportError, OSError, RuntimeError, TypeError, ValueError):
+        logger.exception("Failed to build platform site settings base from runtime defaults / SiteSettings")
+        base = None
+    if base is None:
         return None
     if school is None:
         cache.set(cache_key, base, 60)
@@ -222,6 +219,50 @@ def get_effective_site_settings(request: Any = None, school: Any = None) -> Any:
     if request is not None:
         setattr(request, cache_attr, resolved)
     return resolved
+
+
+def _build_platform_site_settings_base() -> Any:
+    """Build the platform baseline from RuntimeDefaults first, then legacy SiteSettings for compatibility fields."""
+    from apps.platform_runtime.models import RuntimeDefaults
+    from apps.siteconfig.models import SiteSettings
+
+    payload = {}
+    try:
+        rt_defaults = RuntimeDefaults.get_singleton()
+        if rt_defaults is not None and isinstance(getattr(rt_defaults, "payload", None), dict):
+            payload = dict(rt_defaults.payload)
+    except (AttributeError, DatabaseError, ImportError, OSError, RuntimeError, TypeError, ValueError):
+        payload = {}
+
+    legacy_site = None
+    try:
+        legacy_site = SiteSettings.get_solo()
+    except (AttributeError, DatabaseError, ImportError, OSError, RuntimeError, TypeError, ValueError):
+        legacy_site = None
+
+    if legacy_site is not None:
+        base = copy(legacy_site)
+    else:
+        base = SiteSettings()
+        base.pk = 1
+
+    if payload:
+        for field in SiteSettings._meta.concrete_fields:
+            field_names = {field.name, getattr(field, "attname", field.name)}
+            payload_key = next((name for name in field_names if name in payload), None)
+            if payload_key is None:
+                continue
+            target_attr = payload_key
+            if getattr(field, "remote_field", None) is not None and payload_key == field.name:
+                target_attr = getattr(field, "attname", field.name)
+            if not hasattr(base, target_attr):
+                continue
+            setattr(base, target_attr, payload[payload_key])
+        try:
+            base._sanitize_foreign_keys(persist=False)
+        except (AttributeError, DatabaseError, TypeError, ValueError):
+            pass
+    return base
 
 
 def get_site_display_name(request: Any) -> str:
@@ -291,3 +332,38 @@ def get_platform_defaults(use_db: bool = True) -> dict:
         "timezone": getattr(settings, "PLATFORM_DEFAULT_TIMEZONE", "UTC"),
         "grading_scale": getattr(settings, "PLATFORM_DEFAULT_GRADING_SCALE", "0-100"),
     }
+
+
+def log_ai_action(
+    action_type: str,
+    *,
+    tenant_id: Optional[Any] = None,
+    user_id: Optional[int] = None,
+    request_id: str = "",
+    payload: Optional[dict] = None,
+) -> None:
+    """
+    Phase 10 — 10.8: Write one row to AIActionAuditLog for compliance and debugging.
+    Call from AI flows (e.g. suggestion accepted, content generated).
+    """
+    try:
+        import uuid
+        from apps.platform_runtime.models import AIActionAuditLog
+        tid = None
+        if tenant_id is not None:
+            if hasattr(tenant_id, "hex"):
+                tid = tenant_id
+            else:
+                try:
+                    tid = uuid.UUID(str(tenant_id))
+                except (TypeError, ValueError):
+                    pass
+        AIActionAuditLog.objects.create(
+            action_type=action_type[:80],
+            tenant_id=tid,
+            user_id=user_id,
+            request_id=(request_id or "")[:64],
+            payload=payload or {},
+        )
+    except (AttributeError, DatabaseError, ImportError, OSError, RuntimeError, TypeError, ValueError):
+        pass

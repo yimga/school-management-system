@@ -8,9 +8,10 @@ import json
 from django.core.management import CommandError, call_command
 from django.test import TestCase, override_settings
 
+from apps.brand_experience.models import ThemePack
 from apps.finance.models import ComplianceProfile
 from apps.siteconfig.management.commands.import_ui_config import Command as ImportUIConfigCommand
-from apps.siteconfig.models import SiteSettings, ThemePack
+from apps.siteconfig.models import SiteSettings
 
 
 class UIConfigCommandTests(TestCase):
