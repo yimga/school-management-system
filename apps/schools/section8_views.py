@@ -5,6 +5,7 @@ import os
 import json
 import base64
 import secrets
+from binascii import Error as BinasciiError
 from urllib.parse import urlencode
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotFound, JsonResponse
 from django.conf import settings
@@ -12,6 +13,7 @@ from django.views.decorators.http import require_GET
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.shortcuts import redirect, render
+from django.db import DatabaseError
 from django.db.models import Q
 from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
@@ -72,7 +74,7 @@ def verify_caddy_domain(request):
                 return HttpResponse(status=200)
             if cached is False:
                 return HttpResponseNotFound("Domain not recognized")
-    except Exception:
+    except SECTION8_CACHE_FAILURES:
         cache = None
 
     # 1. Runtime domain table (django-tenants): authoritative routing map.
@@ -82,10 +84,10 @@ def verify_caddy_domain(request):
             if cache:
                 try:
                     cache.set(cache_key, True, timeout=cache_ttl)
-                except Exception:
+                except SECTION8_CACHE_FAILURES:
                     pass
             return HttpResponse(status=200)
-    except Exception:
+    except SECTION8_OPTIONAL_FAILURES + (DatabaseError,):
         pass
 
     # 2. SchoolDomain (shared schema): multiple domains per tenant, is_verified
@@ -95,10 +97,10 @@ def verify_caddy_domain(request):
             if cache:
                 try:
                     cache.set(cache_key, True, timeout=cache_ttl)
-                except Exception:
+                except SECTION8_CACHE_FAILURES:
                     pass
             return HttpResponse(status=200)
-    except Exception:
+    except SECTION8_OPTIONAL_FAILURES + (DatabaseError,):
         pass
 
     # 3. Legacy: School.subdomain and School.custom_domain
@@ -108,21 +110,21 @@ def verify_caddy_domain(request):
         if cache:
             try:
                 cache.set(cache_key, True, timeout=cache_ttl)
-            except Exception:
+            except SECTION8_CACHE_FAILURES:
                 pass
         return HttpResponse(status=200)
     if School.objects.filter(custom_domain=domain_lower, custom_domain_verified=True, is_active=True).exists():
         if cache:
             try:
                 cache.set(cache_key, True, timeout=cache_ttl)
-            except Exception:
+            except SECTION8_CACHE_FAILURES:
                 pass
         return HttpResponse(status=200)
 
     if cache:
         try:
             cache.set(cache_key, False, timeout=cache_ttl)
-        except Exception:
+        except SECTION8_CACHE_FAILURES:
             pass
     return HttpResponseNotFound("Domain not recognized")
 
@@ -132,6 +134,10 @@ DISCOVERY_RATE_LIMIT_MAX = 10
 DISCOVERY_RATE_LIMIT_WINDOW = 60 * 15  # 15 minutes
 LTI_RATE_LIMIT_WINDOW = 60 * 15
 LTI_RATE_LIMIT_MAX = 240
+SECTION8_OPTIONAL_FAILURES = (AttributeError, ImportError, LookupError, RuntimeError, TypeError, ValueError)
+SECTION8_CACHE_FAILURES = SECTION8_OPTIONAL_FAILURES + (DatabaseError, OSError)
+SECTION8_JSON_FAILURES = (UnicodeDecodeError, json.JSONDecodeError, TypeError, ValueError)
+SECTION8_JWT_FAILURES = SECTION8_JSON_FAILURES + (BinasciiError,)
 
 
 def _safe_reverse(name: str) -> str:
@@ -139,7 +145,7 @@ def _safe_reverse(name: str) -> str:
         return reverse(name)
     except NoReverseMatch:
         return "#"
-    except Exception:
+    except SECTION8_OPTIONAL_FAILURES:
         return "#"
 
 
@@ -240,7 +246,15 @@ def _discovery_rate_limit_incr(request) -> None:
     try:
         count = cache.get(key, 0) + 1
         cache.set(key, count, timeout=DISCOVERY_RATE_LIMIT_WINDOW)
-    except Exception:
+    except SECTION8_CACHE_FAILURES:
+        pass
+
+
+def _record_discovery_funnel_event(request) -> None:
+    try:
+        from apps.schools.funnel_events import record_marketing_funnel_event
+        record_marketing_funnel_event("discovery", request)
+    except SECTION8_OPTIONAL_FAILURES:
         pass
 
 
@@ -265,11 +279,7 @@ def global_login_discovery(request):
     GET: show form (email). POST: lookup user/school, redirect to school URL or show "Get Started".
     Rate limited: max DISCOVERY_RATE_LIMIT_MAX POSTs per IP per 15 minutes to reduce email enumeration.
     """
-    try:
-        from apps.schools.funnel_events import record_marketing_funnel_event
-        record_marketing_funnel_event("discovery", request)
-    except Exception:
-        pass
+    _record_discovery_funnel_event(request)
     checklist_cards = _role_onboarding_checklists()
     if request.method == "GET":
         return render(
@@ -315,9 +325,8 @@ def global_login_discovery(request):
             school_url = f"{scheme}://{school.subdomain}.{base}"
             return redirect(school_url)
         try:
-            from django.urls import reverse
             return redirect(reverse("accounts:login") + f"?next=/portal/")
-        except Exception:
+        except NoReverseMatch:
             return redirect("accounts:login")
     _discovery_rate_limit_incr(request)
     return render(
@@ -349,11 +358,7 @@ def find_school(request):
     - Standard GET: render finder page.
     - HTMX GET (?q=...): return live search result fragment.
     """
-    try:
-        from apps.schools.funnel_events import record_marketing_funnel_event
-        record_marketing_funnel_event("discovery", request)
-    except Exception:
-        pass
+    _record_discovery_funnel_event(request)
     from apps.schools.models import School
 
     query = (request.GET.get("q") or "").strip()
@@ -485,7 +490,7 @@ def _decode_unverified_jwt(id_token: str) -> dict:
         decoded = base64.urlsafe_b64decode(payload.encode("utf-8")).decode("utf-8")
         data = json.loads(decoded)
         return data if isinstance(data, dict) else {}
-    except Exception:
+    except SECTION8_JWT_FAILURES:
         return {}
 
 
@@ -558,7 +563,7 @@ def _save_lti_state(integration, cfg):
 def _json_body(request):
     try:
         return json.loads((request.body or b"{}").decode("utf-8"))
-    except Exception:
+    except SECTION8_JSON_FAILURES:
         return {}
 
 
@@ -598,11 +603,8 @@ def lti_launch_callback(request, tool_id):
     if expected_deployment and claim_deployment and claim_deployment != expected_deployment:
         return JsonResponse({"error": "Deployment mismatch"}, status=403)
 
-    try:
-        del request.session[session_key]
-        request.session.modified = True
-    except Exception:
-        pass
+    request.session.pop(session_key, None)
+    request.session.modified = True
 
     launch_target = str((integration.config or {}).get("launch_target") or "").strip()
     if launch_target:

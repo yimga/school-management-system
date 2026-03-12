@@ -8,7 +8,7 @@
 - Management commands: `137`
 - `SiteSettings` refs: `1056`
 - `get_solo()` refs: `202`
-- `except Exception`: `741`
+- `except Exception`: `725`
 - `cursor.execute()`: `351`
 - `csrf_exempt`: `79`
 - `AllowAny`: `34`

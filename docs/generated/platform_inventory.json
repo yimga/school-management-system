@@ -3,7 +3,7 @@
     "allow_any": 34,
     "csrf_exempt": 79,
     "cursor_execute": 351,
-    "except_exception": 741,
+    "except_exception": 725,
     "get_solo": 202,
     "gilead": 485,
     "gilead_files": 111,
