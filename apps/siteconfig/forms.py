@@ -950,3 +950,25 @@ class ThemeColorsForm(forms.ModelForm):
 
         self._contrast_report = contrast_report
         return cleaned
+
+    def save(self, commit=True):
+        instance = self.instance
+        if instance is None:
+            instance = SiteSettings.get_solo()
+            self.instance = instance
+        field_updates = {
+            field_name: self.cleaned_data.get(field_name)
+            for field_name in THEME_EXPERIENCE_FIELD_NAMES
+            if field_name in self.cleaned_data
+        }
+        if callable(getattr(instance, "apply_theme_experience_state", None)):
+            instance.apply_theme_experience_state(
+                field_updates=field_updates,
+                save=commit,
+            )
+        else:
+            for field_name, value in field_updates.items():
+                setattr(instance, field_name, value)
+            if commit:
+                instance.save(update_fields=list(field_updates.keys()))
+        return instance

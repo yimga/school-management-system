@@ -2625,6 +2625,55 @@ class SiteSettings(models.Model):
         if save:
             self.save(update_fields=update_fields)
 
+    def apply_theme_experience_state(
+        self,
+        *,
+        field_updates: dict[str, object],
+        save: bool = True,
+    ) -> None:
+        """
+        Persist Theme Studio changes through one owner-scoped write contract.
+
+        The underlying fields still live on the legacy singleton during the
+        migration, but Theme Studio should not be mutating them ad hoc from the
+        form layer.
+        """
+        allowed_fields = {
+            "primary_color",
+            "accent_color",
+            "header_bg_color",
+            "footer_bg_color",
+            "success_color",
+            "warning_color",
+            "danger_color",
+            "theme_brightness",
+            "use_dark_mode",
+            "theme_pack",
+            "admin_theme_pack",
+            "teacher_theme_pack",
+            "parent_theme_pack",
+            "admin_use_site_primary",
+            "skip_theme_publish_guard",
+            "backend_console_theme",
+            "secondary_font",
+            "use_secondary_font_for_headings",
+            "base_font_size",
+            "default_widgets_per_role",
+            "report_downloads_enabled",
+            "default_dashboard_view",
+            "default_refresh_rate",
+            "default_term_report_style",
+            "default_annual_report_style",
+        }
+        update_fields: list[str] = []
+        for field_name, value in field_updates.items():
+            if field_name not in allowed_fields or not hasattr(self, field_name):
+                continue
+            setattr(self, field_name, value)
+            update_fields.append(field_name)
+        if save and update_fields:
+            self.save(update_fields=update_fields)
+
     @property
     def active_social_links(self) -> list[dict]:
         links = []

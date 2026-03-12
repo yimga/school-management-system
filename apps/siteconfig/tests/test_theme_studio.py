@@ -341,6 +341,39 @@ class ThemeResolutionTests(TestCase):
         self.assertTrue(form.initial["skip_theme_publish_guard"])
         self.assertEqual(form.initial["default_refresh_rate"], 75)
 
+    def test_theme_colors_form_save_uses_theme_experience_write_contract(self):
+        form = ThemeColorsForm(instance=self.site)
+        payload = {}
+        for field_name in ThemeColorsForm.Meta.fields:
+            value = form.initial.get(field_name, getattr(self.site, field_name, ""))
+            if hasattr(value, "pk"):
+                value = value.pk
+            if isinstance(value, bool):
+                if value:
+                    payload[field_name] = "on"
+                continue
+            if isinstance(value, (dict, list)):
+                payload[field_name] = json.dumps(value)
+            elif value in (None, ""):
+                payload[field_name] = ""
+            else:
+                payload[field_name] = str(value)
+        payload["primary_color"] = "#1e3a8a"
+        payload["accent_color"] = "#047857"
+
+        form = ThemeColorsForm(payload, instance=self.site)
+        self.assertTrue(form.is_valid(), form.errors)
+
+        with patch.object(self.site, "apply_theme_experience_state", wraps=self.site.apply_theme_experience_state) as mocked_apply:
+            saved = form.save()
+
+        self.assertEqual(saved.pk, self.site.pk)
+        mocked_apply.assert_called_once()
+        kwargs = mocked_apply.call_args.kwargs
+        self.assertTrue(kwargs["save"])
+        self.assertEqual(kwargs["field_updates"]["primary_color"], "#1e3a8a")
+        self.assertEqual(kwargs["field_updates"]["accent_color"], "#047857")
+
     def test_admin_use_site_primary_true_forces_site_colors(self):
         self.site.admin_use_site_primary = True
         self.site.save(update_fields=["admin_use_site_primary"])
