@@ -6,9 +6,10 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from apps.compliance.models import LegalDocument
+from apps.platform_runtime.helpers import get_platform_site_settings_record
 from apps.portal.models import Announcement, PortalFeatureItem
 from apps.portal.portal_models import PortalAuditLog, PortalSession
-from apps.siteconfig.models import RegionConfig, SiteSettings
+from apps.siteconfig.models import RegionConfig
 from django.contrib.auth import get_user_model
 
 
@@ -19,7 +20,9 @@ class Command(BaseCommand):
         admin_user = self._get_admin_user()
         region = RegionConfig.get_default()
 
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
+        if site is None:
+            raise RuntimeError("Site settings baseline could not be initialized")
         site.portal_recent_grades = [
             {"label": "Physics", "grade": "A (95%)", "tone": "success", "roles": ["PARENT"], "enabled": True},
             {"label": "Mathematics", "grade": "A- (89%)", "tone": "primary", "roles": ["PARENT"], "enabled": True},

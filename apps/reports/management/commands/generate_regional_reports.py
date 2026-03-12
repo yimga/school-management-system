@@ -11,6 +11,7 @@ from datetime import datetime
 
 from apps.academics.models import AcademicYear, Term, Classroom
 from apps.people.models import StudentProfile
+from apps.platform_runtime.helpers import get_effective_site_settings
 from apps.reports.models import ReportCard
 from apps.reports.localization import (
     get_certificate_localizer,
@@ -209,10 +210,9 @@ class Command(BaseCommand):
             return
 
         # Get email template and branding from Site Settings
-        from apps.siteconfig.models import SiteSettings
         from django.contrib.sites.models import Site as DjangoSite
         from django.conf import settings as django_settings
-        site = SiteSettings.get_solo()
+        site = get_effective_site_settings()
         # Absolute logo URL for email (theme pack or site logo)
         logo_file = site.get_theme_background("logo") if hasattr(site, 'get_theme_background') else None
         if not logo_file or not getattr(logo_file, 'url', None):

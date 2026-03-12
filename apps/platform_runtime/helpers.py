@@ -1,10 +1,11 @@
 """
-Phase 5: Runtime helper shims — use these instead of SiteSettings.get_solo() or School.settings/features
-for tenant behavior. All resolve from request.tenant_runtime with platform fallback where appropriate.
+Phase 5: Runtime helper shims — use these instead of the legacy SiteSettings singleton or
+School.settings/features for tenant behavior. All resolve from request.tenant_runtime with
+platform fallback where appropriate.
 
-Audit: Tenant-facing code must not call SiteSettings.get_solo() for tenant behavior; use
-get_effective_* helpers or request.tenant_runtime. See docs/PLATFORM_TRANSITION_AUDIT_REPORT.md
-and docs/PLATFORM_AUDIT_REMEDIATION_BACKLOG.md.
+Audit: Tenant-facing code must not read tenant behavior directly from the legacy SiteSettings
+singleton; use get_effective_* helpers or request.tenant_runtime. See
+docs/PLATFORM_TRANSITION_AUDIT_REPORT.md and docs/PLATFORM_AUDIT_REMEDIATION_BACKLOG.md.
 """
 from __future__ import annotations
 
@@ -103,7 +104,8 @@ def get_effective_workflow(request: Any, workflow_code: str) -> dict:
 def get_effective_flags(request: Any) -> dict:
     """
     Resolve backend feature flags from runtime when available; otherwise from SiteSettings.
-    Use this instead of SiteSettings.get_solo().backend_feature_flags in tenant-facing views.
+    Use this instead of reading backend_feature_flags directly from the legacy singleton in
+    tenant-facing views.
     """
     school = getattr(request, "school", None) if request is not None else None
     rt = get_tenant_runtime(request)
@@ -152,14 +154,14 @@ def get_effective_site_settings(request: Any = None, school: Any = None) -> Any:
     and helper methods still work while school-level JSON overrides are layered on
     top without mutating the stored singleton.
 
-    Performance: request-scope cache avoids repeated get_solo() in the same request
-    (e.g. context processor + view). Short TTL cache (60s) per school reduces DB load
-    across requests.
+    Performance: request-scope cache avoids repeated singleton lookups in the same request
+    (e.g. context processor + view). Short TTL cache (60s) per school reduces DB load across
+    requests.
     """
     if school is None and request is not None:
         school = getattr(request, "school", None)
 
-    # Request-scope cache: same request gets same result without another get_solo()
+    # Request-scope cache: same request gets the same result without another singleton lookup.
     cache_attr = "_effective_site_settings_cached"
     if request is not None:
         cached = getattr(request, cache_attr, None)
@@ -221,6 +223,38 @@ def get_effective_site_settings(request: Any = None, school: Any = None) -> Any:
     return resolved
 
 
+def get_platform_site_settings_record(*, create: bool = False) -> Any:
+    """Return the persisted SiteSettings row when present; optionally create the baseline row."""
+    from apps.siteconfig.models import SiteSettings, build_platform_default_site_settings
+
+    try:
+        site = SiteSettings.objects.order_by("pk").first()
+    except (AttributeError, DatabaseError, ImportError, OSError, RuntimeError, TypeError, ValueError):
+        site = None
+    if site is not None or not create:
+        return site
+
+    default_site = build_platform_default_site_settings()
+    creation_defaults = {}
+    for field in SiteSettings._meta.concrete_fields:
+        if getattr(field, "primary_key", False):
+            continue
+        attr_name = getattr(field, "attname", field.name)
+        value = getattr(default_site, attr_name, None)
+        if value is None:
+            continue
+        creation_defaults[attr_name] = value
+
+    try:
+        site, _ = SiteSettings.objects.get_or_create(
+            pk=getattr(default_site, "pk", None) or 1,
+            defaults=creation_defaults,
+        )
+    except (AttributeError, DatabaseError, ImportError, OSError, RuntimeError, TypeError, ValueError):
+        return None
+    return site
+
+
 def _build_platform_site_settings_base() -> Any:
     """Build the platform baseline from RuntimeDefaults first, then legacy SiteSettings for compatibility fields."""
     from apps.platform_runtime.models import RuntimeDefaults
@@ -235,10 +269,7 @@ def _build_platform_site_settings_base() -> Any:
         payload = {}
 
     legacy_site = None
-    try:
-        legacy_site = SiteSettings.get_solo()
-    except (AttributeError, DatabaseError, ImportError, OSError, RuntimeError, TypeError, ValueError):
-        legacy_site = None
+    legacy_site = get_platform_site_settings_record(create=False)
 
     if legacy_site is not None:
         base = copy(legacy_site)
@@ -268,7 +299,8 @@ def get_site_display_name(request: Any) -> str:
     """
     Resolve site/school display name for tenant-facing UI.
     Prefer runtime branding / tenant context; fallback to SiteSettings for backward compatibility.
-    Use this instead of SiteSettings.get_solo().site_name in views and context processors.
+    Use this instead of reading site_name directly from the legacy singleton in views and context
+    processors.
     """
     rt = get_tenant_runtime(request)
     if rt and rt.tenant_ctx and getattr(rt.tenant_ctx, "school_id", None):

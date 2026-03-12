@@ -1981,6 +1981,160 @@ class SiteSettings(models.Model):
             ),
         }
 
+    def get_feature_control_settings(self) -> dict[str, object]:
+        """
+        Return feature-control state through owner-scoped read contracts first.
+
+        This is the compatibility read surface for feature control views/forms
+        while the legacy singleton is being decomposed.
+        """
+        policies_payload = self.owned_payload(owner="policies_rules")
+        safe_payload = self.owned_payload(owner="safe_platform_default")
+        reports_payload = self.owned_payload(owner="reports")
+        documents_payload = self.owned_payload(owner="documents")
+        brand_payload = self.owned_payload(owner="brand_experience")
+        preview_settings = self.get_preview_platform_config()
+
+        raw_portal_features = _payload_json_object(
+            policies_payload,
+            self,
+            "portal_features",
+        )
+        portal_features = default_portal_features()
+        portal_features.update(
+            {
+                str(key): bool(value)
+                for key, value in raw_portal_features.items()
+                if isinstance(key, str)
+            }
+        )
+
+        return {
+            "portal_features": portal_features,
+            "backend_feature_flags": self.get_backend_feature_flags(),
+            "notification_channels": _payload_string_list(
+                policies_payload,
+                self,
+                "notification_channels",
+            ),
+            "enable_parent_portal": _payload_bool(
+                policies_payload,
+                self,
+                "enable_parent_portal",
+                False,
+            ),
+            "enable_teacher_portal": _payload_bool(
+                policies_payload,
+                self,
+                "enable_teacher_portal",
+                False,
+            ),
+            "enable_reports_pdf": _payload_bool(
+                reports_payload,
+                self,
+                "enable_reports_pdf",
+                True,
+            ),
+            "report_downloads_enabled": _payload_bool(
+                reports_payload,
+                self,
+                "report_downloads_enabled",
+                True,
+            ),
+            "grade_approval_enabled": _payload_bool(
+                policies_payload,
+                self,
+                "grade_approval_enabled",
+                False,
+            ),
+            "grade_approval_auto_validate": _payload_bool(
+                policies_payload,
+                self,
+                "grade_approval_auto_validate",
+                False,
+            ),
+            "enable_practical_assessment": _payload_bool(
+                policies_payload,
+                self,
+                "enable_practical_assessment",
+                False,
+            ),
+            "enable_concurrent_mark_uploads": _payload_bool(
+                policies_payload,
+                self,
+                "enable_concurrent_mark_uploads",
+                False,
+            ),
+            "maintenance_mode": _payload_bool(
+                safe_payload,
+                self,
+                "maintenance_mode",
+                False,
+            ),
+            "preview_mode_enabled": bool(preview_settings.get("preview_mode_enabled", False)),
+            "preview_note": str(preview_settings.get("preview_note", "") or ""),
+            "enable_offline_mode": _payload_bool(
+                policies_payload,
+                self,
+                "enable_offline_mode",
+                False,
+            ),
+            "auto_tag_photos_from_exif": _payload_bool(
+                documents_payload,
+                self,
+                "auto_tag_photos_from_exif",
+                False,
+            ),
+            "show_header_search": _payload_bool(
+                brand_payload,
+                self,
+                "show_header_search",
+                False,
+            ),
+            "show_header_notifications": _payload_bool(
+                brand_payload,
+                self,
+                "show_header_notifications",
+                False,
+            ),
+            "show_header_profile_menu": _payload_bool(
+                brand_payload,
+                self,
+                "show_header_profile_menu",
+                False,
+            ),
+            "show_header_theme_toggle": _payload_bool(
+                brand_payload,
+                self,
+                "show_header_theme_toggle",
+                False,
+            ),
+            "enable_whatsapp_parent_portal": _payload_bool(
+                policies_payload,
+                self,
+                "enable_whatsapp_parent_portal",
+                False,
+            ),
+            "enable_whatsapp_staff_portal": _payload_bool(
+                policies_payload,
+                self,
+                "enable_whatsapp_staff_portal",
+                False,
+            ),
+            "reports_require_approved_grades_before_publish": _payload_bool(
+                reports_payload,
+                self,
+                "reports_require_approved_grades_before_publish",
+                False,
+            ),
+            "reports_use_approved_grades_only": _payload_bool(
+                reports_payload,
+                self,
+                "reports_use_approved_grades_only",
+                False,
+            ),
+        }
+
     def get_brand_metadata(self) -> dict[str, str]:
         """Return branding/report metadata through ownership-scoped payloads first."""
         brand_payload = self.owned_payload(owner="brand_experience")

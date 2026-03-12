@@ -12,6 +12,7 @@ from typing import Optional, Callable, Any
 
 from django.conf import settings
 from django.contrib.auth.decorators import user_passes_test
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import DatabaseError, transaction
 from django.http import HttpResponseForbidden, HttpRequest
 from django.shortcuts import get_object_or_404
@@ -129,6 +130,10 @@ MODULE_ACCESS_DEFAULTS = {
         "write": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
     },
     "siteconfig": {
+        "read": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
+        "write": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
+    },
+    "studio_os": {
         "read": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
         "write": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
     },
@@ -292,7 +297,7 @@ def api_user_has_any_role(user, roles: set[str] | tuple[str, ...]) -> bool:
         ).filter(
             Q(valid_from__isnull=True) | Q(valid_from__lte=now)
         ).exists()
-    except Exception:
+    except (AttributeError, DatabaseError, ObjectDoesNotExist, TypeError, ValueError):
         return False
 
 

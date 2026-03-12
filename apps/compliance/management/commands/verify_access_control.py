@@ -128,9 +128,15 @@ class Command(BaseCommand):
             action='store_true',
             help='Show detailed output for each endpoint'
         )
+        parser.add_argument(
+            '--strict',
+            action='store_true',
+            help='Exit non-zero when any access control issue is found',
+        )
 
     def handle(self, *args, **options):
         self.verbose = options.get('verbose', False)
+        self.strict = options.get('strict', False)
         self.issues = []
         self.checked = 0
 
@@ -146,6 +152,8 @@ class Command(BaseCommand):
         if self.issues:
             self.stdout.write(self.style.WARNING(f"Issues found: {len(self.issues)}"))
             self._print_issues()
+            if self.strict:
+                raise SystemExit(1)
         else:
             self.stdout.write(self.style.SUCCESS("No access control issues found!"))
 

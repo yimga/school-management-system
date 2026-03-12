@@ -3,8 +3,8 @@
     "allow_any": 34,
     "csrf_exempt": 79,
     "cursor_execute": 351,
-    "except_exception": 723,
-    "get_solo": 203,
+    "except_exception": 721,
+    "get_solo": 204,
     "gilead": 499,
     "gilead_files": 112,
     "html_files": 456,
@@ -13,7 +13,7 @@
     "migration_files": 585,
     "print_calls": 428,
     "python_files": 1747,
-    "site_settings": 1056
+    "site_settings": 1057
   },
   "doc_drift": {
     "actual_installed_app_count": 41,
@@ -28,8 +28,8 @@
       "path": "apps/schools/marketing_views.py"
     },
     {
-      "bytes": 189128,
-      "lines": 4815,
+      "bytes": 194420,
+      "lines": 4969,
       "path": "apps/siteconfig/models.py"
     },
     {
@@ -73,8 +73,8 @@
       "path": "apps/api/views_v1.py"
     },
     {
-      "bytes": 77795,
-      "lines": 1691,
+      "bytes": 80191,
+      "lines": 1777,
       "path": "apps/finance/tasks.py"
     },
     {

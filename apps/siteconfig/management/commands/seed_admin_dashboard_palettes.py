@@ -5,7 +5,9 @@ Run: python manage.py seed_admin_dashboard_palettes [--reset]
 """
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from apps.siteconfig.models import ThemePack, SiteSettings
+
+from apps.platform_runtime.helpers import get_platform_site_settings_record
+from apps.siteconfig.models import ThemePack
 
 CURATED_CATALOG_SLUGS = (
     "admin-academic-slate",
@@ -1316,8 +1318,8 @@ class Command(BaseCommand):
                 updated_count += 1
                 self.stdout.write(self.style.WARNING(f"  ~ Updated: {pack.name}"))
 
-        site_settings = SiteSettings.get_solo()
-        if not site_settings.admin_theme_pack:
+        site_settings = get_platform_site_settings_record(create=True)
+        if site_settings is not None and not site_settings.admin_theme_pack:
             default_pack = ThemePack.objects.filter(slug="admin-academic-slate").first()
             if default_pack:
                 site_settings.admin_theme_pack = default_pack

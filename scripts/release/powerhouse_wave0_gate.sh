@@ -16,6 +16,10 @@ if [[ -z "${PYTHON_BIN}" ]]; then
   fi
 fi
 
+run_django_tests() {
+  "${PYTHON_BIN}" manage.py test "$@" --keepdb --noinput -v 1
+}
+
 echo "[powerhouse_wave0] Django check"
 "${PYTHON_BIN}" manage.py check
 
@@ -26,13 +30,12 @@ echo "[powerhouse_wave0] Tenant model audit"
 "${PYTHON_BIN}" manage.py audit_tenant_models --strict
 
 echo "[powerhouse_wave0] RBAC and smoke targeted suite"
-"${PYTHON_BIN}" manage.py test \
+run_django_tests \
   apps.accounts.tests.test_smoke_urls \
   apps.siteconfig.tests.test_admin_ui_smoke \
   apps.api.tests.test_dashboard_api_rbac \
   apps.requests.tests.test_views_security \
-  apps.accounts.tests.test_mfa_redirect_safety \
-  -v 1
+  apps.accounts.tests.test_mfa_redirect_safety
 
 WAVE0_DB_FILE_USER_SET=0
 if [[ -n "${POWERHOUSE_WAVE0_DB_FILE:-}" ]]; then

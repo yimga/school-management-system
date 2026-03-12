@@ -2,7 +2,16 @@ from unittest.mock import patch
 
 from django.test import RequestFactory, SimpleTestCase
 
-from apps.finance.tasks import _get_finance_runtime_config, _get_marketplace_integration_settings
+from apps.finance.tasks import (
+    FINANCE_TASK_RETRYABLE_FAILURES,
+    _get_finance_runtime_config,
+    _get_marketplace_integration_settings,
+    auto_copy_fee_plans_task,
+    auto_generate_fee_invoices_task,
+    process_payment_receipt_upload_task,
+    retry_bank_verification_task,
+    update_invoice_statuses_task,
+)
 from apps.finance.views import _backend_flags
 
 
@@ -48,3 +57,16 @@ class FinanceHardeningHelperTests(SimpleTestCase):
         config = _get_marketplace_integration_settings(site)
 
         self.assertEqual(config["marksheet_ocr_command"], "/usr/bin/tesseract")
+
+    def test_finance_task_autoretry_contract_is_limited_to_retryable_failures(self):
+        for task in (
+            auto_generate_fee_invoices_task,
+            auto_copy_fee_plans_task,
+            update_invoice_statuses_task,
+            process_payment_receipt_upload_task,
+            retry_bank_verification_task,
+        ):
+            self.assertEqual(
+                task.autoretry_for,
+                FINANCE_TASK_RETRYABLE_FAILURES,
+            )

@@ -341,6 +341,43 @@ class RuntimeHelperResolutionTests(TestCase):
         self.assertTrue(flags["enable_api_center"])
         self.assertIn("backend_module_overview", flags)
 
+    def test_site_settings_feature_control_settings_use_owner_surfaces(self):
+        site = SiteSettings.get_solo()
+        site.portal_features = {"documents": True}
+        site.backend_feature_flags = {"enable_api_center": True}
+        site.notification_channels = ["email", "sms"]
+        site.enable_parent_portal = True
+        site.maintenance_mode = True
+        site.preview_mode_enabled = True
+        site.show_header_search = True
+        site.report_downloads_enabled = False
+        site.auto_tag_photos_from_exif = True
+        site.save(
+            update_fields=[
+                "portal_features",
+                "backend_feature_flags",
+                "notification_channels",
+                "enable_parent_portal",
+                "maintenance_mode",
+                "preview_mode_enabled",
+                "show_header_search",
+                "report_downloads_enabled",
+                "auto_tag_photos_from_exif",
+            ]
+        )
+
+        feature_settings = site.get_feature_control_settings()
+
+        self.assertTrue(feature_settings["portal_features"]["documents"])
+        self.assertTrue(feature_settings["backend_feature_flags"]["enable_api_center"])
+        self.assertEqual(feature_settings["notification_channels"], ["email", "sms"])
+        self.assertTrue(feature_settings["enable_parent_portal"])
+        self.assertTrue(feature_settings["maintenance_mode"])
+        self.assertTrue(feature_settings["preview_mode_enabled"])
+        self.assertTrue(feature_settings["show_header_search"])
+        self.assertFalse(feature_settings["report_downloads_enabled"])
+        self.assertTrue(feature_settings["auto_tag_photos_from_exif"])
+
     def test_site_settings_owner_accessors_expose_brand_and_report_preview_payloads(self):
         site = SiteSettings.get_solo()
         site.site_name = "North Star Academy"

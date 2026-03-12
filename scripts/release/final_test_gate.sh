@@ -16,6 +16,10 @@ if [[ -z "${PYTHON_BIN}" ]]; then
   fi
 fi
 
+run_django_tests() {
+  "${PYTHON_BIN}" manage.py test "$@" --keepdb --noinput --verbosity 1
+}
+
 run_cmd() {
   "$@"
 }
@@ -55,6 +59,6 @@ test_modules=(
 )
 
 echo "[Phase 15] Running targeted regression suite..."
-run_cmd "${PYTHON_BIN}" manage.py test "${test_modules[@]}" --verbosity 1
+run_django_tests "${test_modules[@]}"
 
 echo "[Phase 15] Final gate passed."

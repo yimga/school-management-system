@@ -34,6 +34,6 @@ echo "[Phase 16] Exporting UI config snapshot to ${UI_CONFIG_PATH}"
 run_cmd "${PYTHON_BIN}" manage.py export_ui_config --output "${UI_CONFIG_PATH}"
 
 echo "[Phase 16] Printing active theme pointers..."
-run_cmd "${PYTHON_BIN}" manage.py shell -c "from apps.siteconfig.models import SiteSettings; s=SiteSettings.get_solo(); print('theme_pack_id=', s.theme_pack_id, 'admin_theme_pack_id=', s.admin_theme_pack_id, 'preview_mode_enabled=', s.preview_mode_enabled)"
+run_cmd "${PYTHON_BIN}" manage.py shell -c "from apps.platform_runtime.helpers import get_effective_site_settings; s=get_effective_site_settings(); print('theme_pack_id=', getattr(s, 'theme_pack_id', None), 'admin_theme_pack_id=', getattr(s, 'admin_theme_pack_id', None), 'preview_mode_enabled=', getattr(s, 'preview_mode_enabled', None))"
 
 echo "[Phase 16] Dry-run complete."

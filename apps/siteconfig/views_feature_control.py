@@ -13,6 +13,7 @@ Access: settings.feature_control permission or superuser.
 import json
 import logging
 
+from django.db import DatabaseError
 from django.core.cache import cache
 from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
@@ -192,8 +193,13 @@ def _clamp_int(value, default: int, *, minimum: int, maximum: int) -> int:
 
 def _get_site_features(site: SiteSettings) -> dict:
     """Return current feature state for display and form."""
-    portal = site.portal_features or default_portal_features()
-    flags = site.backend_feature_flags or default_backend_feature_flags()
+    feature_settings = (
+        site.get_feature_control_settings()
+        if callable(getattr(site, "get_feature_control_settings", None))
+        else {}
+    )
+    portal = feature_settings.get("portal_features") or default_portal_features()
+    flags = feature_settings.get("backend_feature_flags") or default_backend_feature_flags()
     defaults = default_backend_feature_flags()
     feature_state = {}
     for key in FEATURE_KEYS:
@@ -207,7 +213,7 @@ def _get_site_features(site: SiteSettings) -> dict:
             value = flags.get(subkey, default_val)
             feature_state[key] = bool(value)
             continue
-        feature_state[key] = bool(getattr(site, key, False))
+        feature_state[key] = bool(feature_settings.get(key, getattr(site, key, False)))
     return feature_state
 
 
@@ -219,7 +225,7 @@ def _list_weather_locations() -> list[WeatherLocation]:
             .filter(is_active=True)
             .order_by("region__name", "sort_order", "city")
         )
-    except Exception:
+    except (AttributeError, DatabaseError, LookupError, RuntimeError, TypeError, ValueError):
         return []
 
 
@@ -232,7 +238,12 @@ def _safe_float(value, default: float) -> float:
 
 def _get_weather_selector_state(site: SiteSettings) -> dict:
     defaults = default_header_weather_config()
-    flags = site.backend_feature_flags or default_backend_feature_flags()
+    feature_settings = (
+        site.get_feature_control_settings()
+        if callable(getattr(site, "get_feature_control_settings", None))
+        else {}
+    )
+    flags = feature_settings.get("backend_feature_flags") or default_backend_feature_flags()
     location_id = flags.get("header_weather_location_id")
     country_code = str(flags.get("header_weather_country_code") or defaults["header_weather_country_code"]).upper()
     city_name = str(flags.get("header_weather_city") or defaults["header_weather_city"])
@@ -483,7 +494,7 @@ def _log_audit(request, action: str, changes: dict) -> None:
             action=action,
             changes=changes,
         )
-    except Exception as ex:
+    except (AttributeError, DatabaseError, RuntimeError, TypeError, ValueError) as ex:
         logger.warning("Could not log feature control audit: %s", ex)
 
 
@@ -495,7 +506,12 @@ def feature_control_export(request):
     current = _get_site_features(site)
     weather = _get_weather_selector_state(site)
     defaults = default_backend_feature_flags()
-    backend_flags = site.backend_feature_flags or defaults
+    feature_settings = (
+        site.get_feature_control_settings()
+        if callable(getattr(site, "get_feature_control_settings", None))
+        else {}
+    )
+    backend_flags = feature_settings.get("backend_feature_flags") or defaults
     backend_layout_max_items_per_list = _clamp_int(
         backend_flags.get("backend_layout_max_items_per_list"),
         defaults.get("backend_layout_max_items_per_list", 5),
@@ -532,8 +548,6 @@ def feature_control_export(request):
 def feature_control_panel(request):
     """Feature Control Panel - toggle modules system-wide. When not embedded, redirect to Studio Control."""
     if request.GET.get("embed") != "1":
-        from django.shortcuts import redirect
-        from django.urls import reverse
         return redirect(reverse("studio_os:control"))
     site = get_effective_site_settings(request=request)
     if site is None:
@@ -572,7 +586,12 @@ def feature_control_panel(request):
         current_weather = _get_weather_selector_state(site)
         weather_payload, weather_state = _resolve_weather_payload_from_post(site, request.POST)
         defaults = default_backend_feature_flags()
-        current_flags = site.backend_feature_flags or defaults
+        current_feature_settings = (
+            site.get_feature_control_settings()
+            if callable(getattr(site, "get_feature_control_settings", None))
+            else {}
+        )
+        current_flags = current_feature_settings.get("backend_feature_flags") or defaults
         current_max_items = _clamp_int(
             current_flags.get("backend_layout_max_items_per_list"),
             defaults.get("backend_layout_max_items_per_list", 5),
@@ -731,7 +750,12 @@ def feature_control_panel(request):
     last_saved = cache.get(tenant_cache_key(FEATURE_CONTROL_LAST_SAVED_KEY, request))
     weather_state = _get_weather_selector_state(site)
     defaults = default_backend_feature_flags()
-    backend_flags = site.backend_feature_flags or defaults
+    feature_settings = (
+        site.get_feature_control_settings()
+        if callable(getattr(site, "get_feature_control_settings", None))
+        else {}
+    )
+    backend_flags = feature_settings.get("backend_feature_flags") or defaults
     backend_layout_max_items_per_list = _clamp_int(
         backend_flags.get("backend_layout_max_items_per_list"),
         defaults.get("backend_layout_max_items_per_list", 5),
@@ -812,7 +836,12 @@ def feature_control_api(request):
     current = _get_site_features(site)
     weather_state = _get_weather_selector_state(site)
     defaults = default_backend_feature_flags()
-    backend_flags = site.backend_feature_flags or defaults
+    feature_settings = (
+        site.get_feature_control_settings()
+        if callable(getattr(site, "get_feature_control_settings", None))
+        else {}
+    )
+    backend_flags = feature_settings.get("backend_feature_flags") or defaults
     backend_layout_max_items_per_list = _clamp_int(
         backend_flags.get("backend_layout_max_items_per_list"),
         defaults.get("backend_layout_max_items_per_list", 5),

@@ -54,6 +54,14 @@ FINANCE_TASK_SOFT_FAILURES = (
     ValidationError,
     ValueError,
 )
+FINANCE_TASK_RETRYABLE_FAILURES = (
+    ConnectionError,
+    DatabaseError,
+    OSError,
+    RuntimeError,
+    SMTPException,
+    TimeoutError,
+)
 
 ALPHA2_TO_ALPHA3_COUNTRY_CODE = {
     "CM": "CMR",
@@ -142,6 +150,24 @@ def _get_finance_runtime_config(site_settings) -> dict[str, object]:
         "bank_verification_tolerance_days": int(
             getattr(site_settings, "finance_bank_verification_tolerance_days", 7) or 7
         ),
+        "bank_verification_amount_tolerance": Decimal(
+            str(getattr(site_settings, "finance_bank_verification_amount_tolerance", "100.00"))
+        ),
+        "payment_instructions_bank": str(
+            getattr(site_settings, "finance_payment_instructions_bank", "") or ""
+        ),
+        "payment_instructions_mtn_momo": str(
+            getattr(site_settings, "finance_payment_instructions_mtn_momo", "") or ""
+        ),
+        "payment_instructions_orange_money": str(
+            getattr(site_settings, "finance_payment_instructions_orange_money", "") or ""
+        ),
+        "payment_instructions_cash": str(
+            getattr(site_settings, "finance_payment_instructions_cash", "") or ""
+        ),
+        "receipt_upload_instructions": str(
+            getattr(site_settings, "finance_receipt_upload_instructions", "") or ""
+        ),
         "reminder_no_contact_action": str(
             getattr(site_settings, "finance_reminder_no_contact_action", "warn_only") or "warn_only"
         ),
@@ -169,12 +195,24 @@ def _get_payment_instructions(invoice: Invoice) -> dict:
     Returns dict with payment instruction variables for template formatting.
     """
     from apps.finance.models import BankAccount
+    finance_settings: dict[str, object] = {}
+    school = _resolve_school(invoice)
+    if school is not None:
+        try:
+            site_settings = get_cached_site_settings(school=school)
+            finance_settings = _get_finance_runtime_config(site_settings)
+        except FINANCE_TASK_SOFT_FAILURES as exc:
+            logger.warning(
+                "Falling back to blank finance payment instructions for school %s",
+                getattr(school, "pk", None),
+                exc_info=exc,
+            )
     instructions = {
-        "bank_account": "",
+        "bank_account": str(finance_settings.get("payment_instructions_bank", "") or ""),
         "bank_name": "",
         "branch": "",
-        "mtn_momo_number": "",
-        "orange_money_number": "",
+        "mtn_momo_number": str(finance_settings.get("payment_instructions_mtn_momo", "") or ""),
+        "orange_money_number": str(finance_settings.get("payment_instructions_orange_money", "") or ""),
     }
     
     try:
@@ -222,10 +260,20 @@ def _get_payment_instructions(invoice: Invoice) -> dict:
             orange_account = bank_accounts.filter(account_type=BankAccount.AccountType.ORANGE_MONEY).first()
             if orange_account:
                 instructions["orange_money_number"] = orange_account.account_number
-    except FINANCE_TASK_SOFT_FAILURES as e:
-        logger.error(f"Error getting payment instructions: {str(e)}")
+    except FINANCE_TASK_SOFT_FAILURES as exc:
+        logger.error("Error getting payment instructions for invoice %s", invoice.pk, exc_info=exc)
     
     return instructions
+
+
+def _mark_proof_upload_verification_error(proof_upload_id: int, message: str) -> None:
+    try:
+        proof_upload = PaymentProofUpload.objects.get(id=proof_upload_id)
+        proof_upload.status = PaymentProofUpload.Status.DISCREPANCY
+        proof_upload.verification_notes = message
+        proof_upload.save(update_fields=["status", "verification_notes"])
+    except FINANCE_TASK_SOFT_FAILURES:
+        return
 
 
 def _send_payment_email(to_email: str, subject: str, body: str, integration: Integration | None) -> None:
@@ -903,7 +951,13 @@ def _auto_generate_fee_invoices_body(dry_run: bool) -> dict:
         raise
 
 
-@shared_task(bind=True, name="finance.auto_generate_fee_invoices", autoretry_for=(Exception,), max_retries=3, retry_backoff=True)
+@shared_task(
+    bind=True,
+    name="finance.auto_generate_fee_invoices",
+    autoretry_for=FINANCE_TASK_RETRYABLE_FAILURES,
+    max_retries=3,
+    retry_backoff=True,
+)
 def auto_generate_fee_invoices_task(self, dry_run: bool = False, school_id: str | None = None) -> dict:
     """Automatically generate fee invoices. Runs in tenant context (per school_id or all active schools)."""
     if school_id:
@@ -1053,7 +1107,13 @@ def _auto_copy_fee_plans_body(dry_run: bool) -> dict:
         raise
 
 
-@shared_task(bind=True, name="finance.auto_copy_fee_plans", autoretry_for=(Exception,), max_retries=3, retry_backoff=True)
+@shared_task(
+    bind=True,
+    name="finance.auto_copy_fee_plans",
+    autoretry_for=FINANCE_TASK_RETRYABLE_FAILURES,
+    max_retries=3,
+    retry_backoff=True,
+)
 def auto_copy_fee_plans_task(self, dry_run: bool = False, school_id: str | None = None) -> dict:
     """Copy active fee plans to next year. Runs in tenant context (per school_id or all active schools)."""
     if school_id:
@@ -1148,7 +1208,13 @@ def _update_invoice_statuses_body(dry_run: bool) -> dict:
         raise
 
 
-@shared_task(bind=True, name="finance.update_invoice_statuses", autoretry_for=(Exception,), max_retries=3, retry_backoff=True)
+@shared_task(
+    bind=True,
+    name="finance.update_invoice_statuses",
+    autoretry_for=FINANCE_TASK_RETRYABLE_FAILURES,
+    max_retries=3,
+    retry_backoff=True,
+)
 def update_invoice_statuses_task(self, dry_run: bool = False, school_id: str | None = None) -> dict:
     """Automatically update invoice statuses. Runs in tenant context (per school_id or all active schools)."""
     if school_id:
@@ -1161,7 +1227,13 @@ def update_invoice_statuses_task(self, dry_run: bool = False, school_id: str | N
     return totals
 
 
-@shared_task(bind=True, name="finance.process_payment_receipt_upload", autoretry_for=(Exception,), max_retries=3, retry_backoff=True)
+@shared_task(
+    bind=True,
+    name="finance.process_payment_receipt_upload",
+    autoretry_for=FINANCE_TASK_RETRYABLE_FAILURES,
+    max_retries=3,
+    retry_backoff=True,
+)
 def process_payment_receipt_upload_task(self, proof_upload_id: int, school_id: str | None = None) -> dict:
     """
     Process a payment receipt upload. Runs in tenant context when school_id is provided (required in multi-tenant).
@@ -1419,11 +1491,17 @@ def _process_payment_receipt_upload_impl(proof_upload_id: int) -> dict:
                     message=message,
                     channels=channels,
                 )
-            except FINANCE_TASK_SOFT_FAILURES as e:
-                logger.error("Failed to send notification for verified payment: %s", str(e))
+            except FINANCE_TASK_SOFT_FAILURES as exc:
+                logger.error(
+                    "Failed to send notification for verified payment for receipt %s",
+                    proof_upload_id,
+                    exc_info=exc,
+                )
             
             logger.info(
-                f"Payment receipt {proof_upload_id} verified and payment {payment.id} applied automatically"
+                "Payment receipt %s verified and payment %s applied automatically",
+                proof_upload_id,
+                payment.id,
             )
             execution_log.mark_completed(
                 AutomationExecutionLog.Status.SUCCESS,
@@ -1453,7 +1531,9 @@ def _process_payment_receipt_upload_impl(proof_upload_id: int) -> dict:
                 })
             
             logger.info(
-                f"Payment receipt {proof_upload_id} flagged for review: {proof_upload.verification_notes}"
+                "Payment receipt %s flagged for review: %s",
+                proof_upload_id,
+                proof_upload.verification_notes,
             )
             execution_log.mark_completed(
                 AutomationExecutionLog.Status.SUCCESS,
@@ -1469,26 +1549,22 @@ def _process_payment_receipt_upload_impl(proof_upload_id: int) -> dict:
             }
 
     except PaymentProofUpload.DoesNotExist:
-        logger.error(f"PaymentProofUpload {proof_upload_id} not found")
+        logger.error("PaymentProofUpload %s not found", proof_upload_id)
         execution_log.mark_completed(
             AutomationExecutionLog.Status.FAILED,
             error_message="Proof upload not found",
         )
         return {"status": "error", "error": "Proof upload not found"}
-    except FINANCE_TASK_SOFT_FAILURES as e:
-        logger.error("Error processing payment receipt upload %s: %s", proof_upload_id, str(e))
+    except FINANCE_TASK_SOFT_FAILURES as exc:
+        logger.error("Error processing payment receipt upload %s", proof_upload_id, exc_info=exc)
         execution_log.mark_completed(
             AutomationExecutionLog.Status.FAILED,
-            error_message=str(e),
+            error_message=str(exc),
         )
-        # Update status to indicate error
-        try:
-            proof_upload = PaymentProofUpload.objects.get(id=proof_upload_id)
-            proof_upload.status = PaymentProofUpload.Status.DISCREPANCY
-            proof_upload.verification_notes = f"Error during verification: {str(e)}"
-            proof_upload.save()
-        except FINANCE_TASK_SOFT_FAILURES:
-            pass
+        _mark_proof_upload_verification_error(
+            proof_upload_id,
+            f"Error during verification: {str(exc)}",
+        )
         raise
 
 
@@ -1531,11 +1607,15 @@ def _notify_finance_staff_suspicious_receipt(proof_upload: PaymentProofUpload, f
                     message=message,
                     channels=["email"],  # Always email for critical alerts
                 )
-            except FINANCE_TASK_SOFT_FAILURES as e:
-                logger.error(f"Failed to notify finance staff {staff_member.id}: {str(e)}")
+            except FINANCE_TASK_SOFT_FAILURES as exc:
+                logger.error(
+                    "Failed to notify finance staff %s",
+                    staff_member.id,
+                    exc_info=exc,
+                )
     
-    except FINANCE_TASK_SOFT_FAILURES as e:
-        logger.error(f"Error notifying finance staff about suspicious receipt: {str(e)}")
+    except FINANCE_TASK_SOFT_FAILURES as exc:
+        logger.error("Error notifying finance staff about suspicious receipt", exc_info=exc)
 
 
 def _retry_bank_verification_body(days_old: int) -> dict:
@@ -1676,7 +1756,13 @@ def _retry_bank_verification_body(days_old: int) -> dict:
         raise
 
 
-@shared_task(bind=True, name="finance.retry_bank_verification", autoretry_for=(Exception,), max_retries=3, retry_backoff=True)
+@shared_task(
+    bind=True,
+    name="finance.retry_bank_verification",
+    autoretry_for=FINANCE_TASK_RETRYABLE_FAILURES,
+    max_retries=3,
+    retry_backoff=True,
+)
 def retry_bank_verification_task(self, days_old: int = 30, school_id: str | None = None) -> dict:
     """Retry bank verification for receipts. Runs in tenant context (per school_id or all active schools)."""
     if school_id:

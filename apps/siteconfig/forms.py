@@ -441,16 +441,22 @@ class SiteSettingsForm(forms.ModelForm):
                     (current_profile_id, f"Profile #{current_profile_id}")
                 )
         self.initial["compliance_profile"] = current_profile_id
-        if self.instance and self.instance.portal_features:
+        feature_settings = (
+            self.instance.get_feature_control_settings()
+            if self.instance and callable(getattr(self.instance, "get_feature_control_settings", None))
+            else {}
+        )
+        portal_features = feature_settings.get("portal_features") or {}
+        if portal_features:
             enabled = [
                 key
                 for key, _ in PORTAL_FEATURE_OPTIONS
-                if self.instance.portal_features.get(key, False)
+                if portal_features.get(key, False)
             ]
         else:
             enabled = [key for key, _ in PORTAL_FEATURE_OPTIONS if PORTAL_FEATURE_DEFAULTS.get(key)]
         self.fields["portal_features"].initial = enabled
-        self.fields["notification_channels"].initial = self.instance.notification_channels or []
+        self.fields["notification_channels"].initial = feature_settings.get("notification_channels") or []
         self.initial["referral_bonus_amount"] = self.instance.referral_bonus_amount or Decimal("0.00")
         self.initial["social_links"] = json.dumps(self.instance.social_links or [], indent=2)
 

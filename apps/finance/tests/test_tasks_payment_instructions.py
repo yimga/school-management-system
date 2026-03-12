@@ -119,3 +119,25 @@ class PaymentInstructionsResolutionTests(TestCase):
                 "orange_money_number": "",
             },
         )
+
+    def test_uses_owner_scoped_finance_instruction_defaults_when_registry_lookup_fails(self):
+        settings_stub = type(
+            "SettingsStub",
+            (),
+            {
+                "get_finance_runtime_config": lambda self: {
+                    "payment_instructions_bank": "BANK-123",
+                    "payment_instructions_mtn_momo": "237670000111",
+                    "payment_instructions_orange_money": "237690000222",
+                }
+            },
+        )()
+
+        with patch("apps.finance.tasks._resolve_school", return_value=object()):
+            with patch("apps.finance.tasks.get_cached_site_settings", return_value=settings_stub):
+                with patch("apps.finance.tasks.RegionConfig.objects.filter", side_effect=RuntimeError("registry unavailable")):
+                    instructions = _get_payment_instructions(self.invoice)
+
+        self.assertEqual(instructions["bank_account"], "BANK-123")
+        self.assertEqual(instructions["mtn_momo_number"], "237670000111")
+        self.assertEqual(instructions["orange_money_number"], "237690000222")

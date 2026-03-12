@@ -5,7 +5,7 @@ from decimal import Decimal
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from apps.siteconfig.models import SiteSettings
+from apps.platform_runtime.helpers import get_platform_site_settings_record
 
 from ...models import ComplianceProfile, ContributionRule, LedgerAccount, TaxBracket
 
@@ -80,8 +80,8 @@ class Command(BaseCommand):
         self._seed_accounts(cameroon)
         self._seed_accounts(generic)
 
-        site = SiteSettings.get_solo()
-        if not getattr(site, "compliance_profile_id", None):
+        site = get_platform_site_settings_record(create=True)
+        if site is not None and not getattr(site, "compliance_profile_id", None):
             site.compliance_profile = cameroon
             site.save(update_fields=["compliance_profile_id"])
 

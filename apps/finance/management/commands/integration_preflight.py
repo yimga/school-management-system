@@ -6,7 +6,8 @@ from django.core.management.base import BaseCommand
 
 from apps.api.ministry_connectors import ministry_runtime_status
 from apps.finance.ocr_runtime import get_ocr_runtime_status
-from apps.siteconfig.models import SiteSettings, default_backend_feature_flags
+from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.siteconfig.models import default_backend_feature_flags
 
 
 class Command(BaseCommand):
@@ -20,7 +21,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        site = SiteSettings.get_solo()
+        site = get_effective_site_settings()
         flags = {**default_backend_feature_flags(), **(site.backend_feature_flags or {})}
 
         ocr_method = getattr(site, "finance_receipt_verification_method", "pattern") or "pattern"
