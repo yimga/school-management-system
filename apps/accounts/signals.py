@@ -57,10 +57,6 @@ def _apply_role_template(sender, instance, created, **kwargs):
         return
     roles = AccessRole.objects.filter(code__in=codes)
     if not roles.exists():
-        logger.warning(
-            "No AccessRole found for user.role=%s (codes=%s); not clearing user.roles.",
-            instance.role,
-            codes,
-        )
+        # Role templates may be evaluated before access roles are seeded in isolated setup flows.
         return
     instance.roles.set(roles)
