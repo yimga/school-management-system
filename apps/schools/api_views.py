@@ -14,8 +14,12 @@ def _offline_enabled_for_request(request):
     if not school:
         return bool(site.enable_offline_mode)
     try:
-        enabled = get_effective_policy(school, user=getattr(request, "user", None), capability="offline_mode").get("enabled", False)
-    except Exception:
+        enabled = get_effective_policy(
+            school,
+            user=getattr(request, "user", None),
+            capability="offline_mode",
+        ).get("enabled", False)
+    except (AttributeError, LookupError, RuntimeError, TypeError, ValueError):
         enabled = False
     return bool(site.enable_offline_mode) and enabled
 

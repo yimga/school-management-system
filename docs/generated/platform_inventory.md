@@ -1,14 +1,14 @@
 # Platform Inventory
 
 - Installed app modules: `41`
-- Python files: `1746`
+- Python files: `1747`
 - HTML templates: `456`
 - Markdown files: `793`
 - Migration files: `585`
 - Management commands: `137`
 - `SiteSettings` refs: `1056`
 - `get_solo()` refs: `202`
-- `except Exception`: `725`
+- `except Exception`: `724`
 - `cursor.execute()`: `351`
 - `csrf_exempt`: `79`
 - `AllowAny`: `34`
