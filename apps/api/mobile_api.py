@@ -463,7 +463,7 @@ class OfflineSyncViewSet(viewsets.ModelViewSet):
 
         try:
             local_date = timezone.datetime.strptime(str(raw_date)[:10], "%Y-%m-%d").date()
-        except Exception:
+        except ValueError:
             sync_item.status = 'FAILED'
             sync_item.error_message = "Invalid date format. Use YYYY-MM-DD."
             sync_item.synced_at = timezone.now()
@@ -579,7 +579,11 @@ class OfflineSyncViewSet(viewsets.ModelViewSet):
         from apps.platform_runtime.helpers import get_effective_site_settings
 
         site = get_effective_site_settings(request=request)
-        flags = site.backend_feature_flags or {}
+        flags = (
+            site.get_backend_feature_flags()
+            if callable(getattr(site, "get_backend_feature_flags", None))
+            else {}
+        )
         if not site.enable_offline_mode:
             return Response(
                 {'error': 'Offline sync is disabled by system configuration.'},
@@ -590,7 +594,7 @@ class OfflineSyncViewSet(viewsets.ModelViewSet):
             from apps.policies.policy_registry import get_effective_policy
             try:
                 offline_ok = get_effective_policy(school, user=getattr(request, "user", None), capability="offline_mode").get("enabled", False)
-            except Exception:
+            except (AttributeError, LookupError, RuntimeError, TypeError, ValueError):
                 offline_ok = False
             if not offline_ok:
                 return Response(

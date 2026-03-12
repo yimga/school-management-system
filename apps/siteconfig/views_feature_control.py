@@ -113,8 +113,8 @@ FEATURE_CATEGORIES = {
         ("backend_flags.allow_bulk_commit", "Bulk Import Commit", False, "Allow commit step in entity import", "Bulk commit disabled", []),
         ("backend_flags.enable_api_schema_ui", "API Schema UI", False, "API documentation for staff", "API docs hidden", []),
         ("backend_flags.enable_ocr_scan_teller", "OCR Scan Teller", False, "Scan payment receipts (OCR) for matching and data entry", "Scan Teller hidden", []),
-        ("backend_flags.enable_ministry_api_cartescolaire", "Ministry API: Student Registry", False, "Placeholder for a national student-registry integration", "Student-registry integration disabled", []),
-        ("backend_flags.enable_ministry_api_dgi", "Ministry API: Revenue / Tax", False, "Placeholder for a government revenue or tax integration", "Revenue/tax integration disabled", []),
+        ("backend_flags.enable_ministry_api_cartescolaire", "Ministry API (Cartescolaire)", False, "Placeholder for a national student-registry integration", "Student-registry integration disabled", []),
+        ("backend_flags.enable_ministry_api_dgi", "Ministry API (DGI)", False, "Placeholder for a government revenue or tax integration", "Revenue/tax integration disabled", []),
         ("backend_flags.enable_ministry_live_sync", "Ministry Live Sync", True, "Allow outbound sync to configured ministry APIs when sync=1 is requested", "Only local payload preview available", ["backend_flags.enable_ministry_api_cartescolaire", "backend_flags.enable_ministry_api_dgi"]),
         ("backend_flags.enable_analytics_dashboard_cache", "Analytics Dashboard Cache", False, "Cache analytics dashboard HTML to reduce load (TTL from analytics_dashboard_cache_seconds or 60s)", "Analytics dashboard uncached", []),
         ("backend_flags.enable_super_admin_ui", "Super Admin / Schools", True, "Show Super Admin dashboard and Create School; when off, /super/ is hidden and Schools link removed.", "Super Admin hidden", []),
@@ -417,8 +417,16 @@ def _resolve_weather_payload_from_post(site: SiteSettings, post_data) -> tuple[d
 
 def _apply_form_to_site(site: SiteSettings, form_data: dict, weather_payload: dict | None = None) -> None:
     """Apply form checkbox values to SiteSettings."""
-    portal = dict(site.portal_features or default_portal_features())
-    flags = dict(site.backend_feature_flags or default_backend_feature_flags())
+    current_feature_settings = (
+        site.get_feature_control_settings()
+        if callable(getattr(site, "get_feature_control_settings", None))
+        else {}
+    )
+    portal = dict(current_feature_settings.get("portal_features") or default_portal_features())
+    flags = dict(
+        current_feature_settings.get("backend_feature_flags")
+        or default_backend_feature_flags()
+    )
 
     for key, val in form_data.items():
         if key.startswith("portal_features."):

@@ -121,6 +121,28 @@ def _backend_flags(request: HttpRequest | None = None) -> dict:
         return {}
 
 
+def _notification_delivery_settings(
+    request: HttpRequest | None = None,
+    *,
+    site=None,
+) -> tuple[list[str], str | None]:
+    """
+    Resolve notification channels and sender identity through owner-scoped settings.
+    """
+    current_site = site or get_effective_site_settings(request=request)
+    feature_settings = (
+        current_site.get_notification_delivery_settings()
+        if callable(getattr(current_site, "get_notification_delivery_settings", None))
+        else {}
+    )
+    channels = list(feature_settings.get("notification_channels") or [])
+    from_email = (
+        feature_settings.get("email_from_address")
+        or getattr(settings, "DEFAULT_FROM_EMAIL", None)
+    )
+    return channels, from_email
+
+
 def _finance_access_state(user, request: HttpRequest | None = None) -> dict:
     """
     Snapshot of finance access for a guardian user.
@@ -1424,8 +1446,7 @@ def request_finance_access(request: HttpRequest, invoice_id: int | None = None):
 
         notifier = NotificationService()
         site = get_effective_site_settings(request=request)
-        channels = getattr(site, "notification_channels", []) or []
-        from_email = getattr(site, "email_from_address", None) or getattr(settings, "DEFAULT_FROM_EMAIL", None)
+        channels, from_email = _notification_delivery_settings(request, site=site)
 
         messages_out = []
         for link in guardians:
@@ -1569,8 +1590,7 @@ def request_finance_access(request: HttpRequest, invoice_id: int | None = None):
 
     # Optional email/SMS alerts based on site notification channels
     site = get_effective_site_settings(request=request)
-    channels = getattr(site, "notification_channels", []) or []
-    from_email = getattr(site, "email_from_address", None) or getattr(settings, "DEFAULT_FROM_EMAIL", None)
+    channels, from_email = _notification_delivery_settings(request, site=site)
     if "email" in channels and from_email:
         recipient_emails = [r.email for r in recipients if r.email]
         if recipient_emails:
@@ -1646,8 +1666,7 @@ def finance_access_bulk(request: HttpRequest):
 
     flags = _backend_flags(request)
     site = get_effective_site_settings(request=request)
-    channels = getattr(site, "notification_channels", []) or []
-    from_email = getattr(site, "email_from_address", None) or getattr(settings, "DEFAULT_FROM_EMAIL", None)
+    channels, from_email = _notification_delivery_settings(request, site=site)
     notifier = NotificationService()
 
     if request.method == "POST":

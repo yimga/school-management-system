@@ -378,6 +378,17 @@ class RuntimeHelperResolutionTests(TestCase):
         self.assertFalse(feature_settings["report_downloads_enabled"])
         self.assertTrue(feature_settings["auto_tag_photos_from_exif"])
 
+    def test_site_settings_notification_delivery_settings_use_owner_surfaces(self):
+        site = SiteSettings.get_solo()
+        site.notification_channels = ["email", "sms"]
+        site.email_from_address = "northstar@example.com"
+        site.save(update_fields=["notification_channels", "email_from_address"])
+
+        delivery_settings = site.get_notification_delivery_settings()
+
+        self.assertEqual(delivery_settings["notification_channels"], ["email", "sms"])
+        self.assertEqual(delivery_settings["email_from_address"], "northstar@example.com")
+
     def test_site_settings_owner_accessors_expose_brand_and_report_preview_payloads(self):
         site = SiteSettings.get_solo()
         site.site_name = "North Star Academy"

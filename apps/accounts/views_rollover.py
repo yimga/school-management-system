@@ -239,8 +239,13 @@ def rollover_year(request):
             context["block_promotion_if_outstanding_returns"] = (
                 get_effective_flags(request).get("block_promotion_if_outstanding_returns", False)
             )
+            backend_flags = (
+                site.get_backend_feature_flags()
+                if callable(getattr(site, "get_backend_feature_flags", None))
+                else {}
+            )
             context["carry_forward_arrears_on_rollover"] = (
-                (getattr(site, "backend_feature_flags", None) or {}).get("carry_forward_arrears_on_rollover", True)
+                backend_flags.get("carry_forward_arrears_on_rollover", True)
             )
             for s in students:
                 annual_avg = _annual_average_for_student(s, terms) if terms else None

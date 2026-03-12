@@ -13,6 +13,7 @@ from apps.finance.tasks import (
     update_invoice_statuses_task,
 )
 from apps.finance.views import _backend_flags
+from apps.finance.views import _notification_delivery_settings
 
 
 class FinanceHardeningHelperTests(SimpleTestCase):
@@ -57,6 +58,23 @@ class FinanceHardeningHelperTests(SimpleTestCase):
         config = _get_marketplace_integration_settings(site)
 
         self.assertEqual(config["marksheet_ocr_command"], "/usr/bin/tesseract")
+
+    def test_notification_delivery_settings_prefers_owner_accessor(self):
+        site = type(
+            "SettingsStub",
+            (),
+            {
+                "get_notification_delivery_settings": lambda self: {
+                    "notification_channels": ["email", "sms"],
+                    "email_from_address": "ops@runmycampus.test",
+                }
+            },
+        )()
+
+        channels, from_email = _notification_delivery_settings(site=site)
+
+        self.assertEqual(channels, ["email", "sms"])
+        self.assertEqual(from_email, "ops@runmycampus.test")
 
     def test_finance_task_autoretry_contract_is_limited_to_retryable_failures(self):
         for task in (
