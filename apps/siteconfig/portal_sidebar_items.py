@@ -175,8 +175,15 @@ def _backend_flags_for_sidebar(request, site):
     """Resolve backend feature flags for sidebar visibility. Prefer request.tenant_runtime.flags when available."""
     try:
         from apps.platform_runtime.helpers import get_effective_flags
-        return get_effective_flags(request) or getattr(site, "backend_feature_flags", None) or {}
+        runtime_flags = get_effective_flags(request) or {}
+        if runtime_flags:
+            return runtime_flags
+        if callable(getattr(site, "get_backend_feature_flags", None)):
+            return site.get_backend_feature_flags()
+        return getattr(site, "backend_feature_flags", None) or {}
     except OPTIONAL_SIDEBAR_ERRORS:
+        if callable(getattr(site, "get_backend_feature_flags", None)):
+            return site.get_backend_feature_flags()
         return getattr(site, "backend_feature_flags", None) or {}
 
 
@@ -266,7 +273,10 @@ def build_portal_sidebar_items(request, site):
         items.append({"id": "academic_stats", "label": "Academic Stats", "url": _safe_reverse("portal:portal_stats"), "icon": "bi-graph-up", "section": "Performance Tracking", "badge": None})
 
     # --- Portal Tools (per-feature RBAC). Documents goes under Content & Documents; for staff it's added in staff block to avoid duplicate section. ---
-    portal_cfg = getattr(site, "portal_features", None) or {}
+    if callable(getattr(site, "get_feature_control_settings", None)):
+        portal_cfg = site.get_feature_control_settings().get("portal_features") or {}
+    else:
+        portal_cfg = getattr(site, "portal_features", None) or {}
     if portal_cfg.get("forums") and getattr(user, "has_feature_permission", lambda _: False)("portal.forums"):
         items.append({"id": "portal_forums", "label": "Community", "url": _safe_reverse("portal:portal_feature", kwargs={"feature": "forums"}), "icon": "bi-people", "section": "Portal Tools", "badge": None})
     if portal_cfg.get("video") and getattr(user, "has_feature_permission", lambda _: False)("portal.video"):

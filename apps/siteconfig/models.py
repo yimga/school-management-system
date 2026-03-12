@@ -2134,6 +2134,34 @@ class SiteSettings(models.Model):
             ),
         }
 
+    def apply_feature_control_state(
+        self,
+        *,
+        portal_features: dict[str, object],
+        backend_feature_flags: dict[str, object],
+        field_updates: dict[str, object],
+    ) -> None:
+        """
+        Apply feature-control changes through one model-level write contract.
+
+        This keeps console write semantics centralized while the legacy
+        `SiteSettings` fields are still being migrated into owner-scoped domains.
+        """
+        update_fields = [
+            "portal_features",
+            "backend_feature_flags",
+            "updated_at",
+        ]
+        for field_name, value in field_updates.items():
+            if not hasattr(self, field_name):
+                continue
+            setattr(self, field_name, value)
+            update_fields.append(field_name)
+
+        self.portal_features = dict(portal_features)
+        self.backend_feature_flags = dict(backend_feature_flags)
+        self.save(update_fields=update_fields)
+
     def get_notification_delivery_settings(self) -> dict[str, object]:
         """
         Return delivery-channel and sender defaults through owner-scoped surfaces.
@@ -2466,6 +2494,37 @@ class SiteSettings(models.Model):
             ),
             "whatsapp_admissions_number": _payload_string(
                 payload, self, "whatsapp_admissions_number", ""
+            ),
+        }
+
+    def get_support_contact_settings(self) -> dict[str, str]:
+        """Return support/contact settings through owner-scoped brand and integration surfaces."""
+        brand_payload = self.owned_payload(owner="brand_experience")
+        integration_settings = self.get_marketplace_integration_settings()
+        return {
+            "company_phone": _payload_string(
+                brand_payload,
+                self,
+                "company_phone",
+                "",
+            ),
+            "company_email": _payload_string(
+                brand_payload,
+                self,
+                "company_email",
+                "",
+            ),
+            "footer_whatsapp_url": _payload_string(
+                brand_payload,
+                self,
+                "footer_whatsapp_url",
+                "",
+            ),
+            "whatsapp_support_number": str(
+                integration_settings.get("whatsapp_support_number", "") or ""
+            ),
+            "whatsapp_admissions_number": str(
+                integration_settings.get("whatsapp_admissions_number", "") or ""
             ),
         }
 

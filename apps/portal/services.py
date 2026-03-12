@@ -943,14 +943,24 @@ def _normalize_phone(phone: str | None) -> str | None:
 
 def _communication_center(*, school=None):
     site = _site_settings_for_school(school)
+    contact_settings = (
+        site.get_support_contact_settings()
+        if callable(getattr(site, "get_support_contact_settings", None))
+        else {}
+    )
     items = []
     links: list[dict[str, str]] = []
 
-    if site.company_phone:
+    company_phone = contact_settings.get("company_phone") or getattr(site, "company_phone", "")
+    company_email = contact_settings.get("company_email") or getattr(site, "company_email", "")
+    footer_whatsapp_url = contact_settings.get("footer_whatsapp_url") or getattr(site, "footer_whatsapp_url", "")
+    whatsapp_support_number = contact_settings.get("whatsapp_support_number") or getattr(site, "whatsapp_support_number", "")
+
+    if company_phone:
         items.append(
-            {"type": "phone", "label": "Call customer service", "value": site.company_phone}
+            {"type": "phone", "label": "Call customer service", "value": company_phone}
         )
-        phone_digits = _normalize_phone(site.company_phone)
+        phone_digits = _normalize_phone(company_phone)
         if phone_digits:
             links.append(
                 {
@@ -960,12 +970,12 @@ def _communication_center(*, school=None):
                 }
             )
 
-    if site.company_email:
-        items.append({"type": "email", "label": "Email support", "value": site.company_email})
+    if company_email:
+        items.append({"type": "email", "label": "Email support", "value": company_email})
         links.append(
             {
                 "label": "Email customer service",
-                "url": f"mailto:{site.company_email}",
+                "url": f"mailto:{company_email}",
                 "icon": "bi-envelope",
             }
         )
@@ -995,22 +1005,22 @@ def _communication_center(*, school=None):
             if wa_number:
                 items.append({"type": "whatsapp", "label": whatsapp.name, "value": wa_number})
             wa_label = whatsapp.name
-    if not wa_digits and site.whatsapp_support_number:
-        wa_digits = _normalize_phone(site.whatsapp_support_number)
+    if not wa_digits and whatsapp_support_number:
+        wa_digits = _normalize_phone(whatsapp_support_number)
         if wa_digits:
-            items.append({"type": "whatsapp", "label": "WhatsApp", "value": site.whatsapp_support_number})
-    if not wa_digits and getattr(site, "footer_whatsapp_url", None):
+            items.append({"type": "whatsapp", "label": "WhatsApp", "value": whatsapp_support_number})
+    if not wa_digits and footer_whatsapp_url:
         import urllib.parse
         try:
-            parsed = urllib.parse.urlparse(site.footer_whatsapp_url)
+            parsed = urllib.parse.urlparse(footer_whatsapp_url)
             path = (parsed.path or "").strip("/")
             if path and path.isdigit():
                 wa_digits = path
             if not wa_digits and parsed.netloc == "wa.me":
                 wa_digits = path.split("?")[0] if path else None
             if wa_digits and not any(i.get("type") == "whatsapp" for i in items):
-                items.append({"type": "whatsapp", "label": "WhatsApp", "value": site.footer_whatsapp_url})
-        except Exception:
+                items.append({"type": "whatsapp", "label": "WhatsApp", "value": footer_whatsapp_url})
+        except (AttributeError, TypeError, ValueError):
             pass
     if wa_digits:
         links.insert(

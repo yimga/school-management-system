@@ -54,11 +54,7 @@ from apps.reports.services import (
 )
 import json
 
-from apps.siteconfig.models import (
-    default_portal_features,
-    filter_portal_items,
-    default_backend_feature_flags,
-)
+from apps.siteconfig.models import filter_portal_items
 from apps.runtime_blueprints.models import get_dashboard_widget_metadata
 from apps.siteconfig.dashboard_resolver import for_role as dashboard_for_role
 from apps.siteconfig.dashboard_views import load_dashboard_layout_settings
@@ -164,7 +160,11 @@ PORTAL_FEATURES_META = {
 
 def _portal_features_status(request=None) -> list[dict]:
     site = get_effective_site_settings(request=request)
-    features = site.portal_features or default_portal_features()
+    if callable(getattr(site, "get_feature_control_settings", None)):
+        feature_settings = site.get_feature_control_settings()
+        features = feature_settings.get("portal_features") or {}
+    else:
+        features = getattr(site, "portal_features", None) or {}
     return [
         {
             "key": key,
@@ -1969,7 +1969,14 @@ def _whatsapp_invite_link(request: HttpRequest) -> str | None:
         number = None
     if not number:
         site = get_effective_site_settings(request=request)
-        number = getattr(site, "whatsapp_admissions_number", None) or getattr(site, "whatsapp_support_number", None)
+        if callable(getattr(site, "get_support_contact_settings", None)):
+            contact_settings = site.get_support_contact_settings()
+            number = (
+                contact_settings.get("whatsapp_admissions_number")
+                or contact_settings.get("whatsapp_support_number")
+            )
+        else:
+            number = getattr(site, "whatsapp_admissions_number", None) or getattr(site, "whatsapp_support_number", None)
     if not number:
         return None
     digits = "".join(ch for ch in number if ch.isdigit())

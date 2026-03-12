@@ -1,14 +1,14 @@
 # Platform Inventory
 
 - Installed app modules: `41`
-- Python files: `1748`
+- Python files: `1751`
 - HTML templates: `456`
 - Markdown files: `793`
 - Migration files: `585`
 - Management commands: `137`
-- `SiteSettings` refs: `1059`
+- `SiteSettings` refs: `1060`
 - `get_solo()` refs: `206`
-- `except Exception`: `714`
+- `except Exception`: `713`
 - `cursor.execute()`: `351`
 - `csrf_exempt`: `79`
 - `AllowAny`: `34`
@@ -47,13 +47,13 @@
 ## Largest Python Files
 
 - `apps/schools/marketing_views.py`: `3632` lines / `209838` bytes
-- `apps/siteconfig/models.py`: `4446` lines / `174397` bytes
+- `apps/siteconfig/models.py`: `4505` lines / `176507` bytes
 - `apps/schools/super_views.py`: `3022` lines / `129484` bytes
 - `apps/accounts/views.py`: `2667` lines / `121515` bytes
 - `apps/evals/views.py`: `2568` lines / `107834` bytes
 - `apps/siteconfig/admin.py`: `2454` lines / `106048` bytes
 - `apps/finance/views.py`: `2383` lines / `100597` bytes
-- `apps/portal/views.py`: `2226` lines / `96646` bytes
+- `apps/portal/views.py`: `2233` lines / `97110` bytes
 - `apps/finance/models.py`: `2554` lines / `95611` bytes
 - `apps/api/views_v1.py`: `1752` lines / `90549` bytes
 - `apps/finance/tasks.py`: `1777` lines / `80191` bytes

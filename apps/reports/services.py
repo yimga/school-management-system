@@ -282,7 +282,10 @@ def student_has_financial_clearance(student: StudentProfile, academic_year) -> b
     report download when block_report_download_if_outstanding_balance is True.
     """
     site = _site_settings_for_school(getattr(student, "school", None))
-    flags = getattr(site, "backend_feature_flags", None) or {}
+    if callable(getattr(site, "get_backend_feature_flags", None)):
+        flags = site.get_backend_feature_flags()
+    else:
+        flags = getattr(site, "backend_feature_flags", None) or {}
     if not flags.get("block_report_download_if_outstanding_balance", True):
         return True
     from apps.finance.models import Invoice
@@ -303,7 +306,10 @@ def student_has_outstanding_returns(student: StudentProfile, academic_year) -> b
     Used to block report download when block_report_download_if_outstanding_returns is True.
     """
     site = _site_settings_for_school(getattr(student, "school", None))
-    flags = getattr(site, "backend_feature_flags", None) or {}
+    if callable(getattr(site, "get_backend_feature_flags", None)):
+        flags = site.get_backend_feature_flags()
+    else:
+        flags = getattr(site, "backend_feature_flags", None) or {}
     if not flags.get("block_report_download_if_outstanding_returns", False):
         return False
     from apps.people.models import StudentResourceReturn

@@ -191,7 +191,10 @@ def _apply_rollover_proposal_impl(proposal_id, lock_source=False, notify_parents
     source_year = proposal.source_year
     target_year = proposal.target_year
     site = get_effective_site_settings(school=getattr(proposal, "school", None))
-    flags = getattr(site, "backend_feature_flags", None) or {}
+    if callable(getattr(site, "get_backend_feature_flags", None)):
+        flags = site.get_backend_feature_flags()
+    else:
+        flags = getattr(site, "backend_feature_flags", None) or {}
     block_outstanding = flags.get("block_promotion_if_outstanding_returns", False)
 
     updated = 0

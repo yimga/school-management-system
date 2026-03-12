@@ -36,7 +36,12 @@ class MaintenanceModeMiddleware:
             return bool(cached.get("maintenance_mode"))
 
         site = get_effective_site_settings(request=request)
-        enabled = bool(getattr(site, "maintenance_mode", False))
+        if callable(getattr(site, "get_feature_control_settings", None)):
+            enabled = bool(
+                site.get_feature_control_settings().get("maintenance_mode", False)
+            )
+        else:
+            enabled = bool(getattr(site, "maintenance_mode", False))
 
         try:
             cache.set(cache_key, {"maintenance_mode": enabled}, CACHE_TTL)

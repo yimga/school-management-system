@@ -35,7 +35,12 @@ def _token_expired(token_obj):
 
 def _photo_upload_remote_enabled(request=None):
     site = get_effective_site_settings(request=request)
-    return bool((site.portal_features or {}).get("photo_upload_remote", True))
+    if callable(getattr(site, "get_feature_control_settings", None)):
+        feature_settings = site.get_feature_control_settings()
+        portal_features = feature_settings.get("portal_features") or {}
+    else:
+        portal_features = getattr(site, "portal_features", None) or {}
+    return bool(portal_features.get("photo_upload_remote", True))
 
 
 @ratelimit(key="ip", rate="20/h", method="GET", block=True)

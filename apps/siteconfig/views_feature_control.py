@@ -427,6 +427,7 @@ def _apply_form_to_site(site: SiteSettings, form_data: dict, weather_payload: di
         current_feature_settings.get("backend_feature_flags")
         or default_backend_feature_flags()
     )
+    field_updates: dict[str, object] = {}
 
     for key, val in form_data.items():
         if key.startswith("portal_features."):
@@ -436,62 +437,52 @@ def _apply_form_to_site(site: SiteSettings, form_data: dict, weather_payload: di
             subkey = key.split(".", 1)[1]
             flags[subkey] = bool(val)
         elif key == "enable_parent_portal":
-            site.enable_parent_portal = bool(val)
+            field_updates["enable_parent_portal"] = bool(val)
         elif key == "enable_teacher_portal":
-            site.enable_teacher_portal = bool(val)
+            field_updates["enable_teacher_portal"] = bool(val)
         elif key == "enable_reports_pdf":
-            site.enable_reports_pdf = bool(val)
+            field_updates["enable_reports_pdf"] = bool(val)
         elif key == "report_downloads_enabled":
-            site.report_downloads_enabled = bool(val)
+            field_updates["report_downloads_enabled"] = bool(val)
         elif key == "grade_approval_enabled":
-            site.grade_approval_enabled = bool(val)
+            field_updates["grade_approval_enabled"] = bool(val)
         elif key == "grade_approval_auto_validate":
-            site.grade_approval_auto_validate = bool(val)
+            field_updates["grade_approval_auto_validate"] = bool(val)
         elif key == "enable_practical_assessment":
-            site.enable_practical_assessment = bool(val)
+            field_updates["enable_practical_assessment"] = bool(val)
         elif key == "enable_concurrent_mark_uploads":
-            site.enable_concurrent_mark_uploads = bool(val)
+            field_updates["enable_concurrent_mark_uploads"] = bool(val)
         elif key == "maintenance_mode":
-            site.maintenance_mode = bool(val)
+            field_updates["maintenance_mode"] = bool(val)
         elif key == "preview_mode_enabled":
-            site.preview_mode_enabled = bool(val)
+            field_updates["preview_mode_enabled"] = bool(val)
         elif key == "enable_offline_mode":
-            site.enable_offline_mode = bool(val)
+            field_updates["enable_offline_mode"] = bool(val)
         elif key == "auto_tag_photos_from_exif":
-            site.auto_tag_photos_from_exif = bool(val)
+            field_updates["auto_tag_photos_from_exif"] = bool(val)
         elif key == "show_header_search":
-            site.show_header_search = bool(val)
+            field_updates["show_header_search"] = bool(val)
         elif key == "show_header_notifications":
-            site.show_header_notifications = bool(val)
+            field_updates["show_header_notifications"] = bool(val)
         elif key == "show_header_profile_menu":
-            site.show_header_profile_menu = bool(val)
+            field_updates["show_header_profile_menu"] = bool(val)
         elif key == "show_header_theme_toggle":
-            site.show_header_theme_toggle = bool(val)
+            field_updates["show_header_theme_toggle"] = bool(val)
         elif key == "enable_whatsapp_parent_portal":
-            site.enable_whatsapp_parent_portal = bool(val)
+            field_updates["enable_whatsapp_parent_portal"] = bool(val)
         elif key == "enable_whatsapp_staff_portal":
-            site.enable_whatsapp_staff_portal = bool(val)
+            field_updates["enable_whatsapp_staff_portal"] = bool(val)
         elif key == "reports_require_approved_grades_before_publish":
-            site.reports_require_approved_grades_before_publish = bool(val)
+            field_updates["reports_require_approved_grades_before_publish"] = bool(val)
         elif key == "reports_use_approved_grades_only":
-            site.reports_use_approved_grades_only = bool(val)
+            field_updates["reports_use_approved_grades_only"] = bool(val)
     if weather_payload:
         flags.update(weather_payload)
-    site.portal_features = portal
-    site.backend_feature_flags = flags
-    site.save(update_fields=[
-        "enable_parent_portal", "enable_teacher_portal",
-        "enable_reports_pdf", "report_downloads_enabled",
-        "grade_approval_enabled", "grade_approval_auto_validate",
-        "enable_practical_assessment", "enable_concurrent_mark_uploads",
-        "maintenance_mode", "preview_mode_enabled",
-        "enable_offline_mode", "auto_tag_photos_from_exif",
-        "show_header_search", "show_header_notifications",
-        "show_header_profile_menu", "show_header_theme_toggle",
-        "enable_whatsapp_parent_portal", "enable_whatsapp_staff_portal",
-        "reports_require_approved_grades_before_publish", "reports_use_approved_grades_only",
-        "portal_features", "backend_feature_flags", "updated_at",
-    ])
+    site.apply_feature_control_state(
+        portal_features=portal,
+        backend_feature_flags=flags,
+        field_updates=field_updates,
+    )
 
 
 def _log_audit(request, action: str, changes: dict) -> None:
