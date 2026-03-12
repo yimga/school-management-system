@@ -22,7 +22,7 @@ from apps.people.models import TeacherProfile
 from apps.siteconfig.cache_utils import tenant_cache_key
 from apps.finance.models import Notification
 from apps.accounts.utils import get_dashboard_context
-from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.helpers import get_effective_flags, get_effective_site_settings
 
 
 usage_logger = logging.getLogger("analytics.usage")
@@ -66,7 +66,7 @@ def _parse_decimal(value: str | None, default: Decimal) -> Decimal:
 def dashboard(request: HttpRequest):
     # Part B.5: Optional response cache. Enable via Feature Control (enable_analytics_dashboard_cache) or analytics_dashboard_cache_seconds > 0.
     site = get_effective_site_settings(request=request)
-    flags = getattr(site, "backend_feature_flags", None) or {}
+    flags = get_effective_flags(request)
     cache_ttl = 0
     if flags.get("enable_analytics_dashboard_cache"):
         try:

@@ -18,7 +18,7 @@ class PhotoUploadHelperTests(TestCase):
         )()
 
         with patch(
-            "apps.portal.views_photo_upload.get_effective_site_settings",
-            return_value=site,
+            "apps.portal.views_photo_upload.get_effective_feature_control_settings",
+            return_value=site.get_feature_control_settings(),
         ):
             self.assertFalse(_photo_upload_remote_enabled())

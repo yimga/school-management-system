@@ -13,8 +13,8 @@ class SchoolApiViewHelperTests(SimpleTestCase):
         request.user = None
 
         with patch(
-            "apps.platform_runtime.helpers.get_effective_site_settings",
-            return_value=SimpleNamespace(enable_offline_mode=True),
+            "apps.schools.api_views.get_effective_offline_runtime_settings",
+            return_value={"enable_offline_mode": True},
         ), patch(
             "apps.policies.policy_registry.get_effective_policy",
             side_effect=RuntimeError("policy unavailable"),
@@ -27,8 +27,8 @@ class SchoolApiViewHelperTests(SimpleTestCase):
         request.user = None
 
         with patch(
-            "apps.platform_runtime.helpers.get_effective_site_settings",
-            return_value=SimpleNamespace(enable_offline_mode=True),
+            "apps.schools.api_views.get_effective_offline_runtime_settings",
+            return_value={"enable_offline_mode": True},
         ), patch(
             "apps.policies.policy_registry.get_effective_policy",
             return_value={"enabled": True},

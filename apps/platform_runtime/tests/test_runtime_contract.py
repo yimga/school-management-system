@@ -7,8 +7,11 @@ from decimal import Decimal
 from django.test import TestCase
 
 from apps.platform_runtime.helpers import (
+    get_effective_feature_control_settings,
     get_effective_flags_for_school,
+    get_effective_offline_runtime_settings,
     get_effective_site_settings,
+    get_effective_support_contact_settings,
 )
 from apps.platform_runtime.models import RuntimeDefaults
 from apps.runtime_blueprints.models import ReportCardStyle as OwnedReportCardStyle
@@ -411,6 +414,30 @@ class RuntimeHelperResolutionTests(TestCase):
         )
         self.assertFalse(
             offline_settings["backend_feature_flags"]["enable_offline_attendance_sync"]
+        )
+
+    def test_request_helpers_use_owner_scoped_site_accessors(self):
+        site = SiteSettings.get_solo()
+        site.portal_features = {"documents": True}
+        site.enable_offline_mode = True
+        site.whatsapp_support_number = "+15550001111"
+        site.save(
+            update_fields=[
+                "portal_features",
+                "enable_offline_mode",
+                "whatsapp_support_number",
+            ]
+        )
+
+        feature_settings = get_effective_feature_control_settings()
+        offline_settings = get_effective_offline_runtime_settings()
+        support_settings = get_effective_support_contact_settings()
+
+        self.assertTrue(feature_settings["portal_features"]["documents"])
+        self.assertTrue(offline_settings["enable_offline_mode"])
+        self.assertEqual(
+            support_settings["whatsapp_support_number"],
+            "+15550001111",
         )
 
     def test_site_settings_owner_accessors_expose_brand_and_report_preview_payloads(self):

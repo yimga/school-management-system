@@ -2,6 +2,9 @@
 Photo upload by token: capture on another device (e.g. phone) and attach to registration or profile.
 """
 import logging
+import base64
+import json
+from json import JSONDecodeError
 from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse, HttpResponse, Http404
 from django.shortcuts import get_object_or_404, render
@@ -10,7 +13,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.csrf import ensure_csrf_cookie
 
-from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.helpers import get_effective_feature_control_settings
 from .models import PhotoUploadToken
 
 try:
@@ -34,12 +37,8 @@ def _token_expired(token_obj):
 
 
 def _photo_upload_remote_enabled(request=None):
-    site = get_effective_site_settings(request=request)
-    if callable(getattr(site, "get_feature_control_settings", None)):
-        feature_settings = site.get_feature_control_settings()
-        portal_features = feature_settings.get("portal_features") or {}
-    else:
-        portal_features = getattr(site, "portal_features", None) or {}
+    feature_settings = get_effective_feature_control_settings(request=request)
+    portal_features = feature_settings.get("portal_features") or {}
     return bool(portal_features.get("photo_upload_remote", True))
 
 
@@ -170,11 +169,9 @@ def photo_upload_upload(request, token):
     elif request.FILES.get("profile_photo"):
         file_obj = request.FILES["profile_photo"]
     elif request.content_type and "application/json" in request.content_type:
-        import base64
-        import json
         try:
             data = json.loads(request.body)
-        except Exception:
+        except (JSONDecodeError, TypeError, ValueError):
             return JsonResponse({"error": "Invalid JSON"}, status=400)
         b64 = data.get("photo_base64") or data.get("profile_photo_base64")
         if b64:
@@ -184,7 +181,7 @@ def photo_upload_upload(request, token):
                 raw = base64.b64decode(b64)
                 from django.core.files.base import ContentFile
                 file_obj = ContentFile(raw, name="photo.jpg")
-            except Exception as e:
+            except (TypeError, ValueError) as e:
                 logger.warning("Photo upload base64 decode failed: %s", e)
                 return JsonResponse({"error": "Invalid image data"}, status=400)
 

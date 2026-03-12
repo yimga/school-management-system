@@ -10,7 +10,7 @@ from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, Jso
 from django.shortcuts import redirect
 from django.utils.deprecation import MiddlewareMixin
 
-from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.helpers import get_effective_flags, get_effective_site_settings
 from apps.schools.host_routing import (
     get_canonical_base_domain,
     is_public_host,
@@ -844,8 +844,7 @@ class TenantSuperAdminRequiredMiddleware(MiddlewareMixin):
             return None
         # Global toggle: when Super Admin UI is disabled, block /super/.
         try:
-            site = get_effective_site_settings(request=request)
-            flags = getattr(site, "backend_feature_flags", None) or {}
+            flags = get_effective_flags(request)
             if not flags.get("enable_super_admin_ui", True):
                 from django.http import HttpResponseForbidden
                 return HttpResponseForbidden("Super Admin is disabled.")

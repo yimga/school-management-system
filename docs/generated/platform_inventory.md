@@ -6,9 +6,9 @@
 - Markdown files: `793`
 - Migration files: `585`
 - Management commands: `137`
-- `SiteSettings` refs: `1060`
-- `get_solo()` refs: `206`
-- `except Exception`: `713`
+- `SiteSettings` refs: `1061`
+- `get_solo()` refs: `207`
+- `except Exception`: `709`
 - `cursor.execute()`: `351`
 - `csrf_exempt`: `79`
 - `AllowAny`: `34`
@@ -53,7 +53,7 @@
 - `apps/evals/views.py`: `2568` lines / `107834` bytes
 - `apps/siteconfig/admin.py`: `2454` lines / `106048` bytes
 - `apps/finance/views.py`: `2383` lines / `100597` bytes
-- `apps/portal/views.py`: `2233` lines / `97110` bytes
+- `apps/portal/views.py`: `2231` lines / `96758` bytes
 - `apps/finance/models.py`: `2554` lines / `95611` bytes
 - `apps/api/views_v1.py`: `1752` lines / `90549` bytes
 - `apps/finance/tasks.py`: `1777` lines / `80191` bytes

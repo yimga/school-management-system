@@ -4,19 +4,13 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework import status
 
+from apps.platform_runtime.helpers import get_effective_offline_runtime_settings
+
 
 def _offline_enabled_for_request(request):
     """True if offline is enabled: global switch on and (no school or school has offline_mode via Policy Registry)."""
-    from apps.platform_runtime.helpers import get_effective_site_settings
     from apps.policies.policy_registry import get_effective_policy
-    site = get_effective_site_settings(request=request)
-    offline_settings = (
-        site.get_offline_runtime_settings()
-        if callable(getattr(site, "get_offline_runtime_settings", None))
-        else {
-            "enable_offline_mode": bool(getattr(site, "enable_offline_mode", False))
-        }
-    )
+    offline_settings = get_effective_offline_runtime_settings(request=request)
     school = getattr(request, "school", None)
     if not school:
         return bool(offline_settings.get("enable_offline_mode", False))
@@ -55,18 +49,7 @@ class SchoolConfigAPI(APIView):
             )
         school = getattr(request, "school", None)
         if not school:
-            from apps.platform_runtime.helpers import get_effective_site_settings
-
-            site = get_effective_site_settings(request=request)
-            offline_settings = (
-                site.get_offline_runtime_settings()
-                if callable(getattr(site, "get_offline_runtime_settings", None))
-                else {
-                    "enable_offline_mode": bool(
-                        getattr(site, "enable_offline_mode", False)
-                    )
-                }
-            )
+            offline_settings = get_effective_offline_runtime_settings(request=request)
             return Response({
                 "schoolName": None,
                 "logoUrl": None,

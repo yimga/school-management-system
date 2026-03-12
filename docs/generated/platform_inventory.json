@@ -3,8 +3,8 @@
     "allow_any": 34,
     "csrf_exempt": 79,
     "cursor_execute": 351,
-    "except_exception": 713,
-    "get_solo": 206,
+    "except_exception": 709,
+    "get_solo": 207,
     "gilead": 499,
     "gilead_files": 112,
     "html_files": 456,
@@ -13,7 +13,7 @@
     "migration_files": 585,
     "print_calls": 428,
     "python_files": 1751,
-    "site_settings": 1060
+    "site_settings": 1061
   },
   "doc_drift": {
     "actual_installed_app_count": 41,
@@ -58,8 +58,8 @@
       "path": "apps/finance/views.py"
     },
     {
-      "bytes": 97110,
-      "lines": 2233,
+      "bytes": 96758,
+      "lines": 2231,
       "path": "apps/portal/views.py"
     },
     {

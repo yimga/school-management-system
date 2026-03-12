@@ -12,7 +12,7 @@ from apps.dashboard.action_registry import (
     get_contextual_actions,
     VALID_DASHBOARD_INTENTS,
 )
-from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.helpers import get_effective_flags, get_effective_site_settings
 
 
 def __safe_reverse(name: str, fallback: str = "#") -> str:
@@ -478,7 +478,7 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
         backend_flags = dict(backend_defaults)
         site = get_effective_site_settings(request=request)
         rt = getattr(request, "tenant_runtime", None)
-        backend_flags.update(getattr(site, "backend_feature_flags", None) or {})
+        backend_flags.update(get_effective_flags(request))
         if rt:
             site_id = str(getattr(getattr(rt, "tenant", None), "id", None) or site.pk)
             if getattr(rt, "flags", None) and getattr(rt.flags, "flags", None):

@@ -117,20 +117,14 @@ def get_effective_flags(request: Any) -> dict:
     if rt and getattr(rt, "flags", None) and getattr(rt.flags, "flags", None):
         return {**defaults, **rt.flags.flags}
     try:
-        platform_site = get_effective_site_settings(request=None, school=None)
-        if platform_site is None:
-            raise LookupError("effective platform site settings unavailable")
-        if callable(getattr(platform_site, "get_backend_feature_flags", None)):
-            site_overrides = platform_site.get_backend_feature_flags()
-        else:
-            site_overrides = getattr(platform_site, "backend_feature_flags", None) or {}
-        school_overrides = {}
-        school_settings = getattr(school, "settings", None) or {}
-        if isinstance(school_settings, dict):
-            maybe_flags = school_settings.get("backend_feature_flags") or school_settings.get("feature_flags") or {}
-            if isinstance(maybe_flags, dict):
-                school_overrides = maybe_flags
-        return {**defaults, **site_overrides, **school_overrides}
+        feature_settings = get_effective_feature_control_settings(
+            request=request,
+            school=school,
+        )
+        site_overrides = feature_settings.get("backend_feature_flags") or {}
+        if not isinstance(site_overrides, dict):
+            site_overrides = {}
+        return {**defaults, **site_overrides}
     except (AttributeError, LookupError, TypeError, ValueError):
         return defaults
 
@@ -144,6 +138,111 @@ def get_effective_flags_for_school(school: Any = None) -> dict:
             self.tenant_runtime = None
 
     return get_effective_flags(_RequestShim(school))
+
+
+def get_effective_feature_control_settings(
+    request: Any = None,
+    school: Any = None,
+) -> dict[str, Any]:
+    """Resolve owner-scoped feature control settings for request or school surfaces."""
+    effective_school = school
+    if effective_school is None and request is not None:
+        effective_school = getattr(request, "school", None)
+
+    site = get_effective_site_settings(request=None, school=None)
+    if site is None:
+        try:
+            from apps.siteconfig.models import build_platform_default_site_settings
+
+            site = build_platform_default_site_settings()
+        except (AttributeError, ImportError, OSError, RuntimeError, TypeError, ValueError):
+            return {}
+    if callable(getattr(site, "get_feature_control_settings", None)):
+        settings = site.get_feature_control_settings()
+        if not isinstance(settings, dict):
+            settings = {}
+    else:
+        settings = {}
+    school_settings = getattr(effective_school, "settings", None) or {}
+    if isinstance(school_settings, dict):
+        portal_overrides = school_settings.get("portal_features") or {}
+        if isinstance(portal_overrides, dict):
+            settings["portal_features"] = {
+                **(settings.get("portal_features") or {}),
+                **portal_overrides,
+            }
+        backend_overrides = (
+            school_settings.get("backend_feature_flags")
+            or school_settings.get("feature_flags")
+            or {}
+        )
+        if isinstance(backend_overrides, dict):
+            settings["backend_feature_flags"] = {
+                **(settings.get("backend_feature_flags") or {}),
+                **backend_overrides,
+            }
+        if "notification_channels" in school_settings:
+            settings["notification_channels"] = list(
+                school_settings.get("notification_channels") or []
+            )
+        for key in ("enable_offline_mode", "maintenance_mode"):
+            if key in school_settings:
+                settings[key] = bool(school_settings.get(key))
+    return settings
+
+
+def get_effective_offline_runtime_settings(
+    request: Any = None,
+    school: Any = None,
+) -> dict[str, Any]:
+    """Resolve offline runtime settings from the owner-scoped site contract."""
+    site = get_effective_site_settings(request=request, school=school)
+    if site is None:
+        return {
+            "enable_offline_mode": False,
+            "offline_sync_conflict_resolution": "show_both",
+            "backend_feature_flags": {},
+        }
+    settings: dict[str, Any] = {}
+    if callable(getattr(site, "get_offline_runtime_settings", None)):
+        maybe_settings = site.get_offline_runtime_settings()
+        if isinstance(maybe_settings, dict):
+            settings = dict(maybe_settings)
+    feature_settings = get_effective_feature_control_settings(request=request, school=school)
+    resolved = {
+        "enable_offline_mode": bool(feature_settings.get("enable_offline_mode", False)),
+        "offline_sync_conflict_resolution": str(
+            settings.get("offline_sync_conflict_resolution", "show_both") or "show_both"
+        ).lower(),
+        "backend_feature_flags": dict(
+            feature_settings.get("backend_feature_flags") or {}
+        ),
+    }
+    school_settings = getattr(school, "settings", None) or {}
+    if isinstance(school_settings, dict) and "offline_sync_conflict_resolution" in school_settings:
+        resolved["offline_sync_conflict_resolution"] = str(
+            school_settings.get("offline_sync_conflict_resolution") or "show_both"
+        ).lower()
+    return resolved
+
+
+def get_effective_support_contact_settings(
+    request: Any = None,
+    school: Any = None,
+) -> dict[str, str]:
+    """Resolve support and contact settings through the owner-scoped accessor first."""
+    site = get_effective_site_settings(request=request, school=school)
+    if site is None:
+        return {}
+    if callable(getattr(site, "get_support_contact_settings", None)):
+        settings = site.get_support_contact_settings()
+        if isinstance(settings, dict):
+            return {
+                str(key): str(value or "")
+                for key, value in settings.items()
+                if isinstance(key, str)
+            }
+    return {}
 
 
 def get_effective_site_settings(request: Any = None, school: Any = None) -> Any:

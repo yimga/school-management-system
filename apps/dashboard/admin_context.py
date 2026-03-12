@@ -47,7 +47,10 @@ def _safe_float(value: Any, default: float) -> float:
 
 
 def _build_admin_weather_config(site: SiteSettings) -> dict[str, Any]:
-    flags = getattr(site, "backend_feature_flags", None) or {}
+    if callable(getattr(site, "get_backend_feature_flags", None)):
+        flags = site.get_backend_feature_flags()
+    else:
+        flags = getattr(site, "backend_feature_flags", None) or {}
     weather_defaults = default_header_weather_config()
     raw_unit = str(
         flags.get("header_weather_temperature_unit", weather_defaults["header_weather_temperature_unit"])

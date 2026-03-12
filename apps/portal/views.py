@@ -58,7 +58,13 @@ from apps.siteconfig.models import filter_portal_items
 from apps.runtime_blueprints.models import get_dashboard_widget_metadata
 from apps.siteconfig.dashboard_resolver import for_role as dashboard_for_role
 from apps.siteconfig.dashboard_views import load_dashboard_layout_settings
-from apps.platform_runtime.helpers import get_effective_flags, get_effective_site_settings, get_site_display_name
+from apps.platform_runtime.helpers import (
+    get_effective_feature_control_settings,
+    get_effective_flags,
+    get_effective_site_settings,
+    get_effective_support_contact_settings,
+    get_site_display_name,
+)
 from .runtime_helpers import get_policy_for_request
 from apps.siteconfig.dashboard_views import _can_customize
 from apps.analytics.services import (
@@ -159,12 +165,8 @@ PORTAL_FEATURES_META = {
 
 
 def _portal_features_status(request=None) -> list[dict]:
-    site = get_effective_site_settings(request=request)
-    if callable(getattr(site, "get_feature_control_settings", None)):
-        feature_settings = site.get_feature_control_settings()
-        features = feature_settings.get("portal_features") or {}
-    else:
-        features = getattr(site, "portal_features", None) or {}
+    feature_settings = get_effective_feature_control_settings(request=request)
+    features = feature_settings.get("portal_features") or {}
     return [
         {
             "key": key,
@@ -1968,15 +1970,11 @@ def _whatsapp_invite_link(request: HttpRequest) -> str | None:
     except PORTAL_SOFT_FAILURES:
         number = None
     if not number:
-        site = get_effective_site_settings(request=request)
-        if callable(getattr(site, "get_support_contact_settings", None)):
-            contact_settings = site.get_support_contact_settings()
-            number = (
-                contact_settings.get("whatsapp_admissions_number")
-                or contact_settings.get("whatsapp_support_number")
-            )
-        else:
-            number = getattr(site, "whatsapp_admissions_number", None) or getattr(site, "whatsapp_support_number", None)
+        contact_settings = get_effective_support_contact_settings(request=request)
+        number = (
+            contact_settings.get("whatsapp_admissions_number")
+            or contact_settings.get("whatsapp_support_number")
+        )
     if not number:
         return None
     digits = "".join(ch for ch in number if ch.isdigit())

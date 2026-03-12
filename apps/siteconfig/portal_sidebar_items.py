@@ -174,12 +174,19 @@ def _cached_sidebar_badge_counts(user, role, staff_like, request=None):
 def _backend_flags_for_sidebar(request, site):
     """Resolve backend feature flags for sidebar visibility. Prefer request.tenant_runtime.flags when available."""
     try:
-        from apps.platform_runtime.helpers import get_effective_flags
+        from apps.platform_runtime.helpers import (
+            get_effective_feature_control_settings,
+            get_effective_flags,
+        )
         runtime_flags = get_effective_flags(request) or {}
         if runtime_flags:
             return runtime_flags
         if callable(getattr(site, "get_backend_feature_flags", None)):
             return site.get_backend_feature_flags()
+        feature_settings = get_effective_feature_control_settings(request=request)
+        scoped_flags = feature_settings.get("backend_feature_flags") or {}
+        if scoped_flags:
+            return scoped_flags
         return getattr(site, "backend_feature_flags", None) or {}
     except OPTIONAL_SIDEBAR_ERRORS:
         if callable(getattr(site, "get_backend_feature_flags", None)):
@@ -276,7 +283,15 @@ def build_portal_sidebar_items(request, site):
     if callable(getattr(site, "get_feature_control_settings", None)):
         portal_cfg = site.get_feature_control_settings().get("portal_features") or {}
     else:
-        portal_cfg = getattr(site, "portal_features", None) or {}
+        try:
+            from apps.platform_runtime.helpers import get_effective_feature_control_settings
+
+            portal_cfg = (
+                get_effective_feature_control_settings(request=request).get("portal_features")
+                or {}
+            )
+        except OPTIONAL_SIDEBAR_ERRORS:
+            portal_cfg = {}
     if portal_cfg.get("forums") and getattr(user, "has_feature_permission", lambda _: False)("portal.forums"):
         items.append({"id": "portal_forums", "label": "Community", "url": _safe_reverse("portal:portal_feature", kwargs={"feature": "forums"}), "icon": "bi-people", "section": "Portal Tools", "badge": None})
     if portal_cfg.get("video") and getattr(user, "has_feature_permission", lambda _: False)("portal.video"):

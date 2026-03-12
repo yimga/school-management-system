@@ -417,7 +417,7 @@ class OfflineSyncViewSet(viewsets.ModelViewSet):
         from apps.academics.models import Attendance
         from apps.evals.models import TeacherAssignment
         from apps.people.models import TeacherProfile, StudentProfile
-        from apps.platform_runtime.helpers import get_effective_site_settings
+        from apps.platform_runtime.helpers import get_effective_offline_runtime_settings
 
         payload = sync_item.data or {}
         teacher = TeacherProfile.objects.filter(user=user).first()
@@ -484,17 +484,8 @@ class OfflineSyncViewSet(viewsets.ModelViewSet):
             date=local_date,
         ).first()
         client_ts = self._parse_client_timestamp(sync_item.client_timestamp)
-        site = get_effective_site_settings(school=getattr(sync_item, "school", None))
-        offline_settings = (
-            site.get_offline_runtime_settings()
-            if callable(getattr(site, "get_offline_runtime_settings", None))
-            else {
-                "offline_sync_conflict_resolution": getattr(
-                    site,
-                    "offline_sync_conflict_resolution",
-                    "show_both",
-                )
-            }
+        offline_settings = get_effective_offline_runtime_settings(
+            school=getattr(sync_item, "school", None)
         )
         mode = str(
             offline_settings.get("offline_sync_conflict_resolution", "show_both")
@@ -590,20 +581,9 @@ class OfflineSyncViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def sync_batch(self, request):
         """Sync batch of offline changes. Multi-tenant: school must have offline_mode module when request.school is set."""
-        from apps.platform_runtime.helpers import get_effective_site_settings
+        from apps.platform_runtime.helpers import get_effective_offline_runtime_settings
 
-        site = get_effective_site_settings(request=request)
-        offline_settings = (
-            site.get_offline_runtime_settings()
-            if callable(getattr(site, "get_offline_runtime_settings", None))
-            else {
-                "enable_offline_mode": bool(
-                    getattr(site, "enable_offline_mode", False)
-                ),
-                "backend_feature_flags": getattr(site, "backend_feature_flags", None)
-                or {},
-            }
-        )
+        offline_settings = get_effective_offline_runtime_settings(request=request)
         flags = offline_settings.get("backend_feature_flags") or {}
         if not bool(offline_settings.get("enable_offline_mode", False)):
             return Response(

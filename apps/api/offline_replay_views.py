@@ -5,6 +5,7 @@ Used when the service worker or client wants to sync many queued writes in one r
 """
 
 import json
+from json import JSONDecodeError
 from django.core.cache import cache
 from django.test import Client
 from rest_framework import status
@@ -12,7 +13,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.helpers import get_effective_offline_runtime_settings
 from apps.siteconfig.cache_utils import tenant_cache_key
 
 QUEUE_METRICS_CACHE_KEY = "sms_offline_queue_metrics"
@@ -20,12 +21,7 @@ QUEUE_METRICS_CACHE_TIMEOUT = 86400
 
 
 def _offline_runtime_settings(request) -> dict:
-    site = get_effective_site_settings(request=request)
-    if callable(getattr(site, "get_offline_runtime_settings", None)):
-        return site.get_offline_runtime_settings()
-    return {
-        "enable_offline_mode": bool(getattr(site, "enable_offline_mode", False)),
-    }
+    return get_effective_offline_runtime_settings(request=request)
 
 
 # Paths allowed for batch replay (prefixes). Restrict to avoid abuse.
@@ -97,7 +93,7 @@ class OfflineReplayBatchAPI(APIView):
                     data=content or b"",
                     content_type="application/json",
                 )
-            except Exception as e:
+            except (TypeError, ValueError, RuntimeError) as e:
                 results.append({"index": idx, "status": 500, "data": {"error": str(e)}})
                 if item_id is not None:
                     failed_items.append({"url": path, "status": 500, "message": str(e)})
@@ -105,7 +101,7 @@ class OfflineReplayBatchAPI(APIView):
 
             try:
                 resp_data = resp.json() if resp.get("Content-Type", "").startswith("application/json") else {"_raw": resp.content.decode("utf-8", errors="replace")[:500]}
-            except Exception:
+            except (AttributeError, TypeError, ValueError, JSONDecodeError):
                 resp_data = {"_status": resp.status_code}
 
             results.append({"index": idx, "status": resp.status_code, "data": resp_data})
