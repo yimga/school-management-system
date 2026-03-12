@@ -1,19 +1,19 @@
 # Platform Inventory
 
 - Installed app modules: `41`
-- Python files: `1755`
+- Python files: `1767`
 - HTML templates: `456`
-- Markdown files: `794`
-- Migration files: `586`
+- Markdown files: `795`
+- Migration files: `589`
 - Management commands: `137`
-- `SiteSettings` refs: `1062`
-- `get_solo()` refs: `208`
+- `SiteSettings` refs: `1074`
+- `get_solo()` refs: `211`
 - `except Exception`: `711`
 - `cursor.execute()`: `351`
 - `csrf_exempt`: `79`
 - `AllowAny`: `34`
-- `print()`: `428`
-- `gilead` matches: `499` across `112` files
+- `print()`: `429`
+- `gilead` matches: `511` across `113` files
 
 ## Public Endpoint Review
 
@@ -47,17 +47,17 @@
 ## Largest Python Files
 
 - `apps/schools/marketing_views.py`: `3632` lines / `209838` bytes
-- `apps/siteconfig/models.py`: `4554` lines / `178190` bytes
 - `apps/schools/super_views.py`: `3022` lines / `129484` bytes
 - `apps/accounts/views.py`: `2667` lines / `121515` bytes
 - `apps/siteconfig/admin.py`: `2561` lines / `109249` bytes
 - `apps/evals/views.py`: `2568` lines / `107834` bytes
 - `apps/finance/views.py`: `2383` lines / `100597` bytes
+- `apps/siteconfig/models.py`: `2373` lines / `97174` bytes
 - `apps/portal/views.py`: `2231` lines / `96758` bytes
 - `apps/finance/models.py`: `2554` lines / `95611` bytes
 - `apps/api/views_v1.py`: `1752` lines / `90549` bytes
 - `apps/finance/tasks.py`: `1777` lines / `80191` bytes
-- `apps/siteconfig/views.py`: `1809` lines / `76567` bytes
+- `apps/siteconfig/views.py`: `1832` lines / `77469` bytes
 
 ## Documentation Drift
 

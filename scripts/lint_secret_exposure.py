@@ -5,6 +5,7 @@ Block provider secret exposure in client assets and tracked env/config files.
 Checks:
 - secret identifiers must not appear in client-rendered templates or frontend assets
 - context processors must not expose provider secret keys to templates
+- provider secret identifiers must not appear broadly in server code (confine to provider/gateway modules)
 - tracked env files must not contain non-empty provider secret assignments
 """
 from __future__ import annotations
@@ -16,6 +17,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 CLIENT_DIRS = ("templates", "frontend", "static")
+SERVER_DIRS = ("apps", "services")
 SECRET_NAMES = (
     "GEMINI_API_KEY",
     "OPENAI_API_KEY",
@@ -28,6 +30,11 @@ ENV_ASSIGNMENT_PATTERN = re.compile(
     r"^\s*(" + "|".join(re.escape(name) for name in SECRET_NAMES) + r")\s*=\s*(.+?)\s*$"
 )
 PLACEHOLDER_TOKENS = ("", "changeme", "replace_me", "your_", "<", "example", "placeholder")
+SKIP_DIRS = {"migrations", "tests", "__pycache__", ".venv", "venv", "node_modules"}
+ALLOWED_SERVER_SECRET_REF_PREFIXES = (
+    # Provider config and calls live here; do not leak to templates/JS/context.
+    "apps/portal/ai_provider.py",
+)
 
 
 def _tracked_root_env_files() -> list[Path]:
@@ -76,6 +83,19 @@ def _context_processor_files() -> list[Path]:
     return files
 
 
+def _server_code_files() -> list[Path]:
+    files: list[Path] = []
+    for dirname in SERVER_DIRS:
+        base = ROOT / dirname
+        if not base.is_dir():
+            continue
+        for path in base.rglob("*.py"):
+            if any(part in SKIP_DIRS for part in path.parts):
+                continue
+            files.append(path)
+    return files
+
+
 def main() -> int:
     violations: list[str] = []
 
@@ -92,6 +112,15 @@ def main() -> int:
             if SECRET_NAME_PATTERN.search(line):
                 rel = path.relative_to(ROOT).as_posix()
                 violations.append(f"{rel}:{line_no} references a provider secret name in a context processor")
+
+    for path in _server_code_files():
+        rel = path.relative_to(ROOT).as_posix()
+        if any(rel.startswith(prefix) for prefix in ALLOWED_SERVER_SECRET_REF_PREFIXES):
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        for line_no, line in enumerate(text.splitlines(), start=1):
+            if SECRET_NAME_PATTERN.search(line):
+                violations.append(f"{rel}:{line_no} references a provider secret name outside allowed server modules")
 
     for path in _tracked_root_env_files():
         text = path.read_text(encoding="utf-8", errors="replace")

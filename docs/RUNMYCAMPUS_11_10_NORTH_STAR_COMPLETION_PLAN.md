@@ -6,6 +6,7 @@ This is the canonical implementation plan for the current platform-hardening and
 
 This plan is closed. Implementation and verification evidence is tracked in code plus the audit/closure artifacts below; no backlog remains tracked in this file.
 
+- Canonical execution ledger + final scoring gate: `docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md` (Satisfied: 2026-03-12)
 - Closure (no-backlog): `docs/RUNMYCAMPUS_AUDIT_PLAN_COMPLETE_NO_BACKLOG.md` (2026-03-08)
 - Roadmap/optional closure: `docs/architecture/ROADMAP_AND_OPTIONAL_CLOSURE.md`
 - Roadmap due-today evidence: `docs/architecture/ROADMAP_DUE_TODAY.md` and `/api/roadmap/*`
@@ -16,6 +17,7 @@ This plan is closed. Implementation and verification evidence is tracked in code
 - Working repo: `beta/school-management-system`
 - Goal: move RunMyCampus from transitional multi-tenant platform to 9.5+/10 across architecture, runtime, security, UX, onboarding, marketplace, packs, and control plane
 - Rule: no deferred placeholders, no half-complete migrations, no permanent dual-path legacy ownership
+- Architecture law + Studio/toolsets (see `docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md` sections 3-5): bounded contexts, runtime-as-law, metadata-first
 
 ## Active execution phases (closed)
 
@@ -49,6 +51,7 @@ This plan is closed. Implementation and verification evidence is tracked in code
 - [x] Workflows
 - [x] AI and API usage
 - [x] System Configuration / SiteSettings
+- [x] Studio OS + toolset unification (single Studio shell + redirects)
 
 ### Phase 5. Productization and market-gap closure
 - [x] Setup Studio as the mandatory onboarding spine

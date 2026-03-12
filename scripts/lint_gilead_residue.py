@@ -15,6 +15,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 PATTERN = re.compile(r"gilead", re.IGNORECASE)
 SCAN_ROOTS = (
+    ROOT / "apps",
+    ROOT / "services",
     ROOT / "fixtures",
     ROOT / "templates",
     ROOT / "config",

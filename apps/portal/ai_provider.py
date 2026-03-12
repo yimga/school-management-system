@@ -230,7 +230,12 @@ def generate_ai_response(
     metadata: dict[str, Any] | None = None,
 ) -> tuple[str, dict[str, Any]]:
     """
-    Return (response_text, metadata). All AI traffic goes through the AI Gateway when enabled.
+    Return (response_text, metadata).
+
+    Security/architecture: All AI traffic must go through the AI Gateway so:
+    - provider secrets stay server-side
+    - rate limiting/audit is centralized
+    - task routing and fallbacks are consistent
     metadata is kept for logs/observability only and never added to prompt text.
     """
     _ = metadata or {}
@@ -243,52 +248,52 @@ def generate_ai_response(
                 "denied": True,
             },
         )
-    if getattr(settings, "AI_GATEWAY_ENABLED", True):
-        try:
-            from services.ai_gateway import invoke
-            result, meta = invoke(
-                "general_chat",
-                prompt,
-                user_query=user_query,
-                metadata={**_},
-            )
-            text = result if isinstance(result, str) else str(result)
-            return text, {**meta, "gateway": True}
-        except Exception as e:
-            logger.warning("AI gateway invoke failed, falling back to legacy chain: %s", e)
-    errors: dict[str, str] = {}
-    for provider in _provider_preference():
-        if provider == "ollama":
-            text = _call_ollama(prompt, metadata=_)
-            if text:
-                return text, {"provider": "ollama", "errors": errors}
-            errors["ollama"] = "unavailable"
-            continue
-        if provider == "gemini":
-            text = _call_gemini(prompt)
-            if text:
-                return text, {"provider": "gemini", "errors": errors}
-            errors["gemini"] = "unavailable"
-            continue
-        if provider == "rules":
-            if not bool(getattr(settings, "AI_ALLOW_RULES_FALLBACK", True)):
-                errors["rules"] = "disabled"
-                continue
+    if not getattr(settings, "AI_GATEWAY_ENABLED", True):
+        if bool(getattr(settings, "AI_ALLOW_RULES_FALLBACK", True)):
             return _rules_fallback(user_query), {
                 "provider": "rules",
-                "errors": errors,
+                "errors": {"gateway": "disabled"},
                 "fallback": True,
+                "gateway": False,
             }
-    if bool(getattr(settings, "AI_ALLOW_RULES_FALLBACK", True)):
-        return _rules_fallback(user_query), {"provider": "rules", "errors": errors, "fallback": True}
-    return (
-        "AI providers are currently unavailable and rules fallback is disabled.",
-        {
-            "provider": "none",
-            "errors": errors,
-            "fallback": False,
-        },
-    )
+        return (
+            "AI is disabled and rules fallback is disabled.",
+            {
+                "provider": "none",
+                "errors": {"gateway": "disabled"},
+                "fallback": False,
+                "gateway": False,
+            },
+        )
+    try:
+        from services.ai_gateway import invoke
+
+        result, meta = invoke(
+            "general_chat",
+            prompt,
+            user_query=user_query,
+            metadata={**_},
+        )
+        text = result if isinstance(result, str) else str(result)
+        return text, {**meta, "gateway": True}
+    except Exception as e:
+        logger.warning("AI gateway invoke failed: %s", e)
+        if bool(getattr(settings, "AI_ALLOW_RULES_FALLBACK", True)):
+            return _rules_fallback(user_query), {
+                "provider": "rules",
+                "errors": {"gateway": "unavailable"},
+                "fallback": True,
+                "gateway": True,
+            }
+        return (
+            "AI providers are currently unavailable and rules fallback is disabled.",
+            {
+                "provider": "none",
+                "errors": {"gateway": "unavailable"},
+                "fallback": False,
+                "gateway": True,
+            },
+        )
 
 
 def get_workflow_clues(workflow_key: str, country_code: str) -> tuple[str | None, dict[str, Any]]:
@@ -301,20 +306,24 @@ def get_workflow_clues(workflow_key: str, country_code: str) -> tuple[str | None
         "List 3–5 short, actionable tips (local regulations, common practices, or checklist items). "
         "Keep the response under 400 words."
     )
-    if getattr(settings, "AI_GATEWAY_ENABLED", True):
-        try:
-            from services.ai_gateway import invoke
-            result, meta = invoke("setup_recommend", prompt, user_query=prompt[:200], metadata={"country_code": country_code})
-            text = result if isinstance(result, str) else None
-            if text:
-                return text.strip(), {**meta, "gateway": True}
-            return None, {**meta, "error": meta.get("error", "unavailable")}
-        except Exception as e:
-            logger.warning("Gateway get_workflow_clues failed, falling back to Ollama: %s", e)
-    text = _call_ollama(prompt, metadata={"country_code": country_code})
-    if text:
-        return text.strip(), {"provider": "ollama"}
-    return None, {"provider": "ollama", "error": "unavailable"}
+    if not getattr(settings, "AI_GATEWAY_ENABLED", True):
+        return None, {"gateway": False, "error": "disabled"}
+    try:
+        from services.ai_gateway import invoke
+
+        result, meta = invoke(
+            "setup_recommend",
+            prompt,
+            user_query=prompt[:200],
+            metadata={"country_code": country_code},
+        )
+        text = result if isinstance(result, str) else None
+        if text:
+            return text.strip(), {**meta, "gateway": True}
+        return None, {**meta, "gateway": True, "error": meta.get("error", "unavailable")}
+    except Exception as e:
+        logger.warning("Gateway get_workflow_clues failed: %s", e)
+        return None, {"gateway": True, "error": "unavailable"}
 
 
 def suggest_support_ticket_response(
@@ -333,26 +342,26 @@ def suggest_support_ticket_response(
         "Respond with a short JSON only: {\"category\": \"...\", \"priority\": \"LOW|NORMAL|HIGH|URGENT\", \"suggested_reply\": \"...\"}. "
         "Keep suggested_reply under 200 words."
     )
+    if not getattr(settings, "AI_GATEWAY_ENABLED", True):
+        return None, {"gateway": False, "error": "disabled"}
     text = None
     meta: dict[str, Any] = {}
-    if getattr(settings, "AI_GATEWAY_ENABLED", True):
-        try:
-            from services.ai_gateway import invoke
-            result, meta = invoke(
-                "support_suggest",
-                prompt,
-                user_query=subject[:200],
-                metadata={"country_code": country_code, "school": school},
-            )
-            text = result if isinstance(result, str) else (str(result) if result is not None else None)
-            meta.setdefault("gateway", True)
-        except Exception as e:
-            logger.warning("Gateway suggest_support_ticket failed, falling back to Ollama: %s", e)
+    try:
+        from services.ai_gateway import invoke
+
+        result, meta = invoke(
+            "support_suggest",
+            prompt,
+            user_query=subject[:200],
+            metadata={"country_code": country_code, "school": school},
+        )
+        text = result if isinstance(result, str) else (str(result) if result is not None else None)
+        meta.setdefault("gateway", True)
+    except Exception as e:
+        logger.warning("Gateway suggest_support_ticket failed: %s", e)
+        return None, {"gateway": True, "error": "unavailable"}
     if text is None:
-        text = _call_ollama(prompt, metadata={"country_code": country_code, "school": school})
-        if text is None:
-            return None, {"provider": "ollama", "error": "unavailable"}
-        meta = {"provider": "ollama"}
+        return None, {**meta, "error": meta.get("error", "unavailable")}
     try:
         start = text.find("{")
         end = text.rfind("}") + 1

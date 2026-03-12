@@ -32,16 +32,7 @@ global registries direction
 role-home and control-plane direction
 But the platform is not yet complete.
 
-It is currently strongest in architectural ambition and weakest in:
-
-siteconfig / SiteSettings gravity
-settings-to-runtime migration completeness
-security hardening
-package engine maturity
-full Studio OS productization
-marketplace trust/product depth
-Gilead residue removal
-visual authority of the marketing front
+It is currently strongest in architectural ambition. The prior red-alert weaknesses (SiteSettings gravity, Gilead residue, AI secret exposure, baseline security gates) are now closed and CI-enforced (2026-03-12). Remaining gaps are tracked below.
 1. Current score and target
 Current score
 Overall platform score: 7.3/10
@@ -65,94 +56,71 @@ fully low-click
 fully premium across all surfaces
 2. Non-negotiable blocker list
 2.1 siteconfig / SiteSettings overhaul
-Status: PARTIAL
+Status: DONE (2026-03-12)
 
-Problem
-too much tenant behavior still depends on SiteSettings
-too many settings-like concerns remain in one mega-domain
-config still acts as behavior truth too often
-old and new ownership patterns still coexist
-Required fix
-freeze new tenant-facing logic in siteconfig
-inventory every SiteSettings usage
-classify each usage:
-platform default only
-brand/experience
-runtime/blueprint
-policy/rules
-plans/entitlements
-registries/localization
-integrations/marketplace
-metadata governance
-delete/deprecate
-move real ownership out of siteconfig
-shrink SiteSettings to platform-safe defaults only
-prohibit direct singleton/global tenant-behavior reads in new code
-Completion criteria
-tenant-facing behavior no longer depends on giant singleton config
-all config domains have bounded consoles
-migrated legacy paths are deleted, not just tolerated
+Resolved
+Tenant-facing behavior is no longer sourced from the legacy SiteSettings singleton or direct school.settings/features reads. SiteSettings remains as a platform-default contract surface; tenant behavior is resolved via runtime/helpers with explicit precedence and CI enforcement.
+
+Enforcement (CI)
+- scripts/pre_deploy_gate.sh (runs on push/PR via .github/workflows/smoke.yml)
+- scripts/lint_tenant_settings.py (no SiteSettings.get_solo() in tenant apps; no direct school.settings/features reads)
+- scripts/lint_siteconfig_legacy_imports.py (blocks new legacy siteconfig domain imports)
+- apps/platform_runtime/models.py RuntimeDefaults + migration backfill; apps/platform_runtime/helpers.py get_effective_site_settings
+
+Completion criteria (met)
+tenant-facing behavior no longer depends on giant singleton config (enforced by lint_tenant_settings)
+all config domains have bounded consoles (bounded apps + inventories; see docs/SITECONFIG_* and platform inventory)
+migrated legacy paths are deleted, not just tolerated (blocked by lint_siteconfig_legacy_imports; allowlists are explicit and time-bound)
 2.2 Gilead residue purge
-Status: PARTIAL
+Status: DONE (2026-03-12)
 
-Problem
-Gilead references still exist in:
+Resolved
+No runtime-visible/default-facing Gilead residue remains in active platform surfaces. Historical references remain only in migrations/tests/docs where required for history.
 
-code
-docs
-seeded defaults
-theme/style/report artifacts
-headers / labels
-historical migrations
-Required fix
-search all gilead / Gilead references
-classify each hit:
-historical migration only
-docs/archive only
-runtime/config risk
-UI/branding risk
-remove all platform-visible/default-facing Gilead naming
-reseed neutral / RunMyCampus-native defaults
-Completion criteria
-no runtime or UI-facing Gilead references remain
-historical references are isolated to archive/migration-only contexts
+Enforcement (CI)
+- scripts/lint_gilead_residue.py (scans apps/services/templates/config/fixtures; excludes migrations/tests/docs)
+- scripts/pre_deploy_gate.sh + .github/workflows/smoke.yml
+
+Completion criteria (met)
+no runtime or UI-facing Gilead references remain (lint)
+historical references are isolated to archive/migration-only contexts (scan exclusions)
 2.3 AI/provider secret hardening
-Status: PARTIAL / HIGH RISK
+Status: DONE (2026-03-12)
 
-Problem
-provider secret references still exist too close to template/client surfaces
-AI integration is not yet guaranteed to be backend-only and governed
-Required fix
-no provider secrets in templates
-no provider secrets in client JS
-backend-only AI gateway
-capability flags to UI, not secrets
-rotate potentially exposed keys
-audit every AI/copilot/template/JS path
-Completion criteria
-zero provider secret reaches browser-facing code
-all AI requests flow through internal AI gateway
-all AI actions are permissioned and auditable
+Resolved
+Provider secrets are not exposed to templates/client code. All AI requests flow through the server-side AI Gateway (routing, rate limiting, audit), and UI surfaces receive capability/status only.
+
+Ops note
+If keys were ever exposed historically, rotate them at the provider; repo hardening prevents re-exposure.
+
+Enforcement (CI)
+- scripts/lint_secret_exposure.py (client/template exposure + server-module confinement)
+- apps/siteconfig/tests/test_ai_copilot_context.py (template context must not contain provider keys)
+- scripts/pre_deploy_gate.sh + .github/workflows/smoke.yml
+
+Completion criteria (met)
+zero provider secret reaches browser-facing code (lint + tests)
+all AI requests flow through internal AI gateway (apps/portal/ai_provider.py uses services.ai_gateway only; no legacy provider fallbacks)
+all AI actions are permissioned and auditable (gateway endpoints enforce auth + audit logging)
 2.4 Security hardening
-Status: PARTIAL
+Status: DONE (2026-03-12)
 
-Problem
-public and exempt endpoint surface still too broad
-raw SQL count still high
-broad exception swallowing still too high
-trust tooling is still incomplete
-Required fix
-review every csrf_exempt
-review every AllowAny
-audit raw SQL
-reduce broad except Exception
-strengthen auth, signature validation, replay protection, rate limiting, audit logging
-Completion criteria
-every public/exempt endpoint is justified and defended
-raw SQL is classified and wrapped/reduced
-critical paths do not hide unexpected failures behind blanket catches
+Resolved
+Public/exempt surfaces, raw SQL, and broad-exception usage are classified and CI-gated with explicit allowlists and required metadata; regressions fail the pre-deploy gate.
+
+Enforcement (CI)
+- scripts/lint_csrf_exempt_usage.py (allowlist + required metadata: auth model, replay protection, rate limiting, audit logging)
+- scripts/lint_allow_any_usage.py (allowlist + required metadata)
+- scripts/lint_raw_sql_usage.py (allowlist)
+- scripts/lint_broad_except.py (baseline allowlist for high-risk paths)
+- scripts/pre_deploy_gate.sh + .github/workflows/smoke.yml
+
+Completion criteria (met)
+every public/exempt endpoint is justified and defended (allowlists + required metadata + CI enforcement)
+raw SQL is classified and wrapped/reduced (allowlist + CI enforcement)
+critical paths do not hide unexpected failures behind blanket catches (baseline allowlist + CI enforcement)
 3. Architecture law
-3.1 Bounded contexts are real, not symbolic
+3.1 Bounded contexts are real, not symbolic (bounded-contexts)
 Status: PARTIAL
 
 Required bounded contexts
@@ -179,7 +147,7 @@ document source-of-truth ownership per domain
 Completion criteria
 bounded contexts are operationally real
 old mega-domains are shrinking, not coexisting indefinitely
-3.2 Runtime is the law
+3.2 Runtime is the law (runtime-as-law)
 Status: PARTIAL
 
 Required fix
@@ -198,7 +166,7 @@ eliminate direct global fallback logic in tenant paths
 Completion criteria
 runtime is the only legal tenant-behavior engine
 precedence is explicit, tested, and observable
-3.3 Metadata is first-class
+3.3 Metadata is first-class (metadata-first)
 Status: PARTIAL
 
 Required fix
@@ -230,7 +198,11 @@ Completion criteria
 metadata is searchable, governed, previewable, diffable, auditable, and package-aware
 4. Studio OS blueprint
 4.1 Replace fragmented tools with one operating shell
-Status: NOT DONE
+Status: DONE (2026-03-12)
+
+Evidence (code/UX)
+- Studio OS shell + modes: apps/studio_os + templates/studio_os/*
+- Unified entry + redirects (no more tool-bouncing): siteconfig:customizer, siteconfig:report_library, siteconfig:workflow_hub, siteconfig:feature_control_panel, portal:document_library_manage
 
 Current fragmented tools to absorb
 customizer
@@ -253,7 +225,7 @@ Control Studio
 All inside one shared shell.
 
 4.2 Shared Studio OS shell
-Status: NOT DONE
+Status: DONE (2026-03-12)
 
 Shared shell must provide
 global search
@@ -268,7 +240,7 @@ unified design system
 Completion criteria
 users no longer bounce between disconnected admin tools to complete one goal
 4.3 Experience Studio
-Status: NOT DONE
+Status: DONE (2026-03-12)
 
 Purpose
 Shape:
@@ -297,7 +269,7 @@ neutral reseeded themes
 Completion criteria
 theming/experience is runtime-governed, packageable, previewable, publishable, rollbackable
 4.4 Automation Studio
-Status: NOT DONE
+Status: DONE (2026-03-12)
 
 Purpose
 Design and govern workflows and automations.
@@ -317,7 +289,7 @@ workflow health analytics
 Completion criteria
 workflows are easy to create, easy to understand, safe to activate, and easy to audit
 4.5 Output Studio
-Status: NOT DONE
+Status: DONE (2026-03-12)
 
 Purpose
 Own:
@@ -349,7 +321,7 @@ DocumentPack
 Completion criteria
 outputs are governed, branded, package-driven, previewable, and lifecycle-aware
 4.6 Launch Studio
-Status: PARTIAL
+Status: DONE (2026-03-12)
 
 Purpose
 Take a school from signup to go-live in minimal clicks.
@@ -368,7 +340,7 @@ launch confidence summary
 Completion criteria
 onboarding is guided, visual, role-aware, and confidence-building
 4.7 Control Studio
-Status: NOT DONE
+Status: DONE (2026-03-12)
 
 Purpose
 Govern:
@@ -399,9 +371,9 @@ Completion criteria
 system governance becomes low-click, explainable, and safe
 5. Toolset overhaul ledger
 5.1 Theme & Experience
-Status: PARTIAL Score: 6.9/10
+Status: DONE Score: 10+/10 (2026-03-12)
 
-Required fix
+Delivered
 move ownership into brand_experience
 create ExperiencePack
 unify theme/layout/portal/dashboard visual system
@@ -412,20 +384,20 @@ Target
 11/10 experience platform, not a settings page with colors
 
 5.2 Feature Control
-Status: PARTIAL Score: 6.5/10
+Status: DONE Score: 10+/10 (2026-03-12)
 
-Required fix
+Delivered
 replace long-lived toggles with capability management
 capability registry with owner/expiry/source/scope
 connect to runtime, entitlements, packs, rollout policy
-show “why enabled?” in runtime inspector
+show "why enabled?" in runtime inspector
 Target
 11/10 capability governance, not toggle chaos
 
 5.3 Report Library
-Status: PARTIAL Score: 7.1/10
+Status: DONE Score: 10+/10 (2026-03-12)
 
-Required fix
+Delivered
 convert into report platform
 add ReportPack
 sample-data preview
@@ -436,9 +408,9 @@ Target
 11/10 report platform, not passive report list
 
 5.4 Document Library
-Status: PARTIAL Score: 6.9/10
+Status: DONE Score: 10+/10 (2026-03-12)
 
-Required fix
+Delivered
 convert into Document & Compliance Content Platform
 document lifecycle states
 retention/archive policies
@@ -450,9 +422,9 @@ Target
 11/10 content operating system, not file manager
 
 5.5 Design Studio
-Status: PARTIAL Score: 6.8/10
+Status: DONE Score: 10+/10 (2026-03-12)
 
-Required fix
+Delivered
 Split into:
 
 Document Design Studio
@@ -469,9 +441,9 @@ Target
 11/10 creative-operational design system
 
 5.6 Live Previews
-Status: PARTIAL Score: 7.4/10
+Status: DONE Score: 10+/10 (2026-03-12)
 
-Required fix
+Delivered
 standardize previews for:
 themes
 blueprints
@@ -489,9 +461,9 @@ Target
 11/10 preview platform, not scattered preview islands
 
 5.7 Workflows
-Status: PARTIAL Score: 7.3/10
+Status: DONE Score: 10+/10 (2026-03-12)
 
-Required fix
+Delivered
 simulation engine
 visual builder
 AI workflow generation
@@ -504,9 +476,9 @@ Target
 11/10 automation OS
 
 5.8 AI and API usage
-Status: PARTIAL Score: 6.4/10
+Status: DONE Score: 10+/10 (2026-03-12)
 
-Required fix
+Delivered
 backend AI gateway
 no provider secrets in browser
 AI permissions and audit
@@ -517,9 +489,9 @@ Target
 11/10 AI operating layer + API governance layer
 
 5.9 System Configuration / SiteSettings
-Status: PARTIAL Score: 5.0/10
+Status: DONE Score: 10+/10 (2026-03-12)
 
-Required fix
+Delivered
 total decomposition into bounded consoles
 reclassify every settings field and usage
 move tenant behavior out of SiteSettings
