@@ -143,7 +143,11 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
         return custom_urls + urls
 
     def get_app_list(self, request, app_label=None):
-        app_dict = self._build_app_dict(request, app_label)
+        try:
+            app_dict = self._build_app_dict(request, app_label)
+        except LookupError as e:
+            logging.getLogger(__name__).warning("Admin app list skip missing app: %s", e)
+            app_dict = {}
 
         app_order = {
             "accounts": {

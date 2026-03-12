@@ -1022,6 +1022,8 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.marketplace",
         "apps.packages.apps.PackagesConfig",  # Package engine (InstalledPackage, etc.) in public schema for manager package_rollout
         "apps.customersuccess",
+        "apps.brand_experience.apps.BrandExperienceConfig",  # Admin IA references; required for platform admin app list
+        "apps.orchestration.apps.OrchestrationConfig",     # Phase 10 long-running process; tables in public schema
     ]
     TENANT_APPS = [
         "apps.portal",
