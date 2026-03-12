@@ -460,6 +460,53 @@ class LtiServicesRuntimeTests(TestCase):
         self.assertEqual(payload.get("status"), "ok")
         self.assertEqual(len(payload.get("accepted", [])), 1)
 
+    def test_lineitem_create_rejects_non_json_content_type(self):
+        response = self.client.post(
+            reverse("lti_ags_lineitems", args=[self.integration.pk]),
+            data="label=Quiz 1",
+            content_type="application/x-www-form-urlencoded",
+            **self._auth(),
+        )
+        self.assertEqual(response.status_code, 415)
+        self.assertEqual(response.json().get("error"), "Content-Type must be application/json")
+
+    def test_lineitem_create_requires_json_object(self):
+        response = self.client.post(
+            reverse("lti_ags_lineitems", args=[self.integration.pk]),
+            data=json.dumps([{"label": "Quiz 1"}]),
+            content_type="application/json",
+            **self._auth(),
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json().get("error"), "JSON object required")
+
+    def test_scores_reject_invalid_json(self):
+        create_lineitem = self.client.post(
+            reverse("lti_ags_lineitems", args=[self.integration.pk]),
+            data=json.dumps({"label": "Quiz 1", "scoreMaximum": 20}),
+            content_type="application/json",
+            **self._auth(),
+        )
+        lineitem_id = create_lineitem.json()["id"]
+        response = self.client.post(
+            reverse("lti_ags_scores", args=[self.integration.pk, lineitem_id]),
+            data="{bad-json",
+            content_type="application/json",
+            **self._auth(),
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json().get("error"), "Invalid JSON")
+
+    def test_deep_linking_rejects_non_json_content_type(self):
+        response = self.client.post(
+            reverse("lti_deep_linking", args=[self.integration.pk]),
+            data="content_items=[]",
+            content_type="application/x-www-form-urlencoded",
+            **self._auth(),
+        )
+        self.assertEqual(response.status_code, 415)
+        self.assertEqual(response.json().get("error"), "Content-Type must be application/json")
+
     def test_services_reject_invalid_token(self):
         response = self.client.get(reverse("lti_nrps_memberships", args=[self.integration.pk]))
         self.assertEqual(response.status_code, 403)

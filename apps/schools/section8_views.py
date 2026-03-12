@@ -134,6 +134,7 @@ DISCOVERY_RATE_LIMIT_MAX = 10
 DISCOVERY_RATE_LIMIT_WINDOW = 60 * 15  # 15 minutes
 LTI_RATE_LIMIT_WINDOW = 60 * 15
 LTI_RATE_LIMIT_MAX = 240
+SECTION8_MUTATION_CONTENT_TYPES = {"application/json"}
 SECTION8_OPTIONAL_FAILURES = (AttributeError, ImportError, LookupError, RuntimeError, TypeError, ValueError)
 SECTION8_CACHE_FAILURES = SECTION8_OPTIONAL_FAILURES + (DatabaseError, OSError)
 SECTION8_JSON_FAILURES = (UnicodeDecodeError, json.JSONDecodeError, TypeError, ValueError)
@@ -567,6 +568,19 @@ def _json_body(request):
         return {}
 
 
+def _resolve_json_mutation_body(request):
+    content_type = ((request.content_type or request.META.get("CONTENT_TYPE") or "").split(";", 1)[0]).strip().lower()
+    if content_type not in SECTION8_MUTATION_CONTENT_TYPES:
+        return None, JsonResponse({"error": "Content-Type must be application/json"}, status=415)
+    try:
+        payload = json.loads((request.body or b"{}").decode("utf-8"))
+    except SECTION8_JSON_FAILURES:
+        return None, JsonResponse({"error": "Invalid JSON"}, status=400)
+    if not isinstance(payload, dict):
+        return None, JsonResponse({"error": "JSON object required"}, status=400)
+    return payload, None
+
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def lti_launch_callback(request, tool_id):
@@ -642,7 +656,9 @@ def lti_ags_lineitems(request, tool_id):
     if request.method == "GET":
         return JsonResponse({"lineItems": items}, status=200)
 
-    body = _json_body(request)
+    body, error = _resolve_json_mutation_body(request)
+    if error:
+        return error
     lineitem_id = str(secrets.token_hex(8))
     lineitem = {
         "id": lineitem_id,
@@ -687,7 +703,9 @@ def lti_ags_lineitem_detail(request, tool_id, lineitem_id):
         _save_lti_state(integration, cfg)
         return HttpResponse(status=204)
 
-    body = _json_body(request)
+    body, error = _resolve_json_mutation_body(request)
+    if error:
+        return error
     lineitem = dict(items[idx])
     for key in ("label", "resourceId", "tag"):
         if key in body:
@@ -723,7 +741,9 @@ def lti_ags_scores(request, tool_id, lineitem_id):
     if request.method == "GET":
         return JsonResponse({"scores": entries}, status=200)
 
-    body = _json_body(request)
+    body, error = _resolve_json_mutation_body(request)
+    if error:
+        return error
     entry = {
         "id": str(secrets.token_hex(8)),
         "userId": str(body.get("userId") or ""),
@@ -838,7 +858,9 @@ def lti_deep_linking(request, tool_id):
     if auth_err:
         return auth_err
     cfg = _lti_state(integration)
-    body = _json_body(request)
+    body, error = _resolve_json_mutation_body(request)
+    if error:
+        return error
     content_items = body.get("content_items")
     if not isinstance(content_items, list):
         content_items = body.get("contentItems")
