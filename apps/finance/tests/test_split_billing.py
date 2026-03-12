@@ -1,5 +1,6 @@
 from datetime import date, timedelta
 from decimal import Decimal
+from smtplib import SMTPException
 from unittest.mock import patch
 
 from django.test import TestCase
@@ -16,6 +17,7 @@ from apps.finance.models import (
     Payment,
     PaymentMethodCode,
     PaymentReminder,
+    PaymentReminderLog,
 )
 from apps.finance.services import apply_payment, assign_invoice_payer_shares
 from apps.finance.tasks import run_payment_reminders
@@ -28,7 +30,7 @@ class SplitBillingFlowTests(TestCase):
         self.profile = ComplianceProfile.objects.create(name="Test", country_code="CM")
         site = SiteSettings.get_solo()
         site.compliance_profile = self.profile
-        site.save(update_fields=["compliance_profile"])
+        site.save(update_fields=["compliance_profile_id"])
 
         self.year = AcademicYear.objects.create(
             name="2025/2026",
@@ -149,6 +151,28 @@ class SplitBillingFlowTests(TestCase):
         args, _kwargs = send_email_mock.call_args
         self.assertEqual(args[0], "split_parent_b@example.com")
         self.assertIn("50.00", args[2])
+
+    @patch("apps.finance.tasks.get_notification_channels", return_value=["email"])
+    @patch("apps.finance.tasks.EmailMessage.send", side_effect=SMTPException("mail failed"))
+    def test_reminder_logs_failed_email_delivery(self, _send_mock, _channels_mock):
+        invoice = self._create_invoice()
+        assign_invoice_payer_shares(
+            invoice,
+            [(self.guardian_link_a, Decimal("100.00"))],
+            due_date=timezone.localdate(),
+        )
+        reminder, _ = PaymentReminder.objects.get_or_create(invoice=invoice)
+        reminder.reminder_channels = ["email"]
+        reminder.reminder_days_before = [0]
+        reminder.is_active = True
+        reminder.next_send_at = timezone.now() - timedelta(minutes=1)
+        reminder.save(update_fields=["reminder_channels", "reminder_days_before", "is_active", "next_send_at"])
+
+        result = run_payment_reminders()
+
+        self.assertEqual(result["sent"], 0)
+        failure_log = PaymentReminderLog.objects.filter(reminder=reminder, status="FAILED").latest("sent_at")
+        self.assertIn("Failed to send email", failure_log.note)
 
     def test_invoice_list_exposes_split_summary_for_parent_and_staff(self):
         invoice = self._create_invoice()

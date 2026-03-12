@@ -10,12 +10,13 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django import forms
 import csv
 import io
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from typing import Any
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 import json
+from django.db import DatabaseError
 
 from apps.accounts.decorators import role_required, teacher_portal_required
 from apps.accounts.models import User
@@ -68,6 +69,19 @@ from apps.siteconfig.dashboard_views import load_dashboard_layout_settings
 from apps.siteconfig.dashboard_views import _can_customize
 from apps.finance.models import Notification
 from apps.compliance.models_audit import AuditLog
+
+EVALS_SOFT_FAILURES = (
+    AttributeError,
+    csv.Error,
+    DatabaseError,
+    ImportError,
+    InvalidOperation,
+    LookupError,
+    OSError,
+    RuntimeError,
+    TypeError,
+    ValueError,
+)
 
 
 def _required_fields(academic_year, classroom, term):
@@ -304,7 +318,7 @@ def _deserialize_pending_entries(payload):
         for field, value in entry.get("scores", {}).items():
             try:
                 scores[field] = Decimal(str(value))
-            except Exception:
+            except (InvalidOperation, TypeError, ValueError):
                 continue
         deserialized.append(
             {
@@ -333,7 +347,7 @@ def _extract_corrected_ocr_entries(post_data, original_entries):
             if value_str:
                 try:
                     corrected_scores[field] = Decimal(value_str)
-                except Exception:
+                except (InvalidOperation, TypeError, ValueError):
                     continue
         if corrected_scores:
             corrected.append(
@@ -893,7 +907,7 @@ def _teacher_workflow_link(label: str, url_name: str, *args, **kwargs) -> dict:
     """Build a workflow link dict; return None if URL fails to resolve."""
     try:
         return {"label": label, "url": reverse(url_name, args=args, kwargs=kwargs)}
-    except Exception:
+    except EVALS_SOFT_FAILURES:
         return None
 
 
@@ -1320,7 +1334,7 @@ def teacher_marks_entry(request: HttpRequest):
                 active_term,
                 sa,
             )
-        except Exception as e:
+        except EVALS_SOFT_FAILURES:
             logger.exception(
                 "Marks save failed: user=%s subject_assignment_id=%s students_count=%s",
                 request.user.id,
@@ -2019,7 +2033,7 @@ def grade_import_upload_view(request: HttpRequest):
         try:
             reader = csv.DictReader(io.TextIOWrapper(upload, encoding="utf-8"))
             preview = preview_import(reader)
-        except Exception as exc:  # pragma: no cover - defensive
+        except EVALS_SOFT_FAILURES:  # pragma: no cover - defensive
             logger.exception("Grade import: failed to read CSV")
             messages.error(
                 request,
@@ -2035,7 +2049,7 @@ def grade_import_upload_view(request: HttpRequest):
                     try:
                         result = apply_import(preview, active_year)
                         messages.success(request, f"Imported grades (created: {result['created']}, updated: {result['updated']}).")
-                    except Exception as exc:
+                    except EVALS_SOFT_FAILURES:
                         logger.exception("Grade import: apply failed")
                         messages.error(
                             request,
@@ -2344,7 +2358,7 @@ def grade_import_preview_api(request):
             'invalid_rows': sum(1 for r in rows_with_validation if not r.is_valid),
         }), content_type='application/json')
     
-    except Exception as e:
+    except EVALS_SOFT_FAILURES as e:
         logger.exception("Grade import preview API failed")
         return HttpResponse(
             json.dumps({
@@ -2399,7 +2413,7 @@ def grade_import_apply_api(request):
             'duration_seconds': result.get('duration_seconds', 0),
         }), content_type='application/json')
     
-    except Exception as e:
+    except EVALS_SOFT_FAILURES as e:
         logger.exception("Grade import apply API failed")
         job.status = 'failed'
         job.failed_count += 1

@@ -17,6 +17,7 @@ from urllib.parse import quote_plus
 import csv
 import base64
 from io import BytesIO
+import logging
 
 from apps.accounts.decorators import (
     role_required,
@@ -114,6 +115,22 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.views.decorators.http import require_GET
+from django.db import DatabaseError
+from django.urls import NoReverseMatch
+
+logger = logging.getLogger(__name__)
+
+PORTAL_SOFT_FAILURES = (
+    AttributeError,
+    DatabaseError,
+    ImportError,
+    LookupError,
+    NoReverseMatch,
+    OSError,
+    RuntimeError,
+    TypeError,
+    ValueError,
+)
 
 # Portal feature metadata for the navigation and UI
 PORTAL_FEATURES_META = {
@@ -630,7 +647,7 @@ def _parent_workflow_link(label: str, url_name: str, *args, **kwargs) -> dict:
     """Build a workflow link dict; return None if URL fails to resolve."""
     try:
         return {"label": label, "url": reverse(url_name, args=args, kwargs=kwargs)}
-    except Exception:
+    except PORTAL_SOFT_FAILURES:
         return None
 
 
@@ -957,7 +974,7 @@ def badge_verify(request: HttpRequest):
                             ip_address=ip,
                             user_agent=(request.META.get("HTTP_USER_AGENT") or "")[:255],
                         )
-                    except Exception:
+                    except PORTAL_SOFT_FAILURES:
                         pass
         except (BadSignature, ValueError, IndexError):
             pass
@@ -1948,7 +1965,7 @@ def _whatsapp_invite_link(request: HttpRequest) -> str | None:
                 or record.config.get("whatsapp_number")
                 or record.config.get("support_number")
             )
-    except Exception:
+    except PORTAL_SOFT_FAILURES:
         number = None
     if not number:
         site = get_effective_site_settings(request=request)
@@ -2102,10 +2119,8 @@ def link_child_wizard(request: HttpRequest):
                         return redirect(f"{request.path}?step={step}")
                 except StudentProfile.DoesNotExist:
                     form.add_error("admission_number", forms.ValidationError("No student found with that admission number."))
-                except Exception as e:
-                    # Log the error but show a user-friendly message
-                    import logging
-                    logger = logging.getLogger(__name__)
+                except PORTAL_SOFT_FAILURES as e:
+                    # Log the error but show a user-friendly message.
                     logger.error(f"Error validating admission number: {e}", exc_info=True)
                     form.add_error("admission_number", forms.ValidationError("An error occurred. Please try again or contact support."))
         elif step == 2:

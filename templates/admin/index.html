@@ -493,7 +493,7 @@
         <p class="app-meta">Site settings & regions</p>
         <div class="app-actions">
           <a href="{% url 'admin:siteconfig_sitesettings_change' SITE_SETTINGS.pk|default_if_none:1 %}" class="app-btn">Site settings</a>
-          <a href="{% url 'admin:siteconfig_regionconfig_changelist' %}" class="app-btn">Region config</a>
+          <a href="{% url 'admin:global_registries_regionconfig_changelist' %}" class="app-btn">Region config</a>
         </div>
       </div>
       {% endif %}

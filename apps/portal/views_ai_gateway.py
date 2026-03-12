@@ -45,6 +45,38 @@ def _school_id(request) -> str | None:
     return str(school.id) if school and getattr(school, "id", None) else None
 
 
+def _actor_roles(request) -> list[str]:
+    user = getattr(request, "user", None)
+    if not user:
+        return []
+    roles: set[str] = set()
+    for attr in ("role", "portal_role", "user_type"):
+        value = getattr(user, attr, None)
+        if value:
+            roles.add(str(value).strip().lower())
+    try:
+        for group in user.groups.all():
+            name = getattr(group, "name", None)
+            if name:
+                roles.add(str(name).strip().lower())
+    except Exception:
+        pass
+    if getattr(user, "is_staff", False):
+        roles.update({"staff", "admin"})
+    if getattr(user, "is_superuser", False):
+        roles.update({"superuser", "super_admin"})
+    return sorted(role for role in roles if role)
+
+
+def _retrieval_kwargs(request) -> dict[str, Any]:
+    user = getattr(request, "user", None)
+    return {
+        "actor_roles": _actor_roles(request),
+        "actor_is_staff": bool(user and getattr(user, "is_staff", False)),
+        "actor_is_superuser": bool(user and getattr(user, "is_superuser", False)),
+    }
+
+
 def _redact_audit_meta(meta: dict | None) -> dict:
     """Ensure no prompt/response or other sensitive content is stored in audit new_values."""
     if not meta:
@@ -110,7 +142,7 @@ def api_setup_assistant(request):
         citations = []
         emb = get_embedding_for_text(query, max_tokens=512)
         if emb:
-            for r in AIMemoryService.search_similar(school_id, "default", emb, limit=5):
+            for r in AIMemoryService.search_similar(school_id, "default", emb, limit=5, **_retrieval_kwargs(request)):
                 context_parts.append(str(r.get("metadata", ""))[:400])
                 citations.append({
                     "id": r.get("id"),
@@ -191,7 +223,7 @@ def api_policy_explain(request):
         citations = []
         emb = get_embedding_for_text(query, max_tokens=512)
         if emb:
-            for r in AIMemoryService.search_similar(school_id, "policy", emb, limit=5):
+            for r in AIMemoryService.search_similar(school_id, "policy", emb, limit=5, **_retrieval_kwargs(request)):
                 context_parts.append(str(r.get("metadata", ""))[:400])
                 citations.append({
                     "id": r.get("id"),
@@ -199,7 +231,7 @@ def api_policy_explain(request):
                     "metadata": {k: v for k, v in (r.get("metadata") or {}).items() if k not in ("embedding", "raw_text")},
                 })
         if not context_parts and emb:
-            for r in AIMemoryService.search_similar(school_id, "default", emb, limit=3):
+            for r in AIMemoryService.search_similar(school_id, "default", emb, limit=3, **_retrieval_kwargs(request)):
                 context_parts.append(str(r.get("metadata", ""))[:400])
                 citations.append({"id": r.get("id"), "scope": "default", "metadata": {k: v for k, v in (r.get("metadata") or {}).items() if k not in ("embedding", "raw_text")}})
         context = "\n".join(context_parts)[:1200] if context_parts else ""
@@ -285,10 +317,13 @@ def api_semantic_search(request):
         embedding = get_embedding_for_text(query, max_tokens=512)
         if not embedding:
             return JsonResponse({"success": True, "results": [], "meta": {"reason": "embedding_unavailable"}})
-        results = AIMemoryService.search_similar(school_id, scope, embedding, limit=10)
+        results = AIMemoryService.search_similar(school_id, scope, embedding, limit=10, **_retrieval_kwargs(request))
         # Optional: summarize top result via gateway
         if results and query:
-            prompt = f"Based on this context, answer briefly: {query}\n\nContext: {str(results[0].get('metadata', ''))[:1500]}"
+            context = str(results[0].get("metadata", ""))[:1500]
+            prompt = (get_prompt_template("semantic_search", {"query": query, "context_block": context}) or "").strip() or (
+                f"Based on this context, answer briefly: {query}\n\nContext: {context}"
+            )
             summary, meta = _gateway_response(request, TaskType.SEMANTIC_SEARCH, prompt, user_query=query)
             if meta.get("budget_exceeded"):
                 return JsonResponse({"success": False, "error": "AI request budget exceeded for this tenant.", "meta": meta}, status=429)
@@ -333,7 +368,7 @@ def api_admin_copilot(request):
         emb = get_embedding_for_text(query, max_tokens=512)
         if emb:
             for scope in ("help", "config", "default"):
-                for r in AIMemoryService.search_similar(school_id, scope, emb, limit=2):
+                for r in AIMemoryService.search_similar(school_id, scope, emb, limit=2, **_retrieval_kwargs(request)):
                     context_parts.append(str(r.get("metadata", ""))[:400])
                     citations.append({
                         "id": r.get("id"),
@@ -376,7 +411,13 @@ def api_theme_recommend(request):
             f"Suggest theme or experience improvements. User request: {query}\n\n"
             "Respond with JSON: {{ \"suggestions\": [], \"rationale\": \"...\" }}. No other text."
         )
-        result, meta = _gateway_response(request, TaskType.CONFIG_EXPLAIN, prompt, user_query=query)
+        result, meta = _gateway_response(
+            request,
+            TaskType.CONFIG_EXPLAIN,
+            prompt,
+            user_query=query,
+            response_schema="theme_experience",
+        )
         if meta.get("budget_exceeded"):
             return JsonResponse({"success": False, "error": "AI request budget exceeded.", "meta": meta}, status=429)
         _log_gateway_audit(request, "theme_recommend", "config_explain", "success", meta)
@@ -433,7 +474,13 @@ def api_report_recommend(request):
             f"Recommend reports from the library. User need: {query}\n\n"
             "Respond with JSON: {{ \"recommendations\": [{{ \"name\", \"description\", \"fit\" }}] }}. No other text."
         )
-        result, meta = _gateway_response(request, TaskType.SETUP_RECOMMEND, prompt, user_query=query)
+        result, meta = _gateway_response(
+            request,
+            TaskType.SETUP_RECOMMEND,
+            prompt,
+            user_query=query,
+            response_schema="report_recommend",
+        )
         if meta.get("budget_exceeded"):
             return JsonResponse({"success": False, "error": "AI request budget exceeded.", "meta": meta}, status=429)
         _log_gateway_audit(request, "report_recommend", "setup_recommend", "success", meta)
@@ -462,7 +509,13 @@ def api_design_studio_draft(request):
             f"Suggest design or layout changes. User request: {query}\n\n"
             "Respond with JSON: {{ \"suggestions\": [], \"components\": [] }}. No other text."
         )
-        result, meta = _gateway_response(request, TaskType.CONFIG_EXPLAIN, prompt, user_query=query)
+        result, meta = _gateway_response(
+            request,
+            TaskType.CONFIG_EXPLAIN,
+            prompt,
+            user_query=query,
+            response_schema="design_studio",
+        )
         if meta.get("budget_exceeded"):
             return JsonResponse({"success": False, "error": "AI request budget exceeded.", "meta": meta}, status=429)
         _log_gateway_audit(request, "design_studio_draft", "config_explain", "success", meta)
@@ -540,8 +593,17 @@ def api_dashboard_pack_recommend(request):
         query = (body.get("query") or "").strip()[:1000]
         if not query:
             return JsonResponse({"success": False, "error": "query required"}, status=400)
-        prompt = f"Recommend dashboards or experience packs for: {query}\n\nRespond with JSON: {{ \"dashboards\": [], \"packs\": [], \"rationale\": \"...\" }}. No other text."
-        result, meta = _gateway_response(request, TaskType.SETUP_RECOMMEND, prompt, user_query=query)
+        prompt = (get_prompt_template("dashboard_pack_recommend", {"query": query}) or "").strip() or (
+            f"Recommend dashboards or experience packs for: {query}\n\n"
+            "Respond with JSON: {{ \"dashboards\": [], \"packs\": [], \"rationale\": \"...\" }}. No other text."
+        )
+        result, meta = _gateway_response(
+            request,
+            TaskType.SETUP_RECOMMEND,
+            prompt,
+            user_query=query,
+            response_schema="dashboard_pack_recommend",
+        )
         if meta.get("budget_exceeded"):
             return JsonResponse({"success": False, "error": "AI request budget exceeded.", "meta": meta}, status=429)
         _log_gateway_audit(request, "dashboard_pack_recommend", "setup_recommend", "success", meta)
@@ -570,7 +632,7 @@ def api_support_assistant(request):
         context_parts = []
         emb = get_embedding_for_text(query, max_tokens=512)
         if emb:
-            for r in AIMemoryService.search_similar(school_id, "help", emb, limit=3):
+            for r in AIMemoryService.search_similar(school_id, "help", emb, limit=3, **_retrieval_kwargs(request)):
                 context_parts.append(str(r.get("metadata", ""))[:400])
         context = "\n".join(context_parts)[:1200] if context_parts else ""
         prompt = (get_prompt_template("support_suggest", {"query": query, "context_block": context}) or "").strip() or (
@@ -641,7 +703,7 @@ def api_data_quality_assistant(request):
         emb = get_embedding_for_text(query, max_tokens=512)
         if emb:
             for scope in ("config", "help", "default"):
-                for r in AIMemoryService.search_similar(school_id, scope, emb, limit=2):
+                for r in AIMemoryService.search_similar(school_id, scope, emb, limit=2, **_retrieval_kwargs(request)):
                     context_parts.append(str(r.get("metadata", ""))[:400])
         context = "\n".join(context_parts)[:2000] if context_parts else ""
         prompt = (
@@ -673,11 +735,17 @@ def api_marketplace_recommend(request):
         query = (body.get("query") or body.get("institution_type") or "").strip()[:1500]
         if not query:
             return JsonResponse({"success": False, "error": "query or institution_type required"}, status=400)
-        prompt = (
+        prompt = (get_prompt_template("marketplace_recommend", {"query": query}) or "").strip() or (
             f"Recommend marketplace apps or experience packs for: {query}\n\n"
             "Respond with JSON only: { \"recommendations\": [ { \"name\", \"category\", \"fit\", \"rationale\" } ], \"rationale\": \"...\" }. No other text."
         )
-        result, meta = _gateway_response(request, TaskType.SETUP_RECOMMEND, prompt, user_query=query)
+        result, meta = _gateway_response(
+            request,
+            TaskType.SETUP_RECOMMEND,
+            prompt,
+            user_query=query,
+            response_schema="marketplace_recommend",
+        )
         if meta.get("budget_exceeded"):
             return JsonResponse({"success": False, "error": "AI request budget exceeded.", "meta": meta}, status=429)
         _log_gateway_audit(request, "marketplace_recommend", "setup_recommend", "success", meta)
@@ -707,7 +775,7 @@ def api_control_plane_intelligence(request):
         emb = get_embedding_for_text(query, max_tokens=512)
         if emb:
             for scope in ("help", "config", "default"):
-                for r in AIMemoryService.search_similar(school_id, scope, emb, limit=3):
+                for r in AIMemoryService.search_similar(school_id, scope, emb, limit=3, **_retrieval_kwargs(request)):
                     context_parts.append(str(r.get("metadata", ""))[:400])
         context = "\n".join(context_parts)[:2000] if context_parts else ""
         prompt = (
@@ -740,7 +808,14 @@ def api_migration_suggest(request):
         target_fields = body.get("target_fields") or body.get("target_schema")
         if not source_fields and not target_fields:
             return JsonResponse({"success": False, "error": "source_fields and target_fields (or source_sample/target_schema) required"}, status=400)
-        prompt = (
+        prompt = (get_prompt_template(
+            "migration_mapping",
+            {
+                "query": "Suggest field mappings",
+                "source_fields": str(source_fields)[:1500],
+                "target_fields": str(target_fields)[:1500],
+            },
+        ) or "").strip() or (
             "Suggest field mappings as JSON array. Each item: { \"source_field\", \"target_field\", \"confidence\" (0-1), \"notes\" }.\n\n"
             f"Source: {str(source_fields)[:1500]}\nTarget: {str(target_fields)[:1500]}\n\nRespond with JSON array only. No other text."
         )

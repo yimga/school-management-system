@@ -14,6 +14,13 @@ from apps.schools.domain_sync import ensure_tenant_client_for_school, sync_schoo
 
 logger = logging.getLogger(__name__)
 
+try:
+    from kombu.exceptions import OperationalError as KombuOperationalError
+except Exception:  # pragma: no cover - kombu is installed in production/test envs
+    class KombuOperationalError(Exception):
+        """Fallback exception type when kombu is unavailable."""
+
+
 User = get_user_model()
 
 
@@ -114,6 +121,40 @@ def provision_school_sync(school_id: str, contact_email: str = "", **kwargs):
             payload={"error": str(exc)},
         )
         raise
+
+
+def dispatch_provision_school(school_id: str, contact_email: str = "", **kwargs) -> dict:
+    """
+    Queue provisioning when Celery is available; otherwise fall back to synchronous provisioning.
+    Returns a stable payload for request-layer audit logging.
+    """
+    try:
+        result = provision_school_task.delay(str(school_id), contact_email=contact_email, **kwargs)
+        return {
+            "queued": True,
+            "fallback": False,
+            "job_id": getattr(result, "id", None),
+            "message": "Provisioning queued.",
+        }
+    except (
+        AttributeError,
+        ConnectionError,
+        ImportError,
+        KombuOperationalError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ) as exc:
+        logger.warning("Provisioning queue unavailable for school %s; falling back to sync: %s", school_id, exc)
+        provision_school_sync(str(school_id), contact_email=contact_email, **kwargs)
+        return {
+            "queued": False,
+            "fallback": True,
+            "job_id": None,
+            "message": "Celery unavailable; provisioning started in synchronous fallback mode.",
+            "reason": str(exc),
+        }
 
 
 def _do_provision(school_id: str, contact_email: str = "", **kwargs):

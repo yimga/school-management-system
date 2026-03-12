@@ -34,6 +34,17 @@ BUILTIN_PROMPTS: dict[str, str] = {
         "{{ \"category\": \"...\", \"tags\": [\"...\"], \"confidence\": 0.0-1.0 }}.\n\n"
         "Document excerpt: {query}\n\nNo other text."
     ),
+    "semantic_search": (
+        "Use the retrieved platform context to answer the question briefly and concretely.\n\n"
+        "Question: {query}\n\nContext: {context_block}\n\n"
+        "Respond with a short answer first, then mention the most relevant source object names if available."
+    ),
+    "migration_mapping": (
+        "Suggest field mappings as JSON array only.\n\n"
+        "Source schema or sample: {source_fields}\n\n"
+        "Target schema: {target_fields}\n\n"
+        "Each array item must be {{ \"source_field\", \"target_field\", \"confidence\", \"notes\" }}."
+    ),
     "admin_copilot": (
         "You are an admin and configuration assistant. Use the following context to answer.\n\n"
         "{context_block}\n\nQuestion: {query}\n\nAnswer concisely; include links or doc refs if relevant."
@@ -57,6 +68,14 @@ BUILTIN_PROMPTS: dict[str, str] = {
     "design_studio": (
         "Suggest design or layout changes. User request: {query}\n\n"
         "Respond with JSON: {{ \"suggestions\": [], \"components\": [] }}. No other text."
+    ),
+    "dashboard_pack_recommend": (
+        "Recommend dashboards or experience packs for: {query}\n\n"
+        "Respond with JSON: {{ \"dashboards\": [], \"packs\": [], \"rationale\": \"...\" }}. No other text."
+    ),
+    "marketplace_recommend": (
+        "Recommend marketplace apps or experience packs for: {query}\n\n"
+        "Respond with JSON only: {{ \"recommendations\": [{{ \"name\", \"category\", \"fit\", \"rationale\" }}], \"rationale\": \"...\" }}. No other text."
     ),
     "system_config": (
         "Explain system configuration options. User question: {query}\n\n"

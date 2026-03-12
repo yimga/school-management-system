@@ -54,7 +54,7 @@ class RegionConfigAdminTestCase(TestCase):
 
     def test_region_list_view(self):
         """Test region list view in admin."""
-        url = reverse('admin:siteconfig_regionconfig_changelist')
+        url = reverse('admin:global_registries_regionconfig_changelist')
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'TST')
@@ -153,14 +153,14 @@ class RegionConfigAdminTestCase(TestCase):
 
     def test_region_search(self):
         """Test region search in admin."""
-        url = reverse('admin:siteconfig_regionconfig_changelist')
+        url = reverse('admin:global_registries_regionconfig_changelist')
         response = self.client.get(url, {'q': 'Test'})
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Test Region')
 
     def test_region_filter(self):
         """Test region filtering in admin."""
-        url = reverse('admin:siteconfig_regionconfig_changelist')
+        url = reverse('admin:global_registries_regionconfig_changelist')
         response = self.client.get(url, {'grading_scale': '0-20'})
         self.assertEqual(response.status_code, 200)
 

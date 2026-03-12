@@ -57,17 +57,6 @@ CONTROL_PLANE_AUDIT_FAILURES = (
     ValidationError,
     ValueError,
 )
-ASYNC_PROVISIONING_FALLBACKS = (
-    AttributeError,
-    ConnectionError,
-    ImportError,
-    OSError,
-    RuntimeError,
-    TypeError,
-    ValueError,
-)
-
-
 def _safe_school_admin_change_url(school_id) -> str:
     try:
         return reverse("admin:schools_school_change", args=[school_id])
@@ -2594,32 +2583,25 @@ def api_create_school(request):
             created_by=request.user if getattr(request, "user", None) and request.user.is_authenticated else None,
         )
 
-    # Enqueue provisioning task (Celery or sync for now)
-    try:
-        from apps.schools.tasks import provision_school_task
-        result = provision_school_task.delay(str(school.id), contact_email=contact_email)
-        job_id = getattr(result, "id", None)
-        SchoolProvisioningEvent.log_event(
-            school=school,
-            event_type=SchoolProvisioningEvent.EventType.QUEUED,
-            status=SchoolProvisioningEvent.Status.INFO,
-            message="Provisioning queued.",
-            payload={"job_id": job_id or ""},
-            created_by=request.user if getattr(request, "user", None) and request.user.is_authenticated else None,
-        )
-    except ASYNC_PROVISIONING_FALLBACKS:
-        # Run synchronously if Celery not available
-        from apps.schools.tasks import provision_school_sync
-        SchoolProvisioningEvent.log_event(
-            school=school,
-            event_type=SchoolProvisioningEvent.EventType.QUEUED,
-            status=SchoolProvisioningEvent.Status.WARNING,
-            message="Celery unavailable; provisioning started in synchronous fallback mode.",
-            payload={},
-            created_by=request.user if getattr(request, "user", None) and request.user.is_authenticated else None,
-        )
-        provision_school_sync(str(school.id), contact_email=contact_email)
-        job_id = None
+    from apps.schools.tasks import dispatch_provision_school
+
+    dispatch = dispatch_provision_school(str(school.id), contact_email=contact_email)
+    job_id = dispatch.get("job_id")
+    payload = {"job_id": job_id or ""}
+    if dispatch.get("fallback") and dispatch.get("reason"):
+        payload["fallback_reason"] = dispatch["reason"]
+    SchoolProvisioningEvent.log_event(
+        school=school,
+        event_type=SchoolProvisioningEvent.EventType.QUEUED,
+        status=(
+            SchoolProvisioningEvent.Status.WARNING
+            if dispatch.get("fallback")
+            else SchoolProvisioningEvent.Status.INFO
+        ),
+        message=dispatch.get("message") or "Provisioning queued.",
+        payload=payload,
+        created_by=request.user if getattr(request, "user", None) and request.user.is_authenticated else None,
+    )
 
     return JsonResponse(
         {

@@ -2,11 +2,33 @@
 Context processors for dashboard header/footer components.
 Provides role-based data, system information, and metrics for templates.
 """
+import logging
 from decimal import Decimal
 from django.conf import settings
 from django.db import DatabaseError, connection, models, transaction
+from django.urls import NoReverseMatch
 from django.utils import timezone
 from apps.platform_runtime.helpers import get_effective_site_settings
+
+logger = logging.getLogger(__name__)
+
+CONTEXT_SOFT_FAILURES = (
+    AttributeError,
+    DatabaseError,
+    ImportError,
+    LookupError,
+    NoReverseMatch,
+    RuntimeError,
+    TypeError,
+    ValueError,
+)
+DB_STATE_SOFT_FAILURES = (
+    AttributeError,
+    DatabaseError,
+    RuntimeError,
+    TypeError,
+    ValueError,
+)
 
 
 def _reset_db_state() -> None:
@@ -16,7 +38,7 @@ def _reset_db_state() -> None:
             transaction.set_rollback(False)
         elif connection.needs_rollback:
             connection.rollback()
-    except Exception:
+    except DB_STATE_SOFT_FAILURES:
         pass
 
 
@@ -32,7 +54,7 @@ def dashboard_context(request):
     try:
         from apps.schools.tenant_url import get_tenant_prefix
         tenant_prefix = get_tenant_prefix(request)
-    except Exception:
+    except CONTEXT_SOFT_FAILURES:
         tenant_prefix = ""
     context = {
         'current_time': timezone.now(),
@@ -58,7 +80,7 @@ def dashboard_context(request):
     try:
         prefs = getattr(user, "preferences", None)
         context["simple_mode"] = bool(getattr(prefs, "simple_mode", False))
-    except Exception:
+    except CONTEXT_SOFT_FAILURES:
         context["simple_mode"] = False
 
     try:
@@ -68,7 +90,7 @@ def dashboard_context(request):
         )
         context['can_create_school_wide_announcement'] = _can_create_school_wide_announcement(user)
         context['can_access_school_wide_announcement_create'] = _can_access_school_wide_announcement_create(user)
-    except Exception:
+    except CONTEXT_SOFT_FAILURES:
         pass
     role_value = (getattr(user, "role", "") or "").upper()
 
@@ -130,7 +152,7 @@ def dashboard_context(request):
     except DatabaseError:
         _reset_db_state()
         notifications_unread = 0
-    except Exception:
+    except CONTEXT_SOFT_FAILURES:
         notifications_unread = 0
 
     try:
@@ -140,7 +162,7 @@ def dashboard_context(request):
             is_read=False,
             is_archived=False,
         ).count()
-    except Exception:
+    except CONTEXT_SOFT_FAILURES:
         messages_unread_count = 0
 
     context["messages_unread_count"] = messages_unread_count
@@ -152,12 +174,12 @@ def dashboard_context(request):
         context["can_customize_dashboard"] = _can_customize(user)
         # Dashboard Layout: only Backend supports customization; always link there
         context["dashboard_layout_link"] = reverse("accounts:backend_dashboard") + "?customize=1"
-    except Exception:
+    except CONTEXT_SOFT_FAILURES:
         context["can_customize_dashboard"] = False
         try:
             from django.urls import reverse as _reverse
             context["dashboard_layout_link"] = _reverse("accounts:backend_dashboard") + "?customize=1"
-        except Exception:
+        except CONTEXT_SOFT_FAILURES:
             context["dashboard_layout_link"] = "/authentication/backend/?customize=1"
 
     # Role-specific metrics
@@ -257,7 +279,7 @@ def dashboard_context(request):
                     ).exists()
 
                     context['teacher_pending_tasks'] = pending_assessments + (0 if attendance_today else 1)
-                except Exception:
+                except CONTEXT_SOFT_FAILURES:
                     eval_qs = Evaluation.objects.filter(teacher=teacher_profile)
                     if active_year:
                         eval_qs = eval_qs.filter(academic_year=active_year)
@@ -330,7 +352,7 @@ def dashboard_context(request):
                 ).count()
             except DatabaseError:
                 _reset_db_state()
-            except Exception:
+            except CONTEXT_SOFT_FAILURES:
                 pass
 
             # Use view-provided attendance when on parent dashboard so top bar matches dashboard cards
@@ -360,7 +382,7 @@ def dashboard_context(request):
                         context['student_attendance'] = round((present_count / total_count) * 100) if total_count > 0 else 0
                     else:
                         context['student_attendance'] = 0
-                except Exception:
+                except CONTEXT_SOFT_FAILURES:
                     context['student_attendance'] = 0
                 
                 # Average grade
@@ -399,16 +421,10 @@ def dashboard_context(request):
     
     except DatabaseError as e:
         _reset_db_state()
-        import logging
-
-        logger = logging.getLogger(__name__)
         logger.error(f"Database error in dashboard_context: {e}")
         context['notifications_unread'] = notifications_unread
-    except Exception as e:
+    except CONTEXT_SOFT_FAILURES as e:
         # Log error but don't break the page
-        import logging
-
-        logger = logging.getLogger(__name__)
         logger.error(f"Error in dashboard_context: {e}")
         context['notifications_unread'] = notifications_unread
     
@@ -434,7 +450,7 @@ def site_settings_context(request):
             'SITE': None,
             'SITE_THEME': {},
         }
-    except Exception:
+    except CONTEXT_SOFT_FAILURES:
         return {
             'SITE': None,
             'SITE_THEME': {},

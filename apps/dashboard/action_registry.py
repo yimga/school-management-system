@@ -111,7 +111,7 @@ BACKEND_INTENT_WELCOME_ITEM_IDS = {
     "operational": ["workflow_center", "add_student", "add_teacher", "manage_exams", "create_invoice", "announcements"],
     "academic": ["manage_exams", "workflow_center", "add_student", "onboard_student", "add_teacher", "document_library"],
     "finance": ["finance_console", "create_invoice", "workflow_center", "document_library", "roles_permissions"],
-    "setup": ["studio_os", "setup_studio", "workflow_center", "add_student", "add_teacher", "onboard_student", "document_library", "manage_exams"],
+    "setup": ["setup_studio", "studio_os", "workflow_center", "add_student", "add_teacher", "onboard_student", "document_library", "manage_exams"],
 }
 VALID_DASHBOARD_INTENTS = frozenset(BACKEND_INTENT_PRIMARY_INDEX.keys())
 

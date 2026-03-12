@@ -5,10 +5,15 @@ from django.test import SimpleTestCase, override_settings
 
 from services.ai_gateway import TaskType, invoke, _task_tiers
 from services.ai_schemas import (
+    validate_dashboard_pack_recommend,
+    validate_design_studio,
     extract_json_from_text,
     validate_doc_classify,
+    validate_marketplace_recommend,
     validate_migration_mapping,
     validate_policy_explain,
+    validate_report_recommend,
+    validate_theme_experience,
     validate_workflow_draft,
 )
 
@@ -64,6 +69,30 @@ class InvokeTests(SimpleTestCase):
         self.assertIsNone(result)
         self.assertTrue(meta.get("budget_exceeded"))
 
+    @override_settings(AI_GATEWAY_TASK_TIERS={"general_chat": ["litellm", "rules"]})
+    @patch("services.ai_gateway._call_litellm", return_value=("premium answer", {"provider": "litellm", "tier": "litellm"}))
+    def test_invoke_blocks_premium_for_detected_pii(self, mock_litellm):
+        result, meta = invoke(
+            TaskType.GENERAL_CHAT,
+            "Contact me at admin@example.com",
+            user_query="Reach me at admin@example.com",
+        )
+        self.assertIsInstance(result, str)
+        self.assertEqual(meta.get("provider"), "rules")
+        self.assertTrue(meta.get("fallback"))
+        self.assertEqual(meta.get("errors", {}).get("litellm"), "data_tier_disallowed")
+        mock_litellm.assert_not_called()
+
+    @patch("services.ai_gateway._call_vllm", return_value=("not-json", {"provider": "vllm", "tier": "vllm"}))
+    def test_invoke_returns_safe_default_on_schema_failure(self, _mock_vllm):
+        result, meta = invoke(
+            TaskType.WORKFLOW_DRAFT,
+            "Generate workflow",
+            response_schema="workflow_draft",
+        )
+        self.assertEqual(result, {"name": "", "trigger_type": "manual", "steps": [], "description": ""})
+        self.assertTrue(meta.get("schema_validation_failed"))
+
 
 class SchemaTests(SimpleTestCase):
     def test_validate_workflow_draft(self):
@@ -93,6 +122,35 @@ class SchemaTests(SimpleTestCase):
         self.assertEqual(out["category"], "invoice")
         self.assertEqual(out["tags"], ["finance"])
         self.assertEqual(out["confidence"], 0.85)
+
+    def test_validate_theme_experience(self):
+        raw = {"suggestions": [{"name": "Modernize portal", "category": "branding", "rationale": "Better trust"}], "rationale": "Good fit"}
+        out = validate_theme_experience(raw)
+        self.assertEqual(out["suggestions"][0]["title"], "Modernize portal")
+        self.assertEqual(out["rationale"], "Good fit")
+
+    def test_validate_report_recommend(self):
+        raw = {"recommendations": [{"name": "Attendance Summary", "description": "Daily rollup", "fit": "leaders"}]}
+        out = validate_report_recommend(raw)
+        self.assertEqual(out["recommendations"][0]["title"], "Attendance Summary")
+
+    def test_validate_design_studio(self):
+        raw = {"suggestions": ["Use a two-column hero"], "components": ["hero", "stats strip"]}
+        out = validate_design_studio(raw)
+        self.assertEqual(out["suggestions"][0]["title"], "Use a two-column hero")
+        self.assertEqual(out["components"][0], "hero")
+
+    def test_validate_dashboard_pack_recommend(self):
+        raw = {"dashboards": [{"name": "Executive Home"}], "packs": [{"name": "Starter Pack"}], "rationale": "Best fit"}
+        out = validate_dashboard_pack_recommend(raw)
+        self.assertEqual(out["dashboards"][0]["title"], "Executive Home")
+        self.assertEqual(out["packs"][0]["title"], "Starter Pack")
+
+    def test_validate_marketplace_recommend(self):
+        raw = {"recommendations": [{"name": "Admissions Booster", "category": "admissions", "fit": "district"}], "rationale": "Top pick"}
+        out = validate_marketplace_recommend(raw)
+        self.assertEqual(out["recommendations"][0]["title"], "Admissions Booster")
+        self.assertEqual(out["rationale"], "Top pick")
 
     def test_extract_json_from_text(self):
         self.assertEqual(extract_json_from_text('pre {"a": 1} post'), {"a": 1})

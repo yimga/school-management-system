@@ -813,11 +813,17 @@ class ThemeColorsForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         instance = getattr(self, "instance", None)
+        theme_selection_ids = (
+            instance.get_theme_selection_ids()
+            if instance and callable(getattr(instance, "get_theme_selection_ids", None))
+            else {}
+        )
 
         theme_qs = ThemePack.objects.filter(is_active=True).order_by("-is_default", "name")
-        if instance and instance.theme_pack_id:
+        selected_theme_pack_id = theme_selection_ids.get("theme_pack_id")
+        if selected_theme_pack_id:
             theme_qs = (
-                ThemePack.objects.filter(Q(is_active=True) | Q(pk=instance.theme_pack_id))
+                ThemePack.objects.filter(Q(is_active=True) | Q(pk=selected_theme_pack_id))
                 .order_by("-is_default", "name")
                 .distinct()
             )
@@ -826,9 +832,10 @@ class ThemeColorsForm(forms.ModelForm):
         admin_qs = ThemePack.objects.filter(is_active=True, applies_to_admin=True).order_by(
             "-is_default", "name"
         )
-        if instance and instance.admin_theme_pack_id:
+        selected_admin_theme_pack_id = theme_selection_ids.get("admin_theme_pack_id")
+        if selected_admin_theme_pack_id:
             selected_admin = ThemePack.objects.filter(
-                pk=instance.admin_theme_pack_id, applies_to_admin=True
+                pk=selected_admin_theme_pack_id, applies_to_admin=True
             ).first()
             if selected_admin:
                 admin_qs = (
@@ -843,7 +850,7 @@ class ThemeColorsForm(forms.ModelForm):
         # Per-role portal packs: include current selection if set
         portal_qs = ThemePack.objects.filter(is_active=True).order_by("-is_default", "name")
         for attr in ("teacher_theme_pack_id", "parent_theme_pack_id"):
-            pid = getattr(instance, attr, None) if instance else None
+            pid = theme_selection_ids.get(attr)
             if pid:
                 portal_qs = (
                     ThemePack.objects.filter(Q(is_active=True) | Q(pk=pid))

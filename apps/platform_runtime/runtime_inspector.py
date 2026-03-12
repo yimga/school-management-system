@@ -138,7 +138,7 @@ def get_feature_toggle_inspection(school: Any) -> list:
     from django.utils import timezone
     out = []
     try:
-        from apps.siteconfig.models import FeatureToggleState
+        from apps.policies_rules.models import FeatureToggleState
         now = timezone.now()
         q = FeatureToggleState.objects.filter(
             Q(expires_at__isnull=True) | Q(expires_at__gt=now)

@@ -1,6 +1,6 @@
-# RunMyCampus AI Adoption Blueprint — Completion Verification
+# RunMyCampus AI Adoption Blueprint — Historical Verification Snapshot
 
-**Single plan:** All AI adoption scope is tracked here and in [ai_orchestration.md](ai_orchestration.md) / [ai_tiered_ollama.md](ai_tiered_ollama.md). No separate backlog file. **Standard: advanced/expert only; no basic or placeholder work.**
+**Status:** Historical verification snapshot only. The live scope, phases, and deliverables for AI adoption are tracked only in the Cursor blueprint plan at `C:\Users\yimga\.cursor\plans\tiered_ai_gateway_and_ollama_7ecaa3c1.plan.md`. This file is evidence-only and must not be used as a second tracker.
 
 ## Gateway and routing
 
@@ -20,7 +20,7 @@
 | Item | Status | Evidence |
 |------|--------|----------|
 | workflow_draft, policy_explain, migration_mapping, doc_classify validation | Done | `services/ai_schemas.py`, validators + `extract_json_from_text()` |
-| Gateway returns validated objects or fallback text | Done | `invoke()` response_schema branch |
+| Gateway returns validated objects or safe typed defaults on schema failure | Done | `invoke()` response_schema branch |
 
 ## Productized API endpoints
 

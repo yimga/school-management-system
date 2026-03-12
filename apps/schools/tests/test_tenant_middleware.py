@@ -182,10 +182,10 @@ class LegacyAndReservedHostMiddlewareTests(TestCase):
             },
             clear=False,
         ):
-            request = self._request("/find/?q=gilead", "oldcampus.com")
+            request = self._request("/find/?q=legacy-campus", "oldcampus.com")
             response = self.legacy.process_request(request)
         self.assertEqual(response.status_code, 301)
-        self.assertEqual(response["Location"], "https://runmycampus.com/find/?q=gilead")
+        self.assertEqual(response["Location"], "https://runmycampus.com/find/?q=legacy-campus")
 
     def test_verify_host_redirects_root_to_verify_hub(self):
         with patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False):

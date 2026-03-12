@@ -144,6 +144,121 @@ def validate_doc_classify(raw: dict[str, Any]) -> DocumentClassifySchema:
     }
 
 
+# --- Theme & experience recommendations ---
+
+
+class RecommendationItem(TypedDict, total=False):
+    title: str
+    category: str
+    description: str
+    rationale: str
+    fit: str
+
+
+class ThemeExperienceSchema(TypedDict, total=False):
+    suggestions: list[RecommendationItem]
+    rationale: str
+
+
+def _coerce_recommendation_items(raw: Any, *, limit: int = 20) -> list[RecommendationItem]:
+    if not isinstance(raw, list):
+        return []
+    items: list[RecommendationItem] = []
+    for item in raw[:limit]:
+        if isinstance(item, dict):
+            items.append({
+                "title": str(item.get("title") or item.get("name") or item.get("label") or "")[:160],
+                "category": str(item.get("category", ""))[:96],
+                "description": str(item.get("description", ""))[:512],
+                "rationale": str(item.get("rationale", ""))[:512],
+                "fit": str(item.get("fit", ""))[:256],
+            })
+        elif isinstance(item, (str, int, float)):
+            text = str(item)[:256]
+            items.append({"title": text, "description": text})
+    return items
+
+
+def validate_theme_experience(raw: dict[str, Any]) -> ThemeExperienceSchema:
+    if not isinstance(raw, dict):
+        raise ValueError("theme_experience must be a JSON object")
+    return {
+        "suggestions": _coerce_recommendation_items(raw.get("suggestions")),
+        "rationale": str(raw.get("rationale", ""))[:1024],
+    }
+
+
+# --- Report recommendation ---
+
+
+class ReportRecommendationSchema(TypedDict, total=False):
+    recommendations: list[RecommendationItem]
+
+
+def validate_report_recommend(raw: dict[str, Any]) -> ReportRecommendationSchema:
+    if not isinstance(raw, dict):
+        raise ValueError("report_recommend must be a JSON object")
+    return {
+        "recommendations": _coerce_recommendation_items(raw.get("recommendations")),
+    }
+
+
+# --- Design Studio structured output ---
+
+
+class DesignStudioSchema(TypedDict, total=False):
+    suggestions: list[RecommendationItem]
+    components: list[str]
+
+
+def validate_design_studio(raw: dict[str, Any]) -> DesignStudioSchema:
+    if not isinstance(raw, dict):
+        raise ValueError("design_studio must be a JSON object")
+    components = raw.get("components")
+    if not isinstance(components, list):
+        components = []
+    return {
+        "suggestions": _coerce_recommendation_items(raw.get("suggestions")),
+        "components": [str(component)[:128] for component in components[:20] if isinstance(component, (str, int, float))],
+    }
+
+
+# --- Dashboard / pack recommendations ---
+
+
+class DashboardPackRecommendSchema(TypedDict, total=False):
+    dashboards: list[RecommendationItem]
+    packs: list[RecommendationItem]
+    rationale: str
+
+
+def validate_dashboard_pack_recommend(raw: dict[str, Any]) -> DashboardPackRecommendSchema:
+    if not isinstance(raw, dict):
+        raise ValueError("dashboard_pack_recommend must be a JSON object")
+    return {
+        "dashboards": _coerce_recommendation_items(raw.get("dashboards")),
+        "packs": _coerce_recommendation_items(raw.get("packs")),
+        "rationale": str(raw.get("rationale", ""))[:1024],
+    }
+
+
+# --- Marketplace recommendations ---
+
+
+class MarketplaceRecommendSchema(TypedDict, total=False):
+    recommendations: list[RecommendationItem]
+    rationale: str
+
+
+def validate_marketplace_recommend(raw: dict[str, Any]) -> MarketplaceRecommendSchema:
+    if not isinstance(raw, dict):
+        raise ValueError("marketplace_recommend must be a JSON object")
+    return {
+        "recommendations": _coerce_recommendation_items(raw.get("recommendations")),
+        "rationale": str(raw.get("rationale", ""))[:1024],
+    }
+
+
 # --- JSON extraction from model response (prose + JSON) ---
 
 

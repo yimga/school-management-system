@@ -73,7 +73,9 @@ TARGETED_HARDENING_TESTS=(
   apps.platform_runtime.tests.test_public_api_lints
   apps.portal.tests.test_ai_copilot_config
   apps.portal.tests.test_ai_gateway_smoke
+  apps.schools.tests.test_provisioning_dispatch
   apps.setup_studio.tests
+  apps.siteconfig.tests.test_world_engine_jit_broadcast_syllabus
 )
 run_django_tests "${TARGETED_HARDENING_TESTS[@]}"
 

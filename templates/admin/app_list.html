@@ -74,13 +74,13 @@
       </h3>
       <ul class="admin-sidebar-quick-list" style="list-style: none; margin: 0; padding: 0;" x-show="setupAdvancedOpen" x-transition.50ms>
         <li>
-          <a href="{% url 'admin:siteconfig_regionconfig_changelist' %}" class="admin-sidebar-link {% if 'siteconfig/regionconfig' in request.path %}active{% endif %}" aria-current="{% if 'siteconfig/regionconfig' in request.path %}page{% endif %}">
+          <a href="{% url 'admin:global_registries_regionconfig_changelist' %}" class="admin-sidebar-link {% if 'global_registries/regionconfig' in request.path %}active{% endif %}" aria-current="{% if 'global_registries/regionconfig' in request.path %}page{% endif %}">
             <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-6-5.33-6-10a6 6 0 1 1 12 0c0 4.67-6 10-6 10Z"/><circle cx="12" cy="11" r="2.5"/></svg></span>
             <span class="admin-sidebar-link-text">{% trans "Region Config" %}</span>
           </a>
         </li>
         <li>
-          <a href="{% url 'admin:siteconfig_integration_changelist' %}" class="admin-sidebar-link {% if 'siteconfig/integration' in request.path %}active{% endif %}" aria-current="{% if 'siteconfig/integration' in request.path %}page{% endif %}">
+          <a href="{% url 'admin:integrations_marketplace_integration_changelist' %}" class="admin-sidebar-link {% if 'integrations_marketplace/integration' in request.path %}active{% endif %}" aria-current="{% if 'integrations_marketplace/integration' in request.path %}page{% endif %}">
             <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M17.5 14.5a2.5 2.5 0 1 0 0 5h3"/><path d="M20.5 17h-3"/></svg></span>
             <span class="admin-sidebar-link-text">{% trans "Integrations" %}</span>
           </a>

@@ -12,6 +12,36 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 
+def _normalize_actor_roles(actor_roles: list[str] | tuple[str, ...] | set[str] | None) -> set[str]:
+    if not actor_roles:
+        return set()
+    return {str(role).strip().lower() for role in actor_roles if str(role).strip()}
+
+
+def _metadata_visible_to_actor(
+    metadata: dict[str, Any] | None,
+    *,
+    actor_roles: list[str] | tuple[str, ...] | set[str] | None = None,
+    actor_is_staff: bool = False,
+    actor_is_superuser: bool = False,
+) -> bool:
+    if not isinstance(metadata, dict):
+        return True
+    if actor_is_superuser:
+        return True
+    if metadata.get("staff_only") and not actor_is_staff:
+        return False
+    allowed_roles = metadata.get("allowed_roles")
+    if isinstance(allowed_roles, (list, tuple, set)):
+        required = {str(role).strip().lower() for role in allowed_roles if str(role).strip()}
+        if required and not (_normalize_actor_roles(actor_roles) & required):
+            return False
+    visibility = str(metadata.get("visibility") or "").strip().lower()
+    if visibility in {"staff", "operator"} and not actor_is_staff:
+        return False
+    return True
+
+
 def get_embedding_for_text(text: str, *, max_tokens: int = 8192) -> list[float] | None:
     """Return embedding for text using the configured embedding provider (router)."""
     try:
@@ -64,15 +94,22 @@ class AIMemoryService:
         scope: str,
         embedding: list[float],
         limit: int = 5,
+        *,
+        actor_roles: list[str] | tuple[str, ...] | set[str] | None = None,
+        actor_is_staff: bool = False,
+        actor_is_superuser: bool = False,
     ) -> list[dict[str, Any]]:
         """Return stored rows with similar embedding (cosine similarity in Python)."""
         if not embedding:
             return []
         try:
             from apps.siteconfig.models import AIEmbeddingStore
-            qs = AIEmbeddingStore.objects.filter(scope=scope).order_by("-created_at")[:500]
+            from django.db.models import Q
+
+            qs = AIEmbeddingStore.objects.filter(scope=scope)
             if school_id:
-                qs = qs.filter(school_id=school_id)
+                qs = qs.filter(Q(school_id=school_id) | Q(school_id__isnull=True))
+            qs = qs.order_by("-created_at")[:500]
             rows = list(qs.values("id", "conversation_id", "text_hash", "metadata", "embedding", "created_at"))
             # Simple cosine similarity (no pgvector operator)
             def cos_sim(a, b):
@@ -84,7 +121,17 @@ class AIMemoryService:
                 if na * nb == 0:
                     return 0.0
                 return dot / (na * nb)
-            scored = [(cos_sim(row["embedding"], embedding), row) for row in rows]
+            visible_rows = [
+                row
+                for row in rows
+                if _metadata_visible_to_actor(
+                    row.get("metadata"),
+                    actor_roles=actor_roles,
+                    actor_is_staff=actor_is_staff,
+                    actor_is_superuser=actor_is_superuser,
+                )
+            ]
+            scored = [(cos_sim(row["embedding"], embedding), row) for row in visible_rows]
             scored.sort(key=lambda x: -x[0])
             return [r for _, r in scored[:limit]]
         except Exception as e:

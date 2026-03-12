@@ -229,6 +229,7 @@ urlpatterns = [
     path("authentication/", include(("apps.accounts.urls", "accounts"), namespace="accounts")),
     path("super/", include(("apps.schools.super_urls", "super"), namespace="super")),
     path("siteconfig/", include(("apps.siteconfig.urls", "siteconfig"), namespace="siteconfig")),
+    path("studio/", include(("apps.studio_os.urls", "studio_os"), namespace="studio_os")),
     path("api-center/", include(("apps.apicenter.urls", "apicenter"), namespace="apicenter")),
     path("ops/incidents/", obs_views.platform_incidents_console, name="platform_incidents_console"),
     path("healthz/", obs_views.healthz, name="healthz"),

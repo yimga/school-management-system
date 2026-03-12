@@ -8,7 +8,7 @@ All LLM usage goes through a single orchestration layer. **No browser or front-e
 - **Task types:** config_explain, setup_recommend, workflow_draft, policy_explain, doc_classify, semantic_search, migration_mapping, admin_copilot, support_suggest, narrative, general_chat.
 - **Tiers:** Ollama (lightweight/private), vLLM (structured JSON, throughput), LiteLLM (routing, fallback, premium), rules (fallback). Routing table: `AI_GATEWAY_TASK_TIERS` or defaults in `services/ai_gateway.py`.
 - **Structured output:** For workflow_draft, policy_explain, migration_mapping, doc_classify the gateway validates responses via `services.ai_schemas` and returns typed objects or fallback text.
-- **Audit:** Every invoke logs task_type, tier, model, latency_ms, tenant_id, school_id, outcome (success/failure/fallback). Data-tier check: premium (LiteLLM/Gemini) skipped when sensitivity disallows.
+- **Audit:** Every invoke logs task_type, tier, model, latency_ms, tenant_id, school_id, outcome (success/failure/fallback). Data-tier check: premium (LiteLLM/Gemini) is skipped when sensitivity disallows it or the prompt payload contains detected PII.
 
 ## Single entry points
 
@@ -51,6 +51,7 @@ No `openai`, `anthropic`, or `google.generativeai` SDK imports in app code; Gemi
 ## Embeddings and semantic search
 
 - **Router:** `services.embeddings.get_embedding_provider()` returns Ollama or OpenAI-compatible provider per `AI_EMBEDDING_BACKEND`.
+- **Retrieval guardrails:** `AIMemoryService.search_similar(...)` includes tenant scoping, global fallback for shared knowledge, and metadata-based role/staff visibility filtering for indexed content.
 - **Storage:** `services.ai_memory.AIMemoryService` uses the router for `store`; `get_embedding_for_text()` for query embedding. Index: policies, blueprints, docs, config (per blueprint).
 
 ### Retrieval indexing (ingestion)

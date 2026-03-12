@@ -179,6 +179,30 @@ class RiskThresholdsConfigViewTests(TestCase):
         self.assertEqual(float(th.amber_min), 45.0)
         self.assertEqual(float(th.red_min), 75.0)
 
+    def test_patch_rejects_non_json_content_type(self):
+        self.client.force_login(self.user)
+        url = _tenant_v1_url(self.school.slug, "config-risk-thresholds")
+        response = self.client.patch(
+            url,
+            data=json.dumps({"amber_min": 45, "red_min": 75}),
+            content_type="text/plain",
+            **_tenant_host(self.school.slug),
+        )
+        self.assertEqual(response.status_code, 415)
+        self.assertEqual(response.json()["error"], "Content-Type must be application/json")
+
+    def test_patch_rejects_non_object_json_body(self):
+        self.client.force_login(self.user)
+        url = _tenant_v1_url(self.school.slug, "config-risk-thresholds")
+        response = self.client.patch(
+            url,
+            data=json.dumps([{"amber_min": 45}]),
+            content_type="application/json",
+            **_tenant_host(self.school.slug),
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["error"], "JSON object required")
+
 
 class InterventionActionCenterRiskBandTests(TestCase):
     """Action center uses get_risk_band_for_school for risk_band; test that band is returned."""

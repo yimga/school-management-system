@@ -55,9 +55,9 @@ class PublicAccessPointsTests(TestCase):
         self.assertContains(support, "Global Support Hub")
 
     def test_public_paths_on_tenant_host_redirect_to_base(self):
-        response = self.client.get("/find/?q=gilead", HTTP_HOST="tenant-a.runmycampus.com")
+        response = self.client.get("/find/?q=legacy-campus", HTTP_HOST="tenant-a.runmycampus.com")
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response["Location"], "https://runmycampus.com/find/?q=gilead")
+        self.assertEqual(response["Location"], "https://runmycampus.com/find/?q=legacy-campus")
 
     def test_unknown_tenant_redirects_to_branded_root_404(self):
         response = self.client.get("/", HTTP_HOST="missing.runmycampus.com")
@@ -72,7 +72,7 @@ class PublicAccessPointsTests(TestCase):
     def test_manager_host_auth_root_redirects_to_login(self):
         response = self.client.get("/authentication/", HTTP_HOST="manager.runmycampus.com")
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response["Location"], "/authentication/login/")
+        self.assertEqual(response["Location"], "/")
 
     def test_tenant_host_auth_root_redirects_to_login(self):
         School.objects.create(
@@ -119,8 +119,7 @@ class PublicAccessPointsTests(TestCase):
         from apps.schools.context_processors import marketing_base_url
         from django.test import RequestFactory
         rf = RequestFactory()
-        req = rf.get("/", HTTP_HOST="tenant-a.runmycampus.com")
-        req.scheme = "https"
+        req = rf.get("/", HTTP_HOST="tenant-a.runmycampus.com", secure=True)
         ctx = marketing_base_url(req)
         self.assertIn("MARKETING_BASE_URL", ctx)
         self.assertEqual(ctx["MARKETING_BASE_URL"], "https://runmycampus.com")

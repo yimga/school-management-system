@@ -6,6 +6,7 @@ Or synchronously from management command when no broker: task.apply()
 from __future__ import annotations
 
 import logging
+from smtplib import SMTPException
 from decimal import Decimal
 from datetime import timedelta
 
@@ -45,7 +46,10 @@ FINANCE_TASK_SOFT_FAILURES = (
     AttributeError,
     DatabaseError,
     LookupError,
+    OSError,
     RuntimeError,
+    SMTPException,
+    TimeoutError,
     TypeError,
     ValidationError,
     ValueError,
@@ -156,12 +160,16 @@ def _send_payment_email(to_email: str, subject: str, body: str, integration: Int
     if integration and integration.config:
         from_email = integration.config.get("from_email", from_email)
     email = EmailMessage(subject, body, from_email, [to_email])
-    email.send(fail_silently=True)
+    try:
+        email.send(fail_silently=False)
+    except (ConnectionError, OSError, RuntimeError, SMTPException, TimeoutError) as exc:
+        logger.warning("Failed to deliver finance reminder email to %s", to_email, exc_info=exc)
+        raise
 
 
 def _split_late_fee_policy(*, school=None) -> dict:
     """
-    Config lives in SiteSettings.backend_feature_flags to avoid hardcoding.
+    Late-fee policy is resolved from effective backend feature flags.
     """
     flags = get_effective_flags_for_school(school)
     return {

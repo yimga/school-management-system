@@ -67,10 +67,6 @@
     "apps/siteconfig/management/commands/recover_database.py": {
       "expected_count": 1,
       "reason": "Database recovery command."
-    },
-    "apps/siteconfig/models.py": {
-      "expected_count": 1,
-      "reason": "Legacy model helper pending repository extraction."
     }
   }
 }

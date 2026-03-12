@@ -366,7 +366,7 @@ def api_trial_school(request: HttpRequest):
         except Exception:
             pass
 
-    from apps.schools.tasks import provision_school_task, provision_school_sync
+    from apps.schools.tasks import dispatch_provision_school
     from apps.schools.models import SchoolProvisioningEvent
 
     SchoolProvisioningEvent.log_event(
@@ -377,28 +377,23 @@ def api_trial_school(request: HttpRequest):
         payload={"contact_email": contact_email, "country_code": country_code or ""},
         created_by=request.user if getattr(request, "user", None) and request.user.is_authenticated else None,
     )
-    job_id = None
-    try:
-        result = provision_school_task.delay(str(school.id), contact_email=contact_email)
-        job_id = getattr(result, "id", None)
-        SchoolProvisioningEvent.log_event(
-            school=school,
-            event_type=SchoolProvisioningEvent.EventType.QUEUED,
-            status=SchoolProvisioningEvent.Status.INFO,
-            message="Provisioning queued.",
-            payload={"job_id": job_id or ""},
-            created_by=None,
-        )
-    except Exception:
-        provision_school_sync(str(school.id), contact_email=contact_email)
-        SchoolProvisioningEvent.log_event(
-            school=school,
-            event_type=SchoolProvisioningEvent.EventType.QUEUED,
-            status=SchoolProvisioningEvent.Status.WARNING,
-            message="Celery unavailable; provisioning ran synchronously.",
-            payload={},
-            created_by=None,
-        )
+    dispatch = dispatch_provision_school(str(school.id), contact_email=contact_email)
+    job_id = dispatch.get("job_id")
+    payload = {"job_id": job_id or ""}
+    if dispatch.get("fallback") and dispatch.get("reason"):
+        payload["fallback_reason"] = dispatch["reason"]
+    SchoolProvisioningEvent.log_event(
+        school=school,
+        event_type=SchoolProvisioningEvent.EventType.QUEUED,
+        status=(
+            SchoolProvisioningEvent.Status.WARNING
+            if dispatch.get("fallback")
+            else SchoolProvisioningEvent.Status.INFO
+        ),
+        message=dispatch.get("message") or "Provisioning queued.",
+        payload=payload,
+        created_by=None,
+    )
 
     try:
         timeline_url = request.build_absolute_uri(

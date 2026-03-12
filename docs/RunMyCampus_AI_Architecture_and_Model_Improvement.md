@@ -1,6 +1,6 @@
 # RunMyCampus AI Architecture and Model Improvement
 
-**Every requirement in this document is non-negotiable.** This is the single source of truth for AI as a platform layer. No item is optional or deferred.
+**Every requirement in this document is non-negotiable.** This is the architecture reference for AI as a platform layer. Scope, phases, and deliverable tracking live only in `C:\Users\yimga\.cursor\plans\tiered_ai_gateway_and_ollama_7ecaa3c1.plan.md`.
 
 ## Core AI philosophy
 

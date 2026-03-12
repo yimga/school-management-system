@@ -922,7 +922,7 @@ class SiteSettingsAdmin(ModelAdmin):
     def integrations_api_center_block(self, obj):
         """Clear entry point for Integrations and API Center (one module)."""
         try:
-            integrations_url = reverse("admin:siteconfig_integration_changelist")
+            integrations_url = reverse("admin:integrations_marketplace_integration_changelist")
             api_center_url = reverse("apicenter:dashboard")
             return format_html(
                 '<p class="mb-2 text-sm">Integrations & API Center: manage external integrations (email, SMS, payments, portal links) and turn them on/off with required reason and audit log.</p>'

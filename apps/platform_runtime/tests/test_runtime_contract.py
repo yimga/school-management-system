@@ -10,6 +10,7 @@ from apps.platform_runtime.helpers import (
 )
 from apps.platform_runtime.models import RuntimeDefaults
 from apps.runtime_blueprints.models import ReportCardStyle as OwnedReportCardStyle
+from apps.brand_experience.models import ThemePack
 from apps.tenancy.context import TenantContext
 from apps.platform_runtime.contracts import (
     TenantRuntime,
@@ -379,11 +380,82 @@ class RuntimeHelperResolutionTests(TestCase):
         self.assertEqual(preview_settings["footer_note"], "Preview footer")
         self.assertEqual(preview_settings["default_report_type"], "ANNUAL")
 
+    def test_site_settings_theme_selection_ids_use_brand_owner_payload(self):
+        portal_pack = ThemePack.objects.create(
+            name="Portal Pack",
+            slug="portal-pack-runtime-contract",
+            is_active=True,
+        )
+        admin_pack = ThemePack.objects.create(
+            name="Admin Pack",
+            slug="admin-pack-runtime-contract",
+            is_active=True,
+            applies_to_admin=True,
+        )
+        teacher_pack = ThemePack.objects.create(
+            name="Teacher Pack",
+            slug="teacher-pack-runtime-contract",
+            is_active=True,
+        )
+        parent_pack = ThemePack.objects.create(
+            name="Parent Pack",
+            slug="parent-pack-runtime-contract",
+            is_active=True,
+        )
+        site = SiteSettings.get_solo()
+        site.theme_pack = portal_pack
+        site.admin_theme_pack = admin_pack
+        site.teacher_theme_pack = teacher_pack
+        site.parent_theme_pack = parent_pack
+        site.save(
+            update_fields=[
+                "theme_pack",
+                "admin_theme_pack",
+                "teacher_theme_pack",
+                "parent_theme_pack",
+            ]
+        )
+
+        theme_selection_ids = site.get_theme_selection_ids()
+
+        self.assertEqual(theme_selection_ids["theme_pack_id"], portal_pack.pk)
+        self.assertEqual(theme_selection_ids["admin_theme_pack_id"], admin_pack.pk)
+        self.assertEqual(theme_selection_ids["teacher_theme_pack_id"], teacher_pack.pk)
+        self.assertEqual(theme_selection_ids["parent_theme_pack_id"], parent_pack.pk)
+
+    def test_site_settings_owner_accessors_normalize_legacy_placeholders(self):
+        site = SiteSettings.get_solo()
+        site.site_name = "School System"
+        site.school_code = "GIL"
+        site.tagline = "Knowledge ƒ?› Technology ƒ?› Excellence"
+        site.report_preview_contact_email = "reports@gileadtech.edu"
+        site.report_preview_contact_phone = "+237 670 000 000"
+        site.save(
+            update_fields=[
+                "site_name",
+                "school_code",
+                "tagline",
+                "report_preview_contact_email",
+                "report_preview_contact_phone",
+            ]
+        )
+
+        brand_metadata = site.get_brand_metadata()
+        preview_settings = site.get_report_preview_settings()
+
+        self.assertEqual(brand_metadata["school_name"], "RunMyCampus")
+        self.assertEqual(brand_metadata["school_code"], "RMC")
+        self.assertEqual(brand_metadata["tagline"], "Education management for every school.")
+        self.assertEqual(preview_settings["contact_email"], "support@runmycampus.com")
+        self.assertEqual(preview_settings["contact_phone"], "")
+
     def test_build_platform_default_site_settings_returns_unsaved_compat_shape(self):
         site = build_platform_default_site_settings()
 
         self.assertEqual(site.pk, 1)
         self.assertTrue(site._state.adding)
+        self.assertEqual(site.site_name, "RunMyCampus")
+        self.assertEqual(site.school_code, "RMC")
         self.assertIsInstance(site.get_preview_platform_config(), dict)
 
 

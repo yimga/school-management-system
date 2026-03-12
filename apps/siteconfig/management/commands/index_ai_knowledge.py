@@ -72,8 +72,14 @@ class Command(BaseCommand):
                 if not text:
                     continue
                 cid = f"policy_bundle:{b.id}"
+                meta = {
+                    "source": "PolicyBundle",
+                    "id": b.id,
+                    "name": b.name,
+                    "visibility": "tenant",
+                }
                 if not dry_run:
-                    if AIMemoryService.store(str(b.school_id) if b.school_id else None, cid, "policy", text, {"source": "PolicyBundle", "id": b.id, "name": b.name}):
+                    if AIMemoryService.store(str(b.school_id) if b.school_id else None, cid, "policy", text, meta):
                         count += 1
                 else:
                     count += 1
@@ -93,8 +99,15 @@ class Command(BaseCommand):
                 if not text:
                     continue
                 cid = f"blueprint_pack:{b.id}"
+                meta = {
+                    "source": "BlueprintPack",
+                    "id": b.id,
+                    "slug": b.slug,
+                    "name": b.name,
+                    "visibility": "authenticated",
+                }
                 if not dry_run:
-                    if AIMemoryService.store(None, cid, "blueprint", text, {"source": "BlueprintPack", "id": b.id, "slug": b.slug, "name": b.name}):
+                    if AIMemoryService.store(None, cid, "blueprint", text, meta):
                         count += 1
                 else:
                     count += 1
@@ -114,8 +127,15 @@ class Command(BaseCommand):
                 if not text:
                     continue
                 cid = f"workflow_pack:{w.id}"
+                meta = {
+                    "source": "WorkflowPack",
+                    "id": w.id,
+                    "code": w.code,
+                    "name": w.name,
+                    "visibility": "authenticated",
+                }
                 if not dry_run:
-                    if AIMemoryService.store(None, cid, "workflow", text, {"source": "WorkflowPack", "id": w.id, "code": w.code, "name": w.name}):
+                    if AIMemoryService.store(None, cid, "workflow", text, meta):
                         count += 1
                 else:
                     count += 1
@@ -140,8 +160,13 @@ class Command(BaseCommand):
                     continue
                 cid = f"report_template:{getattr(r, 'id', id(r))}"
                 sid = str(getattr(r, "school_id", None)) if getattr(r, "school_id", None) else None
+                meta = {
+                    "source": "ReportTemplate",
+                    "name": name,
+                    "visibility": "tenant" if sid else "authenticated",
+                }
                 if not dry_run:
-                    if AIMemoryService.store(sid, cid, "report", text, {"source": "ReportTemplate", "name": name}):
+                    if AIMemoryService.store(sid, cid, "report", text, meta):
                         count += 1
                 else:
                     count += 1
@@ -153,16 +178,16 @@ class Command(BaseCommand):
     def _index_static_docs(self, scopes, dry_run):
         count = 0
         help_texts = [
-            ("help:setup", "help", "Setup Studio: configure school settings, features, and workflows. Use the checklist to complete onboarding."),
-            ("help:config", "config", "Control Plane: manage tenants, billing, and platform configuration. Admin only."),
-            ("help:workflows", "help", "Workflows: automate actions based on triggers (e.g. attendance, fees). Create and assign workflow packs."),
-            ("help:policies", "help", "Policies: grading, attendance, finance, and compliance. Apply blueprint packs for your region."),
+            ("help:setup", "help", "Setup Studio: configure school settings, features, and workflows. Use the checklist to complete onboarding.", {"source": "static", "id": "help:setup", "visibility": "authenticated"}),
+            ("help:config", "config", "Control Plane: manage tenants, billing, and platform configuration. Admin only.", {"source": "static", "id": "help:config", "visibility": "staff", "staff_only": True, "allowed_roles": ["admin", "staff", "super_admin", "superuser", "operator"]}),
+            ("help:workflows", "help", "Workflows: automate actions based on triggers (e.g. attendance, fees). Create and assign workflow packs.", {"source": "static", "id": "help:workflows", "visibility": "authenticated"}),
+            ("help:policies", "help", "Policies: grading, attendance, finance, and compliance. Apply blueprint packs for your region.", {"source": "static", "id": "help:policies", "visibility": "authenticated"}),
         ]
-        for cid, scope, text in help_texts:
+        for cid, scope, text, metadata in help_texts:
             if scope not in scopes:
                 continue
             if not dry_run:
-                if AIMemoryService.store(None, cid, scope, text, {"source": "static", "id": cid}):
+                if AIMemoryService.store(None, cid, scope, text, metadata):
                     count += 1
             else:
                 count += 1

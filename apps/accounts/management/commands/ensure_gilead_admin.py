@@ -17,7 +17,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write(
             self.style.WARNING(
-                "ensure_gilead_admin is deprecated. Use: python manage.py ensure_default_tenant_admin"
+                "This legacy admin bootstrap alias is deprecated. Use: python manage.py ensure_default_tenant_admin"
             )
         )
         kwargs = {"verbosity": options.get("verbosity", 1)}

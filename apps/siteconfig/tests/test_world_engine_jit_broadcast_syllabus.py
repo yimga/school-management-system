@@ -1,6 +1,8 @@
 """
 World Engine: Tests for JIT impersonation consent views, emergency_broadcast_fanout, national_syllabus_sync.
 """
+import json
+
 from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -12,6 +14,10 @@ from apps.siteconfig.views_impersonation_consent import grant_impersonation_cons
 from apps.siteconfig.tasks import national_syllabus_sync, emergency_broadcast_fanout
 
 User = get_user_model()
+
+
+def _response_json(response):
+    return json.loads(response.content.decode("utf-8"))
 
 
 class JITImpersonationConsentTests(TestCase):
@@ -51,8 +57,9 @@ class JITImpersonationConsentTests(TestCase):
         request.school = None
         response = grant_impersonation_consent(request)
         self.assertEqual(response.status_code, 400)
-        self.assertIn("ok", response.json())
-        self.assertFalse(response.json()["ok"])
+        data = _response_json(response)
+        self.assertIn("ok", data)
+        self.assertFalse(data["ok"])
 
     def test_grant_consent_sets_timestamp_and_granter(self):
         """With request.school, grant sets impersonation_consent_granted_at and _by."""
@@ -61,7 +68,7 @@ class JITImpersonationConsentTests(TestCase):
         request.school = self.school
         response = grant_impersonation_consent(request)
         self.assertEqual(response.status_code, 200)
-        data = response.json()
+        data = _response_json(response)
         self.assertTrue(data.get("ok"))
         self.school.refresh_from_db()
         self.assertIsNotNone(self.school.impersonation_consent_granted_at)
@@ -77,7 +84,7 @@ class JITImpersonationConsentTests(TestCase):
         request.school = self.school
         response = revoke_impersonation_consent(request)
         self.assertEqual(response.status_code, 200)
-        self.assertTrue(response.json().get("ok"))
+        self.assertTrue(_response_json(response).get("ok"))
         self.school.refresh_from_db()
         self.assertIsNone(self.school.impersonation_consent_granted_at)
         self.assertIsNone(self.school.impersonation_consent_granted_by_id)
@@ -118,13 +125,13 @@ class EmergencyBroadcastFanoutTaskTests(TestCase):
         )
 
     def test_campaign_not_found_returns_error(self):
-        result = emergency_broadcast_fanout(None, 999999, [])
+        result = emergency_broadcast_fanout.run(999999, [])
         self.assertIsInstance(result, dict)
         self.assertFalse(result.get("ok"))
         self.assertEqual(result.get("error"), "campaign_not_found")
 
     def test_with_campaign_returns_ok_and_batches(self):
-        result = emergency_broadcast_fanout(None, self.campaign.pk, [1, 2, 3, 4, 5])
+        result = emergency_broadcast_fanout.run(self.campaign.pk, [1, 2, 3, 4, 5])
         self.assertTrue(result.get("ok"))
         self.assertEqual(result.get("campaign_id"), self.campaign.pk)
         self.assertIn("batches", result)
@@ -132,6 +139,6 @@ class EmergencyBroadcastFanoutTaskTests(TestCase):
 
     def test_large_recipient_list_chunks(self):
         ids = list(range(250))
-        result = emergency_broadcast_fanout(None, self.campaign.pk, ids)
+        result = emergency_broadcast_fanout.run(self.campaign.pk, ids)
         self.assertTrue(result.get("ok"))
         self.assertEqual(result["batches"], 3)

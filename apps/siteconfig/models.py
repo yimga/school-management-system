@@ -27,6 +27,19 @@ logger = logging.getLogger(__name__)
 
 REPORT_CARD_TYPE_TERM = "TERM"
 REPORT_CARD_TYPE_ANNUAL = "ANNUAL"
+PLATFORM_DEFAULT_SITE_NAME = "RunMyCampus"
+PLATFORM_DEFAULT_SCHOOL_CODE = "RMC"
+PLATFORM_DEFAULT_TAGLINE = "Education management for every school."
+PLATFORM_DEFAULT_REPORT_PREVIEW_EMAIL = "support@runmycampus.com"
+LEGACY_PLACEHOLDER_SITE_NAMES = {"", "School System"}
+LEGACY_PLACEHOLDER_SCHOOL_CODES = {"", "GIL"}
+LEGACY_PLACEHOLDER_TAGLINES = {
+    "",
+    "Knowledge ƒ?› Technology ƒ?› Excellence",
+    "Knowledge > Technology > Excellence",
+}
+LEGACY_PLACEHOLDER_REPORT_EMAILS = {"", "reports@gileadtech.edu"}
+LEGACY_PLACEHOLDER_REPORT_PHONES = {"", "+237 670 000 000"}
 
 
 def _tenant_upload_to(subpath):
@@ -337,6 +350,31 @@ def _site_settings_json_safe(value):
             name = getattr(value, "name", None)
             return str(name) if name else None
     return str(value)
+
+
+def _normalized_site_name(value: object) -> str:
+    text = str(value or "").strip()
+    return PLATFORM_DEFAULT_SITE_NAME if text in LEGACY_PLACEHOLDER_SITE_NAMES else text
+
+
+def _normalized_school_code(value: object) -> str:
+    text = str(value or "").strip().upper()
+    return PLATFORM_DEFAULT_SCHOOL_CODE if text in LEGACY_PLACEHOLDER_SCHOOL_CODES else text
+
+
+def _normalized_tagline(value: object) -> str:
+    text = str(value or "").strip()
+    return PLATFORM_DEFAULT_TAGLINE if text in LEGACY_PLACEHOLDER_TAGLINES else text
+
+
+def _normalized_report_preview_email(value: object) -> str:
+    text = str(value or "").strip().lower()
+    return PLATFORM_DEFAULT_REPORT_PREVIEW_EMAIL if text in LEGACY_PLACEHOLDER_REPORT_EMAILS else text
+
+
+def _normalized_report_preview_phone(value: object) -> str:
+    text = str(value or "").strip()
+    return "" if text in LEGACY_PLACEHOLDER_REPORT_PHONES else text
 
 
 _SITE_SETTINGS_CACHE: "SiteSettings | None" = None
@@ -1833,13 +1871,11 @@ class SiteSettings(models.Model):
         runtime_payload = self.owned_payload(owner="runtime_blueprints")
         registry_payload = self.owned_payload(owner="global_registries")
         return {
-            "school_name": str(
+            "school_name": _normalized_site_name(
                 brand_payload.get("site_name", getattr(self, "site_name", ""))
-                or ""
             ),
-            "school_code": str(
+            "school_code": _normalized_school_code(
                 runtime_payload.get("school_code", getattr(self, "school_code", ""))
-                or ""
             ),
             "country": str(
                 registry_payload.get("country", getattr(self, "country", ""))
@@ -1853,9 +1889,8 @@ class SiteSettings(models.Model):
                 registry_payload.get("ministry", getattr(self, "ministry", ""))
                 or ""
             ),
-            "tagline": str(
+            "tagline": _normalized_tagline(
                 brand_payload.get("tagline", getattr(self, "tagline", ""))
-                or ""
             ),
         }
 
@@ -1863,19 +1898,17 @@ class SiteSettings(models.Model):
         """Return report preview defaults through the reports ownership domain."""
         payload = self.owned_payload(owner="reports")
         return {
-            "contact_email": str(
+            "contact_email": _normalized_report_preview_email(
                 payload.get(
                     "report_preview_contact_email",
                     getattr(self, "report_preview_contact_email", ""),
                 )
-                or ""
             ),
-            "contact_phone": str(
+            "contact_phone": _normalized_report_preview_phone(
                 payload.get(
                     "report_preview_contact_phone",
                     getattr(self, "report_preview_contact_phone", ""),
                 )
-                or ""
             ),
             "footer_note": str(
                 payload.get(
@@ -1898,6 +1931,25 @@ class SiteSettings(models.Model):
             "default_annual_report_style_id": payload.get(
                 "default_annual_report_style_id",
                 getattr(self, "default_annual_report_style_id", None),
+            ),
+        }
+
+    def get_theme_selection_ids(self) -> dict[str, int | None]:
+        """Return theme-pack foreign key ids through the brand-experience ownership domain."""
+        payload = self.owned_payload(owner="brand_experience")
+        return {
+            "theme_pack_id": payload.get("theme_pack_id", getattr(self, "theme_pack_id", None)),
+            "admin_theme_pack_id": payload.get(
+                "admin_theme_pack_id",
+                getattr(self, "admin_theme_pack_id", None),
+            ),
+            "teacher_theme_pack_id": payload.get(
+                "teacher_theme_pack_id",
+                getattr(self, "teacher_theme_pack_id", None),
+            ),
+            "parent_theme_pack_id": payload.get(
+                "parent_theme_pack_id",
+                getattr(self, "parent_theme_pack_id", None),
             ),
         }
 
@@ -2068,6 +2120,11 @@ def build_platform_default_site_settings() -> SiteSettings:
     """
     site = SiteSettings()
     site.pk = 1
+    site.site_name = PLATFORM_DEFAULT_SITE_NAME
+    site.school_code = PLATFORM_DEFAULT_SCHOOL_CODE
+    site.tagline = PLATFORM_DEFAULT_TAGLINE
+    site.report_preview_contact_email = PLATFORM_DEFAULT_REPORT_PREVIEW_EMAIL
+    site.report_preview_contact_phone = ""
     return site
 
 
@@ -3321,6 +3378,8 @@ from .models_feature_controls import (
     TourStep,
 )
 from .models_marketing import BlogPost, MarketingContent, ProductFeedback
+from .models_metadata_catalog import DynamicFieldDefinition, DynamicFieldValue
+from .models_runtime_ops import BreakGlassOverride, BroadcastCampaign
 
 
 class RevenueSnapshot(models.Model):
@@ -4410,115 +4469,6 @@ class LearningPassport(models.Model):
 
     def __str__(self):
         return f"Passport {self.user_id} ({self.school_id or 'global'})"
-
-
-class BreakGlassOverride(models.Model):
-    """
-    World Engine: break-glass protocol — emergency override (e.g. unlock, bypass) with audit.
-    Scope = e.g. 'lockdown_unlock', 'impersonation_bypass'; actor = who invoked; reason required.
-    """
-    scope = models.CharField(max_length=80, db_index=True)
-    target_id = models.CharField(max_length=255, blank=True, help_text="e.g. user_id, school_id.")
-    reason = models.TextField()
-    actor = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name="+",
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ["-created_at"]
-        indexes = [models.Index(fields=["scope", "target_id"])]
-
-    def __str__(self):
-        return f"{self.scope} by {self.actor_id} @ {self.created_at}"
-
-
-class BroadcastCampaign(models.Model):
-    """
-    World Engine: Emergency Broadcast — message to 5k+ devices; WebSocket/Redis Pub/Sub; optional Slide to Confirm.
-    Celery task fans out in chunks; delivery tracked per recipient.
-    """
-    class Status(models.TextChoices):
-        DRAFT = "DRAFT", "Draft"
-        QUEUED = "QUEUED", "Queued"
-        SENDING = "SENDING", "Sending"
-        COMPLETED = "COMPLETED", "Completed"
-        CANCELLED = "CANCELLED", "Cancelled"
-
-    school = models.ForeignKey(
-        "schools.School",
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name="broadcast_campaigns",
-    )
-    subject = models.CharField(max_length=255)
-    body = models.TextField()
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
-    slide_confirm_required = models.BooleanField(default=True, help_text="Recipient must slide-to-confirm.")
-    target_count = models.PositiveIntegerField(default=0)
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name="+",
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ["-created_at"]
-
-    def __str__(self):
-        return f"{self.subject} ({self.status})"
-
-
-# Section 15.2: Metadata-driven data layer — custom attributes without code/schema migrations
-class DynamicFieldDefinition(models.Model):
-    """Defines a custom field for an entity type (e.g. Student, Invoice). No DB schema change per field."""
-    class DataType(models.TextChoices):
-        TEXT = "TEXT", "Text"
-        NUMBER = "NUMBER", "Number"
-        DATE = "DATE", "Date"
-        BOOLEAN = "BOOLEAN", "Boolean"
-        JSON = "JSON", "JSON"
-
-    school = models.ForeignKey("schools.School", on_delete=models.CASCADE, related_name="dynamic_field_definitions")
-    entity_type = models.CharField(max_length=64, db_index=True)  # e.g. "StudentProfile", "Invoice"
-    field_key = models.CharField(max_length=128, db_index=True)
-    label = models.CharField(max_length=255)
-    data_type = models.CharField(max_length=16, choices=DataType.choices, default=DataType.TEXT)
-    required = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        unique_together = [["school", "entity_type", "field_key"]]
-        ordering = ["entity_type", "field_key"]
-
-    def __str__(self):
-        return f"{self.entity_type}.{self.field_key}"
-
-
-class DynamicFieldValue(models.Model):
-    """Stores a value for a custom field on a specific entity instance."""
-    school = models.ForeignKey("schools.School", on_delete=models.CASCADE, related_name="dynamic_field_values")
-    entity_type = models.CharField(max_length=64, db_index=True)
-    object_id = models.CharField(max_length=64, db_index=True)  # PK of the entity
-    field_key = models.CharField(max_length=128, db_index=True)
-    value_text = models.TextField(blank=True)
-    value_number = models.DecimalField(max_digits=20, decimal_places=4, null=True, blank=True)
-    value_date = models.DateField(null=True, blank=True)
-    value_json = models.JSONField(null=True, blank=True)
-
-    class Meta:
-        unique_together = [["school", "entity_type", "object_id", "field_key"]]
-        indexes = [models.Index(fields=["school", "entity_type", "object_id"])]
-
-    def __str__(self):
-        return f"{self.entity_type}#{self.object_id}.{self.field_key}"
 
 
 post_save.connect(_refresh_site_settings_cache, sender=SiteSettings)

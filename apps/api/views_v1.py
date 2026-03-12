@@ -107,6 +107,21 @@ def _backend_flag_enabled(flag_name: str, request=None, *, default: bool = False
         return default
 
 
+def _parse_json_object(request):
+    """Return (payload, error_response) for JSON API mutation endpoints."""
+    if request.body:
+        content_type = ((request.content_type or request.META.get("CONTENT_TYPE") or "").split(";", 1)[0]).strip().lower()
+        if content_type != "application/json":
+            return None, JsonResponse({"error": "Content-Type must be application/json"}, status=415)
+    try:
+        payload = json.loads(request.body.decode("utf-8") or "{}") if request.body else {}
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return None, JsonResponse({"error": "Invalid JSON"}, status=400)
+    if not isinstance(payload, dict):
+        return None, JsonResponse({"error": "JSON object required"}, status=400)
+    return payload, None
+
+
 # ---------------------------------------------------------------------------
 # POST /api/v1/tenants/provision  -> delegates to super api_create_school
 # ---------------------------------------------------------------------------
@@ -220,10 +235,9 @@ class TenantModulesView(View):
         school = get_object_or_404(School, id=id)
         if not request.user.is_superuser and getattr(request, "school", None) != school:
             return JsonResponse({"error": "Forbidden"}, status=403)
-        try:
-            data = json.loads(request.body) if request.body else {}
-        except json.JSONDecodeError:
-            return JsonResponse({"error": "Invalid JSON"}, status=400)
+        data, error_response = _parse_json_object(request)
+        if error_response:
+            return error_response
         modules = data.get("modules")
         if modules is None:
             return JsonResponse({"error": "modules required (list of module codes or dict module_name -> is_active)"}, status=400)
@@ -298,10 +312,9 @@ class MeSwitchSchoolView(View):
     def post(self, request):
         if not getattr(request, "user", None) or not request.user.is_authenticated:
             return JsonResponse({"error": "Authentication required"}, status=401)
-        try:
-            data = json.loads(request.body) if request.body else {}
-        except json.JSONDecodeError:
-            return JsonResponse({"error": "Invalid JSON"}, status=400)
+        data, error_response = _parse_json_object(request)
+        if error_response:
+            return error_response
         school_id = (data.get("school_id") or data.get("tenant_id") or "").strip()
         if not school_id:
             return JsonResponse({"error": "school_id required"}, status=400)
@@ -407,10 +420,9 @@ class StudentTransferView(View):
     def post(self, request):
         if not getattr(request, "user", None) or not request.user.is_authenticated:
             return JsonResponse({"error": "Authentication required"}, status=401)
-        try:
-            data = json.loads(request.body) if request.body else {}
-        except json.JSONDecodeError:
-            return JsonResponse({"error": "Invalid JSON"}, status=400)
+        data, error_response = _parse_json_object(request)
+        if error_response:
+            return error_response
         global_id = data.get("global_id") or data.get("student_global_id")
         to_school_id = data.get("to_school_id") or data.get("target_tenant_id")
         if not global_id or not to_school_id:
@@ -530,10 +542,9 @@ class AttendanceBulkView(View):
     def post(self, request):
         if not getattr(request, "user", None) or not request.user.is_authenticated:
             return JsonResponse({"error": "Authentication required"}, status=401)
-        try:
-            data = json.loads(request.body) if request.body else {}
-        except json.JSONDecodeError:
-            return JsonResponse({"error": "Invalid JSON"}, status=400)
+        data, error_response = _parse_json_object(request)
+        if error_response:
+            return error_response
         records = data.get("records", data.get("attendances", []))
         if not records:
             return JsonResponse({"error": "records required (list of {student_id, status} or {student, status})"}, status=400)
@@ -627,10 +638,9 @@ class VocationalLogHoursView(View):
         school = _get_school_from_request(request)
         if not school:
             return JsonResponse({"error": "Tenant context required"}, status=400)
-        try:
-            data = json.loads(request.body) if request.body else {}
-        except json.JSONDecodeError:
-            return JsonResponse({"error": "Invalid JSON"}, status=400)
+        data, error_response = _parse_json_object(request)
+        if error_response:
+            return error_response
         student_id = data.get("student_id")
         subject_assignment_id = data.get("subject_assignment_id")
         hours = data.get("hours")
@@ -677,10 +687,9 @@ class VocationalVerifySkillView(View):
         school = _get_school_from_request(request)
         if not school:
             return JsonResponse({"error": "Tenant context required"}, status=400)
-        try:
-            data = json.loads(request.body) if request.body else {}
-        except json.JSONDecodeError:
-            return JsonResponse({"error": "Invalid JSON"}, status=400)
+        data, error_response = _parse_json_object(request)
+        if error_response:
+            return error_response
         student_id = data.get("student_id")
         competency_item_id = data.get("competency_item_id")
         level = (data.get("level") or "PROFICIENT").strip().upper()
@@ -752,10 +761,9 @@ class SchedulerGenerateView(View):
         school = _get_school_from_request(request)
         if not school:
             return JsonResponse({"error": "Tenant context required"}, status=400)
-        try:
-            data = json.loads(request.body) if request.body else {}
-        except json.JSONDecodeError:
-            data = {}
+        data, error_response = _parse_json_object(request)
+        if error_response:
+            return error_response
         term_id = data.get("term_id")
         academic_year_id = data.get("academic_year_id")
         if not term_id or not academic_year_id:
@@ -1025,10 +1033,9 @@ class RiskThresholdsConfigView(View):
         allowed, err = _require_super_or_school(request)
         if not allowed:
             return err
-        try:
-            data = json.loads(request.body) if request.body else {}
-        except json.JSONDecodeError:
-            return JsonResponse({"error": "Invalid JSON"}, status=400)
+        data, error_response = _parse_json_object(request)
+        if error_response:
+            return error_response
         from apps.analytics.models import RiskThresholds
         from decimal import Decimal
         th, _ = RiskThresholds.objects.get_or_create(school=school, defaults={"amber_min": Decimal("50"), "red_min": Decimal("80")})
@@ -1144,10 +1151,9 @@ class FinanceWalletTopUpView(View):
         if not allowed:
             return err
         school = _get_school_from_request(request)
-        try:
-            data = json.loads(request.body) if request.body else {}
-        except json.JSONDecodeError:
-            return JsonResponse({"error": "Invalid JSON"}, status=400)
+        data, error_response = _parse_json_object(request)
+        if error_response:
+            return error_response
         amount = data.get("amount")
         if amount is None:
             return JsonResponse({"error": "amount required"}, status=400)
@@ -1193,10 +1199,9 @@ class RegulatoryExportView(View):
         school = _get_school_from_request(request)
         if not school:
             return JsonResponse({"error": "Tenant context required"}, status=400)
-        try:
-            data = json.loads(request.body) if request.body else {}
-        except json.JSONDecodeError:
-            return JsonResponse({"error": "Invalid JSON"}, status=400)
+        data, error_response = _parse_json_object(request)
+        if error_response:
+            return error_response
         preset_id = (data.get("preset_id") or "").strip()
         if not preset_id:
             return JsonResponse({"error": "preset_id required (e.g. waec, bulletin_fr, ofsted)"}, status=400)
@@ -1238,10 +1243,9 @@ class AttendanceBulkUpdateView(View):
         school = _get_school_from_request(request)
         if not school:
             return JsonResponse({"error": "Tenant context required"}, status=400)
-        try:
-            data = json.loads(request.body) if request.body else {}
-        except json.JSONDecodeError:
-            return JsonResponse({"error": "Invalid JSON"}, status=400)
+        data, error_response = _parse_json_object(request)
+        if error_response:
+            return error_response
         records = data.get("records", [])
         if not records:
             return JsonResponse({"error": "records required"}, status=400)
@@ -1357,10 +1361,9 @@ class PaymentDisputeCreateView(View):
         if not allowed:
             return err
         school = _get_school_from_request(request)
-        try:
-            data = json.loads(request.body) if request.body else {}
-        except json.JSONDecodeError:
-            return JsonResponse({"error": "Invalid JSON"}, status=400)
+        data, error_response = _parse_json_object(request)
+        if error_response:
+            return error_response
         payment_id = data.get("payment_id")
         reason = (data.get("reason") or "").strip()
         description = (data.get("description") or "").strip()
@@ -1411,10 +1414,9 @@ class PaymentDisputeResolveView(View):
         allowed = {"BURSAR", "ADMIN", "LEADERSHIP", "PRINCIPAL", "FINANCE_STAFF", "ACCOUNTANT"}
         if role not in allowed and not request.user.is_staff:
             return JsonResponse({"error": "Forbidden"}, status=403)
-        try:
-            data = json.loads(request.body) if request.body else {}
-        except json.JSONDecodeError:
-            return JsonResponse({"error": "Invalid JSON"}, status=400)
+        data, error_response = _parse_json_object(request)
+        if error_response:
+            return error_response
         status = (data.get("status") or "").strip()
         resolution_notes = (data.get("resolution_notes") or "").strip()
         if not status:
@@ -1470,10 +1472,9 @@ class AdHocReportListCreateView(View):
         if not getattr(request, "user", None) or not request.user.is_authenticated:
             return JsonResponse({"error": "Authentication required"}, status=401)
         school = _get_school_from_request(request)
-        try:
-            data = json.loads(request.body) if request.body else {}
-        except json.JSONDecodeError:
-            return JsonResponse({"error": "Invalid JSON"}, status=400)
+        data, error_response = _parse_json_object(request)
+        if error_response:
+            return error_response
         name = (data.get("name") or "").strip()
         entity_type = data.get("entity_type", "STUDENTS")
         columns = data.get("columns") or ["id", "first_name", "last_name"]
@@ -1511,10 +1512,9 @@ class AdHocReportRunView(View):
             return JsonResponse({"error": "Report not found"}, status=404)
         if school and definition.school_id and definition.school_id != school.pk:
             return JsonResponse({"error": "Forbidden"}, status=403)
-        try:
-            data = json.loads(request.body) if request.body else {}
-        except json.JSONDecodeError:
-            data = {}
+        data, error_response = _parse_json_object(request)
+        if error_response:
+            return error_response
         params = data.get("parameters_override") or {}
         output_format = data.get("output_format") or definition.output_format
         user_role = (getattr(request.user, "role", "") or "").upper()
@@ -1573,10 +1573,9 @@ class VideoSessionListCreateView(View):
         school = _get_school_from_request(request)
         if not school:
             return JsonResponse({"error": "Tenant context required"}, status=400)
-        try:
-            data = json.loads(request.body) if request.body else {}
-        except json.JSONDecodeError:
-            return JsonResponse({"error": "Invalid JSON"}, status=400)
+        data, error_response = _parse_json_object(request)
+        if error_response:
+            return error_response
         title = (data.get("title") or "").strip()
         scheduled_start = data.get("scheduled_start")
         scheduled_end = data.get("scheduled_end")
@@ -1619,10 +1618,9 @@ class VideoAttendanceSyncView(View):
         school = _get_school_from_request(request)
         if not school:
             return JsonResponse({"error": "Tenant context required"}, status=400)
-        try:
-            data = json.loads(request.body) if request.body else {}
-        except json.JSONDecodeError:
-            return JsonResponse({"error": "Invalid JSON"}, status=400)
+        data, error_response = _parse_json_object(request)
+        if error_response:
+            return error_response
         participants = data.get("participants") or []
         from apps.communication.video_conferencing import VirtualClassroom, SessionParticipant
         from django.utils.dateparse import parse_datetime
@@ -1675,10 +1673,9 @@ class EMISPrepareView(View):
         school = _get_school_from_request(request)
         if not school:
             return JsonResponse({"error": "Tenant context required"}, status=400)
-        try:
-            data = json.loads(request.body) if request.body else {}
-        except json.JSONDecodeError:
-            return JsonResponse({"error": "Invalid JSON"}, status=400)
+        data, error_response = _parse_json_object(request)
+        if error_response:
+            return error_response
         report_type = (data.get("report_type") or "").strip() or "MOE_PRESET"
         period_label = (data.get("period_label") or "").strip()
         preset_id = (data.get("preset_id") or "").strip()
@@ -1736,10 +1733,9 @@ class EMISSubmitView(View):
         sub.status = EMISSubmission.Status.SUBMITTED
         sub.submitted_at = timezone.now()
         sub.submitted_by = request.user
-        try:
-            data = json.loads(request.body) if request.body else {}
-        except json.JSONDecodeError:
-            data = {}
+        data, error_response = _parse_json_object(request)
+        if error_response:
+            return error_response
         sub.external_id = (data.get("external_id") or "")[:120]
         sub.submission_url = (data.get("submission_url") or "")[:500]
         sub.save(update_fields=["status", "submitted_at", "submitted_by", "external_id", "submission_url", "updated_at"])

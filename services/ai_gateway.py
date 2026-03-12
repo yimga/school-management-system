@@ -20,9 +20,14 @@ from django.core.cache import cache
 
 from services.ai_schemas import (
     extract_json_from_text,
+    validate_dashboard_pack_recommend,
+    validate_design_studio,
     validate_doc_classify,
+    validate_marketplace_recommend,
     validate_migration_mapping,
     validate_policy_explain,
+    validate_report_recommend,
+    validate_theme_experience,
     validate_workflow_draft,
 )
 
@@ -255,11 +260,51 @@ def _rules_fallback(user_query: str) -> str:
     return _rules(user_query)
 
 
-def _data_tier_allows_premium(metadata: dict[str, Any] | None) -> bool:
+def _safe_schema_default(response_schema: str | None) -> Any:
+    if response_schema == "workflow_draft":
+        return {"name": "", "trigger_type": "manual", "steps": [], "description": ""}
+    if response_schema == "policy_explain":
+        return {"summary": "", "differences": [], "warnings": []}
+    if response_schema == "migration_mapping":
+        return []
+    if response_schema == "doc_classify":
+        return {"category": "general", "tags": [], "confidence": 0.0}
+    if response_schema == "theme_experience":
+        return {"suggestions": [], "rationale": ""}
+    if response_schema == "report_recommend":
+        return {"recommendations": []}
+    if response_schema == "design_studio":
+        return {"suggestions": [], "components": []}
+    if response_schema == "dashboard_pack_recommend":
+        return {"dashboards": [], "packs": [], "rationale": ""}
+    if response_schema == "marketplace_recommend":
+        return {"recommendations": [], "rationale": ""}
+    return None
+
+
+def _payload_contains_pii(*texts: Any) -> bool:
+    try:
+        from services.inference import strip_pii_for_inference
+    except Exception:
+        return False
+    for text in texts:
+        if not isinstance(text, str):
+            continue
+        raw = text.strip()
+        if not raw:
+            continue
+        if strip_pii_for_inference(raw) != raw:
+            return True
+    return False
+
+
+def _data_tier_allows_premium(metadata: dict[str, Any] | None, *, prompt: str = "", user_query: str = "") -> bool:
     """If payload has PII or tenant disallows external, we must not use premium (litellm/gemini) for sensitive data."""
     if not metadata:
-        return True
+        return not _payload_contains_pii(prompt, user_query)
     if metadata.get("sensitivity_class") == "high" or metadata.get("disallow_external_model"):
+        return False
+    if _payload_contains_pii(prompt, user_query):
         return False
     return True
 
@@ -334,7 +379,7 @@ def invoke(
     if not budget_ok:
         _audit_log(task_key, "none", "", 0, tenant_id, school_id, "budget_exceeded", budget_meta)
         return None, {"provider": "none", "budget_exceeded": True, **budget_meta}
-    allow_premium = _data_tier_allows_premium(md)
+    allow_premium = _data_tier_allows_premium(md, prompt=prompt, user_query=user_query)
     timeout_sec = _request_timeout(md)
     errors: dict[str, str] = {}
     start = time.perf_counter()
@@ -349,7 +394,24 @@ def invoke(
         if tier == "ollama":
             text, meta = _call_ollama(prompt, metadata=md)
         elif tier == "vllm":
-            text, meta = _call_vllm(prompt, metadata=md, json_mode=(response_schema in ("workflow_draft", "policy_explain", "migration_mapping", "doc_classify")), timeout_sec=timeout_sec)
+            text, meta = _call_vllm(
+                prompt,
+                metadata=md,
+                json_mode=(
+                    response_schema in (
+                        "workflow_draft",
+                        "policy_explain",
+                        "migration_mapping",
+                        "doc_classify",
+                        "theme_experience",
+                        "report_recommend",
+                        "design_studio",
+                        "dashboard_pack_recommend",
+                        "marketplace_recommend",
+                    )
+                ),
+                timeout_sec=timeout_sec,
+            )
         elif tier == "litellm":
             text, meta = _call_litellm(prompt, metadata=md, timeout_sec=timeout_sec)
         elif tier == "gemini":
@@ -357,8 +419,9 @@ def invoke(
         elif tier == "rules":
             elapsed_ms = (time.perf_counter() - start) * 1000
             result = _rules_fallback(user_query or prompt[:200])
-            _audit_log(task_key, "rules", "rules", elapsed_ms, tenant_id, school_id, "success", {"fallback": True})
-            return result, {"provider": "rules", "tier": "rules", "latency_ms": round(elapsed_ms, 2), "fallback": True}
+            meta = {"fallback": True, "errors": errors} if errors else {"fallback": True}
+            _audit_log(task_key, "rules", "rules", elapsed_ms, tenant_id, school_id, "success", meta)
+            return result, {"provider": "rules", "tier": "rules", "latency_ms": round(elapsed_ms, 2), **meta}
         if text:
             elapsed_ms = (time.perf_counter() - start) * 1000
             model = meta.get("model", tier)
@@ -374,12 +437,22 @@ def invoke(
                         result = validate_migration_mapping(parsed if parsed is not None else [])
                     elif response_schema == "doc_classify" and isinstance(parsed, dict):
                         result = validate_doc_classify(parsed)
+                    elif response_schema == "theme_experience" and isinstance(parsed, dict):
+                        result = validate_theme_experience(parsed)
+                    elif response_schema == "report_recommend" and isinstance(parsed, dict):
+                        result = validate_report_recommend(parsed)
+                    elif response_schema == "design_studio" and isinstance(parsed, dict):
+                        result = validate_design_studio(parsed)
+                    elif response_schema == "dashboard_pack_recommend" and isinstance(parsed, dict):
+                        result = validate_dashboard_pack_recommend(parsed)
+                    elif response_schema == "marketplace_recommend" and isinstance(parsed, dict):
+                        result = validate_marketplace_recommend(parsed)
                     else:
-                        result = text
+                        raise ValueError("invalid_structured_payload")
                 except (ValueError, TypeError) as e:
                     logger.warning("Schema validation failed for %s: %s", response_schema, e)
                     schema_validation_failed = True
-                    result = text
+                    result = _safe_schema_default(response_schema)
             else:
                 result = text
             out_meta = {**meta, "latency_ms": round(elapsed_ms, 2), "task_type": task_key, "schema_validation_failed": schema_validation_failed}

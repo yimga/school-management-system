@@ -370,7 +370,7 @@ def build_portal_sidebar_items(request, site):
         if is_superuser and not in_backend:
             site_pk = getattr(site, "pk", 1)
             items.append({"id": "site_settings", "label": "Site Settings", "url": _safe_reverse("admin:siteconfig_sitesettings_change", args=[site_pk]), "icon": "bi-gear-wide", "section": "Admin Panel", "badge": None})
-            items.append({"id": "region_config", "label": "Region Configuration", "url": _safe_reverse("admin:siteconfig_regionconfig_changelist"), "icon": "bi-geo-alt", "section": "Admin Panel", "badge": None})
+            items.append({"id": "region_config", "label": "Region Configuration", "url": _safe_reverse("admin:global_registries_regionconfig_changelist"), "icon": "bi-geo-alt", "section": "Admin Panel", "badge": None})
         if is_superuser:
             items.append({"id": "admin_panel", "label": "Configuration Engine", "url": _safe_reverse("admin:index"), "icon": "bi-gear-wide-connected", "section": "Admin Panel", "badge": None})
 
