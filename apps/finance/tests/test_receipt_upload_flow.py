@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from decimal import Decimal
 from unittest.mock import patch
+from types import SimpleNamespace
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
@@ -106,6 +107,52 @@ class ReceiptUploadFlowTests(TestCase):
         self.assertEqual(str(upload.ip_address), "127.0.0.99")
         self.assertEqual(upload.user_agent, "TestBrowser/1.0")
         mock_delay.assert_called_once()
+
+    @patch("apps.finance.tasks.process_payment_receipt_upload_task.delay")
+    @patch("apps.finance.views.ReceiptFraudDetector.detect_fraud")
+    @patch("apps.finance.views.get_effective_site_settings")
+    def test_upload_receipt_uses_owner_scoped_finance_policy(
+        self,
+        mock_get_effective_site_settings,
+        mock_detect,
+        mock_delay,
+    ):
+        mock_get_effective_site_settings.return_value = SimpleNamespace(
+            get_finance_runtime_config=lambda: {
+                "receipt_upload_enabled": True,
+                "receipt_auto_verify_enabled": False,
+                "receipt_max_size_mb": 1,
+                "receipt_allowed_extensions": "png",
+                "receipt_idempotency_window_minutes": 15,
+            }
+        )
+        mock_detect.return_value = {
+            "fraud_risk_score": 8,
+            "fraud_flags": [],
+            "file_hash": "owner-policy-hash",
+            "recommendation": "approve",
+        }
+        receipt = SimpleUploadedFile(
+            "receipt.png",
+            b"fake-image-data",
+            content_type="image/png",
+        )
+
+        response = self.client.post(
+            reverse("finance:upload_payment_receipt", args=[self.invoice.id]),
+            data={
+                "receipt_file": receipt,
+                "payment_method": PaymentMethodCode.MTN_MOMO,
+                "uploaded_amount": "25000",
+                "transaction_reference": "MTN-OWNER-REF-1",
+                "idempotency_key": "owner-finance-policy-1",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        upload = PaymentProofUpload.objects.get(invoice=self.invoice, file_hash="owner-policy-hash")
+        self.assertEqual(upload.idempotency_key, "owner-finance-policy-1")
+        mock_delay.assert_not_called()
 
     def test_invoice_serializer_matches_current_invoice_model_fields(self):
         data = InvoiceSerializer(instance=self.invoice).data

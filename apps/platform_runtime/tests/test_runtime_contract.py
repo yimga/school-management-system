@@ -425,6 +425,54 @@ class RuntimeHelperResolutionTests(TestCase):
         self.assertEqual(theme_selection_ids["teacher_theme_pack_id"], teacher_pack.pk)
         self.assertEqual(theme_selection_ids["parent_theme_pack_id"], parent_pack.pk)
 
+    def test_site_settings_theme_experience_settings_use_owner_surfaces(self):
+        portal_pack = ThemePack.objects.create(
+            name="Owner Portal Pack",
+            slug="owner-portal-pack-runtime-contract",
+            is_active=True,
+        )
+        admin_pack = ThemePack.objects.create(
+            name="Owner Admin Pack",
+            slug="owner-admin-pack-runtime-contract",
+            is_active=True,
+            applies_to_admin=True,
+        )
+        site = SiteSettings.get_solo()
+        site.primary_color = "#112233"
+        site.accent_color = "#445566"
+        site.use_dark_mode = True
+        site.skip_theme_publish_guard = True
+        site.theme_pack = portal_pack
+        site.admin_theme_pack = admin_pack
+        site.default_dashboard_view = "ACADEMICS"
+        site.default_refresh_rate = 90
+        site.report_downloads_enabled = False
+        site.save(
+            update_fields=[
+                "primary_color",
+                "accent_color",
+                "use_dark_mode",
+                "skip_theme_publish_guard",
+                "theme_pack",
+                "admin_theme_pack",
+                "default_dashboard_view",
+                "default_refresh_rate",
+                "report_downloads_enabled",
+            ]
+        )
+
+        settings = site.get_theme_experience_settings()
+
+        self.assertEqual(settings["primary_color"], "#112233")
+        self.assertEqual(settings["accent_color"], "#445566")
+        self.assertTrue(settings["use_dark_mode"])
+        self.assertTrue(settings["skip_theme_publish_guard"])
+        self.assertEqual(settings["theme_pack_id"], portal_pack.pk)
+        self.assertEqual(settings["admin_theme_pack_id"], admin_pack.pk)
+        self.assertEqual(settings["default_dashboard_view"], "ACADEMICS")
+        self.assertEqual(settings["default_refresh_rate"], 90)
+        self.assertFalse(settings["report_downloads_enabled"])
+
     def test_site_settings_owner_accessors_normalize_legacy_placeholders(self):
         site = SiteSettings.get_solo()
         site.site_name = "School System"

@@ -21,6 +21,8 @@ class FinanceHardeningHelperTests(SimpleTestCase):
                 "get_finance_runtime_config": lambda self: {
                     "reminder_max_retries": 7,
                     "invoice_auto_status_updates_enabled": False,
+                    "receipt_upload_enabled": False,
+                    "receipt_allowed_extensions": "pdf,png",
                 }
             },
         )()
@@ -29,6 +31,8 @@ class FinanceHardeningHelperTests(SimpleTestCase):
 
         self.assertEqual(config["reminder_max_retries"], 7)
         self.assertFalse(config["invoice_auto_status_updates_enabled"])
+        self.assertFalse(config["receipt_upload_enabled"])
+        self.assertEqual(config["receipt_allowed_extensions"], "pdf,png")
 
     def test_marketplace_integration_settings_prefers_owner_accessor(self):
         site = type(

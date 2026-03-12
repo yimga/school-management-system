@@ -1124,9 +1124,14 @@ def upload_payment_receipt(request: HttpRequest, invoice_id: int):
         messages.error(request, "This invoice is already fully paid.")
         return redirect("finance:invoice_detail", invoice_id=invoice.id)
     
-    # Get SiteSettings for receipt upload configuration
+    # Resolve receipt upload policy through the owner-scoped finance runtime config.
     site_settings = get_effective_site_settings(request=request)
-    if not getattr(site_settings, "finance_receipt_upload_enabled", True):
+    finance_runtime = (
+        site_settings.get_finance_runtime_config()
+        if callable(getattr(site_settings, "get_finance_runtime_config", None))
+        else {}
+    )
+    if not finance_runtime.get("receipt_upload_enabled", getattr(site_settings, "finance_receipt_upload_enabled", True)):
         messages.error(request, "Receipt upload is currently disabled.")
         return redirect("finance:invoice_detail", invoice_id=invoice.id)
     
@@ -1136,7 +1141,10 @@ def upload_payment_receipt(request: HttpRequest, invoice_id: int):
         messages.error(request, "Please select a receipt file to upload.")
         return redirect("finance:invoice_detail", invoice_id=invoice.id)
 
-    max_mb = getattr(site_settings, "finance_receipt_max_size_mb", 5)
+    max_mb = finance_runtime.get(
+        "receipt_max_size_mb",
+        getattr(site_settings, "finance_receipt_max_size_mb", 5),
+    )
     max_bytes = max_mb * 1024 * 1024
     if receipt_file.size > max_bytes:
         messages.error(
@@ -1145,7 +1153,13 @@ def upload_payment_receipt(request: HttpRequest, invoice_id: int):
             f"Maximum allowed is {max_mb} MB. Please compress or use a smaller image."
         )
         return redirect("finance:invoice_detail", invoice_id=invoice.id)
-    allowed_ext = (getattr(site_settings, "finance_receipt_allowed_extensions", "pdf,jpg,jpeg,png") or "pdf,jpg,jpeg,png").strip().lower()
+    allowed_ext = (
+        finance_runtime.get(
+            "receipt_allowed_extensions",
+            getattr(site_settings, "finance_receipt_allowed_extensions", "pdf,jpg,jpeg,png"),
+        )
+        or "pdf,jpg,jpeg,png"
+    ).strip().lower()
     allowed_list = [e.strip().lstrip(".") for e in allowed_ext.split(",") if e.strip()]
     ext = (receipt_file.name or "").split(".")[-1].lower() if "." in (receipt_file.name or "") else ""
     if allowed_list and ext not in allowed_list:
@@ -1196,7 +1210,10 @@ def upload_payment_receipt(request: HttpRequest, invoice_id: int):
 
     # Duplicate check by file hash (same invoice + user within window)
     if file_hash:
-        window_mins = getattr(site_settings, "finance_receipt_idempotency_window_minutes", 10)
+        window_mins = finance_runtime.get(
+            "receipt_idempotency_window_minutes",
+            getattr(site_settings, "finance_receipt_idempotency_window_minutes", 10),
+        )
         cutoff = timezone.now() - timedelta(minutes=window_mins)
         if PaymentProofUpload.objects.filter(
             invoice=invoice,
@@ -1235,7 +1252,10 @@ def upload_payment_receipt(request: HttpRequest, invoice_id: int):
         _notify_finance_staff_suspicious_receipt(proof_upload, fraud_result)
     
     # Trigger automatic verification (if enabled)
-    if getattr(site_settings, "finance_receipt_auto_verify_enabled", True):
+    if finance_runtime.get(
+        "receipt_auto_verify_enabled",
+        getattr(site_settings, "finance_receipt_auto_verify_enabled", True),
+    ):
         from apps.finance.tasks import process_payment_receipt_upload_task
         school_id = str(getattr(invoice, "school_id", None) or getattr(getattr(invoice, "student", None), "school_id", None) or "")
         process_payment_receipt_upload_task.delay(proof_upload.id, school_id=school_id if school_id else None)

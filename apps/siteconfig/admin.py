@@ -820,8 +820,20 @@ class SiteSettingsAdmin(ModelAdmin):
         """Read-only summary for the first tab: site name, logo, primary color, key toggles."""
         if not obj or not obj.pk:
             return mark_safe("<p>Save once to see the summary.</p>")
+        brand_metadata = (
+            obj.get_brand_metadata()
+            if callable(getattr(obj, "get_brand_metadata", None))
+            else {}
+        )
+        theme_settings = (
+            obj.get_theme_experience_settings()
+            if callable(getattr(obj, "get_theme_experience_settings", None))
+            else {}
+        )
         name = getattr(obj, "site_name", None) or "—"
-        primary = (getattr(obj, "primary_color", None) or "").strip() or "#0d6efd"
+        primary = str(
+            theme_settings.get("primary_color", getattr(obj, "primary_color", "")) or ""
+        ).strip() or "#0d6efd"
         logo_html = ""
         if obj.logo:
             logo_html = format_html(
@@ -833,8 +845,14 @@ class SiteSettingsAdmin(ModelAdmin):
             ("Maintenance", getattr(obj, "maintenance_mode", False)),
             ("Parent portal", getattr(obj, "enable_parent_portal", True)),
             ("Teacher portal", getattr(obj, "enable_teacher_portal", True)),
-            ("Reports PDF", getattr(obj, "report_downloads_enabled", True)),
-            ("Dark mode", getattr(obj, "use_dark_mode", False)),
+            (
+                "Reports PDF",
+                bool(theme_settings.get("report_downloads_enabled", getattr(obj, "report_downloads_enabled", True))),
+            ),
+            (
+                "Dark mode",
+                bool(theme_settings.get("use_dark_mode", getattr(obj, "use_dark_mode", False))),
+            ),
         ]:
             toggles.append(
                 '<span style="display:inline-block;margin-right:12px;font-size:0.85rem;">'

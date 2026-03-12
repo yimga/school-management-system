@@ -5,7 +5,7 @@ import logging
 import uuid
 
 from django.conf import settings
-from django.core.exceptions import FieldDoesNotExist
+from django.core.exceptions import FieldDoesNotExist, ObjectDoesNotExist
 from django.db import models, connection, OperationalError, DatabaseError
 from django.db.models import Q
 from django.db.models.fields.files import FieldFile
@@ -1924,7 +1924,15 @@ class SiteSettings(models.Model):
         excluded = set(exclude_owners or set())
         payload: dict[str, object] = {}
         for name in self.owned_field_names(owner=owner, exclude_owners=excluded):
-            payload[name] = _site_settings_json_safe(getattr(self, name, None))
+            field = self._meta.get_field(name)
+            attr_name = getattr(field, "attname", name)
+            try:
+                value = getattr(self, name, None)
+            except ObjectDoesNotExist:
+                value = getattr(self, attr_name, None)
+            payload[name] = _site_settings_json_safe(value)
+            if attr_name != name:
+                payload[attr_name] = _site_settings_json_safe(getattr(self, attr_name, None))
         return payload
 
     def get_backend_feature_flags(self) -> dict[str, object]:
@@ -2042,6 +2050,102 @@ class SiteSettings(models.Model):
             ),
         }
 
+    def get_theme_experience_settings(self) -> dict[str, object]:
+        """
+        Return theme/experience values through ownership-scoped payloads first.
+
+        This keeps theme studio, admin, and runtime preview paths aligned on one
+        read contract while fields are migrated away from the legacy singleton.
+        """
+        brand_payload = self.owned_payload(owner="brand_experience")
+        preview_payload = self.owned_payload(owner="preview_platform")
+        runtime_payload = self.owned_payload(owner="runtime_blueprints")
+        reports_payload = self.owned_payload(owner="reports")
+        return {
+            "primary_color": _payload_string(brand_payload, self, "primary_color", "#0d6efd"),
+            "accent_color": _payload_string(brand_payload, self, "accent_color", "#198754"),
+            "header_bg_color": _payload_string(brand_payload, self, "header_bg_color", "#0f172a"),
+            "footer_bg_color": _payload_string(brand_payload, self, "footer_bg_color", "#0f172a"),
+            "success_color": _payload_string(brand_payload, self, "success_color", "#22c55e"),
+            "warning_color": _payload_string(brand_payload, self, "warning_color", "#f59e0b"),
+            "danger_color": _payload_string(brand_payload, self, "danger_color", "#ef4444"),
+            "theme_brightness": _payload_string(brand_payload, self, "theme_brightness", "light"),
+            "use_dark_mode": _payload_bool(brand_payload, self, "use_dark_mode", False),
+            "theme_pack_id": brand_payload.get("theme_pack_id", getattr(self, "theme_pack_id", None)),
+            "admin_theme_pack_id": brand_payload.get(
+                "admin_theme_pack_id",
+                getattr(self, "admin_theme_pack_id", None),
+            ),
+            "teacher_theme_pack_id": brand_payload.get(
+                "teacher_theme_pack_id",
+                getattr(self, "teacher_theme_pack_id", None),
+            ),
+            "parent_theme_pack_id": brand_payload.get(
+                "parent_theme_pack_id",
+                getattr(self, "parent_theme_pack_id", None),
+            ),
+            "skip_theme_publish_guard": _payload_bool(
+                preview_payload,
+                self,
+                "skip_theme_publish_guard",
+                False,
+            ),
+            "admin_use_site_primary": _payload_bool(
+                brand_payload,
+                self,
+                "admin_use_site_primary",
+                False,
+            ),
+            "backend_console_theme": _payload_string(
+                brand_payload,
+                self,
+                "backend_console_theme",
+                "",
+            ),
+            "secondary_font": _payload_string(brand_payload, self, "secondary_font", ""),
+            "use_secondary_font_for_headings": _payload_bool(
+                brand_payload,
+                self,
+                "use_secondary_font_for_headings",
+                False,
+            ),
+            "base_font_size": _payload_int(brand_payload, self, "base_font_size", 16),
+            "default_dashboard_view": _payload_string(
+                runtime_payload,
+                self,
+                "default_dashboard_view",
+                "",
+            ),
+            "default_refresh_rate": _payload_int(
+                runtime_payload,
+                self,
+                "default_refresh_rate",
+                60,
+            ),
+            "report_downloads_enabled": _payload_bool(
+                reports_payload,
+                self,
+                "report_downloads_enabled",
+                True,
+            ),
+            "default_term_report_style_id": reports_payload.get(
+                "default_term_report_style_id",
+                getattr(self, "default_term_report_style_id", None),
+            ),
+            "default_annual_report_style_id": reports_payload.get(
+                "default_annual_report_style_id",
+                getattr(self, "default_annual_report_style_id", None),
+            ),
+        }
+
+    def get_report_style_selection_ids(self) -> dict[str, int | None]:
+        """Return report style ids through the reports owner surface first."""
+        settings = self.get_theme_experience_settings()
+        return {
+            "default_term_report_style_id": settings.get("default_term_report_style_id"),
+            "default_annual_report_style_id": settings.get("default_annual_report_style_id"),
+        }
+
     def get_finance_runtime_config(self) -> dict[str, object]:
         """Return finance automation, reminder, and receipt policy through the policy owner domain."""
         payload = self.owned_payload(owner="policies_rules")
@@ -2081,6 +2185,21 @@ class SiteSettings(models.Model):
             ),
             "receipt_verification_method": _payload_string(
                 payload, self, "finance_receipt_verification_method", "pattern"
+            ),
+            "receipt_upload_enabled": _payload_bool(
+                payload, self, "finance_receipt_upload_enabled", True
+            ),
+            "receipt_auto_verify_enabled": _payload_bool(
+                payload, self, "finance_receipt_auto_verify_enabled", True
+            ),
+            "receipt_max_size_mb": _payload_int(
+                payload, self, "finance_receipt_max_size_mb", 5
+            ),
+            "receipt_allowed_extensions": _payload_string(
+                payload, self, "finance_receipt_allowed_extensions", "pdf,jpg,jpeg,png"
+            ).strip().lower(),
+            "receipt_idempotency_window_minutes": _payload_int(
+                payload, self, "finance_receipt_idempotency_window_minutes", 10
             ),
             "receipt_auto_apply_threshold": _payload_float(
                 payload, self, "finance_receipt_auto_apply_threshold", 0.9
@@ -2155,21 +2274,12 @@ class SiteSettings(models.Model):
 
     def get_theme_selection_ids(self) -> dict[str, int | None]:
         """Return theme-pack foreign key ids through the brand-experience ownership domain."""
-        payload = self.owned_payload(owner="brand_experience")
+        settings = self.get_theme_experience_settings()
         return {
-            "theme_pack_id": payload.get("theme_pack_id", getattr(self, "theme_pack_id", None)),
-            "admin_theme_pack_id": payload.get(
-                "admin_theme_pack_id",
-                getattr(self, "admin_theme_pack_id", None),
-            ),
-            "teacher_theme_pack_id": payload.get(
-                "teacher_theme_pack_id",
-                getattr(self, "teacher_theme_pack_id", None),
-            ),
-            "parent_theme_pack_id": payload.get(
-                "parent_theme_pack_id",
-                getattr(self, "parent_theme_pack_id", None),
-            ),
+            "theme_pack_id": settings.get("theme_pack_id"),
+            "admin_theme_pack_id": settings.get("admin_theme_pack_id"),
+            "teacher_theme_pack_id": settings.get("teacher_theme_pack_id"),
+            "parent_theme_pack_id": settings.get("parent_theme_pack_id"),
         }
 
     @property
@@ -2204,12 +2314,13 @@ class SiteSettings(models.Model):
 
     def resolve_default_report_style(self, report_type: str) -> "ReportCardStyle | None":
         """Resolve the default report style through the owner surface first, then fallback to active defaults."""
-        field_name = (
-            "default_term_report_style"
+        field_name = "default_term_report_style" if report_type == REPORT_CARD_TYPE_TERM else "default_annual_report_style"
+        selection_ids = self.get_report_style_selection_ids()
+        style_id = (
+            selection_ids.get("default_term_report_style_id")
             if report_type == REPORT_CARD_TYPE_TERM
-            else "default_annual_report_style"
+            else selection_ids.get("default_annual_report_style_id")
         )
-        style_id = getattr(self, f"{field_name}_id", None)
         owner_model = get_report_card_style_owner_model()
         if style_id:
             try:
@@ -2229,9 +2340,11 @@ class SiteSettings(models.Model):
     @property
     def active_theme(self) -> "ThemePack | None":
         theme_pack_model = get_theme_pack_owner_model()
-        if self.theme_pack_id:
+        selection_ids = self.get_theme_selection_ids()
+        theme_pack_id = selection_ids.get("theme_pack_id")
+        if theme_pack_id:
             try:
-                selected = theme_pack_model.objects.filter(pk=self.theme_pack_id).first()
+                selected = theme_pack_model.objects.filter(pk=theme_pack_id).first()
             except (OperationalError, DatabaseError):
                 return None
             if selected:
@@ -2270,9 +2383,11 @@ class SiteSettings(models.Model):
 
     def get_admin_theme(self):
         theme_pack_model = get_theme_pack_owner_model()
-        if self.admin_theme_pack_id:
+        selection_ids = self.get_theme_selection_ids()
+        admin_theme_pack_id = selection_ids.get("admin_theme_pack_id")
+        if admin_theme_pack_id:
             try:
-                admin_pack = theme_pack_model.objects.filter(pk=self.admin_theme_pack_id).first()
+                admin_pack = theme_pack_model.objects.filter(pk=admin_theme_pack_id).first()
             except (OperationalError, DatabaseError):
                 admin_pack = None
             if admin_pack and admin_pack.is_active and admin_pack.applies_to_admin:
@@ -2282,9 +2397,10 @@ class SiteSettings(models.Model):
                 self._sanitize_foreign_keys(persist=True)
 
         site_pack = None
-        if self.theme_pack_id:
+        site_theme_pack_id = selection_ids.get("theme_pack_id")
+        if site_theme_pack_id:
             try:
-                site_pack = theme_pack_model.objects.filter(pk=self.theme_pack_id).first()
+                site_pack = theme_pack_model.objects.filter(pk=site_theme_pack_id).first()
             except (OperationalError, DatabaseError):
                 site_pack = None
             if site_pack and site_pack.is_active and getattr(site_pack, "applies_to_admin", False):
@@ -2309,19 +2425,22 @@ class SiteSettings(models.Model):
             getattr(user, "role", "") or ""
         ).strip().upper() if user and getattr(user, "is_authenticated", False) else ""
         theme_pack_model = get_theme_pack_owner_model()
-        if role == "TEACHER" and self.teacher_theme_pack_id:
+        selection_ids = self.get_theme_selection_ids()
+        teacher_theme_pack_id = selection_ids.get("teacher_theme_pack_id")
+        parent_theme_pack_id = selection_ids.get("parent_theme_pack_id")
+        if role == "TEACHER" and teacher_theme_pack_id:
                 try:
                     pack = theme_pack_model.objects.filter(
-                        pk=self.teacher_theme_pack_id, is_active=True
+                        pk=teacher_theme_pack_id, is_active=True
                     ).first()
                     if pack:
                         return pack
                 except (OperationalError, DatabaseError):
                     pass
-        if role == "PARENT" and self.parent_theme_pack_id:
+        if role == "PARENT" and parent_theme_pack_id:
                 try:
                     pack = theme_pack_model.objects.filter(
-                        pk=self.parent_theme_pack_id, is_active=True
+                        pk=parent_theme_pack_id, is_active=True
                     ).first()
                     if pack:
                         return pack

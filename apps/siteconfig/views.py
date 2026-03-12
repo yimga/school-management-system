@@ -577,6 +577,21 @@ def _get_preview_platform_config(site: SiteSettings) -> dict[str, object]:
     }
 
 
+def _get_theme_experience_settings(site: SiteSettings) -> dict[str, object]:
+    if callable(getattr(site, "get_theme_experience_settings", None)):
+        return site.get_theme_experience_settings()
+    return {
+        "skip_theme_publish_guard": getattr(site, "skip_theme_publish_guard", False),
+        "primary_color": getattr(site, "primary_color", ""),
+        "accent_color": getattr(site, "accent_color", ""),
+        "header_bg_color": getattr(site, "header_bg_color", ""),
+        "footer_bg_color": getattr(site, "footer_bg_color", ""),
+        "success_color": getattr(site, "success_color", ""),
+        "warning_color": getattr(site, "warning_color", ""),
+        "danger_color": getattr(site, "danger_color", ""),
+    }
+
+
 class _PreviewTerm(SimpleNamespace):
     def get_name_display(self):
         return getattr(self, "name", "First term")
@@ -1030,12 +1045,11 @@ def bulk_letters(request):
 
 @permission_required("settings.manage")
 def theme_colors_page(request):
-    """Standalone Color & harmony page: palette studio, presets, preview; save colors to SiteSettings. When not embedded, redirect to Studio Experience."""
-    if request.GET.get("embed") != "1":
-        return redirect("studio_os:experience")
+    """Standalone Color & harmony page: palette studio, presets, preview, and save flows."""
     site = get_effective_site_settings(request=request)
     if site is None:
         site = build_platform_default_site_settings()
+    theme_settings = _get_theme_experience_settings(site)
     all_packs = list(
         ThemePack.objects.filter(is_active=True).order_by("-applies_to_admin", "-is_default", "name")
     )
@@ -1079,7 +1093,7 @@ def theme_colors_page(request):
                 if str(previous_value) != str(next_value):
                     changed_fields.append(field_name)
             preview_confirmed = request.POST.get("preview_confirmed") in ("1", "true", "on")
-            if getattr(site, "skip_theme_publish_guard", False):
+            if theme_settings.get("skip_theme_publish_guard", False):
                 preview_confirmed = True
 
             changed_labels = []
@@ -1172,7 +1186,7 @@ def theme_colors_page(request):
     ):
         incoming = form.data.get(field_name) if form.is_bound else None
         if incoming in (None, ""):
-            incoming = getattr(site, field_name, "")
+            incoming = theme_settings.get(field_name, getattr(site, field_name, ""))
         contrast_values[field_name] = incoming
     contrast_report = build_theme_contrast_report(contrast_values)
 
@@ -1190,7 +1204,7 @@ def theme_colors_page(request):
             "theme_recent_change_meta": theme_recent_change_meta,
             "theme_contrast_report": contrast_report,
             "theme_publish_guarded_count": len(THEME_PUBLISH_GUARDED_FIELDS),
-            "skip_theme_publish_guard": getattr(site, "skip_theme_publish_guard", False),
+            "skip_theme_publish_guard": bool(theme_settings.get("skip_theme_publish_guard", False)),
         },
     )
 
@@ -1203,6 +1217,7 @@ def get_theme_colors_context(request):
     site = get_effective_site_settings(request=request)
     if site is None:
         site = build_platform_default_site_settings()
+    theme_settings = _get_theme_experience_settings(site)
     form = ThemeColorsForm(instance=site)
     all_packs = list(
         ThemePack.objects.filter(is_active=True).order_by("-applies_to_admin", "-is_default", "name")
@@ -1226,7 +1241,7 @@ def get_theme_colors_context(request):
     ):
         incoming = form.data.get(field_name) if form.is_bound else None
         if incoming in (None, ""):
-            incoming = getattr(site, field_name, "")
+            incoming = theme_settings.get(field_name, getattr(site, field_name, ""))
         contrast_values[field_name] = incoming
     contrast_report = build_theme_contrast_report(contrast_values)
     return {
@@ -1240,7 +1255,7 @@ def get_theme_colors_context(request):
         "theme_recent_change_meta": theme_recent_change_meta,
         "theme_contrast_report": contrast_report,
         "theme_publish_guarded_count": len(THEME_PUBLISH_GUARDED_FIELDS),
-        "skip_theme_publish_guard": getattr(site, "skip_theme_publish_guard", False),
+        "skip_theme_publish_guard": bool(theme_settings.get("skip_theme_publish_guard", False)),
     }
 
 

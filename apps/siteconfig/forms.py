@@ -813,11 +813,40 @@ class ThemeColorsForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         instance = getattr(self, "instance", None)
+        theme_experience_settings = (
+            instance.get_theme_experience_settings()
+            if instance and callable(getattr(instance, "get_theme_experience_settings", None))
+            else {}
+        )
         theme_selection_ids = (
             instance.get_theme_selection_ids()
             if instance and callable(getattr(instance, "get_theme_selection_ids", None))
             else {}
         )
+        if theme_experience_settings:
+            for field_name in (
+                "theme_brightness",
+                "use_dark_mode",
+                "admin_use_site_primary",
+                "backend_console_theme",
+                "secondary_font",
+                "use_secondary_font_for_headings",
+                "base_font_size",
+                "default_dashboard_view",
+                "default_refresh_rate",
+                "report_downloads_enabled",
+                "skip_theme_publish_guard",
+            ):
+                if field_name in self.fields:
+                    self.initial[field_name] = theme_experience_settings.get(field_name)
+            if "default_term_report_style" in self.fields:
+                self.initial["default_term_report_style"] = theme_experience_settings.get(
+                    "default_term_report_style_id"
+                )
+            if "default_annual_report_style" in self.fields:
+                self.initial["default_annual_report_style"] = theme_experience_settings.get(
+                    "default_annual_report_style_id"
+                )
 
         theme_qs = ThemePack.objects.filter(is_active=True).order_by("-is_default", "name")
         selected_theme_pack_id = theme_selection_ids.get("theme_pack_id")

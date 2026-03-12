@@ -325,6 +325,22 @@ class ThemeResolutionTests(TestCase):
         self.assertIsNotNone(resolved)
         self.assertEqual(resolved._meta.app_label, "brand_experience")
 
+    def test_get_admin_theme_uses_owner_theme_selection_surface(self):
+        resolved = self.site.get_admin_theme()
+
+        self.assertIsNotNone(resolved)
+        self.assertEqual(resolved.pk, self.admin_pack.pk)
+
+    def test_theme_colors_form_initials_use_theme_experience_settings(self):
+        self.site.skip_theme_publish_guard = True
+        self.site.default_refresh_rate = 75
+        self.site.save(update_fields=["skip_theme_publish_guard", "default_refresh_rate"])
+
+        form = ThemeColorsForm(instance=self.site)
+
+        self.assertTrue(form.initial["skip_theme_publish_guard"])
+        self.assertEqual(form.initial["default_refresh_rate"], 75)
+
     def test_admin_use_site_primary_true_forces_site_colors(self):
         self.site.admin_use_site_primary = True
         self.site.save(update_fields=["admin_use_site_primary"])
