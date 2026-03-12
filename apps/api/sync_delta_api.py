@@ -26,7 +26,16 @@ class DeltaSyncAPI(APIView):
 
     def post(self, request):
         site = get_effective_site_settings(request=request)
-        if not getattr(site, "enable_offline_mode", False):
+        offline_settings = (
+            site.get_offline_runtime_settings()
+            if callable(getattr(site, "get_offline_runtime_settings", None))
+            else {
+                "enable_offline_mode": bool(
+                    getattr(site, "enable_offline_mode", False)
+                )
+            }
+        )
+        if not bool(offline_settings.get("enable_offline_mode", False)):
             return Response({"error": "Offline sync is disabled."}, status=status.HTTP_403_FORBIDDEN)
         items = request.data.get("items") or []
         if not isinstance(items, list):

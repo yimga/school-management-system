@@ -485,7 +485,21 @@ class OfflineSyncViewSet(viewsets.ModelViewSet):
         ).first()
         client_ts = self._parse_client_timestamp(sync_item.client_timestamp)
         site = get_effective_site_settings(school=getattr(sync_item, "school", None))
-        mode = (site.offline_sync_conflict_resolution or "show_both").lower()
+        offline_settings = (
+            site.get_offline_runtime_settings()
+            if callable(getattr(site, "get_offline_runtime_settings", None))
+            else {
+                "offline_sync_conflict_resolution": getattr(
+                    site,
+                    "offline_sync_conflict_resolution",
+                    "show_both",
+                )
+            }
+        )
+        mode = str(
+            offline_settings.get("offline_sync_conflict_resolution", "show_both")
+            or "show_both"
+        ).lower()
 
         if existing and self._is_server_newer(existing.updated_at, client_ts):
             if mode == "reject":
@@ -579,12 +593,19 @@ class OfflineSyncViewSet(viewsets.ModelViewSet):
         from apps.platform_runtime.helpers import get_effective_site_settings
 
         site = get_effective_site_settings(request=request)
-        flags = (
-            site.get_backend_feature_flags()
-            if callable(getattr(site, "get_backend_feature_flags", None))
-            else {}
+        offline_settings = (
+            site.get_offline_runtime_settings()
+            if callable(getattr(site, "get_offline_runtime_settings", None))
+            else {
+                "enable_offline_mode": bool(
+                    getattr(site, "enable_offline_mode", False)
+                ),
+                "backend_feature_flags": getattr(site, "backend_feature_flags", None)
+                or {},
+            }
         )
-        if not site.enable_offline_mode:
+        flags = offline_settings.get("backend_feature_flags") or {}
+        if not bool(offline_settings.get("enable_offline_mode", False)):
             return Response(
                 {'error': 'Offline sync is disabled by system configuration.'},
                 status=status.HTTP_403_FORBIDDEN

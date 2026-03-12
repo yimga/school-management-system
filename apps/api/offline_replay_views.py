@@ -19,6 +19,15 @@ QUEUE_METRICS_CACHE_KEY = "sms_offline_queue_metrics"
 QUEUE_METRICS_CACHE_TIMEOUT = 86400
 
 
+def _offline_runtime_settings(request) -> dict:
+    site = get_effective_site_settings(request=request)
+    if callable(getattr(site, "get_offline_runtime_settings", None)):
+        return site.get_offline_runtime_settings()
+    return {
+        "enable_offline_mode": bool(getattr(site, "enable_offline_mode", False)),
+    }
+
+
 # Paths allowed for batch replay (prefixes). Restrict to avoid abuse.
 ALLOWED_PATH_PREFIXES = ("/api/attendance/", "/api/entities/", "/api/entity/", "/api/finance/", "/api/requests/")
 
@@ -38,8 +47,8 @@ class OfflineReplayBatchAPI(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        site = get_effective_site_settings(request=request)
-        if not getattr(site, "enable_offline_mode", False):
+        offline_settings = _offline_runtime_settings(request)
+        if not bool(offline_settings.get("enable_offline_mode", False)):
             return Response(
                 {"error": "Offline sync is disabled by system configuration."},
                 status=status.HTTP_403_FORBIDDEN,
@@ -125,8 +134,8 @@ class PrefetchUrlsAPI(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        site = get_effective_site_settings(request=request)
-        if not getattr(site, "enable_offline_mode", False):
+        offline_settings = _offline_runtime_settings(request)
+        if not bool(offline_settings.get("enable_offline_mode", False)):
             return Response({"urls": []})
         role = (getattr(request.user, "role", "") or "").upper()
         base = request.build_absolute_uri("/").rstrip("/")
@@ -166,8 +175,8 @@ class QueueMetricsAPI(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        site = get_effective_site_settings(request=request)
-        if not getattr(site, "enable_offline_mode", False):
+        offline_settings = _offline_runtime_settings(request)
+        if not bool(offline_settings.get("enable_offline_mode", False)):
             return Response({"total": 0, "by_type": {}})
         key = tenant_cache_key(QUEUE_METRICS_CACHE_KEY, request)
         data = cache.get(key)
@@ -176,8 +185,8 @@ class QueueMetricsAPI(APIView):
         return Response(data)
 
     def post(self, request):
-        site = get_effective_site_settings(request=request)
-        if not getattr(site, "enable_offline_mode", False):
+        offline_settings = _offline_runtime_settings(request)
+        if not bool(offline_settings.get("enable_offline_mode", False)):
             return Response({"ok": False}, status=status.HTTP_403_FORBIDDEN)
         total = request.data.get("total")
         by_type = request.data.get("by_type")

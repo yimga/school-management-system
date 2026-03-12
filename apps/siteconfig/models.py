@@ -2156,6 +2156,28 @@ class SiteSettings(models.Model):
             ),
         }
 
+    def get_offline_runtime_settings(self) -> dict[str, object]:
+        """
+        Return offline runtime controls through the policy owner surface first.
+        """
+        payload = self.owned_payload(owner="policies_rules")
+        flags = self.get_backend_feature_flags()
+        return {
+            "enable_offline_mode": _payload_bool(
+                payload,
+                self,
+                "enable_offline_mode",
+                False,
+            ),
+            "offline_sync_conflict_resolution": _payload_string(
+                payload,
+                self,
+                "offline_sync_conflict_resolution",
+                "show_both",
+            ).lower(),
+            "backend_feature_flags": flags,
+        }
+
     def get_brand_metadata(self) -> dict[str, str]:
         """Return branding/report metadata through ownership-scoped payloads first."""
         brand_payload = self.owned_payload(owner="brand_experience")

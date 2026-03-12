@@ -6,9 +6,9 @@
 - Markdown files: `793`
 - Migration files: `585`
 - Management commands: `137`
-- `SiteSettings` refs: `1058`
-- `get_solo()` refs: `205`
-- `except Exception`: `719`
+- `SiteSettings` refs: `1059`
+- `get_solo()` refs: `206`
+- `except Exception`: `714`
 - `cursor.execute()`: `351`
 - `csrf_exempt`: `79`
 - `AllowAny`: `34`
@@ -47,9 +47,9 @@
 ## Largest Python Files
 
 - `apps/schools/marketing_views.py`: `3632` lines / `209838` bytes
-- `apps/siteconfig/models.py`: `4424` lines / `173656` bytes
+- `apps/siteconfig/models.py`: `4446` lines / `174397` bytes
 - `apps/schools/super_views.py`: `3022` lines / `129484` bytes
-- `apps/accounts/views.py`: `2653` lines / `121002` bytes
+- `apps/accounts/views.py`: `2667` lines / `121515` bytes
 - `apps/evals/views.py`: `2568` lines / `107834` bytes
 - `apps/siteconfig/admin.py`: `2454` lines / `106048` bytes
 - `apps/finance/views.py`: `2383` lines / `100597` bytes

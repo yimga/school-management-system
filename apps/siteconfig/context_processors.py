@@ -566,7 +566,16 @@ def site_settings(request):
             offline_enabled = False
     else:
         offline_enabled = True
-    ctx["OFFLINE_ENABLED_FOR_CURRENT_SCHOOL"] = bool(site.enable_offline_mode) and offline_enabled
+    offline_runtime_settings = (
+        site.get_offline_runtime_settings()
+        if callable(getattr(site, "get_offline_runtime_settings", None))
+        else {
+            "enable_offline_mode": bool(getattr(site, "enable_offline_mode", False))
+        }
+    )
+    ctx["OFFLINE_ENABLED_FOR_CURRENT_SCHOOL"] = bool(
+        offline_runtime_settings.get("enable_offline_mode", False)
+    ) and offline_enabled
     flags_ctx = _resolve_backend_feature_flags(request, site)
     # Whether to show the connection status bar (offline pill) in the header.
     ctx["SHOW_OFFLINE_STATUS_BAR"] = ctx["OFFLINE_ENABLED_FOR_CURRENT_SCHOOL"] and bool(

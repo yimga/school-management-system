@@ -33,7 +33,21 @@ class OfflineSyncService:
             site = get_effective_site_settings(
                 school=getattr(getattr(offline_entry, "student", None), "school", None)
             )
-            resolution_mode = site.offline_sync_conflict_resolution
+            offline_settings = (
+                site.get_offline_runtime_settings()
+                if callable(getattr(site, "get_offline_runtime_settings", None))
+                else {
+                    "offline_sync_conflict_resolution": getattr(
+                        site,
+                        "offline_sync_conflict_resolution",
+                        "show_both",
+                    )
+                }
+            )
+            resolution_mode = str(
+                offline_settings.get("offline_sync_conflict_resolution", "show_both")
+                or "show_both"
+            ).lower()
             
             if resolution_mode == 'reject':
                 offline_entry.status = 'rejected'

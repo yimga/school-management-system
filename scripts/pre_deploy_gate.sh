@@ -41,6 +41,9 @@ python scripts/lint_tenant_settings.py --check-get-solo-only
 python scripts/lint_tenant_settings.py --check-school-settings-features
 # Path to 10: report allowlisted get_solo (migration backlog); optional visibility
 python scripts/lint_tenant_settings.py --report-allowlisted --base . 2>/dev/null || true
+echo "[pre_deploy_gate] Platform inventory refresh"
+python scripts/generate_platform_inventory.py --write
+echo "[pre_deploy_gate] Platform inventory verification"
 python scripts/generate_platform_inventory.py --check
 python scripts/lint_csrf_exempt_usage.py
 python scripts/lint_allow_any_usage.py

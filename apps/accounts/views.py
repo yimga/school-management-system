@@ -1321,7 +1321,12 @@ def backend_dashboard(request):
         except NoReverseMatch:
             return default
 
-    portal_cfg = getattr(site, "portal_features", {}) or {}
+    feature_control_settings = (
+        site.get_feature_control_settings()
+        if callable(getattr(site, "get_feature_control_settings", None))
+        else {}
+    )
+    portal_cfg = feature_control_settings.get("portal_features") or {}
     has_docs = bool(portal_cfg.get("documents"))
 
     def _item(item_id, label, url_name=None, *, url=None, icon="bi-circle", allow=True, kwargs=None):
@@ -1853,7 +1858,16 @@ def backend_dashboard_status_fragment(request):
     offline_queue_metrics = None
     try:
         site = get_effective_site_settings(request=request)
-        enable_offline_mode = getattr(site, "enable_offline_mode", False)
+        offline_settings = (
+            site.get_offline_runtime_settings()
+            if callable(getattr(site, "get_offline_runtime_settings", None))
+            else {
+                "enable_offline_mode": bool(
+                    getattr(site, "enable_offline_mode", False)
+                )
+            }
+        )
+        enable_offline_mode = bool(offline_settings.get("enable_offline_mode", False))
         if enable_offline_mode:
             from apps.siteconfig.cache_utils import tenant_cache_key
             offline_queue_metrics = cache.get(tenant_cache_key("sms_offline_queue_metrics", request))

@@ -8,10 +8,11 @@ Phase G integration tests: Delta sync conflict, offline queue semantics, tenant 
 
 from django.test import TestCase
 from django.utils import timezone
-from rest_framework.test import APIClient
+from rest_framework.test import APIClient, APIRequestFactory, force_authenticate
 
 from apps.accounts.models import User
 from apps.academics.models import AcademicYear, Attendance, Classroom, Department
+from apps.api.sync_delta_api import DeltaSyncAPI
 from apps.people.models import StudentProfile
 from apps.schools.models import School
 from apps.siteconfig.models import SiteSettings, SyncConflict
@@ -131,28 +132,38 @@ class DeltaSyncSuccessClearQueueTestCase(TestCase):
             last_name="B",
             date_of_birth="2012-01-01",
         )
+        self.client_api = APIClient()
+        self.client_api.force_authenticate(user=self.user)
+        self.request_factory = APIRequestFactory()
         site = SiteSettings.get_solo()
         site.enable_offline_mode = True
         site.save(update_fields=["enable_offline_mode"])
 
     def test_success_returns_200_and_removed_ids(self):
         """Delta apply succeeds; response includes success_count and removed_ids so client clears queue after 200 OK."""
-        from apps.api.sync_services import apply_changes
-        out = apply_changes(
-            str(self.school.id),
-            self.user,
-            [
-                {
-                    "entity_type": "student",
-                    "id": self.student.pk,
-                    "changes": {"first_name": "Updated"},
-                    "updated_at": (timezone.now() - timezone.timedelta(minutes=10)).isoformat(),
-                },
-            ],
-            persist_conflicts=True,
+        request = self.request_factory.post(
+            "/api/offline/delta/",
+            {
+                "items": [
+                    {
+                        "entity_type": "student",
+                        "id": self.student.pk,
+                        "changes": {"first_name": "Updated"},
+                        "updated_at": (timezone.now() + timezone.timedelta(minutes=10)).isoformat(),
+                        "client_item_id": "queue-item-1",
+                    },
+                ],
+            },
+            format="json",
         )
+        request.school = self.school
+        force_authenticate(request, user=self.user)
+        response = DeltaSyncAPI.as_view()(request)
+        self.assertEqual(response.status_code, 200)
+        out = response.data
         self.assertEqual(out["success_count"], 1)
         self.assertEqual(len(out["conflicts"]), 0)
+        self.assertEqual(out["removed_ids"], ["queue-item-1"])
         self.student.refresh_from_db()
         self.assertEqual(self.student.first_name, "Updated")
 
@@ -176,7 +187,7 @@ class DeltaSyncTenantIsolationTestCase(TestCase):
                 academic_year=year,
                 department=dept,
                 name="1A",
-                code="1A",
+                code=f"1A-{i}",
                 school=school,
             )
         self.student_a = StudentProfile.objects.create(

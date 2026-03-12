@@ -121,9 +121,11 @@ def apply_changes(school_id, user, items, *, persist_conflicts=True):
                 results.append({"index": idx, "status": 403, "data": {"error": "Forbidden"}})
                 continue
 
-            if school_id and hasattr(instance, "school_id") and instance.school_id != school_id:
-                results.append({"index": idx, "status": 403, "data": {"error": "Forbidden"}})
-                continue
+            if school_id and hasattr(instance, "school_id"):
+                instance_school_id = getattr(instance, "school_id", None)
+                if instance_school_id is None or str(instance_school_id) != str(school_id):
+                    results.append({"index": idx, "status": 403, "data": {"error": "Forbidden"}})
+                    continue
 
             server_dt = getattr(instance, "updated_at", None)
             if client_updated_at and server_dt:

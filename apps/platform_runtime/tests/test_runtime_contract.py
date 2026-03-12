@@ -389,6 +389,30 @@ class RuntimeHelperResolutionTests(TestCase):
         self.assertEqual(delivery_settings["notification_channels"], ["email", "sms"])
         self.assertEqual(delivery_settings["email_from_address"], "northstar@example.com")
 
+    def test_site_settings_offline_runtime_settings_use_owner_surfaces(self):
+        site = SiteSettings.get_solo()
+        site.enable_offline_mode = True
+        site.offline_sync_conflict_resolution = "auto_merge"
+        site.backend_feature_flags = {"enable_offline_attendance_sync": False}
+        site.save(
+            update_fields=[
+                "enable_offline_mode",
+                "offline_sync_conflict_resolution",
+                "backend_feature_flags",
+            ]
+        )
+
+        offline_settings = site.get_offline_runtime_settings()
+
+        self.assertTrue(offline_settings["enable_offline_mode"])
+        self.assertEqual(
+            offline_settings["offline_sync_conflict_resolution"],
+            "auto_merge",
+        )
+        self.assertFalse(
+            offline_settings["backend_feature_flags"]["enable_offline_attendance_sync"]
+        )
+
     def test_site_settings_owner_accessors_expose_brand_and_report_preview_payloads(self):
         site = SiteSettings.get_solo()
         site.site_name = "North Star Academy"

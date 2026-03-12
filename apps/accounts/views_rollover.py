@@ -4,6 +4,7 @@ Extracted from accounts/views.py for giant-file decomposition.
 """
 from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test
+from django.db import DatabaseError
 from django.db.models import Count
 from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse
@@ -55,7 +56,7 @@ def clone_year_setup(request):
                 f"{stats['subject_assignments_created']} subject assignments, {stats['promotion_rules_created']} promotion rules.",
             )
             return redirect("accounts:workflow_center")
-        except Exception as e:
+        except (DatabaseError, RuntimeError, TypeError, ValueError) as e:
             messages.error(request, f"Clone failed: {e}")
             return render(request, "accounts/clone_year_setup.html", {"years": years})
 
@@ -145,7 +146,7 @@ def rollover_year(request):
             try:
                 from apps.evals.notifications import NotificationService
                 notifier = NotificationService()
-            except Exception:
+            except ImportError:
                 pass
             for student, new_classroom in rolled_students:
                 msg = f"Your child {student.get_full_name() or student.last_name} has been assigned to {new_classroom.name} for {target_year.name}."
@@ -161,7 +162,7 @@ def rollover_year(request):
                     if notifier and getattr(link, "phone", None) and link.phone and getattr(link, "receives_sms", False):
                         try:
                             notifier.send_sms(link.phone, msg)
-                        except Exception:
+                        except (AttributeError, OSError, RuntimeError, TypeError, ValueError):
                             pass
         if carry_forward_arrears_check and flags.get("carry_forward_arrears_on_rollover", True):
             try:
@@ -172,7 +173,7 @@ def rollover_year(request):
                         request,
                         f"Created {arrears_created} opening balance (arrears) invoice(s) in {target_year.name}.",
                     )
-            except Exception as e:
+            except (DatabaseError, ImportError, RuntimeError, TypeError, ValueError) as e:
                 messages.error(
                     request,
                     f"Arrears carry-forward failed: {e}. Please check Finance configuration.",
@@ -220,7 +221,7 @@ def rollover_year(request):
                 ).select_related("source_classroom", "target_classroom"):
                     if m.source_classroom_id:
                         promotion_map[m.source_classroom_id] = m.target_classroom
-            except Exception:
+            except (DatabaseError, ImportError, RuntimeError, TypeError, ValueError):
                 pass
             terms = list(Term.objects.filter(academic_year=source_year).order_by("position", "start_date"))
             students = StudentProfile.objects.filter(

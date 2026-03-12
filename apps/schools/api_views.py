@@ -10,9 +10,16 @@ def _offline_enabled_for_request(request):
     from apps.platform_runtime.helpers import get_effective_site_settings
     from apps.policies.policy_registry import get_effective_policy
     site = get_effective_site_settings(request=request)
+    offline_settings = (
+        site.get_offline_runtime_settings()
+        if callable(getattr(site, "get_offline_runtime_settings", None))
+        else {
+            "enable_offline_mode": bool(getattr(site, "enable_offline_mode", False))
+        }
+    )
     school = getattr(request, "school", None)
     if not school:
-        return bool(site.enable_offline_mode)
+        return bool(offline_settings.get("enable_offline_mode", False))
     try:
         enabled = get_effective_policy(
             school,
@@ -21,7 +28,7 @@ def _offline_enabled_for_request(request):
         ).get("enabled", False)
     except (AttributeError, LookupError, RuntimeError, TypeError, ValueError):
         enabled = False
-    return bool(site.enable_offline_mode) and enabled
+    return bool(offline_settings.get("enable_offline_mode", False)) and enabled
 
 
 class SchoolConfigAPI(APIView):
@@ -51,13 +58,22 @@ class SchoolConfigAPI(APIView):
             from apps.platform_runtime.helpers import get_effective_site_settings
 
             site = get_effective_site_settings(request=request)
+            offline_settings = (
+                site.get_offline_runtime_settings()
+                if callable(getattr(site, "get_offline_runtime_settings", None))
+                else {
+                    "enable_offline_mode": bool(
+                        getattr(site, "enable_offline_mode", False)
+                    )
+                }
+            )
             return Response({
                 "schoolName": None,
                 "logoUrl": None,
                 "primaryColor": "#0d6efd",
                 "accentColor": "#198754",
                 "features": {},
-                "offlineEnabled": bool(site.enable_offline_mode),
+                "offlineEnabled": bool(offline_settings.get("enable_offline_mode", False)),
             })
         from apps.policies.policy_registry import get_effective_policy
         policy = get_effective_policy(school, user=getattr(request, "user", None))
