@@ -69,6 +69,10 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
         except Exception:
             context["show_mfa_banner"] = False
             context["mfa_setup_url"] = ""
+        try:
+            context["integrations_changelist_url"] = reverse("admin:integrations_marketplace_integration_changelist")
+        except NoReverseMatch:
+            context["integrations_changelist_url"] = None
         return context
 
     def login(self, request, extra_context=None):

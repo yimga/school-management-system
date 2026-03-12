@@ -8,7 +8,6 @@ from __future__ import annotations
 from typing import Any, Dict, Optional
 
 from django.db import DatabaseError
-from django.db.models import Count
 
 from apps.brand_experience.models import ThemePack
 from apps.global_registries.models import CountryRegistry
@@ -61,9 +60,8 @@ def get_experience_metadata(school_id: Optional[Any] = None) -> Dict[str, Any]:
         theme_packs = []
     try:
         widgets = list(
-            DashboardWidget.objects.values("code", "name", "chart_type")
-            .annotate(count=Count("id"))
-            .order_by("code")[:100]
+            DashboardWidget.objects.values("id", "name", "chart_type")
+            .order_by("id")[:100]
         )
     except OPTIONAL_METADATA_ERRORS:
         widgets = []

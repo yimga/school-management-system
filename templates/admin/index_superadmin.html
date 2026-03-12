@@ -78,7 +78,7 @@
         <a href="{% url 'siteconfig:feature_control_panel' %}" class="cp-chip">{% trans "Feature Control" %}</a>
         <a href="{% url 'siteconfig:theme_colors' %}" class="cp-chip">{% trans "Theme & Experience" %}</a>
         <a href="{% url 'admin:global_registries_regionconfig_changelist' %}" class="cp-chip">{% trans "Region Config" %}</a>
-        <a href="{% url 'admin:integrations_marketplace_integration_changelist' %}" class="cp-chip">{% trans "Integrations" %}</a>
+        {% if integrations_changelist_url %}<a href="{{ integrations_changelist_url }}" class="cp-chip">{% trans "Integrations" %}</a>{% endif %}
       </div>
     </div>
   </section>
