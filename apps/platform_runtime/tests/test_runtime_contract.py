@@ -2,6 +2,8 @@
 Tests for Tenant Runtime Contract and compilation order.
 Phase 1: runtime contract shape, strict compilation order, precedence, job helper.
 """
+from decimal import Decimal
+
 from django.test import TestCase
 
 from apps.platform_runtime.helpers import (
@@ -448,6 +450,62 @@ class RuntimeHelperResolutionTests(TestCase):
         self.assertEqual(brand_metadata["tagline"], "Education management for every school.")
         self.assertEqual(preview_settings["contact_email"], "support@runmycampus.com")
         self.assertEqual(preview_settings["contact_phone"], "")
+
+    def test_site_settings_finance_runtime_config_uses_policy_owner_payload(self):
+        site = SiteSettings.get_solo()
+        site.finance_auto_generate_invoices_enabled = True
+        site.finance_auto_generate_schedule = {"mode": "term_start", "term_start_offset_days": 5}
+        site.finance_fee_plan_auto_copy_mode = "year_end"
+        site.finance_invoice_overdue_grace_period_days = 4
+        site.finance_receipt_amount_tolerance = Decimal("2.50")
+        site.finance_bank_verification_auto_approve = True
+        site.finance_reminder_no_contact_action = "create_task"
+        site.save(
+            update_fields=[
+                "finance_auto_generate_invoices_enabled",
+                "finance_auto_generate_schedule",
+                "finance_fee_plan_auto_copy_mode",
+                "finance_invoice_overdue_grace_period_days",
+                "finance_receipt_amount_tolerance",
+                "finance_bank_verification_auto_approve",
+                "finance_reminder_no_contact_action",
+            ]
+        )
+
+        finance_settings = site.get_finance_runtime_config()
+
+        self.assertTrue(finance_settings["auto_generate_invoices_enabled"])
+        self.assertEqual(finance_settings["auto_generate_schedule"]["mode"], "term_start")
+        self.assertEqual(finance_settings["fee_plan_auto_copy_mode"], "year_end")
+        self.assertEqual(finance_settings["invoice_overdue_grace_period_days"], 4)
+        self.assertEqual(finance_settings["receipt_amount_tolerance"], Decimal("2.50"))
+        self.assertTrue(finance_settings["bank_verification_auto_approve"])
+        self.assertEqual(finance_settings["reminder_no_contact_action"], "create_task")
+
+    def test_site_settings_marketplace_integration_settings_use_owner_payload(self):
+        site = SiteSettings.get_solo()
+        site.marksheet_ocr_command = "/opt/runmycampus/bin/tesseract"
+        site.sms_sender_id = "RUNMYCAMPUS"
+        site.email_from_address = "platform@runmycampus.com"
+        site.whatsapp_support_number = "+15551234567"
+        site.save(
+            update_fields=[
+                "marksheet_ocr_command",
+                "sms_sender_id",
+                "email_from_address",
+                "whatsapp_support_number",
+            ]
+        )
+
+        integration_settings = site.get_marketplace_integration_settings()
+
+        self.assertEqual(
+            integration_settings["marksheet_ocr_command"],
+            "/opt/runmycampus/bin/tesseract",
+        )
+        self.assertEqual(integration_settings["sms_sender_id"], "RUNMYCAMPUS")
+        self.assertEqual(integration_settings["email_from_address"], "platform@runmycampus.com")
+        self.assertEqual(integration_settings["whatsapp_support_number"], "+15551234567")
 
     def test_build_platform_default_site_settings_returns_unsaved_compat_shape(self):
         site = build_platform_default_site_settings()

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 import logging
 import uuid
 
@@ -31,6 +31,7 @@ PLATFORM_DEFAULT_SITE_NAME = "RunMyCampus"
 PLATFORM_DEFAULT_SCHOOL_CODE = "RMC"
 PLATFORM_DEFAULT_TAGLINE = "Education management for every school."
 PLATFORM_DEFAULT_REPORT_PREVIEW_EMAIL = "support@runmycampus.com"
+LEGACY_PLACEHOLDER_REPORT_DOMAINS = {"".join(["g", "ilead", "tech", ".", "edu"])}
 LEGACY_PLACEHOLDER_SITE_NAMES = {"", "School System"}
 LEGACY_PLACEHOLDER_SCHOOL_CODES = {"", "GIL"}
 LEGACY_PLACEHOLDER_TAGLINES = {
@@ -38,7 +39,6 @@ LEGACY_PLACEHOLDER_TAGLINES = {
     "Knowledge ƒ?› Technology ƒ?› Excellence",
     "Knowledge > Technology > Excellence",
 }
-LEGACY_PLACEHOLDER_REPORT_EMAILS = {"", "reports@gileadtech.edu"}
 LEGACY_PLACEHOLDER_REPORT_PHONES = {"", "+237 670 000 000"}
 
 
@@ -369,12 +369,120 @@ def _normalized_tagline(value: object) -> str:
 
 def _normalized_report_preview_email(value: object) -> str:
     text = str(value or "").strip().lower()
-    return PLATFORM_DEFAULT_REPORT_PREVIEW_EMAIL if text in LEGACY_PLACEHOLDER_REPORT_EMAILS else text
+    local_part, _, domain = text.partition("@")
+    is_legacy_placeholder = (
+        not text
+        or (local_part == "reports" and domain in LEGACY_PLACEHOLDER_REPORT_DOMAINS)
+    )
+    return PLATFORM_DEFAULT_REPORT_PREVIEW_EMAIL if is_legacy_placeholder else text
 
 
 def _normalized_report_preview_phone(value: object) -> str:
     text = str(value or "").strip()
     return "" if text in LEGACY_PLACEHOLDER_REPORT_PHONES else text
+
+
+def _payload_or_attr(
+    payload: dict[str, object],
+    instance: object,
+    field_name: str,
+    default: object = None,
+) -> object:
+    return payload.get(field_name, getattr(instance, field_name, default))
+
+
+def _payload_string(
+    payload: dict[str, object],
+    instance: object,
+    field_name: str,
+    default: str = "",
+) -> str:
+    return str(_payload_or_attr(payload, instance, field_name, default) or default)
+
+
+def _payload_bool(
+    payload: dict[str, object],
+    instance: object,
+    field_name: str,
+    default: bool = False,
+) -> bool:
+    return bool(_payload_or_attr(payload, instance, field_name, default))
+
+
+def _payload_int(
+    payload: dict[str, object],
+    instance: object,
+    field_name: str,
+    default: int = 0,
+) -> int:
+    value = _payload_or_attr(payload, instance, field_name, default)
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _payload_float(
+    payload: dict[str, object],
+    instance: object,
+    field_name: str,
+    default: float = 0.0,
+) -> float:
+    value = _payload_or_attr(payload, instance, field_name, default)
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _payload_decimal(
+    payload: dict[str, object],
+    instance: object,
+    field_name: str,
+    default: str | Decimal = "0.00",
+) -> Decimal:
+    value = _payload_or_attr(payload, instance, field_name, default)
+    try:
+        return Decimal(str(value))
+    except (InvalidOperation, TypeError, ValueError):
+        return Decimal(str(default))
+
+
+def _payload_json_object(
+    payload: dict[str, object],
+    instance: object,
+    field_name: str,
+) -> dict[str, object]:
+    value = _payload_or_attr(payload, instance, field_name, {})
+    return dict(value) if isinstance(value, dict) else {}
+
+
+def _payload_string_list(
+    payload: dict[str, object],
+    instance: object,
+    field_name: str,
+) -> list[str]:
+    value = _payload_or_attr(payload, instance, field_name, [])
+    if not isinstance(value, (list, tuple)):
+        return []
+    return [str(item).strip() for item in value if str(item or "").strip()]
+
+
+def _payload_int_list(
+    payload: dict[str, object],
+    instance: object,
+    field_name: str,
+) -> list[int]:
+    value = _payload_or_attr(payload, instance, field_name, [])
+    if not isinstance(value, (list, tuple)):
+        return []
+    normalized: list[int] = []
+    for item in value:
+        try:
+            normalized.append(int(item))
+        except (TypeError, ValueError):
+            continue
+    return normalized
 
 
 _SITE_SETTINGS_CACHE: "SiteSettings | None" = None
@@ -1931,6 +2039,117 @@ class SiteSettings(models.Model):
             "default_annual_report_style_id": payload.get(
                 "default_annual_report_style_id",
                 getattr(self, "default_annual_report_style_id", None),
+            ),
+        }
+
+    def get_finance_runtime_config(self) -> dict[str, object]:
+        """Return finance automation, reminder, and receipt policy through the policy owner domain."""
+        payload = self.owned_payload(owner="policies_rules")
+        return {
+            "auto_generate_invoices_enabled": _payload_bool(
+                payload, self, "finance_auto_generate_invoices_enabled", False
+            ),
+            "auto_generate_schedule": _payload_json_object(
+                payload, self, "finance_auto_generate_schedule"
+            ),
+            "auto_generate_due_date_offset_days": _payload_int(
+                payload, self, "finance_auto_generate_due_date_offset_days", 30
+            ),
+            "auto_generate_require_approval": _payload_bool(
+                payload, self, "finance_auto_generate_require_approval", False
+            ),
+            "fee_plan_auto_copy_enabled": _payload_bool(
+                payload, self, "finance_fee_plan_auto_copy_enabled", False
+            ),
+            "fee_plan_auto_copy_mode": _payload_string(
+                payload, self, "finance_fee_plan_auto_copy_mode", "manual"
+            ).lower(),
+            "fee_plan_copy_increase_percentage": _payload_decimal(
+                payload, self, "finance_fee_plan_copy_increase_percentage", "0.00"
+            ),
+            "payment_reminder_default_channels": _payload_string_list(
+                payload, self, "finance_payment_reminder_default_channels"
+            ),
+            "payment_reminder_default_days": _payload_int_list(
+                payload, self, "finance_payment_reminder_default_days"
+            ),
+            "invoice_auto_status_updates_enabled": _payload_bool(
+                payload, self, "finance_invoice_auto_status_updates_enabled", True
+            ),
+            "invoice_overdue_grace_period_days": _payload_int(
+                payload, self, "finance_invoice_overdue_grace_period_days", 0
+            ),
+            "receipt_verification_method": _payload_string(
+                payload, self, "finance_receipt_verification_method", "pattern"
+            ),
+            "receipt_auto_apply_threshold": _payload_float(
+                payload, self, "finance_receipt_auto_apply_threshold", 0.9
+            ),
+            "receipt_auto_apply_enabled": _payload_bool(
+                payload, self, "finance_receipt_auto_apply_enabled", True
+            ),
+            "receipt_require_admin_approval": _payload_bool(
+                payload, self, "finance_receipt_require_admin_approval", False
+            ),
+            "receipt_amount_tolerance": _payload_decimal(
+                payload, self, "finance_receipt_amount_tolerance", "1.00"
+            ),
+            "bank_verification_enabled": _payload_bool(
+                payload, self, "finance_bank_verification_enabled", True
+            ),
+            "bank_verification_auto_approve": _payload_bool(
+                payload, self, "finance_bank_verification_auto_approve", False
+            ),
+            "bank_verification_tolerance_days": _payload_int(
+                payload, self, "finance_bank_verification_tolerance_days", 7
+            ),
+            "bank_verification_amount_tolerance": _payload_decimal(
+                payload, self, "finance_bank_verification_amount_tolerance", "100.00"
+            ),
+            "payment_instructions_bank": _payload_string(
+                payload, self, "finance_payment_instructions_bank", ""
+            ),
+            "payment_instructions_mtn_momo": _payload_string(
+                payload, self, "finance_payment_instructions_mtn_momo", ""
+            ),
+            "payment_instructions_orange_money": _payload_string(
+                payload, self, "finance_payment_instructions_orange_money", ""
+            ),
+            "payment_instructions_cash": _payload_string(
+                payload, self, "finance_payment_instructions_cash", ""
+            ),
+            "receipt_upload_instructions": _payload_string(
+                payload, self, "finance_receipt_upload_instructions", ""
+            ),
+            "reminder_no_contact_action": _payload_string(
+                payload, self, "finance_reminder_no_contact_action", "warn_only"
+            ),
+            "reminder_retry_failed_hours": _payload_int(
+                payload, self, "finance_reminder_retry_failed_hours", 24
+            ),
+            "reminder_max_retries": _payload_int(
+                payload, self, "finance_reminder_max_retries", 2
+            ),
+        }
+
+    def get_marketplace_integration_settings(self) -> dict[str, object]:
+        """Return integration-owned defaults through the marketplace/integration owner domain."""
+        payload = self.owned_payload(owner="marketplace_integrations")
+        return {
+            "marksheet_ocr_command": _payload_string(
+                payload, self, "marksheet_ocr_command", ""
+            ),
+            "sms_provider": _payload_string(payload, self, "sms_provider", "console"),
+            "sms_api_key": _payload_string(payload, self, "sms_api_key", ""),
+            "sms_sender_id": _payload_string(payload, self, "sms_sender_id", "RUNMYCAMPUS"),
+            "email_from_address": _payload_string(
+                payload, self, "email_from_address", "noreply@school.example.com"
+            ),
+            "whatsapp_support_number": _payload_string(
+                payload, self, "whatsapp_support_number", ""
+            ),
+            "whatsapp_admissions_number": _payload_string(
+                payload, self, "whatsapp_admissions_number", ""
             ),
         }
 

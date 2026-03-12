@@ -6,14 +6,14 @@
 - Markdown files: `793`
 - Migration files: `585`
 - Management commands: `137`
-- `SiteSettings` refs: `1069`
-- `get_solo()` refs: `214`
+- `SiteSettings` refs: `1056`
+- `get_solo()` refs: `202`
 - `except Exception`: `741`
 - `cursor.execute()`: `351`
 - `csrf_exempt`: `79`
 - `AllowAny`: `34`
 - `print()`: `428`
-- `gilead` matches: `486` across `112` files
+- `gilead` matches: `485` across `111` files
 
 ## Public Endpoint Review
 
@@ -47,7 +47,7 @@
 ## Largest Python Files
 
 - `apps/schools/marketing_views.py`: `3632` lines / `209838` bytes
-- `apps/siteconfig/models.py`: `4477` lines / `174866` bytes
+- `apps/siteconfig/models.py`: `4696` lines / `183241` bytes
 - `apps/schools/super_views.py`: `3022` lines / `129484` bytes
 - `apps/accounts/views.py`: `2653` lines / `121002` bytes
 - `apps/evals/views.py`: `2568` lines / `107834` bytes
@@ -56,8 +56,8 @@
 - `apps/portal/views.py`: `2226` lines / `96646` bytes
 - `apps/finance/models.py`: `2554` lines / `95611` bytes
 - `apps/api/views_v1.py`: `1752` lines / `90549` bytes
+- `apps/finance/tasks.py`: `1691` lines / `77795` bytes
 - `apps/siteconfig/views.py`: `1794` lines / `75773` bytes
-- `apps/finance/tasks.py`: `1612` lines / `74358` bytes
 
 ## Documentation Drift
 

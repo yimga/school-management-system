@@ -88,6 +88,81 @@ def _resolve_school(*objects):
     return None
 
 
+def _get_finance_runtime_config(site_settings) -> dict[str, object]:
+    getter = getattr(site_settings, "get_finance_runtime_config", None)
+    if callable(getter):
+        return getter()
+    return {
+        "auto_generate_invoices_enabled": bool(
+            getattr(site_settings, "finance_auto_generate_invoices_enabled", False)
+        ),
+        "auto_generate_schedule": getattr(site_settings, "finance_auto_generate_schedule", {}) or {},
+        "auto_generate_due_date_offset_days": int(
+            getattr(site_settings, "finance_auto_generate_due_date_offset_days", 30) or 30
+        ),
+        "auto_generate_require_approval": bool(
+            getattr(site_settings, "finance_auto_generate_require_approval", False)
+        ),
+        "fee_plan_auto_copy_enabled": bool(
+            getattr(site_settings, "finance_fee_plan_auto_copy_enabled", False)
+        ),
+        "fee_plan_auto_copy_mode": str(
+            getattr(site_settings, "finance_fee_plan_auto_copy_mode", "manual") or "manual"
+        ).lower(),
+        "fee_plan_copy_increase_percentage": Decimal(
+            str(getattr(site_settings, "finance_fee_plan_copy_increase_percentage", "0.00"))
+        ),
+        "invoice_auto_status_updates_enabled": bool(
+            getattr(site_settings, "finance_invoice_auto_status_updates_enabled", True)
+        ),
+        "invoice_overdue_grace_period_days": int(
+            getattr(site_settings, "finance_invoice_overdue_grace_period_days", 0) or 0
+        ),
+        "receipt_verification_method": str(
+            getattr(site_settings, "finance_receipt_verification_method", "pattern") or "pattern"
+        ),
+        "receipt_auto_apply_threshold": float(
+            getattr(site_settings, "finance_receipt_auto_apply_threshold", 0.9) or 0.9
+        ),
+        "receipt_auto_apply_enabled": bool(
+            getattr(site_settings, "finance_receipt_auto_apply_enabled", True)
+        ),
+        "receipt_require_admin_approval": bool(
+            getattr(site_settings, "finance_receipt_require_admin_approval", False)
+        ),
+        "receipt_amount_tolerance": Decimal(
+            str(getattr(site_settings, "finance_receipt_amount_tolerance", "1.00"))
+        ),
+        "bank_verification_enabled": bool(
+            getattr(site_settings, "finance_bank_verification_enabled", True)
+        ),
+        "bank_verification_auto_approve": bool(
+            getattr(site_settings, "finance_bank_verification_auto_approve", False)
+        ),
+        "bank_verification_tolerance_days": int(
+            getattr(site_settings, "finance_bank_verification_tolerance_days", 7) or 7
+        ),
+        "reminder_no_contact_action": str(
+            getattr(site_settings, "finance_reminder_no_contact_action", "warn_only") or "warn_only"
+        ),
+        "reminder_retry_failed_hours": int(
+            getattr(site_settings, "finance_reminder_retry_failed_hours", 24) or 24
+        ),
+        "reminder_max_retries": int(
+            getattr(site_settings, "finance_reminder_max_retries", 2) or 2
+        ),
+    }
+
+
+def _get_marketplace_integration_settings(site_settings) -> dict[str, object]:
+    getter = getattr(site_settings, "get_marketplace_integration_settings", None)
+    if callable(getter):
+        return getter()
+    return {
+        "marksheet_ocr_command": str(getattr(site_settings, "marksheet_ocr_command", "") or ""),
+    }
+
+
 def _get_payment_instructions(invoice: Invoice) -> dict:
     """
     Get payment instructions (bank accounts, MoMo numbers, etc.) for invoice reminders.
@@ -306,6 +381,7 @@ def run_payment_reminders(dry_run: bool = False) -> dict:
             invoice = reminder.invoice
             invoice_school = _resolve_school(invoice)
             site = get_cached_site_settings(school=invoice_school)
+            finance_settings = _get_finance_runtime_config(site)
             guardian_share_map = {}
             invoice_shares = list(
                 invoice.payer_shares.filter(is_active=True)
@@ -344,7 +420,7 @@ def run_payment_reminders(dry_run: bool = False) -> dict:
             link_display = payment_link["url"] if payment_link else default_link
             due_display = invoice.due_date or timezone.localdate(now)
 
-            # Get reminder channels (per-reminder override or SiteSettings default)
+            # Get reminder channels (per-reminder override or runtime finance policy default)
             channels = reminder.get_reminder_channels()
             reminder_active_channels = set()
 
@@ -367,11 +443,7 @@ def run_payment_reminders(dry_run: bool = False) -> dict:
                     or getattr(guardian, "whatsapp_number", None)
                 )
                 if not has_contact:
-                    no_contact_action = getattr(
-                        site,
-                        "finance_reminder_no_contact_action",
-                        "warn_only",
-                    )
+                    no_contact_action = finance_settings["reminder_no_contact_action"]
                     logger.warning(
                         "Payment reminder: no contact for guardian %s, invoice %s (student: %s)",
                         guardian_name,
@@ -564,8 +636,9 @@ def _retry_failed_payment_reminders_body(dry_run: bool) -> dict:
             if not reminder:
                 continue
             site = get_cached_site_settings(school=_resolve_school(reminder))
-            retry_hours = getattr(site, "finance_reminder_retry_failed_hours", 24) or 0
-            max_retries = getattr(site, "finance_reminder_max_retries", 2) or 0
+            finance_settings = _get_finance_runtime_config(site)
+            retry_hours = finance_settings["reminder_retry_failed_hours"] or 0
+            max_retries = finance_settings["reminder_max_retries"] or 0
             if retry_hours <= 0:
                 continue
             cutoff = timezone.now() - timedelta(hours=retry_hours)
@@ -667,17 +740,18 @@ def _auto_generate_fee_invoices_body(dry_run: bool) -> dict:
     
     try:
         site = get_cached_site_settings()
-        
-        if not getattr(site, "finance_auto_generate_invoices_enabled", False):
+        finance_settings = _get_finance_runtime_config(site)
+
+        if not finance_settings["auto_generate_invoices_enabled"]:
             execution_log.mark_completed(
                 AutomationExecutionLog.Status.SUCCESS,
-                summary={"message": "Fee auto-generation disabled in SiteSettings"}
+                summary={"message": "Fee auto-generation disabled in runtime finance policy"}
             )
             return {"status": "disabled"}
-        
-        schedule = getattr(site, "finance_auto_generate_schedule", {})
+
+        schedule = finance_settings["auto_generate_schedule"]
         mode = schedule.get("mode", "academic_year_start")
-        due_date_offset = getattr(site, "finance_auto_generate_due_date_offset_days", 30)
+        due_date_offset = finance_settings["auto_generate_due_date_offset_days"]
         
         current_year = get_current_academic_year()
         if not current_year:
@@ -769,7 +843,7 @@ def _auto_generate_fee_invoices_body(dry_run: bool) -> dict:
             return {"dry_run": True, **execution_summary}
         
         # Check if approval required
-        require_approval = getattr(site, "finance_auto_generate_require_approval", False)
+        require_approval = finance_settings["auto_generate_require_approval"]
         
         if require_approval:
             # Create approval queue entry
@@ -855,9 +929,10 @@ def _auto_copy_fee_plans_body(dry_run: bool) -> dict:
     )
     try:
         site = get_cached_site_settings()
-        enabled = getattr(site, "finance_fee_plan_auto_copy_enabled", False)
-        mode = getattr(site, "finance_fee_plan_auto_copy_mode", "manual")
-        increase_pct = getattr(site, "finance_fee_plan_copy_increase_percentage", Decimal("0.00"))
+        finance_settings = _get_finance_runtime_config(site)
+        enabled = finance_settings["fee_plan_auto_copy_enabled"]
+        mode = finance_settings["fee_plan_auto_copy_mode"]
+        increase_pct = finance_settings["fee_plan_copy_increase_percentage"]
         if not enabled or mode == "manual":
             execution_log.mark_completed(
                 AutomationExecutionLog.Status.SUCCESS,
@@ -1001,15 +1076,16 @@ def _update_invoice_statuses_body(dry_run: bool) -> dict:
 
     try:
         site = get_cached_site_settings()
+        finance_settings = _get_finance_runtime_config(site)
 
-        if not getattr(site, "finance_invoice_auto_status_updates_enabled", True):
+        if not finance_settings["invoice_auto_status_updates_enabled"]:
             execution_log.mark_completed(
                 AutomationExecutionLog.Status.SUCCESS,
                 summary={"message": "Invoice status updates disabled"}
             )
             return {"status": "disabled"}
 
-        grace_period = getattr(site, "finance_invoice_overdue_grace_period_days", 0)
+        grace_period = finance_settings["invoice_overdue_grace_period_days"]
         now = timezone.now().date()
         cutoff_date = now - timedelta(days=grace_period)
 
@@ -1111,18 +1187,19 @@ def _process_payment_receipt_upload_impl(proof_upload_id: int) -> dict:
         proof_upload.status = PaymentProofUpload.Status.VERIFYING
         proof_upload.save(update_fields=["status"])
         
-        # Get SiteSettings
         site_settings = get_cached_site_settings(school=_resolve_school(proof_upload))
-        verification_method = getattr(site_settings, "finance_receipt_verification_method", "pattern")
-        auto_apply_threshold = float(getattr(site_settings, "finance_receipt_auto_apply_threshold", 0.9))
-        auto_apply_enabled = getattr(site_settings, "finance_receipt_auto_apply_enabled", True)
-        require_approval = getattr(site_settings, "finance_receipt_require_admin_approval", False)
-        amount_tolerance = Decimal(str(getattr(site_settings, "finance_receipt_amount_tolerance", "1.00")))
+        finance_settings = _get_finance_runtime_config(site_settings)
+        integration_settings = _get_marketplace_integration_settings(site_settings)
+        verification_method = finance_settings["receipt_verification_method"]
+        auto_apply_threshold = finance_settings["receipt_auto_apply_threshold"]
+        auto_apply_enabled = finance_settings["receipt_auto_apply_enabled"]
+        require_approval = finance_settings["receipt_require_admin_approval"]
+        amount_tolerance = finance_settings["receipt_amount_tolerance"]
         
         # Extract receipt data
         verification_service = ReceiptVerificationService(
             verification_method=verification_method,
-            marksheet_ocr_command=getattr(site_settings, "marksheet_ocr_command", ""),
+            marksheet_ocr_command=str(integration_settings["marksheet_ocr_command"] or ""),
         )
         receipt_data = verification_service.extract_receipt_data(proof_upload.receipt_file)
         
@@ -1177,7 +1254,8 @@ def _process_payment_receipt_upload_impl(proof_upload_id: int) -> dict:
 
         # Run bank deposit verification (if enabled)
         site_settings = get_cached_site_settings(school=_resolve_school(proof_upload))
-        if getattr(site_settings, "finance_bank_verification_enabled", True):
+        finance_settings = _get_finance_runtime_config(site_settings)
+        if finance_settings["bank_verification_enabled"]:
             from apps.finance.bank_verification import BankDepositVerifier
             verifier = BankDepositVerifier()
             
@@ -1216,7 +1294,7 @@ def _process_payment_receipt_upload_impl(proof_upload_id: int) -> dict:
                     all_statements.extend(list(statements))
                 
                 # Verify deposit
-                tolerance_days = int(getattr(site_settings, "finance_bank_verification_tolerance_days", 7))
+                tolerance_days = finance_settings["bank_verification_tolerance_days"]
                 
                 if proof_upload.payment_method == "MTN_MOMO":
                     bank_verification_result = verifier.verify_mtn_momo_deposit(
@@ -1492,7 +1570,8 @@ def _retry_bank_verification_body(days_old: int) -> dict:
         for receipt_upload in pending_receipts:
             try:
                 site_settings = get_cached_site_settings(school=_resolve_school(receipt_upload))
-                tolerance_days = int(getattr(site_settings, "finance_bank_verification_tolerance_days", 7))
+                finance_settings = _get_finance_runtime_config(site_settings)
+                tolerance_days = finance_settings["bank_verification_tolerance_days"]
                 # Get relevant bank accounts
                 if receipt_upload.payment_method == "BANK":
                     accounts = BankAccount.objects.filter(
@@ -1554,7 +1633,7 @@ def _retry_bank_verification_body(days_old: int) -> dict:
                 if verification_result["verified"]:
                     verified_count += 1
                     # Auto-approve if enabled
-                    if getattr(site_settings, "finance_bank_verification_auto_approve", False):
+                    if finance_settings["bank_verification_auto_approve"]:
                         receipt_data = receipt_upload.verification_data or {}
                         create_payment_from_receipt(receipt_upload, receipt_data)
                 else:
