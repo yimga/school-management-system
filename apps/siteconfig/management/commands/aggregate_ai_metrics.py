@@ -29,6 +29,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         from apps.siteconfig.models import AIGatewayMetric
+        from services.ai_gateway import _cost_class_for_tier
 
         date_str = options.get("date")
         if date_str:
@@ -63,7 +64,8 @@ class Command(BaseCommand):
             parts = suffix.split(":")
             if len(parts) < 3:
                 continue
-            tenant_id, task_type, tier = parts[0], parts[1], ":".join(parts[2:]) if len(parts) > 3 else parts[2]
+            tenant_id, task_type, tier = parts[0], parts[1], parts[2]
+            cost_class = parts[3] if len(parts) > 3 else _cost_class_for_tier(tier)
             try:
                 bucket = cache.get(key)
                 if not bucket or not isinstance(bucket, dict):
@@ -74,21 +76,28 @@ class Command(BaseCommand):
                 except (ValueError, TypeError):
                     tid = None
                 count = bucket.get("count", 0) or 0
-                if count <= 0:
+                review_count = int(bucket.get("review_count", 0) or 0)
+                accepted_count = int(bucket.get("accepted_count", 0) or 0)
+                manual_correction_count = int(bucket.get("manual_correction_count", 0) or 0)
+                if count <= 0 and review_count <= 0:
                     continue
                 latency_sum = float(bucket.get("latency_sum", 0) or 0)
                 failures = int(bucket.get("failures", 0) or 0)
                 schema_fail = int(bucket.get("schema_fail", 0) or 0)
-                obj, created_flag = AIGatewayMetric.objects.update_or_create(
+                _, created_flag = AIGatewayMetric.objects.update_or_create(
                     date=agg_date,
                     tenant_id=tid,
                     task_type=task_type,
                     tier=tier,
+                    cost_class=cost_class,
                     defaults={
                         "request_count": count,
                         "total_latency_ms": latency_sum,
                         "failure_count": failures,
                         "schema_validation_failures": schema_fail,
+                        "review_count": review_count,
+                        "accepted_count": accepted_count,
+                        "manual_correction_count": manual_correction_count,
                     },
                 )
                 if created_flag:

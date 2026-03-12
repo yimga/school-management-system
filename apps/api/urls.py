@@ -94,6 +94,7 @@ from apps.portal.views_ai_gateway import (
     api_data_quality_assistant,
     api_marketplace_recommend,
     api_control_plane_intelligence,
+    api_ai_feedback,
 )
 from apps.api.lead_capture_api import LeadCaptureAPI
 from apps.api.rosetta_views import RosettaStoneConvertAPI, RosettaStoneScalesAPI
@@ -205,6 +206,7 @@ urlpatterns = [
     path('ai/data-quality-assistant/', api_data_quality_assistant, name='ai-data-quality-assistant'),
     path('ai/marketplace-recommend/', api_marketplace_recommend, name='ai-marketplace-recommend'),
     path('ai/control-plane-intelligence/', api_control_plane_intelligence, name='ai-control-plane-intelligence'),
+    path('ai/feedback/', api_ai_feedback, name='ai-feedback'),
     # Scheduling (Wave 5): conflict check
     path('schedules/<int:schedule_id>/conflicts/', ScheduleConflictsAPI.as_view(), name='schedule-conflicts'),
     

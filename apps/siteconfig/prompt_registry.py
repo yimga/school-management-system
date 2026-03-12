@@ -34,6 +34,10 @@ BUILTIN_PROMPTS: dict[str, str] = {
         "{{ \"category\": \"...\", \"tags\": [\"...\"], \"confidence\": 0.0-1.0 }}.\n\n"
         "Document excerpt: {query}\n\nNo other text."
     ),
+    "live_preview": (
+        "Explain live preview behaviour for setup, branding, or role previews. User question: {query}\n\n"
+        "Respond concisely with what will change, what stays draft-only, and what to verify before launch."
+    ),
     "semantic_search": (
         "Use the retrieved platform context to answer the question briefly and concretely.\n\n"
         "Question: {query}\n\nContext: {context_block}\n\n"
@@ -80,6 +84,16 @@ BUILTIN_PROMPTS: dict[str, str] = {
     "system_config": (
         "Explain system configuration options. User question: {query}\n\n"
         "Answer concisely; do not include secrets or internal URLs."
+    ),
+    "data_quality": (
+        "You are a data quality assistant. Based on the context and the user's question, suggest data quality checks, "
+        "validation rules, or remediation steps.\n\nContext: {context_block}\n\nQuestion: {query}\n\n"
+        "Provide 3-5 concrete suggestions."
+    ),
+    "control_plane_intelligence": (
+        "You are a control-plane intelligence assistant for platform operators. Use the context to answer concisely. "
+        "Provide runbook-style steps or configuration insights where relevant.\n\nContext: {context_block}\n\n"
+        "Question: {query}\n\nAnswer:"
     ),
 }
 

@@ -49,7 +49,10 @@ from .models import (
     PlanAddon,
     CountryMultiplier,
     RegionalAIConfig,
+    AIGatewayMetric,
+    AIEmbeddingStore,
     AIModelRegistry,
+    AIPromptRegistry,
     RevenueSnapshot,
     BillingWaiverAuditLog,
     WaiverRequest,
@@ -2032,6 +2035,110 @@ class AIModelRegistryAdmin(ModelAdmin):
 
 
 register_platform_admin(AIModelRegistry, AIModelRegistryAdmin)
+
+
+class AIPromptRegistryAdmin(ModelAdmin):
+    list_display = ("prompt_key", "prompt_class", "owner", "review_status", "is_active", "updated_at")
+    list_filter = ("prompt_class", "review_status", "is_active")
+    search_fields = ("prompt_key", "owner", "purpose")
+    readonly_fields = ("created_at", "updated_at")
+
+
+register_platform_admin(AIPromptRegistry, AIPromptRegistryAdmin)
+
+
+class AIEmbeddingStoreAdmin(ModelAdmin):
+    list_display = ("school_id", "conversation_id", "scope", "text_hash", "created_at")
+    list_filter = ("scope", "created_at")
+    search_fields = ("conversation_id", "text_hash")
+    readonly_fields = ("school_id", "conversation_id", "scope", "text_hash", "embedding", "metadata", "created_at")
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_view_permission(self, request, obj=None):
+        return True
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+register_platform_admin(AIEmbeddingStore, AIEmbeddingStoreAdmin)
+
+
+class AIGatewayMetricAdmin(ModelAdmin):
+    list_display = (
+        "date",
+        "tenant_id",
+        "task_type",
+        "tier",
+        "cost_class",
+        "request_count",
+        "average_latency_ms",
+        "failure_rate",
+        "schema_validation_failures",
+        "acceptance_rate",
+        "manual_correction_rate",
+    )
+    list_filter = ("date", "task_type", "tier", "cost_class")
+    search_fields = ("tenant_id", "task_type", "tier", "cost_class")
+    readonly_fields = (
+        "date",
+        "tenant_id",
+        "task_type",
+        "tier",
+        "cost_class",
+        "request_count",
+        "total_latency_ms",
+        "failure_count",
+        "schema_validation_failures",
+        "review_count",
+        "accepted_count",
+        "manual_correction_count",
+    )
+    date_hierarchy = "date"
+
+    @admin.display(description="Avg latency (ms)")
+    def average_latency_ms(self, obj):
+        if not obj.request_count:
+            return 0
+        return round(obj.total_latency_ms / obj.request_count, 2)
+
+    @admin.display(description="Failure rate")
+    def failure_rate(self, obj):
+        if not obj.request_count:
+            return "0.0%"
+        return f"{(obj.failure_count / obj.request_count) * 100:.1f}%"
+
+    @admin.display(description="Acceptance rate")
+    def acceptance_rate(self, obj):
+        if not obj.review_count:
+            return "n/a"
+        return f"{(obj.accepted_count / obj.review_count) * 100:.1f}%"
+
+    @admin.display(description="Manual edits")
+    def manual_correction_rate(self, obj):
+        if not obj.review_count:
+            return "n/a"
+        return f"{(obj.manual_correction_count / obj.review_count) * 100:.1f}%"
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_view_permission(self, request, obj=None):
+        return True
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+register_platform_admin(AIGatewayMetric, AIGatewayMetricAdmin)
 
 
 class RevenueSnapshotAdmin(ModelAdmin):

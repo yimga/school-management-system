@@ -67,7 +67,11 @@ run_django_tests apps.accounts.tests.test_smoke_urls
 
 echo "[pre_deploy_gate] Targeted hardening regressions"
 TARGETED_HARDENING_TESTS=(
+  services.tests.test_ai_gateway
+  services.tests.test_ai_memory
   apps.siteconfig.tests.test_ai_copilot_context
+  apps.siteconfig.tests.test_ai_admin_surfaces
+  apps.siteconfig.tests.test_ai_gateway_metrics
   apps.siteconfig.tests.test_backend_context
   apps.siteconfig.tests.test_bounded_context_ownership
   apps.siteconfig.tests.test_metadata_catalog
@@ -75,12 +79,16 @@ TARGETED_HARDENING_TESTS=(
   apps.platform_runtime.tests.test_precedence
   apps.platform_runtime.tests.test_public_api_lints
   apps.portal.tests.test_ai_copilot_config
+  apps.portal.tests.test_ai_feedback
   apps.portal.tests.test_ai_gateway_smoke
   apps.schools.tests.test_provisioning_dispatch
   apps.setup_studio.tests
   apps.siteconfig.tests.test_world_engine_jit_broadcast_syllabus
 )
 run_django_tests "${TARGETED_HARDENING_TESTS[@]}"
+
+echo "[pre_deploy_gate] AI blueprint contract"
+python scripts/verify_ai_blueprint_completion.py
 
 echo "[pre_deploy_gate] Theme stress matrix"
 run_django_tests apps.siteconfig.tests.test_theme_visibility_matrix

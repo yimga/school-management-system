@@ -18,7 +18,7 @@ from django.views.decorators.http import require_http_methods
 from apps.compliance.models import AuditLog
 from apps.portal.views_ai_copilot import _check_rate_limit
 from apps.siteconfig.prompt_registry import get_prompt_template
-from services.ai_gateway import TaskType, invoke
+from services.ai_gateway import TaskType, invoke, record_feedback
 from services.ai_memory import AIMemoryService, get_embedding_for_text
 from services.inference import strip_pii_for_inference
 
@@ -123,6 +123,19 @@ def _gateway_response(request, task_type: str, prompt: str, user_query: str = ""
     return result, meta
 
 
+def _parse_optional_bool(value: Any) -> bool | None:
+    if value is None or value == "":
+        return None
+    if isinstance(value, bool):
+        return value
+    normalized = str(value).strip().lower()
+    if normalized in {"1", "true", "yes", "y"}:
+        return True
+    if normalized in {"0", "false", "no", "n"}:
+        return False
+    raise ValueError("boolean field must be true/false")
+
+
 # --- Setup assistant ---
 @require_http_methods(["POST"])
 @csrf_protect
@@ -142,13 +155,14 @@ def api_setup_assistant(request):
         citations = []
         emb = get_embedding_for_text(query, max_tokens=512)
         if emb:
-            for r in AIMemoryService.search_similar(school_id, "default", emb, limit=5, **_retrieval_kwargs(request)):
-                context_parts.append(str(r.get("metadata", ""))[:400])
-                citations.append({
-                    "id": r.get("id"),
-                    "scope": "default",
-                    "metadata": {k: v for k, v in (r.get("metadata") or {}).items() if k not in ("embedding", "raw_text")},
-                })
+            for scope in ("help", "config", "default"):
+                for r in AIMemoryService.search_similar(school_id, scope, emb, limit=2, **_retrieval_kwargs(request)):
+                    context_parts.append(str(r.get("metadata", ""))[:400])
+                    citations.append({
+                        "id": r.get("id"),
+                        "scope": scope,
+                        "metadata": {k: v for k, v in (r.get("metadata") or {}).items() if k not in ("embedding", "raw_text")},
+                    })
         context = "\n".join(context_parts)[:1200] if context_parts else ""
         try:
             prompt = get_prompt_template("setup_assistant", {"query": query, "context_block": context})
@@ -184,7 +198,7 @@ def api_workflow_draft(request):
         description = (body.get("description") or body.get("query") or "").strip()[:1500]
         if not description:
             return JsonResponse({"success": False, "error": "description required"}, status=400)
-        prompt = (
+        prompt = (get_prompt_template("workflow_draft", {"query": description}) or "").strip() or (
             f"Generate a workflow definition as JSON only. User request: {description}\n\n"
             "Respond with a single JSON object with keys: name (string), trigger_type (string), "
             "steps (array of { action, role, config }), description (string). No other text."
@@ -276,7 +290,7 @@ def api_document_classify(request):
         if not text:
             return JsonResponse({"success": False, "error": "text required"}, status=400)
         safe_text = strip_pii_for_inference(text)
-        prompt = (
+        prompt = (get_prompt_template("document_classify", {"query": safe_text[:2000]}) or "").strip() or (
             f"Classify this document. Respond with JSON only: {{ \"category\": \"...\", \"tags\": [\"...\"], \"confidence\": 0.0-1.0 }}.\n\nDocument excerpt: {safe_text[:2000]}\n\nNo other text."
         )
         result, meta = _gateway_response(
@@ -540,7 +554,9 @@ def api_live_preview_explain(request):
         query = (body.get("query") or "").strip()[:1000]
         if not query:
             return JsonResponse({"success": False, "error": "query required"}, status=400)
-        prompt = f"Explain live preview behaviour for setup or design. User question: {query}\n\nAnswer concisely."
+        prompt = (get_prompt_template("live_preview", {"query": query}) or "").strip() or (
+            f"Explain live preview behaviour for setup or design. User question: {query}\n\nAnswer concisely."
+        )
         result, meta = _gateway_response(request, TaskType.CONFIG_EXPLAIN, prompt, user_query=query)
         if meta.get("budget_exceeded"):
             return JsonResponse({"success": False, "error": "AI request budget exceeded.", "meta": meta}, status=429)
@@ -706,7 +722,7 @@ def api_data_quality_assistant(request):
                 for r in AIMemoryService.search_similar(school_id, scope, emb, limit=2, **_retrieval_kwargs(request)):
                     context_parts.append(str(r.get("metadata", ""))[:400])
         context = "\n".join(context_parts)[:2000] if context_parts else ""
-        prompt = (
+        prompt = (get_prompt_template("data_quality", {"query": query, "context_block": context}) or "").strip() or (
             "You are a data quality assistant. Based on the context and the user's question, suggest data quality checks, "
             "validation rules, or remediation steps. Be concise and actionable.\n\n"
             f"Context:\n{context}\n\nUser question: {query}\n\nProvide 3–5 concrete suggestions."
@@ -778,7 +794,7 @@ def api_control_plane_intelligence(request):
                 for r in AIMemoryService.search_similar(school_id, scope, emb, limit=3, **_retrieval_kwargs(request)):
                     context_parts.append(str(r.get("metadata", ""))[:400])
         context = "\n".join(context_parts)[:2000] if context_parts else ""
-        prompt = (
+        prompt = (get_prompt_template("control_plane_intelligence", {"query": query, "context_block": context}) or "").strip() or (
             "You are a control-plane intelligence assistant for platform operators. Use the context to answer concisely. "
             "Provide runbook-style steps or config insights where relevant.\n\n"
             f"Context:\n{context}\n\nQuestion: {query}\n\nAnswer:"
@@ -790,6 +806,67 @@ def api_control_plane_intelligence(request):
         return JsonResponse({"success": True, "response": result if isinstance(result, str) else str(result), "meta": meta})
     except Exception as e:
         logger.exception("Control plane intelligence failed")
+        return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
+
+
+@require_http_methods(["POST"])
+@csrf_protect
+@login_required
+def api_ai_feedback(request):
+    """POST: record operator review for an AI result so review-loop metrics are queryable."""
+    rate_err = _gateway_rate_limit(request)
+    if rate_err:
+        return rate_err
+    try:
+        body = json.loads(request.body) if request.body else {}
+        task_type = str(body.get("task_type") or "").strip()
+        tier = str(body.get("tier") or "").strip().lower()
+        if not task_type or not tier:
+            return JsonResponse({"success": False, "error": "task_type and tier required"}, status=400)
+        accepted = _parse_optional_bool(body.get("accepted"))
+        manual_correction = _parse_optional_bool(body.get("manual_correction"))
+        if accepted is None and manual_correction is None:
+            return JsonResponse({"success": False, "error": "accepted or manual_correction required"}, status=400)
+        feature = str(body.get("feature") or task_type).strip()[:120]
+        request_id = str(body.get("request_id") or "").strip()[:64] or None
+        request_date = str(body.get("request_date") or "").strip()[:32] or None
+        school_id = _school_id(request)
+        feedback_meta = record_feedback(
+            task_type,
+            tier,
+            tenant_id=school_id,
+            school_id=school_id,
+            accepted=accepted,
+            manual_correction=manual_correction,
+            request_date=request_date,
+            request_id=request_id,
+        )
+        action = AuditLog.Action.UPDATE
+        if accepted is True:
+            action = AuditLog.Action.APPROVE
+        elif accepted is False:
+            action = AuditLog.Action.REJECT
+        AuditLog.objects.create(
+            user=getattr(request, "user", None),
+            ip_address=(request.META.get("REMOTE_ADDR") or "")[:45],
+            user_agent=(request.META.get("HTTP_USER_AGENT") or "")[:500],
+            action=action,
+            model_name="AIGatewayFeedback",
+            object_id=request_id or feature,
+            object_repr=f"AI feedback {feature}",
+            app_label="portal",
+            reason=task_type,
+            sensitivity=AuditLog.Sensitivity.LOW,
+            new_values={"feature": feature, **feedback_meta},
+        )
+        return JsonResponse({"success": True, "meta": feedback_meta})
+    except ValueError as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=400)
+    except json.JSONDecodeError:
+        return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
+    except Exception as e:
+        logger.exception("AI feedback failed")
+        _log_gateway_audit(request, "ai_feedback", "feedback", "error", {"error": str(e)[:200]})
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
 
 

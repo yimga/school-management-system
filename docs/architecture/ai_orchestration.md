@@ -34,6 +34,7 @@ All LLM usage goes through a single orchestration layer. **No browser or front-e
 ## Prompts, RAG, audit
 
 - **Prompts:** Owned in code (ai_provider, inference). No tenant identifiers or internal IDs are appended to prompts sent to external providers (`metadata` is not added to prompt text).
+- **Prompt discipline:** Productized AI endpoints resolve prompt templates through `apps.siteconfig.prompt_registry` so prompt owner, review status, expected output shape, and backend policy stay governable in one place.
 - **RAG:** When RAG is used, source data must come from internal APIs or DB; no raw PII in context sent to external LLMs. `strip_pii_for_inference` in services.inference used for Ollama path.
 - **Audit:** Logging and `metadata` returned from `generate_ai_response` are for observability only; extend to structured audit (e.g. event or log line per request) as needed.
 - **Evaluation:** Add evaluation harness (e.g. golden set, safety checks) behind the same entry points; no separate provider calls for evals.
@@ -96,6 +97,13 @@ Callers may pass the following in `metadata` to influence routing and behaviour 
 - **allowed_backends** (list of str): If set, only these tiers are tried (e.g. `["ollama", "rules"]` for internal-only). Order is respected; must be subset of configured tiers.
 
 These are documented in `services.ai_gateway.invoke` and applied in routing/tier selection and timeout.
+
+## Observability and review loops
+
+- **Persisted metrics:** `AIGatewayMetric` aggregates request volume, latency, failure rate, schema-validation failures, `cost_class`, `review_count`, `accepted_count`, and `manual_correction_count`.
+- **Metric sources:** `services.ai_gateway.invoke(...)` writes request buckets; `services.ai_gateway.record_feedback(...)` writes review-loop buckets; `python manage.py aggregate_ai_metrics` materializes both into the table.
+- **Feedback capture:** Product UIs can POST `/api/ai/feedback/` with `task_type`, `tier`, `request_id`, `request_date`, `accepted`, and `manual_correction` so operator acceptance rate and manual correction rate are queryable instead of inferred.
+- **Operator surfaces:** Platform admin exposes prompt registry, embedding store, and AI gateway metrics so prompt approval, indexed knowledge, and AI quality signals are visible from the control plane.
 
 ## References
 

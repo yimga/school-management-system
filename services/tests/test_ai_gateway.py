@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 from django.test import SimpleTestCase, override_settings
 
-from services.ai_gateway import TaskType, invoke, _task_tiers
+from services.ai_gateway import TaskType, invoke, record_feedback, _task_tiers
 from services.ai_schemas import (
     validate_dashboard_pack_recommend,
     validate_design_studio,
@@ -34,6 +34,9 @@ class InvokeTests(SimpleTestCase):
         result, meta = invoke(TaskType.CONFIG_EXPLAIN, "Say hello", user_query="hello")
         self.assertEqual(result, "test response")
         self.assertIn(meta.get("provider"), ("ollama", "rules"))
+        self.assertEqual(meta.get("cost_class"), "self_hosted")
+        self.assertTrue(meta.get("request_id"))
+        self.assertTrue(meta.get("request_date"))
         mock_ollama.assert_called()
 
     @override_settings(AI_GATEWAY_ENABLED=True, AI_ALLOW_RULES_FALLBACK=True)
@@ -92,6 +95,26 @@ class InvokeTests(SimpleTestCase):
         )
         self.assertEqual(result, {"name": "", "trigger_type": "manual", "steps": [], "description": ""})
         self.assertTrue(meta.get("schema_validation_failed"))
+
+    @patch("services.ai_gateway.cache")
+    def test_record_feedback_updates_review_bucket(self, mock_cache):
+        mock_cache.get.return_value = None
+        meta = record_feedback(
+            TaskType.SETUP_RECOMMEND,
+            "ollama",
+            tenant_id="tenant-1",
+            accepted=False,
+            manual_correction=True,
+            request_date="2026-03-12",
+            request_id="req-1",
+        )
+        self.assertEqual(meta["cost_class"], "self_hosted")
+        cache_key = mock_cache.set.call_args.args[0]
+        bucket = mock_cache.set.call_args.args[1]
+        self.assertEqual(cache_key, "ai:metrics:2026-03-12:tenant-1:setup_recommend:ollama:self_hosted")
+        self.assertEqual(bucket["review_count"], 1)
+        self.assertEqual(bucket["accepted_count"], 0)
+        self.assertEqual(bucket["manual_correction_count"], 1)
 
 
 class SchemaTests(SimpleTestCase):

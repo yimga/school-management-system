@@ -178,21 +178,25 @@ class AIPromptRegistry(models.Model):
 class AIGatewayMetric(models.Model):
     """
     Aggregated observability metrics for AI Gateway: volume, latency, backend, failure rate,
-    schema-validation failure rate.
+    schema-validation failure rate, cost class, and operator review loops.
     """
     date = models.DateField(db_index=True)
     tenant_id = models.UUIDField(db_index=True, null=True, blank=True)
     task_type = models.CharField(max_length=64, db_index=True)
     tier = models.CharField(max_length=32, db_index=True)
+    cost_class = models.CharField(max_length=32, default="unclassified", db_index=True)
     request_count = models.PositiveIntegerField(default=0)
     total_latency_ms = models.FloatField(default=0)
     failure_count = models.PositiveIntegerField(default=0)
     schema_validation_failures = models.PositiveIntegerField(default=0)
+    review_count = models.PositiveIntegerField(default=0)
+    accepted_count = models.PositiveIntegerField(default=0)
+    manual_correction_count = models.PositiveIntegerField(default=0)
 
     class Meta:
         db_table = "siteconfig_aigatewaymetric"
         ordering = ["-date", "tenant_id", "task_type"]
-        unique_together = (("date", "tenant_id", "task_type", "tier"),)
+        unique_together = (("date", "tenant_id", "task_type", "tier", "cost_class"),)
         verbose_name = "AI gateway metric"
         verbose_name_plural = "AI gateway metrics"
         app_label = "siteconfig"

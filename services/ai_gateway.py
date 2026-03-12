@@ -14,6 +14,7 @@ import urllib.request
 from datetime import date
 from enum import Enum
 from typing import Any, TypeVar
+from uuid import uuid4
 
 from django.conf import settings
 from django.core.cache import cache
@@ -99,6 +100,17 @@ def _request_timeout(metadata: dict[str, Any] | None = None) -> int:
     return base
 
 
+def _cost_class_for_tier(tier: str | None) -> str:
+    tier_name = str(tier or "").strip().lower()
+    if tier_name in {"rules", "none"}:
+        return "no_cost"
+    if tier_name in {"ollama", "vllm"}:
+        return "self_hosted"
+    if tier_name in {"litellm", "gemini"}:
+        return "premium"
+    return "unclassified"
+
+
 def _record_metric(
     date_str: str,
     tenant_id: Any,
@@ -106,16 +118,26 @@ def _record_metric(
     tier: str,
     latency_ms: float,
     outcome: str,
+    *,
+    cost_class: str = "unclassified",
     schema_fail: bool = False,
 ) -> None:
     """Increment cache bucket for later aggregation into AIGatewayMetric. Tenant-safe."""
     if not getattr(settings, "AI_GATEWAY_METRICS_ENABLED", True):
         return
     key_tenant = str(tenant_id) if tenant_id is not None else "global"
-    cache_key = f"ai:metrics:{date_str}:{key_tenant}:{task_type}:{tier}"
+    cache_key = f"ai:metrics:{date_str}:{key_tenant}:{task_type}:{tier}:{cost_class}"
     try:
         raw = cache.get(cache_key)
-        bucket = raw if isinstance(raw, dict) else {"count": 0, "latency_sum": 0.0, "failures": 0, "schema_fail": 0}
+        bucket = raw if isinstance(raw, dict) else {
+            "count": 0,
+            "latency_sum": 0.0,
+            "failures": 0,
+            "schema_fail": 0,
+            "review_count": 0,
+            "accepted_count": 0,
+            "manual_correction_count": 0,
+        }
         bucket["count"] = bucket.get("count", 0) + 1
         bucket["latency_sum"] = bucket.get("latency_sum", 0) + latency_ms
         if outcome in ("failure", "fallback"):
@@ -125,6 +147,43 @@ def _record_metric(
         cache.set(cache_key, bucket, timeout=86400 * 3)
     except Exception as e:
         logger.debug("AI gateway metric record failed: %s", e)
+
+
+def _record_feedback_metric(
+    date_str: str,
+    tenant_id: Any,
+    task_type: str,
+    tier: str,
+    *,
+    cost_class: str,
+    accepted: bool | None = None,
+    manual_correction: bool | None = None,
+) -> None:
+    if not getattr(settings, "AI_GATEWAY_METRICS_ENABLED", True):
+        return
+    if accepted is None and manual_correction is None:
+        return
+    key_tenant = str(tenant_id) if tenant_id is not None else "global"
+    cache_key = f"ai:metrics:{date_str}:{key_tenant}:{task_type}:{tier}:{cost_class}"
+    try:
+        raw = cache.get(cache_key)
+        bucket = raw if isinstance(raw, dict) else {
+            "count": 0,
+            "latency_sum": 0.0,
+            "failures": 0,
+            "schema_fail": 0,
+            "review_count": 0,
+            "accepted_count": 0,
+            "manual_correction_count": 0,
+        }
+        bucket["review_count"] = bucket.get("review_count", 0) + 1
+        if accepted is True:
+            bucket["accepted_count"] = bucket.get("accepted_count", 0) + 1
+        if manual_correction is True:
+            bucket["manual_correction_count"] = bucket.get("manual_correction_count", 0) + 1
+        cache.set(cache_key, bucket, timeout=86400 * 3)
+    except Exception as e:
+        logger.debug("AI gateway feedback metric record failed: %s", e)
 
 
 def _audit_log(
@@ -137,10 +196,12 @@ def _audit_log(
     outcome: str,
     meta: dict[str, Any] | None = None,
 ) -> None:
+    cost_class = _cost_class_for_tier(tier)
     payload = {
         "event": "ai_gateway_invoke",
         "task_type": task_type,
         "tier": tier,
+        "cost_class": cost_class,
         "model": model,
         "latency_ms": round(latency_ms, 2),
         "tenant_id": str(tenant_id) if tenant_id is not None else None,
@@ -158,6 +219,7 @@ def _audit_log(
             tier,
             latency_ms,
             outcome,
+            cost_class=cost_class,
             schema_fail=bool(meta and meta.get("schema_validation_failed")),
         )
     except Exception:
@@ -344,6 +406,45 @@ def _check_and_consume_budget(tenant_id: Any) -> tuple[bool, dict[str, Any]]:
     return True, {}
 
 
+def record_feedback(
+    task_type: str | TaskType,
+    tier: str,
+    *,
+    tenant_id: Any = None,
+    school_id: Any = None,
+    accepted: bool | None = None,
+    manual_correction: bool | None = None,
+    request_date: str | None = None,
+    request_id: str | None = None,
+) -> dict[str, Any]:
+    task_key = task_type.value if isinstance(task_type, TaskType) else str(task_type or "").strip().lower()
+    if not task_key:
+        raise ValueError("task_type is required")
+    tier_key = str(tier or "").strip().lower() or "unknown"
+    date_str = request_date or date.today().isoformat()
+    cost_class = _cost_class_for_tier(tier_key)
+    _record_feedback_metric(
+        date_str,
+        tenant_id or school_id,
+        task_key,
+        tier_key,
+        cost_class=cost_class,
+        accepted=accepted,
+        manual_correction=manual_correction,
+    )
+    return {
+        "task_type": task_key,
+        "tier": tier_key,
+        "cost_class": cost_class,
+        "tenant_id": str(tenant_id) if tenant_id is not None else (str(school_id) if school_id is not None else None),
+        "school_id": str(school_id) if school_id is not None else None,
+        "accepted": accepted,
+        "manual_correction": manual_correction,
+        "request_date": date_str,
+        "request_id": request_id,
+    }
+
+
 T = TypeVar("T")
 
 
@@ -375,10 +476,20 @@ def invoke(
             backends = tiers_map.get(task_key, ["ollama", "rules"])
     tenant_id = md.get("tenant_id") or md.get("school_id")
     school_id = md.get("school_id")
+    request_id = str(uuid4())
+    request_date = date.today().isoformat()
     budget_ok, budget_meta = _check_and_consume_budget(tenant_id)
     if not budget_ok:
-        _audit_log(task_key, "none", "", 0, tenant_id, school_id, "budget_exceeded", budget_meta)
-        return None, {"provider": "none", "budget_exceeded": True, **budget_meta}
+        out_meta = {
+            "provider": "none",
+            "budget_exceeded": True,
+            "request_id": request_id,
+            "request_date": request_date,
+            "cost_class": _cost_class_for_tier("none"),
+            **budget_meta,
+        }
+        _audit_log(task_key, "none", "", 0, tenant_id, school_id, "budget_exceeded", out_meta)
+        return None, out_meta
     allow_premium = _data_tier_allows_premium(md, prompt=prompt, user_query=user_query)
     timeout_sec = _request_timeout(md)
     errors: dict[str, str] = {}
@@ -420,6 +531,12 @@ def invoke(
             elapsed_ms = (time.perf_counter() - start) * 1000
             result = _rules_fallback(user_query or prompt[:200])
             meta = {"fallback": True, "errors": errors} if errors else {"fallback": True}
+            meta.update({
+                "request_id": request_id,
+                "request_date": request_date,
+                "task_type": task_key,
+                "cost_class": _cost_class_for_tier("rules"),
+            })
             _audit_log(task_key, "rules", "rules", elapsed_ms, tenant_id, school_id, "success", meta)
             return result, {"provider": "rules", "tier": "rules", "latency_ms": round(elapsed_ms, 2), **meta}
         if text:
@@ -455,7 +572,15 @@ def invoke(
                     result = _safe_schema_default(response_schema)
             else:
                 result = text
-            out_meta = {**meta, "latency_ms": round(elapsed_ms, 2), "task_type": task_key, "schema_validation_failed": schema_validation_failed}
+            out_meta = {
+                **meta,
+                "latency_ms": round(elapsed_ms, 2),
+                "task_type": task_key,
+                "schema_validation_failed": schema_validation_failed,
+                "request_id": request_id,
+                "request_date": request_date,
+                "cost_class": _cost_class_for_tier(tier),
+            }
             _audit_log(task_key, tier, model, elapsed_ms, tenant_id, school_id, "success", out_meta)
             return result, out_meta
         errors[tier] = meta.get("error", "unavailable")
@@ -463,10 +588,22 @@ def invoke(
     elapsed_ms = (time.perf_counter() - start) * 1000
     if bool(getattr(settings, "AI_ALLOW_RULES_FALLBACK", True)):
         result = _rules_fallback(user_query or prompt[:200])
-        _audit_log(task_key, "rules", "rules", elapsed_ms, tenant_id, school_id, "fallback", {"errors": errors})
-        return result, {"provider": "rules", "tier": "rules", "latency_ms": round(elapsed_ms, 2), "fallback": True, "errors": errors}
-    _audit_log(task_key, "none", "", elapsed_ms, tenant_id, school_id, "failure", {"errors": errors})
+        out_meta = {
+            "errors": errors,
+            "request_id": request_id,
+            "request_date": request_date,
+            "cost_class": _cost_class_for_tier("rules"),
+        }
+        _audit_log(task_key, "rules", "rules", elapsed_ms, tenant_id, school_id, "fallback", out_meta)
+        return result, {"provider": "rules", "tier": "rules", "latency_ms": round(elapsed_ms, 2), "fallback": True, **out_meta}
+    failure_meta = {
+        "errors": errors,
+        "request_id": request_id,
+        "request_date": request_date,
+        "cost_class": _cost_class_for_tier("none"),
+    }
+    _audit_log(task_key, "none", "", elapsed_ms, tenant_id, school_id, "failure", failure_meta)
     return (
         "AI providers are currently unavailable and rules fallback is disabled.",
-        {"provider": "none", "errors": errors, "latency_ms": round(elapsed_ms, 2)},
+        {"provider": "none", "errors": errors, "latency_ms": round(elapsed_ms, 2), **failure_meta},
     )
