@@ -13,6 +13,7 @@ from apps.observability.models import PlatformIncident
 from apps.schools.models import School
 
 _WEBHOOK_SOURCE = "billing.processor_webhook"
+_JSON_CONTENT_TYPES = {"application/json"}
 
 
 def _record_failed_event(*, processor_code: str, event_type: str, payload: dict, message: str):
@@ -56,6 +57,18 @@ def _upsert_webhook_incident(*, incident_key: str, processor_code: str, title: s
     )
 
 
+def _request_uses_supported_json_content_type(request) -> bool:
+    content_type = (
+        (request.content_type or request.META.get("CONTENT_TYPE") or "")
+        .split(";", 1)[0]
+        .strip()
+        .lower()
+    )
+    if not content_type:
+        return True
+    return content_type in _JSON_CONTENT_TYPES or content_type.endswith("+json")
+
+
 @csrf_exempt
 @require_POST
 def platform_billing_processor_webhook(request, processor_code: str):
@@ -71,6 +84,25 @@ def platform_billing_processor_webhook(request, processor_code: str):
             details={"reason": "unknown_processor"},
         )
         return JsonResponse({"status": "error", "error": "Unknown processor."}, status=404)
+    if not _request_uses_supported_json_content_type(request):
+        _record_failed_event(
+            processor_code=processor_code,
+            event_type="webhook_rejected",
+            payload={},
+            message="Unsupported Content-Type. Expected JSON webhook payload.",
+        )
+        _upsert_webhook_incident(
+            incident_key=f"billing-webhook-content-type:{processor_code}",
+            processor_code=processor_code,
+            title=f"Billing webhook rejected: {processor_code}",
+            summary="Webhook request used an unsupported Content-Type.",
+            severity=PlatformIncident.Severity.HIGH,
+            details={"reason": "unsupported_content_type"},
+        )
+        return JsonResponse(
+            {"status": "error", "error": "Content-Type must be application/json."},
+            status=415,
+        )
 
     processor = get_platform_billing_processor(config)
     payload, raw_body = processor.parse_request(request)

@@ -4,6 +4,8 @@ Wave 2 tests: platform vs tenant admin split, GraphQL global school restriction.
 Non-negotiable: platform admin only on manager host; tenant admin on tenant host;
 school_count/schools restricted to platform operators.
 """
+import json
+
 from django.test import TestCase, override_settings
 from django.urls import resolve, reverse
 
@@ -88,3 +90,25 @@ class Wave2GraphQLGlobalSchoolsRestrictedTests(TestCase):
         self.assertFalse(result.errors, msg=f"Unexpected errors: {result.errors}")
         data = (result.data or {})
         self.assertEqual(data.get("schools"), [], "Tenant staff must get empty schools list.")
+
+    def test_graphql_gateway_rejects_non_json_post_requests(self):
+        response = self.client.post(
+            reverse("graphql"),
+            data="query { health }",
+            content_type="text/plain",
+        )
+
+        self.assertEqual(response.status_code, 415)
+        payload = response.json()
+        self.assertIn("Content-Type", payload["errors"][0]["message"])
+
+    def test_graphql_gateway_requires_json_object_payload(self):
+        response = self.client.post(
+            reverse("graphql"),
+            data=json.dumps(["query { health }"]),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        payload = response.json()
+        self.assertIn("JSON object required", payload["errors"][0]["message"])

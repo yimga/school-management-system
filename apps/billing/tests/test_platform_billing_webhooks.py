@@ -102,6 +102,27 @@ class PlatformBillingWebhookTests(TestCase):
         self.assertEqual(incident.incident_type, PlatformIncident.IncidentType.INTEGRATION)
         self.assertEqual(incident.severity, PlatformIncident.Severity.CRITICAL)
 
+    def test_relay_webhook_rejects_unsupported_content_type(self):
+        payload = {
+            "school_slug": self.school.slug,
+            "event_type": "invoice.payment_failed",
+            "account_status": "past_due",
+            "subscription_status": "past_due",
+        }
+        raw_body = json.dumps(payload).encode("utf-8")
+        response = self.client.post(
+            "/api/billing/processors/relay/webhook/",
+            data=raw_body,
+            content_type="text/plain",
+            HTTP_HOST="manager.runmycampus.com",
+            HTTP_X_SIGNATURE=self._signature(raw_body),
+        )
+
+        self.assertEqual(response.status_code, 415)
+        failed_event = BillingProcessorSyncEvent.objects.get(status=BillingProcessorSyncEvent.Status.FAILED)
+        self.assertEqual(failed_event.processor_code, "relay")
+        self.assertIn("Unsupported Content-Type", failed_event.message)
+
     def test_relay_webhook_resolves_existing_billing_incident_when_account_recovers(self):
         self._post(
             {
