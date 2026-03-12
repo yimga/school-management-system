@@ -8,7 +8,7 @@
   <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
     <div>
       <h1 class="h3 mb-1">Document Library</h1>
-      <p class="text-muted mb-0">Manage school documents, forms, and policies</p>
+      <p class="text-muted mb-0">Manage school documents, lifecycle stages, and pack-driven retention.</p>
     </div>
     <div class="d-flex gap-2">
       <a href="{% url 'portal:document_upload' %}" class="btn btn-primary">
@@ -20,7 +20,6 @@
     </div>
   </div>
 
-  <!-- Stats Cards -->
   <div class="row g-3 mb-4">
     <div class="col-md-3">
       <div class="card border-0 shadow-sm">
@@ -72,11 +71,11 @@
         <div class="card-body">
           <div class="d-flex align-items-center">
             <div class="flex-grow-1">
-              <div class="text-muted small">Active</div>
-              <div class="h4 mb-0">{{ stats.active }}</div>
+              <div class="text-muted small">Packaged / Archived</div>
+              <div class="h4 mb-0">{{ stats.packaged }} / {{ stats.archived }}</div>
             </div>
             <div class="text-info">
-              <i class="bi bi-check-circle fs-1"></i>
+              <i class="bi bi-archive fs-1"></i>
             </div>
           </div>
         </div>
@@ -84,30 +83,45 @@
     </div>
   </div>
 
-  <!-- Filters -->
   <div class="card shadow-sm mb-4">
     <div class="card-body">
       <form method="get" class="row g-3">
-        <div class="col-md-4">
+        <div class="col-md-3">
           <label class="form-label">Document Type</label>
           <select name="type" class="form-select">
             <option value="">All Types</option>
             {% for doc_type, label in document_types %}
-              <option value="{{ doc_type }}" {% if current_type == doc_type %}selected{% endif %}>
-                {{ label }}
-              </option>
+              <option value="{{ doc_type }}" {% if current_type == doc_type %}selected{% endif %}>{{ label }}</option>
             {% endfor %}
           </select>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-3">
+          <label class="form-label">Lifecycle</label>
+          <select name="lifecycle" class="form-select">
+            <option value="">All states</option>
+            {% for state, label in lifecycle_choices %}
+              <option value="{{ state }}" {% if current_lifecycle == state %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Document Pack</label>
+          <select name="pack" class="form-select">
+            <option value="">All packs</option>
+            {% for pack in document_packs %}
+              <option value="{{ pack.code }}" {% if current_pack == pack.code %}selected{% endif %}>{{ pack.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
           <label class="form-label">Search</label>
           <input type="text" name="q" class="form-control" placeholder="Search documents..." value="{{ search_query }}">
         </div>
-        <div class="col-md-2 d-flex align-items-end gap-2">
+        <div class="col-12 d-flex align-items-end gap-2">
           <button type="submit" class="btn btn-primary flex-grow-1">
             <i class="bi bi-search me-1"></i>Filter
           </button>
-          <a href="?{% if search_query %}q={{ search_query|urlencode }}&{% endif %}{% if current_type %}type={{ current_type|urlencode }}&{% endif %}format=csv" class="btn btn-outline-secondary" title="Export list as CSV">
+          <a href="?{% if search_query %}q={{ search_query|urlencode }}&{% endif %}{% if current_type %}type={{ current_type|urlencode }}&{% endif %}{% if current_lifecycle %}lifecycle={{ current_lifecycle|urlencode }}&{% endif %}{% if current_pack %}pack={{ current_pack|urlencode }}&{% endif %}format=csv" class="btn btn-outline-secondary" title="Export list as CSV">
             <i class="bi bi-download me-1"></i>Export CSV
           </a>
         </div>
@@ -115,18 +129,20 @@
     </div>
   </div>
 
-  <!-- Documents Table -->
   <div class="card shadow-sm">
     <div class="card-body">
       {% if documents %}
         <div class="table-responsive">
-          <table class="table table-hover align-middle" aria-label="Document library: title, type, file or link, signature, status, and actions">
+          <table class="table table-hover align-middle" aria-label="Document library: title, type, pack, lifecycle, file or link, signature, retention, status, and actions">
             <thead>
               <tr>
                 <th scope="col">Title</th>
                 <th scope="col">Type</th>
+                <th scope="col">Pack</th>
+                <th scope="col">Lifecycle</th>
                 <th scope="col">File/Link</th>
                 <th scope="col">Signature</th>
+                <th scope="col">Retention</th>
                 <th scope="col">Status</th>
                 <th scope="col">Created</th>
                 <th scope="col" class="text-end">Actions</th>
@@ -145,6 +161,18 @@
                     <span class="badge bg-secondary">{{ doc.get_document_type_display }}</span>
                   </td>
                   <td>
+                    {% if doc.document_pack %}
+                      <span class="badge text-bg-light">{{ doc.document_pack.name }}</span>
+                    {% else %}
+                      <span class="text-muted">-</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <span class="badge {% if doc.lifecycle_state == 'approved' %}bg-success{% elif doc.lifecycle_state == 'archived' %}bg-secondary{% elif doc.lifecycle_state == 'review' %}bg-warning text-dark{% elif doc.lifecycle_state == 'retracted' %}bg-danger{% else %}bg-light text-dark{% endif %}">
+                      {{ doc.get_lifecycle_state_display|default:doc.lifecycle_state|title }}
+                    </span>
+                  </td>
+                  <td>
                     {% if doc.file %}
                       <span class="badge bg-success">
                         <i class="bi bi-file-earmark me-1"></i>File ({{ doc.file_size_mb }}MB)
@@ -154,7 +182,7 @@
                         <i class="bi bi-link-45deg me-1"></i>Link
                       </span>
                     {% else %}
-                      <span class="text-muted">—</span>
+                      <span class="text-muted">-</span>
                     {% endif %}
                   </td>
                   <td>
@@ -163,7 +191,15 @@
                         <i class="bi bi-pen me-1"></i>Required
                       </span>
                     {% else %}
-                      <span class="text-muted">—</span>
+                      <span class="text-muted">-</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if doc.retention_review_at %}
+                      <div class="small">{{ doc.retention_review_at|date:"Y-m-d" }}</div>
+                      <div class="text-muted small">review</div>
+                    {% else %}
+                      <span class="text-muted">-</span>
                     {% endif %}
                   </td>
                   <td>
@@ -184,9 +220,9 @@
                           <i class="bi bi-download"></i>
                         </a>
                         {% if doc.file.name|slice:"-4:"|lower == ".odt" or doc.file.name|slice:"-5:"|lower == ".docx" %}
-                        <a href="{% url 'portal:document_download_pdf' doc.id %}" class="btn btn-outline-danger" title="Download as PDF">
-                          <i class="bi bi-file-earmark-pdf"></i>
-                        </a>
+                          <a href="{% url 'portal:document_download_pdf' doc.id %}" class="btn btn-outline-danger" title="Download as PDF">
+                            <i class="bi bi-file-earmark-pdf"></i>
+                          </a>
                         {% endif %}
                       {% elif doc.link %}
                         <a href="{{ doc.link }}" target="_blank" class="btn btn-outline-info" title="Open Link">
@@ -214,7 +250,6 @@
   </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">

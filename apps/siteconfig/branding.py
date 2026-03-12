@@ -5,6 +5,7 @@ from typing import Any
 from django.db import DatabaseError
 
 from apps.brand_experience.models import BrandProfile, BrandSettings
+from apps.brand_experience.experience_packs import resolve_experience_theme_pack
 
 from .brand_registry import resolve_global_brand_context
 
@@ -13,6 +14,10 @@ OPTIONAL_BRANDING_ERRORS = (AttributeError, DatabaseError, TypeError, ValueError
 
 
 def _school_theme_pack(school, site):
+    if school:
+        pack = resolve_experience_theme_pack(school=school)
+        if pack is not None:
+            return pack
     if school and getattr(school, "theme_pack_id", None):
         return getattr(school, "theme_pack", None)
     if site and hasattr(site, "get_portal_theme"):

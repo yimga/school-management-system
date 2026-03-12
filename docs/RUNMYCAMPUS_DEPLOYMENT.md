@@ -76,15 +76,15 @@ Optional: add a comment at the top of `render.yaml` referencing the RunMyCampus 
 
 ## 6. Go-live checklist
 
-- [ ] **render.yaml:** Multi-tenant Django app with web service, PostgreSQL, Redis, Celery worker, and Beat. Health check path matches the app (e.g. `/health/`).
-- [ ] **RLS:** Enabled and verified on all tenant-scoped tables (`verify_tenant_rls` run after migrations).
-- [ ] **Redis:** Used for sessions and (optionally) tenant cache; `REDIS_URL` and `CELERY_BROKER_URL` set.
-- [ ] **School assets:** Logos and wallpapers served via CDN (and optionally from S3/Cloudinary); document `DEFAULT_FILE_STORAGE` and media bucket if used.
-- [ ] **Custom domain and wildcard SSL:** Root and `*.runmycampus.com` configured and TLS active.
-- [ ] **CDN:** Cloudflare (or similar) in front of Render; static/media caching as needed.
-- [ ] **Multi-tenant routing:** `MULTI_TENANT_BASE_DOMAIN` set; public URLConf for base domain (marketing, signup, discover); tenant URLConf for subdomains and path-based `/t/<slug>/`.
-- [ ] **Caddy ask (if used):** `/api/v1/auth/check-domain/` or `/api/caddy-check/` reachable from Caddy; `CADDY_CHECK_ALLOWED_IPS` set in production.
-- [ ] **Auto-scaling:** Document Render’s scaling options for the web service (e.g. scale to N instances under load); no code change required.
+- [x] **render.yaml:** Multi-tenant Django app with web service, PostgreSQL, Redis, Celery worker, and Beat. Health check path matches the app (e.g. `/health/`).
+- [x] **RLS:** Enabled and verified on all tenant-scoped tables (`verify_tenant_rls` run after migrations).
+- [x] **Redis:** Used for sessions and (optionally) tenant cache; `REDIS_URL` and `CELERY_BROKER_URL` set.
+- [x] **School assets:** Logos and wallpapers served via CDN (and optionally from S3/Cloudinary); document `DEFAULT_FILE_STORAGE` and media bucket if used.
+- [x] **Custom domain and wildcard SSL:** Root and `*.runmycampus.com` configured and TLS active.
+- [x] **CDN:** Cloudflare (or similar) in front of Render; static/media caching as needed.
+- [x] **Multi-tenant routing:** `MULTI_TENANT_BASE_DOMAIN` set; public URLConf for base domain (marketing, signup, discover); tenant URLConf for subdomains and path-based `/t/<slug>/`.
+- [x] **Caddy ask (if used):** `/api/v1/auth/check-domain/` or `/api/caddy-check/` reachable from Caddy; `CADDY_CHECK_ALLOWED_IPS` set in production.
+- [x] **Auto-scaling:** Document Render’s scaling options for the web service (e.g. scale to N instances under load); no code change required.
 
 ---
 

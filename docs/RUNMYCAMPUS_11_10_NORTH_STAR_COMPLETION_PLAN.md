@@ -2,59 +2,68 @@
 
 This is the canonical implementation plan for the current platform-hardening and platform-productization workstream.
 
+## STATUS: COMPLETE (2026-03-12)
+
+This plan is closed. Implementation and verification evidence is tracked in code plus the audit/closure artifacts below; no backlog remains tracked in this file.
+
+- Closure (no-backlog): `docs/RUNMYCAMPUS_AUDIT_PLAN_COMPLETE_NO_BACKLOG.md` (2026-03-08)
+- Roadmap/optional closure: `docs/architecture/ROADMAP_AND_OPTIONAL_CLOSURE.md`
+- Roadmap due-today evidence: `docs/architecture/ROADMAP_DUE_TODAY.md` and `/api/roadmap/*`
+- Final gap closure checklist: `docs/RUNMYCAMPUS_FINAL_UNADDRESSED_GAPS_CHECKLIST.md`
+
 ## Authoritative target
 
 - Working repo: `beta/school-management-system`
 - Goal: move RunMyCampus from transitional multi-tenant platform to 9.5+/10 across architecture, runtime, security, UX, onboarding, marketplace, packs, and control plane
 - Rule: no deferred placeholders, no half-complete migrations, no permanent dual-path legacy ownership
 
-## Active execution phases
+## Active execution phases (closed)
 
 ### Phase 1. Hard freeze, ownership map, deletion rules
-- Freeze new tenant-facing business logic in `siteconfig`
-- Inventory `SiteSettings`, `get_solo()`, `except Exception`, `cursor.execute()`, `csrf_exempt`, `AllowAny`, `print()`, `gilead` residue, management commands, and outdated docs
-- Assign each legacy config behavior to one bounded-context owner or delete it
+- [x] Freeze new tenant-facing business logic in `siteconfig`
+- [x] Inventory `SiteSettings`, `get_solo()`, `except Exception`, `cursor.execute()`, `csrf_exempt`, `AllowAny`, `print()`, `gilead` residue, management commands, and outdated docs
+- [x] Assign each legacy config behavior to one bounded-context owner or delete it
 
 ### Phase 2. Security, hygiene, and trust hardening
-- Remove client-facing AI secret exposure
-- Review all public/exempt endpoints
-- Reduce blanket exception handling in sensitive modules
-- Audit non-migration raw SQL
-- Remove runtime-visible Gilead residue
-- Replace `print()` with structured logging and correct outdated documentation
+- [x] Remove client-facing AI secret exposure
+- [x] Review all public/exempt endpoints
+- [x] Reduce blanket exception handling in sensitive modules
+- [x] Audit non-migration raw SQL
+- [x] Remove runtime-visible Gilead residue
+- [x] Replace `print()` with structured logging and correct outdated documentation
 
 ### Phase 3. Make runtime the only legal tenant behavior engine
-- Standardize runtime precedence
-- Route tenant behavior through runtime resolvers
-- Expand runtime inspection
-- Enforce control-plane vs application-plane boundaries
-- Add CI/lint gates against legacy regressions
+- [x] Standardize runtime precedence
+- [x] Route tenant behavior through runtime resolvers
+- [x] Expand runtime inspection
+- [x] Enforce control-plane vs application-plane boundaries
+- [x] Add CI/lint gates against legacy regressions
 
 ### Phase 4. Complete the core toolsets
-- Theme & Experience
-- Feature Control
-- Report Library
-- Document Library
-- Design Studio
-- Live Previews
-- Workflows
-- AI and API usage
-- System Configuration / SiteSettings
+- [x] Theme & Experience
+- [x] Feature Control
+- [x] Report Library
+- [x] Document Library
+- [x] Design Studio
+- [x] Live Previews
+- [x] Workflows
+- [x] AI and API usage
+- [x] System Configuration / SiteSettings
 
 ### Phase 5. Productization and market-gap closure
-- Setup Studio as the mandatory onboarding spine
-- Premium marketplace listing/install model
-- First-party ecosystem seeding
-- Distinct role homes and dashboards
-- Stronger family/mobile and district control plane
-- Proof-rich marketing front
+- [x] Setup Studio as the mandatory onboarding spine
+- [x] Premium marketplace listing/install model
+- [x] First-party ecosystem seeding
+- [x] Distinct role homes and dashboards
+- [x] Stronger family/mobile and district control plane
+- [x] Proof-rich marketing front
 
 ### Phase 6. Verification, release gates, and re-audit
-- Test gates
-- Operational gates
-- Codebase gates
-- Re-score all platform areas to 9.5+/10
-- Final benchmark delta report
+- [x] Test gates
+- [x] Operational gates
+- [x] Codebase gates
+- [x] Re-score all platform areas to 9.5+/10
+- [x] Final benchmark delta report
 
 ## Operational sources of truth
 

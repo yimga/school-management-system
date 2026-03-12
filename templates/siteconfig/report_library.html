@@ -6,7 +6,7 @@
   <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
       <h1 class="h3">Reports & Downloads</h1>
-      <p class="text-muted mb-0">Export any report as CSV, Excel, LibreOffice (ODS), or PDF. Generate bulk letters per classroom.</p>
+      <p class="text-muted mb-0">Report packs now include dependency mapping and seeded preview data alongside downloadable exports.</p>
     </div>
     <div class="d-flex align-items-center gap-2">
       <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:bulk_letters' %}">
@@ -18,6 +18,91 @@
       <span class="badge bg-success">CSV · Excel · ODS · PDF</span>
     </div>
   </div>
+
+  {% if report_packs %}
+    <div class="row g-3 mb-4">
+      <div class="col-lg-5">
+        <div class="card h-100 shadow-sm">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <h2 class="h5 mb-1">Report Packs</h2>
+                <p class="text-muted small mb-0">Preview seeded sample data and inspect pack dependencies before rollout.</p>
+              </div>
+              <span class="badge text-bg-light">{{ report_packs|length }} active</span>
+            </div>
+            <div class="list-group list-group-flush">
+              {% for pack in report_packs %}
+                <a class="list-group-item list-group-item-action {% if selected_report_pack and selected_report_pack.pk == pack.pk %}active{% endif %}" href="?embed=1&pack={{ pack.code|urlencode }}">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <div class="fw-semibold">{{ pack.name }}</div>
+                      <div class="small {% if selected_report_pack and selected_report_pack.pk == pack.pk %}text-white-50{% else %}text-muted{% endif %}">{{ pack.description|default:"Seeded preview pack"|truncatewords:12 }}</div>
+                    </div>
+                    <span class="badge {% if selected_report_pack and selected_report_pack.pk == pack.pk %}text-bg-light{% else %}text-bg-secondary{% endif %}">{{ pack.code }}</span>
+                  </div>
+                </a>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-7">
+        <div class="card h-100 shadow-sm">
+          <div class="card-body">
+            {% if selected_report_pack and report_pack_preview %}
+              <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                  <h2 class="h5 mb-1">{{ report_pack_preview.title }}</h2>
+                  <p class="text-muted mb-0">{{ report_pack_preview.description|default:"Seeded sample rows for operator preview." }}</p>
+                </div>
+                <span class="badge text-bg-primary">{{ selected_report_pack.code }}</span>
+              </div>
+              <div class="row g-3 mb-3">
+                {% for key, value in report_pack_preview.summary.items %}
+                  <div class="col-md-4">
+                    <div class="border rounded p-3 h-100">
+                      <div class="text-muted text-uppercase small">{{ key|cut:"_" }}</div>
+                      <div class="fw-semibold">{{ value }}</div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+              <div class="table-responsive mb-3">
+                <table class="table table-sm align-middle mb-0">
+                  <tbody>
+                    {% for row in report_pack_preview.rows %}
+                      <tr>
+                        <th scope="row" class="text-muted">{{ row.label|default:"Metric" }}</th>
+                        <td>{{ row.value|default:row.sample|default:row.note|default:row }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+              <div>
+                <h3 class="h6">Dependencies</h3>
+                {% if report_pack_dependencies %}
+                  <div class="d-flex flex-wrap gap-2">
+                    {% for dependency in report_pack_dependencies %}
+                      <div class="border rounded px-3 py-2">
+                        <div class="small text-muted">{{ dependency.label }}</div>
+                        <div class="small">{{ dependency.items|join:", " }}</div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  <div class="text-muted small">No explicit dependencies recorded for this pack.</div>
+                {% endif %}
+              </div>
+            {% else %}
+              <div class="text-muted">No report packs are active yet.</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
 
   {% if reports %}
     <div class="table-responsive">

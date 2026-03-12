@@ -3,7 +3,9 @@ Tests for Tenant Runtime Contract and compilation order.
 Phase 1: runtime contract shape, strict compilation order, precedence, job helper.
 """
 from decimal import Decimal
+from io import StringIO
 
+from django.core.management import call_command
 from django.test import TestCase
 
 from apps.platform_runtime.helpers import (
@@ -205,6 +207,22 @@ class RuntimeHelperResolutionTests(TestCase):
         self.assertIn("default_dashboard_view", runtime_defaults.payload)
         self.assertIn("backend_feature_flags", runtime_defaults.payload)
         self.assertNotIn("site_name", runtime_defaults.payload)
+
+    def test_backfill_runtime_defaults_command_creates_platform_payload(self):
+        site = SiteSettings.get_solo()
+        site.site_name = "Command Synced Platform"
+        site.enable_offline_mode = True
+        site.save(update_fields=["site_name", "enable_offline_mode"])
+        RuntimeDefaults.objects.all().delete()
+
+        stdout = StringIO()
+        call_command("backfill_runtime_defaults", stdout=stdout)
+
+        runtime_defaults = RuntimeDefaults.get_singleton()
+        self.assertIsNotNone(runtime_defaults)
+        self.assertEqual(runtime_defaults.payload["site_name"], "Command Synced Platform")
+        self.assertTrue(runtime_defaults.payload["enable_offline_mode"])
+        self.assertIn("created", stdout.getvalue().lower())
 
     def test_runtime_defaults_scoped_sync_preserves_other_owner_domains(self):
         site = SiteSettings.get_solo()

@@ -10,6 +10,7 @@ from django.urls import reverse
 from apps.accounts.models import User
 from apps.academics.models import AcademicYear, Classroom, Department
 from apps.people.models import StudentProfile
+from apps.reports.models import ReportPack
 
 
 class ReportLibraryRBACTestCase(TestCase):
@@ -44,6 +45,39 @@ class ReportLibraryRBACTestCase(TestCase):
         self.client.login(username="staff_rl", password="testpass123")
         response = self.client.get(reverse("siteconfig:report_library") + "?embed=1")
         self.assertIn(response.status_code, (302, 403))
+
+    def test_report_library_renders_report_pack_preview_and_dependencies(self):
+        ReportPack.objects.create(
+            code="ops-pack",
+            name="Operations Pack",
+            description="Previewable operations reports.",
+            dependency_schema={
+                "templates": ["student_summary", "finance_snapshot"],
+                "policies": ["retention_guard"],
+            },
+            sample_data_config={
+                "title": "Operations Preview",
+                "summary": {
+                    "report_type": "Ops digest",
+                    "sample_student": "Jordan Sample",
+                    "notes": "Seeded for review.",
+                },
+                "rows": [
+                    {"label": "Attendance", "value": "96%"},
+                    {"label": "Fees", "value": "3 overdue"},
+                ],
+            },
+            is_active=True,
+        )
+
+        self.client.login(username="super_rl", password="testpass123")
+        response = self.client.get(reverse("siteconfig:report_library") + "?embed=1&pack=ops-pack")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Operations Pack")
+        self.assertContains(response, "Ops digest")
+        self.assertContains(response, "student_summary")
+        self.assertContains(response, "96%")
 
 
 class BulkLettersRBACTestCase(TestCase):

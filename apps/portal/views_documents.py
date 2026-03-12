@@ -18,7 +18,9 @@ from django.views.decorators.http import require_POST, require_http_methods
 
 from apps.accounts.decorators import permission_required
 from apps.accounts.models import User
+from apps.packages.models import DocumentPack
 from apps.people.models import StudentProfile, StudentGuardian
+from .document_lifecycle import DOCUMENT_LIFECYCLE_CHOICES
 from .models import PortalFeatureItem, FormSignature
 from .forms_documents import DocumentUploadForm, SignatureRequestForm
 from .document_conversion import convert_to_pdf
@@ -44,11 +46,20 @@ def document_library_manage(request):
     doc_type = request.GET.get("type")
     if doc_type:
         documents = documents.filter(document_type=doc_type)
+
+    lifecycle_state = (request.GET.get("lifecycle") or "").strip().lower()
+    if lifecycle_state:
+        documents = documents.filter(lifecycle_state=lifecycle_state)
+
+    pack_code = (request.GET.get("pack") or "").strip()
+    if pack_code:
+        documents = documents.filter(document_pack__code=pack_code)
     
     # Search
     search_query = request.GET.get("q")
     if search_query:
         documents = documents.filter(
+            Q(search_index__icontains=search_query.lower()) |
             Q(title__icontains=search_query) |
             Q(description__icontains=search_query)
         )
@@ -60,15 +71,18 @@ def document_library_manage(request):
             f'attachment; filename="document_library_export_{timezone.now().strftime("%Y%m%d_%H%M%S")}.csv"'
         )
         w = csv.writer(response)
-        w.writerow(["title", "document_type", "has_file", "has_link", "requires_signature", "is_active", "created_at"])
+        w.writerow(["title", "document_type", "lifecycle_state", "document_pack", "has_file", "has_link", "requires_signature", "is_active", "retention_review_at", "created_at"])
         for doc in documents[:10000]:
             w.writerow([
                 doc.title or "",
                 doc.get_document_type_display() if doc.document_type else "",
+                doc.lifecycle_state or "",
+                getattr(getattr(doc, "document_pack", None), "code", "") or "",
                 "yes" if doc.file else "no",
                 "yes" if doc.link else "no",
                 "yes" if doc.requires_signature else "no",
                 "yes" if doc.is_active else "no",
+                doc.retention_review_at.isoformat() if doc.retention_review_at else "",
                 doc.created_at.strftime("%Y-%m-%d %H:%M") if doc.created_at else "",
             ])
         return response
@@ -80,6 +94,8 @@ def document_library_manage(request):
         "with_links": documents.exclude(link="").count(),
         "requires_signature": documents.filter(requires_signature=True).count(),
         "active": documents.filter(is_active=True).count(),
+        "packaged": documents.filter(document_pack__isnull=False).count(),
+        "archived": documents.filter(lifecycle_state="archived").count(),
     }
     
     # Group by type
@@ -94,7 +110,11 @@ def document_library_manage(request):
         "stats": stats,
         "by_type": by_type,
         "document_types": PortalFeatureItem.DocumentType.choices,
+        "document_packs": DocumentPack.objects.filter(is_active=True).order_by("name"),
+        "lifecycle_choices": DOCUMENT_LIFECYCLE_CHOICES,
         "current_type": doc_type,
+        "current_lifecycle": lifecycle_state,
+        "current_pack": pack_code,
         "search_query": search_query,
     }
     

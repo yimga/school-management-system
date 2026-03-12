@@ -403,15 +403,15 @@ Verified against the codebase 2026-03-06. Items below are **missing**, **not don
 
 ## Missed or inconsistent items
 
-1. **Section 17 (17.1–17.5):** Main checklist still shows [ ] for all; phase14_through_phase20_sections_14_to_26.md correctly has 17.4 done and 17.1–17.3, 17.5 partial. **Action:** Update Section 17 in RUNMYCAMPUS_CONSOLIDATED_ARCHITECTURE_AND_REFACTOR.md to partial/done with ref to phase14–20 doc.
-2. **Section 26.5 table row:** Duplicate column (requirement and status repeated with [ ]). **Action:** Remove duplicate “| No empty pages; … | [ ]” so the row has one requirement and one status cell.
+1. **Section 17 (17.1–17.5):** Resolved. `RUNMYCAMPUS_CONSOLIDATED_ARCHITECTURE_AND_REFACTOR.md` rows 17.1–17.5 are updated (partial/done) with references to the phase14–20 doc where applicable.
+2. **Section 26.5 table row:** Resolved. Duplicate requirement/status cell was removed so the row has one requirement and one status cell.
 3. **Section 5 (Workflow levels):** No checklist row is marked partial even though workflow_resolver, TenantWorkflow, and workflow hub UI exist. **Action:** Optionally add a note that 5.6 is “partial (hub UI, activate/deactivate, rollback); 5.1–5.5, 5.7 scoped” or leave as Not done until Level 1–3 and DSL are formalized.
 
 ---
 
 ## Recommended next actions
 
-1. **Fix main doc:** Update Section 17 (17.1–17.5) to partial/[x] and fix 26.5 duplicate cell.
+1. **Main doc consistency:** Resolved. Section 17 (17.1–17.5) and the 26.5 row are updated in `RUNMYCAMPUS_CONSOLIDATED_ARCHITECTURE_AND_REFACTOR.md`.
 2. **Prioritize refinement:** Use REFINEMENT_AND_IMPLEMENTATION_ORDER.md for Priority 1–2. Migration rollback, event backbone, Ed-Fi, CEDS, WebAuthn are done; remaining: audit export, blueprint pack versioning; then finance/attendance/comms config, UX rules.
 3. **Section 5 (Workflow):** Decide whether to formalize Level 1–3 and declarative DSL or keep as “hub + resolver done, levels/DSL scoped.”
 4. **Section 6 (Ecosystem):** Use the Gaps table above for sprint planning; 6.3 partial (tenant app billing), 6.4 done.

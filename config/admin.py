@@ -153,6 +153,13 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
             logging.getLogger(__name__).warning("Admin app list skip missing app: %s", e)
             app_dict = {}
 
+        # Drop models whose changelist URL could not be resolved (avoids NoReverseMatch in any template using app list)
+        for app_name in list(app_dict.keys()):
+            app_dict[app_name]["models"] = [
+                m for m in app_dict[app_name].get("models", [])
+                if m.get("admin_url")
+            ]
+
         app_order = {
             "accounts": {
                 "order": 1,
@@ -393,6 +400,12 @@ class PlatformAdminSite(BaseRunMyCampusAdminSite):
             # Missing app (e.g. brand_experience not in INSTALLED_APPS on some envs) — skip so admin index still loads
             logging.getLogger(__name__).warning("Admin app list skip missing app: %s", e)
             app_dict = {}
+        # Drop models whose changelist URL could not be resolved (avoids NoReverseMatch in any template using app list)
+        for app_name in list(app_dict.keys()):
+            app_dict[app_name]["models"] = [
+                m for m in app_dict[app_name].get("models", [])
+                if m.get("admin_url")
+            ]
         section_order = {s: i for i, s in enumerate(self.PLATFORM_APP_SECTIONS)}
         # Map app_label to section (one app can only be in one section; use primary section)
         app_list = []

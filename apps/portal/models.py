@@ -3,10 +3,23 @@ from __future__ import annotations
 from django.conf import settings
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 import uuid
 import os
 
 from apps.accounts.validators import validate_document_file, validate_file_size_10mb
+from .document_lifecycle import (
+    DOCUMENT_LIFECYCLE_APPROVED,
+    DOCUMENT_LIFECYCLE_ARCHIVED,
+    DOCUMENT_LIFECYCLE_CHOICES,
+    DOCUMENT_LIFECYCLE_DRAFT,
+    DOCUMENT_LIFECYCLE_REVIEW,
+    DOCUMENT_LIFECYCLE_RETRACTED,
+    build_document_search_index,
+    calculate_document_retention_review_at,
+    is_valid_document_transition,
+    normalize_document_pack_states,
+)
 
 
 def _portal_upload_to(instance, filename, subpath, school_id):
@@ -134,6 +147,33 @@ class PortalFeatureItem(models.Model):
         related_name="documents",
         help_text="Optional folder/category (Document Library structure).",
     )
+    document_pack = models.ForeignKey(
+        "packages.DocumentPack",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="documents",
+        help_text="Optional document pack that governs lifecycle states and retention rules.",
+    )
+    lifecycle_state = models.CharField(
+        max_length=20,
+        choices=DOCUMENT_LIFECYCLE_CHOICES,
+        default=DOCUMENT_LIFECYCLE_DRAFT,
+        db_index=True,
+        help_text="Document lifecycle state (draft, review, approved, archived, retracted).",
+    )
+    published_at = models.DateTimeField(null=True, blank=True)
+    archived_at = models.DateTimeField(null=True, blank=True)
+    retention_review_at = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Next retention review date derived from the document pack rule, when configured.",
+    )
+    search_index = models.TextField(
+        blank=True,
+        default="",
+        help_text="Precomputed search text for title, description, category, lifecycle, and pack metadata.",
+    )
     # Access control
     visible_to_roles = models.JSONField(
         default=list,
@@ -157,6 +197,7 @@ class PortalFeatureItem(models.Model):
         indexes = [
             models.Index(fields=["feature", "is_active"]),
             models.Index(fields=["document_type", "requires_signature"]),
+            models.Index(fields=["lifecycle_state", "document_pack"]),
         ]
 
     def __str__(self) -> str:
@@ -168,6 +209,17 @@ class PortalFeatureItem(models.Model):
             raise ValidationError("Either a link or file must be provided.")
         if self.link and self.file:
             raise ValidationError("Provide either a link OR a file, not both.")
+        if self.requires_signature and self.document_type != self.DocumentType.FORM:
+            raise ValidationError("Only FORM documents can require signatures.")
+        allowed_states = set(normalize_document_pack_states(self.document_pack))
+        allowed_states.add(DOCUMENT_LIFECYCLE_RETRACTED)
+        if self.lifecycle_state not in allowed_states:
+            raise ValidationError({"lifecycle_state": "Lifecycle state is not allowed for the selected document pack."})
+        previous_state = None
+        if self.pk:
+            previous_state = type(self).objects.filter(pk=self.pk).values_list("lifecycle_state", flat=True).first()
+        if previous_state and not is_valid_document_transition(previous_state, self.lifecycle_state, self.document_pack):
+            raise ValidationError({"lifecycle_state": f"Invalid transition from {previous_state} to {self.lifecycle_state}."})
 
     @property
     def has_file(self) -> bool:
@@ -194,6 +246,11 @@ class PortalFeatureItem(models.Model):
             return False
         if not user.is_authenticated:
             return False
+        lifecycle_state = str(self.lifecycle_state or "").strip().lower()
+        if lifecycle_state in {DOCUMENT_LIFECYCLE_DRAFT, DOCUMENT_LIFECYCLE_REVIEW, DOCUMENT_LIFECYCLE_RETRACTED}:
+            return bool(user.is_staff or user.is_superuser)
+        if lifecycle_state == DOCUMENT_LIFECYCLE_ARCHIVED and not (user.is_staff or user.is_superuser):
+            return False
         # If no role restrictions, all authenticated users can view
         if not self.visible_to_roles:
             return True
@@ -203,6 +260,22 @@ class PortalFeatureItem(models.Model):
             return str(user_role) in self.visible_to_roles
         # Staff/superuser can always view
         return user.is_staff or user.is_superuser
+
+    def save(self, *args, **kwargs):
+        previous_state = None
+        if self.pk:
+            previous_state = type(self).objects.filter(pk=self.pk).values_list("lifecycle_state", flat=True).first()
+        if not self.lifecycle_state:
+            self.lifecycle_state = DOCUMENT_LIFECYCLE_DRAFT
+        if self.lifecycle_state == DOCUMENT_LIFECYCLE_APPROVED and self.published_at is None:
+            self.published_at = timezone.now()
+        if self.lifecycle_state == DOCUMENT_LIFECYCLE_ARCHIVED and self.archived_at is None:
+            self.archived_at = timezone.now()
+        elif previous_state == DOCUMENT_LIFECYCLE_ARCHIVED and self.lifecycle_state != DOCUMENT_LIFECYCLE_ARCHIVED:
+            self.archived_at = None
+        self.retention_review_at = calculate_document_retention_review_at(self)
+        self.search_index = build_document_search_index(self)
+        super().save(*args, **kwargs)
 
 
 class PendingGuardianInvite(models.Model):
@@ -725,4 +798,3 @@ try:
     )
 except ImportError:
     pass
-

@@ -6,7 +6,9 @@ from django import forms
 from django.core.exceptions import ValidationError
 
 from apps.accounts.models import User
+from apps.packages.models import DocumentPack
 from apps.people.models import StudentProfile
+from .document_lifecycle import DOCUMENT_LIFECYCLE_APPROVED, lifecycle_state_choices
 from .models import PortalFeatureItem, FormSignature
 
 
@@ -19,6 +21,9 @@ class DocumentUploadForm(forms.ModelForm):
             "title",
             "description",
             "document_type",
+            "category",
+            "document_pack",
+            "lifecycle_state",
             "file",
             "link",
             "requires_signature",
@@ -36,6 +41,9 @@ class DocumentUploadForm(forms.ModelForm):
                 "placeholder": "Brief description of the document..."
             }),
             "document_type": forms.Select(attrs={"class": "form-select"}),
+            "category": forms.Select(attrs={"class": "form-select"}),
+            "document_pack": forms.Select(attrs={"class": "form-select"}),
+            "lifecycle_state": forms.Select(attrs={"class": "form-select"}),
             "file": forms.FileInput(attrs={
                 "class": "form-control",
                 "accept": ".pdf,.doc,.docx,.xls,.xlsx,.odt,.ods"
@@ -66,7 +74,16 @@ class DocumentUploadForm(forms.ModelForm):
         self.fields["visible_to_roles"].help_text = (
             "Select roles that can view this document. Leave empty for all authenticated users."
         )
-        
+        self.fields["document_pack"].queryset = DocumentPack.objects.filter(is_active=True).order_by("name")
+        self.fields["document_pack"].required = False
+        self.fields["category"].required = False
+        selected_pack = getattr(self.instance, "document_pack", None)
+        if self.is_bound:
+            pack_id = self.data.get(self.add_prefix("document_pack")) or self.data.get("document_pack")
+            if pack_id:
+                selected_pack = DocumentPack.objects.filter(pk=pack_id, is_active=True).first()
+        self.fields["lifecycle_state"].choices = lifecycle_state_choices(selected_pack)
+
         # Make file/link optional in form (validation in model)
         self.fields["file"].required = False
         self.fields["link"].required = False
@@ -86,6 +103,12 @@ class DocumentUploadForm(forms.ModelForm):
         # If requires_signature, must be a FORM type
         if cleaned_data.get("requires_signature") and cleaned_data.get("document_type") != PortalFeatureItem.DocumentType.FORM:
             raise ValidationError("Only FORM documents can require signatures.")
+
+        document_pack = cleaned_data.get("document_pack")
+        lifecycle_state = cleaned_data.get("lifecycle_state")
+        allowed_states = {code for code, _label in lifecycle_state_choices(document_pack)}
+        if lifecycle_state and lifecycle_state not in allowed_states:
+            raise ValidationError("Selected lifecycle state is not allowed for the chosen document pack.")
         
         return cleaned_data
 
@@ -125,6 +148,7 @@ class SignatureRequestForm(forms.ModelForm):
         self.fields["form_document"].queryset = PortalFeatureItem.objects.filter(
             feature=PortalFeatureItem.Feature.DOCUMENTS,
             requires_signature=True,
+            lifecycle_state=DOCUMENT_LIFECYCLE_APPROVED,
             is_active=True
         )
         

@@ -13,9 +13,9 @@ class DocumentCategoryAdmin(admin.ModelAdmin):
 
 
 class PortalFeatureItemAdmin(admin.ModelAdmin):
-    list_display = ("title", "feature", "category", "is_active", "created_by", "created_at")
-    list_filter = ("feature", "category", "is_active")
-    search_fields = ("title", "description")
+    list_display = ("title", "feature", "document_pack", "lifecycle_state", "category", "is_active", "created_by", "created_at")
+    list_filter = ("feature", "document_pack", "lifecycle_state", "category", "is_active")
+    search_fields = ("title", "description", "search_index")
     ordering = ("-created_at",)
     autocomplete_fields = ("created_by",)
     change_form_template = "admin/portal/portalfeatureitem/change_form.html"
