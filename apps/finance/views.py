@@ -1843,38 +1843,93 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
             return method_aliases[normalized_method]
         return PROVIDER_SLUG_TO_METHOD.get(provider_code) or PROVIDER_SLUG_TO_METHOD.get(provider_slug) or PaymentMethodCode.MTN_MOMO
 
+    def _request_content_type() -> str:
+        return ((request.content_type or request.META.get("CONTENT_TYPE") or "").split(";", 1)[0]).strip().lower()
+
+    def _content_type_is_json() -> bool:
+        content_type = _request_content_type()
+        return content_type == "application/json" or content_type.endswith("+json")
+
     integration = get_payment_integration_by_slug(provider_slug)
     if not integration:
         logger.warning(f"Webhook request for unknown provider: {provider_slug}")
         return HttpResponseForbidden("Unknown provider.")
 
-    try:
-        request_body = request.body
-        data = json.loads(request_body.decode() or "{}")
-    except (json.JSONDecodeError, UnicodeDecodeError) as e:
-        logger.error(f"Invalid webhook payload from {provider_slug}: {e}")
-        WebhookLog.objects.create(
-            provider=provider_slug,
-            reference_id="unknown",
-            client_ip=WebhookSecurityValidator.get_client_ip(request),
-            status=WebhookLog.Status.INVALID,
-            error_message=f"Invalid JSON: {str(e)}",
-        )
-        return HttpResponseBadRequest("Invalid JSON payload.")
-
-    # Initialize security validator
     provider_code = _provider_code()
     validator = WebhookSecurityValidator(integration.config or {})
     client_ip = validator.get_client_ip(request)
+    request_body = b""
+
+    def _request_body_excerpt(raw_body: bytes | None = None) -> str:
+        body = request_body if raw_body is None else raw_body
+        return body.decode("utf-8", errors="replace")[:500]
+
+    def _create_webhook_log(
+        *,
+        reference_id: str,
+        status: str,
+        signature_valid: bool = False,
+        response_status: int | None = None,
+        invoice: Invoice | None = None,
+        payment: Payment | None = None,
+        error_message: str = "",
+    ) -> WebhookLog:
+        payload: dict[str, object] = {
+            "provider": provider_code,
+            "reference_id": reference_id,
+            "client_ip": client_ip,
+            "signature_valid": signature_valid,
+            "status": status,
+            "request_body": _request_body_excerpt(),
+        }
+        if response_status is not None:
+            payload["response_status"] = response_status
+        if invoice is not None:
+            payload["invoice"] = invoice
+        if payment is not None:
+            payload["payment"] = payment
+        if error_message:
+            payload["error_message"] = error_message
+        return WebhookLog.objects.create(**payload)
+
+    request_body = request.body
+    if request_body and not _content_type_is_json():
+        _create_webhook_log(
+            reference_id="unknown",
+            status=WebhookLog.Status.INVALID,
+            response_status=415,
+            error_message=f"Unsupported content type: {_request_content_type() or 'unknown'}",
+        )
+        return HttpResponse("Content-Type must be application/json.", status=415)
+
+    try:
+        data = json.loads(request_body.decode("utf-8") or "{}")
+    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        logger.error(f"Invalid webhook payload from {provider_slug}: {e}")
+        _create_webhook_log(
+            reference_id="unknown",
+            status=WebhookLog.Status.INVALID,
+            response_status=400,
+            error_message=f"Invalid JSON: {str(e)}",
+        )
+        return HttpResponseBadRequest("Invalid JSON payload.")
+    if not isinstance(data, dict):
+        _create_webhook_log(
+            reference_id="unknown",
+            status=WebhookLog.Status.INVALID,
+            response_status=400,
+            error_message="Webhook payload must be a JSON object",
+        )
+        return HttpResponseBadRequest("Webhook payload must be a JSON object.")
+
     reference_id = _extract_reference(data) or "unknown"
 
     # Step 1: IP whitelist check
     if not validator.validate_ip_whitelist(client_ip):
-        WebhookLog.objects.create(
-            provider=provider_code,
+        _create_webhook_log(
             reference_id=reference_id,
-            client_ip=client_ip,
             status=WebhookLog.Status.INVALID,
+            response_status=403,
             error_message=f"IP not whitelisted: {client_ip}",
         )
         logger.warning(f"Rejected webhook from unauthorized IP {client_ip} for {provider_slug}")
@@ -1882,6 +1937,12 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
 
     # Step 2: Rate limiting check
     if not validator.validate_rate_limit(client_ip):
+        _create_webhook_log(
+            reference_id=reference_id,
+            status=WebhookLog.Status.INVALID,
+            response_status=403,
+            error_message=f"Rate limit exceeded for IP {client_ip}",
+        )
         logger.warning(f"Rate limit exceeded for IP {client_ip}")
         return HttpResponseForbidden("Rate limit exceeded.")
 
@@ -1894,14 +1955,12 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
 
     signature_valid = validator.validate_signature(request_body, signature or "")
     if not signature_valid:
-        WebhookLog.objects.create(
-            provider=provider_code,
+        _create_webhook_log(
             reference_id=reference_id,
-            client_ip=client_ip,
             signature_valid=False,
             status=WebhookLog.Status.INVALID,
+            response_status=403,
             error_message="Invalid HMAC signature",
-            request_body=request_body.decode()[:500],  # Store first 500 chars
         )
         logger.warning(f"Invalid signature from {provider_slug} ({client_ip})")
         return HttpResponseForbidden("Invalid signature.")
@@ -1913,27 +1972,23 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
         or request.META.get(f"HTTP_{timestamp_header.upper().replace('-', '_')}")
     )
     if not validator.validate_timestamp(request_timestamp):
-        WebhookLog.objects.create(
-            provider=provider_code,
+        _create_webhook_log(
             reference_id=reference_id,
-            client_ip=client_ip,
             signature_valid=True,
             status=WebhookLog.Status.INVALID,
+            response_status=403,
             error_message="Invalid or stale webhook timestamp",
-            request_body=request_body.decode()[:500],
         )
         logger.warning(f"Invalid timestamp from {provider_slug} ({client_ip})")
         return HttpResponseForbidden("Invalid timestamp.")
 
     # Step 5: Idempotency check (prevent duplicate payments)
     if not validator.validate_idempotency(provider_code, reference_id):
-        webhook_log = WebhookLog.objects.create(
-            provider=provider_code,
+        webhook_log = _create_webhook_log(
             reference_id=reference_id,
-            client_ip=client_ip,
             signature_valid=True,
             status=WebhookLog.Status.DUPLICATE,
-            request_body=request_body.decode()[:500],
+            response_status=200,
         )
         logger.info(f"Duplicate webhook from {provider_slug}: {reference_id}")
         return JsonResponse({"status": "ignored", "reason": "duplicate"})
@@ -1946,27 +2001,23 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
     # Validate amount
     is_valid, error_msg = PaymentValidator.validate_amount(amount)
     if not is_valid:
-        WebhookLog.objects.create(
-            provider=provider_code,
+        _create_webhook_log(
             reference_id=reference_id,
-            client_ip=client_ip,
             signature_valid=True,
             status=WebhookLog.Status.INVALID,
+            response_status=400,
             error_message=f"Invalid amount: {error_msg}",
-            request_body=request_body.decode()[:500],
         )
         logger.warning(f"Invalid payment amount from {provider_slug}: {amount}")
         return HttpResponseBadRequest(error_msg)
 
     if not invoice_id:
-        WebhookLog.objects.create(
-            provider=provider_code,
+        _create_webhook_log(
             reference_id=reference_id,
-            client_ip=client_ip,
             signature_valid=True,
             status=WebhookLog.Status.INVALID,
+            response_status=400,
             error_message="Missing invoice_id in payload",
-            request_body=request_body.decode()[:500],
         )
         return HttpResponseBadRequest("Missing invoice_id.")
 
@@ -1974,12 +2025,11 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
     try:
         invoice = Invoice.objects.get(id=invoice_id)
     except Invoice.DoesNotExist:
-        WebhookLog.objects.create(
-            provider=provider_code,
+        _create_webhook_log(
             reference_id=reference_id,
-            client_ip=client_ip,
             signature_valid=True,
             status=WebhookLog.Status.INVALID,
+            response_status=400,
             error_message=f"Invoice {invoice_id} not found",
         )
         logger.warning(f"Invoice {invoice_id} not found from webhook {provider_slug}")
@@ -1993,12 +2043,11 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
         invoice_paid,
     )
     if not is_valid:
-        WebhookLog.objects.create(
-            provider=provider_slug,
+        _create_webhook_log(
             reference_id=reference_id,
-            client_ip=client_ip,
             signature_valid=True,
             status=WebhookLog.Status.INVALID,
+            response_status=400,
             invoice=invoice,
             error_message=f"Amount validation failed: {error_msg}",
         )
@@ -2009,14 +2058,11 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
     try:
         with transaction.atomic():
             # Create WebhookLog first (in PROCESSING state)
-            webhook_log = WebhookLog.objects.create(
-                provider=provider_code,
+            webhook_log = _create_webhook_log(
                 reference_id=reference_id,
-                client_ip=client_ip,
                 signature_valid=True,
                 status=WebhookLog.Status.PROCESSING,
                 invoice=invoice,
-                request_body=request_body.decode()[:500],
             )
 
             # Record the payment
@@ -2031,7 +2077,8 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
             if not payment:
                 webhook_log.status = WebhookLog.Status.FAILED
                 webhook_log.error_message = "Failed to create payment record"
-                webhook_log.save(update_fields=["status", "error_message"])
+                webhook_log.response_status = 500
+                webhook_log.save(update_fields=["status", "error_message", "response_status"])
                 logger.error(f"Failed to record payment for webhook {reference_id}")
                 return JsonResponse({"status": "error", "reason": "payment_creation_failed"})
 
@@ -2059,14 +2106,14 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
             webhook_log = WebhookLog.objects.get(reference_id=reference_id, provider=provider_code)
             webhook_log.status = WebhookLog.Status.FAILED
             webhook_log.error_message = f"Transaction error: {str(e)[:200]}"
-            webhook_log.save(update_fields=["status", "error_message"])
+            webhook_log.response_status = 500
+            webhook_log.save(update_fields=["status", "error_message", "response_status"])
         except WebhookLog.DoesNotExist:
-            WebhookLog.objects.create(
-                provider=provider_code,
+            _create_webhook_log(
                 reference_id=reference_id,
-                client_ip=client_ip,
                 signature_valid=True,
                 status=WebhookLog.Status.FAILED,
+                response_status=500,
                 error_message=f"Transaction error: {str(e)[:200]}",
             )
         return JsonResponse({"status": "error", "reason": "processing_failed"}, status=500)

@@ -3,17 +3,17 @@
     "allow_any": 34,
     "csrf_exempt": 79,
     "cursor_execute": 351,
-    "except_exception": 765,
-    "get_solo": 211,
-    "gilead": 489,
-    "gilead_files": 113,
+    "except_exception": 741,
+    "get_solo": 212,
+    "gilead": 484,
+    "gilead_files": 110,
     "html_files": 456,
     "management_commands": 137,
     "markdown_files": 793,
-    "migration_files": 582,
-    "print_calls": 426,
-    "python_files": 1734,
-    "site_settings": 1070
+    "migration_files": 585,
+    "print_calls": 428,
+    "python_files": 1744,
+    "site_settings": 1068
   },
   "doc_drift": {
     "actual_installed_app_count": 41,
@@ -28,8 +28,8 @@
       "path": "apps/schools/marketing_views.py"
     },
     {
-      "bytes": 183976,
-      "lines": 4731,
+      "bytes": 176637,
+      "lines": 4527,
       "path": "apps/siteconfig/models.py"
     },
     {
@@ -43,23 +43,23 @@
       "path": "apps/accounts/views.py"
     },
     {
-      "bytes": 107531,
-      "lines": 2554,
+      "bytes": 107834,
+      "lines": 2568,
       "path": "apps/evals/views.py"
     },
     {
-      "bytes": 105449,
+      "bytes": 105463,
       "lines": 2436,
       "path": "apps/siteconfig/admin.py"
     },
     {
-      "bytes": 97872,
-      "lines": 2297,
+      "bytes": 99544,
+      "lines": 2344,
       "path": "apps/finance/views.py"
     },
     {
-      "bytes": 96382,
-      "lines": 2211,
+      "bytes": 96646,
+      "lines": 2226,
       "path": "apps/portal/views.py"
     },
     {
@@ -68,13 +68,13 @@
       "path": "apps/finance/models.py"
     },
     {
-      "bytes": 90937,
-      "lines": 1756,
+      "bytes": 90549,
+      "lines": 1752,
       "path": "apps/api/views_v1.py"
     },
     {
-      "bytes": 75460,
-      "lines": 1788,
+      "bytes": 75773,
+      "lines": 1794,
       "path": "apps/siteconfig/views.py"
     },
     {

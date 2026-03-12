@@ -51,6 +51,7 @@ from .models import (
     DashboardView,
     ReportCardStyleAssignment,
     SiteSettings,
+    build_platform_default_site_settings,
     UserPreference,
     RegionConfig,
     GradingScaleConfig,
@@ -466,7 +467,7 @@ def module_market(request):
 def reportcard_builder(request):
     settings_obj = get_effective_site_settings(request=request)
     if settings_obj is None:
-        settings_obj = SiteSettings()
+        settings_obj = build_platform_default_site_settings()
     styles = list(ReportCardStyle.objects.order_by("name"))
     style_assignment_counts = {
         row["style_id"]: row["total"]
@@ -501,7 +502,10 @@ def reportcard_builder(request):
         .select_related("classroom")
         .order_by("last_name", "first_name")[:40]
     )
-    default_style = settings_obj.default_term_report_style or settings_obj.default_annual_report_style
+    default_style = (
+        settings_obj.resolve_default_report_style(ReportCard.Type.TERM)
+        or settings_obj.resolve_default_report_style(ReportCard.Type.ANNUAL)
+    )
     preview_default_style_slug = (
         getattr(default_style, "slug", None) or (styles[0].slug if styles else "")
     )
@@ -552,6 +556,8 @@ def reportcard_builder(request):
     })
 
 def _build_style_metadata(site: SiteSettings) -> dict:
+    if callable(getattr(site, "get_brand_metadata", None)):
+        return site.get_brand_metadata()
     return {
         "school_name": site.site_name,
         "school_code": site.school_code,
@@ -1029,7 +1035,7 @@ def theme_colors_page(request):
         return redirect("studio_os:experience")
     site = get_effective_site_settings(request=request)
     if site is None:
-        site = SiteSettings()
+        site = build_platform_default_site_settings()
     all_packs = list(
         ThemePack.objects.filter(is_active=True).order_by("-applies_to_admin", "-is_default", "name")
     )
@@ -1196,7 +1202,7 @@ def get_theme_colors_context(request):
     """
     site = get_effective_site_settings(request=request)
     if site is None:
-        site = SiteSettings()
+        site = build_platform_default_site_settings()
     form = ThemeColorsForm(instance=site)
     all_packs = list(
         ThemePack.objects.filter(is_active=True).order_by("-applies_to_admin", "-is_default", "name")
@@ -1316,7 +1322,7 @@ def template_gallery_page(request):
     """
     site = get_effective_site_settings(request=request)
     if site is None:
-        site = SiteSettings()
+        site = build_platform_default_site_settings()
     packs = list(ThemePack.objects.filter(is_active=True).order_by("-is_default", "name"))
     if request.method == "POST":
         slug = (request.POST.get("template_slug") or "").strip()

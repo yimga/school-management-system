@@ -224,7 +224,7 @@ def get_effective_site_settings(request: Any = None, school: Any = None) -> Any:
 def _build_platform_site_settings_base() -> Any:
     """Build the platform baseline from RuntimeDefaults first, then legacy SiteSettings for compatibility fields."""
     from apps.platform_runtime.models import RuntimeDefaults
-    from apps.siteconfig.models import SiteSettings
+    from apps.siteconfig.models import SiteSettings, build_platform_default_site_settings
 
     payload = {}
     try:
@@ -243,8 +243,7 @@ def _build_platform_site_settings_base() -> Any:
     if legacy_site is not None:
         base = copy(legacy_site)
     else:
-        base = SiteSettings()
-        base.pk = 1
+        base = build_platform_default_site_settings()
 
     if payload:
         for field in SiteSettings._meta.concrete_fields:

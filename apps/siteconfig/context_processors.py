@@ -1,6 +1,6 @@
 import json
 from django.db import DatabaseError, connection, transaction
-from .models import SiteSettings, default_header_weather_config
+from .models import SiteSettings, build_platform_default_site_settings, default_header_weather_config
 from .translations import TranslationManager, SUPPORTED_LANGUAGES
 from .models_dashboard import DashboardUserPreference
 from django.core.files.storage import default_storage
@@ -201,10 +201,10 @@ def site_settings(request):
     try:
         site = get_effective_site_settings(request=request)
         if site is None:
-            site = SiteSettings()
+            site = build_platform_default_site_settings()
     except DatabaseError:
         _reset_db_state()
-        site = SiteSettings()
+        site = build_platform_default_site_settings()
 
     session = getattr(request, "session", None)
     preview_settings = session.get(SESSION_KEY) if session else None

@@ -25,7 +25,7 @@ from apps.platform_runtime.runtime_resolver import (
     build_tenant_runtime_for_tenant,
 )
 from apps.schools.models import School
-from apps.siteconfig.models import SiteSettings
+from apps.siteconfig.models import SiteSettings, build_platform_default_site_settings
 
 
 class TenantRuntimeContractTests(TestCase):
@@ -337,6 +337,54 @@ class RuntimeHelperResolutionTests(TestCase):
 
         self.assertTrue(flags["enable_api_center"])
         self.assertIn("backend_module_overview", flags)
+
+    def test_site_settings_owner_accessors_expose_brand_and_report_preview_payloads(self):
+        site = SiteSettings.get_solo()
+        site.site_name = "North Star Academy"
+        site.school_code = "NSA"
+        site.country = "Cameroon"
+        site.region = "Centre"
+        site.ministry = "Education"
+        site.tagline = "One platform"
+        site.report_preview_contact_email = "reports@example.com"
+        site.report_preview_contact_phone = "+237600000000"
+        site.report_preview_footer_note = "Preview footer"
+        site.default_report_preview_type = "ANNUAL"
+        site.save(
+            update_fields=[
+                "site_name",
+                "school_code",
+                "country",
+                "region",
+                "ministry",
+                "tagline",
+                "report_preview_contact_email",
+                "report_preview_contact_phone",
+                "report_preview_footer_note",
+                "default_report_preview_type",
+            ]
+        )
+
+        brand_metadata = site.get_brand_metadata()
+        preview_settings = site.get_report_preview_settings()
+
+        self.assertEqual(brand_metadata["school_name"], "North Star Academy")
+        self.assertEqual(brand_metadata["school_code"], "NSA")
+        self.assertEqual(brand_metadata["country"], "Cameroon")
+        self.assertEqual(brand_metadata["region"], "Centre")
+        self.assertEqual(brand_metadata["ministry"], "Education")
+        self.assertEqual(brand_metadata["tagline"], "One platform")
+        self.assertEqual(preview_settings["contact_email"], "reports@example.com")
+        self.assertEqual(preview_settings["contact_phone"], "+237600000000")
+        self.assertEqual(preview_settings["footer_note"], "Preview footer")
+        self.assertEqual(preview_settings["default_report_type"], "ANNUAL")
+
+    def test_build_platform_default_site_settings_returns_unsaved_compat_shape(self):
+        site = build_platform_default_site_settings()
+
+        self.assertEqual(site.pk, 1)
+        self.assertTrue(site._state.adding)
+        self.assertIsInstance(site.get_preview_platform_config(), dict)
 
 
 class IntegrationGovernanceTests(TestCase):

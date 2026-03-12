@@ -1827,6 +1827,80 @@ class SiteSettings(models.Model):
             ),
         }
 
+    def get_brand_metadata(self) -> dict[str, str]:
+        """Return branding/report metadata through ownership-scoped payloads first."""
+        brand_payload = self.owned_payload(owner="brand_experience")
+        runtime_payload = self.owned_payload(owner="runtime_blueprints")
+        registry_payload = self.owned_payload(owner="global_registries")
+        return {
+            "school_name": str(
+                brand_payload.get("site_name", getattr(self, "site_name", ""))
+                or ""
+            ),
+            "school_code": str(
+                runtime_payload.get("school_code", getattr(self, "school_code", ""))
+                or ""
+            ),
+            "country": str(
+                registry_payload.get("country", getattr(self, "country", ""))
+                or ""
+            ),
+            "region": str(
+                registry_payload.get("region", getattr(self, "region", ""))
+                or ""
+            ),
+            "ministry": str(
+                registry_payload.get("ministry", getattr(self, "ministry", ""))
+                or ""
+            ),
+            "tagline": str(
+                brand_payload.get("tagline", getattr(self, "tagline", ""))
+                or ""
+            ),
+        }
+
+    def get_report_preview_settings(self) -> dict[str, object]:
+        """Return report preview defaults through the reports ownership domain."""
+        payload = self.owned_payload(owner="reports")
+        return {
+            "contact_email": str(
+                payload.get(
+                    "report_preview_contact_email",
+                    getattr(self, "report_preview_contact_email", ""),
+                )
+                or ""
+            ),
+            "contact_phone": str(
+                payload.get(
+                    "report_preview_contact_phone",
+                    getattr(self, "report_preview_contact_phone", ""),
+                )
+                or ""
+            ),
+            "footer_note": str(
+                payload.get(
+                    "report_preview_footer_note",
+                    getattr(self, "report_preview_footer_note", ""),
+                )
+                or ""
+            ),
+            "default_report_type": str(
+                payload.get(
+                    "default_report_preview_type",
+                    getattr(self, "default_report_preview_type", REPORT_CARD_TYPE_TERM),
+                )
+                or REPORT_CARD_TYPE_TERM
+            ),
+            "default_term_report_style_id": payload.get(
+                "default_term_report_style_id",
+                getattr(self, "default_term_report_style_id", None),
+            ),
+            "default_annual_report_style_id": payload.get(
+                "default_annual_report_style_id",
+                getattr(self, "default_annual_report_style_id", None),
+            ),
+        }
+
     @property
     def compliance_profile(self):
         profile_id = getattr(self, "compliance_profile_id", None)
@@ -1983,6 +2057,18 @@ class SiteSettings(models.Model):
                 except (OperationalError, DatabaseError):
                     pass
         return self.active_theme
+
+
+def build_platform_default_site_settings() -> SiteSettings:
+    """
+    Build an unsaved SiteSettings object that represents platform-safe defaults.
+
+    This is the compatibility fallback for read paths that still expect a
+    SiteSettings-shaped object when the singleton is unavailable.
+    """
+    site = SiteSettings()
+    site.pk = 1
+    return site
 
 
 class ThemePack(models.Model):
@@ -3227,6 +3313,14 @@ from .models_ai import (
     AIPromptRegistry,
     RegionalAIConfig,
 )
+from .models_feature_controls import (
+    FeatureToggleDefinition,
+    FeatureToggleState,
+    FeatureUsageEvent,
+    GlobalSupportTicket,
+    TourStep,
+)
+from .models_marketing import BlogPost, MarketingContent, ProductFeedback
 
 
 class RevenueSnapshot(models.Model):
@@ -4060,83 +4154,6 @@ class WeatherLocation(models.Model):
         return cls.objects.select_related("region").filter(is_active=True).order_by("sort_order", "city").first()
 
 
-class FeatureToggleDefinition(models.Model):
-    """
-    Registry of configurable toggles.
-    Supports global defaults plus optional per-school overrides.
-    """
-
-    class Scope(models.TextChoices):
-        GLOBAL = "global", "Global only"
-        SCHOOL = "school", "School override allowed"
-
-    key = models.SlugField(max_length=120, unique=True)
-    label = models.CharField(max_length=160)
-    description = models.TextField(blank=True)
-    category = models.CharField(max_length=80, blank=True)
-    scope = models.CharField(max_length=20, choices=Scope.choices, default=Scope.SCHOOL)
-    default_enabled = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
-    metadata = models.JSONField(default=dict, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ["category", "label", "key"]
-
-    def __str__(self):
-        return self.label or self.key
-
-
-class FeatureToggleState(models.Model):
-    """
-    Effective toggle values.
-    - school=None => global override
-    - school=<id> => tenant override
-    """
-
-    definition = models.ForeignKey(
-        FeatureToggleDefinition,
-        on_delete=models.CASCADE,
-        related_name="states",
-    )
-    school = models.ForeignKey(
-        "schools.School",
-        on_delete=models.CASCADE,
-        related_name="feature_toggle_states",
-        null=True,
-        blank=True,
-    )
-    is_enabled = models.BooleanField(default=False)
-    value = models.JSONField(default=dict, blank=True)
-    expires_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="When set, this override is ignored after this time (Phase 10 — 10.2 capability expiry).",
-    )
-    updated_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="updated_feature_toggle_states",
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["definition", "school"],
-                name="siteconfig_toggle_state_unique_definition_school",
-            )
-        ]
-        ordering = ["definition__key", "school_id"]
-
-    def __str__(self):
-        scope = self.school.slug if self.school_id else "global"
-        return f"{self.definition.key} ({scope})"
-
 def _refresh_site_settings_cache(sender, instance: SiteSettings, **kwargs) -> None:
     global _SITE_SETTINGS_CACHE
     _SITE_SETTINGS_CACHE = instance
@@ -4180,143 +4197,6 @@ def _emit_global_change_alert(sender, instance: SiteSettings, **kwargs) -> None:
 def _clear_site_settings_cache(sender, **kwargs) -> None:
     global _SITE_SETTINGS_CACHE
     _SITE_SETTINGS_CACHE = None
-
-
-# Plan XVI: Onboarding tours and feature-usage analytics
-class TourStep(models.Model):
-    """In-app onboarding tour step; track which users have seen which step."""
-    school = models.ForeignKey(
-        "schools.School",
-        on_delete=models.CASCADE,
-        related_name="tour_steps",
-        null=True,
-        blank=True,
-    )
-    code = models.CharField(max_length=80, db_index=True, help_text="e.g. dashboard_welcome, grades_first_time")
-    title = models.CharField(max_length=255, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ["code"]
-        unique_together = [("school", "code")]
-
-    def __str__(self):
-        return f"{self.code}: {self.title or self.code}"
-
-
-class FeatureUsageEvent(models.Model):
-    """Feature-usage analytics: track_event(feature_code, school, user)."""
-    school = models.ForeignKey(
-        "schools.School",
-        on_delete=models.CASCADE,
-        related_name="feature_usage_events",
-        null=True,
-        blank=True,
-    )
-    feature_code = models.CharField(max_length=80, db_index=True)
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="feature_usage_events",
-    )
-    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
-
-    class Meta:
-        ordering = ["-created_at"]
-        indexes = [
-            models.Index(fields=["school", "feature_code", "-created_at"]),
-        ]
-
-    def __str__(self):
-        return f"{self.feature_code} @ {self.created_at}"
-
-
-# ============================================================================
-# Global Support Desk (RunMyCampus powerhouse): central ticketing in shared schema
-# ============================================================================
-
-
-class GlobalSupportTicket(models.Model):
-    """
-    Central support ticket from any tenant; stored in public/shared schema.
-    Super-admin command center can filter by tenant, priority, region (metadata.country_code).
-    Auto-prioritize by plan (e.g. Powerhouse).
-    """
-    class Priority(models.TextChoices):
-        LOW = "LOW", "Low"
-        NORMAL = "NORMAL", "Normal"
-        HIGH = "HIGH", "High"
-        URGENT = "URGENT", "Urgent"
-
-    class Status(models.TextChoices):
-        OPEN = "OPEN", "Open"
-        IN_PROGRESS = "IN_PROGRESS", "In Progress"
-        WAITING = "WAITING", "Waiting"
-        RESOLVED = "RESOLVED", "Resolved"
-        CLOSED = "CLOSED", "Closed"
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    school = models.ForeignKey(
-        "schools.School",
-        on_delete=models.CASCADE,
-        related_name="global_support_tickets",
-    )
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="global_support_tickets_submitted",
-    )
-    subject = models.CharField(max_length=255)
-    body = models.TextField(blank=True)
-    priority = models.CharField(
-        max_length=20,
-        choices=Priority.choices,
-        default=Priority.NORMAL,
-    )
-    status = models.CharField(
-        max_length=20,
-        choices=Status.choices,
-        default=Status.OPEN,
-    )
-    assigned_to = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="assigned_support_tickets",
-        help_text="Super-admin or support agent assigned to this ticket.",
-    )
-    tags = models.JSONField(default=list, blank=True)
-    metadata = models.JSONField(
-        default=dict,
-        blank=True,
-        help_text="country_code, plan_slug, etc. for regional routing and filters",
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    first_response_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="When the first agent response was recorded; used for SLA response breach.",
-    )
-
-    class Meta:
-        ordering = ["-created_at", "-id"]
-        indexes = [
-            models.Index(fields=["status"]),
-            models.Index(fields=["priority"]),
-            models.Index(fields=["school"]),
-            models.Index(fields=["-created_at"]),
-        ]
-        verbose_name = "Global support ticket"
-        verbose_name_plural = "Global support tickets"
-
-    def __str__(self):
-        return f"{self.school.name}: {self.subject} ({self.status})"
 
 
 # ============================================================================
@@ -4593,90 +4473,6 @@ class BroadcastCampaign(models.Model):
 
     def __str__(self):
         return f"{self.subject} ({self.status})"
-
-
-class ProductFeedback(models.Model):
-    """
-    Part 4.4: Public-schema feedback/feature requests for roadmap visibility.
-    Tag by region and module; status (Planned / In Development / Released); optional upvotes.
-    Link from roadmap or feedback form; simple admin for super-admin.
-    """
-    class Status(models.TextChoices):
-        SUBMITTED = "SUBMITTED", "Submitted"
-        PLANNED = "PLANNED", "Planned"
-        IN_DEVELOPMENT = "IN_DEVELOPMENT", "In Development"
-        RELEASED = "RELEASED", "Released"
-        WONT_DO = "WONT_DO", "Won't Do"
-
-    title = models.CharField(max_length=255)
-    description = models.TextField(blank=True)
-    region = models.CharField(max_length=32, blank=True, db_index=True, help_text="e.g. country code or regional cluster.")
-    module = models.CharField(max_length=64, blank=True, db_index=True, help_text="e.g. admissions, finance, portal.")
-    status = models.CharField(max_length=24, choices=Status.choices, default=Status.SUBMITTED, db_index=True)
-    upvotes = models.PositiveIntegerField(default=0)
-    submitted_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="+",
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        db_table = "siteconfig_productfeedback"
-        ordering = ["-upvotes", "-created_at"]
-        verbose_name = "Product feedback"
-        verbose_name_plural = "Product feedback"
-
-    def __str__(self):
-        return f"{self.title} ({self.get_status_display()})"
-
-
-class MarketingContent(models.Model):
-    """
-    Plan 4.11: DB-driven content for marketing (CMS-lite). Key-based blobs editable in admin
-    without deploy. Use for hero copy, footer, or any marketing snippet; locale optional.
-    """
-    key = models.CharField(max_length=120, db_index=True, help_text="e.g. hero_subheadline, blog_intro")
-    content_html = models.TextField(blank=True)
-    locale = models.CharField(max_length=10, blank=True, default="", db_index=True)
-    content_type = models.CharField(max_length=32, blank=True, default="html")
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        db_table = "siteconfig_marketingcontent"
-        unique_together = [["key", "locale"]]
-        ordering = ["key", "locale"]
-        verbose_name = "Marketing content"
-        verbose_name_plural = "Marketing content"
-
-    def __str__(self):
-        return f"{self.key} ({self.locale or 'default'})"
-
-
-class BlogPost(models.Model):
-    """
-    Plan 4.11: Blog / News for marketing site. CMS-backed; list on /blog/, detail at /blog/<slug>/.
-    """
-    title = models.CharField(max_length=255)
-    slug = models.SlugField(max_length=255, unique=True)
-    excerpt = models.TextField(blank=True)
-    body_html = models.TextField(blank=True)
-    published_at = models.DateTimeField(null=True, blank=True, db_index=True)
-    is_published = models.BooleanField(default=False, db_index=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        db_table = "siteconfig_blogpost"
-        ordering = ["-published_at", "-created_at"]
-        verbose_name = "Blog post"
-        verbose_name_plural = "Blog posts"
-
-    def __str__(self):
-        return self.title
 
 
 # Section 15.2: Metadata-driven data layer — custom attributes without code/schema migrations

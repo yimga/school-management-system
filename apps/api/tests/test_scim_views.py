@@ -84,6 +84,47 @@ class ScimViewsTests(TestCase):
         user = User.objects.get(username="teacher.scim")
         self.assertTrue(SchoolMembership.objects.filter(school=self.school, user=user).exists())
 
+    def test_create_user_rejects_invalid_json(self):
+        response = self.client.post(
+            self._url("api:scim-users"),
+            data="{bad-json",
+            content_type="application/json",
+            **self._headers(),
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["scimType"], "invalidSyntax")
+
+    def test_create_user_rejects_non_scim_content_type(self):
+        response = self.client.post(
+            self._url("api:scim-users"),
+            data=json.dumps({"userName": "teacher.scim"}),
+            content_type="text/plain",
+            **self._headers(),
+        )
+        self.assertEqual(response.status_code, 415)
+        self.assertIn("application/scim+json", response.json()["detail"])
+
+    def test_create_user_rejects_non_object_json_body(self):
+        response = self.client.post(
+            self._url("api:scim-users"),
+            data=json.dumps(["not", "an", "object"]),
+            content_type="application/json",
+            **self._headers(),
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["scimType"], "invalidSyntax")
+
+    def test_create_user_requires_user_schema(self):
+        response = self.client.post(
+            self._url("api:scim-users"),
+            data=json.dumps({"userName": "teacher.scim"}),
+            content_type="application/json",
+            **self._headers(),
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["scimType"], "invalidSyntax")
+        self.assertIn("core User schema", response.json()["detail"])
+
     def test_list_users_supports_filter(self):
         response = self.client.get(
             self._url("api:scim-users") + '&filter=userName eq "base.user"',
@@ -150,6 +191,30 @@ class ScimViewsTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.base_user.refresh_from_db()
         self.assertFalse(self.base_user.is_active)
+
+    def test_patch_user_rejects_invalid_json(self):
+        response = self.client.patch(
+            self._url("api:scim-user-detail", self.base_user.pk),
+            data="{bad-json",
+            content_type="application/json",
+            **self._headers(),
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["scimType"], "invalidSyntax")
+
+    def test_patch_group_rejects_non_scim_content_type(self):
+        payload = {
+            "schemas": ["urn:ietf:params:scim:api:messages:2.0:PatchOp"],
+            "Operations": [{"op": "add", "path": "members", "value": [{"value": str(self.base_user.pk)}]}],
+        }
+        response = self.client.patch(
+            self._url("api:scim-group-detail", self.role.pk),
+            data=json.dumps(payload),
+            content_type="text/plain",
+            **self._headers(),
+        )
+        self.assertEqual(response.status_code, 415)
+        self.assertIn("application/scim+json", response.json()["detail"])
 
     def test_delete_user_deprovisions(self):
         response = self.client.delete(

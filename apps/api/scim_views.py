@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import secrets
 from typing import Any
 
@@ -21,15 +22,18 @@ SCIM_USER_SCHEMA = "urn:ietf:params:scim:schemas:core:2.0:User"
 SCIM_GROUP_SCHEMA = "urn:ietf:params:scim:schemas:core:2.0:Group"
 SCIM_LIST_SCHEMA = "urn:ietf:params:scim:api:messages:2.0:ListResponse"
 SCIM_PATCH_SCHEMA = "urn:ietf:params:scim:api:messages:2.0:PatchOp"
+SCIM_MUTATION_CONTENT_TYPES = {"application/json", "application/scim+json"}
 SCIM_RATE_LIMIT_WINDOW = 60 * 15
 SCIM_RATE_LIMIT_MAX = 240
+logger = logging.getLogger(__name__)
 
 
-def _json_body(request: HttpRequest) -> dict[str, Any]:
+def _json_body(request: HttpRequest) -> dict[str, Any] | None:
     try:
-        return json.loads(request.body.decode("utf-8") or "{}")
-    except Exception:
-        return {}
+        payload = json.loads(request.body.decode("utf-8") or "{}")
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return None
+    return payload if isinstance(payload, dict) else None
 
 
 def _scim_error(detail: str, *, status: int = 400, scim_type: str | None = None):
@@ -100,8 +104,94 @@ def _authorize_scim_request(request: HttpRequest):
     )
     provided = _extract_bearer(request)
     if not expected or not provided or not secrets.compare_digest(expected, provided):
+        logger.warning(
+            "Rejected SCIM request with invalid bearer token",
+            extra={"school_slug": getattr(school, "slug", ""), "path": request.path},
+        )
         return None, None, _scim_error("Unauthorized", status=403)
     return school, integration, None
+
+
+def _log_scim_rejection(
+    request: HttpRequest,
+    *,
+    school,
+    resource: str,
+    reason: str,
+    status: int,
+):
+    logger.warning(
+        "SCIM request rejected",
+        extra={
+            "school_slug": getattr(school, "slug", ""),
+            "resource": resource,
+            "reason": reason,
+            "status": status,
+            "path": request.path,
+            "method": request.method,
+        },
+    )
+
+
+def _log_scim_mutation(request: HttpRequest, *, school, resource: str, action: str, resource_id: str | None = None):
+    logger.info(
+        "SCIM mutation processed",
+        extra={
+            "school_slug": getattr(school, "slug", ""),
+            "resource": resource,
+            "action": action,
+            "resource_id": resource_id or "",
+            "path": request.path,
+            "method": request.method,
+        },
+    )
+
+
+def _resolve_scim_mutation_body(request: HttpRequest, *, school, resource: str) -> tuple[dict[str, Any] | None, JsonResponse | None]:
+    content_type = ((request.content_type or request.META.get("CONTENT_TYPE") or "").split(";", 1)[0]).strip().lower()
+    if content_type not in SCIM_MUTATION_CONTENT_TYPES:
+        _log_scim_rejection(
+            request,
+            school=school,
+            resource=resource,
+            reason="unsupported_content_type",
+            status=415,
+        )
+        return None, _scim_error("Content-Type must be application/scim+json or application/json", status=415)
+    body = _json_body(request)
+    if body is None:
+        _log_scim_rejection(
+            request,
+            school=school,
+            resource=resource,
+            reason="invalid_json",
+            status=400,
+        )
+        return None, _scim_error("Invalid JSON body", status=400, scim_type="invalidSyntax")
+    return body, None
+
+
+def _require_scim_schema(
+    request: HttpRequest,
+    *,
+    school,
+    resource: str,
+    body: dict[str, Any],
+    required_schema: str,
+    rejection_reason: str,
+    detail: str,
+) -> JsonResponse | None:
+    schemas = body.get("schemas") or []
+    if required_schema in schemas:
+        return None
+    _log_scim_rejection(
+        request,
+        school=school,
+        resource=resource,
+        reason=rejection_reason,
+        status=400,
+    )
+    return _scim_error(detail, status=400, scim_type="invalidSyntax")
 
 
 def _user_scim_payload(user: User, school) -> dict[str, Any]:
@@ -229,9 +319,29 @@ def scim_users(request: HttpRequest):
         resources = [_user_scim_payload(m.user, school) for m in memberships]
         return _list_response(resources, start_index=start_index, total_results=total_results)
 
-    body = _json_body(request)
+    body, error_response = _resolve_scim_mutation_body(request, school=school, resource="user")
+    if error_response:
+        return error_response
+    schema_error = _require_scim_schema(
+        request,
+        school=school,
+        resource="user",
+        body=body,
+        required_schema=SCIM_USER_SCHEMA,
+        rejection_reason="missing_user_schema",
+        detail="User create requests must declare the core User schema",
+    )
+    if schema_error:
+        return schema_error
     user_name = str(body.get("userName") or "").strip()
     if not user_name:
+        _log_scim_rejection(
+            request,
+            school=school,
+            resource="user",
+            reason="missing_username",
+            status=400,
+        )
         return _scim_error("userName is required", status=400, scim_type="invalidValue")
     name = body.get("name") or {}
     given_name = str(name.get("givenName") or "").strip()
@@ -280,6 +390,13 @@ def scim_users(request: HttpRequest):
         user=user,
         defaults={"role": user.role or default_role, "is_primary": False},
     )
+    _log_scim_mutation(
+        request,
+        school=school,
+        resource="user",
+        action="create" if created else "upsert",
+        resource_id=str(user.pk),
+    )
     payload = _user_scim_payload(user, school)
     return JsonResponse(payload, status=201 if created else 200)
 
@@ -305,9 +422,12 @@ def scim_user_detail(request: HttpRequest, user_id: str):
     if request.method == "DELETE":
         user.is_active = False
         user.save(update_fields=["is_active"])
+        _log_scim_mutation(request, school=school, resource="user", action="delete", resource_id=str(user.pk))
         return HttpResponse(status=204)
 
-    body = _json_body(request)
+    body, error_response = _resolve_scim_mutation_body(request, school=school, resource="user")
+    if error_response:
+        return error_response
     if request.method == "PUT":
         user_name = str(body.get("userName") or user.username).strip()
         name = body.get("name") or {}
@@ -324,11 +444,19 @@ def scim_user_detail(request: HttpRequest, user_id: str):
         user.email = email
         user.is_active = bool(body.get("active", user.is_active))
         user.save(update_fields=["username", "first_name", "last_name", "email", "is_active"])
+        _log_scim_mutation(request, school=school, resource="user", action="put", resource_id=str(user.pk))
         return JsonResponse(_user_scim_payload(user, school), status=200)
 
     # PATCH
     schemas = body.get("schemas") or []
     if SCIM_PATCH_SCHEMA not in schemas:
+        _log_scim_rejection(
+            request,
+            school=school,
+            resource="user",
+            reason="missing_patch_schema",
+            status=400,
+        )
         return _scim_error("PATCH must declare PatchOp schema", status=400, scim_type="invalidSyntax")
     for op in body.get("Operations") or []:
         if not isinstance(op, dict):
@@ -353,6 +481,7 @@ def scim_user_detail(request: HttpRequest, user_id: str):
             elif str(value or "").strip():
                 user.email = str(value).strip().lower()
     user.save(update_fields=["username", "first_name", "last_name", "email", "is_active"])
+    _log_scim_mutation(request, school=school, resource="user", action="patch", resource_id=str(user.pk))
     return JsonResponse(_user_scim_payload(user, school), status=200)
 
 
@@ -397,9 +526,18 @@ def scim_group_detail(request: HttpRequest, group_id: str):
     if request.method == "GET":
         return JsonResponse(_group_payload(role, school), status=200)
 
-    body = _json_body(request)
+    body, error_response = _resolve_scim_mutation_body(request, school=school, resource="group")
+    if error_response:
+        return error_response
     schemas = body.get("schemas") or []
     if SCIM_PATCH_SCHEMA not in schemas:
+        _log_scim_rejection(
+            request,
+            school=school,
+            resource="group",
+            reason="missing_patch_schema",
+            status=400,
+        )
         return _scim_error("PATCH must declare PatchOp schema", status=400, scim_type="invalidSyntax")
 
     for op in body.get("Operations") or []:
@@ -425,4 +563,5 @@ def scim_group_detail(request: HttpRequest, group_id: str):
             elif operation == "remove":
                 membership.user.roles.remove(role)
 
+    _log_scim_mutation(request, school=school, resource="group", action="patch", resource_id=str(role.pk))
     return JsonResponse(_group_payload(role, school), status=200)
