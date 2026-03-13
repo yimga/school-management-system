@@ -1,5 +1,6 @@
 {% extends "backend_base.html" %}
 
+{% load region_format %}
 {% block title %}{{ event.title }}{% endblock %}
 {% block backend_title %}Event Detail{% endblock %}
 
@@ -12,10 +13,10 @@
         <div>
           <div class="text-uppercase small text-muted">{{ event.status }}</div>
           <h1 class="h3 mb-1">{{ event.title }}</h1>
-          <div class="text-muted">{{ event.start_at|date:"Y-m-d H:i" }}{% if event.end_at %} to {{ event.end_at|date:"Y-m-d H:i" }}{% endif %}{% if event.venue %} | {{ event.venue.name }}{% endif %}</div>
+          <div class="text-muted">{{ event.start_at|format_date:"YYYY-MM-DD" }} {{ event.start_at|time:"H:i" }}{% if event.end_at %} to {{ event.end_at|format_date:"YYYY-MM-DD" }} {{ event.end_at|time:"H:i" }}{% endif %}{% if event.venue %} | {{ event.venue.name }}{% endif %}</div>
         </div>
         <div class="text-end">
-          {% if event.sponsorship_enabled %}<div class="small text-muted">Fundraising goal</div><div class="h5">${{ event.fundraising_goal|floatformat:2 }}</div>{% endif %}
+          {% if event.sponsorship_enabled %}<div class="small text-muted">Fundraising goal</div><div class="h5">{{ event.fundraising_goal|format_currency }}</div>{% endif %}
         </div>
       </div>
       {% if event.description %}<p>{{ event.description }}</p>{% endif %}
@@ -53,7 +54,7 @@
                 <strong>{{ commitment.sponsor.name }}</strong>
                 <div class="small text-muted">{{ commitment.sponsor.get_tier_display }} | {{ commitment.status|title }}</div>
               </div>
-              <span class="badge text-bg-light">${{ commitment.pledged_amount|floatformat:2 }}</span>
+              <span class="badge text-bg-light">{{ commitment.pledged_amount|format_currency }}</span>
             </li>
             {% empty %}
             <li class="list-group-item text-muted">No sponsor commitments configured.</li>

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load i18n static %}
+{% load region_format %}
 
 {% block title %}While You Were Away - {{ SITE.site_name|default:"Portal" }}{% endblock %}
 
@@ -32,7 +33,7 @@
               <tbody>
                 {% for log in action_logs %}
                   <tr>
-                    <td>{{ log.created_at|date:"M j, Y H:i" }}</td>
+                    <td>{{ log.created_at|format_date }} {{ log.created_at|time:"H:i" }}</td>
                     <td>{{ log.actor.get_full_name|default:log.actor.username }}</td>
                     <td>{{ log.action_taken }}</td>
                     <td>{{ log.object_repr|default:"—" }}</td>

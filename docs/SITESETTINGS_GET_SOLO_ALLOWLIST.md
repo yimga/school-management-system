@@ -8,7 +8,10 @@
 |------|--------|
 | `apps/siteconfig/models.py` | Definition and internal use of singleton (e.g. `get_solo()` method, default helpers). |
 | `apps/platform_runtime/helpers.py` | Canonical shim layer; uses `get_solo()` as platform fallback for `get_effective_site_settings`, `get_effective_flags`, `get_site_display_name`. |
+| *(removed)* | ~~apps/platform_runtime/models.py~~ — **B1 done:** `RuntimeDefaults.sync_from_site_settings(site_settings)` now requires callers to pass site_settings; backfill command and SiteSettings.publish_to_runtime_defaults pass it. No get_solo() in this module. |
 | *(removed)* | ~~apps/policies/resolver.py~~ — **1.3 done:** Resolver uses `get_effective_site_settings(school=)` only; no get_solo(). |
+| *(removed)* | ~~emis/services.py~~ — **Migrated:** `_get_site_for_emis()` uses `get_effective_site_settings(request=, school=)` only; no get_solo(). |
+| *(removed)* | ~~apps/siteconfig/forms.py~~ — **Migrated:** ThemeColorsForm accepts `request` in __init__ and uses `get_effective_site_settings(request)` when instance is None; save() uses get_effective_site_settings(request=None) as fallback; no get_solo(). |
 | `apps/siteconfig/management/commands/*` | Control-plane / ops only (seed, export, bootstrap). |
 | `apps/finance/management/commands/*` | Control-plane / ops only (preflight, seed_finance_defaults, report_finance_opt_in_gaps). |
 | `apps/reports/management/commands/*` | Control-plane / ops only (generate_regional_reports). |

@@ -9,6 +9,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from apps.accounts.models import User
+from apps.accounts.utils import get_user_role
 from apps.academics.models import AcademicYear, Term, SubjectAssignment
 from apps.platform_runtime.helpers import get_effective_site_settings
 from apps.siteconfig.models import default_grade_approval_roles, default_grade_post_roles
@@ -80,7 +81,7 @@ def user_has_any_role(user: User, roles: list[str]) -> bool:
         return False
     if user.is_superuser:
         return True
-    role_upper = (getattr(user, "role", "") or "").upper()
+    role_upper = get_user_role(user)
     if role_upper in roles:
         return True
     return user.roles.filter(code__in=roles).exists()

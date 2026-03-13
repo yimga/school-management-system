@@ -2,6 +2,7 @@
 Centralized RBAC helpers for the compliance app.
 Use these for dashboard, reporting, and API views that require staff/admin access.
 """
+from apps.accounts.utils import get_user_role
 
 
 def is_admin_or_staff(user):
@@ -11,5 +12,5 @@ def is_admin_or_staff(user):
     """
     if not user or not user.is_authenticated:
         return False
-    role = (getattr(user, "role", "") or "").upper()
+    role = get_user_role(user)
     return user.is_superuser or user.is_staff or role in ("ADMIN", "LEADERSHIP")

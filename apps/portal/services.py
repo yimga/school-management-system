@@ -15,6 +15,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from apps.accounts.models import User
+from apps.accounts.utils import get_user_role
 from apps.academics.models import SubjectAssignment
 from apps.academics.services import get_active_year_and_term
 
@@ -194,7 +195,7 @@ def threads_for_user(user: User, limit: int = 12) -> List[dict]:
     Recent message threads for any user (role-aware: parent/teacher get
     class/department threads; others get threads they are members of).
     """
-    role = (getattr(user, "role", "") or "").upper()
+    role = get_user_role(user)
     if role == "PARENT":
         return class_threads_for_parent(user, limit=limit)
     if role == "TEACHER":

@@ -55,17 +55,14 @@ class RuntimeDefaults(models.Model):
     @classmethod
     def sync_from_site_settings(
         cls,
-        site_settings=None,
+        site_settings,
         *,
         owners: list[str] | tuple[str, ...] | set[str] | None = None,
         exclude_owners: list[str] | tuple[str, ...] | set[str] | None = None,
     ) -> tuple["RuntimeDefaults", bool]:
-        """Persist a filtered RuntimeDefaults payload from SiteSettings and return (object, created)."""
-        if site_settings is None:
-            from apps.siteconfig.models import SiteSettings
-
-            site_settings = SiteSettings.get_solo()
-
+        """Persist a filtered RuntimeDefaults payload from SiteSettings and return (object, created).
+        Callers must pass site_settings (e.g. SiteSettings.get_solo() in commands, self in SiteSettings.save).
+        B1 allowlist shrink: no get_solo() in this module."""
         owner_set = set(owners or [])
         payload = cls.build_payload_from_site_settings(
             site_settings,

@@ -14,6 +14,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_GET, require_http_methods
 
+from apps.accounts.utils import get_user_role
 from apps.compliance.models import AuditLog
 from django.core.cache import cache
 from apps.portal.ai_provider import (
@@ -108,7 +109,7 @@ def _increment_usage_metrics(user, allowed: bool, request=None):
 
     _cache_incr_or_set(_k('ai_copilot_usage_total'))
 
-    role = (getattr(user, 'role', 'USER') or '').upper()
+    role = get_user_role(user) or 'USER'
     roles = _cache_get(_k('ai_copilot_usage_roles'), []) or []
     if not isinstance(roles, list):
         roles = []
@@ -127,7 +128,7 @@ def get_ai_permissions(user):
     Determine what AI copilot features are available for the user's role.
     Returns a dict of available features and scopes.
     """
-    role = (getattr(user, 'role', 'USER') or '').upper()
+    role = get_user_role(user) or 'USER'
     admin_roles = {"ADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "IT_ADMIN"}
     finance_roles = admin_roles | {"BURSAR"}
     is_admin_like = user.is_superuser or user.is_staff or role in admin_roles
@@ -424,7 +425,7 @@ def ai_copilot_config(request):
 def ai_copilot_audit_feed(request):
     """Return recent AI-related audit logs; staff/admin only."""
     user = request.user
-    role_value = (getattr(user, 'role', '') or '').upper()
+    role_value = get_user_role(user)
     if not (user.is_staff or user.is_superuser or role_value in ('ADMIN', 'LEADERSHIP', 'PRINCIPAL', 'VICE_PRINCIPAL', 'DEAN', 'IT_ADMIN')):
         return JsonResponse({'success': False, 'error': 'Forbidden'}, status=403)
 
@@ -455,7 +456,7 @@ def build_contextual_prompt(user, user_message: str) -> str:
     Build a role-aware prompt for the AI backend.
     """
     user_name = getattr(user, 'first_name', '') or getattr(user, 'username', 'User')
-    role = (getattr(user, 'role', 'USER') or '').upper()
+    role = get_user_role(user) or 'USER'
     admin_roles = {"ADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "IT_ADMIN"}
     is_admin_like = user.is_superuser or user.is_staff or role in admin_roles
     context = "You are an AI assistant for a school management system. "

@@ -10,6 +10,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.urls import reverse
 
 from apps.accounts.models import User
+from apps.accounts.utils import get_user_role
 
 from .models import AccessRequest, RequestDecision
 from .services import apply_request_decision, create_access_request
@@ -51,7 +52,7 @@ def _can_manage_requests(user) -> bool:
         return False
     if user.is_staff or user.is_superuser:
         return True
-    role = (getattr(user, "role", "") or "").upper()
+    role = get_user_role(user)
     return role in {
         User.Role.SUPERADMIN,
         User.Role.ADMIN,

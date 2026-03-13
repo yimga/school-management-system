@@ -1,5 +1,6 @@
 {% extends "backend_base.html" %}
 {% load i18n %}
+{% load region_format %}
 
 {% block title %}{% trans "Orchestration workbench" %}{% endblock %}
 
@@ -39,10 +40,10 @@
                 <span class="badge {% if run.status == 'failed' %}bg-danger{% elif run.status == 'completed' %}bg-success{% elif run.status == 'running' %}bg-primary{% else %}bg-secondary{% endif %}">{{ run.get_status_display }}</span>
                 {% if run.sla_overdue %} <span class="badge bg-warning text-dark">{% trans "Overdue" %}</span>{% endif %}
               </td>
-              <td class="text-muted small">{% if run.sla_deadline %}{{ run.sla_deadline|date:"Y-m-d H:i" }}{% else %}—{% endif %}</td>
+              <td class="text-muted small">{% if run.sla_deadline %}{{ run.sla_deadline|format_date:"YYYY-MM-DD" }} {{ run.sla_deadline|time:"H:i" }}{% else %}—{% endif %}</td>
               <td>{{ run.retry_count }}</td>
-              <td class="text-muted small">{{ run.created_at|date:"Y-m-d H:i" }}</td>
-              <td class="text-muted small">{% if run.completed_at %}{{ run.completed_at|date:"Y-m-d H:i" }}{% else %}—{% endif %}</td>
+              <td class="text-muted small">{{ run.created_at|format_date:"YYYY-MM-DD" }} {{ run.created_at|time:"H:i" }}</td>
+              <td class="text-muted small">{% if run.completed_at %}{{ run.completed_at|format_date:"YYYY-MM-DD" }} {{ run.completed_at|time:"H:i" }}{% else %}—{% endif %}</td>
               <td>{% if run.status == 'failed' %}<a href="{% url 'super:orchestration_retry_run' run.id %}" class="btn btn-outline-secondary btn-sm">{% trans "Retry" %}</a>{% else %}—{% endif %}</td>
             </tr>
             {% empty %}
