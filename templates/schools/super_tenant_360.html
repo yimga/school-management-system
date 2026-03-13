@@ -1,5 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% load i18n %}
+{% load region_format %}
 
 {% block cp_title %}{% trans "School 360" %}: {{ school.name }}{% endblock %}
 
@@ -45,7 +46,7 @@
           <p class="mb-1"><strong>{% trans "Subscription" %}:</strong> {{ lifecycle.subscription_status|default:"-" }}</p>
           <p class="mb-1"><strong>{% trans "Billing account" %}:</strong> {{ lifecycle.billing_account_status|default:"-" }}</p>
           <p class="mb-1"><strong>{% trans "Billing type" %}:</strong> {{ lifecycle.billing_type|default:"-" }}</p>
-          <p class="mb-2"><strong>{% trans "Trial end" %}:</strong> {{ lifecycle.trial_end_date|date:"Y-m-d"|default:"-" }}</p>
+          <p class="mb-2"><strong>{% trans "Trial end" %}:</strong> {{ lifecycle.trial_end_date|format_date:"YYYY-MM-DD"|default:"-" }}</p>
           <p class="mb-1"><strong>{% trans "Blueprint" %}:</strong> {{ blueprint_code|default:"-" }}</p>
           <p class="mb-3"><strong>{% trans "Policy sections" %}:</strong> {{ policy_summary|default:"-" }}</p>
           <div class="d-flex flex-wrap gap-2">

@@ -98,7 +98,7 @@ from apps.portal.views_ai_gateway import (
 )
 from apps.api.lead_capture_api import LeadCaptureAPI
 from apps.api.rosetta_views import RosettaStoneConvertAPI, RosettaStoneScalesAPI
-from apps.api.interop_stubs import oneroster_readiness, lti13_readiness, edfi_readiness, ceds_readiness
+from apps.api.interop_stubs import oneroster_readiness, lti13_readiness, edfi_readiness, ceds_readiness, interop_hub
 from apps.api.edfi_views import edfi_students, edfi_student_school_associations, edfi_grades
 from apps.api.ceds_views import ceds_students, ceds_enrollments, ceds_grades
 from apps.api.scim_views import (
@@ -153,7 +153,8 @@ urlpatterns = [
     path('portal-preferences/', PortalPreferencesAPI.as_view(), name='portal-preferences'),
     # Phase 5: Admissions CRM — Lead Capture (public POST by school_slug)
     path('admissions/lead/', LeadCaptureAPI.as_view(), name='lead-capture'),
-    # Interoperability stubs (OneRoster, LTI 1.3) — implement per official specs
+    # Interoperability hub (B6: first-class product surface) + per-standard endpoints
+    path('interop/', interop_hub, name='interop-hub'),
     path('interop/oneroster/', oneroster_readiness, name='interop-oneroster'),
     path('interop/lti13/', lti13_readiness, name='interop-lti13'),
     path('interop/edfi/students/', edfi_students, name='interop-edfi-students'),

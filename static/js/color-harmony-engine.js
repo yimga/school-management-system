@@ -772,6 +772,60 @@
       description: 'Two colors separated by 60 degrees on the wheel.',
       bestFor: 'Simple two-color schemes with harmony',
       fn: diad
+    },
+    nearComplementary: {
+      name: 'Near-complementary',
+      description: 'Base plus a color one step (30°) from true complement. Softer than full complement.',
+      bestFor: 'Softer contrast, accessible pairings',
+      fn: nearComplementary
+    },
+    neutralWithAccent: {
+      name: 'Neutral with accent',
+      description: 'Grays plus one bold accent from input hue at full saturation.',
+      bestFor: 'Professional UI with a single focal color',
+      fn: neutralWithAccent
+    },
+    commonComponent: {
+      name: 'Common component',
+      description: 'Same saturation, varying hue and lightness — shared lens.',
+      bestFor: 'Cohesive multi-color schemes',
+      fn: commonComponent
+    },
+    contrastLightDark: {
+      name: 'Contrast light/dark',
+      description: 'Same hue at opposite ends of lightness. High contrast.',
+      bestFor: 'Accessibility, clear hierarchy',
+      fn: contrastLightDark
+    },
+    hueContrast: {
+      name: 'Hue contrast',
+      description: 'Base plus distant hues (+150°, +210°) for liveliness.',
+      bestFor: 'Vibrant, dynamic layouts',
+      fn: hueContrast
+    },
+    ostwaldGrey: {
+      name: 'Ostwald grey',
+      description: 'Three neutrals equally spaced in value (25%, 50%, 75%).',
+      bestFor: 'Minimal, value-based design',
+      fn: ostwaldGrey
+    },
+    warmPalette: {
+      name: 'Warm palette',
+      description: 'Reds, oranges, yellows (hues 0–60°).',
+      bestFor: 'Energy, action, admissions',
+      fn: warmPalette
+    },
+    coolPalette: {
+      name: 'Cool palette',
+      description: 'Blues, greens, violets (hues 180–300°).',
+      bestFor: 'Calm, trust, focus',
+      fn: coolPalette
+    },
+    earthTones: {
+      name: 'Earth tones',
+      description: 'Desaturated warm (terracotta, olive, beige).',
+      bestFor: 'Natural, grounded branding',
+      fn: earthTones
     }
   };
 

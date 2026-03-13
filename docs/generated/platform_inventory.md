@@ -1,19 +1,19 @@
 # Platform Inventory
 
 - Installed app modules: `41`
-- Python files: `1767`
+- Python files: `1772`
 - HTML templates: `456`
-- Markdown files: `795`
-- Migration files: `589`
+- Markdown files: `798`
+- Migration files: `590`
 - Management commands: `137`
-- `SiteSettings` refs: `1074`
-- `get_solo()` refs: `211`
-- `except Exception`: `711`
+- `SiteSettings` refs: `1082`
+- `get_solo()` refs: `213`
+- `except Exception`: `712`
 - `cursor.execute()`: `351`
 - `csrf_exempt`: `79`
 - `AllowAny`: `34`
 - `print()`: `429`
-- `gilead` matches: `511` across `113` files
+- `gilead` matches: `519` across `115` files
 
 ## Public Endpoint Review
 
@@ -24,7 +24,7 @@
 
 ## SiteSettings Ownership
 
-- `brand_experience`: `53` fields
+- `brand_experience`: `54` fields
 - `delete`: `1` fields
 - `design_studio`: `1` fields
 - `documents`: `1` fields
@@ -52,12 +52,12 @@
 - `apps/siteconfig/admin.py`: `2561` lines / `109249` bytes
 - `apps/evals/views.py`: `2568` lines / `107834` bytes
 - `apps/finance/views.py`: `2383` lines / `100597` bytes
-- `apps/siteconfig/models.py`: `2373` lines / `97174` bytes
+- `apps/siteconfig/models.py`: `2389` lines / `97936` bytes
 - `apps/portal/views.py`: `2231` lines / `96758` bytes
 - `apps/finance/models.py`: `2554` lines / `95611` bytes
 - `apps/api/views_v1.py`: `1752` lines / `90549` bytes
 - `apps/finance/tasks.py`: `1777` lines / `80191` bytes
-- `apps/siteconfig/views.py`: `1832` lines / `77469` bytes
+- `apps/siteconfig/views.py`: `1838` lines / `77735` bytes
 
 ## Documentation Drift
 

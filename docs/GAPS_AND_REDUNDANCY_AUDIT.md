@@ -116,5 +116,5 @@ After that, run a linter and clean unused imports and dead code, and resolve or 
 
 - **Single currency source**: `apps/siteconfig/currency.py` added with `CURRENCY_SYMBOLS` and `get_currency_symbol()`. `evals.grading` re-exports them; `context_processors`, `reports/services`, `translations`, `geoip_service` use the canonical module.
 - **Redundant formatter removed**: `portal_filters.format_currency` removed; templates use `region_format` only.
-- **Templates**: All listed templates now use `format_date` / `format_currency` / `format_number` and `{% load region_format %}` where applicable.
+- **Templates**: Batch rollout complete (56 templates): `scripts/batch_region_format_templates.py` added `{% load region_format %}`, replaced `|floatformat:N` with `format_currency`/`format_number`, `|date:"Y-m-d"` with `format_date:"YYYY-MM-DD"`. Remaining `|date:"..."` with time (e.g. `Y-m-d H:i`) are incremental; GAPS §3 list addressed.
 - **Security**: Request detail template does not use `|safe` on `req.details`; Django auto-escapes. Ensure any JSON displayed from user/submitted data is never marked safe.

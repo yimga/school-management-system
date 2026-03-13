@@ -2248,9 +2248,13 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         {"title": "Dashboards that inform", "summary": "Leaders get real-time visibility into enrollment, attendance, and outcomes without switching tools."},
         {"title": "Marketplace that extends", "summary": "Add integrations and apps from the marketplace without leaving the platform."},
     ]
+    # O17: "Scales globally" (WHAT_IS_LEFT_MASTER)
+    scales_globally_line = "195+ country-ready profiles, multi-currency, data residency."
+    three_key_features = ["AI Co-pilot", "Real-time Analytics", "Customizable Workflows"]
     migration_bullets = [
         "Import students, staff, and historical data from spreadsheets or legacy systems.",
         "Map your existing workflows to RunMyCampus modules with guided setup.",
+        "Scales globally: " + scales_globally_line,
         "Go live with phased rollout and dedicated support during migration.",
     ]
     # Migration visual: required; never leave section empty (per Visual Asset plan).
@@ -2553,6 +2557,8 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         "core_modules": core_modules,
         "platform_cards": platform_cards,
         "migration_bullets": migration_bullets,
+        "scales_globally_line": scales_globally_line,
+        "three_key_features": three_key_features,
         "migration_studio_image_url": migration_studio_image_url,
         "ecosystem_apps": ecosystem_apps,
         "testimonials": testimonials,

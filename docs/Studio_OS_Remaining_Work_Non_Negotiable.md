@@ -2,7 +2,7 @@
 
 Everything below is required. No item is optional.
 
-**Implementation status:** Shared shell chrome (search, command palette, bottom bar), shared services (activity, recommendations, command entries, studio_publish_service with save_draft/publish/rollback/audit/version_history), shared preview (preview_from_form wired in shell; Experience theme form → Preview/Publish/Rollback in same shell), Experience in-page (theme_colors_context + partial + experience.html + left rail Brand/Theme packs/Layout/Portal + right rail contrast + theme_preview_section in canvas), Launch (launch.html + payload + left rail progress/health/steps/blockers), Output (tabs + document redirect + left rail output types), Automation (automation.html + workflow_entries + left rail), Control (control.html + left rail Capabilities/Audit + right rail audit entries + iframe), document_library redirect, and breadcrumbs are implemented. Remaining (optional polish): full Control in-page form without iframe; richer Automation/Output right rails; guided onboarding data/partial for Launch without iframe.
+**Implementation status:** Shared shell chrome (search, command palette, bottom bar), shared services (activity, recommendations, command entries), **shared preview engine (2.1)** — single entry point `studio_os:preview` (POST mode=experience delegates to preview_from_form; other modes return embed redirect_url), **full studio_publish_service (2.2)** — save_draft, publish, rollback, version_history, audit APIs wired; Experience theme form → Preview/Publish/Rollback in same shell via studio_os:preview and studio_os:publish. Experience in-page (theme_colors_context + partial + experience.html + left rail Brand/Theme packs/Layout/Portal + right rail contrast + version history + audit + theme_preview_section in canvas), Launch (launch.html + payload + left rail progress/health/steps/blockers + right rail role preview, launch confidence, ready badge), Output (tabs + document redirect + left rail output types), Automation (automation.html + workflow_entries + left rail), Control (control.html + control_panel_html in-shell, no iframe when user has permission; left rail Capabilities/Audit + right rail audit entries), document_library redirect, and breadcrumbs are implemented. Optional polish complete: Control in-page form without iframe done; Launch uses launch_payload/guided onboarding data; Experience left/right rail and live preview in canvas done.
 
 ---
 
@@ -16,7 +16,7 @@ Everything below is required. No item is optional.
 
 ---
 
-## 2. Shared Services (One Model Everywhere) ✅ (stubs; full preview/publish service TBD)
+## 2. Shared Services (One Model Everywhere) ✅
 
 | # | Task | Detail |
 |---|------|--------|
@@ -72,11 +72,11 @@ Everything below is required. No item is optional.
 
 ---
 
-## 7. Control Studio (In-Page, Not Iframe-Only) ✅ (iframe + helper)
+## 7. Control Studio (In-Page, Not Iframe-Only) ✅
 
 | # | Task | Detail |
 |---|------|--------|
-| 7.1 | **Control mode content in-shell** | `templates/studio_os/modes/control.html`: feature control panel content (and capability/runtime views) rendered inside the shell, not only iframe. |
+| 7.1 | **Control mode content in-shell** | Done. `control.html` uses `control_panel_html` (get_feature_control_panel_context + feature_control_panel_partial.html) when user has permission; no iframe. Fallback to iframe when no permission. |
 | 7.2 | **Control left rail** | Capabilities, policies, integrations, packs, registries, audits. |
 | 7.3 | **Control right rail** | Impact summary, affected roles/pages, audit trail, rollback controls. |
 | 7.4 | **Feature state + audit helper** | Helper for “feature state + audit” used by both standalone feature_control_panel and Studio Control (e.g. in `views_feature_control`). |

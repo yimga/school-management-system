@@ -8,6 +8,9 @@ from __future__ import annotations
 
 from typing import Any, Dict, Optional
 
+from django.core.cache import cache
+from django.utils import timezone
+
 # Limit definitions (platform-wide; tenant overrides via plan/entitlement later).
 WORKFLOW_RUNS_PER_DAY_PER_TENANT = 10_000
 API_REQUESTS_PER_MINUTE_PER_TENANT = 600
@@ -28,6 +31,48 @@ LIMIT_KEYS = (
     "pack_complexity_max_dashboard_widgets",
     "ai_invocations_per_day",
 )
+
+
+def _tenant_workflow_runs_key(tenant_id: str, date_str: str) -> str:
+    return f"platform_runtime:governor:workflow_runs:{tenant_id}:{date_str}"
+
+
+def _tenant_dashboard_refreshes_key(tenant_id: str, hour_str: str) -> str:
+    return f"platform_runtime:governor:dashboard_refreshes:{tenant_id}:{hour_str}"
+
+
+def record_workflow_run(tenant_id: Optional[str] = None, school_id: Optional[int] = None) -> None:
+    """Increment workflow run count for governor limits. Call from workflow_engine.run_workflow."""
+    if not tenant_id and school_id is not None:
+        tenant_id = str(school_id)
+    if not tenant_id:
+        return
+    try:
+        date_str = timezone.now().strftime("%Y-%m-%d")
+        key = _tenant_workflow_runs_key(tenant_id, date_str)
+        try:
+            cache.incr(key)
+        except ValueError:
+            cache.set(key, 1, timeout=86400 * 2)  # 2 days TTL
+    except Exception:
+        pass
+
+
+def record_dashboard_refresh(tenant_id: Optional[str] = None, school_id: Optional[int] = None) -> None:
+    """Increment dashboard refresh count for governor limits. Call from dashboard refresh endpoint or view."""
+    if not tenant_id and school_id is not None:
+        tenant_id = str(school_id)
+    if not tenant_id:
+        return
+    try:
+        hour_str = timezone.now().strftime("%Y-%m-%d-%H")
+        key = _tenant_dashboard_refreshes_key(tenant_id, hour_str)
+        try:
+            cache.incr(key)
+        except ValueError:
+            cache.set(key, 1, timeout=7200)  # 2 hours
+    except Exception:
+        pass
 
 
 def get_platform_governor_limits() -> Dict[str, Any]:
@@ -67,10 +112,24 @@ def get_governor_usage_for_tenant(
                 api_requests_last_minute = get_tenant_api_request_count(tid)
         except Exception:
             pass
+    tid = tenant_id or (str(school_id) if school_id else None)
+    workflow_runs_today = 0
+    dashboard_refreshes_last_hour = 0
+    if tid:
+        try:
+            date_str = timezone.now().strftime("%Y-%m-%d")
+            workflow_runs_today = cache.get(_tenant_workflow_runs_key(tid, date_str), 0) or 0
+        except Exception:
+            pass
+        try:
+            hour_str = timezone.now().strftime("%Y-%m-%d-%H")
+            dashboard_refreshes_last_hour = cache.get(_tenant_dashboard_refreshes_key(tid, hour_str), 0) or 0
+        except Exception:
+            pass
     usage = {
-        "workflow_runs_today": 0,
+        "workflow_runs_today": workflow_runs_today,
         "api_requests_last_minute": api_requests_last_minute,
-        "dashboard_refreshes_last_hour": 0,
+        "dashboard_refreshes_last_hour": dashboard_refreshes_last_hour,
         "active_migrations": 0,
         "dynamic_field_count": 0,
         "ai_invocations_today": 0,
@@ -83,7 +142,7 @@ def get_governor_usage_for_tenant(
         "dynamic_field_count_max": {"limit": limits["dynamic_field_count_max"], "used": usage["dynamic_field_count"], "enforced": False},
         "ai_invocations_per_day": {"limit": limits["ai_invocations_per_day"], "used": usage["ai_invocations_today"], "enforced": False},
     }
-    note = "API requests per minute from throttle cache; other counters placeholder."
+    note = "API requests from throttle; workflow/dashboard from governor cache (record_workflow_run/record_dashboard_refresh)."
     return {
         "limits": limits,
         "usage": usage,

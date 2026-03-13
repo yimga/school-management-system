@@ -1,5 +1,6 @@
 {% extends "admin/base_site.html" %}
 {% load static i18n %}
+{% load region_format %}
 
 {% block title %}Admin Dashboard{% endblock %}
 
@@ -287,7 +288,7 @@
                 </span>
               </td>
               <td class="admin-sysinfo__val">{{ widget.cache_ttl_seconds }}s ({{ widget.cache_scope }})</td>
-              <td class="admin-sysinfo__val">{{ widget.timing_ms|floatformat:2 }}ms</td>
+              <td class="admin-sysinfo__val">{{ widget.timing_ms|format_number:2 }}ms</td>
             </tr>
             {% endfor %}
           </tbody>

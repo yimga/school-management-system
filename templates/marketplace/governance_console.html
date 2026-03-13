@@ -1,5 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% load static %}
+{% load region_format %}
 
 {% block cp_title %}Marketplace Governance{% endblock %}
 
@@ -29,7 +30,7 @@
         <div class="cp-action-stack">
           <div class="cp-hero-stat">
             <span class="cp-hero-stat-label">Publisher payouts queued</span>
-            <strong class="cp-hero-stat-value">${{ metrics.scheduled_payout_total|floatformat:2 }}</strong>
+            <strong class="cp-hero-stat-value">{{ metrics.scheduled_payout_total|format_currency }}</strong>
             <span class="cp-hero-stat-subtitle">Scheduled revenue-share obligations</span>
           </div>
           <div class="cp-action-row">
@@ -105,7 +106,7 @@
               <strong>{{ payout.payee_name }}</strong>
               <div class="cp-list-meta">{{ payout.status|title }} | {{ payout.processor_code|default:"manual" }} | {{ payout.scheduled_for|date:"Y-m-d H:i" }}</div>
             </div>
-            <span class="cp-status-badge cp-status-badge-{{ payout.status|lower }}">${{ payout.net_amount|floatformat:2 }}</span>
+            <span class="cp-status-badge cp-status-badge-{{ payout.status|lower }}">{{ payout.net_amount|format_currency }}</span>
           </div>
           {% empty %}
           <div class="py-3 px-2">

@@ -1,5 +1,6 @@
 {% extends "marketing/base_marketing.html" %}
 {% load i18n %}
+{% load region_format %}
 {% block title %}{{ post.title }}{% endblock %}
 {% block extrahead %}
   <meta name="description" content="{{ seo_description|default:post.title }}">

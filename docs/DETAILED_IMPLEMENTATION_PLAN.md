@@ -15,7 +15,7 @@ This document answers: **Was the previous work complete?** and provides a **deta
 | **Site Settings** | Sticky Save bar, Theme & color side-by-side (tools left, preview right), Revert to saved, On/Off badges for critical toggles, noscript/toast/dark mode. | Form is still one long page (17 fieldsets). No tabs/accordions (B3.1). No summary fieldset at top (B3.3). |
 | **Color Studio / Picker / ThemePacks** | Layout consolidated: Theme & color block with Studio + palette selector + theme preset (left) and small-screen preview (right). Studio applies to form fields. | Theme & Experience **fieldset** is still above this block (admin renders fieldsets first, then `after_field_sets`). No full-page iframe preview (B4.2 Option B). |
 | **Button/toggle color coding** | `toggle-colors.css`: form-switch ON=green, OFF=grey (admin, portal, backend). Site Settings critical toggles have On/Off badges. Feature Control has status badges (On/Off). | Not every Site Settings boolean has `settings-toggle-critical`; ensure toggle-colors loads on admin; align all toggles with Feature Control pattern (green/grey, badges where useful). |
-| **Harmony types** | Engine has: complement, splitComplementary, triadic, analogous, monochromatic, tetradic. **HARMONIES** also lists square, achromatic, polychromatic, diad but **their functions are not implemented** (will break when selected). | Implement missing square, achromatic, polychromatic, diad; then add new types from your list (see Section 7). |
+| **Harmony types** | Engine and HARMONIES: complement, splitComplementary, triadic, analogous, monochromatic, tetradic, square, achromatic, polychromatic, diad; plus nearComplementary, neutralWithAccent, commonComponent, contrastLightDark, hueContrast, ostwaldGrey, warmPalette, coolPalette, earthTones (Section 7.1–7.9 done). | None; Section 7 deliverable met. |
 
 ---
 
@@ -156,10 +156,9 @@ This document answers: **Was the previous work complete?** and provides a **deta
 
 ## 7. Expand Color Harmony Types (Using Your Guide)
 
-### Current state
-- **Implemented (with working functions):** complement, splitComplementary, triadic, analogous, monochromatic, tetradic.
-- **Declared but not implemented (will break):** square, achromatic, polychromatic, diad — they are in `HARMONIES` and on the public API but **no `function square(hex){...}` etc. exist** in `color-harmony-engine.js`. Selecting them in the Studio will cause a runtime error.
-- **Color Palette Studio:** Builds harmony buttons from `colorHarmony.listHarmonies()`; applies generated palette to form fields.
+### Current state (Section 7.1–7.9 implemented)
+- **Implemented (with working functions):** complement, splitComplementary, triadic, analogous, monochromatic, tetradic, square, achromatic, polychromatic, diad, nearComplementary, neutralWithAccent, commonComponent, contrastLightDark, hueContrast, ostwaldGrey, warmPalette, coolPalette, earthTones. All are in `HARMONIES` with name, description, bestFor.
+- **Color Palette Studio:** Builds harmony buttons from `colorHarmony.listHarmonies()`; applies generated palette to form fields. All new types appear in the list.
 
 ### Your categories and mapping to implementation
 

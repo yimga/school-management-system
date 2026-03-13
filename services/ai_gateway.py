@@ -224,6 +224,27 @@ def _audit_log(
         )
     except Exception:
         pass
+    # Persist to AIActionAuditLog for compliance and audit trail (platform_runtime.helpers.log_ai_action)
+    try:
+        from apps.platform_runtime.helpers import log_ai_action
+        request_id = (meta or {}).get("request_id", "")
+        user_id = (meta or {}).get("user_id")
+        log_ai_action(
+            action_type=f"ai_gateway:{task_type}",
+            tenant_id=tenant_id,
+            user_id=user_id,
+            request_id=request_id,
+            payload={
+                "tier": tier,
+                "model": model,
+                "latency_ms": round(latency_ms, 2),
+                "outcome": outcome,
+                "cost_class": cost_class,
+                "school_id": str(school_id) if school_id is not None else None,
+            },
+        )
+    except Exception as e:
+        logger.debug("AI action audit log write skipped: %s", e)
 
 
 def _call_ollama(prompt: str, metadata: dict[str, Any] | None = None) -> tuple[str | None, dict[str, Any]]:
@@ -476,6 +497,7 @@ def invoke(
             backends = tiers_map.get(task_key, ["ollama", "rules"])
     tenant_id = md.get("tenant_id") or md.get("school_id")
     school_id = md.get("school_id")
+    user_id = md.get("user_id")
     request_id = str(uuid4())
     request_date = date.today().isoformat()
     budget_ok, budget_meta = _check_and_consume_budget(tenant_id)
@@ -486,6 +508,7 @@ def invoke(
             "request_id": request_id,
             "request_date": request_date,
             "cost_class": _cost_class_for_tier("none"),
+            "user_id": user_id,
             **budget_meta,
         }
         _audit_log(task_key, "none", "", 0, tenant_id, school_id, "budget_exceeded", out_meta)
@@ -536,6 +559,7 @@ def invoke(
                 "request_date": request_date,
                 "task_type": task_key,
                 "cost_class": _cost_class_for_tier("rules"),
+                "user_id": user_id,
             })
             _audit_log(task_key, "rules", "rules", elapsed_ms, tenant_id, school_id, "success", meta)
             return result, {"provider": "rules", "tier": "rules", "latency_ms": round(elapsed_ms, 2), **meta}
@@ -580,6 +604,7 @@ def invoke(
                 "request_id": request_id,
                 "request_date": request_date,
                 "cost_class": _cost_class_for_tier(tier),
+                "user_id": user_id,
             }
             _audit_log(task_key, tier, model, elapsed_ms, tenant_id, school_id, "success", out_meta)
             return result, out_meta
@@ -593,6 +618,7 @@ def invoke(
             "request_id": request_id,
             "request_date": request_date,
             "cost_class": _cost_class_for_tier("rules"),
+            "user_id": user_id,
         }
         _audit_log(task_key, "rules", "rules", elapsed_ms, tenant_id, school_id, "fallback", out_meta)
         return result, {"provider": "rules", "tier": "rules", "latency_ms": round(elapsed_ms, 2), "fallback": True, **out_meta}
@@ -601,6 +627,7 @@ def invoke(
         "request_id": request_id,
         "request_date": request_date,
         "cost_class": _cost_class_for_tier("none"),
+        "user_id": user_id,
     }
     _audit_log(task_key, "none", "", elapsed_ms, tenant_id, school_id, "failure", failure_meta)
     return (

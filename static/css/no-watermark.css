@@ -58,3 +58,21 @@
 #main-content::after {
   display: none !important;
 }
+
+/* Unfold / admin sidebar: no background images on inner wrappers */
+#nav-sidebar .sticky,
+#nav-sidebar [class*="overflow"],
+#nav-sidebar-inner .flex,
+#nav-sidebar .space-y-1,
+.sidebar-collapsed .nav-sidebar,
+[data-slot="sidebar"] {
+  background-image: none !important;
+}
+
+#nav-sidebar .sticky::before,
+#nav-sidebar .sticky::after,
+#nav-sidebar-inner .flex::before,
+#nav-sidebar-inner .flex::after {
+  display: none !important;
+  background-image: none !important;
+}

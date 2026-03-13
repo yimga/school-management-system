@@ -2,8 +2,10 @@
 """
 Studio OS — single shell with five work modes.
 Replaces fragmented customizer / theme / feature control / report library / workflow hub with one workspace.
+Shared preview (2.1) and publish/rollback (2.2) via studio_preview, studio_publish_api, studio_save_draft_api.
 """
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.cache import never_cache
@@ -11,9 +13,14 @@ from django.views.decorators.http import require_http_methods
 
 from .services import (
     get_studio_activity_feed,
+    get_studio_preview_url,
+    get_studio_publish_audit,
     get_studio_recommendations,
     get_studio_command_palette_entries,
+    get_studio_version_history,
     studio_rollback_available,
+    studio_publish,
+    studio_save_draft,
 )
 
 
@@ -46,17 +53,11 @@ def _resolve_legacy_urls(request):
 
 
 def _resolve_embed_urls(request):
-    """URLs to embed in the Studio canvas per mode (Phase 2–4: in-shell iframe). Use ?embed=1 so embedded page does not redirect back to Studio."""
-    urls = {}
-    try:
-        urls["experience"] = reverse("siteconfig:theme_colors") + "?embed=1"
-        urls["automation"] = reverse("siteconfig:workflow_hub") + "?embed=1"
-        urls["output"] = reverse("siteconfig:report_library") + "?embed=1"
-        urls["launch"] = reverse("siteconfig:guided_onboarding") + "?embed=1"
-        urls["control"] = reverse("siteconfig:feature_control_panel") + "?embed=1"
-    except Exception:
-        pass
-    return urls
+    """URLs to embed in the Studio canvas per mode. Single-sourced from get_studio_preview_url."""
+    return {
+        mode: get_studio_preview_url(mode, request)
+        for mode in ("experience", "automation", "output", "launch", "control")
+    }
 
 
 @never_cache
@@ -86,20 +87,18 @@ def studio_shell(request, mode=None):
     command_palette_entries = get_studio_command_palette_entries(request)
     rollback_available = studio_rollback_available(mode, request) if mode else False
 
-    show_bottom_bar = bool(mode)
-    bottom_bar_actions = []
-    if mode:
-        bottom_bar_actions = [
-            {"id": "preview", "label": "Preview", "primary": False},
-            {"id": "publish", "label": "Publish", "primary": True},
-        ]
-        if rollback_available:
-            bottom_bar_actions.append({"id": "rollback", "label": "Rollback", "primary": False})
-
     try:
         preview_from_form_url = reverse("siteconfig:preview_from_form")
     except Exception:
         preview_from_form_url = ""
+    try:
+        studio_preview_url = reverse("studio_os:preview")
+    except Exception:
+        studio_preview_url = preview_from_form_url
+    try:
+        studio_publish_url = reverse("studio_os:publish")
+    except Exception:
+        studio_publish_url = ""
 
     context = {
         "studio_modes": STUDIO_MODES,
@@ -110,10 +109,13 @@ def studio_shell(request, mode=None):
         "studio_activity_feed": activity_feed,
         "studio_recommendations": recommendations,
         "studio_command_palette_entries": command_palette_entries,
-        "studio_show_bottom_bar": show_bottom_bar,
-        "studio_bottom_bar_actions": bottom_bar_actions,
+        "studio_show_bottom_bar": False,
+        "studio_bottom_bar_actions": [],
         "studio_rollback_available": rollback_available,
-        "studio_preview_from_form_url": preview_from_form_url,
+        "studio_preview_from_form_url": studio_preview_url,
+        "studio_preview_url": studio_preview_url,
+        "studio_publish_url": studio_publish_url,
+        "studio_rollback_url": "",
     }
 
     school = getattr(request, "school", None)
@@ -123,17 +125,31 @@ def studio_shell(request, mode=None):
             context.update(get_theme_colors_context(request))
             context["use_experience_in_page"] = True
             context["back_url"] = reverse("studio_os:experience")
+            context["studio_version_history"] = get_studio_version_history(request, "experience", limit=5)
+            context["studio_audit"] = get_studio_publish_audit(request, "experience", limit=8)
         except Exception:
             context["use_experience_in_page"] = False
+            context["studio_version_history"] = []
+            context["studio_audit"] = []
 
     if mode == "launch" and school:
         try:
             from apps.setup_studio.services import get_setup_studio_payload
-            context["launch_payload"] = get_setup_studio_payload(school)
+            payload = get_setup_studio_payload(school)
+            context["launch_payload"] = payload
+            context["launch_role_previews"] = payload.get("role_previews") or []
+            context["launch_health_summary"] = payload.get("health_summary") or ""
+            context["launch_ready"] = payload.get("launch_ready", False)
         except Exception:
             context["launch_payload"] = None
+            context["launch_role_previews"] = []
+            context["launch_health_summary"] = ""
+            context["launch_ready"] = False
     elif mode == "launch":
         context["launch_payload"] = None
+        context["launch_role_previews"] = []
+        context["launch_health_summary"] = ""
+        context["launch_ready"] = False
 
     if mode == "automation":
         workflow_entries = []
@@ -144,6 +160,9 @@ def studio_shell(request, mode=None):
         except Exception:
             pass
         context["workflow_entries"] = workflow_entries
+        context["automation_simulation_summary"] = (
+            "Run simulation from Workflow hub to see impact before activating."
+        )
 
     if mode == "control":
         try:
@@ -158,14 +177,40 @@ def studio_shell(request, mode=None):
         except Exception:
             pass
         context["control_left_rail"] = control_rail
+        # In-shell control panel (no iframe) when user has permission
+        if request.user.has_perm("settings.feature_control"):
+            try:
+                from django.template.loader import render_to_string
+                from apps.siteconfig.views_feature_control import get_feature_control_panel_context
+                ctrl_ctx = get_feature_control_panel_context(request)
+                ctrl_ctx["control_next_url"] = reverse("studio_os:control")
+                context["control_panel_html"] = render_to_string(
+                    "siteconfig/feature_control_panel_partial.html",
+                    ctrl_ctx,
+                    request=request,
+                )
+                context["embed_url"] = None  # prefer in-page over iframe
+            except Exception:
+                context["control_panel_html"] = None
+        else:
+            context["control_panel_html"] = None
 
-    if mode and rollback_available:
-        try:
-            context["studio_rollback_url"] = reverse("studio_os:rollback") + "?mode=" + mode
-        except Exception:
-            context["studio_rollback_url"] = ""
-    else:
-        context["studio_rollback_url"] = ""
+    show_bottom_bar = bool(mode == "experience" and context.get("use_experience_in_page"))
+    bottom_bar_actions = []
+    if show_bottom_bar:
+        bottom_bar_actions = [
+            {"id": "preview", "label": "Preview", "primary": False},
+            {"id": "publish", "label": "Publish", "primary": True},
+        ]
+        if rollback_available:
+            bottom_bar_actions.append({"id": "rollback", "label": "Rollback", "primary": False})
+            try:
+                context["studio_rollback_url"] = reverse("studio_os:rollback") + "?mode=" + mode
+            except Exception:
+                context["studio_rollback_url"] = ""
+
+    context["studio_show_bottom_bar"] = show_bottom_bar
+    context["studio_bottom_bar_actions"] = bottom_bar_actions
 
     template = f"studio_os/modes/{mode}.html" if mode else "studio_os/shell.html"
     return render(request, template, context)
@@ -177,17 +222,176 @@ def studio_shell(request, mode=None):
 def studio_rollback(request):
     """
     Perform rollback for current mode and redirect back to Studio.
-    Experience: clear theme preview/recent change session; Control: redirect to feature control with embed (user clicks Revert there).
+    Experience: rollback last theme publish (session-scoped). Control: redirect to feature control with embed (user clicks Revert there).
     """
+
+    def _wants_json() -> bool:
+        return "application/json" in (request.headers.get("Accept") or "").lower()
+
     if not getattr(request.user, "is_staff", False):
         return redirect(reverse("accounts:backend_dashboard"))
     mode = (request.GET.get("mode") or request.POST.get("mode") or "").strip().lower()
     if mode == "experience":
-        request.session.pop("theme_recent_change_meta", None)
+        if request.method != "POST":
+            if _wants_json():
+                return JsonResponse({"ok": False, "errors": ["POST required"]}, status=405)
+            return redirect(reverse("studio_os:experience"))
+
+        prev = request.session.get("theme_previous_state")
+        values = None
+        if isinstance(prev, dict) and isinstance(prev.get("values"), dict):
+            values = prev.get("values")
+        elif isinstance(prev, dict):
+            values = prev
+
+        if not isinstance(values, dict) or not values:
+            if _wants_json():
+                return JsonResponse({"ok": False, "errors": ["No rollback state available."]}, status=400)
+            return redirect(reverse("studio_os:experience"))
+
+        from django.utils import timezone
+        from apps.platform_runtime.helpers import get_effective_site_settings
+
+        site = get_effective_site_settings(request=request)
+        if site is None:
+            if _wants_json():
+                return JsonResponse({"ok": False, "errors": ["Unable to resolve SiteSettings for rollback."]}, status=400)
+            return redirect(reverse("studio_os:experience"))
+
+        updated_fields = []
+        for field_name, previous_value in values.items():
+            id_attr = f"{field_name}_id"
+            if hasattr(site, id_attr):
+                setattr(site, id_attr, previous_value)
+                updated_fields.append(field_name)
+            elif hasattr(site, field_name):
+                setattr(site, field_name, previous_value)
+                updated_fields.append(field_name)
+
+        theme_fields = list(dict.fromkeys([f for f in updated_fields if isinstance(f, str) and f.strip()]))
+        save_fields = list(theme_fields)
+        if hasattr(site, "updated_at"):
+            save_fields.append("updated_at")
+        if save_fields:
+            site.save(update_fields=save_fields)
+
+        actor_label = request.user.get_username() if request.user.is_authenticated else "system"
+        now_label = timezone.localtime().strftime("%Y-%m-%d %H:%M")
+        request.session.pop("theme_previous_state", None)
         request.session.pop("site_preview_settings", None)
         request.session.pop("preview_mode_enabled", None)
+        request.session["theme_recent_change_meta"] = {
+            "status": "rolled_back",
+            "actor": actor_label,
+            "timestamp": now_label,
+            "changed_count": len(theme_fields),
+            "changed_fields": theme_fields,
+        }
         request.session.modified = True
-        return redirect(reverse("studio_os:experience"))
+
+        try:
+            from django.contrib import messages
+
+            messages.success(request, "Rolled back theme & experience to the previous saved state.")
+        except Exception:
+            pass
+
+        redirect_url = reverse("studio_os:experience")
+        if _wants_json():
+            return JsonResponse({"ok": True, "redirect_url": redirect_url})
+        return redirect(redirect_url)
     if mode == "control":
         return redirect(reverse("siteconfig:feature_control_panel") + "?embed=1")
     return redirect(reverse("studio_os:shell"))
+
+
+# ---- Shared preview engine (2.1): single entry point per mode ----
+
+@never_cache
+@require_http_methods(["POST"])
+@login_required
+def studio_preview(request):
+    """
+    Shared preview: POST mode=experience (plus form body) delegates to siteconfig preview_from_form;
+    other modes return redirect_url to embed so client can open preview in new tab.
+    """
+    if not getattr(request.user, "is_staff", False):
+        return JsonResponse({"errors": ["Staff required"]}, status=403)
+    mode = (request.POST.get("mode") or "").strip().lower()
+    if mode == "experience":
+        from apps.siteconfig.views import preview_from_form
+        return preview_from_form(request)
+    if mode in ("automation", "output", "launch", "control"):
+        redirect_url = get_studio_preview_url(mode, request)
+        if redirect_url:
+            return JsonResponse({"redirect_url": redirect_url})
+        return JsonResponse({"errors": ["Preview URL not available for this mode."]}, status=400)
+    return JsonResponse({"errors": ["Missing or invalid mode."]}, status=400)
+
+
+@never_cache
+@require_http_methods(["POST"])
+@login_required
+def studio_publish_api(request):
+    """
+    Shared publish: validate and persist. Experience uses perform_theme_experience_publish;
+    other modes use services.studio_publish. Returns JSON {ok, redirect_url} or {ok: false, errors}.
+    """
+    if not getattr(request.user, "is_staff", False):
+        return JsonResponse({"ok": False, "errors": ["Staff required"]}, status=403)
+    mode = (request.POST.get("mode") or "").strip().lower()
+    if mode == "experience":
+        from apps.siteconfig.views import perform_theme_experience_publish
+        result = perform_theme_experience_publish(request)
+        status = 200 if result.get("ok") else 400
+        return JsonResponse(result, status=status)
+    payload = dict(request.POST.items())
+    result = studio_publish(mode, request, payload)
+    status = 200 if result.get("ok") else 400
+    return JsonResponse(result, status=status)
+
+
+@never_cache
+@require_http_methods(["POST"])
+@login_required
+def studio_save_draft_api(request):
+    """Save draft (session stash). Returns JSON {ok} or {ok: false, errors}."""
+    if not getattr(request.user, "is_staff", False):
+        return JsonResponse({"ok": False, "errors": ["Staff required"]}, status=403)
+    mode = (request.POST.get("mode") or "").strip().lower()
+    payload = dict(request.POST.items())
+    result = studio_save_draft(mode, request, payload)
+    status = 200 if result.get("ok") else 400
+    return JsonResponse(result, status=status)
+
+
+@never_cache
+@require_http_methods(["GET"])
+@login_required
+def studio_version_history_api(request):
+    """GET ?mode=experience — version history for the mode. JSON list of {version, timestamp, actor, label}."""
+    if not getattr(request.user, "is_staff", False):
+        return JsonResponse({"versions": []})
+    mode = (request.GET.get("mode") or "").strip().lower()
+    try:
+        limit = min(20, max(1, int(request.GET.get("limit", 10))))
+    except (TypeError, ValueError):
+        limit = 10
+    versions = get_studio_version_history(request, mode, limit=limit)
+    return JsonResponse({"versions": versions})
+
+
+@never_cache
+@require_http_methods(["GET"])
+@login_required
+def studio_audit_api(request):
+    """GET ?mode= — recent publish/rollback events. JSON list of activity items."""
+    if not getattr(request.user, "is_staff", False):
+        return JsonResponse({"audit": []})
+    mode = (request.GET.get("mode") or "").strip().lower() or None
+    try:
+        limit = min(50, max(1, int(request.GET.get("limit", 20))))
+    except (TypeError, ValueError):
+        limit = 20
+    audit = get_studio_publish_audit(request, mode, limit=limit)
+    return JsonResponse({"audit": audit})

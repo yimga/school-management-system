@@ -3,17 +3,17 @@
     "allow_any": 34,
     "csrf_exempt": 79,
     "cursor_execute": 351,
-    "except_exception": 711,
-    "get_solo": 211,
-    "gilead": 511,
-    "gilead_files": 113,
+    "except_exception": 712,
+    "get_solo": 213,
+    "gilead": 519,
+    "gilead_files": 115,
     "html_files": 456,
     "management_commands": 137,
-    "markdown_files": 795,
-    "migration_files": 589,
+    "markdown_files": 798,
+    "migration_files": 590,
     "print_calls": 429,
-    "python_files": 1767,
-    "site_settings": 1074
+    "python_files": 1772,
+    "site_settings": 1082
   },
   "doc_drift": {
     "actual_installed_app_count": 41,
@@ -53,8 +53,8 @@
       "path": "apps/finance/views.py"
     },
     {
-      "bytes": 97174,
-      "lines": 2373,
+      "bytes": 97936,
+      "lines": 2389,
       "path": "apps/siteconfig/models.py"
     },
     {
@@ -78,8 +78,8 @@
       "path": "apps/finance/tasks.py"
     },
     {
-      "bytes": 77469,
-      "lines": 1832,
+      "bytes": 77735,
+      "lines": 1838,
       "path": "apps/siteconfig/views.py"
     }
   ],
@@ -240,6 +240,10 @@
     },
     {
       "field_name": "backend_console_theme",
+      "owner": "brand_experience"
+    },
+    {
+      "field_name": "theme_harmony",
       "owner": "brand_experience"
     },
     {

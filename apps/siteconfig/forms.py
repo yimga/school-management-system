@@ -762,6 +762,7 @@ THEME_EXPERIENCE_FIELD_NAMES = [
     "admin_theme_pack",
     "teacher_theme_pack",
     "parent_theme_pack",
+    "theme_harmony",
     "admin_use_site_primary",
     "skip_theme_publish_guard",
     "backend_console_theme",
@@ -802,6 +803,7 @@ class ThemeColorsForm(forms.ModelForm):
             "admin_theme_pack": forms.Select(attrs={"class": "form-select", "aria-describedby": "help-admin-theme-pack"}),
             "teacher_theme_pack": forms.Select(attrs={"class": "form-select"}),
             "parent_theme_pack": forms.Select(attrs={"class": "form-select"}),
+            "theme_harmony": forms.Select(attrs={"class": "form-select", "aria-describedby": "help-theme-harmony"}),
             "skip_theme_publish_guard": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "admin_use_site_primary": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "backend_console_theme": forms.Select(attrs={"class": "form-select"}),
@@ -817,7 +819,17 @@ class ThemeColorsForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        request = kwargs.pop("request", None)
         super().__init__(*args, **kwargs)
+        instance = getattr(self, "instance", None)
+        if instance is None and request is not None:
+            try:
+                from apps.platform_runtime.helpers import get_effective_site_settings
+                instance = get_effective_site_settings(request=request)
+                if instance is not None:
+                    self.instance = instance
+            except Exception:
+                pass
         instance = getattr(self, "instance", None)
         theme_experience_settings = (
             instance.get_theme_experience_settings()
@@ -833,6 +845,7 @@ class ThemeColorsForm(forms.ModelForm):
             for field_name in (
                 "theme_brightness",
                 "use_dark_mode",
+                "theme_harmony",
                 "admin_use_site_primary",
                 "backend_console_theme",
                 "secondary_font",
@@ -954,8 +967,16 @@ class ThemeColorsForm(forms.ModelForm):
     def save(self, commit=True):
         instance = self.instance
         if instance is None:
-            instance = SiteSettings.get_solo()
-            self.instance = instance
+            try:
+                from apps.platform_runtime.helpers import get_effective_site_settings
+                instance = get_effective_site_settings(request=None)
+            except Exception:
+                instance = None
+            if instance is not None:
+                self.instance = instance
+        if instance is None:
+            raise ValueError("ThemeColorsForm requires instance or request; cannot resolve site settings.")
+        instance = self.instance
         field_updates = {
             field_name: self.cleaned_data.get(field_name)
             for field_name in THEME_EXPERIENCE_FIELD_NAMES

@@ -408,7 +408,8 @@ class TimetableGenerator:
             key = (teacher_id, day)
             teacher_workload[key] = teacher_workload.get(key, 0) + 1
         
-        # Redistribute: for teachers with >6 classes on a day, move entries to lighter days (same time, different day)
+        # Redistribute: for teachers with >6 classes on a day, move entries to lighter days (same time, different day).
+        # Tracked: WHAT_IS_LEFT_MASTER.md O9/O63 — implementation complete; optional future: configurable max per day, room preferences.
         overloaded = [(tid, d) for (tid, d), c in teacher_workload.items() if c > 6]
         for teacher_id, from_day in overloaded:
             day_entries = [

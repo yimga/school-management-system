@@ -1,0 +1,28 @@
+/* Minimal toast component (save-for-later completed). Use with toasts.js. */
+.toast-container-fixed {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 24rem;
+  pointer-events: none;
+}
+.toast-item {
+  pointer-events: auto;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  font-size: 0.875rem;
+  animation: toast-in 0.25s ease-out;
+}
+.toast-item.success { background: var(--bs-success, #198754); color: #fff; }
+.toast-item.error { background: var(--bs-danger, #dc3545); color: #fff; }
+.toast-item.info { background: var(--bs-info, #0dcaf0); color: #000; }
+.toast-item.warning { background: var(--bs-warning, #ffc107); color: #000; }
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(100%); }
+  to { opacity: 1; transform: translateX(0); }
+}

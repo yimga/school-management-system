@@ -304,6 +304,20 @@ class SiteSettings(models.Model):
         default="dark",
         help_text="Theme for the Backend Console (Workflow Center, Entity Console).",
     )
+    # Color harmony for theme palette (DETAILED_IMPLEMENTATION_PLAN / NON_NEGOTIABLE_BACKLOG item 7)
+    THEME_HARMONY_CHOICES = [
+        ("square", "Square (four evenly spaced hues)"),
+        ("achromatic", "Achromatic (grayscale)"),
+        ("polychromatic", "Polychromatic (multi-hue)"),
+        ("diad", "Diad (two hues)"),
+    ]
+    theme_harmony = models.CharField(
+        max_length=20,
+        choices=THEME_HARMONY_CHOICES,
+        default="polychromatic",
+        blank=True,
+        help_text="Color harmony rule for palette generation and theme consistency.",
+    )
     custom_css = models.TextField(blank=True)
     theme_pack = models.ForeignKey(
         "siteconfig.ThemePack",
@@ -1821,6 +1835,7 @@ class SiteSettings(models.Model):
                 "use_secondary_font_for_headings",
                 False,
             ),
+            "theme_harmony": _payload_string(brand_payload, self, "theme_harmony", "polychromatic"),
             "base_font_size": _payload_int(brand_payload, self, "base_font_size", 16),
             "default_dashboard_view": _payload_string(
                 runtime_payload,
@@ -2139,6 +2154,7 @@ class SiteSettings(models.Model):
             "admin_theme_pack",
             "teacher_theme_pack",
             "parent_theme_pack",
+            "theme_harmony",
             "admin_use_site_primary",
             "skip_theme_publish_guard",
             "backend_console_theme",

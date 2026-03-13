@@ -17,11 +17,11 @@
     <form class="row g-2 align-items-end" method="get">
       <div class="col-md-4">
         <label class="form-label">From date</label>
-        <input class="form-control" type="date" name="start" value="{{ report_start|date:'Y-m-d' }}">
+        <input class="form-control" type="date" name="start" value="{{ report_start|format_date:"YYYY-MM-DD" }}">
       </div>
       <div class="col-md-4">
         <label class="form-label">To date</label>
-        <input class="form-control" type="date" name="end" value="{{ report_end|date:'Y-m-d' }}">
+        <input class="form-control" type="date" name="end" value="{{ report_end|format_date:"YYYY-MM-DD" }}">
       </div>
       <div class="col-md-4 d-flex gap-2">
         <button class="btn btn-primary" type="submit">Apply period</button>

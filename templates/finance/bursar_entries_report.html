@@ -28,7 +28,7 @@
         <tbody>
           {% for pay in payments %}
           <tr>
-            <td>{{ pay.paid_at|date:"Y-m-d H:i"|default:pay.created_at|date:"Y-m-d" }}</td>
+            <td>{{ pay.paid_at|date:"Y-m-d H:i"|default:pay.created_at|format_date:"YYYY-MM-DD" }}</td>
             <td>{{ pay.invoice.reference|default:pay.invoice_id }} {% if pay.invoice.student %}({{ pay.invoice.student.get_full_name|default:pay.invoice.student }}){% endif %}</td>
             <td>{{ pay.get_method_display|default:pay.method }}</td>
             <td class="text-end">{{ pay.amount|format_currency }}</td>

@@ -2,37 +2,22 @@ go through the code agai and agin, find gaps and # Code Review: Gaps, Redundanci
 
 ## 🔴 CRITICAL GAPS (Missing Functionality)
 
-### 1. **GradingDeadline Model Missing** ⚠️ HIGH PRIORITY
-**Location**: `apps/analytics/views.py:323-368`, `apps/portal/services.py:714`, `apps/analytics/services.py:85,473`
+### 1. **GradingDeadline Model Missing** ✅ RESOLVED
+**Location**: Was `apps/analytics/views.py`, `apps/portal/services.py`, `apps/analytics/services.py`, etc.
 
-**Problem**: 
-- Model was deleted in migration `0008_attendancelog_delete_gradingdeadline.py`
-- Multiple views/services still reference it with "no-op" comments
-- `grading_deadlines` view is completely non-functional
-- Management command `send_deadline_reminders.py` will fail
-
-**Impact**: 
-- Deadline management feature is broken
-- Users can't set grading deadlines
-- Reminder system won't work
-
-**Fix Required**:
-- Either restore `GradingDeadline` model OR
-- Remove all references and implement alternative (e.g., use `SubjectAssignment.deadline_at`)
-
-**Files Affected**:
-- `apps/analytics/views.py` (lines 323-368)
-- `apps/analytics/services.py` (lines 85, 473)
-- `apps/portal/services.py` (line 714)
-- `apps/evals/views.py` (lines 1638-1650)
-- `apps/analytics/management/commands/send_deadline_reminders.py`
+**Resolution**: 
+- Model was deleted in migration `0008_attendancelog_delete_gradingdeadline.py`.
+- All production code now uses **`SubjectAssignment.grading_deadline_at`** (field on SubjectAssignment). No references to the removed `GradingDeadline` model remain in non-migration code.
+- `grading_deadlines` view, `send_deadline_reminders` command, and portal/analytics services use `SubjectAssignment` and `grading_deadline_at` only.
 
 ---
 
-### 2. **Duplicate Dashboard Layout Logic** ⚠️ MEDIUM PRIORITY
+### 2. **Duplicate Dashboard Layout Logic** ✅ ADDRESSED
 **Location**: `static/js/dashboard-layout.js` AND `static/js/dashboard-customizer.js`
 
-**Problem**:
+**Resolution**: Use Option B — keep `dashboard-customizer.js` for settings (sidebar, links, variants); rely on `dashboard-layout.js` (Sortable.js) for drag/layout. Both loaded; layout save delegated to layout API. No merge required for 9.5.
+
+**Problem (historical)**:
 - Two separate JavaScript files handling drag-and-drop
 - `dashboard-layout.js` uses Sortable.js (better)
 - `dashboard-customizer.js` uses native HTML5 drag (redundant)

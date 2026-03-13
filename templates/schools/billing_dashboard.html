@@ -1,5 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% load i18n %}
+{% load region_format %}
 {% block cp_title %}{% trans "Platform billing" %}{% endblock %}
 {% block cp_content %}
 <div class="container-fluid">
@@ -19,7 +20,7 @@
       <div class="card shadow-sm h-100">
         <div class="card-body">
           <div class="text-muted small text-uppercase">{% trans "Posted charges" %}</div>
-          <div class="display-6">${{ total_posted_charges|floatformat:2 }}</div>
+          <div class="display-6">{{ total_posted_charges|format_currency }}</div>
         </div>
       </div>
     </div>
@@ -27,7 +28,7 @@
       <div class="card shadow-sm h-100">
         <div class="card-body">
           <div class="text-muted small text-uppercase">{% trans "Posted credits" %}</div>
-          <div class="display-6">${{ total_posted_credits|floatformat:2 }}</div>
+          <div class="display-6">{{ total_posted_credits|format_currency }}</div>
         </div>
       </div>
     </div>
@@ -95,7 +96,7 @@
       <div class="card shadow-sm h-100">
         <div class="card-body">
           <div class="text-muted small text-uppercase">{% trans "Scheduled payout total" %}</div>
-          <div class="display-6">${{ scheduled_payout_total|floatformat:2 }}</div>
+          <div class="display-6">{{ scheduled_payout_total|format_currency }}</div>
           <div class="small text-muted">{% trans "Net platform payout obligation currently on deck." %}</div>
         </div>
       </div>
@@ -156,7 +157,7 @@
                 {% for s in trial_schools %}
                 <tr class="{% if s.trial_expired %}table-warning{% endif %}">
                   <td>{{ s.name }}</td>
-                  <td>{{ s.trial_end_date|date:"Y-m-d"|default:"-" }}</td>
+                  <td>{{ s.trial_end_date|format_date:"YYYY-MM-DD"|default:"-" }}</td>
                   <td>{{ s.student_count }}</td>
                   <td>{{ s.api_requests }}</td>
                   <td><a href="{{ s.admin_edit_url }}">{% trans "Edit" %}</a></td>

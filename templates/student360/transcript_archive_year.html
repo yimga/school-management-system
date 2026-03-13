@@ -1,5 +1,6 @@
 {% extends "portal_base.html" %}
 {% load i18n %}
+{% load region_format %}
 {# Section 15.1: Single academic year immutable transcript (read-only). #}
 {% block title %}Transcript {{ snapshot.academic_year_name|default:transcript.academic_year.name }} — {{ student.get_full_name }}{% endblock %}
 {% block content %}

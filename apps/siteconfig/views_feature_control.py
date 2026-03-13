@@ -545,8 +545,8 @@ def feature_control_export(request):
 @never_cache
 @require_http_methods(["GET", "POST"])
 def feature_control_panel(request):
-    """Feature Control Panel - toggle modules system-wide. When not embedded, redirect to Studio Control."""
-    if request.GET.get("embed") != "1":
+    """Feature Control Panel - toggle modules system-wide. When GET and not embedded, redirect to Studio Control."""
+    if request.method == "GET" and request.GET.get("embed") != "1":
         return redirect(reverse("studio_os:control"))
     site = get_effective_site_settings(request=request)
     if site is None:
@@ -708,7 +708,16 @@ def feature_control_panel(request):
                 return redirect(next_url)
         return redirect("siteconfig:feature_control_panel")
 
-    # Build rows for template
+    ctx = get_feature_control_panel_context(request)
+    return render(request, "siteconfig/feature_control_panel.html", ctx)
+
+
+def get_feature_control_panel_context(request):
+    """Build context for feature control panel (GET). Used by panel view and by Studio OS in-shell."""
+    site = get_effective_site_settings(request=request)
+    if site is None:
+        site = SiteSettings()
+    current = _get_site_features(site)
     cat_labels = {
         "academic": ("Academic", "bi-journal-text"),
         "administrative": ("Administrative", "bi-gear"),
@@ -761,7 +770,7 @@ def feature_control_panel(request):
         minimum=3,
         maximum=12,
     )
-    return render(request, "siteconfig/feature_control_panel.html", {
+    return {
         "categories": categories,
         "active_count": active_count,
         "total_count": total,
@@ -775,7 +784,7 @@ def feature_control_panel(request):
         "weather_countries": weather_state.get("countries", []),
         "weather_cities": weather_state.get("cities", []),
         "backend_layout_max_items_per_list": backend_layout_max_items_per_list,
-    })
+    }
 
 
 def get_feature_control_audit_entries(request, limit=20):

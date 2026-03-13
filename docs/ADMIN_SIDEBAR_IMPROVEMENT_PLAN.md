@@ -32,7 +32,7 @@
 - Add selectors such as: `#nav-sidebar *`, `#nav-sidebar-inner *`, `.navigation_header`, and any Unfold-specific wrappers.
 
 **Fix steps:**
-1. Add stronger `no-watermark.css` overrides for admin sidebar elements.
+1. Add stronger `no-watermark.css` overrides for admin sidebar elements. **Done:** Unfold/ admin selectors added (`#nav-sidebar .sticky`, `#nav-sidebar-inner .flex`, `[data-slot="sidebar"]`, and their `::before`/`::after`).
 2. Ensure `background-image: none !important` on all sidebar-related selectors.
 3. Ensure `::before` and `::after` on sidebar elements use `display: none` or `background: none`.
 

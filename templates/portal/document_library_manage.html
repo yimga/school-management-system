@@ -196,7 +196,7 @@
                   </td>
                   <td>
                     {% if doc.retention_review_at %}
-                      <div class="small">{{ doc.retention_review_at|date:"Y-m-d" }}</div>
+                      <div class="small">{{ doc.retention_review_at|format_date:"YYYY-MM-DD" }}</div>
                       <div class="text-muted small">review</div>
                     {% else %}
                       <span class="text-muted">-</span>

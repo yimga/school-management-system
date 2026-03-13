@@ -14,6 +14,12 @@
         </ul>
         <div class="h6 mb-1 mt-2">{% trans "Catalog" %}</div>
         <p class="small text-muted mb-0">{% trans "Templates, triggers, and actions in the hub." %}</p>
+        {% if legacy_urls.workflow_hub %}
+        <ul class="list-unstyled small mt-1 mb-0">
+          <li><a href="{{ legacy_urls.workflow_hub }}">{% trans "Workflow packs" %}</a></li>
+          <li><a href="{{ legacy_urls.workflow_flow_gallery }}">{% trans "Trigger/action catalog" %}</a></li>
+        </ul>
+        {% endif %}
       </div>
     </nav>
     {% endif %}

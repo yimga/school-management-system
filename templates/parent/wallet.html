@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
+{% load i18n region_format %}
 {% block title %}{% trans "My wallet" %}{% endblock %}
 {% block content %}
 <div class="container-fluid">
@@ -14,7 +14,7 @@
   <div class="card shadow-sm mb-3">
     <div class="card-body">
       {% if wallet %}
-      <p class="mb-1"><strong>{% trans "Balance" %}:</strong> {{ wallet.balance|floatformat:2 }} {{ wallet.currency_code }}</p>
+      <p class="mb-1"><strong>{% trans "Balance" %}:</strong> {{ wallet.balance|format_currency }} {{ wallet.currency_code }}</p>
       <p class="small text-muted mb-0">{% trans "Use your wallet to pay invoices at checkout." %}</p>
       {% if top_up_url %}
       <a href="{{ top_up_url }}" class="btn btn-primary btn-sm mt-2">{% trans "Top up" %}</a>
@@ -35,10 +35,10 @@
           <tbody>
             {% for tx in transactions %}
             <tr>
-              <td>{{ tx.created_at|date:"M d, Y H:i" }}</td>
+              <td>{{ tx.created_at|format_date }} {{ tx.created_at|time:"H:i" }}</td>
               <td>{{ tx.get_kind_display }}</td>
-              <td>{{ tx.amount|floatformat:2 }}</td>
-              <td>{{ tx.balance_after|floatformat:2|default:"—" }}</td>
+              <td>{{ tx.amount|format_currency }}</td>
+              <td>{{ tx.balance_after|format_currency|default:"—" }}</td>
             </tr>
             {% endfor %}
           </tbody>

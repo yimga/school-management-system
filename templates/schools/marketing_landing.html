@@ -38,6 +38,9 @@
         {% if global_features %}
         <p class="mkt-hero-trusted mb-2"><span class="text-muted small">{% trans "Trusted for:" %}</span> {% for f in global_features %}{% if forloop.counter <= 6 %}{% if not forloop.first %}, {% endif %}{{ f }}{% endif %}{% endfor %}</p>
         {% endif %}
+        {% if three_key_features %}
+        <p class="mkt-hero-trusted mb-2 text-muted small">{% trans "Key features:" %} {{ three_key_features|join:", " }}</p>
+        {% endif %}
         <div class="mkt-hero-ctas">
           {% for cta in hero_ctas %}
             <a href="{{ cta.url }}" class="btn {% if cta.primary %}btn-primary{% else %}btn-outline-light{% endif %}" data-cta="{% if cta.primary %}primary{% else %}secondary{% endif %}" data-page="home">{% trans cta.label %}</a>

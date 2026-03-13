@@ -1103,7 +1103,7 @@ def theme_colors_page(request):
 
     if request.method == "POST":
         baseline_values = _snapshot_theme_field_values(site, tracked_theme_fields)
-        form = ThemeColorsForm(request.POST, instance=site)
+        form = ThemeColorsForm(request.POST, instance=site, request=request)
         if form.is_valid():
             changed_fields = []
             for field_name in tracked_theme_fields:
@@ -1154,6 +1154,12 @@ def theme_colors_page(request):
                 )
             else:
                 form.save()
+                if changed_fields:
+                    request.session["theme_previous_state"] = {
+                        "values": baseline_values,
+                        "actor": actor_label,
+                        "timestamp": now_label,
+                    }
                 request.session["theme_recent_change_meta"] = {
                     "status": "saved",
                     "actor": actor_label,
@@ -1181,7 +1187,7 @@ def theme_colors_page(request):
         else:
             messages.error(request, "Please fix the errors below.")
     else:
-        form = ThemeColorsForm(instance=site)
+        form = ThemeColorsForm(instance=site, request=request)
 
     try:
         admin_change_url = reverse(
@@ -1232,6 +1238,85 @@ def theme_colors_page(request):
     )
 
 
+def perform_theme_experience_publish(request):
+    """
+    Validate and persist theme/experience from request.POST. Used by Studio OS publish API.
+    Returns {"ok": True, "redirect_url": "..."} or {"ok": False, "errors": [...]}.
+    Caller must enforce staff/permission; this does not check.
+    """
+    from .forms import ThemeColorsForm
+
+    site = get_effective_site_settings(request=request)
+    if site is None:
+        site = build_platform_default_site_settings()
+    theme_settings = _get_theme_experience_settings(site)
+    tracked_theme_fields = list(ThemeColorsForm.Meta.fields)
+    baseline_values = _snapshot_theme_field_values(site, tracked_theme_fields)
+    form = ThemeColorsForm(request.POST, instance=site, request=request)
+    if not form.is_valid():
+        errors = []
+        for field, errs in form.errors.items():
+            for e in errs:
+                errors.append(f"{field}: {e}")
+        return {"ok": False, "errors": errors}
+
+    changed_fields = []
+    for field_name in tracked_theme_fields:
+        previous_value = baseline_values.get(field_name)
+        next_value = form.cleaned_data.get(field_name)
+        if hasattr(previous_value, "pk"):
+            previous_value = previous_value.pk
+        if hasattr(next_value, "pk"):
+            next_value = next_value.pk
+        if str(previous_value) != str(next_value):
+            changed_fields.append(field_name)
+    preview_confirmed = request.POST.get("preview_confirmed") in ("1", "true", "on")
+    if theme_settings.get("skip_theme_publish_guard", False):
+        preview_confirmed = True
+    governed_changes = [n for n in changed_fields if n in THEME_PUBLISH_GUARDED_FIELDS]
+    if governed_changes and not preview_confirmed:
+        labels = []
+        for fn in governed_changes[:4]:
+            f = form.fields.get(fn)
+            labels.append(f.label if f else fn.replace("_", " ").title())
+        if len(governed_changes) > 4:
+            labels.append("...")
+        return {
+            "ok": False,
+            "errors": [
+                "Live preview confirmation required for high-impact theme changes: " + ", ".join(labels) + ". Use Preview, then confirm and publish again.",
+            ],
+        }
+
+    now_label = timezone.localtime().strftime("%Y-%m-%d %H:%M")
+    actor_label = request.user.get_username() if request.user.is_authenticated else "system"
+    form.save()
+    if changed_fields:
+        request.session["theme_previous_state"] = {
+            "values": baseline_values,
+            "actor": actor_label,
+            "timestamp": now_label,
+        }
+    changed_labels = [form.fields.get(fn).label if form.fields.get(fn) else fn.replace("_", " ").title() for fn in changed_fields]
+    governed_labels = [form.fields.get(fn).label if form.fields.get(fn) else fn.replace("_", " ").title() for fn in governed_changes]
+    request.session["theme_recent_change_meta"] = {
+        "status": "saved",
+        "actor": actor_label,
+        "timestamp": now_label,
+        "changed_count": len(changed_fields),
+        "changed_fields": changed_labels,
+        "governed_count": len(governed_changes),
+        "governed_fields": governed_labels,
+        "preview_confirmed": bool(preview_confirmed),
+    }
+    request.session.modified = True
+    try:
+        redirect_url = reverse("studio_os:experience")
+    except Exception:
+        redirect_url = reverse("siteconfig:theme_colors")
+    return {"ok": True, "redirect_url": redirect_url}
+
+
 def get_theme_colors_context(request):
     """
     Build theme & experience context for Studio OS or other callers.
@@ -1241,7 +1326,7 @@ def get_theme_colors_context(request):
     if site is None:
         site = build_platform_default_site_settings()
     theme_settings = _get_theme_experience_settings(site)
-    form = ThemeColorsForm(instance=site)
+    form = ThemeColorsForm(instance=site, request=request)
     all_packs = list(
         ThemePack.objects.filter(is_active=True).order_by("-applies_to_admin", "-is_default", "name")
     )
@@ -1277,6 +1362,7 @@ def get_theme_colors_context(request):
         "back_url": back_url,
         "theme_recent_change_meta": theme_recent_change_meta,
         "theme_contrast_report": contrast_report,
+        "theme_token_values": contrast_values,
         "theme_publish_guarded_count": len(THEME_PUBLISH_GUARDED_FIELDS),
         "skip_theme_publish_guard": bool(theme_settings.get("skip_theme_publish_guard", False)),
     }

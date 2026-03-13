@@ -87,6 +87,7 @@
     <link rel="stylesheet" href="{% static 'css/theme-everywhere-dark.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-visibility-guard.css' %}">
     <link rel="stylesheet" href="{% static 'css/platform-responsive-touch.css' %}">
+    <link rel="stylesheet" href="{% static 'css/tooltips.css' %}">
     {% block extrastyle %}{% endblock %}
 
     <style>
@@ -1557,6 +1558,8 @@
 
     {# Phase 14: Toast notifications for success/error feedback (showToast available app-wide) #}
     {% include 'components/toast_notifications.html' %}
+    {# S5: Help tooltips — data-tooltip and runmycampusTooltips #}
+    <script src="{% static 'js/tooltips.js' %}"></script>
 
     {# Main Footer with Accreditation and Support #}
     {% include 'components/footer.html' %}

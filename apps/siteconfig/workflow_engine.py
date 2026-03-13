@@ -223,6 +223,11 @@ def run_workflow(tenant_workflow, context: dict) -> dict:
 
     school = getattr(tenant_workflow, "school", None)
     actions_run = run_actions(actions, context, school=school)
+    try:
+        from apps.platform_runtime.governor_limits import record_workflow_run
+        record_workflow_run(school_id=getattr(school, "id", None) if school else None)
+    except Exception:
+        pass
 
     audit_ref = ""
     try:

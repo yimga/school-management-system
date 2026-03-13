@@ -263,3 +263,23 @@ def ceds_readiness(request):
         payload["school_id"] = school.pk
         payload["school_slug"] = school.slug
     return JsonResponse(payload, status=200)
+
+
+def interop_hub(request):
+    """
+    B6: Interoperability as first-class product surface. Single discovery endpoint
+    listing all standards (Ed-Fi, CEDS, OneRoster, LTI 1.3, SCIM) with status and links.
+    """
+    base = request.build_absolute_uri("/api/").rstrip("/")
+    payload = {
+        "surface": "interoperability",
+        "description": "RunMyCampus interoperability hub; all standards are first-class.",
+        "standards": [
+            {"id": "edfi", "name": "Ed-Fi API", "readiness_url": f"{base}/interop/edfi/", "implemented": True},
+            {"id": "ceds", "name": "CEDS (US)", "readiness_url": f"{base}/interop/ceds/", "implemented": True},
+            {"id": "oneroster", "name": "OneRoster 1.1", "readiness_url": f"{base}/interop/oneroster/", "implemented": True},
+            {"id": "lti13", "name": "LTI 1.3", "readiness_url": f"{base}/interop/lti13/", "implemented": True},
+            {"id": "scim", "name": "SCIM 2.0", "readiness_url": f"{base}/scim/v2/ServiceProviderConfig", "implemented": True},
+        ],
+    }
+    return JsonResponse(payload, status=200)

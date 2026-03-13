@@ -10,21 +10,16 @@ from django.db.models import Avg, Count, Q
 from apps.people.models import StudentProfile, TeacherProfile
 from apps.academics.models import AcademicYear, Term, Classroom, SubjectAssignment
 from apps.evals.models import Evaluation, TeacherAssignment
-from apps.siteconfig.models import SiteSettings
 from .models import EMISExport, EMISFieldMapping
 
 
 def _get_site_for_emis(request=None, school=None):
-    """Resolve SiteSettings for EMIS; use runtime-backed helper when request is available."""
-    if request is not None:
-        try:
-            from apps.platform_runtime.helpers import get_effective_site_settings
-            site = get_effective_site_settings(request)
-            if site is not None:
-                return site
-        except Exception:
-            pass
-    return SiteSettings.get_solo()
+    """Resolve SiteSettings for EMIS via runtime helper (no get_solo)."""
+    try:
+        from apps.platform_runtime.helpers import get_effective_site_settings
+        return get_effective_site_settings(request=request, school=school)
+    except Exception:
+        return None
 
 
 class EMISExportService:

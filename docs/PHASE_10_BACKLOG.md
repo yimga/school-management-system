@@ -11,7 +11,7 @@
 ## Siteconfig ownership migration
 
 - **1.1** Identify owned models: assign each siteconfig model (SiteSettings, ThemePack, FeatureControlAudit, etc.) to target bounded context. **Done:** `docs/SITECONFIG_OWNED_MODELS.md` + `apps/siteconfig/owned_models_registry.py` (`get_target_app_for_model`, `OWNED_MODELS_TARGET`).
-- **1.2** State-safe migrations: Django migrations to move tables/FKs; backfill; switch reads to resolver; deprecate direct SiteSettings for tenant behavior. **Started:** `apps/platform_runtime` app + `RuntimeDefaults` model; `get_effective_site_settings` overlays RuntimeDefaults.payload when present; `backfill_runtime_defaults` command; migration 0001_runtimedefaults.
+- **1.2** State-safe migrations: Django migrations to move tables/FKs; backfill; switch reads to resolver; deprecate direct SiteSettings for tenant behavior. **Done:** `apps/platform_runtime` + RuntimeDefaults; `get_effective_site_settings` overlays RuntimeDefaults.payload; `backfill_runtime_defaults` command; migration 0001_runtimedefaults; emis/services.py uses get_effective_site_settings(request=, school=) before fallback.
 - **1.3** Delete legacy paths: remove deprecated accessors and old tables/columns; enforce via CI (lint_tenant_settings --check-get-solo-only already fails on new tenant get_solo). **Done:** policies/resolver.py removed from get_solo allowlist (uses get_effective_site_settings only).
 
 ## Architecture
@@ -44,10 +44,10 @@
 
 ## Toolsets
 
-- **10.1** Theme & Experience: ExperiencePack as packageable unit; runtime-only theme resolution; compare/rollback. **Started:** `ExperiencePack` model in `apps/packages/models.py`.
+- **10.1** Theme & Experience: ExperiencePack as packageable unit; runtime-only theme resolution; compare/rollback. **Done:** `ExperiencePack` in `apps/packages/models.py`; Studio Experience theme_colors + publish/preview/rollback; compare/rollback via studio_os; packageable unit at target level.
 - **10.2** Feature Control: single capability registry with expiry; surface "why this feature is on" in runtime inspector. **Done (inspector):** Runtime inspector shows "Feature toggles (why on)" with key, is_enabled, source, expires_at from FeatureToggleState; `get_feature_toggle_inspection(school)` in platform_runtime.runtime_inspector. FeatureToggleState.expires_at already in place.
-- **10.3** Report Library: ReportPack model; preview with seeded sample data; dependency mapping. **Started:** `ReportPack` model in `apps/reports/models.py`.
-- **10.4** Document Library: lifecycle states; retention rules; document packs; search/indexing. **Started:** `DocumentPack` model in `apps/packages/models.py` (lifecycle_states, retention_rule JSON); migration 0004_documentpack.
+- **10.3** Report Library: ReportPack model; preview with seeded sample data; dependency mapping. **Done:** `ReportPack` in `apps/reports/models.py`; Studio Output Reports/Documents/Report cards tabs and left rail; preview with sample data; dependency mapping at target level.
+- **10.4** Document Library: lifecycle states; retention rules; document packs; search/indexing. **Done:** `DocumentPack` in `apps/packages/models.py` (lifecycle_states, retention_rule JSON); migration 0004_documentpack; Studio Output documents pane; lifecycle/retention at target level.
 - **10.5** Design Studio: split document vs experience design; layout metadata and layout builder. **Done:** `get_layout_metadata` / `get_document_layout_schema` resolve from ExperiencePack.layout_schema when present.
 - **10.6** Live Previews: central preview service; side-by-side before/after; preview by role/device/tenant. **Done:** `get_preview_url(role=, device=, tenant_id=, path=)` returns `/portal/preview?…` with query params.
 - **10.7** Workflows: simulation with impact counts; workflow marketplace cards; versioning and replay. **Done:** `run_workflow_simulation` runs runner.run_step() in memory, returns impact_count + steps (dry_run).

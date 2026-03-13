@@ -1,5 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% load i18n %}
+{% load region_format %}
 
 {% block cp_title %}{% trans "SLO dashboard" %}{% endblock %}
 
@@ -82,8 +83,8 @@
                 {% else %}<span class="badge bg-danger">{% trans "Critical" %}</span>{% endif %}
               </td>
               <td>{{ row.active_schools }}</td>
-              <td>{{ row.webhook.success_rate_percent|floatformat:1 }}%</td>
-              <td>{{ row.webhook.p95_latency_ms|floatformat:0 }}</td>
+              <td>{{ row.webhook.success_rate_percent|format_number:1 }}%</td>
+              <td>{{ row.webhook.p95_latency_ms|format_number:0 }}</td>
               <td>{{ row.sync_conflicts.pending }} / {{ row.sync_conflicts.pending_target_max }}</td>
             </tr>
             {% empty %}

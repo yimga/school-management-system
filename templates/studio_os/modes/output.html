@@ -11,6 +11,11 @@
           <li><a href="{% url 'studio_os:output' %}?pane=documents">{% trans "Documents" %}</a></li>
           <li><a href="{% url 'siteconfig:reportcard_builder' %}">{% trans "Report cards" %}</a></li>
         </ul>
+        <div class="h6 mb-1 mt-2">{% trans "Packs" %}</div>
+        <ul class="list-unstyled small mb-0">
+          <li><a href="{% url 'studio_os:output' %}">{% trans "Report packs" %}</a></li>
+          <li><a href="{% url 'studio_os:output' %}?pane=documents">{% trans "Document packs" %}</a></li>
+        </ul>
       </div>
     </nav>
     <div class="flex-grow-1 min-w-0">

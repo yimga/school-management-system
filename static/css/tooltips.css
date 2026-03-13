@@ -1,0 +1,76 @@
+/* Help tooltips (S5 — save-for-later completed). Use with data-tooltip or .runmycampus-tooltip. */
+[data-tooltip],
+.runmycampus-tooltip-trigger {
+  position: relative;
+  cursor: help;
+}
+[data-tooltip]:hover::after,
+.runmycampus-tooltip-trigger:hover .runmycampus-tooltip-bubble,
+.runmycampus-tooltip-trigger[aria-describedby]:focus-within .runmycampus-tooltip-bubble {
+  opacity: 1;
+  visibility: visible;
+}
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-6px);
+  padding: 0.5rem 0.75rem;
+  max-width: 280px;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--admin-content-text, #0f172a);
+  background: var(--admin-content-bg, #fff);
+  border: 1px solid var(--admin-content-border, rgba(15,23,42,0.12));
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  white-space: normal;
+  word-wrap: break-word;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s, transform 0.2s;
+  pointer-events: none;
+}
+.runmycampus-tooltip-bubble {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-6px);
+  padding: 0.5rem 0.75rem;
+  max-width: 280px;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--admin-content-text, #0f172a);
+  background: var(--admin-content-bg, #fff);
+  border: 1px solid var(--admin-content-border, rgba(15,23,42,0.12));
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  white-space: normal;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s;
+  pointer-events: none;
+}
+/* Lazy-load placeholder for heavy widgets (S6) */
+.dashboard-widget-lazy {
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--portal-bg, #f8fafc);
+  border-radius: var(--dashboard-card-radius, 12px);
+  color: var(--portal-text-muted, #64748b);
+  font-size: 0.875rem;
+}
+.dashboard-widget-lazy.loaded {
+  min-height: 0;
+  display: block;
+  background: transparent;
+}
+img[data-lazy],
+iframe.dashboard-widget-iframe {
+  loading: lazy;
+}

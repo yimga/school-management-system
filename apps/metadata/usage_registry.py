@@ -1,11 +1,14 @@
 """
 Register UsageReference (MetadataDependency) from workflow/dashboard/policy definitions (metadata plan todo 4).
 Call register_usage() where dashboards, workflows, and policies are resolved or defined.
+
+Lineage: use get_lineage_consumers() to answer "what uses this entity/field?" (downstream dashboards,
+workflows, policies, reports) for impact preview and rollback safety.
 """
 from __future__ import annotations
 
 import logging
-from typing import Optional
+from typing import Any, Optional
 
 from django.db import DatabaseError
 
@@ -58,3 +61,23 @@ def register_usage(
         )
     except METADATA_USAGE_SOFT_FAILURES as e:
         logger.debug("metadata register_usage skipped: %s", e)
+
+
+def get_lineage_consumers(
+    *,
+    entity_code: str | None = None,
+    field_id: int | None = None,
+) -> list[dict[str, Any]]:
+    """
+    Lineage: which consumers (dashboards, workflows, policies, reports) use this entity or field.
+    Single entry point for "what uses this?"; delegates to metadata.services.get_downstream_dependencies.
+    """
+    try:
+        from apps.metadata.services import get_downstream_dependencies
+        return get_downstream_dependencies(
+            entity_code=entity_code,
+            field_id=field_id,
+        )
+    except METADATA_USAGE_SOFT_FAILURES as e:
+        logger.debug("metadata get_lineage_consumers skipped: %s", e)
+        return []

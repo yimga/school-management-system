@@ -1,5 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% load static i18n %}
+{% load region_format %}
 
 {% block cp_title %}Mission Queues{% endblock %}
 
@@ -111,7 +112,7 @@
           <div class="cp-list-row">
             <div>
               <strong>{{ school.name }}</strong>
-              <div class="cp-list-meta">Trial end {{ school.trial_end_date|date:"Y-m-d"|default:"-" }}</div>
+              <div class="cp-list-meta">Trial end {{ school.trial_end_date|format_date:"YYYY-MM-DD"|default:"-" }}</div>
             </div>
             <span class="cp-status-badge cp-status-badge-warning">Trial</span>
           </div>

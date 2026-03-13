@@ -22,6 +22,7 @@ from apps.siteconfig.dashboard_views import (
     get_layout_for_page,
 )
 from apps.runtime_blueprints.models import DashboardLayout, DashboardWidget
+from apps.platform_runtime.governor_limits import record_dashboard_refresh
 
 # Backend dashboard widgets that must never be hidden (no user preference, no persist).
 BACKEND_ALWAYS_VISIBLE_WIDGET_IDS = frozenset({
@@ -317,6 +318,10 @@ class DashboardLayoutAPI(APIView):
 
         layout_obj = get_layout_for_page(request.user, page)
         layout_data = layout_obj.layout if layout_obj else {}
+        # Governor limits: record dashboard refresh when layout is loaded (GET)
+        school = getattr(request, "school", None)
+        school_id = getattr(school, "id", None) if school else None
+        record_dashboard_refresh(school_id=school_id)
         # Backend: never return these widgets as hidden (GET)
         if page == "backend" and layout_data:
             layout_data = dict(layout_data)

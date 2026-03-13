@@ -1,5 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% load static i18n %}
+{% load region_format %}
 
 {% block cp_title %}Control Plane{% endblock %}
 
@@ -187,7 +188,7 @@
               <div class="cp-list-row">
                 <div>
                   <strong>{{ subscription.school.name }}</strong>
-                  <div class="cp-list-meta">{{ subscription.status|title }}{% if subscription.plan %} | {{ subscription.plan.name }}{% endif %} | ${{ subscription.billed_amount|floatformat:2 }}</div>
+                  <div class="cp-list-meta">{{ subscription.status|title }}{% if subscription.plan %} | {{ subscription.plan.name }}{% endif %} | {{ subscription.billed_amount|format_currency }}</div>
                 </div>
                 <span class="cp-status-badge cp-status-badge-{{ subscription.status|lower }}">{{ subscription.status|title }}</span>
               </div>
@@ -397,8 +398,8 @@
                       <td>{{ row.country_name }}</td>
                       <td>{{ row.school_count }}</td>
                       <td>{{ row.student_count }}</td>
-                      <td>${{ row.actual_revenue|floatformat:2 }}</td>
-                      <td>${{ row.waived_revenue|floatformat:2 }}</td>
+                      <td>{{ row.actual_revenue|format_currency }}</td>
+                      <td>{{ row.waived_revenue|format_currency }}</td>
                     </tr>
                     {% empty %}
                     <tr><td colspan="5" class="text-muted">No country rollup yet.</td></tr>
@@ -423,7 +424,7 @@
                 {% for row in revenue_by_country|slice:":6" %}
                 <div class="cp-mini-table-row">
                   <span>{{ row.country_code|default:"--" }}</span>
-                  <strong>${{ row.actual|floatformat:2 }}</strong>
+                  <strong>{{ row.actual|format_currency }}</strong>
                 </div>
                 {% empty %}
                 <div class="cp-empty-inline">No revenue snapshots yet.</div>
@@ -516,10 +517,10 @@
                 <td>
                   <div class="cp-status-badge cp-status-badge-{{ school.subscription_tone }}">{{ school.subscription_status|title }}</div>
                   {% if school.latest_subscription_amount %}
-                  <div class="cp-cell-meta">${{ school.latest_subscription_amount|floatformat:2 }}</div>
+                  <div class="cp-cell-meta">{{ school.latest_subscription_amount|format_currency }}</div>
                   {% endif %}
                   {% if school.latest_subscription_period_end %}
-                  <div class="cp-cell-meta">Period end {{ school.latest_subscription_period_end|date:"Y-m-d" }}</div>
+                  <div class="cp-cell-meta">Period end {{ school.latest_subscription_period_end|format_date:"YYYY-MM-DD" }}</div>
                   {% endif %}
                 </td>
                 <td>
@@ -634,7 +635,7 @@
           <div class="cp-list-row">
             <div>
               <strong>{{ school.name }}</strong>
-              <div class="cp-list-meta">{{ school.country_display }} | Created {{ school.created_at|date:"Y-m-d" }}</div>
+              <div class="cp-list-meta">{{ school.country_display }} | Created {{ school.created_at|format_date:"YYYY-MM-DD" }}</div>
             </div>
             <span class="cp-status-badge cp-status-badge-{{ school.roster_state }}">{{ school.roster_state|title }}</span>
           </div>
