@@ -164,6 +164,7 @@
 | File | Status | Notes |
 |------|--------|--------|
 | admin_context.py | DONE | _safe_reverse: _ADMIN_REVERSE_ERRORS (NoReverseMatch, ImproperlyConfigured, ValueError, TypeError); all widget query fns: _ADMIN_WIDGET_QUERY_ERRORS (ImportError, AttributeError, TypeError, ValueError, KeyError, DatabaseError, OperationalError, ObjectDoesNotExist, NoReverseMatch, ImproperlyConfigured) + logger.debug or log_view_exception. Allowlist 0. |
+| context.py | DONE | _DASHBOARD_REVERSE_ERRORS, _DASHBOARD_SNAPSHOT_ERRORS, _DASHBOARD_PERMISSION_CHECK_ERRORS, _DASHBOARD_PARSING_ERRORS, _DASHBOARD_CONFIG_ERRORS; _build_cached_snapshot + build_dashboard_extras all segments use typed excepts; weather/config path uses log_view_exception on ImproperlyConfigured. Allowlist 0. |
 
 ### apps/events (§2.4 — Step 9)
 | File | Status | Notes |

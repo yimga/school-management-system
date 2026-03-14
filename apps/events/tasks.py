@@ -3,12 +3,29 @@ Celery tasks and batch helpers for the canonical event/webhook runtime.
 """
 from __future__ import annotations
 
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.db import DatabaseError, IntegrityError, OperationalError
 from django.utils import timezone
 
 from apps.events.webhooks import (
     dispatch_due_webhooks,
     mark_event_processed,
     queue_deliveries_for_event,
+)
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
+# Typed exceptions for outbox processing (save, queue, mark); §2.4 broad-except policy.
+_EVENT_OUTBOX_PROCESS_ERRORS = (
+    IntegrityError,
+    OperationalError,
+    DatabaseError,
+    ValidationError,
+    ValueError,
+    TypeError,
+    OSError,
+    ObjectDoesNotExist,
+    AttributeError,
+    KeyError,
 )
 
 try:
@@ -32,7 +49,12 @@ def process_outbox_batch(batch_size: int = 100):
             queue_deliveries_for_event(event, scheduled_for=timezone.now())
             mark_event_processed(event)
             processed += 1
-        except Exception as exc:
+        except _EVENT_OUTBOX_PROCESS_ERRORS as exc:
+            log_exception_with_context(
+                "event outbox process failed",
+                school_id=getattr(event, "school_id", None),
+                extra={"event_id": str(event.id), "event_type": event.event_type},
+            )
             event.status = DomainEvent.Status.FAILED
             event.retry_count += 1
             event.error_message = str(exc)[:2000]
