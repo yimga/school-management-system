@@ -30,7 +30,7 @@ python manage.py test apps.accounts.tests.test_phase_h_ux_verification
 ## 2. Critical paths (no 404/500)
 
 - **Manager host** (`manager.runmycampus.com`): `/`, `/super/`, `/admin/`, `/authentication/login/`, `/studio/experience/`, `/studio/automation/`, `/studio/control/`, `/health/`, `/healthz/`, `/api/health/`, `/siteconfig/preferences/`, `/siteconfig/console/`.
-- **Tenant/default host**: `/`, `/health/`, `/healthz/`, `/admin/`, `/authentication/login/`, `/authentication/backend/`, `/portal/parent/`, `/finance/`, `/analytics/`, `/compliance/dashboard/`, `/studio/experience/`, `/siteconfig/customizer/`, `/discover/`, `/support/`, `/verify/`.
+- **Tenant/default host**: `/`, `/health/`, `/healthz/`, `/admin/`, `/authentication/login/`, `/authentication/backend/`, `/portal/parent/`, `/finance/`, `/analytics/`, `/compliance/dashboard/`, `/evals/teacher/`, `/studio/experience/`, `/siteconfig/customizer/`, `/discover/`, `/support/`, `/verify/`.
 
 Acceptable status codes: 200, 301, 302, 403 (not 404 or 500).
 
