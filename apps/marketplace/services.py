@@ -25,7 +25,8 @@ _MARKETPLACE_SCHEMA_BILLING_ERRORS = (
     ValueError,
     RuntimeError,
 )
-_SCHEMA_PATCH_ERRORS = _MARKETPLACE_SCHEMA_BILLING_ERRORS
+# Schema patch (migrate) can raise CommandError from call_command
+_SCHEMA_PATCH_ERRORS = _MARKETPLACE_SCHEMA_BILLING_ERRORS + (CommandError,)
 
 
 def ensure_marketplace_listing(app, *, publisher=None):
