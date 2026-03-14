@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 
 # Per-domain actions for 9.5/10: search, preview, diff (compare before apply), audit (change history), rollback (revert where relevant).
 # Use None to hide; reverse() name or path string. Operator-safe: outcomes not jargon.
@@ -138,10 +138,9 @@ def _safe_reverse(name: str, request=None):
     """Resolve URL by name; support admin: namespace."""
     try:
         if name.startswith("admin:"):
-            from django.urls import reverse
             return reverse(name)
         return reverse(name)
-    except Exception:
+    except NoReverseMatch:
         return None
 
 
@@ -154,7 +153,7 @@ def console_domains_hub(request):
             try:
                 url = reverse(name)
                 d["resolved_links"].append({"label": label, "url": url})
-            except Exception:
+            except NoReverseMatch:
                 d["resolved_links"].append({"label": label, "url": "#"})
         actions = CONSOLE_ACTIONS.get(d["code"], {})
         d["search_url"] = _safe_reverse(actions.get("search")) if actions.get("search") else None

@@ -16,6 +16,10 @@ from typing import Any, Optional
 from django.core.cache import cache
 from django.db import DatabaseError
 
+from apps.platform_runtime.structured_logging import (
+    log_exception_with_context,
+    request_context_for_log,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -290,7 +294,11 @@ def get_effective_site_settings(request: Any = None, school: Any = None) -> Any:
     try:
         base = _build_platform_site_settings_base()
     except (AttributeError, DatabaseError, ImportError, OSError, RuntimeError, TypeError, ValueError):
-        logger.exception("Failed to build platform site settings base from runtime defaults / SiteSettings")
+        ctx = request_context_for_log(request) if request else {}
+        log_exception_with_context(
+            "Failed to build platform site settings base from runtime defaults / SiteSettings",
+            **ctx,
+        )
         base = None
     if base is None:
         return None
@@ -329,6 +337,10 @@ def get_platform_site_settings_record(*, create: bool = False) -> Any:
     try:
         site = SiteSettings.objects.order_by("pk").first()
     except (AttributeError, DatabaseError, ImportError, OSError, RuntimeError, TypeError, ValueError):
+        log_exception_with_context(
+            "Failed to get SiteSettings row in get_platform_site_settings_record",
+            extra={"caller": "get_platform_site_settings_record", "create": create},
+        )
         site = None
     if site is not None or not create:
         return site
@@ -360,6 +372,7 @@ def _build_platform_site_settings_base() -> Any:
     from apps.siteconfig.models import SiteSettings, build_platform_default_site_settings
 
     payload = {}
+    rt_defaults = None
     try:
         rt_defaults = RuntimeDefaults.get_singleton()
         if rt_defaults is not None and isinstance(getattr(rt_defaults, "payload", None), dict):
@@ -387,10 +400,17 @@ def _build_platform_site_settings_base() -> Any:
             if not hasattr(base, target_attr):
                 continue
             setattr(base, target_attr, payload[payload_key])
-        try:
-            base._sanitize_foreign_keys(persist=False)
-        except (AttributeError, DatabaseError, TypeError, ValueError):
-            pass
+    # Step 4: first-class owned columns override payload when set
+    try:
+        if rt_defaults is not None and getattr(rt_defaults, "cache_rankings_interval_minutes", None) is not None:
+            if hasattr(base, "cache_rankings_interval_minutes"):
+                setattr(base, "cache_rankings_interval_minutes", rt_defaults.cache_rankings_interval_minutes)
+    except (AttributeError, TypeError, ValueError):
+        pass
+    try:
+        base._sanitize_foreign_keys(persist=False)
+    except (AttributeError, DatabaseError, TypeError, ValueError):
+        pass
     return base
 
 

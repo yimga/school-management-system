@@ -31,15 +31,15 @@ class Command(BaseCommand):
         count = 0
         for badge in qs:
             recipient = badge.user or (badge.student.user if getattr(badge.student, "user", None) else None)
-            school_id = None
+            _school_id = None
             if badge.student_id and getattr(badge.student, "school_id", None):
-                school_id = badge.student.school_id
+                _school_id = badge.student.school_id
             elif badge.user_id:
                 try:
                     from apps.schools.models import SchoolMembership
                     m = SchoolMembership.objects.filter(user_id=badge.user_id).order_by("-is_primary").first()
                     if m:
-                        school_id = str(m.school_id)
+                        _school_id = str(m.school_id)  # reserved for future scope filter
                 except Exception:
                     pass
             msg = f"Badge « {badge.badge_type.label} » expires on {badge.expiry_at.date()}."

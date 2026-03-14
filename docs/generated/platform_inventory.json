@@ -1,19 +1,19 @@
 {
   "baseline_counts": {
-    "allow_any": 34,
-    "csrf_exempt": 79,
-    "cursor_execute": 351,
-    "except_exception": 712,
-    "get_solo": 213,
-    "gilead": 519,
-    "gilead_files": 115,
-    "html_files": 456,
-    "management_commands": 137,
-    "markdown_files": 798,
-    "migration_files": 590,
-    "print_calls": 429,
-    "python_files": 1772,
-    "site_settings": 1082
+    "allow_any": 52,
+    "csrf_exempt": 97,
+    "cursor_execute": 349,
+    "except_exception": 399,
+    "get_solo": 178,
+    "gilead": 657,
+    "gilead_files": 128,
+    "html_files": 461,
+    "management_commands": 139,
+    "markdown_files": 841,
+    "migration_files": 594,
+    "print_calls": 451,
+    "python_files": 1818,
+    "site_settings": 1073
   },
   "doc_drift": {
     "actual_installed_app_count": 41,
@@ -23,64 +23,64 @@
   },
   "largest_python_files": [
     {
-      "bytes": 209838,
-      "lines": 3632,
+      "bytes": 212639,
+      "lines": 3659,
       "path": "apps/schools/marketing_views.py"
     },
     {
-      "bytes": 129484,
-      "lines": 3022,
+      "bytes": 121007,
+      "lines": 2797,
       "path": "apps/schools/super_views.py"
     },
     {
-      "bytes": 121515,
-      "lines": 2667,
-      "path": "apps/accounts/views.py"
-    },
-    {
-      "bytes": 109249,
-      "lines": 2561,
-      "path": "apps/siteconfig/admin.py"
-    },
-    {
-      "bytes": 107834,
-      "lines": 2568,
+      "bytes": 107567,
+      "lines": 2564,
       "path": "apps/evals/views.py"
     },
     {
-      "bytes": 100597,
-      "lines": 2383,
+      "bytes": 106877,
+      "lines": 2542,
+      "path": "apps/siteconfig/admin.py"
+    },
+    {
+      "bytes": 103900,
+      "lines": 2331,
+      "path": "apps/accounts/views.py"
+    },
+    {
+      "bytes": 100201,
+      "lines": 2373,
       "path": "apps/finance/views.py"
     },
     {
-      "bytes": 97936,
-      "lines": 2389,
-      "path": "apps/siteconfig/models.py"
-    },
-    {
-      "bytes": 96758,
-      "lines": 2231,
+      "bytes": 96105,
+      "lines": 2216,
       "path": "apps/portal/views.py"
     },
     {
-      "bytes": 95611,
-      "lines": 2554,
+      "bytes": 95914,
+      "lines": 2556,
       "path": "apps/finance/models.py"
     },
     {
-      "bytes": 90549,
-      "lines": 1752,
+      "bytes": 95888,
+      "lines": 2378,
+      "path": "apps/siteconfig/models.py"
+    },
+    {
+      "bytes": 90067,
+      "lines": 1740,
       "path": "apps/api/views_v1.py"
     },
     {
-      "bytes": 80191,
-      "lines": 1777,
-      "path": "apps/finance/tasks.py"
+      "bytes": 81212,
+      "lines": 1916,
+      "path": "apps/siteconfig/views.py"
     },
     {
-      "bytes": 77735,
-      "lines": 1838,
-      "path": "apps/siteconfig/views.py"
+      "bytes": 80075,
+      "lines": 1775,
+      "path": "apps/finance/tasks.py"
     }
   ],
   "public_endpoint_audits": {

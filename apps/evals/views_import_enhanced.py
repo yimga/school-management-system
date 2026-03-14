@@ -7,19 +7,15 @@ Enhanced Grade Import Views with:
 - Detailed import logs
 """
 
-import json
 import csv
-from io import StringIO
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse, HttpResponseForbidden
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.http import require_http_methods
-from django.utils import timezone
-from django.db.models import Q, Count, Sum
+from django.db.models import Count
 
-from apps.academics.models import AcademicYear, Term, SubjectAssignment
 from apps.academics.services import get_active_year_and_term
 from apps import evals
 

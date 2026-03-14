@@ -17,8 +17,8 @@
       "auth_model": "public_form_post",
       "replay_protection": "not_applicable",
       "rate_limiting": "implemented",
-      "audit_logging": "manual_review_required",
-      "notes": "Public lead capture endpoint guarded by rate limiting."
+      "audit_logging": "implemented",
+      "notes": "Public lead capture; rate limiting + audit logging (lead_capture_created/lead_capture_duplicate)."
     },
     "apps/api/scim_views.py": {
       "expected_count": 3,

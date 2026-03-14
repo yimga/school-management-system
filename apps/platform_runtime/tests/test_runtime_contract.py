@@ -14,6 +14,7 @@ from apps.platform_runtime.helpers import (
     get_effective_offline_runtime_settings,
     get_effective_site_settings,
     get_effective_support_contact_settings,
+    get_platform_site_settings_record,
 )
 from apps.platform_runtime.models import RuntimeDefaults
 from apps.runtime_blueprints.models import ReportCardStyle as OwnedReportCardStyle
@@ -33,7 +34,7 @@ from apps.platform_runtime.runtime_resolver import (
     build_tenant_runtime_for_tenant,
 )
 from apps.schools.models import School
-from apps.siteconfig.models import SiteSettings, build_platform_default_site_settings
+from apps.siteconfig.models import build_platform_default_site_settings
 
 
 class TenantRuntimeContractTests(TestCase):
@@ -176,7 +177,7 @@ class TenantRuntimeContractTests(TestCase):
 
 class RuntimeHelperResolutionTests(TestCase):
     def test_site_settings_owned_payload_filters_to_requested_owner(self):
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.site_name = "Brand Surface"
         site.backend_feature_flags = {"enable_api_center": True}
         site.default_dashboard_view = "ACADEMICS"
@@ -192,7 +193,7 @@ class RuntimeHelperResolutionTests(TestCase):
         self.assertEqual(policy_payload["backend_feature_flags"]["enable_api_center"], True)
 
     def test_runtime_defaults_sync_from_site_settings_can_scope_to_owner_domains(self):
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.site_name = "Scoped Brand"
         site.default_dashboard_view = "ACADEMICS"
         site.backend_feature_flags = {"enable_api_center": True}
@@ -209,7 +210,7 @@ class RuntimeHelperResolutionTests(TestCase):
         self.assertNotIn("site_name", runtime_defaults.payload)
 
     def test_backfill_runtime_defaults_command_creates_platform_payload(self):
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.site_name = "Command Synced Platform"
         site.enable_offline_mode = True
         site.save(update_fields=["site_name", "enable_offline_mode"])
@@ -225,7 +226,7 @@ class RuntimeHelperResolutionTests(TestCase):
         self.assertIn("created", stdout.getvalue().lower())
 
     def test_runtime_defaults_scoped_sync_preserves_other_owner_domains(self):
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.site_name = "Brand Baseline"
         site.default_dashboard_view = "OVERVIEW"
         site.backend_feature_flags = {"enable_api_center": False}
@@ -253,7 +254,7 @@ class RuntimeHelperResolutionTests(TestCase):
         self.assertEqual(runtime_defaults.payload["backend_feature_flags"]["enable_api_center"], True)
 
     def test_site_settings_save_auto_syncs_runtime_defaults_for_changed_owner_domains(self):
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         RuntimeDefaults.objects.all().delete()
 
         site.site_name = "Auto Synced Brand"
@@ -278,7 +279,7 @@ class RuntimeHelperResolutionTests(TestCase):
             accent_color="#007bff",
             is_active=True,
         )
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.default_term_report_style_id = style.pk
         site.save(update_fields=["default_term_report_style"])
 
@@ -289,7 +290,7 @@ class RuntimeHelperResolutionTests(TestCase):
         self.assertEqual(resolved._meta.app_label, "runtime_blueprints")
 
     def test_get_effective_site_settings_prefers_runtime_defaults_over_legacy_singleton(self):
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.site_name = "Legacy Site Settings"
         site.enable_offline_mode = False
         site.save(update_fields=["site_name", "enable_offline_mode"])
@@ -311,7 +312,7 @@ class RuntimeHelperResolutionTests(TestCase):
         self.assertEqual(resolved.pk, site.pk)
 
     def test_get_effective_site_settings_uses_school_overrides(self):
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.site_name = "Platform Default"
         site.enable_offline_mode = False
         site.save(update_fields=["site_name", "enable_offline_mode"])
@@ -335,7 +336,7 @@ class RuntimeHelperResolutionTests(TestCase):
         self.assertFalse(site.enable_offline_mode)
 
     def test_get_effective_flags_for_school_merges_school_backend_flags(self):
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.backend_feature_flags = {"enable_api_center": False, "require_guardian_finance_opt_in": False}
         site.save(update_fields=["backend_feature_flags"])
 
@@ -353,7 +354,7 @@ class RuntimeHelperResolutionTests(TestCase):
         self.assertFalse(flags["require_guardian_finance_opt_in"])
 
     def test_site_settings_get_backend_feature_flags_merges_defaults(self):
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.backend_feature_flags = {"enable_api_center": True}
         site.save(update_fields=["backend_feature_flags"])
 
@@ -363,7 +364,7 @@ class RuntimeHelperResolutionTests(TestCase):
         self.assertIn("backend_module_overview", flags)
 
     def test_site_settings_feature_control_settings_use_owner_surfaces(self):
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.portal_features = {"documents": True}
         site.backend_feature_flags = {"enable_api_center": True}
         site.notification_channels = ["email", "sms"]
@@ -400,7 +401,7 @@ class RuntimeHelperResolutionTests(TestCase):
         self.assertTrue(feature_settings["auto_tag_photos_from_exif"])
 
     def test_site_settings_notification_delivery_settings_use_owner_surfaces(self):
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.notification_channels = ["email", "sms"]
         site.email_from_address = "northstar@example.com"
         site.save(update_fields=["notification_channels", "email_from_address"])
@@ -411,7 +412,7 @@ class RuntimeHelperResolutionTests(TestCase):
         self.assertEqual(delivery_settings["email_from_address"], "northstar@example.com")
 
     def test_site_settings_offline_runtime_settings_use_owner_surfaces(self):
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.enable_offline_mode = True
         site.offline_sync_conflict_resolution = "auto_merge"
         site.backend_feature_flags = {"enable_offline_attendance_sync": False}
@@ -435,7 +436,7 @@ class RuntimeHelperResolutionTests(TestCase):
         )
 
     def test_request_helpers_use_owner_scoped_site_accessors(self):
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.portal_features = {"documents": True}
         site.enable_offline_mode = True
         site.whatsapp_support_number = "+15550001111"
@@ -459,7 +460,7 @@ class RuntimeHelperResolutionTests(TestCase):
         )
 
     def test_site_settings_owner_accessors_expose_brand_and_report_preview_payloads(self):
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.site_name = "North Star Academy"
         site.school_code = "NSA"
         site.country = "Cameroon"
@@ -521,7 +522,7 @@ class RuntimeHelperResolutionTests(TestCase):
             slug="parent-pack-runtime-contract",
             is_active=True,
         )
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.theme_pack = portal_pack
         site.admin_theme_pack = admin_pack
         site.teacher_theme_pack = teacher_pack
@@ -554,7 +555,7 @@ class RuntimeHelperResolutionTests(TestCase):
             is_active=True,
             applies_to_admin=True,
         )
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.primary_color = "#112233"
         site.accent_color = "#445566"
         site.use_dark_mode = True
@@ -591,7 +592,7 @@ class RuntimeHelperResolutionTests(TestCase):
         self.assertFalse(settings["report_downloads_enabled"])
 
     def test_site_settings_owner_accessors_normalize_legacy_placeholders(self):
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.site_name = "School System"
         site.school_code = "GIL"
         site.tagline = "Knowledge ƒ?› Technology ƒ?› Excellence"
@@ -617,7 +618,7 @@ class RuntimeHelperResolutionTests(TestCase):
         self.assertEqual(preview_settings["contact_phone"], "")
 
     def test_site_settings_finance_runtime_config_uses_policy_owner_payload(self):
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.finance_auto_generate_invoices_enabled = True
         site.finance_auto_generate_schedule = {"mode": "term_start", "term_start_offset_days": 5}
         site.finance_fee_plan_auto_copy_mode = "year_end"
@@ -648,7 +649,7 @@ class RuntimeHelperResolutionTests(TestCase):
         self.assertEqual(finance_settings["reminder_no_contact_action"], "create_task")
 
     def test_site_settings_marketplace_integration_settings_use_owner_payload(self):
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.marksheet_ocr_command = "/opt/runmycampus/bin/tesseract"
         site.sms_sender_id = "RUNMYCAMPUS"
         site.email_from_address = "platform@runmycampus.com"
@@ -680,6 +681,59 @@ class RuntimeHelperResolutionTests(TestCase):
         self.assertEqual(site.site_name, "RunMyCampus")
         self.assertEqual(site.school_code, "RMC")
         self.assertIsInstance(site.get_preview_platform_config(), dict)
+
+
+class ResolverRegistryContractTests(TestCase):
+    """NEXT_50 step 20: resolver_registry entry points are declared and importable."""
+
+    def test_resolver_registry_entry_points_non_empty(self):
+        """RESOLVER_ENTRY_POINTS is the single source of truth; must be non-empty and well-formed."""
+        from apps.platform_runtime.resolver_registry import RESOLVER_ENTRY_POINTS
+
+        self.assertIsInstance(RESOLVER_ENTRY_POINTS, list)
+        self.assertGreater(len(RESOLVER_ENTRY_POINTS), 0)
+        for entry in RESOLVER_ENTRY_POINTS:
+            self.assertIsInstance(entry, (list, tuple), f"Entry {entry!r} must be (name, location)")
+            self.assertEqual(len(entry), 2)
+            name, location = entry
+            self.assertIsInstance(name, str)
+            self.assertIsInstance(location, str)
+            self.assertTrue(name.strip(), f"Resolver name must be non-empty: {entry!r}")
+            self.assertTrue(location.strip(), f"Resolver location must be non-empty: {entry!r}")
+
+    def test_resolver_registry_dotted_paths_importable(self):
+        """Any entry point that is a dotted Python path must be importable (catches typos in registry)."""
+        import importlib
+
+        from apps.platform_runtime.resolver_registry import RESOLVER_ENTRY_POINTS
+
+        for name, location in RESOLVER_ENTRY_POINTS:
+            loc = location.strip()
+            if " " in loc or "(" in loc:
+                loc = loc.split(" ")[0].split("(")[0].strip()
+            if not loc or len(loc.split(".")) < 2:
+                continue
+            # Require dotted path with only alnum/underscore/dots
+            if not all(p.replace("_", "").isalnum() for p in loc.split(".")):
+                continue
+            parts = loc.split(".")
+            # First try full path as module (e.g. apps.metadata.services)
+            try:
+                importlib.import_module(loc)
+                continue
+            except ImportError:
+                pass
+            # Else require module to have the last part as attr (e.g. ...runtime_resolver._step6_flags_entitlements)
+            mod_path = ".".join(parts[:-1])
+            attr_name = parts[-1]
+            try:
+                mod = importlib.import_module(mod_path)
+                self.assertTrue(
+                    hasattr(mod, attr_name),
+                    f"Resolver {name!r} location {location!r}: module {mod_path} has no attr {attr_name!r}",
+                )
+            except ImportError as e:
+                self.fail(f"Resolver {name!r} location {location!r} not importable: {e}")
 
 
 class IntegrationGovernanceTests(TestCase):

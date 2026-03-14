@@ -5,8 +5,6 @@ Fee default, performance forecasting, churn risk prediction tests
 
 from django.test import TestCase
 from django.contrib.auth import get_user_model
-from django.utils import timezone
-from datetime import timedelta
 import numpy as np
 
 from apps.analytics.ml_predictions import (

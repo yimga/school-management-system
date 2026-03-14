@@ -4,6 +4,21 @@ from apps.customersuccess import views_super as cs_views
 from apps.orchestration import views as orchestration_views
 from . import super_views
 from .control_plane import require_super_access_with_host
+from .super_views_catalog import (
+    super_blueprints_catalog,
+    super_dashboard_packs_catalog,
+    super_metadata_catalog,
+    super_metadata_catalog_field_impact,
+    super_policies_catalog,
+    super_registries_overview,
+    super_workflow_packs_catalog,
+)
+from .super_views_migration import (
+    sync_repair,
+    super_migration_cloud,
+    super_migration_profile_registry,
+    super_migration_rollback,
+)
 
 app_name = "super"
 
@@ -28,20 +43,20 @@ urlpatterns = [
     path("api/system-blueprint/", require_super_access_with_host(super_views.api_system_blueprint), name="api_system_blueprint"),
     path("api/plans-configurator/", require_super_access_with_host(super_views.api_plans_configurator), name="api_plans_configurator"),
     path("usage/", require_super_access_with_host(super_views.super_usage), name="usage"),
-    path("migration/", require_super_access_with_host(super_views.super_migration_cloud), name="migration_cloud"),
-    path("migration/registry/", require_super_access_with_host(super_views.super_migration_profile_registry), name="migration_profile_registry"),
-    path("migration/rollback/<int:run_id>/", require_super_access_with_host(super_views.super_migration_rollback), name="migration_rollback"),
+    path("migration/", require_super_access_with_host(super_migration_cloud), name="migration_cloud"),
+    path("migration/registry/", require_super_access_with_host(super_migration_profile_registry), name="migration_profile_registry"),
+    path("migration/rollback/<int:run_id>/", require_super_access_with_host(super_migration_rollback), name="migration_rollback"),
     path("pulse/", require_super_access_with_host(super_views.super_pulse), name="pulse"),
     path("tenant-health/", require_super_access_with_host(super_views.super_tenant_health), name="tenant_health"),
     path("tenants/<uuid:school_id>/360/", require_super_access_with_host(super_views.super_tenant_360), name="tenant_360"),
     path("health/", require_super_access_with_host(super_views.super_control_health_dashboard), name="control_health"),
-    path("registries/", require_super_access_with_host(super_views.super_registries_overview), name="registries_overview"),
-    path("metadata-catalog/", require_super_access_with_host(super_views.super_metadata_catalog), name="metadata_catalog"),
-    path("metadata-catalog/impact/<str:entity_code>/<str:field_name>/", require_super_access_with_host(super_views.super_metadata_catalog_field_impact), name="metadata_catalog_field_impact"),
-    path("blueprints/", require_super_access_with_host(super_views.super_blueprints_catalog), name="blueprints_catalog"),
-    path("policies/", require_super_access_with_host(super_views.super_policies_catalog), name="policies_catalog"),
-    path("workflow-packs/", require_super_access_with_host(super_views.super_workflow_packs_catalog), name="workflow_packs_catalog"),
-    path("dashboard-packs/", require_super_access_with_host(super_views.super_dashboard_packs_catalog), name="dashboard_packs_catalog"),
+    path("registries/", require_super_access_with_host(super_registries_overview), name="registries_overview"),
+    path("metadata-catalog/", require_super_access_with_host(super_metadata_catalog), name="metadata_catalog"),
+    path("metadata-catalog/impact/<str:entity_code>/<str:field_name>/", require_super_access_with_host(super_metadata_catalog_field_impact), name="metadata_catalog_field_impact"),
+    path("blueprints/", require_super_access_with_host(super_blueprints_catalog), name="blueprints_catalog"),
+    path("policies/", require_super_access_with_host(super_policies_catalog), name="policies_catalog"),
+    path("workflow-packs/", require_super_access_with_host(super_workflow_packs_catalog), name="workflow_packs_catalog"),
+    path("dashboard-packs/", require_super_access_with_host(super_dashboard_packs_catalog), name="dashboard_packs_catalog"),
     # Section 11: Benchmark intelligence (11.3) & Customer success (11.4)
     path("customer-success/", require_super_access_with_host(cs_views.customer_success_dashboard), name="customer_success_dashboard"),
     path("customer-success/api/benchmark/cohorts/", require_super_access_with_host(cs_views.api_benchmark_cohorts), name="cs_api_benchmark_cohorts"),
@@ -72,7 +87,7 @@ urlpatterns = [
     path("support/queue/", require_super_access_with_host(super_views.support_queue_fragment), name="support_queue_fragment"),
     path("support/assign/", require_super_access_with_host(super_views.support_assign_ticket), name="support_assign_ticket"),
     path("switch-to-tenant/", require_super_access_with_host(super_views.switch_to_tenant), name="switch_to_tenant"),
-    path("sync-repair/<uuid:school_id>/", require_super_access_with_host(super_views.sync_repair), name="sync_repair"),
+    path("sync-repair/<uuid:school_id>/", require_super_access_with_host(sync_repair), name="sync_repair"),
     path("ai-model-hub/", require_super_access_with_host(super_views.ai_model_hub), name="ai_model_hub"),
     path("global-ai-version/", require_super_access_with_host(super_views.global_ai_version), name="global_ai_version"),
     path("global-ai-version/progress/<str:run_id>/", require_super_access_with_host(super_views.global_ai_version_progress), name="global_ai_version_progress"),

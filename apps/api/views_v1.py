@@ -348,7 +348,7 @@ class TenantChildrenView(View):
         school = _get_school_from_request(request)
         if not school:
             return JsonResponse({"error": "Tenant context required"}, status=400)
-        from apps.schools.models import School, SchoolMembership
+        from apps.schools.models import School
         # Children: schools whose parent_school is current school
         children = School.objects.filter(parent_school_id=school.pk, is_active=True).order_by("name").values(
             "id", "name", "slug", "subdomain"
@@ -464,7 +464,7 @@ class FinanceGenerateBatchView(View):
         allowed, err = _require_finance_operator(request)
         if not allowed:
             return err
-        school = _get_school_from_request(request)
+        _get_school_from_request(request)
         try:
             from apps.finance.tasks import auto_generate_fee_invoices_task
             result = auto_generate_fee_invoices_task.apply_async(kwargs={})
@@ -658,7 +658,6 @@ class VocationalLogHoursView(View):
                 pass
         try:
             from apps.evals.models_enhanced import ClockHourTracking
-            from apps.people.models import TeacherProfile
             teacher = getattr(request.user, "teacher_profile", None)
             rec = ClockHourTracking.objects.create(
                 student_id=student_id,
@@ -701,7 +700,7 @@ class VocationalVerifySkillView(View):
             teacher = getattr(request.user, "teacher_profile", None)
             if not teacher:
                 return JsonResponse({"error": "Teacher profile required"}, status=403)
-            item = CompetencyItem.objects.get(pk=competency_item_id)
+            CompetencyItem.objects.get(pk=competency_item_id)
             valid_levels = [c[0] for c in CompetencyRubric.CompetencyLevel.choices]
             if level not in valid_levels:
                 level = "PROFICIENT"
@@ -781,7 +780,7 @@ class SchedulerGenerateView(View):
                 use_ortools=bool(use_ortools),
             )
             return JsonResponse({"ok": True, "schedule_id": schedule.id, "status": schedule.status}, status=202)
-        except (Term.DoesNotExist, AcademicYear.DoesNotExist) as e:
+        except (Term.DoesNotExist, AcademicYear.DoesNotExist):
             return JsonResponse({"error": "Term or academic year not found"}, status=404)
         except (AttributeError, DatabaseError, ImportError, TypeError, ValueError) as e:
             logger.exception("scheduler/generate")
@@ -962,7 +961,6 @@ class SuperRecoveryRateView(View):
             return JsonResponse({"error": "Superuser required"}, status=403)
         try:
             from apps.analytics.models import RiskFactor, InterventionLog
-            from django.db.models import Count
             red_count = RiskFactor.objects.filter(score__gte=80).values("student_id", "school_id").distinct().count()
             resolved = InterventionLog.objects.filter(status=InterventionLog.Status.RESOLVED).count()
             total_interventions = InterventionLog.objects.count()
@@ -1071,7 +1069,6 @@ class ComplianceExportSchoolView(View):
             return JsonResponse({"error": "Tenant context required"}, status=400)
         if not getattr(request, "user", None) or not request.user.is_authenticated:
             return JsonResponse({"error": "Authentication required"}, status=401)
-        from django.db.models import Count
         from apps.people.models import StudentProfile
         from apps.finance.models import Invoice, Payment
         students_count = StudentProfile.objects.filter(school=school).count()
@@ -1106,7 +1103,6 @@ class EnrollmentForecastView(View):
         if not getattr(request, "user", None) or not request.user.is_authenticated:
             return JsonResponse({"error": "Authentication required"}, status=401)
         from apps.people.models import StudentProfile
-        from django.db.models import Count
         current = StudentProfile.objects.filter(school=school, is_active=True).count()
         return JsonResponse({
             "current_enrollment": current,
@@ -1251,7 +1247,6 @@ class AttendanceBulkUpdateView(View):
             return JsonResponse({"error": "records required"}, status=400)
         from apps.academics.models import Attendance
         from datetime import datetime
-        from django.utils import timezone
         role = (getattr(request.user, "role", "") or "").upper()
         allowed = {"TEACHER", "ADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "CENSOR"}
         if role not in allowed and not request.user.is_staff:
@@ -1584,7 +1579,7 @@ class VideoSessionListCreateView(View):
         if not title or not scheduled_start or not scheduled_end:
             return JsonResponse({"error": "title, scheduled_start, scheduled_end required"}, status=400)
         from django.utils.dateparse import parse_datetime
-        from apps.communication.video_conferencing import VirtualClassroom, VideoConferenceProvider
+        from apps.communication.video_conferencing import VirtualClassroom
         start = parse_datetime(scheduled_start) if isinstance(scheduled_start, str) else scheduled_start
         end = parse_datetime(scheduled_end) if isinstance(scheduled_end, str) else scheduled_end
         if not start or not end:
@@ -1742,11 +1737,4 @@ class EMISSubmitView(View):
         return JsonResponse({"ok": True, "submission_id": sub.id, "status": sub.status})
 
 
-# Re-export intervention views (2.1 decomposition)
-from .views_v1_intervention import (
-    InterventionRedFlagsView,
-    InterventionCalculateRiskView,
-    InterventionActionCenterView,
-    InterventionActionCenterDetailView,
-    InterventionGenerateRoadmapView,
-)
+# Intervention views live in .views_v1_intervention; urlconf imports from there.

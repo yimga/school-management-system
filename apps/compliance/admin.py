@@ -15,7 +15,6 @@ from .models import (
 )
 
 # Phase 4: Import and register audit models
-from .admin_audit import AuditLogAdmin, UserActivitySessionAdmin, AccessLogAdmin, ComplianceReportAdmin
 
 class ComplianceRuleAdmin(admin.ModelAdmin):
     list_display = ('name', 'rule_type', 'is_mandatory', 'applies_globally')

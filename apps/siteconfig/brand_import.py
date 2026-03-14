@@ -92,7 +92,7 @@ def fetch_and_parse_brand_url(url: str, timeout: int = DEFAULT_TIMEOUT) -> dict:
         logger.warning("Brand import fetch failed: %s", e)
         result["error"] = "Could not fetch URL. Check the address and try again."
         return result
-    except (AttributeError, TypeError, ValueError) as e:
+    except (AttributeError, TypeError, ValueError):
         logger.exception("Brand import unexpected error")
         result["error"] = "Import failed. Use manual upload instead."
         return result

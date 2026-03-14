@@ -7,9 +7,7 @@ with bank statement entries. Supports Cameroon banks, MTN MoMo, and Orange Money
 
 from decimal import Decimal
 from datetime import timedelta
-from typing import Optional, Dict, List, Tuple
-from django.utils import timezone
-from django.db.models import Q
+from typing import Optional, Dict, List
 
 
 class BankDepositVerifier:
@@ -52,7 +50,6 @@ class BankDepositVerifier:
                 "discrepancies": list[str]
             }
         """
-        from .models import BankStatementEntry
         
         if not receipt_upload.transaction_reference and not receipt_upload.uploaded_amount:
             return {

@@ -3,6 +3,8 @@ DNS verification for custom domains: query TXT records for runmycampus-verify=<d
 and mark SchoolDomain as verified.
 """
 import logging
+
+from django.db.utils import DatabaseError
 from django.utils import timezone
 
 from apps.schools.domain_sync import sync_verified_schooldomain
@@ -34,7 +36,7 @@ def verify_domain_txt(domain: str, expected_token: str) -> bool:
                         if token_part.lower() == expected:
                             return True
         return False
-    except Exception as e:
+    except (ImportError, OSError, ConnectionError, TimeoutError, UnicodeDecodeError, AttributeError, TypeError, ValueError) as e:
         logger.warning("DNS TXT verification failed for %s: %s", domain, e)
         return False
 
@@ -62,7 +64,7 @@ def verify_and_activate_schooldomain(school_domain) -> bool:
     school_domain.save(update_fields=["is_verified", "verified_at"])
     try:
         sync_verified_schooldomain(school_domain)
-    except Exception as exc:
+    except (OSError, ConnectionError, DatabaseError, AttributeError, TypeError, ValueError) as exc:
         logger.warning("Domain verified but runtime sync failed for %s: %s", domain, exc)
     SchoolProvisioningEvent.log_event(
         school=school_domain.school,

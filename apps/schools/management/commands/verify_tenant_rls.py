@@ -8,6 +8,8 @@ On SQLite/MySQL the command exits with OK and a note that RLS is N/A.
 from django.core.management.base import BaseCommand
 from django.db import connection
 
+from apps.schools.repositories.rls_repository import get_tenant_rls_status
+
 # Tables that should have RLS enabled (from people, academics, finance, evals, reports, siteconfig, schools migrations)
 TENANT_RLS_TABLES = [
     "schools_schoolmembership",
@@ -58,20 +60,7 @@ class Command(BaseCommand):
                 self.style.WARNING("RLS is only used on PostgreSQL. Current backend: %s. Skipping check." % connection.vendor)
             )
             return
-        with connection.cursor() as cursor:
-            # Resolve table names to oid and check relrowsecurity (RLS enabled)
-            placeholders = ",".join(["%s"] * len(TENANT_RLS_TABLES))
-            cursor.execute(
-                """
-                SELECT c.relname, c.relrowsecurity
-                FROM pg_class c
-                JOIN pg_namespace n ON n.oid = c.relnamespace
-                WHERE n.nspname = 'public' AND c.relkind = 'r'
-                AND c.relname IN (%s)
-                """ % placeholders,
-                TENANT_RLS_TABLES,
-            )
-            rows = {row[0]: row[1] for row in cursor.fetchall()}
+        rows = get_tenant_rls_status(TENANT_RLS_TABLES)
         missing = []
         disabled = []
         ok = []

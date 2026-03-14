@@ -2,20 +2,25 @@
 """
 Dashboard Configuration Hub (Part 2b): list templates, assign by role.
 Phase 4: Workflow hub and Dashboard hub — single tenant-facing entry points; all composition via resolvers.
+§2.4 Broad except: workflow_hub/get_blueprints use NoReverseMatch and _OPTIONAL_HUB_ERRORS for optional imports/query.
 """
 import logging
 
 from django.contrib import messages
 from django.shortcuts import render, redirect
-from django.urls import reverse
+from django.urls import reverse, NoReverseMatch
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.cache import never_cache
+from django.db import DatabaseError
 
 from apps.siteconfig.models_dashboard import DashboardTemplate, TenantLayoutAssignment
 from apps.siteconfig.models_workflow import WorkflowTemplate, TenantWorkflow
 
 logger = logging.getLogger(__name__)
+
+# §2.4 Typed exceptions for optional hub URLs/imports (reverse, BlueprintPack, build_manager_absolute_url); allowlist 0.
+_OPTIONAL_HUB_ERRORS = (ImportError, AttributeError, TypeError, ValueError, DatabaseError)
 
 
 @never_cache
@@ -72,7 +77,7 @@ def workflow_hub(request):
     workflow_center_url = reverse("accounts:workflow_center")
     try:
         automation_hub_url = reverse("accounts:automation_hub")
-    except Exception:
+    except NoReverseMatch:
         automation_hub_url = None
     return render(
         request,
@@ -113,12 +118,13 @@ def get_blueprints(request):
         applied_pack = tb.applied_pack if tb else None
         if applied_pack:
             pack_update_available = applied_pack.schools_with_outdated_bundle().filter(pk=school.pk).exists()
-    except Exception:
-        pass
+    except _OPTIONAL_HUB_ERRORS as e:
+        logger.debug("get_blueprints optional packs/query: %s", e)
     try:
         from apps.schools.tenant_url import build_manager_absolute_url
         manager_blueprints_url = build_manager_absolute_url(request, "/super/marketplace/blueprints/")
-    except Exception:
+    except _OPTIONAL_HUB_ERRORS as e:
+        logger.debug("get_blueprints optional manager_blueprints_url: %s", e)
         manager_blueprints_url = None
     return render(
         request,

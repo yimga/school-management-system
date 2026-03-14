@@ -1,5 +1,4 @@
 import ast
-from pathlib import Path
 
 from django.test import SimpleTestCase
 

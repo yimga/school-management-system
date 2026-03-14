@@ -184,7 +184,7 @@ def mfa_verify(request):
                 # Token verified successfully
                 try:
                     otp_login(request, device)
-                except Exception:
+                except (ValueError, TypeError, AttributeError, RuntimeError):
                     pass
                 request.session["mfa_verified"] = True
                 remember = request.POST.get("remember_device") == "1"
@@ -205,7 +205,7 @@ def mfa_verify(request):
                 backup_token.delete()
                 try:
                     otp_login(request, backup_device)
-                except Exception:
+                except (ValueError, TypeError, AttributeError, RuntimeError):
                     pass
                 request.session["mfa_verified"] = True
                 remember = request.POST.get("remember_device") == "1"
@@ -246,7 +246,7 @@ def mfa_required(view_func):
                 until_dt = timezone.make_aware(until_dt, timezone.get_current_timezone())
             if timezone.now() <= until_dt:
                 return True
-        except Exception:
+        except (ValueError, TypeError, AttributeError):
             pass
         req.session.pop("mfa_verified_until", None)
         return False

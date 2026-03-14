@@ -5,9 +5,15 @@ otherwise falls back to TimetableGenerator.
 """
 from __future__ import annotations
 
+import importlib.util
 from typing import Optional
 
-from .scheduling import TimetableGenerator, Schedule, ScheduleEntry, Room, TimeSlot
+from .scheduling import TimetableGenerator, Schedule
+
+
+def _ortools_available() -> bool:
+    """Return True if ortools.sat.python.cp_model is importable."""
+    return importlib.util.find_spec("ortools.sat.python.cp_model") is not None
 
 
 def generate_timetable_with_solver(
@@ -21,8 +27,7 @@ def generate_timetable_with_solver(
     else use TimetableGenerator (constraint satisfaction).
     """
     try:
-        if use_ortools:
-            from ortools.sat.python import cp_model
+        if use_ortools and _ortools_available():
             # Build a minimal CP-SAT model: assign (classroom, subject) to (room, slot) with no conflicts.
             schedule = _solve_with_ortools(academic_year, term, created_by)
             if schedule is not None:
@@ -35,12 +40,9 @@ def generate_timetable_with_solver(
 
 def _solve_with_ortools(academic_year, term, created_by) -> Optional[Schedule]:
     """Use OR-Tools CP-SAT to assign classes to (room, time_slot). Returns Schedule or None."""
-    from django.contrib.auth import get_user_model
-    from apps.academics.models import Classroom, Subject, SubjectAssignment
+    from apps.academics.models import SubjectAssignment
     from apps.evals.models import TeacherAssignment
     from .scheduling import Schedule, ScheduleEntry, Room, TimeSlot
-
-    User = get_user_model()
     time_slots = list(TimeSlot.objects.filter(is_active=True).order_by('day_of_week', 'start_time'))
     rooms = list(Room.objects.filter(is_available=True).order_by('capacity'))
 

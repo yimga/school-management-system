@@ -23,7 +23,7 @@ def _credentials_file_exists(path_value: str) -> bool:
         return False
     try:
         return Path(path_value).expanduser().is_file()
-    except Exception:
+    except (OSError, TypeError):
         return False
 
 
@@ -43,9 +43,8 @@ def get_ocr_runtime_status(verification_method: str, marksheet_ocr_command: str 
         has_python_binding = False
         try:
             import pytesseract  # noqa: F401
-
             has_python_binding = True
-        except Exception:
+        except ImportError:
             has_python_binding = False
 
         tesseract_cli = shutil.which("tesseract")

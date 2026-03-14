@@ -1,7 +1,6 @@
 """Payment Admin Classes for Phase 2.0"""
 from django.contrib import admin
 from django.utils.html import format_html
-from decimal import Decimal
 from apps.finance.models import Payment, Transaction, RefundRequest, PaymentReconciliation, PaymentAuditLog
 
 

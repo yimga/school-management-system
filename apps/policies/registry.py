@@ -2,7 +2,7 @@
 Canonical entry point: get_tenant_blueprint(request), policy(name).evaluate(context).
 Modules must not read features_json / settings_json directly; use this registry.
 """
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from apps.policies.resolver import get_effective_policy, get_tenant_blueprint as _get_tenant_blueprint
 

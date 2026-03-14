@@ -50,7 +50,7 @@ def detect_legacy_issues(school) -> dict[str, Any]:
             issues["missing_required"].append(
                 {"entity": "StudentProfile", "field": "admission_number", "count": missing}
             )
-    except Exception:
+    except (ImportError, AttributeError, TypeError):
         pass
 
     # Orphans: evaluations whose student is inactive (soft-deleted) — optional
@@ -62,7 +62,7 @@ def detect_legacy_issues(school) -> dict[str, Any]:
             issues["orphans"].append(
                 {"entity": "Evaluation", "description": "evaluation for inactive student", "count": orphan_evals}
             )
-    except Exception:
+    except (ImportError, AttributeError, TypeError):
         pass
 
     issues["summary"] = {
@@ -103,7 +103,7 @@ def clean_legacy_data(school, dry_run: bool = True) -> dict[str, Any]:
             result["actions"].append({"action": "normalize_empty_admission", "count": count})
         elif count:
             result["actions"].append({"action": "normalize_empty_admission", "would_update": count, "dry_run": True})
-    except Exception as e:
+    except (ImportError, AttributeError, TypeError, ValueError) as e:
         result["errors"].append(str(e))
 
     result["issues_detected"] = issues["summary"]

@@ -4,12 +4,12 @@ Uses nuance engine (JSON-Logic) for eligibility; audit log on every balance chan
 """
 from __future__ import annotations
 
+import logging
 from decimal import Decimal
 from datetime import timedelta
 from typing import Any
 
 from django.db import transaction
-from django.db.models import Count, Sum
 from django.utils import timezone
 
 from apps.metadata.services import get_dynamic_field_map, get_dynamic_field_value
@@ -38,8 +38,8 @@ def _student_context(student: StudentProfile) -> dict[str, Any]:
         if guardian_ids:
             same_guardian = StudentGuardian.objects.filter(guardian_user_id__in=guardian_ids).values_list("student_id", flat=True).distinct()
             sibling_count = max(0, len(set(same_guardian)) - 1)
-    except Exception:
-        pass
+    except (ImportError, AttributeError, TypeError, ValueError) as e:
+        logging.getLogger(__name__).debug("_student_context sibling_count skip: %s", e)
     custom = get_dynamic_field_map(student)
     gpa = get_dynamic_field_value(student, "gpa", default=getattr(student, "gpa", None))
     if gpa is None and hasattr(student, "gpa"):
@@ -69,7 +69,8 @@ def check_eligibility(student: StudentProfile, scholarship: Scholarship) -> tupl
     scrubbed = _scrub_context(context, allowed)
     try:
         result = _safe_eval(criteria, scrubbed)
-    except Exception:
+    except (TypeError, ValueError, KeyError, AttributeError) as e:
+        logging.getLogger(__name__).debug("check_eligibility _safe_eval: %s", e)
         return False, "Eligibility rule evaluation failed."
     if result is True:
         return True, ""
@@ -215,9 +216,8 @@ def execute_disbursement(
                     "payment_id": getattr(created_payment, "pk", None),
                 },
             )
-        except Exception:
-            # Webhook enqueue failures should not roll back core finance disbursement.
-            pass
+        except (ImportError, AttributeError, TypeError, ValueError, ConnectionError, OSError) as e:
+            logging.getLogger(__name__).debug("disbursement webhook enqueue skip: %s", e)
     return {"ok": True, "application_id": app.pk, "amount": amount}
 
 
@@ -299,8 +299,8 @@ def net_price_estimate(school_id: Any, context: dict) -> dict:
     try:
         from apps.schools.models import School
         school = School.objects.filter(pk=school_id).first()
-    except Exception:
-        pass
+    except (ImportError, AttributeError, TypeError, ValueError) as e:
+        logging.getLogger(__name__).debug("net_price_estimate School lookup skip: %s", e)
     if school:
         discounted = apply_nuance(school, "tuition_calc", {**context, "fee": tuition})
         if discounted is not None:

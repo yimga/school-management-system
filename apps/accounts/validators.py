@@ -5,8 +5,6 @@ Validates file types, sizes, and content to prevent malicious uploads.
 """
 
 import os
-from decimal import Decimal
-from typing import Callable
 
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import UploadedFile

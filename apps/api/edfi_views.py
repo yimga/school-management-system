@@ -3,7 +3,6 @@
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 
-from apps.academics.models import Classroom
 from apps.api.rate_limit import throttle_ip_request
 from apps.evals.models import Evaluation
 from apps.interop.edfi.adapter import (

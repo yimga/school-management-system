@@ -12,9 +12,9 @@ from django.contrib.auth import get_user_model
 from django.db.models import Q, Count
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from datetime import datetime, timedelta
+from datetime import timedelta
 
-from apps.api.permissions import IsAdminUser, IsTeacherOrAdmin
+from apps.api.permissions import IsAdminUser
 from apps.accounts.permissions import api_user_has_any_role
 
 
@@ -204,7 +204,7 @@ class MessageViewSet(viewsets.ModelViewSet):
         school, error = _tenant_school_or_response(request)
         if error is not None:
             return error
-        User = get_user_model()
+        get_user_model()
 
         recipient_id = request.data.get('recipient')
         subject = request.data.get('subject')
@@ -315,8 +315,7 @@ class MessageViewSet(viewsets.ModelViewSet):
         if error is not None:
             return error
 
-        from apps.communication.models import Message
-        User = get_user_model()
+        get_user_model()
 
         messages = self.get_queryset()
         
@@ -554,7 +553,7 @@ class BroadcastAPI(APIView):
                     body=body
                 )
                 messages_created += 1
-            except Exception as e:
+            except Exception:
                 continue
         
         return Response({

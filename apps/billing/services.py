@@ -3,8 +3,9 @@ from __future__ import annotations
 from datetime import date, datetime, timedelta
 from decimal import Decimal
 import json
+import logging
 
-from django.db import models, transaction
+from django.db import models, transaction, DatabaseError
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import timezone
 
@@ -19,6 +20,8 @@ from apps.billing.models import (
     UsageMeter,
 )
 from apps.billing.processors import get_platform_billing_processor
+
+logger = logging.getLogger(__name__)
 
 _BILLING_INCIDENT_SOURCE = "billing.platform"
 _PAYOUT_INCIDENT_SOURCE = "billing.revenue_share"
@@ -944,8 +947,15 @@ def execute_revenue_share_payout(
         )
         _sync_revenue_share_payout_incident_state(payout)
         return payout, result
-    except Exception as exc:
+    except (ValueError, KeyError, TypeError, AttributeError, DatabaseError, ConnectionError, OSError) as exc:
         error_message = str(exc).strip() or "Payout execution failed."
+        logger.warning(
+            "Payout execution failed: payout_id=%s processor_code=%s error=%s",
+            payout.pk,
+            getattr(payout, "processor_code", None),
+            error_message,
+            exc_info=True,
+        )
         metadata = dict(payout.metadata or {})
         metadata["last_error"] = {
             "at": executed_at.isoformat(),

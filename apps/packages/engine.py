@@ -8,10 +8,16 @@ call apps.metadata.services.get_package_lineage_registry(package_id=...).
 """
 from __future__ import annotations
 
+import logging
 import uuid
 from typing import Any, Optional
 
 from django.db import transaction
+
+logger = logging.getLogger(__name__)
+
+# Optional event emission: do not fail apply/rollback if event backend is unavailable.
+_EVENT_EMIT_ERRORS = (ImportError, AttributeError, TypeError, ValueError, ConnectionError, OSError)
 
 from apps.metadata.services import build_metadata_blast_radius, get_downstream_dependencies
 
@@ -469,8 +475,8 @@ def apply_package(
             school_id=tenant_id,
             idempotency_key=f"apply:{package_id}:{version}:{tenant_id}:{rollback_token}",
         )
-    except Exception:
-        pass
+    except _EVENT_EMIT_ERRORS:
+        logger.debug("Optional emit_platform_event(package_applied) skipped", exc_info=True)
     return {
         "ok": True,
         "installed_id": inst.pk,
@@ -516,8 +522,8 @@ def rollback(installed_package: InstalledPackage, actor_id: Optional[int] = None
             tenant_id=str(installed_package.school_id) if installed_package.school_id else None,
             school_id=installed_package.school_id,
         )
-    except Exception:
-        pass
+    except _EVENT_EMIT_ERRORS:
+        logger.debug("Optional emit_platform_event(package_rolled_back) skipped", exc_info=True)
     return {
         "ok": True,
         "changelog_id": log.pk,

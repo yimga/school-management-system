@@ -135,6 +135,13 @@ class LeadCaptureAPI(View):
 
         existing = Applicant.objects.filter(school=school, email__iexact=email).first()
         if existing:
+            logger.info(
+                "lead_capture_api duplicate school_id=%s applicant_id=%s ip=%s",
+                school.pk,
+                existing.pk,
+                ip,
+                extra={"event": "lead_capture_duplicate"},
+            )
             return JsonResponse(
                 {
                     "ok": True,
@@ -152,5 +159,13 @@ class LeadCaptureAPI(View):
             lead_source=(body.get("lead_source") or "").strip() or "api",
             stage=Applicant.Stage.LEAD,
             extra_data=extra_data,
+        )
+        logger.info(
+            "lead_capture_api created school_id=%s applicant_id=%s lead_source=%s ip=%s",
+            school.pk,
+            applicant.pk,
+            applicant.lead_source,
+            ip,
+            extra={"event": "lead_capture_created"},
         )
         return JsonResponse({"ok": True, "applicant_id": applicant.pk}, status=201)

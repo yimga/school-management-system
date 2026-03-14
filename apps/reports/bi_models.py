@@ -11,9 +11,7 @@ INTEGRATION NOTE: This module extends existing infrastructure:
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from django.core.cache import cache
 from apps.runtime_blueprints.models import DashboardWidget
-import json
 
 User = get_user_model()
 

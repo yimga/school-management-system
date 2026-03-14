@@ -9,7 +9,7 @@ Options:
 """
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from apps.compliance.models_audit import IPAccessRule, CountryAccessRule
+from apps.compliance.models_audit import IPAccessRule
 
 
 class Command(BaseCommand):

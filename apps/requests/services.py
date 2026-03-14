@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from typing import Any
 
 from django.contrib.contenttypes.models import ContentType
-from django.db import transaction
+from django.db import DatabaseError, IntegrityError, transaction
 from django.utils import timezone
 
 from apps.communication.models import Message
@@ -159,7 +158,7 @@ def _apply_grade_approval(request: AccessRequest, decision: str, reason: str, ac
         return
     try:
         target = GradeApprovalRequest.objects.filter(id=request.target_object_id).first()
-    except Exception:
+    except (DatabaseError, IntegrityError):
         target = None
     if not target:
         return

@@ -60,10 +60,10 @@ def _post_json(url: str, payload: dict[str, Any], headers: dict[str, str], timeo
         try:
             raw = exc.read().decode("utf-8", errors="ignore")
             parsed = json.loads(raw) if raw else {}
-        except Exception:
+        except (ValueError, TypeError, UnicodeDecodeError, json.JSONDecodeError):
             parsed = {"detail": str(exc)}
         return False, getattr(exc, "code", 500), parsed
-    except Exception as exc:
+    except (OSError, ConnectionError, TimeoutError, ValueError, TypeError) as exc:
         return False, 500, {"detail": str(exc)}
 
 

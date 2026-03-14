@@ -6,7 +6,7 @@
 |---------------|----------|----------|
 | **Superadmin (manager host)** | admin | admin |
 | **Gilead tenant** | gilead_admin | Sch00l_1234 |
-| **Gilead tenant (same account as super)** | admin | Sch00l_1234 *(run `ensure_gilead_admin --use-admin-user` once)* |
+| **Gilead tenant (same account as super)** | admin | Sch00l_1234 *(run `ensure_default_tenant_admin --use-admin-user` once)* |
 
 ---
 
@@ -20,7 +20,7 @@ After you run **`python manage.py migrate`** and (on Render or for full setup) *
 | **Gilead tenant** (tenant subdomain or /t/gilead-school/...) | **gilead_admin** | **Sch00l_1234** | Backend/portal for the Gilead school only |
 
 To use **username "admin"** on the Gilead tenant with password **Sch00l_1234**, run:
-`python manage.py ensure_gilead_admin --use-admin-user`
+`python manage.py ensure_default_tenant_admin --use-admin-user`
 (Then the same "admin" account uses that password on both manager and tenant; run `ensure_superadmin` to reset manager to admin/admin.)
 
 **Where to log in:**

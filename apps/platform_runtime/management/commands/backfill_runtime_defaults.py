@@ -29,11 +29,12 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         from apps.platform_runtime.models import RuntimeDefaults
-        from apps.siteconfig.models import SiteSettings
+        from apps.platform_runtime.helpers import get_platform_site_settings_record
 
         owners = options.get("owners") or None
         exclude_owners = options.get("exclude_owners") or None
-        site = SiteSettings.get_solo()
+        # Platform backfill: use helper so get_solo() stays only in platform_runtime/helpers (allowlist shrink per SITESETTINGS_GET_SOLO_ALLOWLIST).
+        site = get_platform_site_settings_record(create=True)
         obj, created = RuntimeDefaults.sync_from_site_settings(
             site,
             owners=owners,

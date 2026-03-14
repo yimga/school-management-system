@@ -10,7 +10,6 @@ import logging
 from dataclasses import dataclass
 from typing import Callable
 
-from django.conf import settings
 from django.core.cache import cache
 from django.utils import timezone
 
@@ -61,7 +60,7 @@ def _check_mfa(user) -> bool:
     try:
         from django_otp import user_has_device
         return user_has_device(user, confirmed=True)
-    except Exception:
+    except (ImportError, AttributeError, TypeError):
         return False
 
 
@@ -73,7 +72,7 @@ def _check_identity_verified(user) -> bool:
     try:
         from allauth.account.models import EmailAddress
         email_ok = EmailAddress.objects.filter(user=user, verified=True).exists()
-    except Exception:
+    except (ImportError, AttributeError, TypeError):
         if getattr(user, "email", None) and getattr(user, "is_active", True):
             email_ok = True  # fallback when allauth not used
     phone_ok = getattr(user, "phone_verified", False) or getattr(user, "profile_phone_verified", False)
@@ -87,7 +86,7 @@ def _check_passkeys(user) -> bool:
     try:
         from apps.accounts.models import UserPasskey
         return UserPasskey.objects.filter(user=user).exists()
-    except Exception:
+    except (ImportError, AttributeError, TypeError):
         return False
 
 
@@ -99,7 +98,7 @@ def _check_recovery(user) -> bool:
     try:
         from django_otp.plugins.otp_static.models import StaticDevice
         has_static = StaticDevice.objects.filter(user=user, confirmed=True).exists()
-    except Exception:
+    except (ImportError, AttributeError, TypeError):
         pass
     recovery_email_verified = getattr(user, "recovery_email_verified", False)
     return has_static or recovery_email_verified
@@ -138,7 +137,7 @@ class SecurityTaskRegistry:
             w = config.get("security_weights") or config.get("security_weights_override")
             if isinstance(w, dict):
                 return {**DEFAULT_WEIGHTS, **w}
-        except Exception:
+        except (ImportError, AttributeError, TypeError, KeyError, ValueError):
             pass
         return DEFAULT_WEIGHTS
 
@@ -154,7 +153,7 @@ def calculate_profile_strength(user, school=None, use_cache=True) -> float:
         from apps.siteconfig.cache_utils import get_tenant_cache_prefix
         school_id = getattr(school, "id", None) or getattr(user, "school_id", None)
         prefix = f"school:{school_id}" if school_id else get_tenant_cache_prefix()
-    except Exception:
+    except (ImportError, AttributeError, TypeError):
         prefix = "public"
     cache_key = f"{prefix}:security_strength:{user.pk}"
     if use_cache:
@@ -197,7 +196,7 @@ def get_security_grace_period_days(school=None) -> int:
         from apps.siteconfig.tenant_config import get_tenant_locale
         config = get_tenant_locale(school=school) or {}
         return int(config.get("security_grace_period_days", 7))
-    except Exception:
+    except (ImportError, AttributeError, TypeError, KeyError, ValueError):
         pass
     return 7
 

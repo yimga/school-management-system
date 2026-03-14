@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import date
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 
 from apps.billing.models import BillingAccount, TenantSubscription
@@ -30,7 +31,7 @@ def get_lifecycle_snapshot(school) -> dict:
     if billing_account is None:
         try:
             billing_account = school.billing_account
-        except Exception:
+        except (AttributeError, ObjectDoesNotExist):
             billing_account = None
 
     state = "inactive"

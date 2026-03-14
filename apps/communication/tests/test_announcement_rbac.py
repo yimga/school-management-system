@@ -4,7 +4,6 @@ RBAC: Tiered announcement permissions.
 - Department: HOD and leadership only.
 - Class: teachers can create (class_announcement_create).
 """
-import unittest
 from unittest.mock import patch
 
 from django.test import TestCase

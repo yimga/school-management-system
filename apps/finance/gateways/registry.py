@@ -5,7 +5,7 @@ from typing import Any, Dict, Optional
 from apps.policies.policy_registry import get_effective_policy
 from apps.schools.models import School
 
-from .base import BasePaymentGateway, GatewayResult
+from .base import BasePaymentGateway
 
 _REGISTRY: dict[str, type[BasePaymentGateway]] = {}
 

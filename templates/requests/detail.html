@@ -3,6 +3,7 @@
 {% block title %}Request {{ req.reference }}{% endblock %}
 
 {% block content %}
+<div class="container-fluid py-4" data-page-archetype="record-detail">
 <div class="d-flex flex-wrap align-items-start justify-content-between mb-3">
   <div>
     <h2 class="mb-1">Request {{ req.reference }}</h2>
@@ -96,6 +97,7 @@
     </div>
   </div>
 {% endif %}
+</div>
 {% endblock %}
 
 {% block extrajs %}

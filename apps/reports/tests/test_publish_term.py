@@ -18,9 +18,9 @@ from apps.academics.models import (
 )
 from apps.evals.models import Evaluation, GradeApprovalRequest
 from apps.people.models import StudentProfile, TeacherProfile
+from apps.platform_runtime.helpers import get_platform_site_settings_record
 from apps.reports.models import TermPublishStatus
 from apps.reports.services import grade_approval_publish_readiness, term_report_context
-from apps.siteconfig.models import SiteSettings
 
 
 class PublishTermRBACTestCase(TestCase):
@@ -80,7 +80,7 @@ class PublishTermRBACTestCase(TestCase):
             specialty=self.specialty,
             is_active=True,
         )
-        self.site = SiteSettings.get_solo()
+        self.site = get_platform_site_settings_record(create=True)
         self.site.grade_approval_enabled = True
         self.site.reports_require_approved_grades_before_publish = True
         self.site.reports_use_approved_grades_only = True

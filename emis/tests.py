@@ -8,7 +8,7 @@ from apps.accounts.models import User
 from apps.academics.models import AcademicYear, Classroom, Department, Specialty, Subject, SubjectAssignment, Term
 from apps.evals.models import Evaluation, TeacherAssignment
 from apps.people.models import StudentGuardian, StudentProfile, TeacherProfile
-from apps.siteconfig.models import SiteSettings
+from apps.platform_runtime.helpers import get_platform_site_settings_record
 from emis.services import EMISExportService
 
 
@@ -105,7 +105,7 @@ class EMISExportServiceTests(TestCase):
             exam_score=Decimal("14.00"),
         )
 
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.site_name = "Gilead Technical High School"
         site.school_code = "GIL"
         site.company_address = "Small Soppo, Buea"

@@ -7,7 +7,7 @@ from apps.academics.models import AcademicYear, Classroom, Department, Specialty
 from apps.evals.models import Evaluation
 from apps.people.models import StudentProfile, TeacherProfile
 from apps.reports.services import annual_report_context, term_report_context
-from apps.siteconfig.models import SiteSettings
+from apps.platform_runtime.helpers import get_platform_site_settings_record
 
 
 class CameroonReportContextTests(TestCase):
@@ -85,7 +85,7 @@ class CameroonReportContextTests(TestCase):
             exam_score=12,
         )
 
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.reports_use_approved_grades_only = False
         site.save(update_fields=["reports_use_approved_grades_only"])
 

@@ -4,9 +4,8 @@ Does not change data. Use refresh_installation in services or admin to re-apply 
 Run: python manage.py marketplace_report_updates
 """
 from django.core.management.base import BaseCommand
-from django.db.models import Max
 
-from apps.marketplace.models import AppInstallation, MarketplaceApp
+from apps.marketplace.models import AppInstallation
 
 
 class Command(BaseCommand):

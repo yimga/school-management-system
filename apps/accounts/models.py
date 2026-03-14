@@ -135,7 +135,7 @@ class User(AbstractUser):
                         transaction.set_rollback(False)
                     else:
                         connection.rollback()
-                except Exception:
+                except (DatabaseError, TransactionManagementError):
                     pass
                 return False
             if self.feature_permissions.filter(code=code).exists():
@@ -156,7 +156,7 @@ class User(AbstractUser):
                     transaction.set_rollback(False)
                 else:
                     connection.rollback()
-            except Exception:
+            except (DatabaseError, TransactionManagementError):
                 pass
             return False
 

@@ -42,7 +42,7 @@ class Command(BaseCommand):
         for file_path in files:
             try:
                 text = file_path.read_text(encoding="utf-8")
-            except Exception:
+            except (OSError, UnicodeDecodeError):
                 continue
             for match in HEX_COLOR_RE.finditer(text):
                 # Allow CSS variable syntax and template placeholders.

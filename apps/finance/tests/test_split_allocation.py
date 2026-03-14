@@ -7,15 +7,15 @@ from django.urls import reverse
 
 from apps.accounts.models import User
 from apps.academics.models import AcademicYear
-from apps.finance.models import ComplianceProfile, Invoice, InvoiceLine, InvoicePayerShare, Payment
+from apps.finance.models import ComplianceProfile, Invoice, InvoicePayerShare, Payment
 from apps.people.models import StudentGuardian, StudentProfile
-from apps.siteconfig.models import SiteSettings
+from apps.platform_runtime.helpers import get_platform_site_settings_record
 
 
 class SplitAllocationTests(TestCase):
     def setUp(self):
         self.profile = ComplianceProfile.objects.create(name="Test", country_code="CM")
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.compliance_profile = self.profile
         site.save(update_fields=["compliance_profile"])
         self.year = AcademicYear.objects.create(

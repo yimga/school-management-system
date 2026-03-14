@@ -80,7 +80,7 @@
     <div class="row mt-4 pt-3 border-top">
       <div class="col-lg-5">
         <h4 class="h6 mb-2">{% trans "Subscribe to product updates" %}</h4>
-        <form method="post" action="{% if marketing_newsletter_form_action %}{{ marketing_newsletter_form_action }}{% else %}#{% endif %}" class="d-flex gap-2 flex-wrap" target="_blank" rel="noopener">
+        <form method="post" action="{% if marketing_newsletter_form_action %}{{ marketing_newsletter_form_action }}{% else %}#{% endif %}" class="d-flex gap-2 flex-wrap" target="_blank" rel="noopener noreferrer">
           <input type="email" name="email" class="form-control form-control-sm" placeholder="{% trans 'Your email' %}" required aria-label="{% trans 'Email for newsletter' %}" style="max-width: 240px;">
           <button type="submit" class="btn btn-sm btn-primary">{% trans "Subscribe" %}</button>
         </form>

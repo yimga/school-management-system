@@ -1,8 +1,10 @@
 from django.urls import path
 from .views import (
     studio_audit_api,
+    studio_global_search,
     studio_preview,
     studio_publish_api,
+    studio_recommendations_api,
     studio_rollback,
     studio_save_draft_api,
     studio_shell,
@@ -22,6 +24,8 @@ urlpatterns = [
     path("publish/", studio_publish_api, name="publish"),
     path("save-draft/", studio_save_draft_api, name="save_draft"),
     path("version-history/", studio_version_history_api, name="version_history"),
+    path("search/", studio_global_search, name="global_search"),
+    path("recommendations/", studio_recommendations_api, name="recommendations"),
     path("audit/", studio_audit_api, name="audit"),
     path("rollback/", studio_rollback, name="rollback"),
 ]

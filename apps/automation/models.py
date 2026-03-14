@@ -1,11 +1,14 @@
 """
 Automation models for tracking execution and approvals.
 """
-from django.db import models
+import logging
+from django.db import DatabaseError, IntegrityError, models
+from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 
 class AutomationExecutionLog(models.Model):
@@ -259,7 +262,8 @@ class MigrationRun(models.Model):
         )
         try:
             result = run_rollback(self, rollback_run)
-        except Exception as e:
+        except (DatabaseError, IntegrityError, ValidationError, ValueError, TypeError) as e:
+            logger.exception("Rollback run failed for MigrationRun pk=%s", self.pk)
             result = {"success": False, "message": str(e), "reverted_count": 0}
             rollback_run.mark_completed(
                 status=MigrationRun.Status.FAILED,

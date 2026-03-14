@@ -10,7 +10,7 @@ def _category_to_provider(category):
 
 def migrate_audit_to_integration(apps, schema_editor):
     APIAuditLog = apps.get_model("apicenter", "APIAuditLog")
-    APIService = apps.get_model("apicenter", "APIService")
+    _APIService = apps.get_model("apicenter", "APIService")
     Integration = apps.get_model("siteconfig", "Integration")
     for log in APIAuditLog.objects.select_related("api_service").all():
         api = log.api_service

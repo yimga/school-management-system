@@ -8,7 +8,6 @@ Options:
     --frequency: 'hourly' or 'daily' (default: hourly)
     --dry-run: Show what would be sent without sending
 """
-import os
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from datetime import timedelta

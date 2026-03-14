@@ -7,7 +7,6 @@ from apps.compliance.models import (
 )
 from apps.compliance.threat_detection import ThreatDetector
 from datetime import timedelta
-import json
 
 
 class CheckComplianceCommand(BaseCommand):
@@ -95,7 +94,7 @@ class VerifyDataIntegrityCommand(BaseCommand):
         for model in apps.get_models():
             try:
                 # Check foreign key constraints
-                with connection.cursor() as cursor:
+                with connection.cursor():
                     pass  # Database integrity check
             except Exception as e:
                 errors.append(str(e))

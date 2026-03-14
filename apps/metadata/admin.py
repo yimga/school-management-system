@@ -53,8 +53,8 @@ class EntityStateAdmin(admin.ModelAdmin):
 
 @admin.register(EntityCatalogEntry)
 class EntityCatalogEntryAdmin(admin.ModelAdmin):
-    list_display = ("code", "name", "owning_app", "model_label", "is_core", "updated_at")
-    list_filter = ("is_core", "owning_app")
+    list_display = ("code", "name", "owning_app", "lifecycle_state", "model_label", "is_core", "updated_at")
+    list_filter = ("is_core", "owning_app", "lifecycle_state")
     search_fields = ("code", "name", "description")
     ordering = ("code",)
 

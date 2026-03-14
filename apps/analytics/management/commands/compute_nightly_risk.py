@@ -4,7 +4,6 @@ Computes at-risk score per student per school and persists to RiskFactor.
 Run via cron or Celery Beat (e.g. daily). Uses AdvancedAnalyticsService.identify_at_risk_students
 and optional ML predictors for score + reason_summary.
 """
-from decimal import Decimal
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone

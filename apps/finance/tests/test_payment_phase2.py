@@ -1,17 +1,16 @@
 """Phase 2.0 Payment Processing Tests"""
 from django.test import TestCase
-from django.utils import timezone
 from decimal import Decimal
 from apps.siteconfig.models import RegionConfig
 from apps.accounts.models import User
 from apps.people.models import StudentProfile
 from apps.finance.payment_models import (
     PaymentMethod, Payment, Transaction, RefundRequest, 
-    PaymentReconciliation, PaymentAuditLog
+    PaymentAuditLog
 )
 from apps.finance.payment_validators import (
     AmountValidator, CurrencyValidator, PaymentMethodValidator,
-    RefundValidator, CompliancePaymentValidator
+    RefundValidator
 )
 from apps.finance.payment_processors import PaymentProcessorFactory
 

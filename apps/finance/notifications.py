@@ -8,6 +8,8 @@ from __future__ import annotations
 import contextvars
 import logging
 from django.urls import reverse
+from django.core.exceptions import ImproperlyConfigured
+from django.urls.exceptions import NoReverseMatch
 
 # When True, skip automatic new-invoice notification (e.g. during bulk create; use "Notify guardians" instead).
 _skip_new_invoice_notify: contextvars.ContextVar[bool] = contextvars.ContextVar("skip_new_invoice_notify", default=False)
@@ -36,7 +38,7 @@ def _guardians_with_finance_access(invoice: Invoice):
 def _invoice_link(invoice: Invoice) -> str:
     try:
         return reverse("finance:invoice_detail", args=[invoice.id])
-    except Exception:
+    except (NoReverseMatch, ImproperlyConfigured):
         return f"/finance/invoices/{invoice.id}/"
 
 
@@ -105,7 +107,7 @@ def _send_new_invoice_emails(invoice: Invoice, guardians: list) -> None:
         if email:
             try:
                 EmailMessage(subject, body, from_email, [email]).send(fail_silently=True)
-            except Exception as e:
+            except (OSError, ConnectionError, ValueError, TypeError) as e:
                 logger.warning("Failed to send new-invoice email to %s: %s", email, e)
 
 
@@ -166,7 +168,7 @@ def _send_payment_received_emails(payment: Payment, guardians: list) -> None:
         if email:
             try:
                 EmailMessage(subject, body, from_email, [email]).send(fail_silently=True)
-            except Exception as e:
+            except (OSError, ConnectionError, ValueError, TypeError) as e:
                 logger.warning("Failed to send payment-received email to %s: %s", email, e)
 
 

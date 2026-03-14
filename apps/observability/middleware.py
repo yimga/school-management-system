@@ -2,12 +2,15 @@
 Observability middleware: Prometheus metrics + request_id/tenant_id for structured logging (A4).
 """
 
+import logging
 import uuid
 from time import perf_counter
 from prometheus_client import Counter, Histogram
 from django.utils.deprecation import MiddlewareMixin
 
 from apps.observability.logging_context import set_request_logging_context, clear_request_logging_context
+
+logger = logging.getLogger(__name__)
 
 REQUEST_COUNTER = Counter(
     "sms_http_requests_total",
@@ -64,9 +67,8 @@ class ObservabilityMiddleware(MiddlewareMixin):
             if started is not None:
                 elapsed = perf_counter() - started
                 REQUEST_LATENCY.labels(method=method, endpoint=endpoint, status=status).observe(elapsed)
-        except Exception:
-            # Never break the response flow
-            pass
+        except (AttributeError, TypeError, ValueError) as exc:
+            logger.debug("Observability metrics record skipped: %s", exc)
         return response
 
     def _resolve_endpoint(self, request):

@@ -13,8 +13,6 @@ import numpy as np
 from typing import Dict, List, Tuple
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingRegressor
 from sklearn.preprocessing import StandardScaler
-import joblib
-import os
 
 
 def _resolve_student_profile(student):
@@ -215,7 +213,7 @@ class PerformanceForecaster:
         student_profile = _resolve_student_profile(student)
 
         # Get performance trends using existing service (only when we have a StudentProfile)
-        trends = AdvancedAnalyticsService.get_performance_trends(student_profile, days=270) if student_profile else []  # ~3 terms
+        _trends = AdvancedAnalyticsService.get_performance_trends(student_profile, days=270) if student_profile else []  # ~3 terms
 
         # Extract last 3 term averages
         if student_profile:
@@ -522,7 +520,7 @@ class MLPredictionService:
         from apps.analytics.services import AdvancedAnalyticsService
         
         # Start with existing at-risk detection
-        at_risk_base = AdvancedAnalyticsService.identify_at_risk_students(threshold=50)
+        _at_risk_base = AdvancedAnalyticsService.identify_at_risk_students(threshold=50)
         
         high_risk = []
         

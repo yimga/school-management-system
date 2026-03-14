@@ -17,7 +17,7 @@
       <div class="card-body">
         <p class="text-muted small">Status: <strong>{{ syllabus.get_status_display }}</strong></p>
         {% if syllabus.uploaded_file %}
-          <p><a href="{{ syllabus.uploaded_file.url }}" target="_blank" rel="noopener">Open uploaded file</a></p>
+          <p><a href="{{ syllabus.uploaded_file.url }}" target="_blank" rel="noopener noreferrer">Open uploaded file</a></p>
         {% endif %}
         {% if syllabus.builder_data %}
           <pre class="bg-light p-3 rounded small">{{ syllabus.builder_data }}</pre>

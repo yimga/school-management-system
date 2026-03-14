@@ -3,7 +3,7 @@ RunMyCampus Standards Compliance: API v1 URL contract.
 Mount under path('api/v1/', include('apps.api.urls_v1')).
 """
 from django.urls import path
-from apps.api import views_v1
+from apps.api import views_v1, views_v1_intervention
 
 app_name = "api_v1"
 
@@ -20,11 +20,11 @@ urlpatterns = [
     path("student/transfer", views_v1.StudentTransferView.as_view(), name="student-transfer"),
     path("finance/generate-batch", views_v1.FinanceGenerateBatchView.as_view(), name="finance-generate-batch"),
     path("finance/exchange-rate", views_v1.FinanceExchangeRateView.as_view(), name="finance-exchange-rate"),
-    path("intervention/red-flags", views_v1.InterventionRedFlagsView.as_view(), name="intervention-red-flags"),
-    path("intervention/action-center", views_v1.InterventionActionCenterView.as_view(), name="intervention-action-center"),
-    path("intervention/action-center/<int:id>", views_v1.InterventionActionCenterDetailView.as_view(), name="intervention-action-center-detail"),
-    path("intervention/calculate-risk", views_v1.InterventionCalculateRiskView.as_view(), name="intervention-calculate-risk"),
-    path("intervention/generate-roadmap", views_v1.InterventionGenerateRoadmapView.as_view(), name="intervention-generate-roadmap"),
+    path("intervention/red-flags", views_v1_intervention.InterventionRedFlagsView.as_view(), name="intervention-red-flags"),
+    path("intervention/action-center", views_v1_intervention.InterventionActionCenterView.as_view(), name="intervention-action-center"),
+    path("intervention/action-center/<int:id>", views_v1_intervention.InterventionActionCenterDetailView.as_view(), name="intervention-action-center-detail"),
+    path("intervention/calculate-risk", views_v1_intervention.InterventionCalculateRiskView.as_view(), name="intervention-calculate-risk"),
+    path("intervention/generate-roadmap", views_v1_intervention.InterventionGenerateRoadmapView.as_view(), name="intervention-generate-roadmap"),
     path("enrollment/apply", views_v1.EnrollmentApplyView.as_view(), name="enrollment-apply"),
     path("attendance/bulk", views_v1.AttendanceBulkView.as_view(), name="attendance-bulk"),
     path("attendance/export", views_v1.AttendanceExportView.as_view(), name="attendance-export"),

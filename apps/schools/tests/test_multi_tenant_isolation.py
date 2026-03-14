@@ -2,12 +2,10 @@
 Multi-tenant isolation: verify queries are scoped to school_id.
 Regression tests (Foundation F3) — no cross-tenant data leakage.
 """
-import uuid
-from django.test import TestCase, override_settings
+from django.test import TestCase
 from django.contrib.auth import get_user_model
 
 from apps.schools.models import School
-from apps.people.models import StudentProfile
 from apps.finance.models import AwardSource, Scholarship
 
 User = get_user_model()

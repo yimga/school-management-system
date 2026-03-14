@@ -3,7 +3,7 @@ Tests for region_settings and language_context when user has preferred_region / 
 """
 from unittest.mock import MagicMock
 
-from django.test import TestCase, override_settings
+from django.test import TestCase
 from django.contrib.auth import get_user_model
 
 from apps.siteconfig.models import RegionConfig, UserPreference

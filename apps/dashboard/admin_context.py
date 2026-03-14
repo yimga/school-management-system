@@ -25,7 +25,8 @@ from django.utils import timezone
 from apps.dashboard.action_registry import get_admin_header_actions
 from apps.finance.models import Notification
 from apps.platform_runtime.helpers import get_effective_site_settings
-from apps.siteconfig.models import SiteSettings, default_header_weather_config
+from apps.siteconfig.models import SiteSettings
+from apps.siteconfig.models_support import default_header_weather_config
 
 logger = logging.getLogger(__name__)
 

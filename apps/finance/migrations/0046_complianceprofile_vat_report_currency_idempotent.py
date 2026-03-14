@@ -1,6 +1,5 @@
 # Idempotent: ensure vat_rate and report_currency_code exist on complianceprofile (Render tenant schemas).
 
-from decimal import Decimal
 
 from django.db import migrations
 

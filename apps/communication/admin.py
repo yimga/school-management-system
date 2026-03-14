@@ -1,8 +1,7 @@
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
-from django.utils.html import format_html
 
-from config.admin import register_tenant_admin, tenant_admin_site
+from config.admin import tenant_admin_site
 from apps.communication.models import (
     Message,
     Announcement,

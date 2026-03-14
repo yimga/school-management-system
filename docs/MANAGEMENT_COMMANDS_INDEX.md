@@ -16,7 +16,7 @@
 | App | Command | Category | Notes |
 |-----|---------|----------|-------|
 | academics | export_certification_pack, fix_term_positions, import_curriculum_nodes, run_auto_promotion, seed_buea_synthetic, seed_demo, seed_testdata_2425 | seed / ops | |
-| accounts | backfill_user_roles, check_roles, create_teacher_parent_accounts, ensure_default_tenant_admin, ensure_gilead_admin, ensure_superadmin, ensure_superuser, list_expired_temporary_grants, security_log_retention, seed_render_users | seed / ops | |
+| accounts | backfill_user_roles, check_roles, create_teacher_parent_accounts, ensure_default_tenant_admin, ensure_superadmin, ensure_superuser, list_expired_temporary_grants, security_log_retention, seed_render_users | seed / ops | |
 | analytics | compute_benchmark_aggregates, compute_nightly_risk, send_deadline_reminders | ops | |
 | automation | seed_migration_profiles | seed | |
 | billing | import_platform_billing_snapshot, run_platform_billing_lifecycle, run_revenue_share_payouts | ops | |
@@ -41,7 +41,7 @@
 
 ## Next steps (Phase 10)
 
-- ~~Delete obsolete commands~~ **Done:** ensure_gilead_admin kept as deprecated alias (calls ensure_default_tenant_admin); no other obsolete commands to remove.
+- ~~Delete obsolete commands~~ **Done:** ensure_gilead_admin removed (NEXT_50 step 6 subtractive cleanup); use ensure_default_tenant_admin. No other obsolete commands to remove.
 - Expose critical ops (tenant_health_check, marketplace_health_check, db_health_check, etc.) via control-plane UI or scheduled jobs with visibility (future).
 - Document owner per command family (future).
 

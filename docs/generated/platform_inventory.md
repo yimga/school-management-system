@@ -1,19 +1,19 @@
 # Platform Inventory
 
 - Installed app modules: `41`
-- Python files: `1772`
-- HTML templates: `456`
-- Markdown files: `798`
-- Migration files: `590`
-- Management commands: `137`
-- `SiteSettings` refs: `1082`
-- `get_solo()` refs: `213`
-- `except Exception`: `712`
-- `cursor.execute()`: `351`
-- `csrf_exempt`: `79`
-- `AllowAny`: `34`
-- `print()`: `429`
-- `gilead` matches: `519` across `115` files
+- Python files: `1818`
+- HTML templates: `461`
+- Markdown files: `841`
+- Migration files: `594`
+- Management commands: `139`
+- `SiteSettings` refs: `1073`
+- `get_solo()` refs: `178`
+- `except Exception`: `399`
+- `cursor.execute()`: `349`
+- `csrf_exempt`: `97`
+- `AllowAny`: `52`
+- `print()`: `451`
+- `gilead` matches: `657` across `128` files
 
 ## Public Endpoint Review
 
@@ -46,18 +46,18 @@
 
 ## Largest Python Files
 
-- `apps/schools/marketing_views.py`: `3632` lines / `209838` bytes
-- `apps/schools/super_views.py`: `3022` lines / `129484` bytes
-- `apps/accounts/views.py`: `2667` lines / `121515` bytes
-- `apps/siteconfig/admin.py`: `2561` lines / `109249` bytes
-- `apps/evals/views.py`: `2568` lines / `107834` bytes
-- `apps/finance/views.py`: `2383` lines / `100597` bytes
-- `apps/siteconfig/models.py`: `2389` lines / `97936` bytes
-- `apps/portal/views.py`: `2231` lines / `96758` bytes
-- `apps/finance/models.py`: `2554` lines / `95611` bytes
-- `apps/api/views_v1.py`: `1752` lines / `90549` bytes
-- `apps/finance/tasks.py`: `1777` lines / `80191` bytes
-- `apps/siteconfig/views.py`: `1838` lines / `77735` bytes
+- `apps/schools/marketing_views.py`: `3659` lines / `212639` bytes
+- `apps/schools/super_views.py`: `2797` lines / `121007` bytes
+- `apps/evals/views.py`: `2564` lines / `107567` bytes
+- `apps/siteconfig/admin.py`: `2542` lines / `106877` bytes
+- `apps/accounts/views.py`: `2331` lines / `103900` bytes
+- `apps/finance/views.py`: `2373` lines / `100201` bytes
+- `apps/portal/views.py`: `2216` lines / `96105` bytes
+- `apps/finance/models.py`: `2556` lines / `95914` bytes
+- `apps/siteconfig/models.py`: `2378` lines / `95888` bytes
+- `apps/api/views_v1.py`: `1740` lines / `90067` bytes
+- `apps/siteconfig/views.py`: `1916` lines / `81212` bytes
+- `apps/finance/tasks.py`: `1775` lines / `80075` bytes
 
 ## Documentation Drift
 

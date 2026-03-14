@@ -10,6 +10,7 @@ import os
 from django.conf import settings
 from django.core.management import BaseCommand
 from django.contrib.auth import get_user_model
+from django.db import DatabaseError
 
 User = get_user_model()
 
@@ -69,7 +70,7 @@ class Command(BaseCommand):
         # Check if User table exists (migrations may not have been run)
         try:
             has_superuser = User.objects.filter(is_superuser=True).exists()
-        except Exception as e:
+        except (DatabaseError, OSError) as e:
             err = str(e).lower()
             if "no such table" in err or "does not exist" in err or "relation" in err:
                 self.stdout.write(

@@ -1,6 +1,8 @@
 """Entity CRUD and session-claims APIs for frontend orchestration."""
 from django.db import transaction
+from django.db.utils import DatabaseError, IntegrityError
 from django.utils.dateparse import parse_datetime
+from rest_framework.exceptions import ValidationError as DRFValidationError
 from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -137,7 +139,7 @@ class StudentProfileViewSet(viewsets.ModelViewSet):
         serializer.save(updated_by=self.request.user)
 
     def update(self, request, *args, **kwargs):
-        partial = kwargs.get("partial", False)
+        kwargs.get("partial", False)
         instance = self.get_object()
         denied = self._require_admin(request)
         if denied:
@@ -247,7 +249,7 @@ class StudentProfileViewSet(viewsets.ModelViewSet):
                 serializer.is_valid(raise_exception=True)
                 obj = serializer.save(created_by=request.user, updated_by=request.user)
                 created.append(obj.id)
-            except Exception as exc:  # noqa: BLE001
+            except (DRFValidationError, IntegrityError, DatabaseError, TypeError, ValueError, KeyError) as exc:
                 errors.append({"row": idx, "error": str(exc)})
 
         return Response({"created": created, "errors": errors}, status=status.HTTP_201_CREATED)
@@ -384,7 +386,7 @@ class StudentGuardianViewSet(viewsets.ModelViewSet):
                 serializer.is_valid(raise_exception=True)
                 obj = serializer.save()
                 created.append(obj.id)
-            except Exception as exc:  # noqa: BLE001
+            except (DRFValidationError, IntegrityError, DatabaseError, TypeError, ValueError, KeyError) as exc:
                 errors.append({"row": idx, "error": str(exc)})
 
         return Response({"created": created, "errors": errors}, status=status.HTTP_201_CREATED)

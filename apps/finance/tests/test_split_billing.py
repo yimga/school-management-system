@@ -22,13 +22,13 @@ from apps.finance.models import (
 from apps.finance.services import apply_payment, assign_invoice_payer_shares
 from apps.finance.tasks import run_payment_reminders
 from apps.people.models import StudentGuardian, StudentProfile
-from apps.siteconfig.models import SiteSettings
+from apps.platform_runtime.helpers import get_platform_site_settings_record
 
 
 class SplitBillingFlowTests(TestCase):
     def setUp(self):
         self.profile = ComplianceProfile.objects.create(name="Test", country_code="CM")
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.compliance_profile = self.profile
         site.save(update_fields=["compliance_profile_id"])
 

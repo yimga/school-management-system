@@ -694,7 +694,6 @@ def build_tenant_runtime_for_tenant(tenant: Any, mode: str = "job") -> TenantRun
     if school is None and hasattr(tenant, "schema_name"):
         # tenant might be Client (django-tenants); try to get school from schema
         try:
-            from apps.schools.models import School
             if hasattr(tenant, "schema_name"):
                 # In schema-per-tenant, School may live in tenant schema; use public or default
                 school = getattr(tenant, "school", None)

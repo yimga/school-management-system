@@ -2,7 +2,6 @@
 from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
-from django.http import HttpResponseForbidden
 
 from apps.accounts.decorators import permission_required, login_required
 

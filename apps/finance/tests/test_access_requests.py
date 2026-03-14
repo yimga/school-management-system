@@ -8,18 +8,19 @@ from apps.accounts.models import User
 from apps.academics.models import AcademicYear, Department, Specialty, Classroom
 from apps.people.models import StudentProfile, StudentGuardian
 from apps.finance.models import ComplianceProfile, Invoice, Notification
+from apps.platform_runtime.helpers import get_platform_site_settings_record
 from apps.siteconfig.models import SiteSettings, default_backend_feature_flags
 from apps.communication.models import Message
 
 
 class FinanceAccessRequestTests(TestCase):
     def setUp(self):
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         flags = {**default_backend_feature_flags(), **(site.backend_feature_flags or {})}
         flags["allow_finance_access_requests"] = True
         flags["require_guardian_finance_opt_in"] = True
         SiteSettings.objects.filter(pk=site.pk).update(backend_feature_flags=flags)
-        # Clear site settings cache so the view sees updated flags (get_solo() refetches)
+        # Clear site settings cache so the view sees updated flags
         from apps.siteconfig.models import _clear_site_settings_cache
         _clear_site_settings_cache(SiteSettings)
 
@@ -78,7 +79,7 @@ class FinanceAccessRequestTests(TestCase):
         )
 
     def test_request_access_disabled_flag_blocks(self):
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         flags = {**default_backend_feature_flags(), **(site.backend_feature_flags or {})}
         flags["allow_finance_access_requests"] = False
         site.backend_feature_flags = flags

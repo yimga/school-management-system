@@ -2,7 +2,9 @@
 Wave 4: Marketing conversion funnel event recording.
 Visit -> discovery -> signup -> activation. Used by marketing_landing, discovery, signup, onboarding.
 """
-from django.contrib.sessions.backends.base import SessionBase
+
+from django.core.exceptions import ValidationError
+from django.db import DatabaseError, IntegrityError, OperationalError
 
 from apps.schools.models import MarketingFunnelEvent
 
@@ -31,5 +33,5 @@ def record_marketing_funnel_event(event_type: str, request) -> None:
             utm_source=utm_source,
             utm_medium=utm_medium,
         )
-    except Exception:
+    except (IntegrityError, DatabaseError, OperationalError, ValidationError):
         pass

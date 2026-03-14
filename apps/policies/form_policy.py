@@ -3,7 +3,7 @@ Section 23.4 & 24.8: Policy-driven form field visibility, required/optional, pic
 document requirements, validation rules, default values.
 All form behavior is driven by policy["forms"][form_name] so config is metadata-driven (24.8).
 """
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 
 def get_form_schema(policy: Dict[str, Any], form_name: str) -> Dict[str, Any]:

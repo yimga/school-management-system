@@ -25,8 +25,9 @@ def emit_invoice_created_platform_event(sender, instance: Invoice, created: bool
             {"invoice_id": instance.id, "school_id": school_id},
             school_id=school_id,
         )
-    except Exception:
-        pass
+    except (ImportError, AttributeError, TypeError, ValueError) as e:
+        import logging
+        logging.getLogger(__name__).debug("emit_invoice_created_platform_event: %s", e)
 
 
 @receiver(post_save, sender=Invoice)
@@ -37,8 +38,9 @@ def notify_guardians_new_invoice_signal(sender, instance: Invoice, created: bool
     try:
         from .notifications import notify_guardians_new_invoice
         notify_guardians_new_invoice(instance, created_by=None)
-    except Exception:
-        pass
+    except (ImportError, AttributeError, TypeError, ValueError) as e:
+        import logging
+        logging.getLogger(__name__).debug("notify_guardians_new_invoice_signal: %s", e)
 
 
 @receiver(post_save, sender=Invoice)
@@ -75,8 +77,9 @@ def sync_payment(sender, instance: Payment, created: bool, **kwargs):
             from .notifications import notify_guardians_payment_received
             created_by = getattr(instance, "processed_by", None) or getattr(instance, "created_by", None)
             notify_guardians_payment_received(instance, created_by=created_by)
-        except Exception:
-            pass
+        except (ImportError, AttributeError, TypeError, ValueError) as e:
+            import logging
+            logging.getLogger(__name__).debug("notify_guardians_payment_received signal: %s", e)
 
 
 @receiver(post_delete, sender=Payment)

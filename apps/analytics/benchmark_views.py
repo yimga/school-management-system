@@ -22,7 +22,6 @@ class BenchmarkComparisonAPI(APIView):
 
         from django.db.models import Avg
         from apps.evals.models import Evaluation
-        from apps.academics.models import SubjectAssignment
 
         # School's averages per subject/term (current term or all)
         school_avgs = (

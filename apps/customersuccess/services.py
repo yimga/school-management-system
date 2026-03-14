@@ -4,7 +4,7 @@ Section 11: Services for benchmark intelligence (11.3) and customer success (11.
 from decimal import Decimal
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import DatabaseError
-from django.db.models import Count, Avg, Q
+from django.db.models import Avg, Q
 from django.utils import timezone
 
 CUSTOMER_SUCCESS_SOFT_FAILURES = (
@@ -78,7 +78,6 @@ def compute_tenant_health_score(school):
     Compute a 0–100 health score for a tenant from last_activity, recent workflow failures, and optional adoption.
     Returns (score, dimensions dict). Does not persist; caller can save TenantHealthScore.
     """
-    from apps.schools.models import School
     from .models import WorkflowFailureEvent
 
     dimensions = {}

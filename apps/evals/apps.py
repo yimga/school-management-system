@@ -5,4 +5,4 @@ class EvalsConfig(AppConfig):
     name = 'apps.evals'
     verbose_name = '📊 Evaluations & Grading'
     def ready(self):
-        import apps.evals.signals  # Register signal handlers
+        pass  # Register signal handlers

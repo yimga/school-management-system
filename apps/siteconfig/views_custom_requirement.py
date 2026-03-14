@@ -5,7 +5,7 @@ from django.views.decorators.http import require_http_methods
 
 from apps.accounts.decorators import permission_required, login_required
 
-from .models import CustomFeatureTicket, get_feature_fragment_cap
+from .models_platform_catalog import CustomFeatureTicket, get_feature_fragment_cap
 
 
 @login_required
@@ -23,7 +23,7 @@ def request_custom_requirement(request):
         return redirect("portal:home")
 
     cap = get_feature_fragment_cap(school)
-    can_request = cap is None or cap > 0  # Basic has cap 0; we still allow submitting the request
+    _can_request = cap is None or cap > 0  # Basic has cap 0; we still allow submitting the request
     upgrade_message = None
     if cap == 0:
         upgrade_message = (
@@ -37,7 +37,7 @@ def request_custom_requirement(request):
         if not title:
             messages.error(request, "Please provide a title for your request.")
             return redirect("siteconfig:request_custom_requirement")
-        ticket = CustomFeatureTicket.objects.create(
+        _ticket = CustomFeatureTicket.objects.create(
             school=school,
             title=title,
             description=description,

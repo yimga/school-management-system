@@ -6,12 +6,12 @@ from apps.accounts.models import User
 from apps.academics.models import AcademicYear, Term, Department, Specialty, Classroom, Subject, SubjectAssignment
 from apps.evals.models import GradeApprovalRequest, TeacherAssignment
 from apps.people.models import TeacherProfile, StudentProfile
-from apps.siteconfig.models import SiteSettings
+from apps.platform_runtime.helpers import get_platform_site_settings_record
 
 
 class GradeApprovalWorkflowTestCase(TestCase):
     def setUp(self):
-        self.site_settings = SiteSettings.get_solo()
+        self.site_settings = get_platform_site_settings_record(create=True)
         self.site_settings.grade_approval_enabled = True
         self.site_settings.grade_approval_roles = ["DEAN"]
         self.site_settings.grade_post_roles = ["DEAN"]

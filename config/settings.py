@@ -459,7 +459,11 @@ SESSION_SAVE_EVERY_REQUEST = os.getenv("SESSION_SAVE_EVERY_REQUEST", "1") == "1"
 # Marketing (Plan 4.11): demo tenant URL for "Try demo" CTA; analytics script URL for marketing pages
 MARKETING_DEMO_TENANT_URL = (os.getenv("MARKETING_DEMO_TENANT_URL") or "").strip() or ""
 MARKETING_ANALYTICS_SCRIPT_URL = (os.getenv("MARKETING_ANALYTICS_SCRIPT_URL") or "").strip() or ""
-# Marketing visual assets (override via env for production; fallbacks in apps/schools/marketing_views.py)
+# Marketing visual assets (override via env for production; fallbacks in apps/schools/marketing_views.py).
+# Full list of optional keys: MARKETING_PROOF_HERO_IMAGE_KEY, MARKETING_MIGRATION_DIAGRAM_URL, MARKETING_ECOSYSTEM_DIAGRAM_URL,
+# MARKETING_CONTROL_PLANE_DIAGRAM_URL, MARKETING_SETUP_STUDIO_FLOW_IMAGE_URL, MARKETING_HEALTH_SCORE_VISUAL_URL,
+# MARKETING_ROLE_PREVIEW_IMAGES, MARKETING_GLOBAL_MAP_IMAGE_URL, MARKETING_ILLUSTRATION_*, MARKETING_PRODUCT_VISUALIZATION_SLIDES.
+# See docs/MARKETING_FRONT_PLACEHOLDER.md and marketing_views._marketing_context for all keys.
 MARKETING_HERO_IMAGE_URL = (os.getenv("MARKETING_HERO_IMAGE_URL") or "").strip() or None
 MARKETING_HERO_VIDEO_URL = (os.getenv("MARKETING_HERO_VIDEO_URL") or "").strip() or None
 MARKETING_HERO_VIDEO_POSTER_URL = (os.getenv("MARKETING_HERO_VIDEO_POSTER_URL") or "").strip() or None
@@ -489,6 +493,43 @@ else:
 MARKETING_PRODUCT_TOUR_URL = (os.getenv("MARKETING_PRODUCT_TOUR_URL") or "").strip() or None
 # Newsletter: form action URL (POST); required for signup (set to your list endpoint or webhook)
 MARKETING_NEWSLETTER_FORM_ACTION = (os.getenv("MARKETING_NEWSLETTER_FORM_ACTION") or "").strip() or None
+# §8 replacement messaging: comparison table rows and replacement copy (apps/schools/marketing_views context)
+# Set via settings or env JSON. See MARKETING_FRONT_PLACEHOLDER.md. Placeholder when env unset so templates can iterate safely.
+import json as _json
+def _safe_mkt_json_list(env_val: str, default: list) -> list:
+    """Parse env JSON list for §8 MARKETING_*; return default on invalid or empty."""
+    s = (env_val or "").strip()
+    if not s or not s.startswith("["):
+        return default
+    try:
+        out = _json.loads(s)
+        return out if isinstance(out, list) else default
+    except (ValueError, TypeError, _json.JSONDecodeError):
+        return default
+
+
+def _safe_mkt_json_dict(env_val: str, default: dict) -> dict:
+    """Parse env JSON dict for §8 MARKETING_*; return default on invalid or empty."""
+    s = (env_val or "").strip()
+    if not s or not s.startswith("{"):
+        return default
+    try:
+        out = _json.loads(s)
+        return out if isinstance(out, dict) else default
+    except (ValueError, TypeError, _json.JSONDecodeError):
+        return default
+
+
+_mkt_comparison = (os.getenv("MARKETING_COMPARISON_TABLE") or "").strip()
+MARKETING_COMPARISON_TABLE = _safe_mkt_json_list(
+    _mkt_comparison,
+    [{"feature": "Platform", "runmycampus": "RunMyCampus", "other": "Other"}],
+)
+_mkt_replacement = (os.getenv("MARKETING_REPLACEMENT_MESSAGING") or "").strip()
+MARKETING_REPLACEMENT_MESSAGING = _safe_mkt_json_dict(
+    _mkt_replacement,
+    {"headline": "Switch with confidence", "subline": "Replace legacy systems with one platform."},
+)
 
 # Role-based session overrides (seconds)
 ROLE_SESSION_TIMEOUTS = {
@@ -615,6 +656,9 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = os.getenv("TIME_ZONE", "UTC")
 CELERY_TASK_TRACK_STARTED = True
+# Run tasks synchronously in test runs so no broker is required
+if "test" in sys.argv:
+    CELERY_TASK_ALWAYS_EAGER = True
 # Optional: run celery beat with: celery -A config beat -l info
 # Add periodic tasks in Django admin (django_celery_beat) or define CELERY_BEAT_SCHEDULE (see Celery docs).
 
@@ -714,6 +758,9 @@ LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 # Create logs directory if it doesn't exist (for file logging)
 LOG_DIR = BASE_DIR / "logs"
 USE_FILE_LOGGING = os.getenv("USE_FILE_LOGGING", str(DEBUG)) == "True"
+# Disable file logging during test runs to avoid RotatingFileHandler lock/rename issues (e.g. Windows)
+if "test" in sys.argv:
+    USE_FILE_LOGGING = False
 
 # Only create logs directory if file logging is enabled
 if USE_FILE_LOGGING:
@@ -903,7 +950,7 @@ EXTRA_LANG_INFO = {
 }
 django.conf.locale.LANG_INFO = {**django.conf.locale.LANG_INFO, **EXTRA_LANG_INFO}
 
-# Buea/Cameroon: use TIME_ZONE=Africa/Douala in .env for local schedules and attendance
+# Use TIME_ZONE in .env for local schedules (e.g. Africa/Douala, America/New_York, Europe/London, UTC).
 TIME_ZONE = os.getenv('TIME_ZONE', 'UTC')
 LOCALE_PATHS = [
     BASE_DIR / 'locale',
@@ -918,7 +965,7 @@ DEFAULT_CURRENCY = os.getenv('DEFAULT_CURRENCY', '')
 # When False: single region per deployment (use REGION_CODE). Used in context as enable_multi_region.
 ENABLE_MULTI_REGION = os.getenv('ENABLE_MULTI_REGION', 'False').lower() == 'true'
 
-# Platform-neutral fallbacks when no tenant/region context (no hardcoded CMR/XAF). Used by get_platform_defaults().
+# Platform-neutral fallbacks when no tenant/region context (global reach; no single-country default). Used by get_platform_defaults().
 # When REGION_CODE/DEFAULT_CURRENCY/DEFAULT_GRADING_SCALE are set in .env they are used; otherwise neutral defaults.
 PLATFORM_DEFAULT_REGION_CODE = os.getenv('PLATFORM_DEFAULT_REGION_CODE', '') or REGION_CODE or 'GLOBAL'
 PLATFORM_DEFAULT_CURRENCY = os.getenv('PLATFORM_DEFAULT_CURRENCY', '') or DEFAULT_CURRENCY or 'USD'

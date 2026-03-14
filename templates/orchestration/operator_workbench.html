@@ -5,7 +5,7 @@
 {% block title %}{% trans "Orchestration workbench" %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" data-page-archetype="operational-workbench">
   <h4 class="mb-3">{% trans "Orchestration workbench" %}</h4>
   <p class="text-muted small">{% trans "Long-running process runs (admissions, re-enrollment, fee follow-up, approval chains). State, retries, compensation, SLA visibility." %}</p>
   {% if runs_overdue %}

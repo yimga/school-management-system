@@ -73,6 +73,8 @@
     <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'css/design-tokens-luxury.css' %}">
+    <link rel="stylesheet" href="{% static 'css/statement-header.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-system-unified.css' %}">
     <link rel="stylesheet" href="{% static 'css/toggle-colors.css' %}">
     <link rel="stylesheet" href="{% static 'css/header-footer-visibility.css' %}">
@@ -158,11 +160,15 @@
                     - If using SVG, ensure viewBox and preserveAspectRatio are set for scaling.
                     - For high-contrast/low-vision users, keep opacity moderate and avoid interfering with text contrast.
                   */
+      /* Keep all content in frame: no horizontal spill. */
+      html { overflow-x: clip; }
+      body { overflow-x: clip; }
       .app-container {
         position: relative;
         width: 100%;
         min-height: 100vh;
         z-index: 1;
+        overflow-x: clip;
       }
       /* Full-width contract: module pages should not be artificially boxed. */
       body.layout-boxed .app-container {
@@ -233,13 +239,14 @@
       }
 
       .navbar {
-        background: var(--header-brand-bg);
-        color: var(--header-brand-fg);
+        background: var(--statement-header-bg, var(--header-brand-bg));
+        color: var(--statement-header-fg, var(--header-brand-fg));
       }
 
       .navbar-brand img {
-        height: 28px;
+        height: 32px;
         width: auto;
+        min-height: 28px;
       }
 
       .base-topbar {
@@ -328,9 +335,9 @@
     -->
     <div class="app-container">
     {% block navbar %}
-    <nav class="navbar navbar-expand-lg navbar-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark statement-header" role="banner">
       <div class="container d-flex align-items-center base-topbar">
-        <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{% url 'home' %}">
+        <a class="navbar-brand fw-bold d-flex align-items-center gap-2 statement-logo" href="{% url 'home' %}">
           {% if PUBLIC_BRAND_MODE and PUBLIC_BRAND_LOGO_URL %}
             <img src="{{ PUBLIC_BRAND_LOGO_URL }}" alt="" width="34" height="34" decoding="async" style="object-fit: contain;">
           {% elif SITE_LOGO_URL %}
@@ -460,6 +467,7 @@
     {% include 'components/ai_copilot.html' %}
 
     <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'js/statement-header-scroll.js' %}" defer></script>
     {% if SITE and SITE.is_preview %}
     <link rel="stylesheet" href="{% static 'css/preview-highlights.css' %}">
     <script>

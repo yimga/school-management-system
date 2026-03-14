@@ -12,17 +12,16 @@ from apps.brand_experience.models import ThemePack
 from apps.platform_runtime.helpers import get_effective_site_settings
 from apps.runtime_blueprints.models import ReportCardStyle
 
-from .models import (
-    DashboardView,
+from .models_support import (
     PORTAL_FEATURE_DEFAULTS,
     PORTAL_FEATURE_OPTIONS,
-    RegionConfig,
-    ReportCardStyleAssignment,
-    SiteSettings,
-    UserPreference,
     default_dashboard_widgets,
     get_dashboard_widget_choices,
 )
+from apps.academics.models import ReportCardStyleAssignment
+from .models import SiteSettings
+from .models_platform_catalog import RegionConfig
+from .models_tooling import UserPreference
 from .translations import SUPPORTED_LANGUAGES
 from .models_dashboard import DashboardUserPreference
 from .widgets import ColorInputWithPreview
@@ -354,7 +353,7 @@ class SiteSettingsForm(forms.ModelForm):
             "company_address": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
             "company_phone": forms.TextInput(attrs={"class": "form-control"}),
         "company_email": forms.EmailInput(attrs={"class": "form-control"}),
-        "country": forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. Cameroon"}),
+        "country": forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. Country or region"}),
         "region": forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. South West"}),
         "ministry": forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. Ministry of Secondary Education"}),
         "default_region": forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. CMR"}),

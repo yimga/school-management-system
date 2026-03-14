@@ -111,3 +111,21 @@ class SmokeUrlResolutionTests(SimpleTestCase):
 
     def test_global_login_discovery(self):
         self.assertEqual(reverse("global_login_discovery"), "/discover/")
+
+    def test_public_support_hub(self):
+        self.assertEqual(reverse("public_support_hub"), "/support/")
+
+    def test_public_verify_hub(self):
+        self.assertEqual(reverse("public_verify_hub"), "/verify/")
+
+    def test_studio_experience(self):
+        self.assertEqual(reverse("studio_os:experience"), "/studio/experience/")
+
+    def test_siteconfig_dashboard_hub(self):
+        self.assertEqual(reverse("siteconfig:dashboard_hub"), "/siteconfig/dashboard-hub/")
+
+    def test_compliance_dashboard(self):
+        self.assertEqual(reverse("compliance:dashboard"), "/compliance/dashboard/")
+
+    def test_communication_groups(self):
+        self.assertEqual(reverse("communication:group_list"), "/communication/groups/")

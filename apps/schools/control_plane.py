@@ -8,6 +8,7 @@ the same operator contract.
 import logging
 from functools import wraps
 
+from django.db import DatabaseError, IntegrityError
 from django.http import HttpResponseForbidden
 
 logger = logging.getLogger(__name__)
@@ -121,7 +122,7 @@ def rate_limit_super(minute_limit=120):
                     r["Retry-After"] = "60"
                     return r
                 cache.set(key, count + 1, timeout=120)
-            except Exception as e:
+            except (ConnectionError, OSError, TypeError, ValueError, AttributeError) as e:
                 logger.warning("Super rate limit check failed: %s", e)
             return view_func(request, *args, **kwargs)
         return _wrapped
@@ -162,7 +163,7 @@ def log_control_plane_action(
             app_label="schools",
             reason=reason[:255] if reason else "",
         )
-    except Exception as e:
+    except (DatabaseError, IntegrityError, AttributeError, TypeError, ValueError, ImportError) as e:
         logger.warning("Control plane audit log failed: %s", e)
 
 

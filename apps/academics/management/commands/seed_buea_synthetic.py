@@ -99,7 +99,7 @@ class Command(BaseCommand):
         year_2526.save(update_fields=["enable_gce_registration"])
 
         terms_2526 = self._ensure_terms(year_2526, 3)
-        terms_2425 = self._ensure_terms(year_2425, 3)
+        _terms_2425 = self._ensure_terms(year_2425, 3)
 
         dept_gen = self._ensure_department("GEN", "General Education")
         dept_tech = self._ensure_department("TECH", "Technical Education")
@@ -110,7 +110,7 @@ class Command(BaseCommand):
 
         teacher_users = self._ensure_teachers(n_teachers)
         admin_users = self._ensure_admins(n_admins)
-        bursar_user = self._ensure_bursar(n_bursar)
+        _bursar_user = self._ensure_bursar(n_bursar)
         parent_users = self._ensure_parents(n_parents)
         teacher_profiles = self._ensure_teacher_profiles(teacher_users)
 
@@ -393,7 +393,7 @@ class Command(BaseCommand):
             spec = specialties["GEN"]
             first = random.choice(FIRST_NAMES)
             last = random.choice(LAST_NAMES)
-            addr = f"{random.randint(1, 99)} {random.choice(BUEA_LOCALITIES)}"
+            _addr = f"{random.randint(1, 99)} {random.choice(BUEA_LOCALITIES)}"
             student, _ = StudentProfile.objects.get_or_create(
                 student_code=code,
                 defaults={
@@ -540,7 +540,7 @@ class Command(BaseCommand):
     def _ensure_fee_plans_and_invoices(
         self, year, profile, students, classrooms_gen, classrooms_tech, specialties
     ):
-        term = Term.objects.filter(academic_year=year).order_by("position").first()
+        _term = Term.objects.filter(academic_year=year).order_by("position").first()
         for classroom in list(classrooms_gen[:2]) + list(classrooms_tech[:2]):
             spec = specialties["GEN"] if classroom in classrooms_gen else specialties["BESP"]
             plan, _ = FeePlan.objects.get_or_create(

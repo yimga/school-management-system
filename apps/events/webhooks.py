@@ -62,12 +62,12 @@ def _default_http_post(url: str, body: bytes, headers: dict[str, str], timeout: 
     except HTTPError as exc:
         try:
             detail = exc.read().decode("utf-8", errors="replace")
-        except Exception:
+        except (OSError, UnicodeDecodeError, ValueError, TypeError):
             detail = str(exc)
         return int(exc.code or 500), detail
     except URLError as exc:
         return 0, str(exc.reason)
-    except Exception as exc:  # pragma: no cover - defensive branch
+    except (OSError, TimeoutError, ValueError, TypeError) as exc:
         return 0, str(exc)
 
 

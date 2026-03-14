@@ -1,5 +1,7 @@
 # RunMyCampus 9.5/10 Dry-Run Audit and Competitor Comparison
 
+**§12 completion authority:** The platform **does not claim 9.5/10** until all gates in [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §12 are satisfied (see [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md) §6.3). This document is a **dry-run score for internal tracking only**; it does not override §12. Eligibility for 9.5/10 is determined solely by the §12 gates.
+
 **Purpose:** Score the platform against the non-negotiable 9.5/10 excellence checklist and compare to PowerSchool, Blackbaud, Veracross, and north-star benchmarks (Shopify, Salesforce, AWS). Used to verify nothing is left behind and that implementation meets advanced (not basic) standards.
 
 **Rules (non-negotiable):**
@@ -25,7 +27,7 @@
 | **Marketing** | 9.5 | why_switch_bullets; proof_hero_image_key; hero/asset URLs; "Why switch now" block. |
 | **Competitive readiness** | 9.5 | Pack-driven story, Setup Studio, migration narrative, marketplace trust UX, proof-rich marketing. |
 
-**Overall:** 9.5/10 minimum met across categories. **Path to 10:** A scorecard of 10 (and above) is achievable; the full roadmap is in **`docs/PATH_TO_10_SCORECARD.md`** (Path-to-10 work by domain, execution order, tracking). Path to 10 includes: allowlist shrinkage, performance budgets, event catalog, orchestration layer, full glossary, empty-state component, AI marketing assets, external API portal, management-command rationalization, and toolsets path-to-10 (ExperiencePack, ReportPack, central preview service, workflow simulation, etc.).
+**Overall (dry-run only):** Per this document, categories are scored at 9.5 for internal tracking. The platform **does not claim 9.5/10** until RUNMYCAMPUS §12 gates are satisfied. **Path to 10:** A scorecard of 10 (and above) is achievable; the full roadmap is in **`docs/PATH_TO_10_SCORECARD.md`** (Path-to-10 work by domain, execution order, tracking). Path to 10 includes: allowlist shrinkage, performance budgets, event catalog, orchestration layer, full glossary, empty-state component, AI marketing assets, external API portal, management-command rationalization, and toolsets path-to-10 (ExperiencePack, ReportPack, central preview service, workflow simulation, etc.).
 
 ---
 
@@ -64,7 +66,7 @@
 
 ---
 
-## 4. Gaps to reach 9.5/10 in every category (all closed—nothing overlooked)
+## 4. Gaps to reach 9.5/10 in every category (per this dry-run; §12 gates are completion authority)
 
 1. **System Configuration:** ✅ Compare/Audit/Rollback links and operator-safe copy; seven consoles with Search/Preview/Compare/Audit/Rollback where backend exists—9.5 met.
 2. **Runtime as law:** ✅ Allowlist and 9.5 enforcement in SITESETTINGS_GET_SOLO_ALLOWLIST.md; path-to-10 report; tenant behavior routed through resolvers per policy—9.5 met.
@@ -136,6 +138,6 @@ The platform is scored and tracked in this dry-run so that:
 - [x] SITESETTINGS_GET_SOLO_ALLOWLIST.md: 9.5 enforcement and path to 10.
 - [x] Marketing: why_switch_bullets in context; proof_hero_image_key; asset URLs/placeholders for hero, diagram, ecosystem.
 - [x] Page archetypes: docs/ui/PAGE_ARCHETYPES.md; data-page-archetype on role-home, setup-studio, decision-console, catalog templates.
-- [x] No category in Section 1 remains below 9.5.
+- [x] No category in Section 1 remains below 9.5 in this dry-run; **§12 is the authority for 9.5 eligibility** (see BACKLOG §6.3).
 
 **Last updated:** Full spec completion pass: phases/workstreams closed; staged rollout UI; page archetypes; AI multiplier (Setup Studio); proof_hero_image_key; Final Gaps all Done; dry-run scores 9.5.

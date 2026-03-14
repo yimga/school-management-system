@@ -3,7 +3,6 @@ Alert digest model for batching non-critical notifications.
 """
 from django.db import models
 from django.utils import timezone
-from django.conf import settings
 
 
 class AlertDigest(models.Model):

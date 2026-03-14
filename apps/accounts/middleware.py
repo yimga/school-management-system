@@ -5,8 +5,8 @@ from django.conf import settings
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import resolve, reverse
+from django.urls.exceptions import Resolver404
 from django.utils import timezone
-from django.utils.functional import cached_property
 
 from apps.schools.host_routing import public_host_kind
 from apps.schools.tenant_url import build_manager_absolute_url
@@ -291,7 +291,7 @@ class ModuleAccessMiddleware:
     def _resolve_module(self, request, path: str) -> str | None:
         try:
             match = resolve(path)
-        except Exception:
+        except Resolver404:
             match = None
 
         if match:
@@ -444,7 +444,7 @@ class RequireMFAMiddleware:
                     mfa_verify_url = reverse("accounts:mfa_verify")
                     if path != mfa_verify_url.rstrip("/") and not path.endswith(mfa_verify_url):
                         return redirect(mfa_verify_url + "?next=" + (request.GET.get("next") or request.path))
-        except Exception:
+        except (ImportError, AttributeError, TypeError, ValueError):
             pass
         return self.get_response(request)
 
@@ -461,7 +461,7 @@ class RequireMFAMiddleware:
                 until_dt = timezone.make_aware(until_dt, timezone.get_current_timezone())
             if timezone.now() <= until_dt:
                 return True
-        except Exception:
+        except (ValueError, TypeError, AttributeError):
             pass
         # Expired or invalid
         request.session.pop("mfa_verified_until", None)
@@ -489,6 +489,6 @@ class ImpossibleTravelMiddleware:
             try:
                 from apps.accounts.security_audit import check_impossible_travel
                 check_impossible_travel(request, user)
-            except Exception:
-                logger.exception("ImpossibleTravelMiddleware: check_impossible_travel failed")
+            except (ValueError, TypeError, ImportError, AttributeError, OSError) as e:
+                logger.exception("ImpossibleTravelMiddleware: check_impossible_travel failed: %s", e)
         return response

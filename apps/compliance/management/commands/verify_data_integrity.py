@@ -18,16 +18,14 @@ Usage:
 from django.core.management.base import BaseCommand
 from django.db.models import Q, Count
 from django.utils import timezone
-from decimal import Decimal
 from datetime import timedelta
 
 from apps.academics.models import Term, AcademicYear
-from apps.evals.models import Evaluation, TeacherAssignment, GradeAudit
+from apps.evals.models import Evaluation, TeacherAssignment
 from apps.people.models import TeacherProfile, StudentProfile
-from apps.finance.models import Invoice, Payment, ComplianceProfile
+from apps.finance.models import Invoice, Payment
 from apps.accounts.models import User
 from apps.compliance.models_audit import AuditLog, AccessLog
-from apps.global_registries.models import RegionConfig
 
 
 class Command(BaseCommand):
@@ -258,7 +256,7 @@ class Command(BaseCommand):
             })
 
         # Check for access logs
-        recent_access = AccessLog.objects.filter(
+        AccessLog.objects.filter(
             timestamp__gte=last_week
         ).count()
 

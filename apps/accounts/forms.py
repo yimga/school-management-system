@@ -285,7 +285,6 @@ class DelegationForm(forms.Form):
             school = getattr(teacher_profile, "school", None)
             site = get_effective_site_settings(school=school)
             max_days = getattr(site, "delegation_max_days", 14) or 14
-            from datetime import timedelta
             if (end - start).days > max_days:
                 raise ValidationError(f"Duration cannot exceed {max_days} days (admin setting).")
         return end

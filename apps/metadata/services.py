@@ -7,6 +7,7 @@ from apps.metadata.models import (
     DynamicFieldDefinition,
     DynamicFieldValue,
     EntityCatalogEntry,
+    ENTITY_CATALOG_LIFECYCLE_ACTIVE,
     FieldCatalogEntry,
     MetadataDependency,
 )
@@ -361,12 +362,16 @@ def export_entity_catalog_bundle(
     *,
     entity_codes: list[str] | None = None,
     include_dependencies: bool = False,
+    active_only: bool = True,
 ) -> dict[str, Any]:
     """
     Export entity/field catalog as a source-control-friendly bundle (package engine foundation).
     If entity_codes is None, export all entities. include_dependencies adds consumer edges.
+    When active_only=True (default), only active lifecycle entries are included.
     """
     qs = EntityCatalogEntry.objects.all().order_by("code")
+    if active_only:
+        qs = qs.filter(lifecycle_state=ENTITY_CATALOG_LIFECYCLE_ACTIVE)
     if entity_codes is not None:
         qs = qs.filter(code__in=entity_codes)
     entities = []
@@ -391,6 +396,7 @@ def export_entity_catalog_bundle(
             "owning_app": ent.owning_app,
             "model_label": ent.model_label,
             "is_core": ent.is_core,
+            "lifecycle_state": getattr(ent, "lifecycle_state", "active") or "active",
             "fields": fields,
         }
         if include_dependencies:
@@ -471,6 +477,7 @@ def import_entity_catalog_bundle(
                     "owning_app": ent_payload.get("owning_app", ""),
                     "model_label": ent_payload.get("model_label", ""),
                     "is_core": ent_payload.get("is_core", False),
+                    "lifecycle_state": ent_payload.get("lifecycle_state", "active") or "active",
                 },
             )
             if created:

@@ -21,9 +21,16 @@ class RuntimeDefaults(models.Model):
     """
     Platform-level default settings (migrated from SiteSettings).
     id=1 singleton; payload = JSON of attribute names -> values (JSON-serializable only).
+    Step 4 ownership: first-class columns (e.g. cache_rankings_interval_minutes) override payload
+    and SiteSettings when set; backfill via sync_from_site_settings / backfill_runtime_defaults.
     """
     payload = models.JSONField(default=dict, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
+    # Step 4: first-class ownership; when non-null, get_effective_site_settings uses this.
+    cache_rankings_interval_minutes = models.PositiveIntegerField(
+        null=True, blank=True,
+        help_text="Owned by platform_runtime. When set, resolver uses this instead of SiteSettings.",
+    )
 
     class Meta:
         app_label = "platform_runtime"
@@ -69,9 +76,12 @@ class RuntimeDefaults(models.Model):
             owners=owner_set,
             exclude_owners=exclude_owners,
         )
+        # Step 4: backfill first-class owned field from SiteSettings
+        cache_mins = getattr(site_settings, "cache_rankings_interval_minutes", None)
+        defaults = {"payload": payload, "cache_rankings_interval_minutes": cache_mins}
         obj, created = cls.objects.get_or_create(
             pk=1,
-            defaults={"payload": payload},
+            defaults=defaults,
         )
         if not created:
             if owner_set:
@@ -83,7 +93,8 @@ class RuntimeDefaults(models.Model):
                 obj.payload = merged_payload
             else:
                 obj.payload = payload
-            obj.save(update_fields=["payload", "updated_at"])
+            obj.cache_rankings_interval_minutes = cache_mins
+            obj.save(update_fields=["payload", "cache_rankings_interval_minutes", "updated_at"])
         return obj, created
 
     def save(self, *args, **kwargs):

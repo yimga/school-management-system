@@ -87,3 +87,37 @@ The seed command `python manage.py seed_admin_dashboard_palettes` creates many s
 - **Contemporary:** Glassmorphism, Neo-Brutalist, Eco-Digital, Monochrome Pro, Retro-Future, Bento-Box.
 
 For accessibility and component specs, see [THEME_ACCESSIBILITY.md](THEME_ACCESSIBILITY.md) and [THEME_COMPONENT_KITS.md](THEME_COMPONENT_KITS.md).
+
+---
+
+## 8. **Ultra High-End theme packs and experience packs**
+
+Tenants have access to **super ultra high-end** theme packs (luxury palette, statement header, 600ms motion, hairline borders). Same seed command:
+
+```bash
+python manage.py seed_admin_dashboard_palettes
+```
+
+**Staff (Admin + Backend)** — group "Ultra High-End" in Theme & Experience:
+
+| Slug | Name | Description |
+|------|------|-------------|
+| `admin-ultra-gallery` | Ultra Gallery (Light) | Gallery White, Rich Black, gold accent. Statement header, luxury motion. |
+| `admin-ultra-noir` | Ultra Noir (Dark) | Rich Black background, Platinum text, gold accent. Premium staff experience. |
+| `admin-ultra-platinum` | Ultra Platinum | Platinum surfaces, navy primary, gold accent. Magazine-style authority. |
+
+**Portal (Theme pack dropdown):**
+
+| Slug | Name |
+|------|------|
+| `portal-ultra-gallery` | Ultra Gallery (Portal) |
+| `portal-ultra-noir` | Ultra Noir (Portal) |
+| `portal-ultra-platinum` | Ultra Platinum (Portal) |
+
+**Experience packs** (theme + layout + communication style) for flows that use experience pack code:
+
+```bash
+python manage.py seed_ultra_high_end_experience_packs
+```
+
+Creates: `ultra-high-end-gallery`, `ultra-high-end-noir`, `ultra-high-end-platinum` linked to the portal Ultra High-End theme packs. Run after `seed_admin_dashboard_palettes`.

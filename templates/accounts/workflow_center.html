@@ -1,6 +1,6 @@
 {% extends "backend_base.html" %}
 {% load static %}
-
+{# §8.3 Page archetype: Operational Workbench — operator workflow steps and links #}
 {% block backend_title %}Workflow Center{% endblock %}
 
 {% block extrastyle %}
@@ -74,20 +74,20 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-  <nav aria-label="breadcrumb" class="mb-3">
+<div class="container-fluid" data-page-archetype="operational-workbench" id="workflow-main">
+  <nav aria-label="Breadcrumb" class="mb-3">
     <ol class="breadcrumb mb-0">
       <li class="breadcrumb-item"><a href="{% url 'accounts:backend_dashboard' %}">Backend</a></li>
       <li class="breadcrumb-item active" aria-current="page">Workflow Center</li>
     </ol>
   </nav>
 
-  <div class="workflow-hero">
+  <section class="workflow-hero" aria-labelledby="workflow-hero-title" aria-describedby="workflow-hero-desc">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-2">
       <div>
-        <h2>Workflow Center</h2>
-        <p>Follow the year lifecycle: setup → onboarding → marks → reports → documents. Designed for non-technical school operators.</p>
-        <p class="small text-muted mb-0 mt-1">Fits general and technical education (GCE, BAC, BEPC, CAP, etc.); use the steps that match your subsystem—no rigid sequence.</p>
+        <h2 id="workflow-hero-title">Workflow Center</h2>
+        <p id="workflow-hero-desc">Follow the year lifecycle: setup → onboarding → marks → reports → documents. Designed for non-technical school operators. Built for global reach—schools in any country or region.</p>
+        <p class="small text-muted mb-0 mt-1">Fits general and technical education worldwide (GCE, BAC, BEPC, CAP, GCSE, A-Level, K–12, etc.); use the steps that match your subsystem—no rigid sequence.</p>
       </div>
       <div class="d-flex flex-wrap gap-2 align-items-center">
         <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:backend_dashboard' %}">
@@ -119,10 +119,10 @@
       {% endfor %}
     </div>
     {% endif %}
-  </div>
+  </section>
 
   {% if steps %}
-  <div class="mb-3">
+  <div class="mb-3" role="region" aria-label="Workflow progress">
     <div class="d-flex justify-content-between align-items-center small text-muted mb-1">
       <span>Workflow overview — {{ steps|length }} steps</span>
     </div>
@@ -132,15 +132,15 @@
   </div>
   {% endif %}
 
-  <div class="workflow-grid">
+  <div class="workflow-grid" role="list" aria-label="Workflow steps">
     {% for step in steps %}
-      <div class="workflow-card" id="step-{{ step.step_key }}">
+      <article class="workflow-card" id="step-{{ step.step_key }}" aria-labelledby="step-title-{{ step.step_key }}">
         <div class="card-body">
           <div class="workflow-step-meta">Step {{ step.step_index }} of {{ step.total_steps }}</div>
-          <div class="workflow-title d-flex align-items-center">
-            <i class="bi {{ step.icon|default:'bi-circle' }} workflow-step-icon"></i>
+          <h3 id="step-title-{{ step.step_key }}" class="workflow-title d-flex align-items-center h6 mb-0">
+            <i class="bi {{ step.icon|default:'bi-circle' }} workflow-step-icon" aria-hidden="true"></i>
             {{ step.title }}
-          </div>
+          </h3>
           <div class="workflow-subtitle">{{ step.subtitle }}</div>
           {% if step.progress_label %}
           <div class="workflow-progress-label">{{ step.progress_label }}</div>
@@ -158,7 +158,7 @@
             {% endfor %}
           </div>
         </div>
-      </div>
+      </article>
     {% endfor %}
   </div>
 </div>

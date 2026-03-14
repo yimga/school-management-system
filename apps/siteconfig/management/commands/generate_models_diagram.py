@@ -4,7 +4,6 @@ Uses django-extensions graph_models when available; otherwise runs scripts/gen_m
 Usage: python manage.py generate_models_diagram
 """
 
-import os
 import subprocess
 import sys
 from pathlib import Path

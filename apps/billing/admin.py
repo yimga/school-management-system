@@ -101,11 +101,13 @@ class QuoteAdmin(admin.ModelAdmin):
     def accept_quote_convert_to_contract(self, request, queryset):
         from apps.billing.services import convert_quote_to_contract
         done, errors = 0, []
+        from django.core.exceptions import ValidationError
+        from django.db import DatabaseError
         for quote in queryset:
             try:
                 convert_quote_to_contract(quote)
                 done += 1
-            except Exception as e:
+            except (ValidationError, ValueError, TypeError, DatabaseError, KeyError, AttributeError) as e:
                 errors.append(f"Quote #{quote.id}: {e}")
         if done:
             self.message_user(request, f"Converted {done} quote(s) to contract.")

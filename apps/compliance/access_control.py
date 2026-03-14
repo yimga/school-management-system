@@ -4,11 +4,20 @@ Checks incoming requests against allow/deny lists.
 World Engine §8: cache keys are tenant-scoped (prefix from get_tenant_cache_prefix).
 """
 
+import logging
 from typing import Tuple
+
 from django.core.cache import cache
+from django.db import DatabaseError, OperationalError, ProgrammingError
 from django.db.models import Q
 from django.utils import timezone
+
 from apps.compliance.models_audit import IPAccessRule, CountryAccessRule
+
+logger = logging.getLogger(__name__)
+
+_ACCESS_CONTROL_PREFIX_ERRORS = (ImportError, AttributeError, TypeError, ValueError)
+_ACCESS_CONTROL_DB_ERRORS = (DatabaseError, OperationalError, ProgrammingError)
 
 
 def _access_control_prefix():
@@ -16,7 +25,7 @@ def _access_control_prefix():
     try:
         from apps.siteconfig.cache_utils import get_tenant_cache_prefix
         return get_tenant_cache_prefix()
-    except Exception:
+    except _ACCESS_CONTROL_PREFIX_ERRORS:
         return "public"
 
 
@@ -37,8 +46,9 @@ def check_ip_access(ip_address: str) -> Tuple[bool, str]:
     try:
         # Quick check if table exists by trying to count
         IPAccessRule.objects.exists()
-    except Exception:
+    except _ACCESS_CONTROL_DB_ERRORS:
         # Table doesn't exist - allow access (fail open)
+        logger.debug("Access control table not initialized - allowing access")
         return True, "Access control table not initialized - allowing access"
 
     # Cache key includes tenant prefix and version so rule updates invalidate cached entries
@@ -70,8 +80,9 @@ def check_ip_access(ip_address: str) -> Tuple[bool, str]:
             rule_type=IPAccessRule.RuleType.ALLOW,
             is_active=True
         ).filter(Q(expires_at__isnull=True) | Q(expires_at__gte=now))
-    except Exception:
+    except _ACCESS_CONTROL_DB_ERRORS:
         # Database error - allow access (fail open)
+        logger.debug("Access control check failed - allowing access")
         return True, "Access control check failed - allowing access"
 
     # Check DENY rules first
@@ -173,7 +184,7 @@ def get_country_from_ip(ip_address: str) -> str | None:
         g = GeoIP2()
         country = g.country(ip_address)
         return country.get("country_code")
-    except Exception:
+    except (ImportError, AttributeError, TypeError, ValueError, OSError):
         # GeoIP2 not configured or IP not found
         return None
 

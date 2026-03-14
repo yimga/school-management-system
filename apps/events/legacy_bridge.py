@@ -12,7 +12,7 @@ def _normalize_event_types(raw) -> list[str]:
 
 
 def _legacy_groups() -> list[dict]:
-    from apps.siteconfig.models import WebhookSubscription as LegacyWebhookSubscription
+    from apps.siteconfig.models_platform_catalog import WebhookSubscription as LegacyWebhookSubscription
 
     grouped: dict[tuple[str, str, str], dict] = {}
     try:
@@ -175,7 +175,7 @@ def sync_legacy_webhook_subscriptions(*, dry_run: bool = False) -> dict:
 
 
 def retire_legacy_webhook_subscriptions(*, dry_run: bool = False) -> dict:
-    from apps.siteconfig.models import WebhookSubscription as LegacyWebhookSubscription
+    from apps.siteconfig.models_platform_catalog import WebhookSubscription as LegacyWebhookSubscription
 
     sync_summary = sync_legacy_webhook_subscriptions(dry_run=dry_run)
     active_qs = LegacyWebhookSubscription.objects.filter(is_active=True)

@@ -13,7 +13,7 @@ from django.urls import reverse
 
 from apps.dashboard.admin_context import build_admin_dashboard_context
 from apps.siteconfig.contrast_guard import meets_contrast
-from apps.siteconfig.models import SiteSettings
+from apps.platform_runtime.helpers import get_platform_site_settings_record
 
 User = get_user_model()
 
@@ -207,7 +207,7 @@ class AdminDashboardWeatherApiTests(TestCase):
             email="admin-weather-tests@example.com",
             password="password",
         )
-        self.site = SiteSettings.get_solo()
+        self.site = get_platform_site_settings_record(create=True)
         self._initial_flags = deepcopy(self.site.backend_feature_flags or {})
         cache.clear()
 

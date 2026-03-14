@@ -4,7 +4,6 @@ Use from cron: python manage.py run_workflows --trigger=scheduled
 Or: --trigger=event --context='{"event_name":"student.enrolled"}'
 """
 from django.core.management.base import BaseCommand
-from django.utils import timezone
 
 from apps.siteconfig.workflow_engine import run_workflows_for_trigger
 from apps.siteconfig.models_workflow import TenantWorkflow
@@ -39,7 +38,7 @@ class Command(BaseCommand):
         context_str = options.get("context") or "{}"
         try:
             context = json.loads(context_str)
-        except Exception as e:
+        except (ValueError, TypeError, json.JSONDecodeError) as e:
             self.stderr.write(self.style.ERROR(f"Invalid --context JSON: {e}"))
             return
         school_id = options.get("school_id")

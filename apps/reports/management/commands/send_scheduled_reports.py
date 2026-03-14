@@ -9,7 +9,7 @@ from django.core.management.base import BaseCommand
 from django.core.mail import EmailMessage
 from django.utils import timezone
 
-from apps.reports.bi_models import ScheduledReport, ReportDefinition, ReportExecution
+from apps.reports.bi_models import ScheduledReport, ReportExecution
 
 
 def _compute_next_run(last_run, frequency, schedule_time):

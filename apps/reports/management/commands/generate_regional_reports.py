@@ -9,18 +9,15 @@ from django.template.loader import render_to_string
 from django.utils import translation
 from datetime import datetime
 
-from apps.academics.models import AcademicYear, Term, Classroom
+from apps.academics.models import AcademicYear, Term
 from apps.people.models import StudentProfile
 from apps.platform_runtime.helpers import get_effective_site_settings
-from apps.reports.models import ReportCard
 from apps.reports.localization import (
     get_certificate_localizer,
-    get_transcript_localizer,
 )
 from apps.siteconfig.translations import SUPPORTED_LANGUAGES
 from apps.global_registries.models import RegionConfig
 from apps.evals.models import Evaluation
-from decimal import Decimal
 
 
 class Command(BaseCommand):

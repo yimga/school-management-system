@@ -41,11 +41,14 @@ class ThemePaletteGroupingTests(SimpleTestCase):
 
     def test_canonical_groups_cover_curated_admin_catalog(self):
         slugs = [slug for _label, group_slugs in THEME_PALETTE_GROUPS for slug in group_slugs]
-        self.assertEqual(len(slugs), 18)
+        self.assertEqual(len(slugs), 21)  # 18 original + 3 Ultra High-End
         self.assertEqual(len(slugs), len(set(slugs)))
         self.assertIn("admin-academic-slate", slugs)
         self.assertIn("admin-midnight-scholar", slugs)
         self.assertIn("admin-high-contrast-accessible", slugs)
+        self.assertIn("admin-ultra-gallery", slugs)
+        self.assertIn("admin-ultra-noir", slugs)
+        self.assertIn("admin-ultra-platinum", slugs)
 
     def test_curated_preset_list_is_locked_to_twelve_distinct_entries(self):
         source = (Path(settings.BASE_DIR) / "static" / "js" / "color-harmony-engine.js").read_text(encoding="utf-8")
@@ -57,7 +60,7 @@ class ThemePaletteGroupingTests(SimpleTestCase):
 
 
 class ThemePaletteSeedCommandTests(TestCase):
-    def test_seed_command_builds_curated_24_pack_catalog(self):
+    def test_seed_command_builds_curated_30_pack_catalog(self):
         call_command("seed_admin_dashboard_palettes", reset=True)
         curated = ThemePack.objects.filter(
             slug__in=[
@@ -79,6 +82,12 @@ class ThemePaletteSeedCommandTests(TestCase):
                 "admin-high-contrast-accessible",
                 "admin-conservatory",
                 "admin-midnight-scholar",
+                "admin-ultra-gallery",
+                "admin-ultra-noir",
+                "admin-ultra-platinum",
+                "portal-ultra-gallery",
+                "portal-ultra-noir",
+                "portal-ultra-platinum",
                 "portal-active-learner",
                 "portal-creative-spark",
                 "portal-sunset-scholar",
@@ -87,5 +96,5 @@ class ThemePaletteSeedCommandTests(TestCase):
                 "portal-orchard",
             ]
         )
-        self.assertEqual(curated.count(), 24)
-        self.assertEqual(curated.filter(applies_to_admin=True).count(), 18)
+        self.assertEqual(curated.count(), 30)
+        self.assertEqual(curated.filter(applies_to_admin=True).count(), 21)

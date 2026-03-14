@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.db import models
 from django.core.exceptions import ValidationError
-from django.apps import apps as django_apps
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 
@@ -9,7 +8,7 @@ import re
 import uuid
 
 from apps.accounts.models import User
-from apps.academics.models import AcademicYear, Classroom, Specialty, Department, Term
+from apps.academics.models import AcademicYear, Classroom, Specialty, Department
 
 
 def _people_tenant_upload_to(subpath):

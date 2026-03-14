@@ -4,8 +4,6 @@ Guardian linking, notifications, messaging tests
 """
 
 from django.test import TestCase
-from django.utils import timezone
-from datetime import timedelta
 
 
 class GuardianLinkingServiceTestCase(TestCase):
@@ -28,7 +26,6 @@ class GuardianLinkingServiceTestCase(TestCase):
     def test_accept_invitation(self):
         """Test accepting invitation"""
         from apps.portal.portal_services import GuardianLinkingService
-        from apps.portal.portal_models import GuardianLinkInvitation
         
         # Create invitation
         result = GuardianLinkingService.create_invitation(
@@ -70,7 +67,6 @@ class NotificationServiceTestCase(TestCase):
     def test_get_unread_notifications(self):
         """Test getting unread notifications"""
         from apps.portal.portal_services import NotificationService
-        from apps.portal.portal_models import PortalNotification
         
         # Create notification
         NotificationService.create_notification(

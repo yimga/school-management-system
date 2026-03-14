@@ -14,7 +14,7 @@ def completion_by_class(academic_year=None):
     Returns a dict keyed by classroom id with completion %, using Evaluation rows.
     """
     Evaluation = django_apps.get_model("evals", "Evaluation")
-    SubjectAssignment = django_apps.get_model("academics", "SubjectAssignment")
+    django_apps.get_model("academics", "SubjectAssignment")
 
     qs = Evaluation.objects.all().select_related("student__classroom")
     if academic_year:

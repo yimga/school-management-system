@@ -4,7 +4,6 @@ Schedule in CELERY_BEAT_SCHEDULE or run: marketplace_health_check.delay()
 """
 import logging
 from celery import shared_task
-from django.utils import timezone
 
 from apps.marketplace.models import AppInstallation
 from apps.marketplace.services import record_installation_health

@@ -3,7 +3,6 @@ Management command to verify onboarding improvements are properly set up
 Checks migrations, models, views, and templates
 """
 from django.core.management.base import BaseCommand
-from django.core.management import call_command
 from django.apps import apps
 from django.conf import settings
 from pathlib import Path
@@ -18,23 +17,18 @@ class Command(BaseCommand):
         issues = []
         warnings = []
         
-        # 1. Check migration
+        # 1. Check migration (§2.4 raw SQL wrapped in portal.onboarding_verification)
         self.stdout.write('1. Checking migrations...')
-        try:
-            from django.db import connection
-            with connection.cursor() as cursor:
-                cursor.execute("""
-                    SELECT name FROM django_migrations 
-                    WHERE app = 'siteconfig' AND name = '0043_sitesettings_admission_number_config'
-                """)
-                if cursor.fetchone():
-                    self.stdout.write(self.style.SUCCESS('  ✓ Migration 0043 applied'))
-                else:
-                    issues.append('Migration 0043 not applied. Run: python manage.py migrate siteconfig')
-                    self.stdout.write(self.style.WARNING('  ✗ Migration 0043 not found'))
-        except Exception as e:
-            warnings.append(f'Could not check migrations: {e}')
-            self.stdout.write(self.style.WARNING(f'  ⚠ Could not verify migration: {e}'))
+        from apps.portal.onboarding_verification import check_siteconfig_migration_applied
+        result = check_siteconfig_migration_applied("siteconfig", "0043_sitesettings_admission_number_config")
+        if result is True:
+            self.stdout.write(self.style.SUCCESS('  ✓ Migration 0043 applied'))
+        elif result is False:
+            issues.append('Migration 0043 not applied. Run: python manage.py migrate siteconfig')
+            self.stdout.write(self.style.WARNING('  ✗ Migration 0043 not found'))
+        else:
+            warnings.append('Could not check migrations (DB error); see logs')
+            self.stdout.write(self.style.WARNING('  ⚠ Could not verify migration'))
         
         # 2. Check SiteSettings model
         self.stdout.write('\n2. Checking SiteSettings model...')
@@ -51,7 +45,7 @@ class Command(BaseCommand):
             else:
                 issues.append('SiteSettings missing admission_number_pattern field')
                 self.stdout.write(self.style.ERROR('  ✗ admission_number_pattern field missing'))
-        except Exception as e:
+        except LookupError as e:
             issues.append(f'Error checking SiteSettings: {e}')
             self.stdout.write(self.style.ERROR(f'  ✗ Error: {e}'))
         
@@ -67,7 +61,7 @@ class Command(BaseCommand):
             else:
                 warnings.append('StudentProfile.save() may not have admission number logic')
                 self.stdout.write(self.style.WARNING('  ⚠ Could not verify StudentProfile.save() logic'))
-        except Exception as e:
+        except (LookupError, OSError, TypeError) as e:
             warnings.append(f'Could not check StudentProfile: {e}')
             self.stdout.write(self.style.WARNING(f'  ⚠ Could not verify: {e}'))
         
@@ -82,8 +76,6 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.ERROR('  ✗ link_child_wizard view missing'))
             
             if hasattr(views, 'parent_onboarding_score'):
-                # Check if it's imported in views
-                from apps.portal.services import parent_onboarding_score
                 self.stdout.write(self.style.SUCCESS('  ✓ parent_onboarding_score function exists'))
             else:
                 # Check services
@@ -93,7 +85,7 @@ class Command(BaseCommand):
                 else:
                     issues.append('parent_onboarding_score function missing')
                     self.stdout.write(self.style.ERROR('  ✗ parent_onboarding_score function missing'))
-        except Exception as e:
+        except ImportError as e:
             issues.append(f'Error checking views: {e}')
             self.stdout.write(self.style.ERROR(f'  ✗ Error: {e}'))
         
@@ -130,7 +122,7 @@ class Command(BaseCommand):
             except NoReverseMatch:
                 issues.append('link_child URL not configured')
                 self.stdout.write(self.style.ERROR('  ✗ link_child URL not found'))
-        except Exception as e:
+        except ImportError as e:
             warnings.append(f'Could not check URLs: {e}')
             self.stdout.write(self.style.WARNING(f'  ⚠ Could not verify URLs: {e}'))
         

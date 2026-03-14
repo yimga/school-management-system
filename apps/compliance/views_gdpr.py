@@ -1,6 +1,6 @@
 # Phase Compliance optional: Data portability (GDPR Art. 20) and Erasure request (Art. 17)
 from django.contrib import messages
-from django.shortcuts import redirect, render, get_object_or_404
+from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse, HttpResponseForbidden
 

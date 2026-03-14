@@ -2,7 +2,7 @@
 
 RunMyCampus is positioned as **the platform** for education and school management—one place to run operations, govern multiple schools, and scale with the same clarity and power that Shopify, Salesforce, Amazon, and AWS bring to their domains.
 
-**Score bar:** **9.5/10 is the minimum.** All configuration, UX, and execution standards are aligned to meet or exceed this bar. Path-to-10 work is tracked in `docs/PATH_TO_10_SCORECARD.md` and `docs/PHASE_10_BACKLOG.md`. See `docs/MASTER_PLATFORM_CHECKLIST.md` for the live ledger and verification commands.
+**Score bar:** **9.5/10 is the minimum target.** Eligibility for 9.5/10 is defined by [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §12; **do not claim 9.5/10 until all §12 gates are satisfied** (see [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md)). All configuration, UX, and execution standards are aligned to meet or exceed this bar. Path-to-10 work is tracked in `docs/PATH_TO_10_SCORECARD.md` and `docs/PHASE_10_BACKLOG.md`. See `docs/MASTER_PLATFORM_CHECKLIST.md` for the live ledger and verification commands.
 
 ## Positioning
 

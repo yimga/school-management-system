@@ -6,7 +6,6 @@ from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
 from apps.accounts.models import User
-from apps.portal.views import parent_dashboard
 
 
 class FakeSiteSettings(SimpleNamespace):

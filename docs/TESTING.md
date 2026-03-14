@@ -1,5 +1,9 @@
 # Testing
 
+## Test environment
+
+When running `manage.py test`, the following apply automatically: **file logging is disabled** (avoids RotatingFileHandler lock issues on Windows), and **Celery tasks run eagerly** (`CELERY_TASK_ALWAYS_EAGER`), so no broker is required for provisioning or welcome-email tests.
+
 ## Quick smoke (no database)
 
 Runs in under a second; no migrations. Use when switching gears or in CI when DB is unavailable:

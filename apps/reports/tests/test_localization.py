@@ -10,9 +10,8 @@ from apps.reports.localization import (
     get_certificate_localizer,
     get_transcript_localizer,
 )
-from apps.siteconfig.models import RegionConfig, GradingScaleConfig
+from apps.siteconfig.models import RegionConfig
 from apps.siteconfig.translations import SUPPORTED_LANGUAGES
-from decimal import Decimal
 
 User = get_user_model()
 

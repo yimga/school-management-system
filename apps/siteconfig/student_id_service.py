@@ -65,7 +65,8 @@ def _verify_jwt(token: str) -> Optional[dict]:
         if payload.get("exp", 0) < time.time():
             return None
         return payload
-    except Exception:
+    except (ValueError, TypeError, KeyError, json.JSONDecodeError) as e:
+        logger.debug("student_id JWT verify failed: %s", e)
         return None
 
 

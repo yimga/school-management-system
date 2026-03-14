@@ -4,9 +4,7 @@ Database optimization, caching strategies, and query optimization.
 World Engine F.2: All cache keys are tenant-prefixed via get_tenant_cache_prefix().
 """
 
-from django.db import models, connection
 from django.core.cache import cache
-from django.db.models import Prefetch, F
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 import hashlib
@@ -18,7 +16,7 @@ def _tenant_prefix():
     try:
         from apps.siteconfig.cache_utils import get_tenant_cache_prefix
         return get_tenant_cache_prefix()
-    except Exception:
+    except (ImportError, AttributeError, TypeError):
         return "public"
 
 
@@ -97,7 +95,7 @@ class QueryOptimizer:
         from apps.evals.models import Evaluation
         from django.db.models import Avg, Count
         
-        classroom = Classroom.objects.get(id=classroom_id)
+        Classroom.objects.get(id=classroom_id)
         
         # Single aggregated query
         stats = Evaluation.objects.filter(
@@ -158,15 +156,13 @@ class PerformanceIndexes:
     
     @staticmethod
     def get_missing_indexes():
-        """Find missing recommended indexes"""
-        with connection.cursor() as cursor:
-            cursor.execute("""
-                SELECT indexname FROM pg_indexes
-                WHERE tablename IN ('evals_evaluation', 'people_studentprofile')
-            """)
-            existing_indexes = [row[0] for row in cursor.fetchall()]
-        
-        return QueryOptimizer.RECOMMENDED_INDEXES  # Simplified for demo
+        """
+        Return recommended index tuples for migrations/ops.
+        No raw SQL in app path: pg_indexes introspection belongs in a management
+        command or migration, not in tenant request paths (raw_sql_replacement_targets).
+        """
+        # Static recommendations; optional PG-only diff can live in a command.
+        return list(PerformanceIndexes.RECOMMENDED_INDEXES)
 
 
 class BulkOperationOptimizer:

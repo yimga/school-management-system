@@ -1,15 +1,29 @@
 {% extends "studio_os/shell.html" %}
 {% load static i18n %}
 
+{% block extrastyle %}
+{{ block.super }}
+<style>
+  .studio-os__control-rail a.control-rail-link { display: block; padding: 0.35rem 0.5rem; border-radius: 4px; color: var(--color-base-700, #334155); text-decoration: none; }
+  .studio-os__control-rail a.control-rail-link:hover { background: var(--color-base-100, #f1f5f9); color: var(--color-base-900, #0f172a); }
+  .studio-os__control-rail a.control-rail-link.active { background: var(--color-primary-50, #eff6ff); color: var(--color-primary-700, #1d4ed8); font-weight: 500; }
+  .studio-os__control-rail a.control-rail-link:focus-visible { outline: 2px solid var(--color-primary-500, #3b82f6); outline-offset: 2px; }
+</style>
+{% endblock %}
+
 {% block studio_canvas %}
-  <div class="d-flex gap-3 flex-wrap flex-lg-nowrap">
+  <div class="d-flex gap-3 flex-wrap flex-lg-nowrap studio-os__control-wrap">
     {% if control_left_rail %}
-    <nav class="studio-os__control-rail flex-shrink-0 mb-2 mb-lg-0" aria-label="{% trans 'Control' %}" style="width: 180px;">
+    <nav class="studio-os__control-rail flex-shrink-0 mb-2 mb-lg-0" aria-label="{% trans 'Control' %}" style="width: 200px;">
       <div class="studio-os__card py-2">
-        <div class="h6 mb-2">{% trans "Control" %}</div>
-        <ul class="list-unstyled small mb-0">
+        <div class="h6 mb-2">{% trans "Governance" %}</div>
+        <ul class="list-unstyled small mb-0" id="control-rail-list">
           {% for item in control_left_rail %}
-          <li><a href="{{ item.url }}">{{ item.label }}</a></li>
+          <li class="mb-1">
+            <a href="{{ item.url }}" class="control-rail-link {% if forloop.first %}active{% endif %}"
+               {% if item.embed %}data-embed="1"{% endif %}
+               {% if control_panel_html and forloop.first %}data-panel="1"{% endif %}>{{ item.label }}</a>
+          </li>
           {% endfor %}
         </ul>
       </div>
@@ -17,15 +31,55 @@
     {% endif %}
     <div class="flex-grow-1 min-w-0">
       {% if control_panel_html %}
-      <div class="studio-os__control-in-shell">{{ control_panel_html|safe }}</div>
-      {% elif embed_url %}
-      <iframe src="{{ embed_url }}" class="studio-os-iframe" title="{% trans 'Control' %}"></iframe>
-      {% else %}
-      <div class="studio-os__card">
-        <p class="text-muted mb-0">{% trans "Load feature control in the canvas." %}</p>
-        {% if legacy_urls.feature_control %}<a href="{{ legacy_urls.feature_control }}" class="btn btn-primary btn-sm mt-2">{% trans "Feature control" %}</a>{% endif %}
-      </div>
+      <div class="studio-os__control-in-shell" id="control-panel-wrap">{{ control_panel_html|safe }}</div>
+      {% endif %}
+      {% if control_left_rail %}
+      <iframe id="studio-control-iframe" class="studio-os-iframe" title="{% trans 'Control' %}"
+              style="{% if control_panel_html %}display: none;{% endif %}"
+              src="{% if not control_panel_html and control_left_rail %}{{ control_left_rail.0.url }}{% endif %}"></iframe>
+      {% endif %}
+      {% if not control_left_rail %}
+        {% if embed_url %}
+        <iframe src="{{ embed_url }}" class="studio-os-iframe" title="{% trans 'Control' %}"></iframe>
+        {% else %}
+        <div class="studio-os__card">
+          <p class="text-muted mb-0">{% trans "Load feature control in the canvas." %}</p>
+          {% if legacy_urls.feature_control %}<a href="{{ legacy_urls.feature_control }}" class="btn btn-primary btn-sm mt-2">{% trans "Feature control" %}</a>{% endif %}
+        </div>
+        {% endif %}
       {% endif %}
     </div>
   </div>
+  {% if control_left_rail %}
+  <script>
+  (function() {
+    var wrap = document.getElementById('control-panel-wrap');
+    var iframe = document.getElementById('studio-control-iframe');
+    var links = document.querySelectorAll('.control-rail-link[data-embed="1"]');
+    var hasPanel = !!document.querySelector('.control-rail-link[data-panel="1"]');
+    function setActive(el) {
+      links.forEach(function(l) { l.classList.remove('active'); });
+      if (el) el.classList.add('active');
+    }
+    links.forEach(function(link) {
+      link.addEventListener('click', function(e) {
+        if (link.getAttribute('data-panel') === '1' && hasPanel) {
+          e.preventDefault();
+          if (wrap) wrap.style.display = '';
+          if (iframe) iframe.style.display = 'none';
+          setActive(link);
+        } else if (link.getAttribute('data-embed') === '1') {
+          e.preventDefault();
+          if (iframe) {
+            iframe.src = link.getAttribute('href');
+            iframe.style.display = 'block';
+          }
+          if (wrap) wrap.style.display = 'none';
+          setActive(link);
+        }
+      });
+    });
+  })();
+  </script>
+  {% endif %}
 {% endblock %}

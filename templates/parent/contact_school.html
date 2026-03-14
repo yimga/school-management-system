@@ -12,16 +12,16 @@
     {% if SITE.enable_whatsapp_parent_portal and SITE.whatsapp_support_number or SITE.enable_whatsapp_parent_portal and SITE.footer_whatsapp_url %}
       <div class="d-flex flex-wrap align-items-center gap-2">
         {% if SITE.whatsapp_support_number %}
-          <a class="btn btn-sm btn-success" href="https://wa.me/{{ SITE.whatsapp_support_number|urlencode }}?text={{ 'Hello, I would like to contact the school.'|urlencode }}" target="_blank" rel="noreferrer">
+          <a class="btn btn-sm btn-success" href="https://wa.me/{{ SITE.whatsapp_support_number|urlencode }}?text={{ 'Hello, I would like to contact the school.'|urlencode }}" target="_blank" rel="noopener noreferrer">
             <i class="bi bi-whatsapp me-1"></i>WhatsApp Support
           </a>
         {% else %}
-          <a class="btn btn-sm btn-success" href="{{ SITE.footer_whatsapp_url }}" target="_blank" rel="noreferrer">
+          <a class="btn btn-sm btn-success" href="{{ SITE.footer_whatsapp_url }}" target="_blank" rel="noopener noreferrer">
             <i class="bi bi-whatsapp me-1"></i>WhatsApp Support
           </a>
         {% endif %}
         {% if SITE.whatsapp_admissions_number %}
-          <a class="btn btn-sm btn-outline-success" href="https://wa.me/{{ SITE.whatsapp_admissions_number|urlencode }}?text={{ 'Hello, I have a question about admissions.'|urlencode }}" target="_blank" rel="noreferrer">
+          <a class="btn btn-sm btn-outline-success" href="https://wa.me/{{ SITE.whatsapp_admissions_number|urlencode }}?text={{ 'Hello, I have a question about admissions.'|urlencode }}" target="_blank" rel="noopener noreferrer">
             <i class="bi bi-whatsapp me-1"></i>Admissions WhatsApp
           </a>
         {% endif %}

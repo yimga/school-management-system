@@ -31,7 +31,7 @@
    - **Config**: Site Settings → Fee Plan Auto-Copy
 
 3. **Enhanced Payment Reminders (Multi-Channel)**
-   - **Why**: WhatsApp/SMS more effective than email in Cameroon
+   - **Why**: WhatsApp/SMS more effective than email in many regions
    - **How**: Extend existing Celery task to support WhatsApp/SMS
    - **Config**: Site Settings → Payment Reminders
 

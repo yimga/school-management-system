@@ -10,11 +10,9 @@ from pathlib import Path
 
 from django.conf import settings
 from django.db import transaction
-from django.utils import timezone
 
 from apps.accounts.models import User
 from apps.compliance.models_audit import AuditLog, AccessLog, UserActivitySession, ComplianceReport
-from apps.people.models import TeacherProfile
 
 
 EXPORT_DIR = Path(settings.BASE_DIR) / "logs" / "privacy"

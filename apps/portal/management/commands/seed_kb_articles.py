@@ -3,7 +3,6 @@ Management command to seed initial Knowledge Base articles
 Populates database with comprehensive how-to guides and tutorials
 """
 from django.core.management.base import BaseCommand
-from django.utils.text import slugify
 from apps.portal.models_kb import KBCategory, KBArticle
 from django.contrib.auth.models import User
 

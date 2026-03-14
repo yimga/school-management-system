@@ -8,9 +8,9 @@ from apps.brand_experience.experience_packs import (
 )
 from apps.brand_experience.models import ThemePack
 from apps.packages.models import ExperiencePack, InstalledPackage, PackageChangeLog
+from apps.platform_runtime.helpers import get_platform_site_settings_record
 from apps.schools.models import School
 from apps.siteconfig.branding import resolve_brand_profile
-from apps.siteconfig.models import SiteSettings
 
 
 class ExperiencePackServiceTests(TestCase):
@@ -47,7 +47,7 @@ class ExperiencePackServiceTests(TestCase):
         self.assertEqual(resolved.code, "exp-portal")
 
     def test_resolve_experience_theme_pack_is_used_by_branding(self):
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.theme_pack_id = self.fallback_theme.pk
         site.save(update_fields=["theme_pack_id"])
 

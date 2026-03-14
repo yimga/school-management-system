@@ -5,6 +5,7 @@ Usage:
 """
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
+from django.db import DatabaseError, IntegrityError, OperationalError
 
 from apps.schools.models import School
 
@@ -48,7 +49,7 @@ class Command(BaseCommand):
                     try:
                         export_student_data_portability(school.id, sid, format="json")
                         count += 1
-                    except Exception as e:
+                    except (OSError, ValueError, TypeError, KeyError, AttributeError, DatabaseError, IntegrityError, OperationalError) as e:
                         self.stdout.write(self.style.WARNING(f"Export student {sid} failed: {e}"))
                 self.stdout.write(self.style.SUCCESS(f"Exported data for {count} students."))
 

@@ -2,10 +2,18 @@
 Entitlements service (RunMyCampus blueprint A1).
 APIs: can(tenant, "MODULE_X"), limits(tenant), usage(tenant, limit_type).
 Use these instead of direct is_feature_enabled or quota DB access across apps.
+§2.4: Typed exceptions only; no broad except (RUNMYCAMPUS broad_exception_audit).
 """
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+import logging
+from typing import Any, Dict, Optional
+
+logger = logging.getLogger(__name__)
+
+# Typed exceptions for entitlement/quota lookups (ImportError, DB, attribute access).
+_ENTITLEMENT_CAN_EXC = (ImportError, AttributeError, TypeError, ValueError)
+_ENTITLEMENT_DB_EXC = (ImportError, AttributeError, TypeError, ValueError)
 
 
 def can(school, capability: str) -> bool:
@@ -18,7 +26,8 @@ def can(school, capability: str) -> bool:
     try:
         from apps.schools.models import is_feature_enabled
         return is_feature_enabled(school, capability)
-    except Exception:
+    except _ENTITLEMENT_CAN_EXC as e:
+        logger.debug("Entitlement can(%s, %s) failed: %s", getattr(school, "pk", None), capability, e)
         return False
 
 
@@ -31,6 +40,7 @@ def limits(school) -> Dict[str, Dict[str, Any]]:
         return {}
     out: Dict[str, Dict[str, Any]] = {}
     try:
+        from django.db import DatabaseError
         from apps.schools.models import TenantQuotaLimit
         for q in TenantQuotaLimit.objects.filter(school_id=school.pk, is_active=True).values(
             "limit_type", "limit_value", "period_days"
@@ -39,8 +49,8 @@ def limits(school) -> Dict[str, Dict[str, Any]]:
                 "limit_value": q["limit_value"],
                 "period_days": q["period_days"],
             }
-    except Exception:
-        pass
+    except (DatabaseError, *_ENTITLEMENT_DB_EXC) as e:
+        logger.debug("Entitlement limits(school_id=%s) failed: %s", getattr(school, "pk", None), e)
     # Plan-based limits (e.g. max_students, max_staff) from school.plan
     plan = getattr(school, "plan", None)
     if plan:
@@ -59,6 +69,7 @@ def usage(school, limit_type: str = "api_calls", period_days: Optional[int] = No
     if school is None or not getattr(school, "pk", None):
         return {"used": 0}
     try:
+        from django.db import DatabaseError
         from django.utils import timezone
         from django.db.models import Sum
         from apps.schools.models import TenantApiUsage
@@ -72,5 +83,6 @@ def usage(school, limit_type: str = "api_calls", period_days: Optional[int] = No
         agg = qs.aggregate(total=Sum("request_count"))
         used = int(agg["total"] or 0)
         return {"used": used, "limit_type": limit_type}
-    except Exception:
+    except (DatabaseError, *_ENTITLEMENT_DB_EXC) as e:
+        logger.debug("Entitlement usage(school_id=%s, limit_type=%s) failed: %s", getattr(school, "pk", None), limit_type, e)
         return {"used": 0}

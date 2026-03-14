@@ -62,9 +62,9 @@ def _expire_past_delegations_body() -> dict:
                                 recipient_list=[d.delegator.email],
                                 fail_silently=True,
                             )
-                    except Exception as e:
+                    except (OSError, ConnectionError, AttributeError, TypeError) as e:
                         logger.warning("expire_past_delegations: summary email for %s: %s", pk, e)
-            except Exception as e:
+            except (ImportError, AttributeError, TypeError, ValueError) as e:
                 logger.warning("expire_past_delegations: revoke badge for delegation %s: %s", pk, e)
         Delegation.objects.filter(pk__in=[pk for pk, _site in to_expire]).update(is_active=False)
         logger.info("expire_past_delegations: deactivated %d delegation(s)", len(to_expire))
@@ -91,7 +91,7 @@ def _prepare_rollover_proposal_impl(school_id, source_year_id, target_year_id, c
     from apps.schools.models import School
     from apps.academics.models import AcademicYear, Classroom
     from apps.people.models import StudentProfile
-    from apps.reports.services import get_promotion_status, _annual_average_for_student, terms_for_student
+    from apps.reports.services import get_promotion_status, _annual_average_for_student
 
     logger = logging.getLogger(__name__)
     try:
@@ -114,7 +114,7 @@ def _prepare_rollover_proposal_impl(school_id, source_year_id, target_year_id, c
         ).select_related("source_classroom", "target_classroom"):
             if m.source_classroom_id:
                 promotion_map[m.source_classroom_id] = m.target_classroom
-    except Exception:
+    except (ImportError, AttributeError, TypeError):
         pass
 
     from django.db.models import Count
@@ -177,7 +177,7 @@ def _apply_rollover_proposal_impl(proposal_id, lock_source=False, notify_parents
     """Inner implementation: run inside tenant context."""
     import logging
     from django.utils import timezone
-    from apps.accounts.models import RolloverProposal, RolloverProposalItem
+    from apps.accounts.models import RolloverProposal
     from apps.people.models import StudentProfile
 
     logger = logging.getLogger(__name__)
@@ -234,7 +234,7 @@ def _apply_rollover_proposal_impl(proposal_id, lock_source=False, notify_parents
         try:
             from apps.finance.services import carry_forward_arrears
             carry_forward_arrears(source_year, target_year)
-        except Exception as e:
+        except (ValueError, TypeError, ImportError, AttributeError) as e:
             logger.warning("apply_rollover_proposal: carry_forward_arrears: %s", e)
 
     logger.info("apply_rollover_proposal: proposal %s applied; updated=%d graduated=%d skipped=%d", proposal_id, updated, graduated, skipped)

@@ -163,7 +163,7 @@
               <td class="text-end {% if inv.status == 'OVERDUE' %}cell-overdue fw-bold{% endif %}">{{ inv.balance_amount|format_currency }}</td>
               <td class="text-end">
                 {% if inv.attachment %}
-                  <a class="btn btn-sm btn-outline-secondary" href="{{ inv.attachment.url }}" target="_blank">View</a>
+                  <a class="btn btn-sm btn-outline-secondary" href="{{ inv.attachment.url }}" target="_blank" rel="noopener noreferrer">View</a>
                 {% else %}
                   <span class="text-muted small">None</span>
                 {% endif %}

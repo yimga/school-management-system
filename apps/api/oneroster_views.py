@@ -11,7 +11,6 @@ from django.views.decorators.http import require_GET
 from apps.academics.models import Classroom
 from apps.api.rate_limit import throttle_ip_request
 from apps.interop.oneroster.adapter import (
-    build_manifest_resources,
     classroom_to_oneroster,
     enrollment_to_oneroster,
     student_to_oneroster,
@@ -177,13 +176,8 @@ def teachers(request):
     rows = []
     qs = TeacherProfile.objects.filter(school=school).select_related("user").order_by("pk")[offset:(offset + limit)]
     for teacher in qs:
-        username = ""
-        given = ""
-        family = ""
         if teacher.user_id:
-            username = teacher.user.username
-            given = teacher.user.first_name
-            family = teacher.user.last_name
+            pass
         rows.append(teacher_to_oneroster(teacher, school))
     return _oneroster_response(key="users", rows=rows, offset=offset, limit=limit)
 

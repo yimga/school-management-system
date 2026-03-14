@@ -3,9 +3,7 @@ Event Outbox: transactional outbox for domain events (RunMyCampus blueprint).
 Emit from service layer only; consumer processes outbox for webhooks, notifications, automation.
 """
 import uuid
-from django.conf import settings
 from django.db import models
-from django.utils import timezone
 
 
 class DomainEvent(models.Model):

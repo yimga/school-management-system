@@ -1360,8 +1360,9 @@ class PaymentReminder(models.Model):
                 days = finance.get("payment_reminder_default_days")
                 if isinstance(days, list) and days:
                     return days
-            except Exception:
-                pass
+            except (ImportError, AttributeError, TypeError, KeyError) as e:
+                import logging
+                logging.getLogger(__name__).debug("get_reminder_days_before policy skip: %s", e)
         return [7, 3, 1]
 
     def get_reminder_channels(self):
@@ -1377,8 +1378,9 @@ class PaymentReminder(models.Model):
                 channels = finance.get("payment_reminder_default_channels")
                 if isinstance(channels, list) and channels:
                     return channels
-            except Exception:
-                pass
+            except (ImportError, AttributeError, TypeError, KeyError) as e:
+                import logging
+                logging.getLogger(__name__).debug("get_reminder_channels policy skip: %s", e)
         return ["email"]
     
     def get_message_template(self, channel: str) -> str:

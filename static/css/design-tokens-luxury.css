@@ -1,0 +1,80 @@
+/**
+ * Ultra high-end design tokens – platform-wide.
+ * Rich Black, Gallery White, Platinum; bold typography; generous spacing; 600ms motion.
+ * Load after design-tokens.css. Used by statement-header.css and platform-high-end.css.
+ */
+:root {
+  /* Luxury palette – no compromise */
+  --luxury-rich-black: #0A0A0A;
+  --luxury-gallery-white: #FDFDFD;
+  --luxury-platinum: #E5E5E5;
+  --luxury-text: #1A1A1A;
+  --luxury-text-muted: #525252;
+  --luxury-primary: #0A0A0A;
+  --luxury-primary-invert: #FDFDFD;
+  --luxury-accent: #B8860B;
+  --luxury-accent-alt: #0F172A;
+  --luxury-border: rgba(10, 10, 10, 0.08);
+  --luxury-border-strong: rgba(10, 10, 10, 0.14);
+
+  /* Statement header – logo as hero */
+  --statement-header-bg: var(--luxury-gallery-white);
+  --statement-header-fg: var(--luxury-rich-black);
+  --statement-header-height: 72px;
+  --statement-logo-min-width: 150px;
+  --statement-logo-font: "Inter", system-ui, -apple-system, sans-serif;
+  --statement-logo-weight: 700;
+  --statement-header-padding-x: 2rem;
+  --statement-header-padding-y: 1.25rem;
+
+  /* Spatial luxury – 2x breathing room */
+  --luxury-section-padding: 3rem;
+  --luxury-gap: 2rem;
+  --luxury-gap-sm: 1.25rem;
+  --luxury-card-padding: 1.75rem 2rem;
+
+  /* Typography – authority */
+  --luxury-font-display: "Inter", system-ui, -apple-system, sans-serif;
+  --luxury-font-body: "Inter", system-ui, -apple-system, sans-serif;
+  --luxury-letter-spacing-caps: 0.1em;
+  --luxury-letter-spacing-tight: -0.02em;
+  --luxury-heading-weight: 700;
+  --luxury-body-weight: 400;
+
+  /* Motion – surface, not pop (600ms ease-out) */
+  --luxury-motion-duration: 600ms;
+  --luxury-motion-ease: ease-out;
+  --luxury-motion-hover: 300ms ease-in-out;
+
+  /* CTAs – sharp or 2px radius; invert on hover */
+  --luxury-btn-radius: 2px;
+  --luxury-btn-padding-x: 1.5rem;
+  --luxury-btn-padding-y: 0.75rem;
+  --luxury-btn-weight: 600;
+
+  /* Surfaces – hairline or tonal shift */
+  --luxury-surface: #FFFFFF;
+  --luxury-surface-subtle: #FAFAFA;
+  --luxury-surface-muted: #F5F5F5;
+  --luxury-shadow-soft: 0 2px 12px rgba(10, 10, 10, 0.06);
+  --luxury-shadow-lift: 0 8px 24px rgba(10, 10, 10, 0.08);
+}
+
+/* Dark / backend dark */
+html[data-theme="dark"],
+html[data-bs-theme="dark"],
+body.portal-backend-dark {
+  --luxury-text: #F5F5F5;
+  --luxury-text-muted: #A3A3A3;
+  --luxury-primary: #FAFAFA;
+  --luxury-primary-invert: #0A0A0A;
+  --luxury-border: rgba(255, 255, 255, 0.1);
+  --luxury-border-strong: rgba(255, 255, 255, 0.18);
+  --luxury-surface: #171717;
+  --luxury-surface-subtle: #1C1C1C;
+  --luxury-surface-muted: #262626;
+  --statement-header-bg: #0A0A0A;
+  --statement-header-fg: #FDFDFD;
+  --luxury-shadow-soft: 0 2px 12px rgba(0, 0, 0, 0.3);
+  --luxury-shadow-lift: 0 8px 24px rgba(0, 0, 0, 0.4);
+}

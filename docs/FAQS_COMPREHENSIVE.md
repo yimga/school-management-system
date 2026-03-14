@@ -103,7 +103,7 @@
 - **Departments**: Organize teachers (e.g., Science, Arts, Commercial)
 - **Specialties**: Organize students (e.g., General Arts, Science, Commercial)
 
-**Cameroon Note:** Specialties are important for technical schools (IND/STT) and GCE registration.
+**Region note:** In many regions (e.g. Cameroon, CEMAC), specialties are important for technical schools (IND/STT) and local exam registration (e.g. GCE).
 
 ---
 

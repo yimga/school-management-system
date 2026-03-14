@@ -6,7 +6,6 @@ Guardian linking, invitation management, communication
 from django.utils import timezone
 from datetime import timedelta
 import secrets
-import json
 
 
 class GuardianLinkingService:
@@ -137,7 +136,7 @@ class NotificationService:
     @staticmethod
     def send_grade_notification(student_id, grade_info):
         """Send grade update notification"""
-        from apps.portal.portal_models import ParentStudentLink, PortalNotification
+        from apps.portal.portal_models import ParentStudentLink
         
         links = ParentStudentLink.objects.filter(student_id=student_id)
         notifications = []

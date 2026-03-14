@@ -9,7 +9,6 @@ from apps.evals.grading import (
     ASSESSMENT_WEIGHTS_SCALE_MAP,
     scale_for_assessment_weights,
     get_grade_letter,
-    format_score,
 )
 
 

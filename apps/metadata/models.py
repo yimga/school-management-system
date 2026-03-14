@@ -143,6 +143,17 @@ class EntityState(models.Model):
         return f"{self.entity_type}:{self.entity_id} -> {self.current_state}"
 
 
+# Lifecycle states for metadata catalog entries (§3.3 RUNMYCAMPUS).
+ENTITY_CATALOG_LIFECYCLE_DRAFT = "draft"
+ENTITY_CATALOG_LIFECYCLE_ACTIVE = "active"
+ENTITY_CATALOG_LIFECYCLE_DEPRECATED = "deprecated"
+ENTITY_CATALOG_LIFECYCLE_CHOICES = [
+    (ENTITY_CATALOG_LIFECYCLE_DRAFT, "Draft"),
+    (ENTITY_CATALOG_LIFECYCLE_ACTIVE, "Active"),
+    (ENTITY_CATALOG_LIFECYCLE_DEPRECATED, "Deprecated"),
+]
+
+
 class EntityCatalogEntry(models.Model):
     """
     Catalog entry for a logical entity in the platform (e.g. student, invoice, attendance_record).
@@ -172,6 +183,13 @@ class EntityCatalogEntry(models.Model):
     is_core = models.BooleanField(
         default=True,
         help_text="True if this is a core platform entity; False if defined by a pack or extension.",
+    )
+    lifecycle_state = models.CharField(
+        max_length=20,
+        choices=ENTITY_CATALOG_LIFECYCLE_CHOICES,
+        default=ENTITY_CATALOG_LIFECYCLE_ACTIVE,
+        db_index=True,
+        help_text="Catalog lifecycle: draft, active, or deprecated.",
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

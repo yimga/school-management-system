@@ -3,7 +3,6 @@
 from decimal import Decimal
 from statistics import mean, stdev
 from typing import Dict, List
-from django.db.models import Avg
 import logging
 
 logger = logging.getLogger(__name__)

@@ -1,12 +1,19 @@
 # RunMyCampus Master Platform Checklist
 
+**Canonical completion status:** Completion and 9.5/10 eligibility are defined by [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §12 and [docs_truth_ledger.md](docs_truth_ledger.md). Do not claim 9.5/10 or "all complete" until the §12 gates in the single source of truth are satisfied. **Reconciliation:** If this file’s phase table says “Done” while the embedded plan still has unchecked §12 items, treat §12 as authority—see [PLAN_VERIFICATION_REPORT.md](PLAN_VERIFICATION_REPORT.md).
+
 **Repo truth date:** March 10, 2026
+
+**For all agents:** Strategy/roadmap/completion updates for execution go to [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md), [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md), [docs_truth_ledger.md](docs_truth_ledger.md), and [NEXT_50_EXECUTION_STEPS.md](NEXT_50_EXECUTION_STEPS.md). Named plan: [RUNMYCAMPUS_11_10_NORTH_STAR_COMPLETION_PLAN.md](RUNMYCAMPUS_11_10_NORTH_STAR_COMPLETION_PLAN.md). Before starting work, check the ledger and NEXT_50 for current status.
+
 **Rule:** Nothing is optional or deferred. This file is the single live execution ledger. **9.5/10 is the minimum score bar;** configuration and execution are aligned to Shopify, Salesforce, Amazon, AWS-style platform goals (see `docs/NORTH_STAR_PLATFORM.md`). If another document claims completion, treat it as historical until it is revalidated here.
 **Hardening freeze:** Active. No unrelated feature work should bypass the gates listed below.
 
-**Everything is non-negotiable and done:** All requirements are non-negotiable (no optionals; advanced-only). The 9.5 bar is complete (phases 0–8, Final Gaps, toolsets). The remaining-work table in **`docs/REMAINING_WORK.md`** has no open rows: every row is **Done** or **Closed (Phase 10 backlog)**. Phase 10 work is tracked in **`docs/PHASE_10_BACKLOG.md`** for future 10/10 execution.
+**9.5 bar and §12 authority:** The platform does **not** claim 9.5/10 until **RUNMYCAMPUS §12 gates** are satisfied (siteconfig decomposed, runtime-only, Studio OS complete, package engine production-grade, marketplace productized, docs truth, marketing front). This file’s phase table reflects work done to date; **completion authority** is RUNMYCAMPUS §12 and docs_truth_ledger.md.
 
-**Validation (complete, non-negotiable, advanced):** All phases 0–8 are **Done**. Every checklist item is checked; nothing deferred or "save for later." Every implemented item meets the **advanced** standard (not basic). All minimum scores **9.5/10** (dry-run Section 1). Final Gaps 15/15 Done. Toolsets 9.5 bar met; "Next" is path-to-10 only. Gates: check, showmigrations, lint_broad_except, pre_deploy_gate—passing.
+**Everything non-negotiable:** All requirements are non-negotiable (no optionals; advanced-only). The remaining-work table in **`docs/REMAINING_WORK.md`** has no open rows: every row is **Done** or **Closed (Phase 10 backlog)**. Phase 10 work is tracked in **`docs/PHASE_10_BACKLOG.md`**.
+
+**Validation:** Phases 0–8 checklist items in this file are **Done**. Implemented items meet the **advanced** standard. **Do not claim 9.5/10 or “all complete”** until RUNMYCAMPUS §12 gates are met—see PLAN_VERIFICATION_REPORT.md and BACKLOG_AND_DEFERRED_CLOSURE.md. Gates: check, showmigrations, lint_broad_except, pre_deploy_gate—passing.
 
 **Audit vs embedded plans:** The full 19-section 9.5/10 Excellence Checklist, Metadata-Driven Gap Closure Plan, UX Transformation Plan, Toolsets, and Final Gaps are cross-checked in **`docs/AUDIT_VS_PLAN_VALIDATION.md`**. Every item is either **Done at advanced standard** (with evidence) or **Path-to-10 only**. **Optionals are non-negotiable:** all are Done or N/A with justification; nothing is basic.
 
@@ -76,6 +83,8 @@ python manage.py shell -c "from django.core.cache import cache; cache.clear(); p
 | 6 | Repo cleanup and de-branding | Done | Root clutter removed, artifacts relocated, `gilead` reduced to approved paths |
 | 7 | Final deletion and verification | Done | Deprecation markers in siteconfig/models.py and SITECONFIG_OWNERSHIP_MIGRATION.md; legacy path deletion tracked in migration plan; full gate and security baseline green |
 | 8 | UI/UX, dashboards, and marketing completion | Done | Role-home archetype, page archetypes enforced, Setup Studio premium flow, marketplace trust UX + staged rollout UI, command-first, proof-rich marketing (proof_hero_image_key, why_switch_bullets) |
+
+**§12 alignment (NEXT_50 step 48):** Phase "Done" = phased 0–8 scope complete. **RUNMYCAMPUS §12 gates** are the only authority for 9.5/10 eligibility; until all §12 items are satisfied, completion rows above do not imply platform 9.5 or "all complete." See [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md).
 
 ## Remaining work (Path-to-10 and siteconfig migration) — table closed
 
@@ -211,7 +220,7 @@ Verification performed against repo: all phases have concrete code or doc artifa
 - **siteconfig ownership:** Migration plan and deprecation in SITECONFIG_OWNERSHIP_MIGRATION.md; legacy path deletion tracked—Phase 2 Done.
 - **CSRF and raw SQL:** Inventoried and allowlisted; every remaining use justified (SAML, webhooks, LTI, etc.)—no deferral.
 - **Repo de-branding:** `gilead` reduced to approved paths; archive and residue only—Phase 6 Done.
-- **UI/UX, Final Gaps, scores:** All phases 0–8 Done; Final Gaps checklist 15/15 Done; dry-run 9.5/10 in every category; nothing deferred; everything at advanced standard.
+- **UI/UX, Final Gaps, scores:** All phases 0–8 Done; Final Gaps checklist 15/15 Done at advanced standard. **Eligibility for 9.5/10 is defined by RUNMYCAMPUS §12 only;** §12 gates (siteconfig, runtime, Studio, package, marketplace, docs, marketing) are not all met—see BACKLOG_AND_DEFERRED_CLOSURE.md.
 
 ### North Star execution (this run)
 - [x] Workstream 1: Critical hardening (secret/CSRF/raw SQL/broad except gates; two exceptions narrowed in accounts/views; showmigrations in pre_deploy_gate).
@@ -237,7 +246,7 @@ Verification performed against repo: all phases have concrete code or doc artifa
 - `python scripts/lint_csrf_exempt_usage.py` — classified and unchanged
 - `python scripts/lint_broad_except.py --allowlist ... --strict` — baseline respected
 
-**9.5/10 scoring gates (plan Section 20.17):** Minimum 9.5/10 met in every category. Security hardening (no secret exposure, logout audit, session/rate-limit doc), runtime-as-law documented, System Configuration consoles with Search/Preview/Compare/Audit, package engine reconciliation and Package rollout UI, Setup Studio execute_launch and 6-role preview and AI recommends, 25 first-party apps seed, product tour API, role-native dashboards (data-page-archetype), marketing proof_hero_image_key and why_switch_bullets, AI multiplier (Setup Studio), siteconfig migration plan and deprecation—all complete. Dry-run: [docs/PLATFORM_9.5_SCORE_DRY_RUN.md](docs/PLATFORM_9.5_SCORE_DRY_RUN.md). **No work deferred; no critical platform promise outstanding.**
+**9.5/10 eligibility:** Defined by **RUNMYCAMPUS §12** only; this file does not claim 9.5 until those gates are satisfied. Phases 0–8 deliverables are complete (security hardening, runtime-as-law doc, System Configuration consoles, package engine and Package rollout UI, Setup Studio execute_launch and 6-role preview, marketing proof_hero_image_key and why_switch_bullets, siteconfig migration plan and deprecation). Dry-run reference: [docs/PLATFORM_9.5_SCORE_DRY_RUN.md](docs/PLATFORM_9.5_SCORE_DRY_RUN.md). **Remaining work and §12 gates:** see RUNMYCAMPUS §12 and BACKLOG_AND_DEFERRED_CLOSURE.md.
 
 **Non-negotiable 9.5 references (advanced mode):**
 - **Final Unaddressed Gaps:** [docs/RUNMYCAMPUS_FINAL_UNADDRESSED_GAPS_CHECKLIST.md](docs/RUNMYCAMPUS_FINAL_UNADDRESSED_GAPS_CHECKLIST.md) — 15 gaps (backup/restore, tenant export, a11y, observability, billing/entitlement, feature-flag governance, retention, impersonation, search, deprecation, anti-corruption, marketing assets, contract testing, data quality, tenant maturity). Each row must reach Done or N/A before 9.5 sign-off.
@@ -246,7 +255,7 @@ Verification performed against repo: all phases have concrete code or doc artifa
 
 **Quick 9.5 advanced verification:** Run `python scripts/lint_tenant_settings.py --check-get-solo-only` and `--report-allowlisted`; open System Configuration hub (Compare/Audit links); Setup Studio 6 previews + Go live; tenant app catalog (First-party + rollback copy); command palette Ctrl+K primary; control plane Package rollout (super:package_rollout).
 
-**Validation: complete, non-negotiable, advanced.** Every checklist item is done (no empty [ ]). Every phase 0–8 is **Done**. Nothing is deferred or "save for later." Every implemented item meets the **advanced** standard (edge cases, validation, observability, docs)—not basic. All minimum scores are **9.5/10** in dry-run Section 1. Final Gaps 15/15 Done. Toolsets ledger "Done (code/UX)" column is the 9.5 bar met; "Next" is path-to-10 only. Sign-off: platform meets non-negotiable 9.5 bar and advanced execution standard.
+**Validation (phases 0–8):** Every checklist item in this file for phases 0–8 is done (no empty [ ]). Every implemented item meets the **advanced** standard (edge cases, validation, observability, docs)—not basic. Final Gaps 15/15 Done for the phased scope. **Do not claim 9.5/10 or "all complete"** until RUNMYCAMPUS §12 gates are satisfied; completion authority is §12 and docs_truth_ledger.md. Remaining work is tracked in BACKLOG_AND_DEFERRED_CLOSURE.md and the single source of truth.
 
 ## Historical-doc banner
 

@@ -344,7 +344,7 @@ def certification_export_zip(request, session_id: int):
         # Get checklist items from first candidate (all should use same checklist)
         if candidates.exists():
             first_candidate = candidates.first()
-            checklist_summary = get_document_checklist_summary(first_candidate)
+            _checklist_summary = get_document_checklist_summary(first_candidate)
             
             headers = ["candidate_id", "student_name", "admission_number", "total_items", "required_items", "completed_items", "missing_count"]
             # Add item status columns

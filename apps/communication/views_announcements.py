@@ -6,14 +6,12 @@ Views for announcement management with tiered permissions:
 - Department announcements: HOD/leadership only (existing).
 - Optional: approval workflow and audit logging.
 """
-from django import forms
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import DatabaseError
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpRequest, HttpResponseForbidden
-from django.db.models import Q
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_protect
@@ -34,9 +32,8 @@ from apps.communication.forms_announcements import (
 from apps.accounts.decorators import role_required
 from apps.accounts.models import User
 from apps.people.models import TeacherProfile
-from apps.academics.models import Department
 from apps.platform_runtime.helpers import get_effective_flags
-from apps.siteconfig.models import default_announcement_submit_for_approval_roles
+from apps.siteconfig.models_support import default_announcement_submit_for_approval_roles
 
 ANNOUNCEMENT_FLAG_FAILURES = (
     AttributeError,

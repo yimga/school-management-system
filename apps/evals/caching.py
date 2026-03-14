@@ -1,15 +1,14 @@
 """
 Caching layer for rankings and performance optimization.
+§2.1: Tenant-facing reads use runtime resolver (get_cached_site_settings), not the legacy singleton.
 """
-from datetime import timedelta
+import logging
+
 from django.core.cache import cache
-from django.utils import timezone
-from django.db.models import Avg, Count
-from decimal import Decimal
+from django.db.models import Avg
 
 from apps.academics.models import AcademicYear, Classroom, Term
 from apps.evals.models import Evaluation
-from apps.siteconfig.models import SiteSettings
 from apps.siteconfig.cache_utils import get_tenant_cache_prefix
 
 
@@ -94,9 +93,19 @@ def get_cached_rankings(year_id=None, term_id=None, subject_id=None, classroom_i
             'percentile': round(percentile, 1),
         })
     
-    # Set cache TTL from site settings
-    site_settings = SiteSettings.load()
-    cache_ttl_minutes = site_settings.cache_rankings_interval_minutes or 60
+    # Set cache TTL from site settings (§2.1: resolver path, no get_solo/load)
+    school_id = None
+    if term_id:
+        school_id = Term.objects.filter(pk=term_id).values_list("school_id", flat=True).first()
+    if school_id is None and year_id:
+        school_id = AcademicYear.objects.filter(pk=year_id).values_list("school_id", flat=True).first()
+    school = None
+    if school_id:
+        from apps.schools.models import School
+        school = School.objects.filter(pk=school_id).first()
+    from apps.automation.helpers import get_cached_site_settings
+    site_settings = get_cached_site_settings(school=school)
+    cache_ttl_minutes = getattr(site_settings, "cache_rankings_interval_minutes", None) or 60
     cache_ttl_seconds = cache_ttl_minutes * 60
     
     cache.set(cache_key, result, cache_ttl_seconds)
@@ -156,5 +165,6 @@ def get_cache_stats():
     try:
         stats = cache._cache.get_stats()
         return stats
-    except Exception:
+    except (AttributeError, TypeError, ValueError, KeyError) as e:
+        logging.getLogger(__name__).debug("Cache stats unavailable: %s", e)
         return {}

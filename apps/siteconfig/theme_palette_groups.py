@@ -55,6 +55,14 @@ THEME_PALETTE_GROUPS: Sequence[Tuple[str, Sequence[str]]] = (
             "admin-conservatory",
         ),
     ),
+    (
+        "Ultra High-End",
+        (
+            "admin-ultra-gallery",
+            "admin-ultra-noir",
+            "admin-ultra-platinum",
+        ),
+    ),
 )
 
 

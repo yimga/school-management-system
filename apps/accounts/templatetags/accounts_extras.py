@@ -10,7 +10,7 @@ def _reset_db_state() -> None:
             transaction.set_rollback(False)
         elif connection.needs_rollback:
             connection.rollback()
-    except Exception:
+    except (DatabaseError, TransactionManagementError):
         pass
 
 
@@ -35,7 +35,7 @@ def has_role(user, code):
     from apps.accounts.permissions import has_role as _has_role
     try:
         return _has_role(user, (code or "").strip())
-    except Exception:
+    except (DatabaseError, TransactionManagementError, AttributeError, TypeError):
         _reset_db_state()
         return False
 
@@ -52,6 +52,6 @@ def has_any_role(user, codes):
     from apps.accounts.permissions import has_role as _has_role
     try:
         return any(_has_role(user, c) for c in code_list)
-    except Exception:
+    except (DatabaseError, TransactionManagementError, AttributeError, TypeError):
         _reset_db_state()
         return False

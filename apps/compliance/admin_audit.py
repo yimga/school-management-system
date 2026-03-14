@@ -227,9 +227,8 @@ class ComplianceReportAdmin(ModelAdmin):
     def export_as_pdf(self, request, queryset):
         """Admin action: export selected reports as PDF."""
         from reportlab.lib.pagesizes import letter
-        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
         from reportlab.lib.styles import getSampleStyleSheet
-        from reportlab.lib import colors
         from django.http import HttpResponse
         from io import BytesIO
         

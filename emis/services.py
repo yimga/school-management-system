@@ -151,7 +151,7 @@ class EMISExportService:
                 "school_name": site.site_name or "School Management System",
                 "school_code": site.school_code or "SMS001",
                 "location": location,
-                "country": getattr(site, "country", "") or "Cameroon",
+                "country": getattr(site, "country", "") or "",
                 "total_classrooms": Classroom.objects.count(),
                 "total_students": student_qs.count(),
                 "total_teachers": TeacherProfile.objects.filter(is_active=True).count(),

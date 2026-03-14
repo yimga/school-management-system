@@ -47,7 +47,7 @@
           <button type="button" class="btn btn-outline-secondary js-report-preview-mode" data-mode="tablet">{% trans "Tablet" %}</button>
           <button type="button" class="btn btn-outline-secondary js-report-preview-mode" data-mode="mobile">{% trans "Mobile" %}</button>
         </div>
-        <a id="livePreviewOpenTab" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener">{% trans "Open in new tab" %}</a>
+        <a id="livePreviewOpenTab" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener noreferrer">{% trans "Open in new tab" %}</a>
       </div>
 
       <style>
@@ -89,7 +89,7 @@
         <div class="small text-muted mb-2">{% trans "Preview frame failed, was blocked, or timed out. Use a direct PDF tab and retry after save." %}</div>
         <div class="d-flex flex-wrap gap-2">
           <button id="reportPreviewRetryButton" type="button" class="btn btn-sm btn-outline-secondary">{% trans "Retry preview" %}</button>
-          <a id="reportPreviewFallbackOpenTab" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener">{% trans "Open PDF in new tab" %}</a>
+          <a id="reportPreviewFallbackOpenTab" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener noreferrer">{% trans "Open PDF in new tab" %}</a>
         </div>
       </div>
     {% else %}

@@ -5,7 +5,6 @@ delegations and viewing the "While You Were Away" catch-up log.
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render, get_object_or_404
-from django.urls import reverse
 from django.utils import timezone
 from django.http import HttpResponseForbidden
 
@@ -61,7 +60,7 @@ def delegation_add(request):
                 try:
                     from apps.people.badge_services import create_acting_badge_for_delegation
                     create_acting_badge_for_delegation(d)
-                except Exception:
+                except (ImportError, AttributeError, TypeError, ValueError):
                     pass
                 try:
                     site = get_effective_site_settings(request=request)
@@ -76,7 +75,7 @@ def delegation_add(request):
                             recipient_list=[d.delegate.email],
                             fail_silently=True,
                         )
-                except Exception:
+                except (OSError, ConnectionError, AttributeError, TypeError):
                     pass
             messages.success(request, "Delegation created. Your delegate can now act on your behalf for the selected scope.")
             return redirect("accounts:my_delegations")
@@ -136,7 +135,7 @@ def delegation_revoke(request, pk):
         try:
             from apps.people.badge_services import revoke_acting_badges_for_delegation
             revoke_acting_badges_for_delegation(delegation)
-        except Exception:
+        except (ImportError, AttributeError, TypeError, ValueError):
             pass
         messages.success(request, "Delegation ended. Your delegate can no longer act on your behalf.")
         return redirect("accounts:my_delegations")

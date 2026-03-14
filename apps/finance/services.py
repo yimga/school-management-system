@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import logging
 from collections import defaultdict
-from calendar import monthrange
 from datetime import date
 from decimal import Decimal, ROUND_DOWN
 from typing import Iterable
@@ -11,6 +11,9 @@ from typing import Iterable
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Count, Q, Sum
+from django.db.utils import DatabaseError
+from django.core.exceptions import ObjectDoesNotExist, ImproperlyConfigured
+from django.urls.exceptions import NoReverseMatch
 from django.urls import reverse
 from django.utils import timezone
 
@@ -858,8 +861,8 @@ def create_payment_from_receipt(
             },
             school_id=school_id,
         )
-    except Exception:
-        pass
+    except (ImportError, AttributeError, TypeError, ValueError, KeyError) as e:
+        logging.getLogger(__name__).debug("payment.created emit_event skip: %s", e)
     return payment
 
 
@@ -874,7 +877,6 @@ def _student_for_plan(plan: FeePlan) -> Iterable[StudentProfile]:
 
 def _bulk_create_invoice_notify_guardians_skip():
     """Context manager to skip per-invoice notifications during bulk create (Phase 4.1: use Notify guardians instead)."""
-    from contextvars import copy_context
     from apps.finance.notifications import _skip_new_invoice_notify
     token = _skip_new_invoice_notify.set(True)
     try:
@@ -980,8 +982,8 @@ def create_fee_invoices(
                         },
                         school_id=school_id,
                     )
-                except Exception:
-                    pass
+                except (ImportError, AttributeError, TypeError, ValueError, KeyError) as e:
+                    logging.getLogger(__name__).debug("invoice.created emit_event skip: %s", e)
             if created or not invoice.lines.exists():
                 InvoiceLine.objects.filter(invoice=invoice).delete()
                 for item in fee_items:
@@ -1151,7 +1153,8 @@ def get_parent_fees_summary(user):
             "unpaid_count": unpaid,
             "invoices_url": reverse("finance:invoices"),
         }
-    except Exception:
+    except (NoReverseMatch, ImproperlyConfigured, ObjectDoesNotExist, DatabaseError, AttributeError, TypeError, ValueError) as e:
+        logging.getLogger(__name__).debug("parent_finance_summary skip: %s", e)
         return None
 
 

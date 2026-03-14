@@ -14,8 +14,7 @@ from django.conf import settings
 from django.contrib.auth.decorators import user_passes_test
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import DatabaseError, transaction
-from django.http import HttpResponseForbidden, HttpRequest
-from django.shortcuts import get_object_or_404
+from django.http import HttpResponseForbidden
 
 logger = None  # Set after imports to avoid circular deps
 
@@ -364,7 +363,7 @@ def _guardian_finance_qs(user):
     except DatabaseError:
         _logger.warning("SiteSettings unavailable for guardian finance opt-in; failing closed (require_opt_in=True).")
         require_opt_in = True
-    except Exception:
+    except (AttributeError, TypeError, ValueError, ImportError):
         _logger.warning("SiteSettings error for guardian finance opt-in; failing closed (require_opt_in=True).")
         require_opt_in = True
 
@@ -550,7 +549,6 @@ def can_view_invoice(user, invoice_id: int) -> bool:
         True if authorized
     """
     from apps.finance.models import Invoice
-    from apps.people.models import StudentGuardian
     
     if not user.is_authenticated:
         return False

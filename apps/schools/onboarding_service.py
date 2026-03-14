@@ -14,13 +14,12 @@ Part 0 of RunMyCampus Single Plan. Responsibilities:
 import logging
 from typing import Optional
 
-from django.conf import settings
 from django.db import transaction
+from django.db.utils import DatabaseError, IntegrityError, OperationalError, ProgrammingError
 
 from apps.schools.domain_sync import (
     ensure_schooldomain_records_for_school,
     ensure_tenant_client_for_school,
-    school_subdomain_fqdn,
     sync_school_domains_to_runtime,
     use_django_tenants,
 )
@@ -45,7 +44,6 @@ def validate_slug_uniqueness(slug: str) -> tuple[bool, str]:
         return False, f"School with slug '{slug}' already exists."
     if use_django_tenants():
         from apps.customers.models import Client
-        from apps.schools.domain_sync import _schema_name_for_school
 
         # We don't have a school yet; use a placeholder to get schema name pattern (s_<uuid> is used when school exists)
         # For new onboarding, schema will be s_<school_id.hex> after School is created. So we only need to avoid
@@ -61,17 +59,13 @@ def _drop_tenant_schema(client) -> None:
     if not use_django_tenants():
         return
     try:
-        from django.db import connection
+        from apps.schools.repositories.tenant_schema_repository import drop_tenant_schema_if_exists
 
         schema_name = getattr(client, "schema_name", None)
-        if not schema_name or schema_name == "public":
-            return
-        # Identifier must be quoted (e.g. double-quoted in PostgreSQL)
-        quoted = connection.ops.quote_name(schema_name)
-        with connection.cursor() as cursor:
-            cursor.execute(f"DROP SCHEMA IF EXISTS {quoted} CASCADE;")
-        logger.warning("Dropped schema %s (onboarding kill-switch).", schema_name)
-    except Exception as e:
+        drop_tenant_schema_if_exists(schema_name or "")
+        if schema_name and schema_name != "public":
+            logger.warning("Dropped schema %s (onboarding kill-switch).", schema_name)
+    except (DatabaseError, OperationalError, ProgrammingError, ImportError, AttributeError, TypeError) as e:
         logger.exception("Failed to drop schema %s: %s", getattr(client, "schema_name", "?"), e)
 
 
@@ -85,7 +79,7 @@ def _run_tenant_migrations(client) -> None:
 
         with tenant_context(client):
             call_command("migrate", "--run-syncdb", verbosity=1)
-    except Exception as e:
+    except (ImportError, DatabaseError, OperationalError, OSError, RuntimeError, TypeError, ValueError) as e:
         logger.exception("Tenant migrations failed for schema %s: %s", getattr(client, "schema_name", "?"), e)
         raise
 
@@ -104,7 +98,7 @@ def _audit_log_public(event: str, slug: str, success: bool, message: str = "", p
                 message=message,
                 payload=payload or {},
             )
-    except Exception:
+    except (DatabaseError, IntegrityError, AttributeError, TypeError, ValueError):
         logger.exception("Audit log (public) failed for onboarding event %s", event)
 
 
@@ -164,13 +158,13 @@ def onboard_tenant(
         if not client:
             try:
                 client = ensure_tenant_client_for_school(school)
-            except Exception as e:
+            except (DatabaseError, IntegrityError, OSError, ConnectionError, AttributeError, TypeError, ValueError, ImportError) as e:
                 _audit_log_public("ONBOARDING_FAILED", slug, False, str(e), {"error": str(e)})
                 return {"success": False, "school_id": str(school.id), "client_id": None, "message": f"Failed to create tenant client: {e}", "error": str(e)}
         if client and run_migrations:
             try:
                 _run_tenant_migrations(client)
-            except Exception as e:
+            except (ImportError, DatabaseError, OperationalError, OSError, RuntimeError, TypeError, ValueError) as e:
                 if kill_switch_on_failure:
                     _drop_tenant_schema(client)
                 _audit_log_public("ONBOARDING_FAILED", slug, False, f"Migrations failed: {e}", {"error": str(e)})
@@ -179,7 +173,7 @@ def onboard_tenant(
     if run_seed:
         try:
             provision_school_sync(str(school.id), contact_email=contact_email or "")
-        except Exception as e:
+        except (DatabaseError, IntegrityError, OSError, ConnectionError, ValueError, TypeError, AttributeError, ImportError, RuntimeError) as e:
             if use_django_tenants() and client and kill_switch_on_failure:
                 _drop_tenant_schema(client)
             _audit_log_public("ONBOARDING_FAILED", slug, False, f"Seed/provision failed: {e}", {"error": str(e)})
@@ -188,7 +182,7 @@ def onboard_tenant(
     try:
         ensure_schooldomain_records_for_school(school)
         sync_school_domains_to_runtime(school)
-    except Exception as e:
+    except (OSError, ConnectionError, DatabaseError, AttributeError, TypeError, ValueError) as e:
         logger.warning("Domain sync failed for %s: %s", slug, e)
 
     _audit_log_public("ONBOARDING_COMPLETED", slug, True, "Onboarding completed.", {"school_id": str(school.id)})

@@ -10,13 +10,13 @@ from django.urls import reverse
 
 from apps.portal.models import PhotoUploadToken
 from apps.people.models import StudentProfile, TeacherProfile
-from apps.siteconfig.models import SiteSettings
+from apps.platform_runtime.helpers import get_platform_site_settings_record
 
 User = get_user_model()
 
 
 def _site_with_photo_upload_remote(enabled):
-    site = SiteSettings.get_solo()
+    site = get_platform_site_settings_record(create=True)
     pf = dict(site.portal_features or {})
     pf["photo_upload_remote"] = enabled
     site.portal_features = pf

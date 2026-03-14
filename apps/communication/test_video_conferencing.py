@@ -3,7 +3,6 @@ Phase 9 Task 5: Video Conferencing - Tests
 Virtual classroom, session management, attendance tracking tests
 """
 
-import unittest
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -13,7 +12,6 @@ from datetime import timedelta
 from apps.communication.video_conferencing import (
     VirtualClassroom,
     SessionParticipant,
-    SessionRecording,
     BreakoutRoom,
     VideoConferenceService,
     VideoConferenceProvider,

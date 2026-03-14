@@ -9,11 +9,7 @@ Enhanced Evaluation Models for:
 """
 
 from django.db import models
-from django.core.exceptions import ValidationError
-from django.utils import timezone
-from django.contrib.postgres.fields import ArrayField
 from decimal import Decimal
-import hashlib
 import json
 
 from apps.academics.models import AcademicYear, Term, SubjectAssignment

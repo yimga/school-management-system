@@ -3,7 +3,7 @@ from django.test import RequestFactory, TestCase
 
 from apps.accounts.models import User
 from apps.portal.views import seating_chart_view
-from apps.siteconfig.models import SiteSettings
+from apps.platform_runtime.helpers import get_platform_site_settings_record
 
 
 class SeatingChartFlagTests(TestCase):
@@ -20,7 +20,7 @@ class SeatingChartFlagTests(TestCase):
             seating_chart_view(request)
 
     def test_seating_chart_enabled_renders(self):
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         flags = dict(site.backend_feature_flags or {})
         flags["enable_seating_chart_beta"] = True
         site.backend_feature_flags = flags

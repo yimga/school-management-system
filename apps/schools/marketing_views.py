@@ -13,6 +13,7 @@ from urllib.parse import urlparse
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
 from django.templatetags.static import static
+from django.db import DatabaseError, OperationalError
 from django.db.models import Count, Q
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
@@ -1700,9 +1701,7 @@ COMPARE_PAGE_DEFINITIONS = {
 def _safe_reverse(name: str, *, kwargs: dict | None = None) -> str:
     try:
         return reverse(name, kwargs=kwargs)
-    except NoReverseMatch:
-        return "#"
-    except Exception:
+    except (NoReverseMatch, ValueError, TypeError):
         return "#"
 
 
@@ -1750,7 +1749,7 @@ def _get_country_from_request(request) -> str:
             return ""
         code = (get_country_from_ip(ip) or "").strip().upper()[:2]
         return code
-    except Exception:
+    except (ImportError, AttributeError, TypeError, ValueError, OSError):
         return ""
 
 
@@ -1780,7 +1779,7 @@ def _absolute_url(request, path: str) -> str:
 
 
 def _global_hreflang_entries(request, *, country_code: str, language_code: str) -> list[dict]:
-    language = _normalize_language_code(language_code or "en")
+    _language = _normalize_language_code(language_code or "en")
     country = _normalize_country_code(country_code)
     if not country:
         return []
@@ -1824,7 +1823,7 @@ def _get_regional_pitch(country_code: str, language_code: str) -> dict:
         from apps.siteconfig.models import RegionalPitch
 
         pitch = RegionalPitch.objects.filter(country_code=country, is_active=True).first()
-    except Exception:
+    except (ImportError, DatabaseError, OperationalError, AttributeError, TypeError):
         pitch = None
     if not pitch:
         return default
@@ -2197,7 +2196,7 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
             parsed = urlparse(marketing_analytics_script_url)
             if parsed.scheme and parsed.netloc:
                 marketing_analytics_preconnect_origin = f"{parsed.scheme}://{parsed.netloc}"
-        except Exception:
+        except (ValueError, TypeError, AttributeError):
             pass
 
     # Outcome-focused landing copy (world-class SaaS front). Wave 4: evidence-driven by geo and channel.
@@ -2499,6 +2498,19 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
     school_in_a_box_flow_image_url = getattr(settings, "MARKETING_SCHOOL_IN_A_BOX_FLOW_IMAGE_URL", None) or _diagram_fallback
     data_intelligence_loop_image_url = getattr(settings, "MARKETING_DATA_INTELLIGENCE_LOOP_IMAGE_URL", None) or _diagram_fallback
     ecosystem_map_image_url = getattr(settings, "MARKETING_ECOSYSTEM_MAP_IMAGE_URL", None) or _diagram_fallback
+    # §12 MARKETING_FRONT_PLACEHOLDER: wire all asset keys (templates use these).
+    migration_diagram_url = getattr(settings, "MARKETING_MIGRATION_DIAGRAM_URL", None) or migration_cloud_diagram_url
+    ecosystem_diagram_url = getattr(settings, "MARKETING_ECOSYSTEM_DIAGRAM_URL", None) or ecosystem_map_image_url
+    control_plane_diagram_url = getattr(settings, "MARKETING_CONTROL_PLANE_DIAGRAM_URL", None) or _diagram_fallback
+    setup_studio_flow_image_url = getattr(settings, "MARKETING_SETUP_STUDIO_FLOW_IMAGE_URL", None) or _diagram_fallback
+    # §12 platform-grade: every asset slot has a non-empty fallback so marketing front never shows broken/empty sections.
+    health_score_visual_url = getattr(settings, "MARKETING_HEALTH_SCORE_VISUAL_URL", None) or _diagram_fallback
+    role_preview_images = getattr(settings, "MARKETING_ROLE_PREVIEW_IMAGES", None) or [
+        {"role": "principal", "label": "Principal", "image_url": "", "image_static": "images/marketing/viz-admin.svg"},
+        {"role": "teacher", "label": "Teacher", "image_url": "", "image_static": "images/marketing/viz-teacher.svg"},
+        {"role": "parent", "label": "Parent", "image_url": "", "image_static": "images/marketing/viz-student360.svg"},
+        {"role": "student", "label": "Student", "image_url": "", "image_static": "images/marketing/viz-student360.svg"},
+    ]
 
     # AI Intelligence section: dedicated homepage block (required).
     ai_intelligence_features = [
@@ -2599,6 +2611,12 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         "school_in_a_box_flow_image_url": school_in_a_box_flow_image_url,
         "data_intelligence_loop_image_url": data_intelligence_loop_image_url,
         "ecosystem_map_image_url": ecosystem_map_image_url,
+        "migration_diagram_url": migration_diagram_url,
+        "ecosystem_diagram_url": ecosystem_diagram_url,
+        "control_plane_diagram_url": control_plane_diagram_url,
+        "setup_studio_flow_image_url": setup_studio_flow_image_url,
+        "health_score_visual_url": health_score_visual_url,
+        "role_preview_images": role_preview_images,
         "ai_intelligence_features": ai_intelligence_features,
         "ai_intelligence_cta_path": ai_intelligence_cta_path,
         "customer_logos": customer_logos,
@@ -2626,6 +2644,9 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         "hero_ai_line": hero_ai_line,
         "differentiation_block": differentiation_block,
         "enterprise_path_copy": enterprise_path_copy,
+        # §8.4 MARKETING_FRONT_PLACEHOLDER: safe defaults so templates can reference without KeyError
+        "comparison_table": getattr(settings, "MARKETING_COMPARISON_TABLE", None) or [],
+        "replacement_messaging": getattr(settings, "MARKETING_REPLACEMENT_MESSAGING", None) or {},
     }
 
 
@@ -2736,7 +2757,7 @@ def _get_blog_posts(limit: int = 20):
             BlogPost.objects.filter(is_published=True)
             .order_by("-published_at", "-created_at")[:limit]
         )
-    except Exception:
+    except (ImportError, DatabaseError, OperationalError, AttributeError, TypeError):
         return []
 
 
@@ -2747,7 +2768,7 @@ def blog_post_detail(request, slug: str):
         from apps.siteconfig.models import BlogPost
 
         post = BlogPost.objects.filter(slug=slug, is_published=True).first()
-    except Exception:
+    except (ImportError, DatabaseError, OperationalError, AttributeError, TypeError):
         post = None
     if not post:
         raise Http404("Blog post not found")
@@ -3226,7 +3247,7 @@ def _setup_simulator_cta_url(request, cta_slug):
     try:
         path = reverse(name)
         return request.build_absolute_uri(path)
-    except Exception:
+    except (NoReverseMatch, ValueError, TypeError):
         return None
 
 
@@ -3531,7 +3552,7 @@ def _sitemap_entries(request) -> list[tuple[str, str, str]]:
             .values_list("iso_code", "primary_language")
             .order_by("iso_code")
         )
-    except Exception:
+    except (ImportError, DatabaseError, OperationalError, AttributeError, TypeError):
         countries = []
 
     if not countries:
@@ -3602,8 +3623,8 @@ def developer_sdk(request):
     """
     SDK documentation page (Section 6): auth, base URL, and API reference pointers.
     """
-    base = get_canonical_base_domain() or request.get_host().split(":")[0]
-    scheme = "https" if request.is_secure() else "http"
+    _base = get_canonical_base_domain() or request.get_host().split(":")[0]
+    _scheme = "https" if request.is_secure() else "http"
     links = {
         "portal": request.build_absolute_uri(reverse("developer_portal")),
         "sandbox": request.build_absolute_uri(reverse("developer_sandbox")),

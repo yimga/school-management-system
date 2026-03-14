@@ -45,8 +45,9 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-2">
-  <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench">
+  <a href="#studio-canvas" class="visually-hidden-focusable btn btn-sm btn-outline-primary position-absolute top-0 start-0 m-2 px-3 py-2 rounded z-1" style="z-index: 1060;">{% trans "Skip to Studio content" %}</a>
+  <div class="d-flex align-items-center gap-2 mb-3 flex-wrap" role="toolbar" aria-label="{% trans 'Studio toolbar' %}">
     <a href="{% url 'studio_os:shell' %}" class="btn btn-sm btn-outline-secondary" aria-label="{% trans 'Studio home' %}">
       <i class="bi bi-grid-3x3-gap"></i>
     </a>
@@ -62,17 +63,17 @@
   </div>
 
   <div class="studio-os">
-    <nav class="studio-os__rail" aria-label="{% trans 'Studio modes' %}">
-      <div class="studio-os__home">{% trans "Work modes" %}</div>
-      <a href="{% url 'studio_os:shell' %}" class="{% if not current_mode %}active{% endif %}">{% trans "Overview" %}</a>
-      <a href="{% url 'studio_os:experience' %}" class="{% if current_mode == 'experience' %}active{% endif %}">{% trans "Experience" %}</a>
-      <a href="{% url 'studio_os:automation' %}" class="{% if current_mode == 'automation' %}active{% endif %}">{% trans "Automation" %}</a>
-      <a href="{% url 'studio_os:output' %}" class="{% if current_mode == 'output' %}active{% endif %}">{% trans "Outputs" %}</a>
-      <a href="{% url 'studio_os:launch' %}" class="{% if current_mode == 'launch' %}active{% endif %}">{% trans "Launch" %}</a>
-      <a href="{% url 'studio_os:control' %}" class="{% if current_mode == 'control' %}active{% endif %}">{% trans "Control" %}</a>
+    <nav class="studio-os__rail" aria-label="{% trans 'Studio modes' %}" role="navigation">
+      <div class="studio-os__home" id="studio-rail-label">{% trans "Work modes" %}</div>
+      <a href="{% url 'studio_os:shell' %}" class="{% if not current_mode %}active{% endif %}" {% if not current_mode %}aria-current="page"{% endif %}>{% trans "Overview" %}</a>
+      <a href="{% url 'studio_os:experience' %}" class="{% if current_mode == 'experience' %}active{% endif %}" {% if current_mode == 'experience' %}aria-current="page"{% endif %}>{% trans "Experience" %}</a>
+      <a href="{% url 'studio_os:automation' %}" class="{% if current_mode == 'automation' %}active{% endif %}" {% if current_mode == 'automation' %}aria-current="page"{% endif %}>{% trans "Automation" %}</a>
+      <a href="{% url 'studio_os:output' %}" class="{% if current_mode == 'output' %}active{% endif %}" {% if current_mode == 'output' %}aria-current="page"{% endif %}>{% trans "Outputs" %}</a>
+      <a href="{% url 'studio_os:launch' %}" class="{% if current_mode == 'launch' %}active{% endif %}" {% if current_mode == 'launch' %}aria-current="page"{% endif %}>{% trans "Launch" %}</a>
+      <a href="{% url 'studio_os:control' %}" class="{% if current_mode == 'control' %}active{% endif %}" {% if current_mode == 'control' %}aria-current="page"{% endif %}>{% trans "Control" %}</a>
     </nav>
 
-    <main class="studio-os__canvas" id="studio-canvas">
+    <main class="studio-os__canvas" id="studio-canvas" role="main" tabindex="-1">
       {% block studio_canvas %}
         {% if not current_mode %}
           <p class="text-muted mb-3">{% trans "One workspace for experience, automation, outputs, launch, and control. Choose a mode to start." %}</p>
@@ -107,6 +108,16 @@
     </main>
 
     <aside class="studio-os__right" aria-label="{% trans 'Impact and actions' %}">
+      {% if studio_role_preview_entries %}
+      <div class="studio-os__card">
+        <h2 class="h6">{% trans "Preview as" %}</h2>
+        <ul class="studio-os-activity-list mb-2">
+          {% for r in studio_role_preview_entries %}
+          <li>{% if r.url %}<a href="{{ r.url }}" target="_blank" rel="noopener noreferrer">{{ r.label|default:r.role|default:"Preview" }}</a>{% else %}<span class="text-muted">{{ r.label|default:r.role }}</span>{% endif %}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
       {% if studio_recommendations %}
       <div class="studio-os__card">
         <h2 class="h6">{% trans "Recommended" %}</h2>
@@ -164,7 +175,7 @@
           <p class="small fw-semibold mb-1">{% trans "Role preview" %}</p>
           <ul class="studio-os-activity-list mb-2">
             {% for r in launch_role_previews|slice:":6" %}
-            <li>{% if r.url %}<a href="{{ r.url }}" target="_blank" rel="noopener">{{ r.role|default:r.label|default:"Preview" }}</a>{% else %}<span class="text-muted">{{ r.role|default:r.label }}</span>{% endif %}</li>
+            <li>{% if r.url %}<a href="{{ r.url }}" target="_blank" rel="noopener noreferrer">{{ r.role|default:r.label|default:"Preview" }}</a>{% else %}<span class="text-muted">{{ r.role|default:r.label }}</span>{% endif %}</li>
             {% endfor %}
           </ul>
           {% endif %}
@@ -222,9 +233,9 @@
 </div>
 
 <div class="studio-os-cmd-backdrop d-none" id="studio-cmd-backdrop" aria-hidden="true"></div>
-<div class="studio-os-cmd-palette d-none" id="studio-cmd-palette" role="dialog" aria-label="{% trans 'Command palette' %}">
-  <input type="text" class="form-control" id="studio-cmd-filter" placeholder="{% trans 'Type to filter...' %}" autocomplete="off">
-  <ul id="studio-cmd-list">
+<div class="studio-os-cmd-palette d-none" id="studio-cmd-palette" role="dialog" aria-modal="true" aria-label="{% trans 'Command palette' %}" aria-describedby="studio-cmd-filter">
+  <input type="text" class="form-control" id="studio-cmd-filter" placeholder="{% trans 'Type to filter...' %}" autocomplete="off" aria-controls="studio-cmd-list">
+  <ul id="studio-cmd-list" aria-live="polite" aria-label="{% trans 'Commands' %}">
     {% for e in studio_command_palette_entries %}
     <li><a href="{{ e.url }}" data-keywords="{{ e.keywords|default:'' }}">{{ e.label }}</a></li>
     {% endfor %}
@@ -265,12 +276,33 @@
       a.parentElement.style.display = text.indexOf(q) !== -1 ? '' : 'none';
     });
   });
+  function getVisibleCommandLinks() {
+    if (!list) return []; return Array.prototype.filter.call(list.querySelectorAll('li a'), function(el) { var li = el.closest('li'); return li && li.style.display !== 'none'; });
+  }
   filter.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') closePalette();
+    if (e.key === 'ArrowDown' && list) { e.preventDefault(); var vis = getVisibleCommandLinks(); if (vis.length) vis[0].focus(); }
+  });
+  list.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closePalette();
+    var a = e.target.closest('a'); if (!a) return;
+    var vis = getVisibleCommandLinks(); var idx = vis.indexOf(a);
+    if (e.key === 'ArrowDown' && idx >= 0 && idx < vis.length - 1) { e.preventDefault(); vis[idx + 1].focus(); }
+    if (e.key === 'ArrowUp' && idx > 0) { e.preventDefault(); vis[idx - 1].focus(); }
+    if (e.key === 'ArrowUp' && idx === 0) { e.preventDefault(); filter.focus(); }
+    if (e.key === 'Enter') { e.preventDefault(); a.click(); }
   });
   list.addEventListener('click', function(e) {
     if (e.target.tagName === 'A') closePalette();
   });
+  function trapFocus(e) {
+    if (e.key !== 'Tab' || palette.classList.contains('d-none')) return;
+    var focusables = palette.querySelectorAll('input, #studio-cmd-list a[href]'); if (focusables.length < 2) return;
+    var first = focusables[0], last = focusables[focusables.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+  palette.addEventListener('keydown', trapFocus);
   if (search && list) {
     search.addEventListener('keydown', function(e) {
       if (e.key === 'Enter') { e.preventDefault(); openPalette(); filter.value = search.value; filter.dispatchEvent(new Event('input')); }

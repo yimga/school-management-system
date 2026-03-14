@@ -6,7 +6,7 @@ import os
 from unittest.mock import patch
 
 from django.test import Client, TestCase, override_settings
-from django.urls import reverse, NoReverseMatch
+from django.urls import reverse
 
 
 # URL names exercised by manage.py validate_marketing_urls (and --smoke subset)

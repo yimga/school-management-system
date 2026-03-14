@@ -1,10 +1,10 @@
 """Compliance analytics and reporting for Phase 1.2.9"""
-from django.db.models import Count, Q, Avg, Max, Min
+from django.db.models import Avg
 from django.utils import timezone
-from datetime import datetime, timedelta
+from datetime import timedelta
 from apps.compliance.models import (
     ComplianceCheck, RegionalComplianceRequirement, ComplianceAuditLog, 
-    LegalDocument, CertificateTemplate
+    LegalDocument
 )
 from apps.global_registries.models import RegionConfig
 

@@ -64,7 +64,7 @@ class PayWithWalletTests(TestCase):
         )
 
     def test_pay_invoice_with_wallet_creates_payment_and_debits_wallet(self):
-        wallet = ParentWallet.objects.create(
+        _wallet = ParentWallet.objects.create(
             school=self.school,
             user=self.user,
             balance=Decimal("100.00"),

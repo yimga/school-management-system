@@ -11,7 +11,6 @@ from django.utils import timezone
 from apps.accounts.decorators import parent_portal_required, role_required
 from apps.accounts.models import User
 from apps.communication.models import ContactRequest
-from apps.people.models import StudentProfile
 
 from .forms_contact_requests import ContactRequestAssignForm, ContactRequestCreateForm, ContactRequestUpdateStatusForm
 from .services import guardian_student_links

@@ -59,7 +59,7 @@ def _run_one_step(
 
     if dry_run:
         if rows or mapping:
-            scorecard = run_dry_run(
+            run_dry_run(
                 school,
                 profile.domain,
                 rows,

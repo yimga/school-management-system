@@ -3,9 +3,9 @@ from django.test import TestCase
 
 from apps.automation.models import AutomationExecutionLog
 from apps.finance.models import Notification
+from apps.platform_runtime.helpers import get_platform_site_settings_record
 from apps.requests.models import AccessRequest
 from apps.requests.tasks import remind_pending_assignees_task
-from apps.siteconfig.models import SiteSettings
 
 
 User = get_user_model()
@@ -34,7 +34,7 @@ class RequestsReminderTaskTests(TestCase):
         )
 
     def test_task_creates_success_execution_log_when_enabled(self):
-        settings = SiteSettings.get_solo()
+        settings = get_platform_site_settings_record(create=True)
         settings.requests_reminder_interval_hours = 24
         settings.save(update_fields=["requests_reminder_interval_hours"])
 
@@ -50,7 +50,7 @@ class RequestsReminderTaskTests(TestCase):
         self.assertEqual(log.execution_summary.get("pending_total"), 1)
 
     def test_task_logs_success_with_zero_when_disabled(self):
-        settings = SiteSettings.get_solo()
+        settings = get_platform_site_settings_record(create=True)
         settings.requests_reminder_interval_hours = 0
         settings.save(update_fields=["requests_reminder_interval_hours"])
 

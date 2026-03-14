@@ -1,7 +1,7 @@
 {% load static i18n %}
-<nav class="navbar navbar-expand-lg navbar-dark mkt-navbar" aria-label="{% trans 'Main navigation' %}">
+<nav class="navbar navbar-expand-lg navbar-dark mkt-navbar statement-header" aria-label="{% trans 'Main navigation' %}">
   <div class="container">
-    <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{% url 'home' %}">
+    <a class="navbar-brand fw-bold d-flex align-items-center gap-2 statement-logo" href="{% url 'home' %}">
       {% if PUBLIC_BRAND_MODE and PUBLIC_BRAND_LOGO_URL %}
         <img src="{{ PUBLIC_BRAND_LOGO_URL }}" alt="" width="32" height="32" decoding="async" loading="lazy" style="object-fit: contain;">
       {% else %}

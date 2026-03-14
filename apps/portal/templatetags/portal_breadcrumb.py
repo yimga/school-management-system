@@ -11,7 +11,7 @@ def split(value, delimiter="/"):
 
     try:
         parts = str(value).split(delimiter)
-    except Exception:
+    except (TypeError, AttributeError, ValueError):
         return []
 
     return [segment for segment in parts if segment]
@@ -27,5 +27,5 @@ def breadcrumb_label(value):
         label = str(value)
         label = label.replace("_", " ").replace("-", " ")
         return label.title()
-    except Exception:
+    except (TypeError, AttributeError, ValueError):
         return value

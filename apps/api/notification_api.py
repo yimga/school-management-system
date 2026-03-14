@@ -83,7 +83,6 @@ class NotificationViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['get'])
     def unread_count(self, request):
         """Get count of unread notifications"""
-        from apps.finance.models import Notification
         
         count = self.get_queryset().filter(is_read=False).count()
         return Response({'unread_count': count})
@@ -104,7 +103,6 @@ class NotificationViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'], url_path='mark-all-read')
     def mark_all_read(self, request):
         """Mark all notifications as read"""
-        from apps.finance.models import Notification
         
         count = self.get_queryset().filter(is_read=False).update(is_read=True)
         

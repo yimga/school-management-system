@@ -24,6 +24,7 @@ def _current_rls_school_id() -> str | None:
     try:
         if connection.vendor != "postgresql":
             return None
+        # §2.4 raw_sql_replacement_targets: RLS session var only; no ORM equivalent; keep in this module.
         with connection.cursor() as cursor:
             cursor.execute("SELECT current_setting('app.current_school_id', true)")
             row = cursor.fetchone()

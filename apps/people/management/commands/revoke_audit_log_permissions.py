@@ -2,6 +2,8 @@
 Revoke UPDATE and DELETE on audit_log in each tenant schema (immutable audit trail).
 
 Part 4.6. Run after tenant migrations so the app role can only INSERT into audit_log.
+§2.4 Raw SQL wrap: delegates to people.repositories.audit_repository.
+
 PostgreSQL only. Use --dry-run to print SQL without executing.
 
   python manage.py revoke_audit_log_permissions
@@ -10,10 +12,7 @@ PostgreSQL only. Use --dry-run to print SQL without executing.
 from django.core.management.base import BaseCommand
 from django.db import connection
 
-
-def _revoke_in_schema(cursor, schema_name: str) -> None:
-    cursor.execute("SET search_path TO %s", [schema_name])
-    cursor.execute("REVOKE UPDATE, DELETE ON audit_log FROM CURRENT_USER;")
+from apps.people.repositories.audit_repository import revoke_audit_log_mutations, set_search_path
 
 
 class Command(BaseCommand):
@@ -59,7 +58,8 @@ class Command(BaseCommand):
                 continue
             try:
                 with connection.cursor() as cursor:
-                    _revoke_in_schema(cursor, schema_name)
+                    set_search_path(cursor, schema_name)
+                    revoke_audit_log_mutations(cursor)
                 self.stdout.write(self.style.SUCCESS("OK %s (%s)" % (label, schema_name)))
             except Exception as e:
                 self.stdout.write(self.style.ERROR("FAILED %s: %s" % (schema_name, e)))

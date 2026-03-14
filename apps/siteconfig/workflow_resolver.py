@@ -35,7 +35,7 @@ def for_action(school, action_slug: str) -> dict[str, Any]:
         return {"type": "form_signature", "steps": ["pending", "signed", "rejected", "expired"]}
     # Automation workflows: active TenantWorkflow for template code
     try:
-        from .models_workflow import TenantWorkflow, WorkflowTemplate
+        from .models_workflow import TenantWorkflow
         tw = TenantWorkflow.objects.filter(
             school=school,
             template__code=action_slug,

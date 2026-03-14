@@ -10,7 +10,9 @@ from django.views import View
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-from django.db.models import Count, Sum, Avg, Q
+from django.db.models import Count, Sum, Q
+from django.db.utils import DatabaseError
+from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 from datetime import timedelta
 import logging
@@ -77,8 +79,8 @@ class AdminDashboardOverviewAPI(View):
                 'system_health': 'healthy',
                 'last_updated': timezone.now().isoformat(),
             })
-        except Exception as e:
-            logger.error(f"Dashboard API error: {e}")
+        except (ImportError, AttributeError, TypeError, ValueError, ObjectDoesNotExist, DatabaseError) as e:
+            logger.error("Dashboard API error: %s", e, exc_info=True)
             return JsonResponse({'error': str(e)}, status=500)
 
 
@@ -148,8 +150,8 @@ class TeacherDashboardAPI(View):
                 'class_average': class_average,
                 'last_updated': timezone.now().isoformat(),
             })
-        except Exception as e:
-            logger.error(f"Teacher dashboard error: {e}")
+        except (ImportError, AttributeError, TypeError, ValueError, ObjectDoesNotExist, DatabaseError) as e:
+            logger.error("Teacher dashboard error: %s", e, exc_info=True)
             return JsonResponse({'error': str(e)}, status=500)
 
 
@@ -211,8 +213,8 @@ class ParentDashboardAPI(View):
                 'upcoming_events': 0,  # Implement based on your event model
                 'last_updated': timezone.now().isoformat(),
             })
-        except Exception as e:
-            logger.error(f"Parent dashboard error: {e}")
+        except (ImportError, AttributeError, TypeError, ValueError, ObjectDoesNotExist, DatabaseError) as e:
+            logger.error("Parent dashboard error: %s", e, exc_info=True)
             return JsonResponse({'error': str(e)}, status=500)
 
 
@@ -228,8 +230,7 @@ class StudentDashboardAPI(View):
         try:
             from apps.people.models import StudentProfile
             from apps.academics.models import Attendance, Classroom
-            from apps.evals.models import Evaluation  # Adjust based on your model
-            
+
             student = StudentProfile.objects.get(user=request.user)
             
             # Current classes
@@ -261,8 +262,8 @@ class StudentDashboardAPI(View):
                 'current_classes': current_classes,
                 'last_updated': timezone.now().isoformat(),
             })
-        except Exception as e:
-            logger.error(f"Student dashboard error: {e}")
+        except (ImportError, AttributeError, TypeError, ValueError, ObjectDoesNotExist, DatabaseError) as e:
+            logger.error("Student dashboard error: %s", e, exc_info=True)
             return JsonResponse({'error': str(e)}, status=500)
 
 
@@ -286,7 +287,6 @@ class FinancialDashboardAPI(View):
             outstanding = total_invoiced - total_revenue
             
             # Payment breakdown by method
-            from apps.finance.models import PaymentMethod
             payment_methods = Payment.objects.values(
                 'payment_method'
             ).annotate(total=Sum('amount')).order_by('-total')
@@ -304,8 +304,8 @@ class FinancialDashboardAPI(View):
                 'invoices_by_status': list(invoices_by_status),
                 'last_updated': timezone.now().isoformat(),
             })
-        except Exception as e:
-            logger.error(f"Financial dashboard error: {e}")
+        except (ImportError, AttributeError, TypeError, ValueError, ObjectDoesNotExist, DatabaseError) as e:
+            logger.error("Financial dashboard error: %s", e, exc_info=True)
             return JsonResponse({'error': str(e)}, status=500)
 
 
@@ -320,8 +320,7 @@ class AcademicDashboardAPI(View):
         
         try:
             from apps.academics.models import Classroom
-            from apps.evals.models import Evaluation
-            
+
             # Total classes
             total_classes = Classroom.objects.filter(is_active=True).count()
             
@@ -341,6 +340,6 @@ class AcademicDashboardAPI(View):
                 'attendance_summary': attendance_by_class,
                 'last_updated': timezone.now().isoformat(),
             })
-        except Exception as e:
-            logger.error(f"Academic dashboard error: {e}")
+        except (ImportError, AttributeError, TypeError, ValueError, ObjectDoesNotExist, DatabaseError) as e:
+            logger.error("Academic dashboard error: %s", e, exc_info=True)
             return JsonResponse({'error': str(e)}, status=500)

@@ -4,7 +4,6 @@ Dashboard metrics, widgets, customization tests
 """
 
 from django.test import TestCase
-from django.utils import timezone
 
 
 class AdminDashboardServiceTestCase(TestCase):

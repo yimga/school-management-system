@@ -7,9 +7,6 @@ from django.test import TestCase, TransactionTestCase
 from django.utils import timezone
 from django.core.management import call_command
 from datetime import datetime, timedelta
-import json
-import os
-from pathlib import Path
 from io import StringIO
 
 
@@ -194,7 +191,7 @@ class TranslationCommandsTestCase(TestCase):
             
             # Should complete successfully
             self.assertIn('Translations compiled successfully', output)
-        except Exception as e:
+        except Exception:
             # Command might not be registered, which is OK for test
             pass
     
@@ -208,7 +205,7 @@ class TranslationCommandsTestCase(TestCase):
             
             # Should complete without error
             self.assertIsNotNone(output)
-        except Exception as e:
+        except Exception:
             # Command might not be registered, which is OK for test
             pass
 

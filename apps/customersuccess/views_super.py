@@ -5,8 +5,7 @@ All views require Super Admin access (use require_super_access in urlconf).
 from django.db import DatabaseError
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
-from django.views.decorators.http import require_GET, require_http_methods
-from django.utils import timezone
+from django.views.decorators.http import require_GET
 
 from apps.schools.models import School
 

@@ -1,38 +1,66 @@
 {% extends "studio_os/shell.html" %}
 {% load static i18n %}
 
+{% block extrastyle %}
+{{ block.super }}
+<style>
+  .studio-os__output-rail a.output-rail-link { display: block; padding: 0.35rem 0.5rem; border-radius: 4px; color: var(--color-base-700, #334155); text-decoration: none; }
+  .studio-os__output-rail a.output-rail-link:hover { background: var(--color-base-100, #f1f5f9); color: var(--color-base-900, #0f172a); }
+  .studio-os__output-rail a.output-rail-link.active { background: var(--color-primary-50, #eff6ff); color: var(--color-primary-700, #1d4ed8); font-weight: 500; }
+  .studio-os__output-rail a.output-rail-link:focus-visible { outline: 2px solid var(--color-primary-500, #3b82f6); outline-offset: 2px; }
+</style>
+{% endblock %}
+
 {% block studio_canvas %}
-  <div class="d-flex gap-3 flex-wrap flex-lg-nowrap">
-    <nav class="studio-os__output-rail flex-shrink-0 mb-2 mb-lg-0" aria-label="{% trans 'Outputs' %}" style="width: 180px;">
+  {% if output_left_rail %}
+  <div class="d-flex gap-3 flex-wrap flex-lg-nowrap studio-os__output-wrap">
+    <nav class="studio-os__output-rail flex-shrink-0 mb-2 mb-lg-0" aria-label="{% trans 'Outputs' %}" style="width: 200px;">
       <div class="studio-os__card py-2">
-        <div class="h6 mb-2">{% trans "Output types" %}</div>
-        <ul class="list-unstyled small mb-0">
-          <li><a href="{% url 'studio_os:output' %}">{% trans "Reports" %}</a></li>
-          <li><a href="{% url 'studio_os:output' %}?pane=documents">{% trans "Documents" %}</a></li>
-          <li><a href="{% url 'siteconfig:reportcard_builder' %}">{% trans "Report cards" %}</a></li>
+        <div class="h6 mb-2">{% trans "Outputs" %}</div>
+        <ul class="list-unstyled small mb-0" id="output-rail-list">
+          {% for item in output_left_rail %}
+          <li class="mb-1">
+            <a href="{{ item.url }}" class="output-rail-link {% if forloop.first %}active{% endif %}"
+               {% if item.embed %}data-embed="1"{% endif %}>{{ item.label }}</a>
+          </li>
+          {% endfor %}
         </ul>
-        <div class="h6 mb-1 mt-2">{% trans "Packs" %}</div>
-        <ul class="list-unstyled small mb-0">
-          <li><a href="{% url 'studio_os:output' %}">{% trans "Report packs" %}</a></li>
-          <li><a href="{% url 'studio_os:output' %}?pane=documents">{% trans "Document packs" %}</a></li>
-        </ul>
+        <p class="small text-muted mt-2 mb-0">{% trans "Reports, documents, and report cards." %}</p>
       </div>
     </nav>
     <div class="flex-grow-1 min-w-0">
-      <ul class="nav nav-tabs mb-3" role="tablist">
-        <li class="nav-item"><a class="nav-link {% if not request.GET.pane or request.GET.pane == 'reports' %}active{% endif %}" href="{% url 'studio_os:output' %}">{% trans "Reports" %}</a></li>
-        <li class="nav-item"><a class="nav-link {% if request.GET.pane == 'documents' %}active{% endif %}" href="{% url 'studio_os:output' %}?pane=documents">{% trans "Documents" %}</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'siteconfig:reportcard_builder' %}">{% trans "Report cards" %}</a></li>
-      </ul>
-      {% if request.GET.pane == 'documents' %}
-      <iframe src="{% url 'portal:document_library_manage' %}?embed=1" class="studio-os-iframe" title="{% trans 'Document library' %}"></iframe>
+      <iframe id="studio-output-iframe" class="studio-os-iframe" title="{% trans 'Outputs' %}"
+              src="{{ output_left_rail.0.url }}"></iframe>
+    </div>
+  </div>
+  <script>
+  (function() {
+    var iframe = document.getElementById('studio-output-iframe');
+    var links = document.querySelectorAll('.output-rail-link[data-embed="1"]');
+    function setActive(el) {
+      document.querySelectorAll('.output-rail-link').forEach(function(l) { l.classList.remove('active'); });
+      if (el) el.classList.add('active');
+    }
+    links.forEach(function(link) {
+      link.addEventListener('click', function(e) {
+        if (link.getAttribute('data-embed') === '1' && iframe) {
+          e.preventDefault();
+          iframe.src = link.getAttribute('href');
+          setActive(link);
+        }
+      });
+    });
+  })();
+  </script>
+  {% else %}
+  <div class="d-flex gap-3 flex-wrap flex-lg-nowrap">
+    <div class="flex-grow-1 min-w-0">
+      {% if embed_url %}
+      <iframe src="{{ embed_url }}" class="studio-os-iframe" title="{% trans 'Outputs' %}"></iframe>
       {% else %}
-        {% if embed_url %}
-        <iframe src="{{ embed_url }}" class="studio-os-iframe" title="{% trans 'Report library' %}"></iframe>
-        {% else %}
-        <div class="studio-os__card"><a href="{{ legacy_urls.report_library }}" class="btn btn-primary btn-sm">{% trans "Report library" %}</a></div>
-        {% endif %}
+      <div class="studio-os__card"><a href="{{ legacy_urls.report_library }}" class="btn btn-primary btn-sm">{% trans "Report library" %}</a></div>
       {% endif %}
     </div>
   </div>
+  {% endif %}
 {% endblock %}

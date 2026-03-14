@@ -10,13 +10,13 @@ from apps.finance.models import ComplianceProfile, Invoice, InvoiceLine, Invoice
 from apps.finance.services import assign_invoice_payer_shares
 from apps.finance.tasks import run_split_late_fees
 from apps.people.models import StudentGuardian, StudentProfile
-from apps.siteconfig.models import SiteSettings
+from apps.platform_runtime.helpers import get_platform_site_settings_record
 
 
 class SplitLateFeeTaskTests(TestCase):
     def setUp(self):
         self.profile = ComplianceProfile.objects.create(name="Split Late Fee", country_code="CM")
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.compliance_profile = self.profile
         site.backend_feature_flags = {
             **(site.backend_feature_flags or {}),

@@ -1,13 +1,14 @@
 from django.test import TestCase
 
 from apps.portal.services import _communication_center
-from apps.siteconfig.models import Integration, SiteSettings
+from apps.platform_runtime.helpers import get_platform_site_settings_record
+from apps.siteconfig.models import Integration
 
 
 class CommunicationCenterTests(TestCase):
     def setUp(self):
         Integration.objects.all().delete()
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.company_phone = "+1 (222) 333-4444"
         site.company_email = "support@example.com"
         site.save()
@@ -47,7 +48,7 @@ class CommunicationCenterTests(TestCase):
         self.assertIn("reminders", data["note"])
 
     def test_empty_contacts_returns_no_links(self):
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.company_phone = ""
         site.company_email = ""
         site.whatsapp_support_number = ""

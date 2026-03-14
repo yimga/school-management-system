@@ -112,6 +112,19 @@ def _authorize_scim_request(request: HttpRequest):
     return school, integration, None
 
 
+def _log_scim_request(request: HttpRequest, *, resource: str) -> None:
+    """Audit log for every authenticated SCIM request (no PII). public_endpoint_audit Step 8."""
+    logger.info(
+        "SCIM request",
+        extra={
+            "path": request.path,
+            "method": request.method,
+            "resource": resource,
+            "authenticated": True,
+        },
+    )
+
+
 def _log_scim_rejection(
     request: HttpRequest,
     *,
@@ -259,6 +272,7 @@ def scim_service_provider_config(request: HttpRequest):
     school, _, err = _authorize_scim_request(request)
     if err:
         return err
+    _log_scim_request(request, resource="config")
     payload = {
         "schemas": ["urn:ietf:params:scim:schemas:core:2.0:ServiceProviderConfig"],
         "patch": {"supported": True},
@@ -287,6 +301,7 @@ def scim_users(request: HttpRequest):
     school, integration, err = _authorize_scim_request(request)
     if err:
         return err
+    _log_scim_request(request, resource="users")
 
     if request.method == "GET":
         # RFC 7644/RFC 9865 semantics: startIndex is 1-based, count may be 0, and
@@ -410,6 +425,7 @@ def scim_user_detail(request: HttpRequest, user_id: str):
     school, _, err = _authorize_scim_request(request)
     if err:
         return err
+    _log_scim_request(request, resource="users")
 
     membership = SchoolMembership.objects.filter(school=school, user_id=user_id).select_related("user").first()
     if not membership:
@@ -505,6 +521,7 @@ def scim_groups(request: HttpRequest):
     school, _, err = _authorize_scim_request(request)
     if err:
         return err
+    _log_scim_request(request, resource="groups")
     roles = AccessRole.objects.order_by("code")
     resources = [_group_payload(role, school) for role in roles]
     return _list_response(resources)
@@ -519,6 +536,7 @@ def scim_group_detail(request: HttpRequest, group_id: str):
     school, _, err = _authorize_scim_request(request)
     if err:
         return err
+    _log_scim_request(request, resource="groups")
     role = AccessRole.objects.filter(pk=group_id).first()
     if not role:
         return _scim_error("Group not found", status=404)

@@ -460,7 +460,6 @@ class Evaluation(models.Model):
         # Persist normalized_value (0.0–1.0) for cross-tenant/cross-system (Rosetta Stone)
         try:
             from apps.evals.grading import score_to_normalized
-            from decimal import Decimal
             school = getattr(self, "school", None)
             if self.final_score is not None:
                 self.normalized_value = score_to_normalized(float(self.final_score), school)

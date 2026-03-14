@@ -3,8 +3,8 @@ from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
 
+from apps.platform_runtime.helpers import get_platform_site_settings_record
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
-from apps.siteconfig.models import SiteSettings
 
 User = get_user_model()
 
@@ -95,7 +95,7 @@ class FeatureControlPanelTest(TestCase):
         response = self.client.post(panel_url, data=payload, follow=True)
         self.assertEqual(response.status_code, 200)
 
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         flags = site.backend_feature_flags or {}
         self.assertTrue(site.enable_offline_mode)
         self.assertTrue(flags.get("enable_portal_pwa"))
@@ -123,7 +123,7 @@ class FeatureControlPanelTest(TestCase):
         response = self.client.post(reverse("siteconfig:feature_control_panel") + "?embed=1", data=payload, follow=True)
         self.assertEqual(response.status_code, 200)
 
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         flags = site.backend_feature_flags or {}
         self.assertTrue(flags.get("enable_ministry_api_cartescolaire"))
         self.assertTrue(flags.get("enable_ministry_api_dgi"))
@@ -153,7 +153,7 @@ class FeatureControlPanelTest(TestCase):
         response = self.client.post(reverse("siteconfig:feature_control_panel") + "?embed=1", data=payload, follow=True)
         self.assertEqual(response.status_code, 200)
 
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         flags = site.backend_feature_flags or {}
         self.assertTrue(flags.get("backend_warm_palette"))
         self.assertTrue(flags.get("backend_reduce_card_flatness"))
@@ -196,7 +196,7 @@ class FeatureControlPanelTest(TestCase):
         response = self.client.post(reverse("siteconfig:feature_control_panel") + "?embed=1", data=payload, follow=True)
         self.assertEqual(response.status_code, 200)
 
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         flags = site.backend_feature_flags or {}
         self.assertEqual(str(flags.get("header_weather_country_code")), "JPN")
         self.assertEqual(str(flags.get("header_weather_city")), str(city["city"]))

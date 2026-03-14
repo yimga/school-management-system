@@ -1,12 +1,19 @@
 """
-Management command to recover or recreate corrupted SQLite database
+Management command to recover or recreate corrupted SQLite database.
+§2.4 Raw SQL wrap: delegates to siteconfig.repositories.database_recovery_repository.
 """
-import os
+import logging
 import shutil
 from pathlib import Path
-from django.core.management.base import BaseCommand
+
 from django.conf import settings
 from django.core.management import call_command
+from django.core.management.base import BaseCommand
+from django.db import DatabaseError
+
+from apps.siteconfig.repositories.database_recovery_repository import run_sqlite_integrity_check
+
+logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
@@ -53,24 +60,18 @@ class Command(BaseCommand):
         
         # Check integrity
         self.stdout.write('Checking database integrity...')
-        try:
-            import sqlite3
-            conn = sqlite3.connect(str(db_path))
-            cursor = conn.cursor()
-            result = cursor.execute('PRAGMA integrity_check;').fetchone()
-            conn.close()
-            
-            if result and result[0] == 'ok':
-                self.stdout.write(self.style.SUCCESS('[OK] Database integrity check passed!'))
-                if options['check_only']:
-                    return
-            else:
-                self.stdout.write(
-                    self.style.ERROR(f'[ERROR] Database is corrupted: {result[0] if result else "Unknown error"}')
-                )
-        except Exception as e:
+        result = run_sqlite_integrity_check(db_path)
+        if result == 'ok':
+            self.stdout.write(self.style.SUCCESS('[OK] Database integrity check passed!'))
+            if options['check_only']:
+                return
+        elif result is not None:
             self.stdout.write(
-                self.style.ERROR(f'[ERROR] Cannot check database: {e}')
+                self.style.ERROR(f'[ERROR] Database is corrupted: {result}')
+            )
+        else:
+            self.stdout.write(
+                self.style.ERROR('[ERROR] Cannot check database (I/O or connection error)')
             )
             if options['check_only']:
                 return
@@ -97,7 +98,8 @@ class Command(BaseCommand):
             try:
                 db_path.unlink()
                 self.stdout.write(self.style.SUCCESS('[OK] Corrupted database deleted'))
-            except Exception as e:
+            except (OSError, PermissionError) as e:
+                logger.warning("recover_database unlink failed: %s", e, extra={"command": "recover_database"})
                 self.stdout.write(
                     self.style.ERROR(f'[ERROR] Failed to delete database: {e}')
                 )
@@ -110,7 +112,8 @@ class Command(BaseCommand):
                 self.stdout.write('\nNext steps:')
                 self.stdout.write('  1. Create superuser: python manage.py createsuperuser')
                 self.stdout.write('  2. Load fixtures (if any): python manage.py loaddata <fixture>')
-            except Exception as e:
+            except (DatabaseError, OSError, PermissionError, SystemError) as e:
+                logger.warning("recover_database migrate failed: %s", e, extra={"command": "recover_database"})
                 self.stdout.write(
                     self.style.ERROR(f'[ERROR] Failed to create database: {e}')
                 )

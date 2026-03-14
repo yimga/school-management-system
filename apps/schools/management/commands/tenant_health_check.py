@@ -21,6 +21,8 @@ from typing import Iterable
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection
 
+from apps.schools.repositories.health_repository import check_table_exists, count_table_rows
+
 
 class Command(BaseCommand):
     help = "Print schema and key table health for a single tenant (read-only)."
@@ -137,46 +139,28 @@ class Command(BaseCommand):
             current_schema = getattr(connection, "schema_name", None)
             self.stdout.write(f"  Current connection.schema_name: {current_schema!r}")
 
-            with connection.cursor() as cursor:
-                # Shared schema checks (explicitly public)
-                for schema, table in shared_tables:
-                    full = f"{schema}.{table}"
-                    exists = self._to_regclass(cursor, full)
-                    if not exists:
-                        self.stdout.write(self.style.WARNING(f"  [MISSING] {full} ({shared_tables[(schema, table)]})"))
-                        continue
-                    count = self._safe_count_rows(cursor, schema, table)
-                    self.stdout.write(self.style.SUCCESS(f"  [OK] {full:<36} ({shared_tables[(schema, table)]})  rows={count}"))
+            # Shared schema checks (explicitly public)
+            for schema, table in shared_tables:
+                full = f"{schema}.{table}"
+                exists = check_table_exists(full)
+                if not exists:
+                    self.stdout.write(self.style.WARNING(f"  [MISSING] {full} ({shared_tables[(schema, table)]})"))
+                    continue
+                count = count_table_rows(schema, table)
+                self.stdout.write(self.style.SUCCESS(f"  [OK] {full:<36} ({shared_tables[(schema, table)]})  rows={count}"))
 
-                # Tenant schema checks (explicitly the tenant schema)
-                tenant_schema = client.schema_name
-                for app_label, model_table in tenant_tables:
-                    table = f"{app_label}_{model_table}"
-                    full = f"{tenant_schema}.{table}"
-                    exists = self._to_regclass(cursor, full)
-                    if not exists:
-                        self.stdout.write(self.style.WARNING(f"  [MISSING] {full} ({tenant_tables[(app_label, model_table)]})"))
-                        continue
-                    count = self._safe_count_rows(cursor, tenant_schema, table)
-                    self.stdout.write(self.style.SUCCESS(f"  [OK] {full:<36} ({tenant_tables[(app_label, model_table)]})  rows={count}"))
+            # Tenant schema checks (explicitly the tenant schema)
+            tenant_schema = client.schema_name
+            for app_label, model_table in tenant_tables:
+                table = f"{app_label}_{model_table}"
+                full = f"{tenant_schema}.{table}"
+                exists = check_table_exists(full)
+                if not exists:
+                    self.stdout.write(self.style.WARNING(f"  [MISSING] {full} ({tenant_tables[(app_label, model_table)]})"))
+                    continue
+                count = count_table_rows(tenant_schema, table)
+                self.stdout.write(self.style.SUCCESS(f"  [OK] {full:<36} ({tenant_tables[(app_label, model_table)]})  rows={count}"))
 
         self.stdout.write("")
         self.stdout.write(self.style.SUCCESS("Done. No data was modified."))
-
-    def _to_regclass(self, cursor, qualified_table: str) -> bool:
-        try:
-            cursor.execute("SELECT to_regclass(%s)", [qualified_table])
-            row = cursor.fetchone()
-            return bool(row and row[0])
-        except Exception:
-            return False
-
-    def _safe_count_rows(self, cursor, schema: str, table: str) -> int:
-        try:
-            cursor.execute(f'SELECT COUNT(*) FROM "{schema}"."{table}"')
-            row = cursor.fetchone()
-            return int(row[0]) if row and row[0] is not None else 0
-        except Exception:
-            # If counting fails (e.g. permissions, RLS), report -1 to indicate unknown.
-            return -1
 

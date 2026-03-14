@@ -2,7 +2,6 @@
 Management command to import documentation files into Knowledge Base
 Converts markdown files from docs/ directory into KB articles
 """
-import os
 import re
 from pathlib import Path
 from django.core.management.base import BaseCommand
@@ -89,7 +88,7 @@ class Command(BaseCommand):
             self._safe_write(self.style.ERROR(f'Docs directory not found: {docs_dir}'))
             return
         
-        # Operator Manual structure (Cameroon-first, globally flexible)
+        # Operator Manual structure (global, region-configurable)
         # This keeps docs organized and discoverable without duplicating content.
         operator_root_slug = options["category"]
         operator_root, created = KBCategory.objects.get_or_create(
@@ -111,7 +110,7 @@ class Command(BaseCommand):
         # Child categories as proposed in the plan
         operator_categories = [
             ("getting-started", "Getting Started", "fa-rocket", 1),
-            ("year-setup", "Year Setup (Cameroon default)", "fa-calendar-alt", 2),
+            ("year-setup", "Year Setup (by region)", "fa-calendar-alt", 2),
             ("onboarding", "Onboarding (Students, Teachers, Parents)", "fa-user-plus", 3),
             ("academics", "Academics (Assignments, Marks, OCR)", "fa-graduation-cap", 4),
             ("approvals-audits", "Approvals & Audits", "fa-shield-alt", 5),
@@ -254,7 +253,7 @@ class Command(BaseCommand):
                     existing.save()
                     self._safe_write(self.style.SUCCESS(f'  [OK] Updated: {title}'))
                 else:
-                    article = KBArticle.objects.create(**article_data)
+                    KBArticle.objects.create(**article_data)
                     self._safe_write(self.style.SUCCESS(f'  [OK] Created: {title}'))
                 
                 imported_count += 1

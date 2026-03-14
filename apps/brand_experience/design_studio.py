@@ -17,7 +17,7 @@ def get_layout_metadata(layout_key: str, variant: str | None = None) -> dict:
         if ep and getattr(ep, "layout_schema", None):
             schema = ep.layout_schema if isinstance(ep.layout_schema, dict) else {}
             out["sections"] = schema.get("sections", []) if isinstance(schema.get("sections"), list) else []
-    except Exception:
+    except (ImportError, AttributeError, TypeError, ValueError, KeyError):
         pass
     return out
 

@@ -5,7 +5,6 @@ Used when request.urlconf is set to this module by UrlConfSwitcherMiddleware.
 from django.conf import settings
 from django.conf.urls.static import static
 from django.shortcuts import redirect
-from django.templatetags.static import static
 from django.urls import include, path
 from django.views.decorators.cache import cache_page
 from rest_framework.schemas import get_schema_view
@@ -14,7 +13,6 @@ from django.template.response import TemplateResponse
 from django.http import HttpResponseForbidden
 from django.shortcuts import render
 
-from apps.siteconfig.models import SiteSettings
 from apps.platform_runtime.helpers import get_effective_flags
 from apps.observability import views as obs_views
 from apps.portal.views_ai_copilot import (
@@ -85,7 +83,9 @@ def schema_view(request):
 
 
 def admin_siteconfig_customizer_redirect(request):
-    return redirect("/siteconfig/customizer/")
+    """Backward compatible: /admin/siteconfig/customizer/ → Studio OS Experience (align with platform)."""
+    from django.urls import reverse
+    return redirect(reverse("studio_os:experience"))
 
 
 def permission_denied(request, exception):
@@ -104,7 +104,9 @@ def page_not_found(request, exception):
 
 
 def server_error(request):
-    return render(request, "errors/500.html", status=500)
+    """Custom 500: pass user so base template and includes render when context processors failed."""
+    context = {"user": getattr(request, "user", None)}
+    return render(request, "errors/500.html", context, status=500)
 
 
 handler403 = permission_denied
@@ -139,6 +141,7 @@ urlpatterns = [
     path("api/ai-copilot/config/", ai_copilot_config, name="ai_copilot_config"),
     path("api/ai-copilot/audit/", ai_copilot_audit_feed, name="ai_copilot_audit"),
     path("admin/siteconfig/customizer/", admin_siteconfig_customizer_redirect),
+    path("studio/", include(("apps.studio_os.urls", "studio_os"), namespace="studio_os")),
     path("verify/<str:token>/", __import__("apps.siteconfig.views_verify", fromlist=["verify_student_id"]).verify_student_id, name="verify_student_id"),
     path("api/", include(("apps.api.urls", "api"), namespace="api")),
     path("api/v1/", include(("apps.api.urls_v1", "api_v1"), namespace="api_v1")),

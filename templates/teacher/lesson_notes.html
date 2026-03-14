@@ -35,7 +35,7 @@
                 <span>{{ plan.title }} – {{ plan.week_start_date|date }}</span>
                 <div class="d-flex gap-1 align-items-center">
                   {% if plan.file %}
-                    <a href="{{ plan.file.url }}" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener">{% trans "Download" %}</a>
+                    <a href="{{ plan.file.url }}" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener noreferrer">{% trans "Download" %}</a>
                   {% endif %}
                   <a href="{% url 'portal:teacher_lesson_plan_add_attachment' plan.pk %}" class="btn btn-sm btn-outline-secondary">{% trans "Add resource" %}</a>
                 </div>
@@ -43,7 +43,7 @@
               {% if plan.attachments.all %}
                 <ul class="list-unstyled mt-2 mb-0 ms-3 small">
                   {% for att in plan.attachments.all %}
-                    <li><a href="{{ att.file.url }}" target="_blank" rel="noopener">{{ att.label|default:att.file.name }}</a></li>
+                    <li><a href="{{ att.file.url }}" target="_blank" rel="noopener noreferrer">{{ att.label|default:att.file.name }}</a></li>
                   {% endfor %}
                 </ul>
               {% endif %}

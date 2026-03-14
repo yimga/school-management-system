@@ -33,7 +33,7 @@ class RosettaStoneConvertAPI(View):
             return JsonResponse({"error": "Invalid 'score': must be a number"}, status=400)
 
         try:
-            from apps.evals.rosetta_stone import convert_grade, get_supported_scales
+            from apps.evals.rosetta_stone import convert_grade
 
             result = convert_grade(score=score, from_scale=from_scale, to_scale=to_scale, school=school)
             return JsonResponse(result)

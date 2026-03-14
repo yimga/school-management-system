@@ -3,7 +3,13 @@ Record MetadataChangeLog entries from admin and metadata-changing APIs (metadata
 """
 from __future__ import annotations
 
+import logging
 from typing import Any, Dict, List, Optional
+
+from django.db import DatabaseError, IntegrityError
+from django.core.exceptions import ValidationError
+
+logger = logging.getLogger(__name__)
 
 
 def record_metadata_changelog(
@@ -29,5 +35,5 @@ def record_metadata_changelog(
             actor_id=actor_id,
             reason=reason[:255] if reason else "",
         )
-    except Exception:
-        pass
+    except (DatabaseError, IntegrityError, ValidationError) as e:
+        logger.warning("record_metadata_changelog failed (object_type=%s, object_id=%s): %s", object_type, object_id, e)

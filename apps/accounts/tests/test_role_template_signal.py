@@ -1,7 +1,7 @@
 """Tests for the role-template signal: User.role -> user.roles (AccessRole) on create/update."""
 from django.test import TestCase
 
-from apps.accounts.models import AccessRole, User
+from apps.accounts.models import User
 
 
 class RoleTemplateSignalTests(TestCase):

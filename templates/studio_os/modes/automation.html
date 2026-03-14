@@ -1,7 +1,58 @@
 {% extends "studio_os/shell.html" %}
 {% load static i18n %}
 
+{% block extrastyle %}
+{{ block.super }}
+<style>
+  .studio-os__automation-rail a.automation-rail-link { display: block; padding: 0.35rem 0.5rem; border-radius: 4px; color: var(--color-base-700, #334155); text-decoration: none; }
+  .studio-os__automation-rail a.automation-rail-link:hover { background: var(--color-base-100, #f1f5f9); color: var(--color-base-900, #0f172a); }
+  .studio-os__automation-rail a.automation-rail-link.active { background: var(--color-primary-50, #eff6ff); color: var(--color-primary-700, #1d4ed8); font-weight: 500; }
+  .studio-os__automation-rail a.automation-rail-link:focus-visible { outline: 2px solid var(--color-primary-500, #3b82f6); outline-offset: 2px; }
+</style>
+{% endblock %}
+
 {% block studio_canvas %}
+  {% if automation_left_rail %}
+  <div class="d-flex gap-3 flex-wrap flex-lg-nowrap studio-os__automation-wrap">
+    <nav class="studio-os__automation-rail flex-shrink-0 mb-2 mb-lg-0" aria-label="{% trans 'Automation' %}" style="width: 200px;">
+      <div class="studio-os__card py-2">
+        <div class="h6 mb-2">{% trans "Workflows" %}</div>
+        <ul class="list-unstyled small mb-0" id="automation-rail-list">
+          {% for item in automation_left_rail %}
+          <li class="mb-1">
+            <a href="{{ item.url }}" class="automation-rail-link {% if forloop.first %}active{% endif %}"
+               {% if item.embed %}data-embed="1"{% endif %}>{{ item.label }}</a>
+          </li>
+          {% endfor %}
+        </ul>
+        <p class="small text-muted mt-2 mb-0">{% trans "Simulate before activating." %}</p>
+      </div>
+    </nav>
+    <div class="flex-grow-1 min-w-0">
+      <iframe id="studio-automation-iframe" class="studio-os-iframe" title="{% trans 'Automation' %}"
+              src="{{ automation_left_rail.0.url }}"></iframe>
+    </div>
+  </div>
+  <script>
+  (function() {
+    var iframe = document.getElementById('studio-automation-iframe');
+    var links = document.querySelectorAll('.automation-rail-link[data-embed="1"]');
+    function setActive(el) {
+      document.querySelectorAll('.automation-rail-link').forEach(function(l) { l.classList.remove('active'); });
+      if (el) el.classList.add('active');
+    }
+    links.forEach(function(link) {
+      link.addEventListener('click', function(e) {
+        if (link.getAttribute('data-embed') === '1' && iframe) {
+          e.preventDefault();
+          iframe.src = link.getAttribute('href');
+          setActive(link);
+        }
+      });
+    });
+  })();
+  </script>
+  {% else %}
   <div class="d-flex gap-3 flex-wrap flex-lg-nowrap">
     {% if workflow_entries %}
     <nav class="studio-os__automation-rail flex-shrink-0 mb-2 mb-lg-0" aria-label="{% trans 'Automation' %}" style="width: 200px;">
@@ -12,28 +63,10 @@
           <li><a href="{{ w.url }}">{{ w.label }}</a></li>
           {% endfor %}
         </ul>
-        <div class="h6 mb-1 mt-2">{% trans "Catalog" %}</div>
-        <p class="small text-muted mb-0">{% trans "Templates, triggers, and actions in the hub." %}</p>
-        {% if legacy_urls.workflow_hub %}
-        <ul class="list-unstyled small mt-1 mb-0">
-          <li><a href="{{ legacy_urls.workflow_hub }}">{% trans "Workflow packs" %}</a></li>
-          <li><a href="{{ legacy_urls.workflow_flow_gallery }}">{% trans "Trigger/action catalog" %}</a></li>
-        </ul>
-        {% endif %}
       </div>
     </nav>
     {% endif %}
     <div class="flex-grow-1 min-w-0">
-      {% if workflow_entries %}
-      <div class="studio-os__card mb-3">
-        <h2 class="h5">{% trans "Workflows" %}</h2>
-        <ul class="list-unstyled small mb-2">
-          {% for w in workflow_entries %}
-          <li><a href="{{ w.url }}">{{ w.label }}</a></li>
-          {% endfor %}
-        </ul>
-      </div>
-      {% endif %}
       {% if embed_url %}
       <iframe src="{{ embed_url }}" class="studio-os-iframe" title="{% trans 'Automation' %}"></iframe>
       {% else %}
@@ -41,4 +74,5 @@
       {% endif %}
     </div>
   </div>
+  {% endif %}
 {% endblock %}

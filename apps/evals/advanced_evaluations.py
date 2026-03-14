@@ -3,9 +3,8 @@ Phase 8 Task 4: Advanced Evaluations - Ranking and Mock Exams
 Implements class ranking engine, mock exam management, and performance analysis
 """
 
-from django.db import models
 from django.utils import timezone
-from django.db.models import Avg, Count, Q, F
+from django.db.models import Avg
 import statistics
 
 
@@ -303,7 +302,7 @@ class ImportEnhancedService:
                         eval.score = row['score']
                         eval.save()
                         results['updated'] += 1
-            except Exception as e:
+            except Exception:
                 results['skipped'] += 1
         
         return results

@@ -15,9 +15,7 @@ from .views import (
     request_finance_access,
     finance_access_bulk,
     trial_balance,
-    finance_reports,
     notifications,
-    submit_report_request,
     finance_requests,
     suspense_queue,
     claim_suspense_payment,
@@ -26,6 +24,7 @@ from .views import (
     bursar_entries_report,
     expense_vs_budget,
 )
+from .views_reports import finance_reports, submit_report_request
 
 app_name = "finance"
 

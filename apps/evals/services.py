@@ -171,7 +171,6 @@ def ews_students_needing_attention(teacher_profile, year, term, assignments, sca
     if not prev_term:
         return []
     from apps.academics.models import SubjectAssignment
-    from decimal import Decimal
 
     drop_min = scale * (drop_threshold_pct / 100.0)  # e.g. 2 on 20 scale for 10%
     result = []

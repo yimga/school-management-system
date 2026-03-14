@@ -3,7 +3,6 @@ Minimal workflow execution engine (Part 2c). Evaluates conditions and runs actio
 """
 import logging
 from smtplib import SMTPException
-from typing import Any
 
 from django.utils import timezone
 
@@ -191,7 +190,7 @@ def run_workflow(tenant_workflow, context: dict) -> dict:
     evaluate conditions, run actions, log (Trigger → Conditions → Actions → Audit).
     Returns {"ok": bool, "conditions_passed": bool, "actions_run": list, "audit_ref": str}.
     """
-    from .models_workflow import WorkflowTemplate, TenantWorkflow
+    from .models_workflow import TenantWorkflow
 
     if not isinstance(tenant_workflow, TenantWorkflow):
         return {"ok": False, "error": "Invalid TenantWorkflow"}
@@ -226,8 +225,8 @@ def run_workflow(tenant_workflow, context: dict) -> dict:
     try:
         from apps.platform_runtime.governor_limits import record_workflow_run
         record_workflow_run(school_id=getattr(school, "id", None) if school else None)
-    except Exception:
-        pass
+    except WORKFLOW_SOFT_FAILURES as e:
+        logger.debug("record_workflow_run skipped: %s", e)
 
     audit_ref = ""
     try:

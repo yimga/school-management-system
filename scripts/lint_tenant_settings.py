@@ -39,6 +39,7 @@ ALLOWED_GET_SOLO_PREFIXES = (
     "apps/platform_runtime/helpers.py",
     # apps/policies/resolver.py removed (1.3): uses get_effective_site_settings(school=) only
     "apps/siteconfig/management/",
+    "apps/platform_runtime/management/",
     "apps/finance/management/",
     "apps/reports/management/",
 )
@@ -61,6 +62,7 @@ ALLOWED_SCHOOL_SETTINGS_FEATURES_PREFIXES = (
 
 # Patterns: (regex, description)
 SITESETTINGS_PATTERN = (re.compile(r"SiteSettings\.get_solo\s*\(\s*\)"), "SiteSettings.get_solo() (use runtime/helpers)")
+SITESETTINGS_LOAD_PATTERN = (re.compile(r"SiteSettings\.load\s*\(\s*\)"), "SiteSettings.load() (use runtime/helpers)")
 SCHOOL_SETTINGS_PATTERN = (re.compile(r"\bschool\.settings\b"), "school.settings (use request.tenant_runtime or get_effective_*)")
 SCHOOL_FEATURES_PATTERN = (re.compile(r"\bschool\.features\b"), "school.features (use request.tenant_runtime or get_effective_*)")
 HARDCODED_PATTERNS = [
@@ -119,7 +121,7 @@ def main() -> int:
                         hits.append((path_str, i, line.strip()[:90], label))
                         break
 
-    get_solo_hits = [(p, ln, sn, lb) for p, ln, sn, lb in hits if "get_solo" in lb]
+    get_solo_hits = [(p, ln, sn, lb) for p, ln, sn, lb in hits if "get_solo" in lb or "load()" in lb]
     if getattr(args, "report_allowlisted", False):
         # Path to 10: report get_solo() only in ALLOWED_GET_SOLO_PREFIXES (migration backlog).
         allowlisted_hits: list[tuple[str, int, str, str]] = []
@@ -137,6 +139,8 @@ def main() -> int:
             for i, line in enumerate(text.splitlines(), 1):
                 if SITESETTINGS_PATTERN[0].search(line):
                     allowlisted_hits.append((path_str, i, line.strip()[:90], SITESETTINGS_PATTERN[1]))
+                if SITESETTINGS_LOAD_PATTERN[0].search(line):
+                    allowlisted_hits.append((path_str, i, line.strip()[:90], SITESETTINGS_LOAD_PATTERN[1]))
         print("get_solo() in allowlisted paths (path to 10 — migrate to runtime/helpers):")
         for path, line_no, snippet, label in allowlisted_hits:
             print(f"  {path}:{line_no}")

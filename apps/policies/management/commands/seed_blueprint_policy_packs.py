@@ -1,8 +1,7 @@
 """
 Phase 3 / Platform bootstrap: Seed Blueprint Packs and Policy Bundles (platform-level).
-Idempotent: update_or_create by slug/code. Ensures Manager Blueprint marketplace shows
-active packs (e.g. Cameroon Francophone, UAE MoE+IB, UK GCSE/A-Level). Run at deploy or
-manually: python manage.py seed_blueprint_policy_packs
+§7 MARKETPLACE_SEED_TARGETS: blueprint 25+, policy bundles 15+. Idempotent: update_or_create by slug/code.
+Run: python manage.py seed_blueprint_policy_packs
 """
 from django.core.management.base import BaseCommand
 
@@ -32,6 +31,20 @@ REGIONAL_BLUEPRINT_PACKS = [
     {"slug": "tertiary-university", "name": "Tertiary/University", "category": "Tertiary/University", "country_code": "", "description": "University and tertiary institution policy set."},
 ]
 
+# §7 MARKETPLACE_SEED_TARGETS: +10 blueprint packs (15 → 25+)
+EXTRA_BLUEPRINT_PACKS = [
+    {"slug": "charter-school", "name": "Charter School", "family": "charter", "category": "Charter"},
+    {"slug": "faith-based-school", "name": "Faith-Based School", "family": "faith_based", "category": "Faith-Based"},
+    {"slug": "montessori", "name": "Montessori School", "family": "montessori", "category": "Montessori"},
+    {"slug": "ib-world-school", "name": "IB World School", "family": "ib", "category": "International Baccalaureate"},
+    {"slug": "french-lycee", "name": "French Lycée", "family": "lycee", "category": "French"},
+    {"slug": "nigeria-wassce", "name": "Nigeria WASSCE", "category": "Nigeria WASSCE", "country_code": "NG", "description": "Nigerian curriculum and WASSCE alignment."},
+    {"slug": "ghana-west-africa", "name": "Ghana / West Africa", "category": "Ghana West Africa", "country_code": "GH", "description": "Ghana and West African curriculum defaults."},
+    {"slug": "kenya-cbc", "name": "Kenya CBC", "category": "Kenya CBC", "country_code": "KE", "description": "Kenya Competency-Based Curriculum."},
+    {"slug": "india-cbse", "name": "India CBSE", "category": "India CBSE", "country_code": "IN", "description": "CBSE and Indian school system."},
+    {"slug": "australia-acara", "name": "Australia ACARA", "category": "Australia ACARA", "country_code": "AU", "description": "Australian Curriculum and reporting."},
+]
+
 POLICY_BUNDLES = [
     {"code": "cm-francophone", "name": "Cameroon Francophone", "country_scope": "CM", "precedence_weight": 10},
     {"code": "cm-anglophone", "name": "Cameroon Anglophone", "country_scope": "CM", "precedence_weight": 10},
@@ -45,6 +58,15 @@ POLICY_BUNDLES = [
     {"code": "tertiary-standard", "name": "Tertiary Standard", "country_scope": "", "precedence_weight": 5},
 ]
 
+# §7 MARKETPLACE_SEED_TARGETS: +5 policy bundles (10 → 15+)
+EXTRA_POLICY_BUNDLES = [
+    {"code": "nigeria-default", "name": "Nigeria Default", "country_scope": "NG", "precedence_weight": 10},
+    {"code": "ghana-default", "name": "Ghana Default", "country_scope": "GH", "precedence_weight": 10},
+    {"code": "kenya-default", "name": "Kenya Default", "country_scope": "KE", "precedence_weight": 10},
+    {"code": "india-default", "name": "India Default", "country_scope": "IN", "precedence_weight": 10},
+    {"code": "australia-default", "name": "Australia Default", "country_scope": "AU", "precedence_weight": 10},
+]
+
 
 class Command(BaseCommand):
     help = "Seed Blueprint Packs and Policy Bundles (Phase 3 / platform bootstrap). Idempotent."
@@ -54,7 +76,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         dry_run = options.get("dry_run", False)
-        all_packs = BLUEPRINT_PACKS + REGIONAL_BLUEPRINT_PACKS
+        all_packs = BLUEPRINT_PACKS + REGIONAL_BLUEPRINT_PACKS + EXTRA_BLUEPRINT_PACKS
+        all_bundles = POLICY_BUNDLES + EXTRA_POLICY_BUNDLES
         for row in all_packs:
             if dry_run:
                 continue
@@ -75,7 +98,7 @@ class Command(BaseCommand):
         if not dry_run:
             self.stdout.write(self.style.SUCCESS(f"Blueprint packs: {len(all_packs)} ensured."))
 
-        for row in POLICY_BUNDLES:
+        for row in all_bundles:
             if dry_run:
                 continue
             PolicyBundle.objects.update_or_create(
@@ -91,6 +114,6 @@ class Command(BaseCommand):
                 },
             )
         if dry_run:
-            self.stdout.write(self.style.SUCCESS(f"Dry run: would ensure {len(all_packs)} blueprint packs and {len(POLICY_BUNDLES)} policy bundles."))
+            self.stdout.write(self.style.SUCCESS(f"Dry run: would ensure {len(all_packs)} blueprint packs and {len(all_bundles)} policy bundles."))
         else:
-            self.stdout.write(self.style.SUCCESS(f"Policy bundles (platform): {len(POLICY_BUNDLES)} ensured."))
+            self.stdout.write(self.style.SUCCESS(f"Policy bundles (platform): {len(all_bundles)} ensured."))

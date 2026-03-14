@@ -1,9 +1,12 @@
 """
 Utilities supporting dashboard customization workflows.
+§2.4 Broad except: update_theme_preference and update_accessibility_preferences use
+_DASHBOARD_PREF_ERRORS (ValueError, TypeError, KeyError, DatabaseError, IntegrityError, json.JSONDecodeError).
 """
-import logging
 import json
-from django.db import DatabaseError
+import logging
+
+from django.db import DatabaseError, IntegrityError
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
@@ -17,6 +20,9 @@ from apps.siteconfig.models_dashboard import (
 )
 
 logger = logging.getLogger(__name__)
+
+# §2.4 Typed exceptions for preference update (JSON + ORM); allowlist 0.
+_DASHBOARD_PREF_ERRORS = (ValueError, TypeError, KeyError, DatabaseError, IntegrityError, json.JSONDecodeError)
 
 # Roles that can use full drag-and-drop layout customization.
 ALLOWED_CUSTOM_ROLES = {
@@ -251,8 +257,8 @@ def update_theme(request):
         logger.info("User %s set theme preference to %s", request.user.username, theme)
         
         return JsonResponse({"success": True, "theme": theme})
-    
-    except Exception as e:
+
+    except _DASHBOARD_PREF_ERRORS as e:
         logger.exception("Failed to update theme preference for %s", request.user.username)
         return JsonResponse({"success": False, "error": str(e)}, status=400)
 
@@ -284,6 +290,7 @@ def update_accessibility_preferences(request):
                 'font_size': preferences.font_size,
             }
         })
-    
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+    except _DASHBOARD_PREF_ERRORS as e:
+        logger.warning("Failed to update accessibility preferences for %s: %s", request.user.username, e)
+        return JsonResponse({"success": False, "error": str(e)}, status=400)

@@ -2,22 +2,12 @@ from django.urls import path, reverse_lazy
 from django.contrib.auth.views import PasswordChangeDoneView
 
 from .views import (
-    academic_rules,
     auth_root_redirect,
-    approval_workflow_hub,
-    automation_hub,
     request_waiver,
     backend_ops_watch_data,
-    import_hub,
-    migration_wizard,
-    migration_run_list,
-    migration_rollback,
-    migration_legacy_view,
-    legacy_data_cleaner_view,
     backend_entity_import,
     backend_entity_console,
     claim_invite,
-    clone_year_setup,
     direct_compose,
     direct_thread,
     login_view,
@@ -26,16 +16,32 @@ from .views import (
     profile_edit,
     redirect_view,
     rbac_dashboard,
-    rollover_year,
-    rollover_queue,
-    rollover_proposal_detail,
-    rollover_prepare,
     school_picker,
     switch_portal_role,
     user_documentation,
     user_messages,
     user_notifications,
     user_profile,
+)
+from .views_migration import (
+    migration_run_list,
+    migration_rollback,
+    migration_legacy_view,
+    legacy_data_cleaner_view,
+    migration_wizard,
+)
+from .views_rollover import (
+    clone_year_setup,
+    rollover_year,
+    rollover_queue,
+    rollover_proposal_detail,
+    rollover_prepare,
+)
+from .views_workflow import (
+    academic_rules,
+    approval_workflow_hub,
+    automation_hub,
+    import_hub,
     workflow_center,
 )
 from .views_dashboard import backend_dashboard, backend_dashboard_status_fragment

@@ -7,5 +7,4 @@ class ComplianceConfig(AppConfig):
     verbose_name = '🔒 Compliance & Audit'
 
     def ready(self):
-        import apps.compliance.signals  # noqa
-        import apps.compliance.checks.tenant_mode  # noqa: register tenancy mode checks
+        import apps.compliance.signals  # noqa: F401

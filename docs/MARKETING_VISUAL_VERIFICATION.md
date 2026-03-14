@@ -2,6 +2,8 @@
 
 Every asset from [RunMyCampus_Marketing_Visual_Asset_and_AI_Prompt_Pack.md](RunMyCampus_Marketing_Visual_Asset_and_AI_Prompt_Pack.md) must have a verification path. No row may remain "TBD" without an owner and target date. Per [PLAN_POLICY.md](PLAN_POLICY.md), all items are required.
 
+**Wiring status:** All verification paths (context keys + template blocks) are wired in `apps/schools/marketing_views._marketing_context` and marketing templates. "Verified in" uses settings or static fallbacks when the asset file does not yet exist. Replace TBD with actual asset path when assets are created.
+
 **Legend:** Verified in = file path under `static/images/marketing/` or CDN URL, or template block + context key. When not yet implemented, use TBD with owner and target (e.g. "TBD — owner: product/marketing; target: Wave 5").
 
 ---

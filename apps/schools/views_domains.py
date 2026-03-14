@@ -13,7 +13,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 
 from apps.schools.domain_sync import is_runtime_domain_in_use, normalize_domain
 from apps.schools.dns_verification import verify_and_activate_schooldomain
-from apps.schools.models import School, SchoolDomain
+from apps.schools.models import SchoolDomain
 from apps.schools.tenant_url import get_base_domain
 
 
@@ -102,7 +102,7 @@ def api_domains_verify(request, school_domain_id):
             "is_verified": True,
             "verified_at": domain_entry.verified_at.isoformat() if domain_entry.verified_at else None,
         })
-    ok = verify_and_activate_schooldomain(domain_entry)
+    _ok = verify_and_activate_schooldomain(domain_entry)
     domain_entry.refresh_from_db()
     return JsonResponse({
         "id": str(domain_entry.id),

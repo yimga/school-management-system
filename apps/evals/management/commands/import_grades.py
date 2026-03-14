@@ -1,9 +1,8 @@
 import csv
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from django.core.management.base import BaseCommand, CommandError
 
-from apps.accounts.models import User
 from apps.evals.models import Evaluation
 from apps.academics.models import Term, SubjectAssignment
 from apps.people.models import StudentProfile, TeacherProfile
@@ -123,5 +122,5 @@ def _to_decimal(value):
         return None
     try:
         return Decimal(val)
-    except Exception:
+    except (ValueError, TypeError, InvalidOperation):
         return None

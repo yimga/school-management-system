@@ -14,7 +14,7 @@ from apps.billing.models import (
     TenantSubscription as LegacyTenantSubscription,
     UsageMeter as LegacyUsageMeter,
 )
-from apps.siteconfig.models import (
+from apps.siteconfig.models_platform_catalog import (
     CountryMultiplier as LegacyCountryMultiplier,
     Plan as LegacyPlan,
     PlanAddon as LegacyPlanAddon,

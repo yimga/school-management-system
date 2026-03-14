@@ -5,7 +5,6 @@ Payment security, validation, processing tests
 
 from django.test import TestCase
 from decimal import Decimal
-from datetime import datetime
 
 
 class PaymentEncryptionTestCase(TestCase):

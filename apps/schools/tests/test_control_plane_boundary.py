@@ -5,7 +5,7 @@ Non-negotiable: manager host denies non–platform users; /super/ has no tenant 
 manager URLConf contains only control-plane namespaces (or redirects to them).
 """
 from django.test import TestCase, override_settings
-from django.urls import get_resolver, resolve, reverse
+from django.urls import resolve, reverse
 
 from apps.accounts.models import User
 

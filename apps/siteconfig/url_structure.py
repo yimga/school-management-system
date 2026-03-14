@@ -1,8 +1,6 @@
 """
 Phase 7 Task 4: URL/SEO Cleanup and semantic URL patterns
 """
-from django.urls import path, re_path
-from django.views.generic import TemplateView
 
 # This module documents the URL structure improvements.
 # Key changes:

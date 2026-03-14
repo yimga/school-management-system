@@ -4,7 +4,6 @@ from django.http import JsonResponse
 from django.views import View
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils.decorators import method_decorator
-from django.views.decorators.http import require_http_methods
 from django_ratelimit.decorators import ratelimit
 from apps.compliance.analytics import ComplianceAnalytics
 from apps.compliance.auth_utils import is_admin_or_staff
@@ -21,7 +20,6 @@ class ComplianceDashboardView(View):
         
         from apps.accounts.utils import get_dashboard_context
         from django.urls import reverse
-        import json
 
         dashboard_context = get_dashboard_context(request.user, "compliance")
         dashboard_settings = dashboard_context.get("dashboard_settings", {})

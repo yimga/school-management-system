@@ -10,7 +10,6 @@ Checks:
 Usage: python manage.py phase_i_gap_analysis
 """
 from django.core.management.base import BaseCommand
-from django.db import connection
 from django.apps import apps
 
 
@@ -100,7 +99,7 @@ class Command(BaseCommand):
             out.append(f"Example schema_name: '{raw}' -> '{suggested}'")
 
         # 4. SHARED_APPS vs TENANT_APPS (report partition)
-        installed = [a for a in SHARED_APPS + TENANT_APPS if a in [cfg.label for cfg in apps.get_app_configs()]]
+        _installed = [a for a in SHARED_APPS + TENANT_APPS if a in [cfg.label for cfg in apps.get_app_configs()]]
         missing_apps = [a for a in SHARED_APPS + TENANT_APPS if a not in [cfg.label for cfg in apps.get_app_configs()]]
         out.append("SHARED_APPS (django-tenants): " + ", ".join(SHARED_APPS[:8]) + ", ...")
         out.append("TENANT_APPS: " + ", ".join(TENANT_APPS))

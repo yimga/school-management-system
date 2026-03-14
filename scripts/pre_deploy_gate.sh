@@ -78,6 +78,7 @@ TARGETED_HARDENING_TESTS=(
   apps.packages.tests.test_engine
   apps.platform_runtime.tests.test_precedence
   apps.platform_runtime.tests.test_public_api_lints
+  apps.platform_runtime.tests.test_marketplace_catalog_minimums
   apps.portal.tests.test_ai_copilot_config
   apps.portal.tests.test_ai_feedback
   apps.portal.tests.test_ai_gateway_smoke

@@ -3,12 +3,12 @@ from django.test import TestCase
 from apps.brand_experience.models import BrandProfile, BrandSettings
 from apps.schools.models import School
 from apps.siteconfig.branding import brand_css_vars, resolve_brand_profile
-from apps.siteconfig.models import SiteSettings
+from apps.platform_runtime.helpers import get_platform_site_settings_record
 
 
 class BrandProfileResolverTests(TestCase):
     def setUp(self):
-        self.site = SiteSettings.get_solo()
+        self.site = get_platform_site_settings_record(create=True)
         self.site.primary_color = "#101820"
         self.site.accent_color = "#ff6f00"
         self.site.tagline = "Platform default"

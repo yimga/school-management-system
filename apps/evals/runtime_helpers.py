@@ -5,7 +5,7 @@ Replicate this pattern in other modules (e.g. people/Admissions) for consistent 
 """
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 
 def get_policy_for_request(request) -> Dict[str, Any]:

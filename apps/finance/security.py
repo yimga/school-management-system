@@ -261,8 +261,9 @@ class PaymentValidator:
             (is_valid, error_message)
         """
         try:
+            from decimal import InvalidOperation
             amount_decimal = Decimal(str(amount))
-        except Exception:
+        except (ValueError, TypeError, InvalidOperation):
             return False, "Amount must be a valid decimal number"
         
         if amount_decimal <= 0:
@@ -422,23 +423,26 @@ def webhook_security_required(view_func):
         if not validator.validate_rate_limit(client_ip):
             return HttpResponse("Rate limit exceeded", status=429)
         
-        # Step 3: Signature verification
+        # §2.4 Webhook signature verification; reject missing or invalid signature with 401.
         signature_header = integration.config.get("signature_header", "X-Signature")
         signature = (
             request.headers.get(signature_header)
             or request.META.get(f"HTTP_{signature_header.upper().replace('-', '_')}")
         )
-        
-        if not validator.validate_signature(request.body, signature or ""):
+        if not signature:
+            logger.warning(f"Missing webhook signature from {provider_slug} ({client_ip})")
+            return HttpResponse("Missing signature", status=401)
+        if not validator.validate_signature(request.body, signature):
             logger.warning(f"Invalid webhook signature from {provider_slug} ({client_ip})")
-            return HttpResponseForbidden("Invalid signature")
+            return HttpResponse("Invalid signature", status=401)
         
         # Log webhook receipt
         try:
             import json
+            from django.db import DatabaseError, IntegrityError
+            from django.core.exceptions import ValidationError
             data = json.loads(request.body.decode() or "{}")
             reference_id = data.get("reference") or data.get("payment_reference") or "unknown"
-            
             WebhookLog.objects.create(
                 provider=provider_slug,
                 reference_id=reference_id,
@@ -447,8 +451,8 @@ def webhook_security_required(view_func):
                 status="RECEIVED",
                 request_body=request.body.decode(),
             )
-        except Exception as e:
-            logger.error(f"Failed to log webhook: {e}")
+        except (ValueError, TypeError, UnicodeDecodeError, DatabaseError, IntegrityError, ValidationError) as e:
+            logger.error("Failed to log webhook: %s", e, exc_info=True)
         
         # Call the actual view
         return view_func(request, *args, **kwargs)

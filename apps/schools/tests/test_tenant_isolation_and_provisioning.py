@@ -2,7 +2,6 @@
 Tests for tenant isolation, provisioning job, single-tenant fallback, and feature-flag enforcement (Option B+C).
 """
 import json
-import unittest
 from unittest.mock import patch
 
 from django.core.management import call_command
@@ -163,7 +162,8 @@ class ProvisioningJobTests(TestCase):
         subjects = set(Subject.objects.filter(school=school).values_list("name", flat=True))
         self.assertIn("Biology", subjects)
         self.assertIn("Mathematics", subjects)
-        self.assertEqual((school.settings or {}).get("education_profile_code"), "uga-national-default")
+        # Auto-created profile code is {region}-{sub_system}-auto (education_profile_engine._profile_code)
+        self.assertEqual((school.settings or {}).get("education_profile_code"), "uga-en-auto")
 
     def test_provision_school_auto_generates_country_profile_when_missing(self):
         japan, _ = RegionConfig.objects.get_or_create(
@@ -297,7 +297,6 @@ class OfflineSyncPerSchoolTests(TestCase):
 
     def test_sync_batch_403_when_school_lacks_offline_mode_module(self):
         from apps.api.mobile_api import MobileDevice
-        from apps.siteconfig.models import SiteSettings
         import uuid
 
         school = School.objects.create(
@@ -320,7 +319,7 @@ class OfflineSyncPerSchoolTests(TestCase):
             platform="WEB",
             app_version="1.0",
         )
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.enable_offline_mode = True
         site.save(update_fields=["enable_offline_mode"])
 
@@ -421,11 +420,32 @@ class SuperProvisioningWizardTests(TestCase):
 
     def test_api_create_school_persists_explicit_education_profile(self):
         self.client.force_login(self.superuser)
+        uganda, _ = RegionConfig.objects.get_or_create(
+            code="UGA",
+            defaults={
+                "name": "Uganda",
+                "default_language": "en",
+                "timezone": "Africa/Kampala",
+                "grading_scale": "0-100",
+                "default_currency": "UGX",
+                "academic_year_start_month": 2,
+                "term_count_per_year": 3,
+            },
+        )
+        profile, _ = EducationSystemProfile.objects.get_or_create(
+            code="uga-national-default",
+            defaults={
+                "name": "Uganda National Default",
+                "region": uganda,
+                "sub_system": EducationSystemProfile.SubSystem.EN,
+                "is_active": True,
+                "approval_status": EducationSystemProfile.ApprovalStatus.APPROVED,
+            },
+        )
+        self.assertTrue(profile.is_active)
         cities = GlobalGeoCatalog.search_cities(country_code="UGA", query="Kampala", limit=10)
         self.assertTrue(cities, "Global city catalog should include Kampala")
         city = cities[0]
-        profile = EducationSystemProfile.objects.filter(code="uga-national-default", is_active=True).first()
-        self.assertIsNotNone(profile)
 
         payload = {
             "name": "Explicit Profile School",
@@ -511,7 +531,18 @@ class SuperProvisioningWizardTests(TestCase):
 
     def test_api_create_school_rejects_non_approved_explicit_profile(self):
         self.client.force_login(self.superuser)
-        uganda = RegionConfig.objects.get(code="UGA")
+        uganda, _ = RegionConfig.objects.get_or_create(
+            code="UGA",
+            defaults={
+                "name": "Uganda",
+                "default_language": "en",
+                "timezone": "Africa/Kampala",
+                "grading_scale": "0-100",
+                "default_currency": "UGX",
+                "academic_year_start_month": 2,
+                "term_count_per_year": 3,
+            },
+        )
         draft_profile = EducationSystemProfile.objects.create(
             code="uga-explicit-draft-api",
             name="Uganda Draft API Pack",

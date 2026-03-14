@@ -29,6 +29,15 @@
           <div class="proof-strip-card"><strong>{{ catalog_stats.verified_publishers|default:0 }}</strong><span>verified publishers</span></div>
           <div class="proof-strip-card"><strong>{{ catalog_stats.installed_pairs|default:0 }}</strong><span>live school installs</span></div>
         </div>
+        {% if catalog_counts %}
+        <div class="proof-strip mt-2">
+          <div class="proof-strip-card"><strong>{{ catalog_counts.first_party_apps|default:0 }}</strong><span>first-party apps</span></div>
+          <div class="proof-strip-card"><strong>{{ catalog_counts.blueprint_packs|default:0 }}</strong><span>blueprint packs</span></div>
+          <div class="proof-strip-card"><strong>{{ catalog_counts.workflow_packs|default:0 }}</strong><span>workflow packs</span></div>
+          <div class="proof-strip-card"><strong>{{ catalog_counts.dashboard_packs|default:0 }}</strong><span>dashboard packs</span></div>
+          <div class="proof-strip-card"><strong>{{ catalog_counts.policy_bundles|default:0 }}</strong><span>policy bundles</span></div>
+        </div>
+        {% endif %}
       </div>
       <div class="proof-visual">
         <div class="proof-app-screen h-100">

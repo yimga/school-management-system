@@ -1,6 +1,16 @@
 {% extends "studio_os/shell.html" %}
 {% load static i18n %}
 
+{% block extrastyle %}
+{{ block.super }}
+<style>
+  .studio-os__experience-rail a.experience-rail-link { display: block; padding: 0.35rem 0.5rem; border-radius: 4px; color: var(--color-base-700, #334155); text-decoration: none; }
+  .studio-os__experience-rail a.experience-rail-link:hover { background: var(--color-base-100, #f1f5f9); color: var(--color-base-900, #0f172a); }
+  .studio-os__experience-rail a.experience-rail-link.active { background: var(--color-primary-50, #eff6ff); color: var(--color-primary-700, #1d4ed8); font-weight: 500; }
+  .studio-os__experience-rail a.experience-rail-link:focus-visible { outline: 2px solid var(--color-primary-500, #3b82f6); outline-offset: 2px; }
+</style>
+{% endblock %}
+
 {% block studio_canvas %}
   {% if use_experience_in_page and form %}
   <div class="d-flex gap-3 flex-wrap flex-lg-nowrap">
@@ -19,17 +29,20 @@
           <li><a href="#theme-colors-form">{% trans "Admin pack" %}</a></li>
         </ul>
       </div>
-      {% if legacy_urls.customizer %}
-      <div class="studio-os__card py-2 mb-2">
-        <div class="h6 mb-1">{% trans "Layout presets" %}</div>
+      {% if experience_left_rail %}
+      <div class="studio-os__card py-2">
+        <div class="h6 mb-1">{% trans "More" %}</div>
         <ul class="list-unstyled small mb-0">
-          <li><a href="{{ legacy_urls.customizer }}">{% trans "Customizer" %}</a></li>
+          {% for item in experience_left_rail %}
+          <li class="mb-1"><a href="{{ item.url }}" target="_blank" rel="noopener noreferrer">{{ item.label }}</a></li>
+          {% endfor %}
         </ul>
       </div>
+      {% elif legacy_urls.customizer %}
       <div class="studio-os__card py-2">
-        <div class="h6 mb-1">{% trans "Portal shells" %}</div>
+        <div class="h6 mb-1">{% trans "Layout" %}</div>
         <ul class="list-unstyled small mb-0">
-          <li><a href="{{ legacy_urls.customizer }}">{% trans "Shells & layout" %}</a></li>
+          <li><a href="{{ legacy_urls.customizer }}">{% trans "Customizer" %}</a></li>
         </ul>
       </div>
       {% endif %}
@@ -38,12 +51,52 @@
       {% include "siteconfig/partials/theme_colors_content.html" %}
     </div>
   </div>
-  {% elif embed_url %}
-    <iframe src="{{ embed_url }}" class="studio-os-iframe" title="{% trans 'Theme & Experience' %}"></iframe>
-  {% else %}
-    <div class="studio-os__card">
-      <p class="text-muted mb-0">{% trans "Load theme & experience in the canvas." %}</p>
-      {% if legacy_urls.theme_colors %}<a href="{{ legacy_urls.theme_colors }}" class="btn btn-primary btn-sm mt-2">{% trans "Theme & colors" %}</a>{% endif %}
+  {% elif experience_left_rail %}
+  <div class="d-flex gap-3 flex-wrap flex-lg-nowrap studio-os__experience-wrap">
+    <nav class="studio-os__experience-rail flex-shrink-0 mb-2 mb-lg-0" aria-label="{% trans 'Experience' %}" style="width: 200px;">
+      <div class="studio-os__card py-2">
+        <div class="h6 mb-2">{% trans "Experience" %}</div>
+        <ul class="list-unstyled small mb-0" id="experience-rail-list">
+          {% for item in experience_left_rail %}
+          <li class="mb-1">
+            <a href="{{ item.url }}" class="experience-rail-link {% if forloop.first %}active{% endif %}"
+               {% if item.embed %}data-embed="1"{% endif %}>{{ item.label }}</a>
+          </li>
+          {% endfor %}
+        </ul>
+        <p class="small text-muted mt-2 mb-0">{% trans "Theme, customizer, and school theme." %}</p>
+      </div>
+    </nav>
+    <div class="flex-grow-1 min-w-0">
+      <iframe id="studio-experience-iframe" class="studio-os-iframe" title="{% trans 'Experience' %}"
+              src="{{ experience_left_rail.0.url }}"></iframe>
     </div>
+  </div>
+  <script>
+  (function() {
+    var iframe = document.getElementById('studio-experience-iframe');
+    var links = document.querySelectorAll('.experience-rail-link[data-embed="1"]');
+    function setActive(el) {
+      document.querySelectorAll('.experience-rail-link').forEach(function(l) { l.classList.remove('active'); });
+      if (el) el.classList.add('active');
+    }
+    links.forEach(function(link) {
+      link.addEventListener('click', function(e) {
+        if (link.getAttribute('data-embed') === '1' && iframe) {
+          e.preventDefault();
+          iframe.src = link.getAttribute('href');
+          setActive(link);
+        }
+      });
+    });
+  })();
+  </script>
+  {% elif embed_url %}
+  <iframe src="{{ embed_url }}" class="studio-os-iframe" title="{% trans 'Theme & Experience' %}"></iframe>
+  {% else %}
+  <div class="studio-os__card">
+    <p class="text-muted mb-0">{% trans "Load theme & experience in the canvas." %}</p>
+    {% if legacy_urls.theme_colors %}<a href="{{ legacy_urls.theme_colors }}" class="btn btn-primary btn-sm mt-2">{% trans "Theme & colors" %}</a>{% endif %}
+  </div>
   {% endif %}
 {% endblock %}

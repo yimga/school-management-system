@@ -1,0 +1,12 @@
+{
+  "first_party_apps": 27,
+  "blueprint_packs": 25,
+  "workflow_packs": 30,
+  "dashboard_packs": 21,
+  "policy_bundles": 15,
+  "installed_blueprint": 0,
+  "installed_workflow": 0,
+  "installed_dashboard": 0,
+  "installed_policy": 0,
+  "installed_theme": 0
+}

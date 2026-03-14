@@ -1,15 +1,29 @@
 """Signals for automatic audit trail and grade conversion."""
 
-from django.db.models.signals import pre_save, post_save, post_delete
+import logging
+
+from django.core.exceptions import ValidationError
+from django.db import DatabaseError, IntegrityError
+from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 from decimal import Decimal
+
 from apps.evals.models import Evaluation, GradeAudit, OfflineMarkEntry
-from apps.evals.validators import GradeValidator, GradeConverter
 from apps.evals.ranking import RankingCache
-import logging
+from apps.evals.validators import GradeConverter, GradeValidator
 
 logger = logging.getLogger(__name__)
+
+# §2.4 Typed exceptions for audit trail paths (no broad except).
+_EVALS_AUDIT_FAILURES = (
+    DatabaseError,
+    IntegrityError,
+    ValidationError,
+    AttributeError,
+    TypeError,
+    ValueError,
+)
 
 
 @receiver(pre_save, sender=Evaluation)
@@ -99,9 +113,9 @@ def create_audit_trail_and_convert_grades(sender, instance, created, **kwargs):
         )
         
         logger.info(f"Audit trail created for evaluation {instance.id}")
-   
-    except Exception as e:
-        logger.error(f"Failed to create audit trail: {e}", exc_info=True)
+
+    except _EVALS_AUDIT_FAILURES as e:
+        logger.error("Failed to create audit trail: %s", e, exc_info=True)
 
 
 def _invalidate_ranking_cache(term, classroom):
@@ -151,5 +165,8 @@ def handle_offline_sync_complete(sender, instance, created, **kwargs):
                 offline_conflict_resolved=instance.offline_conflict_resolved,
                 conflict_resolution_note=instance.conflict_resolution_note,
             )
-        except Exception as e:
-            logger.error(f"Failed to create offline sync audit trail: {e}")
+        except _EVALS_AUDIT_FAILURES as e:
+            log_exception_with_context(
+                e, logger, "evals.signals.handle_offline_sync_complete",
+                offline_entry_id=getattr(instance, "pk", None),
+            )

@@ -3,7 +3,7 @@ Phase 8 Task 6: Advanced Finance - Payment Validators
 Payment data validation, PCI compliance checks
 """
 
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from datetime import datetime
 from django.utils.translation import gettext_lazy as _
 
@@ -49,7 +49,7 @@ class AmountValidator(PaymentValidator):
 
         try:
             amount_decimal = Decimal(str(amount_value))
-        except Exception:
+        except (TypeError, ValueError, InvalidOperation):
             validator.add_error(_("Invalid amount format"))
             return False
 
@@ -81,7 +81,7 @@ class AmountValidator(PaymentValidator):
         """Categorize amount bands for dashboards and policy rules."""
         try:
             amount_decimal = Decimal(str(amount))
-        except Exception:
+        except (TypeError, ValueError, InvalidOperation):
             return "invalid"
 
         if amount_decimal < Decimal("10000"):
@@ -148,7 +148,7 @@ class PaymentMethodValidator(PaymentValidator):
         try:
             fee_decimal = Decimal(str(fee_percent))
             fixed_decimal = Decimal(str(fixed_fee))
-        except Exception:
+        except (TypeError, ValueError, InvalidOperation):
             self.add_error(_("Invalid fee format"))
             return False
 
@@ -171,9 +171,10 @@ class RefundValidator(PaymentValidator):
 
     def validate_refund_amount(self, payment_amount, refund_amount):
         try:
+            from decimal import InvalidOperation
             payment_decimal = Decimal(str(payment_amount))
             refund_decimal = Decimal(str(refund_amount))
-        except Exception:
+        except (ValueError, TypeError, InvalidOperation):
             self.add_error(_("Invalid amount format"))
             return False
 
@@ -266,7 +267,7 @@ class TransactionReconciliationValidator(PaymentValidator):
         try:
             payments_decimal = Decimal(str(total_payments))
             transactions_decimal = Decimal(str(total_transactions))
-        except Exception:
+        except (TypeError, ValueError, InvalidOperation):
             self.add_error(_("Invalid amount format"))
             return False
 

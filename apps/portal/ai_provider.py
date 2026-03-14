@@ -27,6 +27,18 @@ from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
+# Typed exceptions for AI gateway invoke (support §2.4 broad-except replacement).
+_AI_GATEWAY_INVOKE_ERRORS = (
+    OSError,
+    ConnectionError,
+    TimeoutError,
+    ValueError,
+    TypeError,
+    KeyError,
+    AttributeError,
+    ImportError,
+)
+
 # Local-first default: ollama then rules. Add "gemini" only when tenant has approved.
 DEFAULT_PROVIDER_ORDER = ["ollama", "rules"]
 PROMPT_INJECTION_PATTERNS = (
@@ -142,7 +154,7 @@ def _call_gemini(prompt: str) -> str | None:
             data = json.loads(response.read().decode("utf-8"))
     except urllib.error.URLError:
         return None
-    except Exception:
+    except (OSError, TimeoutError, ValueError, TypeError, json.JSONDecodeError, UnicodeDecodeError):
         logger.exception("Gemini call failed")
         return None
     return (
@@ -276,7 +288,7 @@ def generate_ai_response(
         )
         text = result if isinstance(result, str) else str(result)
         return text, {**meta, "gateway": True}
-    except Exception as e:
+    except _AI_GATEWAY_INVOKE_ERRORS as e:
         logger.warning("AI gateway invoke failed: %s", e)
         if bool(getattr(settings, "AI_ALLOW_RULES_FALLBACK", True)):
             return _rules_fallback(user_query), {
@@ -321,7 +333,7 @@ def get_workflow_clues(workflow_key: str, country_code: str) -> tuple[str | None
         if text:
             return text.strip(), {**meta, "gateway": True}
         return None, {**meta, "gateway": True, "error": meta.get("error", "unavailable")}
-    except Exception as e:
+    except _AI_GATEWAY_INVOKE_ERRORS as e:
         logger.warning("Gateway get_workflow_clues failed: %s", e)
         return None, {"gateway": True, "error": "unavailable"}
 
@@ -357,7 +369,7 @@ def suggest_support_ticket_response(
         )
         text = result if isinstance(result, str) else (str(result) if result is not None else None)
         meta.setdefault("gateway", True)
-    except Exception as e:
+    except _AI_GATEWAY_INVOKE_ERRORS as e:
         logger.warning("Gateway suggest_support_ticket failed: %s", e)
         return None, {"gateway": True, "error": "unavailable"}
     if text is None:
@@ -367,6 +379,6 @@ def suggest_support_ticket_response(
         end = text.rfind("}") + 1
         if start >= 0 and end > start:
             return json.loads(text[start:end]), meta
-    except Exception:
+    except (json.JSONDecodeError, TypeError, ValueError):
         pass
     return {"suggested_reply": text.strip()[:500]}, meta

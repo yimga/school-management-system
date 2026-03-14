@@ -2,7 +2,7 @@
 Public verify page for Digital ID (plan 3.17). QR points to /verify/<token>/.
 Rate-limit by IP; JWT short expiry; return JSON or HTML with name, photo, status only.
 """
-from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_GET
 from django.views.decorators.cache import never_cache
 

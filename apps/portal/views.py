@@ -1,7 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from datetime import timedelta
 from django.http import JsonResponse, HttpResponseForbidden, HttpRequest, Http404, HttpResponse, HttpResponseRedirect
-from django.utils.safestring import mark_safe
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import redirect_to_login
 from collections import Counter
@@ -11,7 +10,6 @@ from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from django import forms
-import uuid
 from decimal import Decimal
 from urllib.parse import quote_plus
 import csv
@@ -39,7 +37,6 @@ from apps.people.models import (
     TeacherLeaveRequest,
     TeacherAttendance,
     Badge,
-    BadgeType,
 )
 from apps.academics.models import Attendance, Classroom, SubjectAssignment, Term
 from apps.academics.services import get_active_year_and_term
@@ -54,10 +51,8 @@ from apps.reports.services import (
 )
 import json
 
-from apps.siteconfig.models import filter_portal_items
-from apps.runtime_blueprints.models import get_dashboard_widget_metadata
+from apps.siteconfig.models_support import filter_portal_items
 from apps.siteconfig.dashboard_resolver import for_role as dashboard_for_role
-from apps.siteconfig.dashboard_views import load_dashboard_layout_settings
 from apps.platform_runtime.helpers import (
     get_effective_feature_control_settings,
     get_effective_flags,
@@ -66,18 +61,14 @@ from apps.platform_runtime.helpers import (
     get_site_display_name,
 )
 from .runtime_helpers import get_policy_for_request
-from apps.siteconfig.dashboard_views import _can_customize
 from apps.analytics.services import (
     student_improvements,
     specialty_pass_rates,
     subject_weaknesses,
-    term_rankings,
 )
 from .models import (
     PortalFeatureItem,
-    PendingGuardianInvite,
     LessonPlan,
-    LessonPlanAttachment,
     TeacherTrainingEntry,
     AttendanceJustification,
     CahierDeTexteEntry,
@@ -102,21 +93,16 @@ from .forms import (
     LinkChildForm,
     ClaimInviteForm,
     TeacherLeaveForm,
-    TeacherOnboardingForm,
-    StudentOnboardingForm,
     LessonPlanUploadForm,
     LessonPlanAttachmentForm,
     TeacherTrainingEntryForm,
     AttendanceJustificationForm,
     CahierDeTexteEntryForm,
 )
-from .views_onboarding import teacher_onboarding_wizard, student_onboarding_wizard
-from .views_parent_finance import parent_finance, parent_wallet, parent_feed
 from apps.communication.models import Message
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.clickjacking import xframe_options_sameorigin
-from django.views.decorators.http import require_GET
 from django.db import DatabaseError
 from django.urls import NoReverseMatch
 
@@ -190,7 +176,6 @@ def parent_dashboard(request: HttpRequest):
     - Cache widget data for 5 minutes per student set
     - Single aggregation query for reminders count
     """
-    from django.db.models import Prefetch
     
     links = guardian_student_links(request.user, results_only=True).prefetch_related("student__evaluations")
 

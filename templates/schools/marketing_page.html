@@ -392,7 +392,7 @@
             <li>{{ item }}</li>
           {% endfor %}
         </ul>
-        <a href="{{ demo_tenant_url }}" class="btn btn-primary" target="_blank" rel="noopener">{% trans "Try demo" %}</a>
+        <a href="{{ demo_tenant_url }}" class="btn btn-primary" target="_blank" rel="noopener noreferrer">{% trans "Try demo" %}</a>
       </section>
       {% endif %}
     {% endif %}
@@ -510,7 +510,7 @@
           <p class="mb-1">{{ page_extras.sla_uptime.sla_summary }}</p>
           <p class="mb-0">{{ page_extras.sla_uptime.support_summary }}</p>
           {% if page_extras.sla_uptime.status_url %}
-            <p class="mt-2 mb-0"><a href="{{ page_extras.sla_uptime.status_url }}" target="_blank" rel="noopener">{% trans "View status page" %}</a></p>
+            <p class="mt-2 mb-0"><a href="{{ page_extras.sla_uptime.status_url }}" target="_blank" rel="noopener noreferrer">{% trans "View status page" %}</a></p>
           {% endif %}
         </div>
       </section>

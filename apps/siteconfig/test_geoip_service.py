@@ -4,7 +4,6 @@ Geographic IP detection, regional access control tests
 """
 
 from django.test import TestCase
-from django.utils import timezone
 from django.core.cache import cache
 
 
@@ -46,7 +45,7 @@ class IPWhitelistTestCase(TestCase):
     """Test IP whitelist"""
     
     def setUp(self):
-        from apps.siteconfig.geoip_service import RegionalConfig, IPWhitelist
+        from apps.siteconfig.geoip_service import RegionalConfig
         
         self.region = RegionalConfig.objects.create(
             region='WEST_AFRICA',
@@ -117,7 +116,7 @@ class RegionalAccessPolicyTestCase(TestCase):
     """Test regional access policies"""
     
     def setUp(self):
-        from apps.siteconfig.geoip_service import RegionalConfig, RegionalAccessPolicy
+        from apps.siteconfig.geoip_service import RegionalConfig
         
         self.region = RegionalConfig.objects.create(
             region='SOUTHERN_AFRICA',
@@ -198,7 +197,7 @@ class LocationBasedAccessControlTestCase(TestCase):
     """Test location-based access control"""
     
     def setUp(self):
-        from apps.siteconfig.geoip_service import RegionalConfig, GeoIPLocation, IPWhitelist
+        from apps.siteconfig.geoip_service import RegionalConfig, GeoIPLocation
         
         self.region = RegionalConfig.objects.create(
             region='EAST_AFRICA',

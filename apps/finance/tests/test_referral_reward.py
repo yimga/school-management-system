@@ -7,7 +7,7 @@ from apps.accounts.models import User
 from apps.people.models import StudentProfile, StudentGuardian
 from apps.academics.models import AcademicYear, Classroom, Department, Specialty
 from apps.finance.models import ReferralReward
-from apps.siteconfig.models import SiteSettings
+from apps.platform_runtime.helpers import get_platform_site_settings_record
 
 
 class ReferralRewardTests(TestCase):
@@ -44,7 +44,7 @@ class ReferralRewardTests(TestCase):
         )
 
     def test_referral_reward_defaults_and_mark_paid(self):
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.referral_bonus_amount = Decimal("150.00")
         site.save(update_fields=["referral_bonus_amount"])
 

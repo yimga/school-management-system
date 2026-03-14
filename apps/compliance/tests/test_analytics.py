@@ -1,7 +1,7 @@
 """Tests for Phase 1.2.9 Compliance Analytics"""
 from django.test import TestCase
 from django.utils import timezone
-from datetime import date, timedelta
+from datetime import timedelta
 from apps.siteconfig.models import RegionConfig
 from apps.accounts.models import User
 from apps.compliance.models import (

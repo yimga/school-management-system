@@ -2,6 +2,8 @@
 
 **Rule:** Every item is non-negotiable. 9.5/10 requires each gap closed or explicitly verified N/A. No deferrals.
 
+**For all agents:** Canonical execution and backlog: [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md), [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md), [docs_truth_ledger.md](docs_truth_ledger.md), [NEXT_50_EXECUTION_STEPS.md](NEXT_50_EXECUTION_STEPS.md). Named plan: [RUNMYCAMPUS_11_10_NORTH_STAR_COMPLETION_PLAN.md](RUNMYCAMPUS_11_10_NORTH_STAR_COMPLETION_PLAN.md).
+
 | # | Gap | Status | Implementation / N/A note |
 |---|-----|--------|---------------------------|
 | 1 | **Backup, restore, disaster recovery** | Done | Documented in ops runbook; package rollback drills via sandbox inspector + Promote to production; RPO/RTO in SECURITY.md/ops; restore verification in release checklist |

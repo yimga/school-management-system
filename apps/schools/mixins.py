@@ -2,7 +2,6 @@
 Tenant-scoping for views and APIs: filter by request.school and block when school is missing or feature disabled.
 """
 from django.http import HttpResponseForbidden
-from django.shortcuts import get_object_or_404
 
 
 def get_current_school(request):

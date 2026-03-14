@@ -2,10 +2,14 @@
 FAQ and Knowledge Base Models
 Supports user-contributed content with moderation workflow
 """
+import logging
+
 from django.contrib.auth import get_user_model
-from django.db import models
+from django.db import DatabaseError, models
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
+
+logger = logging.getLogger(__name__)
 
 from .sanitizers import sanitize_html
 from apps.accounts.validators import validate_kb_attachment_file, validate_file_size_10mb
@@ -142,7 +146,8 @@ class KBCategory(models.Model):
         """Published article count for UI badges/lists."""
         try:
             return self.articles.filter(status="PUBLISHED").count()
-        except Exception:
+        except (DatabaseError, TypeError, AttributeError) as e:
+            logger.debug("article_count failed for category %s: %s", self.pk, e)
             return 0
 
 

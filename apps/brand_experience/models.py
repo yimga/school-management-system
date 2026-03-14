@@ -6,13 +6,15 @@ import from `apps.brand_experience` immediately while data ownership is still
 being migrated out of `apps.siteconfig`.
 """
 
-from apps.siteconfig.models import (
+# Import from submodules to avoid circular import: siteconfig.models pulls in
+# many dependencies; brand_experience is loaded early during Django app setup.
+from apps.siteconfig.models_global_experience import (
     BrandProfile as LegacyBrandProfile,
     BrandSettings as LegacyBrandSettings,
     DesignTemplate as LegacyDesignTemplate,
     GlobalBrandRegistry as LegacyGlobalBrandRegistry,
-    ThemePack as LegacyThemePack,
 )
+from apps.siteconfig.models_tooling import ThemePack as LegacyThemePack
 
 
 def _proxy_model(legacy_model, *, app_label: str, doc: str):

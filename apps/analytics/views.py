@@ -1,18 +1,15 @@
 from __future__ import annotations
 
 import csv
-from datetime import datetime
 from decimal import Decimal, InvalidOperation
 import json
 import logging
 
-from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden, JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
-from django.utils.safestring import mark_safe
 from django.utils import timezone
 
 from apps.academics.models import AcademicYear, Classroom, Specialty, Term, Subject, SubjectAssignment

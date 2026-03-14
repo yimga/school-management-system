@@ -8,7 +8,8 @@ from apps.accounts.models import User
 from apps.academics.models import AcademicYear, Classroom, Department, Specialty
 from apps.finance.models import ComplianceProfile, Invoice, InvoiceLine, Payment, PaymentMethodCode
 from apps.people.models import StudentProfile
-from apps.siteconfig.models import SiteSettings, default_backend_feature_flags
+from apps.platform_runtime.helpers import get_platform_site_settings_record
+from apps.siteconfig.models import default_backend_feature_flags
 
 
 class MinistryPlaceholderApiTests(TestCase):
@@ -81,7 +82,7 @@ class MinistryPlaceholderApiTests(TestCase):
             reference="TXN-001",
         )
 
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         flags = {**default_backend_feature_flags(), **(site.backend_feature_flags or {})}
         flags["enable_ministry_api_cartescolaire"] = True
         flags["enable_ministry_api_dgi"] = True
@@ -124,7 +125,7 @@ class MinistryPlaceholderApiTests(TestCase):
         self.assertFalse(payload["sync"]["result"]["attempted"])
 
     def test_disabled_flag_returns_503(self):
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         flags = dict(site.backend_feature_flags or {})
         flags["enable_ministry_api_dgi"] = False
         site.backend_feature_flags = flags

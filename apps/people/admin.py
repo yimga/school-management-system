@@ -6,7 +6,6 @@ from django.utils.translation import gettext_lazy as _
 from unfold.admin import ModelAdmin
 from apps.portal.models import PendingGuardianInvite
 from apps.finance.models import ReferralReward
-from apps.siteconfig.models import SiteSettings
 from config.admin import register_tenant_admin
 from .models import (
     TeacherProfile,
@@ -416,7 +415,6 @@ class StudentGuardianAdmin(ModelAdmin):
     def guardian_display_with_photo(self, obj):
         """Display guardian user with optional photo thumbnail"""
         from django.utils.html import format_html
-        from django.urls import reverse
         
         guardian = obj.guardian_user
         if not guardian:

@@ -6,7 +6,6 @@ Phase 4: Automatically log CREATE, UPDATE, DELETE for audit trail.
 from decimal import Decimal
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
-from django.utils import timezone
 
 from apps.compliance.models_audit import AuditLog
 
@@ -139,7 +138,7 @@ def alert_on_critical_audit(sender, instance: AuditLog, created, **kwargs):
         from apps.compliance.alerts import notify_audit_event
 
         notify_audit_event(instance)
-    except Exception:
+    except (ImportError, AttributeError, TypeError, ValueError):
         # Swallow to keep request flow unaffected
         pass
 
@@ -156,12 +155,12 @@ def _bump_rules_version():
         prefix = get_tenant_cache_prefix()
         key = f"{prefix}:access_rules_version"
         cache.incr(key)
-    except Exception:
+    except (ValueError, TypeError, AttributeError, ConnectionError, OSError):
         try:
             from apps.siteconfig.cache_utils import get_tenant_cache_prefix
             prefix = get_tenant_cache_prefix()
             cache.set(f"{prefix}:access_rules_version", 1, None)
-        except Exception:
+        except (ValueError, TypeError, AttributeError, ConnectionError, OSError):
             pass
 
 

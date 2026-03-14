@@ -221,7 +221,7 @@ class PlaybookExecutorTests(TestCase):
 
     def test_execute_playbook_dry_run_empty_payload_creates_runs(self):
         from django.core.management import call_command
-        from apps.automation.models import MigrationPlaybook, MigrationRun
+        from apps.automation.models import MigrationPlaybook
         from apps.automation.playbook_executor import execute_playbook
 
         call_command("seed_migration_profiles")

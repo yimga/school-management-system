@@ -4,72 +4,31 @@ Attach audit triggers to additional tenant tables (e.g. finance_invoice, finance
 Part 4.6. Migration 0037 already attaches to people_studentprofile and people_teacherprofile.
 Use this command to add the same trigger to other tables without a new migration.
 
+§2.4 Raw SQL wrap: delegates to people.repositories.audit_repository.
+§2.4 Broad except: replaced with typed _AUDIT_TRIGGER_ERRORS (DatabaseError, OperationalError, ProgrammingError, InterfaceError).
+
   python manage.py attach_audit_triggers --tables finance_invoice finance_payment
   python manage.py attach_audit_triggers --tables finance_invoice --schema my_tenant_schema
 
 Runs in each tenant schema (or the given schema). PostgreSQL only.
 """
+import logging
+
 from django.core.management.base import BaseCommand
 from django.db import connection
+from django.db import DatabaseError, OperationalError, ProgrammingError
 
-# Must match migration 0037 REDACT_KEYS (PII masking).
-REDACT_KEYS = [
-    "password", "password_hash", "secret", "token", "api_key",
-    "card_last4", "card_number", "ssn", "social_security",
-]
+from apps.people.repositories.audit_repository import (
+    create_audit_trigger,
+    create_audit_trigger_function,
+    drop_audit_trigger,
+    set_search_path,
+)
 
+# §2.4 Typed exceptions for trigger attach (cursor/DDL); allowlist 0.
+_AUDIT_TRIGGER_ERRORS = (DatabaseError, OperationalError, ProgrammingError)
 
-def _create_trigger_function(cursor):
-    redact_keys_sql = "ARRAY[" + ", ".join(repr(k) for k in REDACT_KEYS) + "]::text[]"
-    cursor.execute(
-        """
-        CREATE OR REPLACE FUNCTION audit_trigger_fn()
-        RETURNS TRIGGER AS $$
-        DECLARE
-          old_json jsonb;
-          new_json jsonb;
-          action text;
-          tbl text;
-          rec_id text;
-          redact_keys text[] := """
-        + redact_keys_sql
-        + """;
-        BEGIN
-          tbl := TG_TABLE_NAME;
-          action := TG_OP;
-          IF TG_OP = 'DELETE' THEN
-            old_json := to_jsonb(OLD) - redact_keys;
-            new_json := NULL;
-            rec_id := (OLD).id::text;
-          ELSIF TG_OP = 'UPDATE' THEN
-            old_json := to_jsonb(OLD) - redact_keys;
-            new_json := to_jsonb(NEW) - redact_keys;
-            rec_id := (NEW).id::text;
-          ELSE
-            old_json := NULL;
-            new_json := to_jsonb(NEW) - redact_keys;
-            rec_id := (NEW).id::text;
-          END IF;
-          INSERT INTO audit_log (table_name, record_id, action, old_values, new_values, changed_at)
-          VALUES (tbl, rec_id, action, old_json, new_json, now());
-          IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF;
-        END;
-        $$ LANGUAGE plpgsql;
-        """
-    )
-
-
-def _attach_to_table(cursor, table_name):
-    trigger_name = "audit_" + table_name.replace(".", "_")
-    # Use identifier quoting for trigger/table names (safe for standard names).
-    cursor.execute(
-        'DROP TRIGGER IF EXISTS "%s" ON "%s"' % (trigger_name.replace('"', '""'), table_name.replace('"', '""'))
-    )
-    cursor.execute(
-        'CREATE TRIGGER "%s" AFTER INSERT OR UPDATE OR DELETE ON "%s" '
-        'FOR EACH ROW EXECUTE PROCEDURE audit_trigger_fn()'
-        % (trigger_name.replace('"', '""'), table_name.replace('"', '""'))
-    )
+logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
@@ -107,12 +66,14 @@ class Command(BaseCommand):
             else:
                 try:
                     with connection.cursor() as cursor:
-                        cursor.execute("SET search_path TO %s", [single_schema])
-                        _create_trigger_function(cursor)
+                        set_search_path(cursor, single_schema)
+                        create_audit_trigger_function(cursor)
                         for table in tables:
-                            _attach_to_table(cursor, table)
+                            drop_audit_trigger(cursor, table)
+                            create_audit_trigger(cursor, table)
                     self.stdout.write(self.style.SUCCESS("OK %s: %s" % (single_schema, tables)))
-                except Exception as e:
+                except _AUDIT_TRIGGER_ERRORS as e:
+                    logger.warning("attach_audit_triggers schema=%s failed: %s", single_schema, e)
                     self.stdout.write(self.style.ERROR("FAILED %s: %s" % (single_schema, e)))
             return
 
@@ -135,9 +96,11 @@ class Command(BaseCommand):
             try:
                 with tenant_context(client):
                     with connection.cursor() as cursor:
-                        _create_trigger_function(cursor)
+                        create_audit_trigger_function(cursor)
                         for table in tables:
-                            _attach_to_table(cursor, table)
+                            drop_audit_trigger(cursor, table)
+                            create_audit_trigger(cursor, table)
                 self.stdout.write(self.style.SUCCESS("OK %s: %s" % (label, tables)))
-            except Exception as e:
+            except _AUDIT_TRIGGER_ERRORS as e:
+                logger.warning("attach_audit_triggers tenant=%s failed: %s", label, e)
                 self.stdout.write(self.style.ERROR("FAILED %s: %s" % (label, e)))

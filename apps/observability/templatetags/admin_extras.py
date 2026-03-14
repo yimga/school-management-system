@@ -8,6 +8,7 @@ World Engine: cache keys are tenant-scoped to avoid cross-tenant leakage.
 from django import template
 from django.apps import apps
 from django.core.cache import cache
+from django.db import DatabaseError, IntegrityError
 from django.contrib.admin.sites import site as default_admin_site
 
 register = template.Library()
@@ -75,7 +76,7 @@ def get_all_model_counts(context):
             key = f"{app_label}.{model_name}"
             try:
                 counts[key] = model.objects.count()
-            except Exception:
+            except (DatabaseError, IntegrityError, ValueError):
                 counts[key] = 0
         cache.set(cache_key, counts, 300)
 
@@ -93,7 +94,7 @@ def add_preserved_filters_with_next(context, add_url, is_popup=False, to_field=N
     try:
         from django.contrib.admin.templatetags.admin_urls import add_preserved_filters
         base = add_preserved_filters(context, add_url, is_popup, to_field)
-    except Exception:
+    except (ImportError, AttributeError, TypeError):
         base = add_url or ""
     request = context.get("request")
     if not request:

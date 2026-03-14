@@ -7,7 +7,7 @@ from django.urls import reverse
 from urllib.parse import urlsplit
 
 from apps.accounts.models import Permission
-from apps.siteconfig.models import SiteSettings
+from apps.platform_runtime.helpers import get_platform_site_settings_record
 from apps.siteconfig.context_processors import site_settings
 
 
@@ -33,7 +33,7 @@ class _SidebarLinkParser(HTMLParser):
 
 class AdminUiSmokeTests(TestCase):
     def setUp(self):
-        self.site = SiteSettings.get_solo()
+        self.site = get_platform_site_settings_record(create=True)
         self.factory = RequestFactory()
         # Keep admin smoke assertions on the public/local admin path.
         # Tenant hosts redirect /admin/* to the backend console, while local

@@ -5,8 +5,8 @@ from django.contrib.auth import get_user_model
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
+from apps.platform_runtime.helpers import get_platform_site_settings_record
 from apps.siteconfig.context_processors import site_settings
-from apps.siteconfig.models import SiteSettings
 from apps.siteconfig.portal_sidebar_items import build_portal_sidebar_items
 
 User = get_user_model()
@@ -17,7 +17,7 @@ class BackendContextProcessorTests(TestCase):
 
     def setUp(self):
         self.factory = RequestFactory()
-        self.site = SiteSettings.get_solo()
+        self.site = get_platform_site_settings_record(create=True)
         self.user = User.objects.create_user(
             username="staff1",
             password="test",
@@ -70,7 +70,7 @@ class BackendSidebarItemsTests(TestCase):
 
     def setUp(self):
         self.factory = RequestFactory()
-        self.site = SiteSettings.get_solo()
+        self.site = get_platform_site_settings_record(create=True)
         self.superuser = User.objects.create_superuser(
             username="super1",
             email="super1@example.com",

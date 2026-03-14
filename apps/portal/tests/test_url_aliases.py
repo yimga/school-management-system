@@ -1,7 +1,6 @@
 from datetime import date
 
 from django.test import TestCase
-from django.urls import reverse
 
 from apps.accounts.models import User
 from apps.academics.models import AcademicYear, Term, Department, Specialty, Classroom

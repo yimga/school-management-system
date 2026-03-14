@@ -64,19 +64,19 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-  <nav aria-label="breadcrumb" class="mb-3">
+<div class="container-fluid" id="workflow-main">
+  <nav aria-label="Breadcrumb" class="mb-3">
     <ol class="breadcrumb mb-0">
       <li class="breadcrumb-item"><a href="{% url 'portal:parent_dashboard' %}">Parent Home</a></li>
       <li class="breadcrumb-item active" aria-current="page">My Workflow</li>
     </ol>
   </nav>
 
-  <div class="workflow-hero">
+  <section class="workflow-hero" aria-labelledby="workflow-hero-title" aria-describedby="workflow-hero-desc">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-2">
       <div>
-        <h2>My Workflow</h2>
-        <p>What you've done → where you are → what's next. Follow the steps below to stay on top of your children's progress and school tasks.</p>
+        <h2 id="workflow-hero-title">My Workflow</h2>
+        <p id="workflow-hero-desc">What you've done → where you are → what's next. Follow the steps below to stay on top of your children's progress and school tasks.</p>
         <p class="small text-muted mb-0 mt-1">Link children · Results & attendance · Finance · Communication · Documents.</p>
       </div>
       <div class="d-flex flex-wrap gap-2 align-items-center">
@@ -114,23 +114,23 @@
       {% endfor %}
     </div>
     {% endif %}
-  </div>
+  </section>
 
   {% if steps %}
-  <div class="mb-3">
+  <div class="mb-3" role="region" aria-label="Workflow progress">
     <div class="d-flex justify-content-between align-items-center small text-muted mb-1">
       <span>Workflow — {{ steps|length }} steps</span>
     </div>
   </div>
-  <div class="workflow-grid">
+  <div class="workflow-grid" role="list" aria-label="Workflow steps">
     {% for step in steps %}
-      <div class="workflow-card" id="step-{{ step.step_key }}">
+      <article class="workflow-card" id="step-{{ step.step_key }}" aria-labelledby="step-title-{{ step.step_key }}">
         <div class="card-body">
           <div class="workflow-step-meta">Step {{ step.step_index }} of {{ step.total_steps }}</div>
-          <div class="workflow-title d-flex align-items-center">
-            <i class="bi {{ step.icon|default:'bi-circle' }} workflow-step-icon"></i>
+          <h3 id="step-title-{{ step.step_key }}" class="workflow-title d-flex align-items-center h6 mb-0">
+            <i class="bi {{ step.icon|default:'bi-circle' }} workflow-step-icon" aria-hidden="true"></i>
             {{ step.title }}
-          </div>
+          </h3>
           <div class="workflow-subtitle">{{ step.subtitle }}</div>
           {% if step.progress_label %}
           <div class="workflow-progress-label">{{ step.progress_label }}</div>
@@ -144,7 +144,7 @@
             {% endfor %}
           </div>
         </div>
-      </div>
+      </article>
     {% endfor %}
   </div>
   {% endif %}

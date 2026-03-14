@@ -7,12 +7,13 @@ from unittest.mock import patch
 from django.core.management import call_command
 from django.test import TestCase
 
-from apps.siteconfig.models import SiteSettings, default_backend_feature_flags
+from apps.platform_runtime.helpers import get_platform_site_settings_record
+from apps.siteconfig.models import default_backend_feature_flags
 
 
 class IntegrationPreflightCommandTests(TestCase):
     def setUp(self):
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         flags = {**default_backend_feature_flags(), **(site.backend_feature_flags or {})}
         flags["enable_ocr_scan_teller"] = False
         flags["enable_ministry_api_cartescolaire"] = False
@@ -33,7 +34,7 @@ class IntegrationPreflightCommandTests(TestCase):
 
     @patch.dict("os.environ", {}, clear=True)
     def test_preflight_fails_when_ocr_feature_enabled_but_runtime_missing(self):
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         flags = {**default_backend_feature_flags(), **(site.backend_feature_flags or {})}
         flags["enable_ocr_scan_teller"] = True
         site.backend_feature_flags = flags

@@ -21,7 +21,7 @@ def feature_enabled(context, feature_code: str) -> bool:
     try:
         from apps.schools.models import is_feature_enabled
         return bool(is_feature_enabled(school, feature_code))
-    except Exception:
+    except (ImportError, AttributeError, TypeError, ValueError, KeyError):
         return False
 
 

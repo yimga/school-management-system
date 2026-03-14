@@ -19,7 +19,7 @@ from apps.academics.models import (
 )
 from apps.api.mobile_api import MobileDevice
 from apps.people.models import StudentProfile
-from apps.siteconfig.models import SiteSettings
+from apps.platform_runtime.helpers import get_platform_site_settings_record
 
 
 class OfflineSyncBatchTestCase(TestCase):
@@ -60,7 +60,7 @@ class OfflineSyncBatchTestCase(TestCase):
             app_version="1.0",
         )
 
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.enable_offline_mode = True
         site.save(update_fields=["enable_offline_mode"])
         flags = site.backend_feature_flags or {}

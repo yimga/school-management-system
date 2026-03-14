@@ -1,16 +1,19 @@
 from __future__ import annotations
 
-from collections import Counter
+import logging
+import re
 from datetime import timedelta
 from decimal import Decimal
 from typing import TYPE_CHECKING, Iterable, List
-import re
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from .models import PendingGuardianInvite
 
 from django.core.cache import cache
-from django.db.models import Sum, Count, Q, F, Value, Case, When, Max
+from django.db import DatabaseError
+from django.db.models import Sum, Count, Q, F, Max
 from django.urls import reverse
 from django.utils import timezone
 
@@ -19,16 +22,15 @@ from apps.accounts.utils import get_user_role
 from apps.academics.models import SubjectAssignment
 from apps.academics.services import get_active_year_and_term
 
-from apps.evals.models import Evaluation, AssessmentWeights
+from apps.evals.models import Evaluation
 from apps.evals.services import completion_for_assignment
 from apps.finance.models import Invoice, PaymentReminder, ReferralReward
 from apps.people.models import StudentGuardian, StudentProfile, TeacherProfile
 from apps.accounts.permissions import _guardian_finance_qs
 from apps.evals.models import TeacherAssignment
 from apps.integrations_marketplace.models import Integration
-from apps.payroll.models import LeaveRequest, Payslip, PayrollEmployee
+from apps.payroll.models import LeaveRequest, PayrollEmployee
 from apps.platform_runtime.helpers import get_effective_site_settings
-from apps.reports.services import term_report_context
 from apps.apicenter.gating import is_integration_allowed
 from apps.siteconfig.cache_utils import get_tenant_cache_prefix
 from apps.siteconfig.integration_registry import resolve_active_integration
@@ -371,8 +373,8 @@ def _referral_overview(students: list[StudentProfile]):
             completeness = getattr(student, 'parent_completeness', 0)
             if isinstance(completeness, (int, float)):
                 completeness_vals.append(completeness)
-        except Exception:
-            pass  # Skip if property errors
+        except (AttributeError, TypeError) as e:
+            logger.debug("parent_completeness skip for student %s: %s", getattr(student, "pk", None), e)
     
     code = codes[0] if codes else None
     completeness_avg = (
@@ -813,8 +815,8 @@ def _upcoming_school_events(limit=15, *, school=None):
             from apps.school_events.services import upcoming_public_events_for_school
 
             return upcoming_public_events_for_school(school, limit=limit)
-        except Exception:
-            pass
+        except (ImportError, AttributeError, TypeError, ValueError, DatabaseError) as e:
+            logger.debug("upcoming_public_events_for_school fallback for school %s: %s", school, e)
     from apps.portal.models import Event
 
     qs = Event.objects.filter(
@@ -918,8 +920,8 @@ def _timetable_overview(students, year, term):
                     "time_slot": str(e.time_slot),
                     "room": e.room.name,
                 }
-    except Exception:
-        pass
+    except (AttributeError, TypeError, ValueError) as e:
+        logger.debug("slot_by_class_subject build failed: %s", e)
 
     return [
         {

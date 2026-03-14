@@ -22,8 +22,7 @@ Commands are grouped by app; purpose is inferred from name and docstring. Full l
 | Command | Purpose | Notes |
 |---------|---------|------|
 | ensure_superuser | Seed / bootstrap | Deploy/CI. |
-| ensure_default_tenant_admin | Seed / bootstrap | Replaces ensure_gilead_admin. |
-| ensure_gilead_admin | Obsolete (alias) | Deprecated; use ensure_default_tenant_admin. |
+| ensure_default_tenant_admin | Seed / bootstrap | Use for tenant admin bootstrap; supports --use-admin-user, --slug. |
 | seed_render_users | Seed / bootstrap | Release; superuser + tenant admin. |
 | create_teacher_parent_accounts | Dev utility | Demo accounts. |
 | backfill_user_roles | Migration / data repair | One-off/rare. |

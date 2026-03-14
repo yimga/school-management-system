@@ -8,7 +8,6 @@ import secrets
 from binascii import Error as BinasciiError
 from urllib.parse import urlencode
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotFound, JsonResponse
-from django.conf import settings
 from django.views.decorators.http import require_GET
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
@@ -581,6 +580,19 @@ def _resolve_json_mutation_body(request):
     return payload, None
 
 
+def _log_lti_request(request, tool_id, operation: str) -> None:
+    """Audit log for LTI callback requests (no PII). public_endpoint_audit Step 8."""
+    logger.info(
+        "LTI request",
+        extra={
+            "path": request.path,
+            "method": request.method,
+            "operation": operation,
+            "tool_id": str(tool_id),
+        },
+    )
+
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def lti_launch_callback(request, tool_id):
@@ -591,6 +603,7 @@ def lti_launch_callback(request, tool_id):
     rl = _lti_rate_limited(request, "launch_callback")
     if rl:
         return rl
+    _log_lti_request(request, tool_id, "launch_callback")
     integration = _resolve_lti_integration_for_request(request, tool_id)
     if not integration:
         return JsonResponse({"error": "LTI tool not found or inactive."}, status=404)
@@ -644,6 +657,7 @@ def lti_ags_lineitems(request, tool_id):
     rl = _lti_rate_limited(request, "ags_lineitems")
     if rl:
         return rl
+    _log_lti_request(request, tool_id, "ags_lineitems")
     integration = _resolve_lti_integration_for_request(request, tool_id)
     if not integration:
         return JsonResponse({"error": "LTI tool not found or inactive."}, status=404)
@@ -680,6 +694,7 @@ def lti_ags_lineitem_detail(request, tool_id, lineitem_id):
     rl = _lti_rate_limited(request, "ags_lineitem_detail")
     if rl:
         return rl
+    _log_lti_request(request, tool_id, "ags_lineitem_detail")
     integration = _resolve_lti_integration_for_request(request, tool_id)
     if not integration:
         return JsonResponse({"error": "LTI tool not found or inactive."}, status=404)
@@ -724,6 +739,7 @@ def lti_ags_scores(request, tool_id, lineitem_id):
     rl = _lti_rate_limited(request, "ags_scores")
     if rl:
         return rl
+    _log_lti_request(request, tool_id, "ags_scores")
     integration = _resolve_lti_integration_for_request(request, tool_id)
     if not integration:
         return JsonResponse({"error": "LTI tool not found or inactive."}, status=404)
@@ -851,6 +867,7 @@ def lti_deep_linking(request, tool_id):
     rl = _lti_rate_limited(request, "deep_linking")
     if rl:
         return rl
+    _log_lti_request(request, tool_id, "deep_linking")
     integration = _resolve_lti_integration_for_request(request, tool_id)
     if not integration:
         return JsonResponse({"error": "LTI tool not found or inactive."}, status=404)

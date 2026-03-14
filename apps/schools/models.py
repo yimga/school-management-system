@@ -3,9 +3,14 @@ Multi-tenant School and SchoolMembership models (Option B+C).
 School is the tenant; SchoolMembership links users to schools with a role.
 Phase D: Plan + addons; is_feature_enabled(tenant, code) for feature gate.
 """
+import logging
 import uuid
+
 from django.conf import settings
 from django.db import models
+from django.db.utils import DatabaseError, OperationalError
+
+logger = logging.getLogger(__name__)
 
 # Avoid shadowing by School.settings JSONField when referencing AUTH_USER_MODEL in FKs.
 _AUTH_USER_MODEL = getattr(settings, "AUTH_USER_MODEL", "accounts.User")
@@ -36,7 +41,7 @@ def limits(school) -> dict:
         from apps.schools.models import TenantQuotaLimit
         qs = TenantQuotaLimit.objects.filter(school=school, is_active=True)
         return {q.limit_type: q.limit_value for q in qs}
-    except Exception:
+    except (ImportError, DatabaseError, OperationalError, AttributeError, TypeError, KeyError):
         return {}
 
 
@@ -70,8 +75,8 @@ def is_feature_enabled(school, code: str) -> bool:
         from apps.siteconfig.tenant_config import get_tenant_modules
         if normalized in (get_tenant_modules(school) or []):
             return True
-    except Exception:
-        pass
+    except (ImportError, AttributeError, TypeError) as e:
+        logger.debug("schools.is_feature_enabled get_tenant_modules for school=%s code=%s: %s", school, code, e)
     return _has_feature_fallback(school, code)
 
 
@@ -86,7 +91,8 @@ def _has_feature_fallback(school, code: str) -> bool:
     try:
         from apps.siteconfig.feature_toggles import resolve_module_enabled
         return resolve_module_enabled(normalized, school=school, fallback=fallback)
-    except Exception:
+    except (ImportError, AttributeError, TypeError, ValueError, KeyError, DatabaseError) as e:
+        logger.debug("schools._has_feature_fallback for school=%s code=%s: %s", getattr(school, "id", None), code, e)
         return fallback
 
 
@@ -124,7 +130,7 @@ class School(models.Model):
         max_length=10,
         choices=SubSystem.choices,
         default=SubSystem.EN,
-        help_text="Cameroon FR/EN or International",
+        help_text="Sub-system: FR/EN or International (region-configurable)",
     )
     default_region = models.ForeignKey(
         "siteconfig.RegionConfig",
@@ -363,7 +369,8 @@ class School(models.Model):
         try:
             from apps.siteconfig.global_catalog import GlobalGeoCatalog
             return GlobalGeoCatalog.alpha2_for_country(getattr(self, "default_region_id", "") or "")
-        except Exception:
+        except (ImportError, AttributeError, TypeError, ValueError, KeyError) as e:
+            logger.debug("schools.Region.canonical_country_code failed: %s", e)
             return ""
 
     @property
@@ -373,7 +380,8 @@ class School(models.Model):
             return GlobalGeoCatalog.normalize_country_code(
                 self.country_code or getattr(self, "default_region_id", "") or ""
             )
-        except Exception:
+        except (ImportError, AttributeError, TypeError, ValueError, KeyError) as e:
+            logger.debug("schools.Region.resolved_country_alpha3 failed: %s", e)
             return ""
 
     def save(self, *args, **kwargs):

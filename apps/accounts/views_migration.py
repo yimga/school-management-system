@@ -89,7 +89,7 @@ def migration_wizard(request):
                 reader = csv.DictReader(io.StringIO(content))
                 headers = list(reader.fieldnames or [])
                 rows = list(reader)[:500]
-            except Exception as e:
+            except (UnicodeDecodeError, csv.Error, TypeError, ValueError, KeyError, OSError) as e:
                 messages.error(request, f"Could not read the CSV file. Use UTF-8 encoding and check the file is not corrupted. Details: {e}")
                 return redirect("accounts:migration_wizard")
             request.session[session_key] = {
@@ -163,7 +163,7 @@ def migration_wizard(request):
                     resp = client.post(url, data=json.dumps({"rows": transformed}), content_type="application/json")
                     try:
                         data = json.loads(resp.content.decode("utf-8"))
-                    except Exception:
+                    except (json.JSONDecodeError, UnicodeDecodeError, TypeError, ValueError):
                         data = {}
                     if resp.status_code in (200, 201):
                         result["created"] = len(data.get("created", []))
@@ -179,7 +179,7 @@ def migration_wizard(request):
                         result["errors"] = [result["error_message"]]
                         run_migration_finish(run, result)
                         messages.error(request, result["error_message"])
-                except Exception as e:
+                except (ValueError, TypeError, KeyError, ImportError, AttributeError, RuntimeError) as e:
                     result["error_count"] = len(transformed)
                     result["error_message"] = str(e)
                     result["errors"] = [str(e)]
@@ -209,7 +209,7 @@ def migration_wizard(request):
                         run_migration_finish(run, result)
                         p = result.get("parity", {})
                         messages.success(request, f"Grades: created {result['created']}, updated {result['updated']}, errors {result['error_count']}. Parity: {p.get('total_processed', 0)} rows processed.")
-                    except Exception as e:
+                    except (ValueError, TypeError, KeyError, ImportError, AttributeError, RuntimeError) as e:
                         result["error_count"] = len(transformed)
                         result["error_message"] = str(e)
                         result["errors"] = [str(e)]

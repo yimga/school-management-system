@@ -5,7 +5,6 @@ Non-negotiable: lint/test for get_tenant_cache_prefix(None); tenant isolation;
 single-tenant/legacy path documented or isolated.
 """
 from pathlib import Path
-import re
 
 from django.test import TestCase
 

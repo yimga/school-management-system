@@ -5,10 +5,8 @@ Usage: python manage.py check_accessibility
 from django.core.management.base import BaseCommand
 from django.test import Client
 from django.contrib.auth import get_user_model
-from django.urls import reverse
 from django.conf import settings
 import re
-import json
 from pathlib import Path
 from datetime import datetime
 
@@ -43,22 +41,22 @@ class Command(BaseCommand):
 
         # Create test users
         try:
-            teacher = User.objects.create_user(
+            _ = User.objects.create_user(
                 username="a11y_test_teacher",
                 password="test123",
                 role="TEACHER"
             )
         except Exception:
-            teacher = User.objects.get(username="a11y_test_teacher")
+            _ = User.objects.get(username="a11y_test_teacher")
 
         try:
-            admin = User.objects.create_superuser(
+            _ = User.objects.create_superuser(
                 username="a11y_test_admin",
                 email="a11y@test.com",
                 password="admin123"
             )
         except Exception:
-            admin = User.objects.get(username="a11y_test_admin")
+            _ = User.objects.get(username="a11y_test_admin")
 
         # Portal pages
         if pages_to_check in ['all', 'portal']:

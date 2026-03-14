@@ -4,6 +4,8 @@ from apps.metadata.models import (
     DynamicFieldDefinition,
     DynamicFieldValue,
     EntityCatalogEntry,
+    ENTITY_CATALOG_LIFECYCLE_DEPRECATED,
+    ENTITY_CATALOG_LIFECYCLE_DRAFT,
     FieldCatalogEntry,
     MetadataDependency,
 )
@@ -141,6 +143,36 @@ class LineageAndCatalogExportTests(TestCase):
                 for d in ent["dependencies"]
             )
         )
+
+    def test_export_entity_catalog_bundle_active_only_excludes_draft_deprecated(self):
+        """Default active_only=True exposes only active lifecycle entries."""
+        EntityCatalogEntry.objects.create(
+            code="draft_entity",
+            name="Draft Entity",
+            lifecycle_state=ENTITY_CATALOG_LIFECYCLE_DRAFT,
+        )
+        EntityCatalogEntry.objects.create(
+            code="deprecated_entity",
+            name="Deprecated Entity",
+            lifecycle_state=ENTITY_CATALOG_LIFECYCLE_DEPRECATED,
+        )
+        bundle = export_entity_catalog_bundle()
+        codes = [e["code"] for e in bundle["entities"]]
+        self.assertIn("student", codes)
+        self.assertNotIn("draft_entity", codes)
+        self.assertNotIn("deprecated_entity", codes)
+
+    def test_export_entity_catalog_bundle_active_only_false_includes_all(self):
+        """active_only=False includes draft and deprecated entries."""
+        EntityCatalogEntry.objects.create(
+            code="draft_entity",
+            name="Draft Entity",
+            lifecycle_state=ENTITY_CATALOG_LIFECYCLE_DRAFT,
+        )
+        bundle = export_entity_catalog_bundle(active_only=False)
+        codes = [e["code"] for e in bundle["entities"]]
+        self.assertIn("student", codes)
+        self.assertIn("draft_entity", codes)
 
     def test_summarize_dependency_consumers_groups_by_consumer(self):
         MetadataDependency.objects.create(

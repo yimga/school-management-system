@@ -3,7 +3,7 @@ Sidebar Organization Helper
 Organizes sidebar items into logical categories for better UX
 """
 
-from typing import Dict, List, Optional
+from typing import Dict, List
 from apps.accounts.models import User
 
 

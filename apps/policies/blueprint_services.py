@@ -8,8 +8,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from apps.policies.models import BlueprintPack
-    from apps.schools.models import School
+    pass
 
 
 def preview_blueprint_pack(school, pack) -> dict[str, Any]:

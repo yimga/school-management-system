@@ -465,5 +465,5 @@ class EraseRequest(models.Model):
 # ============================================
 # Phase 4: Audit & Monitoring Models
 # ============================================
-# Import audit models from models_audit.py for organization
-from .models_audit import AuditLog, UserActivitySession, AccessLog, ComplianceReport
+# Re-export AuditLog from models_audit for callers that import from .models (e.g. portal)
+from apps.compliance.models_audit import AuditLog  # noqa: F401

@@ -1,6 +1,5 @@
 """Payment Gateway Processors"""
 from abc import ABC, abstractmethod
-from decimal import Decimal
 import hashlib
 import hmac
 

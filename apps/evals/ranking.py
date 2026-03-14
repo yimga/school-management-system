@@ -7,18 +7,16 @@ Phase 1.2: Complete Evaluation Module
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
 from django.core.cache import cache
-from django.db.models import Q, Count, F, Max, Case, When, Value, CharField, FloatField
-from django.db.models import Prefetch
 
-from apps.academics.models import Term, Classroom, AcademicYear
+from apps.academics.models import Term, Classroom
 from apps.siteconfig.cache_utils import get_tenant_cache_prefix
 from apps.people.models import StudentProfile
 
 from .models import Evaluation, MockExamSetting
-from .mock_exams import calculate_blended_score, should_use_mock_blending
+from .mock_exams import calculate_blended_score
 
 
 @dataclass(frozen=True)

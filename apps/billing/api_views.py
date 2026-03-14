@@ -104,6 +104,7 @@ def platform_billing_processor_webhook(request, processor_code: str):
             status=415,
         )
 
+    # §2.4 Webhook signature verification; reject missing or invalid signature with 401.
     processor = get_platform_billing_processor(config)
     payload, raw_body = processor.parse_request(request)
     is_valid, error_message = processor.verify_request(request, raw_body)
@@ -122,7 +123,7 @@ def platform_billing_processor_webhook(request, processor_code: str):
             severity=PlatformIncident.Severity.CRITICAL,
             details={"reason": "signature_validation_failed"},
         )
-        return JsonResponse({"status": "error", "error": error_message}, status=403)
+        return JsonResponse({"status": "error", "error": error_message}, status=401)
 
     config.last_webhook_at = timezone.now()
     config.save(update_fields=["last_webhook_at", "updated_at"])

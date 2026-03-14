@@ -5,9 +5,9 @@
 
 {% block content %}
 <div class="cp-shell-content d-flex flex-column flex-grow-1 min-h-0">
-<nav class="navbar navbar-expand-lg navbar-dark cp-navbar flex-shrink-0" style="background: var(--cp-bg, #0B0E14); border-bottom: 1px solid rgba(125,152,187,0.18);">
+<nav class="navbar navbar-expand-lg navbar-dark cp-navbar statement-header flex-shrink-0" style="background: var(--cp-bg, #0B0E14); border-bottom: 1px solid rgba(125,152,187,0.18);">
   <div class="container-fluid px-3">
-    <a class="navbar-brand fw-bold d-flex align-items-center gap-2 text-white" href="{% url 'super:dashboard' %}">
+    <a class="navbar-brand fw-bold d-flex align-items-center gap-2 text-white statement-logo" href="{% url 'super:dashboard' %}">
       {% if PUBLIC_BRAND_FAVICON_URL %}
         <img src="{{ PUBLIC_BRAND_FAVICON_URL }}" alt="" width="32" height="32" decoding="async" style="object-fit: contain;">
       {% else %}

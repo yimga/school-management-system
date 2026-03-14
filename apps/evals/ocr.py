@@ -173,7 +173,6 @@ def _parse_text_with_confidence(image: Image.Image) -> Tuple[List[Dict[str, Any]
     field_confidences: Dict[str, List[float]] = {field: [] for field in FIELD_ORDER}
     
     # Map OCR words to lines and extract confidence
-    word_idx = 0
     for line_idx, line_text in enumerate(text_lines):
         clean_line = line_text.strip()
         if not clean_line:

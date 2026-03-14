@@ -4,6 +4,7 @@ Dashboard assembly and recommendation logic live in apps.dashboard.context and r
 """
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import user_passes_test
+from django.db import DatabaseError
 from django.shortcuts import redirect
 from django.urls import reverse
 
@@ -23,7 +24,7 @@ def dismiss_first_login_checklist(request):
         layout["first_login_checklist_dismissed"] = True
         pref.dashboard_layout = layout
         pref.save(update_fields=["dashboard_layout"])
-    except Exception:
+    except (AttributeError, TypeError, ValueError, DatabaseError):
         pass
     next_url = request.POST.get("next") or request.GET.get("next") or reverse("accounts:backend_dashboard")
     return redirect(next_url)

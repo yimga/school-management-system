@@ -3,7 +3,6 @@ Admin for Policy Registry v2 models (CountryProfile, PolicyBundle, TenantBluepri
 """
 
 from django.contrib import admin
-from django.utils.translation import gettext_lazy as _
 from config.admin import platform_admin_site, tenant_admin_site
 from .models import (
     BlueprintPack,

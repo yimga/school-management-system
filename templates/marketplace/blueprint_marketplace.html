@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-4 control-plane-shell">
+<div class="container-fluid py-4 control-plane-shell" data-page-archetype="catalog">
   <section class="cp-hero cp-hero-compact mb-4">
     <div class="cp-hero-grid">
       <div>
@@ -25,6 +25,15 @@
         <a href="{% url 'super:app_catalog' %}" class="btn btn-outline-light btn-sm">App catalog</a>
         <a href="{% url 'super:dashboard' %}" class="btn btn-outline-light btn-sm">Control plane</a>
       </div>
+      {% if catalog_counts %}
+      <div class="cp-chip-row mt-2">
+        <span class="cp-chip">First-party apps {{ catalog_counts.first_party_apps|default:0 }}</span>
+        <span class="cp-chip">Blueprint packs {{ catalog_counts.blueprint_packs|default:0 }}</span>
+        <span class="cp-chip">Workflow packs {{ catalog_counts.workflow_packs|default:0 }}</span>
+        <span class="cp-chip">Dashboard packs {{ catalog_counts.dashboard_packs|default:0 }}</span>
+        <span class="cp-chip">Policy bundles {{ catalog_counts.policy_bundles|default:0 }}</span>
+      </div>
+      {% endif %}
     </div>
   </section>
 

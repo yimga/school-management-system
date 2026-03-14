@@ -1,13 +1,17 @@
 """Parent finance, wallet, and feed views (moved from views.py)."""
+import logging
 from collections import Counter
 from decimal import Decimal
 
 from django.contrib import messages
+from django.core.exceptions import ImproperlyConfigured
 from django.db.models import Sum
 from django.http import HttpRequest
 from django.shortcuts import redirect, render
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext_lazy as _
+
+logger = logging.getLogger(__name__)
 
 from apps.accounts.decorators import parent_portal_required, role_required
 from apps.accounts.models import User
@@ -78,25 +82,9 @@ def parent_finance(request: HttpRequest):
     total_due = aggregates.get("total_due") or Decimal("0.00")
     balance = aggregates.get("balance") or Decimal("0.00")
     paid = total_due - balance
-    finance_paid_pct = int((paid / total_due) * 100) if total_due else 0
-    can_view_finance = bool(students)
+    int((paid / total_due) * 100) if total_due else 0
+    bool(students)
 
-    finance_summary = (
-        f"{finance_paid_pct}% paid ({paid} settled of {total_due})"
-        if total_due
-        else "No invoices recorded yet."
-    )
-    finance_access_banner = {
-        "text": (
-            "Finance access is granted for your linked students."
-            if can_view_finance
-            else "Finance details are hidden until access is granted."
-        ),
-        "summary": finance_summary,
-        "level": "success" if can_view_finance else "warning",
-        "request_url": finance_request_url if can_request_finance_access else None,
-        "cta": "Request finance access" if can_request_finance_access else None,
-    }
 
     payment_method_counts = Counter()
     invoice_rows = []
@@ -204,7 +192,8 @@ def parent_wallet(request: HttpRequest):
             WalletTransaction.objects.filter(wallet=wallet).order_by("-created_at")[:50])
     try:
         top_up_url = reverse("api_v1:finance-wallet-top-up")
-    except Exception:
+    except (NoReverseMatch, ImproperlyConfigured) as e:
+        logger.debug("reverse(api_v1:finance-wallet-top-up) failed, using fallback: %s", e)
         top_up_url = "/api/v1/finance/wallet/top-up"
     return render(
         request,

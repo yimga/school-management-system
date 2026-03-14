@@ -9,7 +9,7 @@ from django.db import DatabaseError, transaction
 from django.utils import timezone
 
 from apps.schools.models import School
-from .models import Plan, RevenueSnapshot
+from .models import RevenueSnapshot
 
 
 def _first_of_month(d: date) -> date:

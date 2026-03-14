@@ -8,7 +8,35 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from django.db import DatabaseError
+from django.db.models import ObjectDoesNotExist
+from django.urls import NoReverseMatch
+
 logger = logging.getLogger(__name__)
+
+# §2.4 Typed exceptions for optional/audit paths (no broad except).
+_STUDIO_SOFT_FAILURES = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    KeyError,
+    ObjectDoesNotExist,
+    DatabaseError,
+    NoReverseMatch,
+)
+
+# §4.2–4.6 Plan "Must support" checklist (RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md).
+# Experience: ExperiencePack, theme tokens, portal shell layouts, dashboard visual packs, school website blocks,
+#   communication style packs, role/device preview, compare, publish/rollback, website brand import, AI recommendations.
+# Automation: visual builder, natural-language workflow generation, simulation engine, dependency graph,
+#   conflict detection, staged activation, replay/rollback, workflow health metrics.
+# Output: ReportPack, DocumentPack, sample-data preview, branding inheritance, signature requirements,
+#   retention/lifecycle controls, dependency graph, publish/rollback.
+# Launch: create school, select plan, recommend blueprint, import branding, choose starter stack, choose migration path,
+#   preview by role, launch checklist, setup health score, launch confidence summary.
+# Control: capability management, runtime/source tracing, policy/entitlement/pack/integration governance,
+#   registry overlays, metadata governance, diff/impact summary, rollback/staged rollout, AI cleanup suggestions.
 
 # Mode -> (reverse_name, query_param). Single source for Studio embed/preview URLs.
 STUDIO_MODE_EMBED_TARGETS = {
@@ -86,11 +114,62 @@ def get_studio_activity_feed(request, limit: int = 15) -> list[dict[str, Any]]:
                 "detail": entry.action or "save",
                 "url": control_url,
             })
-    except Exception as e:
+    except _STUDIO_SOFT_FAILURES as e:
         logger.debug("Studio activity: feature control audit unavailable: %s", e)
 
-    # Sort by timestamp desc (simplified: theme first then audit entries)
+    # §4.1 Extend to package/workflow: recent InstalledPackage apply (if any)
+    try:
+        from apps.packages.models import InstalledPackage
+        pkg_url = _safe("studio_os:control")
+        for pkg in InstalledPackage.objects.filter(is_active=True).order_by("-applied_at")[:5]:
+            if not pkg_url:
+                break
+            feed.append({
+                "kind": "package_apply",
+                "label": f"Package {pkg.package_id}@{pkg.version} applied",
+                "timestamp": pkg.applied_at.strftime("%Y-%m-%d %H:%M") if pkg.applied_at else "",
+                "actor": str(pkg.applied_by_id) if pkg.applied_by_id else "system",
+                "detail": pkg.apply_stage or "production",
+                "url": pkg_url,
+            })
+    except _STUDIO_SOFT_FAILURES as e:
+        logger.debug("Studio activity: package feed unavailable: %s", e)
+
+    # Sort by timestamp desc (simplified: theme first then audit then package)
     return feed[:limit]
+
+
+def get_studio_role_preview_entries(request: Any) -> list[dict[str, Any]]:
+    """
+    §4.1 Unified role/device preview switcher. Returns list of {role, label, url} for shell.
+    Uses Launch payload when available; otherwise minimal role list with preview links.
+    """
+    from django.urls import NoReverseMatch, reverse
+    school = getattr(request, "school", None)
+    if not school:
+        return []
+    try:
+        from apps.setup_studio.services import get_setup_studio_payload
+        payload = get_setup_studio_payload(school)
+        role_previews = payload.get("role_previews") or []
+        if isinstance(role_previews, list) and role_previews:
+            return [
+                {"role": r.get("role", ""), "label": r.get("label", r.get("role", "")), "url": r.get("url", "")}
+                for r in role_previews if isinstance(r, dict)
+            ][:8]
+    except _STUDIO_SOFT_FAILURES as e:
+        logger.debug("Studio role preview entries: %s", e)
+    # Fallback: minimal role list
+    def _safe(name: str) -> str:
+        try:
+            return reverse(name)
+        except NoReverseMatch:
+            return ""
+    return [
+        {"role": "principal", "label": "Principal", "url": _safe("accounts:backend_dashboard") or "#"},
+        {"role": "teacher", "label": "Teacher", "url": _safe("accounts:backend_dashboard") or "#"},
+        {"role": "parent", "label": "Parent", "url": _safe("portal:parent_dashboard") or "#"},
+    ]
 
 
 def get_studio_recommendations(request, mode: str | None) -> list[dict[str, Any]]:
@@ -138,7 +217,7 @@ def get_studio_recommendations(request, mode: str | None) -> list[dict[str, Any]
                         "url": url,
                         "tone": "risk",
                     })
-        except Exception as e:
+        except _STUDIO_SOFT_FAILURES as e:
             logger.debug("Studio recommendations: launch payload unavailable: %s", e)
 
     if mode == "experience":
@@ -206,6 +285,29 @@ def get_studio_command_palette_entries(request) -> list[dict[str, Any]]:
     return entries
 
 
+def get_studio_global_search(request: Any, q: str, limit: int = 20) -> list[dict[str, Any]]:
+    """
+    §4.1 global search: search across Studio entities (modes, actions, commands).
+    Returns list of {label, url, kind}. Uses command palette entries; extend with
+    metadata/search backend for full entity search.
+    """
+    if not (q and q.strip()):
+        return []
+    q_lower = q.strip().lower()
+    entries = get_studio_command_palette_entries(request)
+    results = []
+    for e in entries:
+        if q_lower in (e.get("label") or "").lower() or q_lower in (e.get("keywords") or "").lower():
+            results.append({
+                "label": e.get("label", ""),
+                "url": e.get("url", ""),
+                "kind": "command",
+            })
+        if len(results) >= limit:
+            break
+    return results
+
+
 def studio_publish_validate(mode: str, payload: dict[str, Any]) -> list[str]:
     """Validate before publish. Returns list of error messages (empty if valid)."""
     errors = []
@@ -261,7 +363,7 @@ def studio_publish(mode: str, request, payload: dict[str, Any]) -> dict[str, Any
             return {"ok": True, "redirect_url": reverse("studio_os:experience")}
         if mode == "control":
             return {"ok": True, "redirect_url": reverse("studio_os:control")}
-    except Exception as e:
+    except _STUDIO_SOFT_FAILURES as e:
         logger.warning("studio_publish redirect: %s", e)
     return {"ok": True}
 

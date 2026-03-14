@@ -21,6 +21,10 @@ from apps.portal.ai_provider import (
     generate_ai_response,
     get_public_ai_provider_status,
 )
+from apps.platform_runtime.structured_logging import (
+    log_exception_with_context,
+    request_context_for_log,
+)
 from apps.siteconfig.cache_utils import tenant_cache_key
 
 logger = logging.getLogger(__name__)
@@ -77,7 +81,12 @@ def _log_ai_audit(request, action, reason="", details=None, sensitivity=None):
         )
     except DatabaseError:
         # Avoid blocking AI responses if audit logging fails
-        logger.exception("AI Copilot audit logging failed")
+        ctx = request_context_for_log(request) if request else {}
+        log_exception_with_context(
+            "AI Copilot audit logging failed",
+            exc_info=True,
+            **ctx,
+        )
 
 
 def _check_rate_limit(user, request=None):
@@ -130,7 +139,7 @@ def get_ai_permissions(user):
     """
     role = get_user_role(user) or 'USER'
     admin_roles = {"ADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "IT_ADMIN"}
-    finance_roles = admin_roles | {"BURSAR"}
+    admin_roles | {"BURSAR"}
     is_admin_like = user.is_superuser or user.is_staff or role in admin_roles
 
     permissions = {

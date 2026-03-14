@@ -6,8 +6,9 @@ if one tenant's migrations fail, others still run. See docs/MIGRATION_RUNNER_TEN
 """
 from django.conf import settings
 from django.core.management import call_command
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.db import connection
+from django.db import DatabaseError, IntegrityError, OperationalError
 
 
 class Command(BaseCommand):
@@ -49,7 +50,7 @@ class Command(BaseCommand):
                 ok += 1
                 if verbosity >= 1:
                     self.stdout.write(self.style.SUCCESS("OK: %s (%s)" % (client.name, schema_name)))
-            except Exception as e:
+            except (CommandError, DatabaseError, IntegrityError, OperationalError, OSError) as e:
                 failed.append((schema_name, client.name, str(e)))
                 self.stdout.write(self.style.ERROR("FAILED: %s (%s) - %s" % (client.name, schema_name, e)))
         if failed:

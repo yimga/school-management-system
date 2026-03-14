@@ -2,7 +2,6 @@
 Multi-tenant middleware: resolve request host (subdomain or custom domain) to School,
 set request.school and session school_id, and set PostgreSQL app.current_school_id for RLS.
 """
-import os
 import logging
 from django.conf import settings
 from django.db import DatabaseError
@@ -10,7 +9,7 @@ from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, Jso
 from django.shortcuts import redirect
 from django.utils.deprecation import MiddlewareMixin
 
-from apps.platform_runtime.helpers import get_effective_flags, get_effective_site_settings
+from apps.platform_runtime.helpers import get_effective_flags
 from apps.schools.host_routing import (
     get_canonical_base_domain,
     is_public_host,
@@ -134,7 +133,7 @@ def _cache_get_optional(key, default=None):
         from django.core.cache import cache
 
         return cache.get(key, default)
-    except Exception:
+    except (ImportError, AttributeError, TypeError, ConnectionError, ValueError, RuntimeError):
         return default
 
 
@@ -144,7 +143,7 @@ def _cache_set_optional(key, value, timeout=None) -> bool:
 
         cache.set(key, value, timeout)
         return True
-    except Exception:
+    except (ImportError, AttributeError, TypeError, ConnectionError, ValueError, RuntimeError):
         return False
 SUPPORT_HOST_ALLOWED_PREFIXES = (
     "/support/",
@@ -472,7 +471,7 @@ def _resolve_school_from_request(request) -> "School | None":
             .filter(domain__iexact=host, is_verified=True, school__is_active=True)
             .first()
         )
-    except Exception:
+    except DatabaseError:
         school_domain = None
     if school_domain and school_domain.school_id:
         school = school_domain.school
@@ -655,13 +654,9 @@ class TenantMiddleware(MiddlewareMixin):
             except (AttributeError, ImportError, TypeError, ValueError) as e:
                 logger.debug("Could not activate school timezone: %s", e)
             try:
-                from django.db import connection
-                if connection.vendor == "postgresql" and not getattr(settings, "USE_DJANGO_TENANTS", False):
-                    with connection.cursor() as cursor:
-                        cursor.execute(
-                            "SET app.current_school_id = %s",
-                            [str(school.id)],
-                        )
+                if not getattr(settings, "USE_DJANGO_TENANTS", False):
+                    from apps.schools.rls_context import set_rls_school_id
+                    set_rls_school_id(school.id)
                     request._rls_school_id_set = True
             except DatabaseError as e:
                 logger.debug("Could not set app.current_school_id: %s", e)
@@ -674,10 +669,8 @@ class TenantMiddleware(MiddlewareMixin):
         """Reset RLS GUC so the session does not leak to other requests (e.g. connection pool)."""
         if getattr(request, "_rls_school_id_set", False):
             try:
-                from django.db import connection
-                if connection.vendor == "postgresql":
-                    with connection.cursor() as cursor:
-                        cursor.execute("RESET app.current_school_id")
+                from apps.schools.rls_context import reset_rls_school_id
+                reset_rls_school_id()
             except DatabaseError as e:
                 logger.debug("Could not reset app.current_school_id: %s", e)
             request._rls_school_id_set = False
@@ -689,10 +682,8 @@ def _reset_rls_school_id_if_set(request):
     if not getattr(request, "_rls_school_id_set", False):
         return
     try:
-        from django.db import connection
-        if connection.vendor == "postgresql":
-            with connection.cursor() as cursor:
-                cursor.execute("RESET app.current_school_id")
+        from apps.schools.rls_context import reset_rls_school_id
+        reset_rls_school_id()
     except DatabaseError as e:
         logger.debug("Could not reset app.current_school_id (finally): %s", e)
     request._rls_school_id_set = False

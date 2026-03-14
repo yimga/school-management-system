@@ -2,8 +2,8 @@
 Official report template engine: inject data into uploadable HTML templates (Phase 2).
 Placeholders: {{ student_name }}, {{ grades }}, etc. Produces HTML; optional PDF via WeasyPrint.
 """
-import re
 from django.template import Context, Template
+from django.template.exceptions import TemplateSyntaxError
 
 
 def render_official_template_html(template_content: str, context: dict) -> str:
@@ -18,7 +18,7 @@ def render_official_template_html(template_content: str, context: dict) -> str:
         t = Template(template_content)
         ctx = Context(context)
         return t.render(ctx)
-    except Exception:
+    except (TemplateSyntaxError, KeyError, ValueError, TypeError, AttributeError):
         pass
     # Fallback: simple {{ key }} replace
     out = template_content
@@ -36,7 +36,6 @@ def render_official_template_html(template_content: str, context: dict) -> str:
 
 def get_report_context_for_student(student, term=None, academic_year=None, school=None):
     """Build a minimal context dict for report template injection (extend as needed)."""
-    from apps.reports.models import ReportCard
     from apps.evals.models import Evaluation
     context = {
         "school_name": getattr(school, "name", "") if school else "",

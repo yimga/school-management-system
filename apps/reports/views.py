@@ -4,7 +4,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.core.files.base import ContentFile
 from django.core.mail import EmailMessage
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.http import HttpRequest, HttpResponse, HttpResponseForbidden, HttpResponseBadRequest, JsonResponse
+from django.http import HttpRequest, HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
@@ -12,7 +12,7 @@ import csv
 import hashlib
 from types import SimpleNamespace
 
-from apps.accounts.decorators import role_required, parent_portal_required, permission_required
+from apps.accounts.decorators import role_required, parent_portal_required
 from apps.accounts.models import User
 from apps.academics.models import AcademicYear, Classroom, Term
 from apps.academics.services import get_active_year_and_term
@@ -895,7 +895,6 @@ def promotion_preview(request: HttpRequest):
         get_promotion_status,
         get_promotion_thresholds,
         _annual_average_for_student,
-        terms_for_student,
     )
 
     school = _report_scope_school(request)

@@ -5,13 +5,12 @@ System health checks, performance monitoring, health endpoints
 
 import uuid
 from django.conf import settings
-from django.db import models, connection
+from django.db import models
 from django.core.cache import cache
 from django.utils import timezone
 from django.http import JsonResponse
 from django.views import View
-from typing import Dict, List, Tuple, Optional
-import json
+from typing import Dict, Tuple, Optional
 import os
 import shutil
 import time
@@ -20,7 +19,7 @@ import platform
 
 try:
     import psutil
-except Exception:  # pragma: no cover - optional dependency
+except ImportError:  # pragma: no cover - optional dependency
     psutil = None
 
 
@@ -35,7 +34,7 @@ def _read_process_rss_mb() -> float:
     if psutil is not None:
         try:
             return psutil.Process().memory_info().rss / MB
-        except Exception:
+        except (OSError, AttributeError, TypeError):
             pass
 
     try:
@@ -49,7 +48,7 @@ def _read_process_rss_mb() -> float:
             rss_mb = float(usage.ru_maxrss) / 1024
         if rss_mb > 0:
             return rss_mb
-    except Exception:
+    except (OSError, AttributeError, TypeError, ValueError):
         pass
 
     return 0.0
@@ -90,7 +89,7 @@ def _read_memory_usage() -> Tuple[float, float]:
                 used = max(total - available, 0.0)
                 percent = (used / total * 100.0) if total > 0 else 0.0
                 return percent, max(used / MB, 0.001)
-        except Exception:
+        except (OSError, AttributeError, TypeError, ValueError):
             pass
 
     # POSIX fallback.
@@ -103,7 +102,7 @@ def _read_memory_usage() -> Tuple[float, float]:
         used = max(total - available, 0.0)
         percent = (used / total * 100.0) if total > 0 else 0.0
         return percent, max(used / MB, 0.001)
-    except Exception:
+    except (OSError, AttributeError, TypeError, ValueError):
         pass
 
     # Last fallback: expose at least process memory.
@@ -328,8 +327,8 @@ class SystemHealthMonitor:
             if psutil is None:
                 return 0.0
             return float(psutil.cpu_percent(interval=0.1))
-        except Exception as e:
-            logger.error(f"Error getting CPU usage: {e}")
+        except (OSError, AttributeError, TypeError, ValueError) as e:
+            logger.error("Error getting CPU usage: %s", e, exc_info=False)
             return 0.0
     
     @staticmethod
@@ -337,8 +336,8 @@ class SystemHealthMonitor:
         """Get memory usage (percent, used_mb)"""
         try:
             return _read_memory_usage()
-        except Exception as e:
-            logger.error(f"Error getting memory usage: {e}")
+        except (OSError, AttributeError, TypeError, ValueError) as e:
+            logger.error("Error getting memory usage: %s", e, exc_info=False)
             return 0.0, 0.001
     
     @staticmethod
@@ -346,31 +345,15 @@ class SystemHealthMonitor:
         """Get disk usage (percent, free_gb)"""
         try:
             return _read_disk_usage("/")
-        except Exception as e:
-            logger.error(f"Error getting disk usage: {e}")
+        except (OSError, AttributeError, TypeError, ValueError) as e:
+            logger.error("Error getting disk usage: %s", e, exc_info=False)
             return 0.0, 0.001
     
     @staticmethod
     def check_database_health() -> Dict:
-        """Check database connectivity and performance"""
-        try:
-            start = time.time()
-            with connection.cursor() as cursor:
-                cursor.execute("SELECT 1")
-            duration = (time.time() - start) * 1000
-            
-            return {
-                'status': 'healthy',
-                'response_time_ms': duration,
-                'connections': len(connection.queries) if hasattr(connection, 'queries') else 0,
-            }
-        except Exception as e:
-            logger.error(f"Database health check failed: {e}")
-            return {
-                'status': 'unhealthy',
-                'response_time_ms': 0,
-                'error': str(e),
-            }
+        """Check database connectivity and performance (§2.4: raw SQL in observability.db_liveness)."""
+        from apps.observability.db_liveness import check_db_liveness
+        return check_db_liveness()
     
     @staticmethod
     def check_cache_health() -> Dict:
@@ -387,8 +370,8 @@ class SystemHealthMonitor:
                 'status': 'healthy' if retrieved == test_value else 'unhealthy',
                 'type': type(cache).__name__,
             }
-        except Exception as e:
-            logger.error(f"Cache health check failed: {e}")
+        except (TypeError, ValueError, AttributeError, RuntimeError) as e:
+            logger.error("Cache health check failed: %s", e, exc_info=False)
             return {
                 'status': 'unhealthy',
                 'error': str(e),

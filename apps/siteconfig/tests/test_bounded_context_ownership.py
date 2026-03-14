@@ -53,10 +53,10 @@ class BoundedContextOwnershipTests(SimpleTestCase):
         self.assertEqual(metadata_catalog.Integration._meta.app_label, "integrations_marketplace")
 
     def test_siteconfig_operator_surfaces_use_successor_theme_owner_model(self):
+        # ThemePack and ReportCardStyle used by siteconfig forms/admin/views are successor proxies.
         self.assertEqual(siteconfig_forms.ThemePack._meta.app_label, "brand_experience")
         self.assertEqual(siteconfig_admin.ThemePack._meta.app_label, "brand_experience")
-        self.assertEqual(siteconfig_admin.BrandProfile._meta.app_label, "brand_experience")
-        self.assertEqual(siteconfig_admin.BrandSettings._meta.app_label, "brand_experience")
+        # BrandProfile/BrandSettings are registered in brand_experience.admin only (see branding.BrandProfile).
         self.assertEqual(siteconfig_forms.ReportCardStyle._meta.app_label, "runtime_blueprints")
         self.assertEqual(siteconfig_views.ReportCardStyle._meta.app_label, "runtime_blueprints")
 

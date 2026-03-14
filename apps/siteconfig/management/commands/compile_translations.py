@@ -10,7 +10,6 @@ from apps.siteconfig.translations import (
     init_translations,
 )
 import json
-from pathlib import Path
 
 
 class Command(BaseCommand):
@@ -201,5 +200,5 @@ class Command(BaseCommand):
             
             self.stdout.write(self.style.SUCCESS(f'\n[+] Imported from {import_file} ({count} language(s))'))
         
-        except Exception as e:
-            self.stdout.write(self.style.ERROR(f'\n[!] Error importing: {str(e)}'))
+        except (OSError, ValueError, KeyError, TypeError) as e:
+            self.stdout.write(self.style.ERROR(f'\n[!] Error importing: {e}'))

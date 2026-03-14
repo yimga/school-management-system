@@ -53,7 +53,7 @@ def check_app_compatibility(school, app, *, warn_only=False):
     Returns (ok: bool, warnings: list, errors: list).
     If warn_only=True, incompatible returns ok=True with errors in warnings.
     """
-    from apps.marketplace.models import MarketplaceApp, MarketplaceListing
+    from apps.marketplace.models import MarketplaceApp
 
     if not isinstance(app, MarketplaceApp):
         app = MarketplaceApp.objects.select_related("listing").get(slug=app) if isinstance(app, str) else MarketplaceApp.objects.select_related("listing").get(pk=app)

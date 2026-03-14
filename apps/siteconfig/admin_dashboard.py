@@ -3,9 +3,8 @@ Phase 8 Task 9: Admin Dashboard - Comprehensive Admin Interface
 KPI dashboard, real-time metrics, admin customization
 """
 
-from django.contrib import admin
 from django.utils.html import format_html
-from django.db.models import Count, Avg, Sum, Q
+from django.db.models import Count, Avg, Sum
 from datetime import timedelta
 from django.utils import timezone
 

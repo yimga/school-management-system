@@ -6,7 +6,7 @@ from django.urls import reverse
 
 from apps.accounts.models import Permission
 from apps.siteconfig.forms import ThemeColorsForm
-from apps.siteconfig.models import SiteSettings
+from apps.platform_runtime.helpers import get_platform_site_settings_record
 
 
 User = get_user_model()
@@ -33,7 +33,7 @@ class StudioExperienceRollbackTests(TestCase):
         self.user.feature_permissions.add(manage_perm)
 
     def _theme_form_payload(self, **overrides):
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         payload = {}
         form = ThemeColorsForm(instance=site)
         for field_name in ThemeColorsForm.Meta.fields:
@@ -58,7 +58,7 @@ class StudioExperienceRollbackTests(TestCase):
         return payload
 
     def test_experience_rollback_reverts_last_saved_theme_state(self):
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         original_primary = site.primary_color
 
         self.client.login(username=self.user.username, password="password")

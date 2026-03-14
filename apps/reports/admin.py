@@ -1,4 +1,3 @@
-from django.contrib import admin
 from config.admin import register_tenant_admin
 
 from unfold.admin import ModelAdmin

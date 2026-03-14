@@ -1,22 +1,17 @@
 from __future__ import annotations
 
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 import logging
 
-from django.conf import settings
 from django.core.exceptions import FieldDoesNotExist, ObjectDoesNotExist
 from django.db import models, connection, OperationalError, DatabaseError
-from django.db.models import Q
 from django.db.models.fields.files import FieldFile
 from django.db.models.signals import post_delete, post_save
 from django.core.validators import MinValueValidator, MaxValueValidator
 from .image_utils import optimize_image
 from django.apps import apps as django_apps
 
-from apps.accounts.models import User
-from apps.academics.models import Classroom, Subject
 from apps.academics.models import HolidayCalendar  # noqa: F401
-from apps.people.models import StudentProfile, TeacherProfile, StudentGuardian
 from .domain_ownership import OWNERSHIP_DOMAINS, classify_site_settings_field
 
 logger = logging.getLogger(__name__)
@@ -61,26 +56,32 @@ def tenant_upload_to_waiver_requests(instance, filename):
     return _tenant_upload_to("waiver_requests")(instance, filename)
 
 
-from .models_support import (
-    PORTAL_FEATURE_DEFAULTS,
-    PORTAL_FEATURE_OPTIONS,
+from .models_support import (  # noqa: F401
     default_admin_portal_stats_config,
+    default_announcement_submit_for_approval_roles,
     default_backend_feature_flags,
     default_footer_badges,
     default_footer_links,
-    default_header_weather_config,
     default_portal_announcements,
     default_portal_features,
     default_portal_quick_actions,
     default_portal_recent_grades,
     default_portal_upcoming_assessments,
     default_social_links,
-)
+)  # noqa: F401
 
 
-from .models_support import (
+from .models_support import (  # noqa: F401
     DashboardView,
     ThemeLayout,
+    PORTAL_FEATURE_DEFAULTS,
+    PORTAL_FEATURE_OPTIONS,
+    build_platform_default_site_settings,
+    default_dashboard_widgets,
+    default_header_weather_config,
+    get_dashboard_widget_choices,
+    resolve_dashboard_widgets,
+    filter_portal_items,
     _normalized_report_preview_email,
     _normalized_report_preview_phone,
     _normalized_school_code,
@@ -92,23 +93,16 @@ from .models_support import (
     _payload_int,
     _payload_int_list,
     _payload_json_object,
-    _payload_or_attr,
     _payload_string,
     _payload_string_list,
     _site_settings_json_safe,
-    build_platform_default_site_settings,
-    default_announcement_submit_for_approval_roles,
-    default_dashboard_widgets,
     default_delegation_role_mapping,
     default_grade_approval_roles,
     default_grade_post_roles,
     default_syllabus_approval_roles,
-    filter_portal_items,
-    get_dashboard_widget_choices,
     get_report_card_style_owner_model,
     get_theme_pack_owner_model,
-    resolve_dashboard_widgets,
-)
+)  # noqa: F401
 
 
 _SITE_SETTINGS_CACHE: "SiteSettings | None" = None
@@ -902,7 +896,7 @@ class SiteSettings(models.Model):
         max_digits=10,
         decimal_places=2,
         default=Decimal("1.00"),
-        help_text="Tolerance for amount matching (e.g., 1.00 XAF difference allowed)."
+        help_text="Tolerance for amount matching in tenant's currency (e.g., 1.00 units difference allowed)."
     )
     
     # Bank Deposit Verification
@@ -922,7 +916,7 @@ class SiteSettings(models.Model):
         max_digits=10,
         decimal_places=2,
         default=Decimal("1.00"),
-        help_text="Amount tolerance when matching by amount + date (default: 1.00 XAF)."
+        help_text="Amount tolerance when matching by amount + date, in tenant's currency (default: 1.00)."
     )
     
     # Payment Instructions for Reminders
@@ -2257,27 +2251,30 @@ class SiteSettings(models.Model):
         return self.active_theme
 
 
-from .models_tooling import (
+from .models_tooling import (  # noqa: F401
     FormDraft,
     Integration,
     OfficialReportTemplate,
-    REPORT_EXPORT_HANDLERS,
     ReportCardStyle,
-    ReportCardStyleAssignment,
     ReportCardStyleQuerySet,
     ReportTemplate,
     ThemePack,
     UserPreference,
     get_report_card_style_for_student,
-    report_exporter,
-)
+)  # noqa: F401
 
 
 # ============================================================================
 # Phase 1.2.4: Internationalization & Multi-Region Support
 # ============================================================================
 
-from .models_platform_catalog import (
+
+
+# AI models moved to .models_ai for Phase 10 — 2.1 giant-file decomposition. Re-export for backward compatibility.
+
+# Platform catalog and global experience models: re-export so "from apps.siteconfig.models import ..." works
+# (global_registries, admin, and others rely on this).
+from .models_platform_catalog import (  # noqa: F401
     BillingWaiverAuditLog,
     CountryMultiplier,
     CustomFeatureTicket,
@@ -2291,51 +2288,43 @@ from .models_platform_catalog import (
     RegionConfig,
     RevenueSnapshot,
     ServiceIntegration,
-    SyncConflict,
     SystemFeature,
-    TenantAdmissionNumberPolicy,
     TenantSystem,
     WaiverRequest,
-    WebhookDelivery,
     WebhookSubscription,
-    default_education_subject_seed,
     default_education_term_labels,
+    default_education_subject_seed,
     get_feature_fragment_cap,
-)
-
-
-# AI models moved to .models_ai for Phase 10 — 2.1 giant-file decomposition. Re-export for backward compatibility.
-from .models_ai import (
-    AIGatewayMetric,
-    AIEmbeddingStore,
-    AIModelRegistry,
-    AIPromptClass,
-    AIPromptRegistry,
-    RegionalAIConfig,
-)
-from .models_feature_controls import (
-    FeatureToggleDefinition,
-    FeatureToggleState,
-    FeatureUsageEvent,
-    GlobalSupportTicket,
-    TourStep,
-)
-from .models_marketing import BlogPost, MarketingContent, ProductFeedback
-from .models_metadata_catalog import DynamicFieldDefinition, DynamicFieldValue
-from .models_global_experience import (
+)  # noqa: F401
+from .models_global_experience import (  # noqa: F401
     BrandProfile,
     BrandSettings,
     DesignTemplate,
     GlobalBrandRegistry,
-    GlobalSyllabus,
     GradingScaleConfig,
-    ImpersonationLog,
-    LearningPassport,
-    RegionalPitch,
     WeatherLocation,
-)
-from .models_runtime_ops import BreakGlassOverride, BroadcastCampaign
-
+)  # noqa: F401
+from .models_feature_controls import (  # noqa: F401
+    FeatureToggleDefinition,
+    FeatureToggleState,
+    TourStep,
+)  # noqa: F401
+# Re-export for admin/forms: models live in academics (moved in 0146 / tenant_runtime).
+from apps.academics.models import ReportCardStyleAssignment  # noqa: F401
+from apps.academics.models_tenant_runtime import HolidayCalendar  # noqa: F401
+from .models_metadata_catalog import DynamicFieldDefinition, DynamicFieldValue  # noqa: F401
+from .models_platform_catalog import TenantAdmissionNumberPolicy  # noqa: F401
+from .models_ai import (  # noqa: F401
+    AIGatewayMetric,
+    AIEmbeddingStore,
+    AIModelRegistry,
+    AIPromptRegistry,
+    RegionalAIConfig,
+)  # noqa: F401
+from .models_feature_controls import FeatureUsageEvent  # noqa: F401
+from .models_runtime_ops import BreakGlassOverride, BroadcastCampaign  # noqa: F401
+from .models_marketing import ProductFeedback, MarketingContent, BlogPost  # noqa: F401
+from .models_global_experience import GlobalSyllabus, LearningPassport  # noqa: F401
 
 
 def _refresh_site_settings_cache(sender, instance: SiteSettings, **kwargs) -> None:

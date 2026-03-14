@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from apps.compliance.models import LegalDocument
 from apps.platform_runtime.helpers import get_platform_site_settings_record
-from apps.portal.models import Announcement, PortalFeatureItem
+from apps.portal.models import PortalFeatureItem
 from apps.portal.portal_models import PortalAuditLog, PortalSession
 from apps.siteconfig.models import RegionConfig
 from django.contrib.auth import get_user_model

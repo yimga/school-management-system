@@ -6,10 +6,13 @@ Enforcement can be phased; inspection always exposes current limits and usage.
 """
 from __future__ import annotations
 
+import logging
 from typing import Any, Dict, Optional
 
 from django.core.cache import cache
 from django.utils import timezone
+
+logger = logging.getLogger(__name__)
 
 # Limit definitions (platform-wide; tenant overrides via plan/entitlement later).
 WORKFLOW_RUNS_PER_DAY_PER_TENANT = 10_000
@@ -54,8 +57,8 @@ def record_workflow_run(tenant_id: Optional[str] = None, school_id: Optional[int
             cache.incr(key)
         except ValueError:
             cache.set(key, 1, timeout=86400 * 2)  # 2 days TTL
-    except Exception:
-        pass
+    except (ValueError, TypeError, AttributeError, ConnectionError, OSError) as e:
+        logger.debug("governor record_workflow_run skip: %s", e)
 
 
 def record_dashboard_refresh(tenant_id: Optional[str] = None, school_id: Optional[int] = None) -> None:
@@ -71,8 +74,8 @@ def record_dashboard_refresh(tenant_id: Optional[str] = None, school_id: Optiona
             cache.incr(key)
         except ValueError:
             cache.set(key, 1, timeout=7200)  # 2 hours
-    except Exception:
-        pass
+    except (ValueError, TypeError, AttributeError, ConnectionError, OSError) as e:
+        logger.debug("governor record_dashboard_refresh skip: %s", e)
 
 
 def get_platform_governor_limits() -> Dict[str, Any]:
@@ -110,8 +113,8 @@ def get_governor_usage_for_tenant(
             tid = tenant_id or (str(school_id) if school_id else None)
             if tid:
                 api_requests_last_minute = get_tenant_api_request_count(tid)
-        except Exception:
-            pass
+        except (ImportError, AttributeError, TypeError, ValueError) as e:
+            logger.debug("governor get_tenant_api_request_count skip: %s", e)
     tid = tenant_id or (str(school_id) if school_id else None)
     workflow_runs_today = 0
     dashboard_refreshes_last_hour = 0
@@ -119,13 +122,13 @@ def get_governor_usage_for_tenant(
         try:
             date_str = timezone.now().strftime("%Y-%m-%d")
             workflow_runs_today = cache.get(_tenant_workflow_runs_key(tid, date_str), 0) or 0
-        except Exception:
-            pass
+        except (TypeError, AttributeError, ConnectionError, OSError) as e:
+            logger.debug("governor workflow_runs_today cache skip: %s", e)
         try:
             hour_str = timezone.now().strftime("%Y-%m-%d-%H")
             dashboard_refreshes_last_hour = cache.get(_tenant_dashboard_refreshes_key(tid, hour_str), 0) or 0
-        except Exception:
-            pass
+        except (TypeError, AttributeError, ConnectionError, OSError) as e:
+            logger.debug("governor dashboard_refreshes cache skip: %s", e)
     usage = {
         "workflow_runs_today": workflow_runs_today,
         "api_requests_last_minute": api_requests_last_minute,

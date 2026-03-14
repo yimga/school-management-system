@@ -250,7 +250,7 @@ function loadCountryInfo() {
         <h6>${data.country_name}</h6>
         <p class="mb-2"><strong>Ministry:</strong> ${data.ministry_name}</p>
         <p class="mb-2"><strong>EMIS Version:</strong> ${data.emis_version}</p>
-        ${data.requirements_url ? `<p class="mb-0"><a href="${data.requirements_url}" target="_blank" class="btn btn-sm btn-outline-primary">View Requirements</a></p>` : ''}
+        ${data.requirements_url ? `<p class="mb-0"><a href="${data.requirements_url}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary">View Requirements</a></p>` : ''}
       `;
     })
     .catch(error => {

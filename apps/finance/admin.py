@@ -2,6 +2,8 @@ from datetime import timedelta
 from decimal import Decimal
 from django.contrib import admin
 from django.contrib.admin.sites import AlreadyRegistered
+from django.core.exceptions import ValidationError
+from django.db import DatabaseError, IntegrityError
 from config.admin import register_tenant_admin
 from apps.platform_runtime.helpers import get_effective_site_settings
 
@@ -161,7 +163,7 @@ class FeePlanAdmin(ModelAdmin):
             try:
                 copy_fee_plan_to_year(plan, next_year, increase_pct)
                 copied_count += 1
-            except Exception as e:
+            except (ValueError, TypeError, ValidationError, DatabaseError, IntegrityError) as e:
                 self.message_user(
                     request,
                     f"Error copying {plan.name}: {str(e)}",
@@ -225,8 +227,9 @@ class InvoiceAdmin(ModelAdmin):
                         reason=(obj.void_reason or "Voided by admin")[:255],
                         sensitivity=AuditLog.Sensitivity.HIGH,
                     )
-            except Exception:
-                pass
+            except (DatabaseError, IntegrityError, ValidationError, AttributeError) as e:
+                import logging
+                logging.getLogger(__name__).debug("AuditLog create on void: %s", e)
         super().save_model(request, obj, form, change)
 
 
@@ -326,7 +329,7 @@ class PaymentReminderAdmin(ModelAdmin):
                     f"Resent {resend_count} reminder(s). Sent: {result.get('sent', 0)} via {result.get('channels', {})}",
                     level="success",
                 )
-            except Exception as e:
+            except (ValueError, TypeError, ValidationError, DatabaseError, IntegrityError) as e:
                 self.message_user(
                     request,
                     f"Error resending reminders: {str(e)}",
@@ -561,12 +564,12 @@ class PaymentProofUploadAdmin(ModelAdmin):
             try:
                 verification_service = ReceiptVerificationService()
                 receipt_data = proof_upload.verification_data or verification_service.extract_receipt_data(proof_upload.receipt_file)
-                payment = create_payment_from_receipt(proof_upload, receipt_data, verified_by=request.user)
+                _payment = create_payment_from_receipt(proof_upload, receipt_data, verified_by=request.user)
                 if proof_upload.verification_reason:
                     proof_upload.verification_notes = (proof_upload.verification_notes or "") + f" [Override reason: {proof_upload.verification_reason}]"
                     proof_upload.save(update_fields=["verification_notes"])
                 approved_count += 1
-            except Exception as e:
+            except (ValueError, TypeError, ValidationError, DatabaseError, IntegrityError) as e:
                 self.message_user(request, f"Error approving {proof_upload.id}: {str(e)}", level="error")
         self.message_user(request, f"Approved {approved_count} receipt upload(s).")
     approve_selected.short_description = "Approve selected receipts and create payments"
@@ -608,8 +611,9 @@ class PaymentProofUploadAdmin(ModelAdmin):
                     reason=reason,
                     sensitivity=AuditLog.Sensitivity.HIGH,
                 )
-            except Exception:
-                pass
+            except (DatabaseError, IntegrityError, ValidationError, AttributeError) as e:
+                import logging
+                logging.getLogger(__name__).debug("AuditLog on reject_selected: %s", e)
         self.message_user(request, f"Rejected {to_reject.count()} receipt upload(s).")
     reject_selected.short_description = "Reject selected receipts"
 

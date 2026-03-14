@@ -307,7 +307,6 @@ def _pagination_extra_query(request):
 def alumni_list(request):
     """Plan XVI: Dedicated alumni list — redirect to student list filtered by status=ALUMNI."""
     from django.http import HttpResponseRedirect
-    from urllib.parse import urlencode
     base = reverse('accounts:backend_student_list')
     qs = request.GET.copy()
     qs['status'] = StudentProfile.Status.ALUMNI

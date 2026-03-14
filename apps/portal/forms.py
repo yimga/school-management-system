@@ -1,11 +1,18 @@
-from django import forms
-from django.utils.translation import gettext_lazy as _
+import logging
 import re
+
+from django import forms
+from django.core.exceptions import ObjectDoesNotExist
+from django.db.utils import DatabaseError
+from django.utils.translation import gettext_lazy as _
 
 from apps.people.models import StudentGuardian, StudentProfile, TeacherLeaveRequest
 from apps.platform_runtime.helpers import get_effective_site_settings
 from .models import LessonPlan, LessonPlanAttachment, TeacherTrainingEntry, AttendanceJustification, CahierDeTexteEntry
 from apps.academics.models import Term, AcademicYear
+
+logger = logging.getLogger(__name__)
+_FORM_POLICY_ERRORS = (ImportError, AttributeError, TypeError, ValueError, KeyError)
 
 
 def _default_school_code(school=None) -> str:
@@ -154,8 +161,8 @@ class LinkChildForm(forms.Form):
         try:
             from apps.policies.form_policy import apply_form_policy
             apply_form_policy(self, "link_child", policy or {}, school=None)
-        except Exception:
-            pass
+        except _FORM_POLICY_ERRORS:
+            logger.debug("apply_form_policy (link_child) skipped", exc_info=True)
         self.fields["referral_code"].help_text = _(
             "Include a referral code if someone shared one with you; this unlocks bonus credits."
         )
@@ -570,8 +577,8 @@ class StudentOnboardingForm(forms.Form):
         try:
             from apps.policies.form_policy import apply_form_policy
             apply_form_policy(self, "student_onboarding", policy, school=school)
-        except Exception:
-            pass
+        except _FORM_POLICY_ERRORS:
+            logger.debug("apply_form_policy (student_onboarding) skipped", exc_info=True)
         # Populate academic year choices
         academic_years = AcademicYear.objects.filter(is_active=True)
         if school is not None:
@@ -598,7 +605,7 @@ class StudentOnboardingForm(forms.Form):
             try:
                 payment_methods = PaymentMethod.objects.filter(is_active=True).order_by("name")
                 self.fields["payment_method"].choices = [("", "---------")] + [(str(pm.id), pm.name) for pm in payment_methods]
-            except Exception:
+            except (DatabaseError, ObjectDoesNotExist, AttributeError, TypeError):
                 # Fallback to text choices if model not available
                 from apps.finance.models import PaymentMethod as PaymentMethodChoices
                 self.fields["payment_method"].choices = [("", "---------")] + list(PaymentMethodChoices.choices)

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from decimal import Decimal, InvalidOperation
-from typing import Iterable, List, Optional
+from typing import Iterable, List
 from datetime import timedelta
 
 from django.db import transaction
@@ -239,10 +239,9 @@ def create_grade_approval_request(
     school = getattr(teacher, "school", None) or (getattr(subject_assignment, "classroom", None) and getattr(subject_assignment.classroom, "school", None))
     policy = get_grade_approval_policy(school)
     deadline_days = max(1, policy.get("grade_approval_deadline_days", 3))
-    deadline_at = timezone.now() + timedelta(days=deadline_days)
-    validation_flags = []
+    timezone.now() + timedelta(days=deadline_days)
     if policy.get("grade_approval_auto_validate", True):
-        validation_flags = _collect_validation_flags(
+        _collect_validation_flags(
             trimmed,
             academic_year=academic_year,
             term=term,

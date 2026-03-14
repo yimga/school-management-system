@@ -4,7 +4,7 @@
 
 **Plan:** `metadata-driven-platform-gap-closure_5b36c906.plan.md`
 
-**Short answer:** The plan is **fully completed** (all todos done; no half or partial work). Baseline, resolvers, decomposition shells, catalog MVP, package engine, governance, Setup Studio wire, marketplace alignment doc, and CI tests are in place.
+**Short answer:** The plan is **substantially implemented** (baseline, resolvers, catalog MVP, package engine, governance, Setup Studio wire, marketplace alignment, CI tests). Canonical completion status: see [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](../RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §12 and [docs_truth_ledger.md](../docs_truth_ledger.md). Baseline, resolvers, decomposition shells, catalog MVP, package engine, governance, Setup Studio wire, marketplace alignment doc, and CI tests are in place.
 
 ---
 

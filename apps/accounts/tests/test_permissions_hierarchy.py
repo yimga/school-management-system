@@ -8,7 +8,8 @@ from apps.accounts.permissions import has_role_hierarchy, can_view_invoice
 from apps.academics.models import AcademicYear, Department, Specialty, Classroom
 from apps.people.models import StudentProfile, StudentGuardian
 from apps.finance.models import ComplianceProfile, Invoice
-from apps.siteconfig.models import SiteSettings, default_backend_feature_flags
+from apps.platform_runtime.helpers import get_platform_site_settings_record
+from apps.siteconfig.models import default_backend_feature_flags
 
 
 class RoleHierarchyTests(TestCase):
@@ -96,7 +97,7 @@ class InvoiceAccessTests(TestCase):
 
 class GuardianFinanceOptInTests(TestCase):
     def setUp(self):
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         flags = {**default_backend_feature_flags(), **(site.backend_feature_flags or {})}
         flags["require_guardian_finance_opt_in"] = True
         site.backend_feature_flags = flags
@@ -148,7 +149,7 @@ class GuardianFinanceOptInTests(TestCase):
         )
         StudentGuardian.objects.create(guardian_user=parent, student=self.student, can_view_finance=False)
 
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         flags = {**default_backend_feature_flags(), **(site.backend_feature_flags or {})}
         flags["require_guardian_finance_opt_in"] = False
         site.backend_feature_flags = flags

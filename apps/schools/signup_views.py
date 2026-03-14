@@ -9,10 +9,11 @@ import json
 
 from django.conf import settings
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
-from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest, JsonResponse
+from django.http import HttpRequest, JsonResponse
 from django.shortcuts import redirect, render
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 from django.views.decorators.cache import never_cache
@@ -64,7 +65,7 @@ def signup_school(request: HttpRequest):
         try:
             from django.core.validators import validate_email
             validate_email(email)
-        except Exception:
+        except ValidationError:
             errors.append("Enter a valid email address.")
 
     if errors:
@@ -112,7 +113,7 @@ def signup_school(request: HttpRequest):
     try:
         from apps.schools.funnel_events import record_marketing_funnel_event
         record_marketing_funnel_event("signup", request)
-    except Exception:
+    except (ImportError, AttributeError, TypeError, ValueError):
         pass
 
     base = request.build_absolute_uri("/").rstrip("/")
@@ -134,7 +135,7 @@ def signup_school(request: HttpRequest):
             recipient_list=[email],
             fail_silently=True,
         )
-    except Exception:
+    except (OSError, ConnectionError, ValueError, TypeError):
         pass
 
     if request.headers.get("Accept", "").find("application/json") >= 0:
@@ -152,7 +153,7 @@ def _get_plans_for_onboarding():
     try:
         from apps.plans_entitlements.models import Plan
         return list(Plan.objects.filter(is_active=True).order_by("name")[:20])
-    except Exception:
+    except (ImportError, AttributeError, TypeError, ValueError):
         return []
 
 
@@ -161,7 +162,7 @@ def _get_templates_for_onboarding():
     try:
         from apps.brand_experience.models import ThemePack
         return list(ThemePack.objects.filter(is_active=True).order_by("-is_default", "name")[:30])
-    except Exception:
+    except (ImportError, AttributeError, TypeError, ValueError):
         return []
 
 
@@ -279,21 +280,20 @@ def verify_signup(request: HttpRequest):
     try:
         from apps.schools.funnel_events import record_marketing_funnel_event
         record_marketing_funnel_event("activation", request)
-    except Exception:
+    except (ImportError, AttributeError, TypeError, ValueError):
         pass
 
     try:
         from apps.schools.tasks import provision_school_sync
         provision_school_sync(str(school.id), contact_email=verification.email)
-    except Exception:
+    except (ImportError, AttributeError, TypeError, ValueError, OSError):
         pass
 
     login_url = (settings.LOGIN_URL or "/authentication/login/").lstrip("/")
     # Optional: send new school admin to backend dashboard after first login
     try:
-        from django.urls import reverse
         next_path = reverse("accounts:backend_dashboard")
-    except Exception:
+    except NoReverseMatch:
         next_path = "/"
     return redirect(f"/{login_url}?next={next_path}")
 
@@ -326,7 +326,7 @@ def api_trial_school(request: HttpRequest):
     try:
         from django.core.validators import validate_email
         validate_email(contact_email)
-    except Exception:
+    except ValidationError:
         errors.append("Enter a valid email address.")
         return JsonResponse({"errors": errors}, status=400)
 
@@ -363,7 +363,7 @@ def api_trial_school(request: HttpRequest):
         try:
             from apps.policies.policy_registry import invalidate_policy_cache
             invalidate_policy_cache(school)
-        except Exception:
+        except (ImportError, AttributeError, TypeError, ValueError):
             pass
 
     from apps.schools.tasks import dispatch_provision_school
@@ -399,7 +399,7 @@ def api_trial_school(request: HttpRequest):
         timeline_url = request.build_absolute_uri(
             reverse("super:api_school_timeline", args=[school.id])
         )
-    except Exception:
+    except NoReverseMatch:
         timeline_url = ""
 
     return JsonResponse(
@@ -425,7 +425,7 @@ def brand_import_api(request: HttpRequest):
     if not consent and (request.content_type or "").strip().startswith("application/json"):
         try:
             consent = json.loads(request.body or "{}").get("consent")
-        except Exception:
+        except (json.JSONDecodeError, TypeError, AttributeError):
             pass
     if not consent:
         return JsonResponse({"error": "Consent required to fetch external URL."}, status=400)
@@ -434,7 +434,7 @@ def brand_import_api(request: HttpRequest):
         try:
             data = json.loads(request.body or "{}")
             url = (data.get("url") or "").strip()
-        except Exception:
+        except (json.JSONDecodeError, TypeError, AttributeError):
             pass
     if not url:
         return JsonResponse({"error": "URL is required."}, status=400)

@@ -11,6 +11,7 @@ changing name, slug, or subdomain. Ensures:
 Run after migrations and when adding new tenants. Safe to run repeatedly.
 """
 from django.core.management.base import BaseCommand
+from django.db import DatabaseError, IntegrityError, OperationalError
 
 from apps.schools.models import School
 
@@ -142,7 +143,7 @@ class Command(BaseCommand):
                 from apps.siteconfig.tenant_config import persist_compiled_tenant_config
                 persist_compiled_tenant_config(school, persist=True)
                 changes.append(("tenant_compiled_config", "(persisted)", "ok"))
-            except Exception as e:
+            except (ImportError, DatabaseError, OperationalError, IntegrityError, ValueError, TypeError, AttributeError) as e:
                 self.stdout.write(self.style.WARNING("persist_compiled_tenant_config: %s" % e))
 
         if not no_features:
@@ -150,7 +151,7 @@ class Command(BaseCommand):
                 from apps.siteconfig.tenant_config import sync_tenant_modules_to_school_features
                 sync_tenant_modules_to_school_features(school, persist=True)
                 changes.append(("features (synced from modules)", "", "ok"))
-            except Exception as e:
+            except (ImportError, DatabaseError, OperationalError, IntegrityError, ValueError, TypeError, AttributeError) as e:
                 self.stdout.write(self.style.WARNING("sync_tenant_modules_to_school_features: %s" % e))
 
         if changes:

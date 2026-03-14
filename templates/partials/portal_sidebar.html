@@ -32,7 +32,7 @@
   {% endif %}
 </div>
 
-<div class="nav flex-column gap-0" data-sidebar-nav="true" data-preview-label="{% trans 'Sidebar navigation' %}" data-preview-changes="{% trans 'Menu items, order from Site Settings' %}">
+<nav class="nav flex-column gap-0" data-sidebar-nav="true" role="navigation" aria-label="{% trans 'Portal navigation' %}" data-preview-label="{% trans 'Sidebar navigation' %}" data-preview-changes="{% trans 'Menu items, order from Site Settings' %}">
   {% if request.user.is_authenticated %}
     {% comment %}Phase 16: Quick access (pinned) items at top{% endcomment %}
     {% if PINNED_SIDEBAR_ITEMS %}
@@ -247,7 +247,7 @@
     
     
   {% endif %}
-</div>
+</nav>
 
 <!-- Portal Features: only when NOT using config-driven sidebar to avoid duplicate "Portal Tools". Documents live under Content & Documents; here only Community and Video Hub. -->
 {% if not PORTAL_SIDEBAR_ITEMS and SITE %}

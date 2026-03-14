@@ -4,14 +4,14 @@ from django.test import TestCase
 from django.utils import timezone
 
 from apps.events.models import DomainEvent, WebhookDelivery, WebhookSubscription
-from apps.events.webhooks import build_webhook_body
-from apps.schools.models import School
-from apps.siteconfig.webhook_delivery import (
+from apps.events.webhooks import (
+    build_webhook_body,
     dispatch_due_webhooks,
     enqueue_webhook_event,
     replay_webhook_delivery,
     sign_payload,
 )
+from apps.schools.models import School
 
 
 class WebhookDeliveryServiceTests(TestCase):

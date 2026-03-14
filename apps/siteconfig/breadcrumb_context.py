@@ -2,9 +2,6 @@
 Phase 7 Task 5: Breadcrumb navigation context processor
 Provides breadcrumb data to all templates for consistent navigation
 """
-from django.http import QueryDict
-from django.urls import resolve, reverse
-from urllib.parse import urlparse, parse_qs
 
 
 def breadcrumbs_context(request):

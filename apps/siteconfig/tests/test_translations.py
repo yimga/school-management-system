@@ -4,7 +4,6 @@ Tests for translation system and multi-language support.
 
 from django.test import TestCase, Client, RequestFactory
 from django.contrib.auth import get_user_model
-from django.utils import translation
 
 from apps.siteconfig.translations import TranslationManager, SUPPORTED_LANGUAGES
 from apps.siteconfig.models import RegionConfig

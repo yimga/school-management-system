@@ -182,7 +182,7 @@
                   <td class="text-end">
                     <div class="btn-group btn-group-sm">
                       {% if req.signed_pdf %}
-                        <a href="{{ req.signed_pdf.url }}" target="_blank" class="btn btn-outline-success" title="View Signed PDF">
+                        <a href="{{ req.signed_pdf.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-success" title="View Signed PDF">
                           <i class="bi bi-file-pdf"></i>
                         </a>
                       {% endif %}

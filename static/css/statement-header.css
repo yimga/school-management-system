@@ -1,0 +1,149 @@
+/**
+ * Statement Header – mature, bold branding on all pages and flows.
+ * Sticky, scroll-aware (transparent hero → solid), min-width logo, SVG-ready.
+ * Works with .base-topbar, #portalHeader, .cp-navbar, .dashboard-header-wrapper.
+ */
+
+/* ========== Universal statement header shell ========== */
+.statement-header,
+.base-topbar.statement-header,
+#portalHeader.statement-header,
+.cp-navbar.statement-header,
+.dashboard-header-wrapper.statement-header,
+.mkt-navbar.statement-header {
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  min-height: var(--statement-header-height, 72px);
+  padding: var(--statement-header-padding-y, 1.25rem) var(--statement-header-padding-x, 2rem);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  background: var(--statement-header-bg, #FDFDFD);
+  color: var(--statement-header-fg, #0A0A0A);
+  transition: background-color var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out),
+              color var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out),
+              box-shadow var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out);
+}
+
+/* Hero mode: transparent with light logo (add .statement-header--hero to header on hero pages) */
+.statement-header--hero {
+  background: transparent;
+  color: #fff;
+  box-shadow: none;
+}
+.statement-header--hero .navbar-brand,
+.statement-header--hero .brand-logo,
+.statement-header--hero .header-logo,
+.statement-header--hero .statement-logo-wordmark {
+  color: inherit;
+}
+.statement-header--hero .statement-logo-wordmark { color: #fff; }
+.statement-header--hero.is-solid {
+  background: var(--statement-header-bg, #FDFDFD);
+  color: var(--statement-header-fg, #0A0A0A);
+  box-shadow: 0 1px 0 var(--luxury-border, rgba(0,0,0,.08));
+}
+.statement-header--hero.is-solid .statement-logo-wordmark { color: var(--statement-header-fg, #0A0A0A); }
+
+/* Logo – bold, horizontal wordmark; never shrink below threshold */
+.statement-logo,
+.navbar-brand .brand-logo,
+.header-logo,
+.statement-logo-wordmark {
+  min-width: var(--statement-logo-min-width, 150px);
+  font-family: var(--statement-logo-font, "Inter", system-ui, sans-serif);
+  font-weight: var(--statement-logo-weight, 700);
+  font-size: 1.25rem;
+  letter-spacing: var(--luxury-letter-spacing-tight, -0.02em);
+  color: var(--statement-header-fg);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  transition: color var(--luxury-motion-duration) var(--luxury-motion-ease);
+}
+.statement-logo img,
+.navbar-brand img,
+.brand-logo img,
+.header-logo img {
+  height: 32px;
+  width: auto;
+  max-width: 160px;
+  object-fit: contain;
+}
+.statement-logo svg,
+.brand-logo svg {
+  height: 32px;
+  width: auto;
+  min-width: 32px;
+  fill: currentColor;
+}
+
+/* Space around logo so it breathes */
+.statement-header .statement-logo,
+.statement-header .navbar-brand,
+#portalHeader .navbar-brand,
+.cp-navbar .statement-logo,
+.dashboard-header-wrapper .header-logo {
+  margin-right: 1rem;
+  padding-right: 1rem;
+}
+
+/* ========== Mobile: center logo, hamburger focal ========== */
+@media (max-width: 991.98px) {
+  .statement-header,
+  .base-topbar.statement-header,
+  #portalHeader.statement-header,
+  .cp-navbar.statement-header {
+    flex-wrap: wrap;
+    justify-content: center;
+    text-align: center;
+  }
+  .statement-header .navbar-brand,
+  #portalHeader .navbar-brand,
+  .statement-logo,
+  .header-logo {
+    flex: 1 1 auto;
+    justify-content: center;
+    min-width: 0;
+    max-width: 200px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .statement-header .statement-logo-wordmark,
+  .navbar-brand .brand-logo {
+    min-width: 0;
+  }
+  .statement-header .topbar-actions,
+  .statement-header .topbar-controls,
+  .statement-header .navbar-collapse,
+  .statement-header .cp-nav-links {
+    order: 2;
+    width: 100%;
+    justify-content: center;
+  }
+  .statement-header .navbar-toggler,
+  .statement-header .hamburger-trigger {
+    position: absolute;
+    left: var(--statement-header-padding-x, 2rem);
+    top: 50%;
+    transform: translateY(-50%);
+  }
+}
+
+/* ========== Integrations with existing classes ========== */
+.topbar.statement-header,
+.topbar-sticky.statement-header {
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+}
+.dashboard-header-wrapper.statement-header .header-title {
+  font-weight: var(--statement-logo-weight, 700);
+  color: var(--statement-header-fg);
+}

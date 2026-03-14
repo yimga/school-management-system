@@ -176,14 +176,14 @@
                 <td class="text-end" data-label="Balance">{{ invoice.balance_amount|format_currency }}</td>
                 <td class="text-center" data-label="Attachment">
                   {% if row.attachment_url %}
-                    <a href="{{ row.attachment_url }}" target="_blank">View</a>
+                    <a href="{{ row.attachment_url }}" target="_blank" rel="noopener noreferrer">View</a>
                   {% else %}
                     <span class="text-muted small">N/A</span>
                   {% endif %}
                 </td>
                 <td class="text-end" data-label="Action">
                   {% if link %}
-                    <a class="btn btn-primary btn-sm" href="{{ link.url }}" target="_blank">Pay now</a>
+                    <a class="btn btn-primary btn-sm" href="{{ link.url }}" target="_blank" rel="noopener noreferrer">Pay now</a>
                   {% else %}
                     <span class="text-muted small">No link</span>
                   {% endif %}
@@ -217,7 +217,7 @@
                 <div class="small text-muted">Next send {{ entry.reminder.next_send_at|format_date }}</div>
               </div>
               {% if entry.payment_link %}
-                <a class="btn btn-sm btn-outline-primary" href="{{ entry.payment_link.url }}" target="_blank">Send pay link</a>
+                <a class="btn btn-sm btn-outline-primary" href="{{ entry.payment_link.url }}" target="_blank" rel="noopener noreferrer">Send pay link</a>
               {% else %}
                 <span class="badge bg-secondary">No integration</span>
               {% endif %}

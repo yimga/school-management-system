@@ -2,7 +2,7 @@
 
 from django.db import transaction
 from django.utils import timezone
-from apps.evals.models import Evaluation, OfflineMarkEntry, GradeAudit
+from apps.evals.models import Evaluation, OfflineMarkEntry
 from apps.platform_runtime.helpers import get_effective_site_settings
 import logging
 

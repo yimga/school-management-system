@@ -3,7 +3,6 @@ from apps.academics.models import AcademicYear, Term, Classroom
 from apps.people.models import StudentProfile
 from apps.accounts.models import User
 from django.core.exceptions import ValidationError
-from django.utils import translation
 
 
 def reportcard_pdf_upload_to(instance, filename):
@@ -291,4 +290,3 @@ class ReportPack(models.Model):
 
 # ReportDefinition and MaterializedReportCache are defined in `apps.reports.bi_models`.
 # Import them here for backwards compatibility so existing imports continue to work.
-from .bi_models import ReportDefinition, MaterializedReportCache

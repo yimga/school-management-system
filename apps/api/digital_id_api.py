@@ -3,10 +3,12 @@
 Phase 5: Read-only API for digital ID (wallet / Apple Wallet / Google Pay / partner apps).
 Returns photo, name, role/grade, QR payload for authenticated staff or parent (children).
 """
-from django.views import View
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from django.views import View
+from django.contrib.auth.decorators import login_required
+from django.db.utils import DatabaseError
 from django.urls import reverse
 from urllib.parse import quote_plus
 from apps.accounts.models import User
@@ -88,7 +90,7 @@ class DigitalIDAPI(View):
         try:
             payload = _staff_digital_id_payload(request)
             return JsonResponse(payload)
-        except Exception as e:
+        except (ImportError, AttributeError, TypeError, ValueError, ObjectDoesNotExist, DatabaseError) as e:
             logger.exception("Digital ID API error: %s", e)
             return JsonResponse({"error": "Failed to build digital ID."}, status=500)
 
@@ -113,6 +115,6 @@ class DigitalIDChildrenAPI(View):
             for link in links:
                 children.append(_child_digital_id_payload(request, link.student))
             return JsonResponse({"children": children})
-        except Exception as e:
+        except (ImportError, AttributeError, TypeError, ValueError, ObjectDoesNotExist, DatabaseError) as e:
             logger.exception("Digital ID children API error: %s", e)
             return JsonResponse({"error": "Failed to build children IDs."}, status=500)

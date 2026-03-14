@@ -2,10 +2,16 @@
 Verify custom domains: resolve DNS and set custom_domain_verified (Phase 4 whitelabel).
 Run: python manage.py verify_custom_domains
 Uses socket.getaddrinfo to check that the custom_domain resolves; optional CNAME check.
+§2.4: invalidate_policy_cache wrapped with typed exceptions + logger.debug.
 """
+import logging
 import socket
+
 from django.core.management.base import BaseCommand
+
 from apps.schools.models import School, SchoolProvisioningEvent
+
+logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
@@ -40,8 +46,8 @@ class Command(BaseCommand):
                         try:
                             from apps.policies.policy_registry import invalidate_policy_cache
                             invalidate_policy_cache(school)
-                        except Exception:
-                            pass
+                        except (ImportError, AttributeError, TypeError, ValueError) as e:
+                            logger.debug("verify_custom_domains invalidate_policy_cache (verified): %s", e)
                         SchoolProvisioningEvent.log_event(
                             school=school,
                             event_type=SchoolProvisioningEvent.EventType.DOMAIN_VERIFIED,
@@ -71,8 +77,8 @@ class Command(BaseCommand):
                         try:
                             from apps.policies.policy_registry import invalidate_policy_cache
                             invalidate_policy_cache(school)
-                        except Exception:
-                            pass
+                        except (ImportError, AttributeError, TypeError, ValueError) as e:
+                            logger.debug("verify_custom_domains invalidate_policy_cache (unverified): %s", e)
                         SchoolProvisioningEvent.log_event(
                             school=school,
                             event_type=SchoolProvisioningEvent.EventType.DOMAIN_UNVERIFIED,

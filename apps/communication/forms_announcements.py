@@ -5,7 +5,6 @@ Supports draft, publish, and submit-for-approval (optional workflow).
 from django import forms
 from apps.communication.models import Announcement, AnnouncementAuditLog, ClassAnnouncement, log_announcement_audit
 from apps.academics.models import Department, Classroom
-from apps.accounts.models import User
 
 
 # Submit action: how the user is saving the announcement

@@ -130,7 +130,7 @@ def create_honor_roll_badge_for_student(student, academic_year, term, overall_av
     if not student or overall_average is None or not academic_year or not term:
         return None
     try:
-        threshold = float(overall_average)  # will use for comparison
+        _threshold = float(overall_average)  # validation only; criteria use badge_type rule
     except (TypeError, ValueError):
         return None
     badge_type = BadgeType.objects.filter(

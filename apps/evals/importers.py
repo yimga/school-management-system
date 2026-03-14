@@ -330,9 +330,8 @@ def dry_run_grade_import(csv_rows, academic_year=None):
             )
             term = Term.objects.get(id=row.get("term_id"))
             teacher_username = (row.get("teacher_username") or "").strip()
-            teacher = None
             if teacher_username:
-                teacher = TeacherProfile.objects.filter(user__username=teacher_username).first()
+                TeacherProfile.objects.filter(user__username=teacher_username).first()
             exists = Evaluation.objects.filter(
                 academic_year=academic_year,
                 term=term,

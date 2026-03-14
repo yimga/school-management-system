@@ -9,9 +9,8 @@ INTEGRATION NOTE: This extends existing infrastructure:
 """
 
 from django.core.cache import cache
-from django.db import models, connection
 from django.utils import timezone
-from django.db.models import Count, Sum, Avg, Q
+from django.db.models import Count, Sum, Avg
 from django.db.models.functions import TruncMonth
 from datetime import timedelta, datetime
 import csv
@@ -21,7 +20,6 @@ from typing import Dict, List, Any, Optional
 
 # Import existing services to extend them
 from apps.analytics.services import AdvancedAnalyticsService
-from apps.siteconfig.admin_dashboard import AdminDashboardService
 from apps.siteconfig.cache_utils import get_tenant_cache_prefix
 
 

@@ -13,7 +13,7 @@ Usage:
 
 from __future__ import annotations
 
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.urls import reverse, NoReverseMatch
 
 
@@ -38,7 +38,7 @@ class Command(BaseCommand):
         try:
             call_command("check", verbosity=0)
             self.stdout.write(self.style.SUCCESS("  Django check passed."))
-        except Exception as e:
+        except (CommandError, SystemExit) as e:
             check_failed = True
             self.stdout.write(self.style.ERROR(f"  Django check failed: {e}"))
             self.stdout.write(self.style.WARNING("  (URL resolution and smoke tests do not depend on check; continuing.)"))
@@ -91,7 +91,7 @@ class Command(BaseCommand):
                     else:
                         errors.append(f"GET {path} -> {resp.status_code}")
                         self.stdout.write(self.style.WARNING(f"  GET {path} -> {resp.status_code}"))
-                except Exception as e:
+                except (OSError, ConnectionError, ValueError, TypeError, KeyError, AttributeError, RuntimeError) as e:
                     errors.append(f"GET {path}: {e}")
                     self.stdout.write(self.style.ERROR(f"  GET {path}: {e}"))
 

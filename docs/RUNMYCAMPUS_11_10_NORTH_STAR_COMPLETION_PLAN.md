@@ -6,6 +6,8 @@ This is the canonical implementation plan for the current platform-hardening and
 
 This plan is closed. Implementation and verification evidence is tracked in code plus the audit/closure artifacts below; no backlog remains tracked in this file.
 
+**For all agents:** This is the **named North Star plan**; the **single execution source of truth** for ongoing work is [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md). Before starting any work, check [docs_truth_ledger.md](docs_truth_ledger.md) and [NEXT_50_EXECUTION_STEPS.md](NEXT_50_EXECUTION_STEPS.md); backlog and closure: [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md). Do not create new overlapping strategy or roadmap files.
+
 - Canonical execution ledger + final scoring gate: `docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md` (Satisfied: 2026-03-12)
 - Closure (no-backlog): `docs/RUNMYCAMPUS_AUDIT_PLAN_COMPLETE_NO_BACKLOG.md` (2026-03-08)
 - Roadmap/optional closure: `docs/architecture/ROADMAP_AND_OPTIONAL_CLOSURE.md`

@@ -9,14 +9,14 @@ from apps.siteconfig.identifier_policy_service import (
     preview_admission_number,
     validate_admission_number,
 )
-from apps.siteconfig.models import SiteSettings
+from apps.platform_runtime.helpers import get_platform_site_settings_record
 
 
 class AdmissionConfigTestCase(TestCase):
     """Test admission number config resolution and format."""
 
     def setUp(self):
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.school_code = "GIL"
         site.admission_number_strategy = "FULL"
         site.admission_number_template = ""
@@ -37,7 +37,7 @@ class AdmissionConfigTestCase(TestCase):
 
     def test_preview_year_seq_strategy(self):
         """Preview respects YEAR_SEQ strategy when set."""
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.admission_number_strategy = "YEAR_SEQ"
         site.save()
         out = preview_admission_number(None, year_2digit="26", school_code="GIL", seq_4digit="0001")

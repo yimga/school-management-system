@@ -1,11 +1,32 @@
 /**
  * Platform High-End – One place for premium feel across the entire product.
- * Applied to: tenant portal, tenant backend, superadmin (control plane + Configuration Engine),
+ * Super ultra high-end by default: entire platform uses luxury tokens, statement headers,
+ * 600ms motion, hairline borders, sharp CTAs. No compromise.
+ *
+ * Applied to: tenant portal, tenant backend, superadmin, marketing, admin, login,
  * every sidebar, every dashboard, every card, every chart and data visualization.
  *
- * Uses CSS variables so theme (tenant school vs platform) can override where needed.
- * Load after design-tokens.css and theme-specific sheets.
+ * Load after design-tokens.css and design-tokens-luxury.css where available.
  */
+
+/* ========== Platform-wide super ultra high-end (default experience) ========== */
+body {
+  color: var(--luxury-text, #1A1A1A);
+  transition: color var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out);
+}
+html[data-theme="dark"] body,
+html[data-bs-theme="dark"] body,
+body.portal-backend-dark,
+body.control-plane-shell {
+  color: var(--luxury-text, #F5F5F5);
+}
+#main-content,
+.portal-main-col,
+.cp-main-col,
+.mkt-main,
+main[role="main"] {
+  background-color: var(--luxury-surface-subtle, var(--luxury-gallery-white, #FDFDFD));
+}
 
 /* ========== Premium design tokens (used by all surfaces) ========== */
 :root {
@@ -316,4 +337,150 @@ html[data-bs-theme="dark"] .dashboard-header {
   .cp-main-col {
     padding-block: 1.5rem;
   }
+}
+
+/* ========== High-end UI/UX – no exceptions (all pages) ========== */
+/* Minimum vertical rhythm so no page feels cramped */
+.page-wrap,
+#main-content > .page-wrap,
+.cp-content-wrap {
+  min-height: 50vh;
+}
+/* Typography scale: consistent heading hierarchy */
+#main-content h1, .portal-main-col h1, .cp-main-col h1 {
+  font-size: clamp(1.25rem, 1.1rem + 0.5vw, 1.75rem);
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  line-height: 1.25;
+}
+#main-content h2, .portal-main-col h2, .cp-main-col h2 {
+  font-size: clamp(1.1rem, 1rem + 0.35vw, 1.35rem);
+  font-weight: 700;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+#main-content .section-title,
+[data-dashboard-page] .section-title {
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+/* Global reach footnote (footer) */
+.brand-global-reach {
+  font-size: 0.8125rem;
+  letter-spacing: 0.02em;
+  opacity: 0.9;
+}
+/* Ensure all form pages and list pages get card consistency */
+#main-content .card .card-body,
+.portal-main-col .card .card-body,
+.cp-main-col .card .card-body {
+  padding: 1.25rem 1.5rem;
+}
+@media (min-width: 768px) {
+  #main-content .card .card-body,
+  .portal-main-col .card .card-body,
+  .cp-main-col .card .card-body {
+    padding: 1.5rem 1.75rem;
+  }
+}
+
+/* ========== Ultra high-end UI/UX – no compromise (all pages, dashboards, flows) ========== */
+/* Uses luxury tokens when design-tokens-luxury.css is loaded; fallbacks otherwise */
+
+/* Spatial luxury – 2x breathing room where tokens exist */
+:root {
+  --luxury-section-padding: var(--luxury-section-padding, 3rem);
+  --luxury-gap: var(--luxury-gap, 2rem);
+  --luxury-motion-duration: var(--luxury-motion-duration, 600ms);
+  --luxury-motion-ease: var(--luxury-motion-ease, ease-out);
+  --luxury-btn-radius: var(--luxury-btn-radius, 2px);
+}
+
+/* CTAs – sharp or 2px radius; hover invert/fill (high-end) */
+#main-content .btn-primary,
+.portal-main-col .btn-primary,
+.cp-main-col .btn-primary,
+[data-dashboard-page] .btn-primary,
+.control-plane-shell .btn-primary,
+.btn.btn-primary {
+  border-radius: var(--luxury-btn-radius) !important;
+  font-weight: var(--luxury-btn-weight, 600);
+  letter-spacing: 0.02em;
+  transition: background-color var(--luxury-motion-duration) var(--luxury-motion-ease),
+              color var(--luxury-motion-duration) var(--luxury-motion-ease),
+              box-shadow var(--luxury-motion-duration) var(--luxury-motion-ease);
+}
+#main-content .btn-primary:hover,
+.portal-main-col .btn-primary:hover,
+[data-dashboard-page] .btn-primary:hover,
+.btn.btn-primary:hover {
+  box-shadow: 0 4px 14px rgba(10, 10, 10, 0.15);
+}
+
+/* Secondary/outline: hover invert (dark bg → light text) */
+.btn-outline-primary,
+.btn-outline-dark,
+.btn-outline-secondary {
+  border-radius: var(--luxury-btn-radius) !important;
+  transition: background-color var(--luxury-motion-duration) var(--luxury-motion-ease),
+              color var(--luxury-motion-duration) var(--luxury-motion-ease),
+              border-color var(--luxury-motion-duration) var(--luxury-motion-ease);
+}
+
+/* Hairline borders and tonal sections (quiet interface) */
+.card,
+.cp-panel,
+.dashboard-chart-card,
+.stat-card,
+.app-card {
+  border-width: 1px;
+  border-color: var(--luxury-border, rgba(10, 10, 10, 0.08));
+}
+html[data-theme="dark"] .card,
+html[data-bs-theme="dark"] .card,
+body.portal-backend-dark .card,
+.control-plane-shell .card {
+  border-color: var(--luxury-border, rgba(255, 255, 255, 0.1));
+}
+
+/* Motion – 600ms ease-out for surfaces (reveal, not pop) */
+#main-content .card,
+.portal-main-col .card,
+[data-dashboard-page] .card,
+.dashboard-chart-card,
+.stat-card,
+.app-card,
+.alert,
+.modal-content {
+  transition: box-shadow var(--luxury-motion-duration) var(--luxury-motion-ease),
+              transform var(--luxury-motion-duration) var(--luxury-motion-ease),
+              border-color var(--luxury-motion-duration) var(--luxury-motion-ease);
+}
+
+/* Form controls – refined radius and focus */
+.form-control,
+.form-select {
+  border-radius: var(--luxury-btn-radius) !important;
+  transition: border-color var(--luxury-motion-duration) var(--luxury-motion-ease),
+              box-shadow var(--luxury-motion-duration) var(--luxury-motion-ease);
+}
+
+/* Remove cheap defaults: no bright blue links where we use luxury palette */
+a:not(.btn):not(.nav-link):not(.dropdown-item) {
+  color: var(--luxury-text, #1A1A1A);
+}
+html[data-theme="dark"] a:not(.btn):not(.nav-link):not(.dropdown-item),
+body.portal-backend-dark a:not(.btn):not(.nav-link):not(.dropdown-item) {
+  color: var(--luxury-text, #F5F5F5);
+}
+a:not(.btn):not(.nav-link):not(.dropdown-item):hover {
+  color: var(--luxury-primary, #0A0A0A);
+  transition: color var(--luxury-motion-duration) var(--luxury-motion-ease);
+}
+
+/* All-caps labels – letter-spacing (luxury typography) */
+.text-uppercase.btn,
+[data-dashboard-page] .section-title.text-uppercase,
+.sidebar-section-title {
+  letter-spacing: var(--luxury-letter-spacing-caps, 0.1em);
 }

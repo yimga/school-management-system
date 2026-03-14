@@ -1,0 +1,198 @@
+{% extends "backend_base.html" %}
+{% load static i18n %}
+
+{% block backend_title %}{% trans "Lineage graph" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4" data-page-archetype="catalog">
+  <h1 class="h4 mb-3 fw-bold">{% trans "Lineage graph" %}</h1>
+  <p class="text-muted small mb-4">{% trans "What uses this? Query by entity, field, package, or consumer. Downstream consumers and blast radius." %}</p>
+
+  <form method="get" action="{% url 'metadata:metadata_lineage_graph' %}" class="mb-4 card card-body shadow-sm">
+    <div class="row g-3 align-items-end">
+      <div class="col-auto">
+        <label for="object_type" class="form-label small">{% trans "Object type" %}</label>
+        <select name="object_type" id="object_type" class="form-select form-select-sm">
+          <option value="entity" {% if object_type == "entity" %}selected{% endif %}>{% trans "Entity" %}</option>
+          <option value="field" {% if object_type == "field" %}selected{% endif %}>{% trans "Field" %}</option>
+          <option value="package" {% if object_type == "package" %}selected{% endif %}>{% trans "Package" %}</option>
+          <option value="consumer" {% if object_type == "consumer" %}selected{% endif %}>{% trans "Consumer" %}</option>
+        </select>
+      </div>
+      <div class="col-auto" id="field-entity">
+        <label for="code" class="form-label small">{% trans "Entity code" %}</label>
+        <input type="text" name="code" id="code" class="form-control form-control-sm" value="{{ code }}" placeholder="e.g. student" maxlength="80">
+      </div>
+      <div class="col-auto" id="field-entity-code">
+        <label for="entity_code" class="form-label small">{% trans "Entity code" %}</label>
+        <input type="text" name="entity_code" id="entity_code" class="form-control form-control-sm" value="{{ entity_code }}" placeholder="e.g. student" maxlength="80">
+      </div>
+      <div class="col-auto" id="field-field-name">
+        <label for="field_name" class="form-label small">{% trans "Field name" %}</label>
+        <input type="text" name="field_name" id="field_name" class="form-control form-control-sm" value="{{ field_name }}" placeholder="e.g. admission_number" maxlength="120">
+      </div>
+      <div class="col-auto" id="field-package">
+        <label for="package_id" class="form-label small">{% trans "Package ID" %}</label>
+        <input type="text" name="package_id" id="package_id" class="form-control form-control-sm" value="{{ package_id }}" placeholder="e.g. my-pack" maxlength="80">
+      </div>
+      <div class="col-auto" id="field-consumer-type">
+        <label for="consumer_type" class="form-label small">{% trans "Consumer type" %}</label>
+        <input type="text" name="consumer_type" id="consumer_type" class="form-control form-control-sm" value="{{ consumer_type }}" placeholder="e.g. dashboard" maxlength="40">
+      </div>
+      <div class="col-auto" id="field-consumer-code">
+        <label for="consumer_code" class="form-label small">{% trans "Consumer code" %}</label>
+        <input type="text" name="consumer_code" id="consumer_code" class="form-control form-control-sm" value="{{ consumer_code }}" placeholder="e.g. principal_home" maxlength="120">
+      </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-primary btn-sm">{% trans "Query lineage" %}</button>
+      </div>
+    </div>
+  </form>
+
+  {% if has_query and payload %}
+  {% with obj=payload.object downstream=payload.downstream summary=payload.downstream_summary blast=payload.blast_radius packages=payload.packages %}
+  <div class="row">
+    <div class="col-lg-6">
+      <div class="card shadow-sm mb-3">
+        <div class="card-header py-2 small fw-semibold">{% trans "Object" %}</div>
+        <div class="card-body py-2">
+          {% if obj %}
+          <dl class="mb-0 small">
+            {% for k, v in obj.items %}
+            <dt class="text-muted d-inline">{{ k }}:</dt>
+            <dd class="d-inline ms-1"><code>{{ v }}</code></dd><br>
+            {% endfor %}
+          </dl>
+          {% else %}
+          <p class="text-muted small mb-0">{% trans "No object specified or not found." %}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if summary.consumer_count > 0 %}
+      <div class="card shadow-sm mb-3">
+        <div class="card-header py-2 small fw-semibold">{% trans "Downstream" %} ({{ summary.consumer_count }})</div>
+        <div class="card-body p-0">
+          <table class="table table-sm table-hover mb-0">
+            <thead>
+              <tr>
+                <th>{% trans "Type" %}</th>
+                <th>{% trans "Code" %}</th>
+                <th>{% trans "Entities" %}</th>
+                <th>{% trans "Fields" %}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for c in summary.consumers %}
+              <tr>
+                <td><code>{{ c.consumer_type|default:"—" }}</code></td>
+                <td><code>{{ c.consumer_code|default:"—" }}</code></td>
+                <td><code>{{ c.entity_codes|join:", "|default:"—" }}</code></td>
+                <td><code>{{ c.field_names|join:", "|default:"—" }}</code></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if blast %}
+      <div class="card shadow-sm mb-3">
+        <div class="card-header py-2 small fw-semibold">{% trans "Blast radius" %}</div>
+        <div class="card-body py-2 small">
+          <span class="me-3">{% trans "Consumers" %}: <strong>{{ blast.consumer_count }}</strong></span>
+          {% for k, v in blast.consumer_type_counts.items %}
+          <span class="me-2"><code>{{ k }}</code>: {{ v }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if packages %}
+      <div class="card shadow-sm mb-3">
+        <div class="card-header py-2 small fw-semibold">{% trans "Packages" %} ({{ packages|length }})</div>
+        <div class="card-body p-0">
+          <table class="table table-sm table-hover mb-0">
+            <thead>
+              <tr>
+                <th>{% trans "Package" %}</th>
+                <th>{% trans "Version" %}</th>
+                <th>{% trans "Consumers" %}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in packages %}
+              <tr>
+                <td><code>{{ p.package_id }}</code></td>
+                <td>{{ p.version|default:"—" }}</td>
+                <td>{% if p.blast_radius %}{{ p.blast_radius.consumer_count }}{% else %}0{% endif %}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    <div class="col-lg-6">
+      {% if center_label and graph_consumers %}
+      <div class="card shadow-sm mb-3">
+        <div class="card-header py-2 small fw-semibold">{% trans "Graph" %}</div>
+        <div class="card-body p-2 overflow-auto">
+          <svg id="lineage-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" class="w-100" style="max-height: 400px;">
+            <defs>
+              <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                <path d="M0,0 L8,4 L0,8 Z" fill="var(--bs-secondary)"/>
+              </marker>
+            </defs>
+            {% for c in graph_consumers %}
+            <line x1="200" y1="200" x2="{{ c.x }}" y2="{{ c.y }}" stroke="var(--bs-secondary)" stroke-width="1" opacity="0.6"/>
+            {% endfor %}
+            <circle cx="200" cy="200" r="28" fill="var(--bs-primary)" stroke="var(--bs-border-color)"/>
+            <text x="200" y="205" text-anchor="middle" fill="white" font-size="10" font-weight="bold">{{ center_label }}</text>
+            {% for c in graph_consumers %}
+            <circle cx="{{ c.x }}" cy="{{ c.y }}" r="22" fill="var(--bs-light)" stroke="var(--bs-secondary)"/>
+            <text x="{{ c.x }}" y="{{ c.y|add:4 }}" text-anchor="middle" font-size="8">{{ c.label }}</text>
+            {% endfor %}
+            {% if summary.consumer_count > 12 %}
+            <text x="200" y="380" text-anchor="middle" font-size="11" fill="var(--bs-secondary)">+ {{ summary.consumer_count|add:"-12" }} {% trans "more" %}</text>
+            {% endif %}
+          </svg>
+          <p class="small text-muted mt-1 mb-0">{% trans "Center: queried object. Outer: downstream consumers (up to 12)." %}</p>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endwith %}
+  {% endif %}
+  {% endif %}
+
+  <p class="mt-3 small text-muted">
+    <a href="{% url 'metadata:metadata_governance' %}">{% trans "Metadata governance" %}</a> ·
+    <a href="{% url 'super:metadata_catalog' %}">{% trans "Super metadata catalog" %}</a> ·
+    {% trans "API" %}: <code>GET /api/internal/metadata/lineage/</code>
+  </p>
+</div>
+
+<script>
+(function() {
+  var sel = document.getElementById('object_type');
+  var show = function(id, on) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = on ? '' : 'none';
+  };
+  var update = function() {
+    var v = (sel && sel.value) || 'entity';
+    show('field-entity', v === 'entity');
+    show('field-entity-code', v === 'field');
+    show('field-field-name', v === 'field');
+    show('field-package', v === 'package');
+    show('field-consumer-type', v === 'consumer');
+    show('field-consumer-code', v === 'consumer');
+  };
+  if (sel) { sel.addEventListener('change', update); update(); }
+})();
+</script>
+{% endblock %}

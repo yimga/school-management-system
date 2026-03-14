@@ -16,6 +16,7 @@ from apps.brand_experience.models import ThemePack
 from apps.runtime_blueprints.models import ReportCardStyle
 from config.admin import tenant_admin_site
 from apps.siteconfig.context_processors import site_settings
+from apps.platform_runtime.helpers import get_platform_site_settings_record
 from apps.siteconfig.forms import THEME_PUBLISH_GUARDED_FIELDS, ThemeColorsForm
 from apps.siteconfig.models import SiteSettings
 from apps.siteconfig.admin import ThemePackAdmin
@@ -45,7 +46,7 @@ class ThemeStudioAccessTests(TestCase):
         self.manager.feature_permissions.add(manage_perm)
 
     def _theme_form_payload(self, **overrides):
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         payload = {}
         form = ThemeColorsForm(instance=site)
         for field_name in ThemeColorsForm.Meta.fields:
@@ -111,7 +112,7 @@ class ThemeStudioAccessTests(TestCase):
             is_active=True,
             applies_to_admin=False,
         )
-        form = ThemeColorsForm(instance=SiteSettings.get_solo())
+        form = ThemeColorsForm(instance=get_platform_site_settings_record(create=True))
         admin_ids = set(form.fields["admin_theme_pack"].queryset.values_list("id", flat=True))
         theme_ids = set(form.fields["theme_pack"].queryset.values_list("id", flat=True))
         self.assertNotIn(non_admin_pack.id, admin_ids)
@@ -133,7 +134,7 @@ class ThemeStudioAccessTests(TestCase):
         )
         response = self.client.post(self.url, payload, follow=True)
         self.assertEqual(response.status_code, 200)
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         self.assertNotEqual(site.admin_theme_pack_id, non_admin_pack.id)
 
     def test_theme_studio_renders_admin_use_site_primary_guard(self):
@@ -167,7 +168,7 @@ class ThemeStudioAccessTests(TestCase):
 
     def test_theme_studio_blocks_publish_without_preview_for_governed_changes(self):
         self.client.login(username="theme-manager", password="password")
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         payload = self._theme_form_payload(
             primary_color="#111111",
             accent_color="#047857",
@@ -189,7 +190,7 @@ class ThemeStudioAccessTests(TestCase):
         response = self.client.post(self.url, payload, follow=True)
         self.assertEqual(response.status_code, 200)
 
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         self.assertEqual(site.primary_color, "#1e3a8a")
         self.assertContains(response, "theme-last-change-audit")
 
@@ -214,7 +215,7 @@ class ThemeStudioAccessTests(TestCase):
             accent_color="#76a665",
             is_active=True,
         )
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.default_term_report_style = style_a
         site.save(update_fields=["default_term_report_style"])
 
@@ -295,7 +296,7 @@ class ThemeStudioAccessTests(TestCase):
 class ThemeResolutionTests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
-        self.site = SiteSettings.get_solo()
+        self.site = get_platform_site_settings_record(create=True)
         self.admin_pack = ThemePack.objects.create(
             name="Admin Theme",
             slug="admin-theme-resolution-test",
@@ -413,7 +414,7 @@ class ThemePackSelectorTemplateTests(TestCase):
                 }
             },
         )
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.theme_pack = pack
         site.admin_theme_pack = pack
         site.save(update_fields=["theme_pack", "admin_theme_pack"])
@@ -456,7 +457,7 @@ class ThemeStudioSingleSurfaceTests(TestCase):
 
     def test_theme_launcher_uses_back_link_with_stay_theme_flag(self):
         model_admin = tenant_admin_site._registry[SiteSettings]
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         html = model_admin.theme_color_tools_link_block(site)
         self.assertIn("stay_theme%3D1", html)
 

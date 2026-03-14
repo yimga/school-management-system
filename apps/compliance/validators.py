@@ -1,6 +1,5 @@
 """Compliance validators for enforcing regional legal requirements."""
-from django.core.exceptions import ValidationError
-from datetime import datetime, timedelta
+from datetime import timedelta
 from django.utils import timezone
 
 class ComplianceValidator:
@@ -70,7 +69,7 @@ class RegionalComplianceValidator(ComplianceValidator):
         if not requirements:
             self.add_warning("No requirements defined")
             return True
-        pending = sum(1 for r in requirements if r.status == 'pending')
+        sum(1 for r in requirements if r.status == 'pending')
         overdue = sum(1 for r in requirements if r.is_overdue())
         if overdue > 0:
             self.add_error(f"{overdue} requirements overdue")

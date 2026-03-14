@@ -8,7 +8,9 @@ from datetime import datetime, timedelta
 from decimal import Decimal, InvalidOperation
 from typing import Iterable
 
+from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.utils import DatabaseError, IntegrityError
 from django.utils import timezone
 
 from apps.finance.models import (
@@ -70,7 +72,7 @@ class BankStatementImportService:
                     created_count += 1
                 if self._link_or_create_suspense(entry, row):
                     suspense_count += 1
-            except Exception as exc:
+            except (ValueError, TypeError, DatabaseError, IntegrityError, ValidationError) as exc:
                 errors.append(f"Row {idx}: {exc}")
 
         upload.entries_imported = created_count

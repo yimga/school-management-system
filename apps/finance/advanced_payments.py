@@ -7,14 +7,15 @@ INTEGRATES WITH:
 - apps.finance.payment_processors (Stripe, PayPal, Flutterwave, Paystack)
 """
 
+import logging
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.core.exceptions import ValidationError
+from django.db.utils import DatabaseError, IntegrityError
 from datetime import timedelta
 from decimal import Decimal
 from typing import Dict, List
-import json
 
 from .models import (
     ComplianceProfile,
@@ -77,7 +78,8 @@ def _recurring_subscription_process_payment(self):
             self.status = "COMPLETED"
         self.save()
         return True
-    except Exception:
+    except (DatabaseError, IntegrityError, ValidationError, ValueError, TypeError, AttributeError) as e:
+        logging.getLogger(__name__).debug("recurring subscription record_payment skip: %s", e)
         self.missed_payments += 1
         if self.missed_payments >= 3:
             self.status = "DEFAULTED"

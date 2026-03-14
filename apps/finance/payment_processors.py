@@ -5,7 +5,6 @@ Multiple gateway support: Stripe, PayPal, Flutterwave, Paystack
 
 import logging
 from datetime import datetime
-from decimal import Decimal
 
 logger = logging.getLogger(__name__)
 
@@ -474,7 +473,7 @@ class MultiGatewayProcessor:
         for provider, config in configs.items():
             try:
                 self.processors[provider] = ProcessorFactory.get_processor(provider, **config)
-            except Exception as e:
+            except (ImportError, AttributeError, TypeError, ValueError, KeyError) as e:
                 logger.warning("Failed to initialize payment provider %s: %s", provider, e)
     
     def get_best_processor(self, region, amount=None):

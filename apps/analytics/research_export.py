@@ -32,7 +32,6 @@ def get_deidentified_aggregates(
     }
     try:
         from django.apps import apps
-        from django.db.models import Count
         if apps.is_installed("people"):
             StudentProfile = apps.get_model("people", "StudentProfile")
             qs = StudentProfile.objects.filter(school_id=school_id, is_active=True)

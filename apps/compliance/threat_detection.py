@@ -2,10 +2,12 @@
 Threat detection utilities for brute-force login attempts and after-hours access anomalies.
 """
 
+import logging
 from datetime import timedelta
 from typing import List, Dict
 
 from django.conf import settings
+from django.db import DatabaseError, OperationalError, IntegrityError
 from django.db.models import Count, Q
 from django.db.models.functions import ExtractHour
 from django.utils import timezone
@@ -13,6 +15,17 @@ from django.utils import timezone
 from apps.compliance.models_audit import AccessLog, ThreatDetectionConfig
 from apps.compliance.alerts import send_threat_alert
 from apps.compliance.tenant_scope import scope_access_logs
+
+logger = logging.getLogger(__name__)
+
+_THREAT_CONFIG_FALLBACK_ERRORS = (
+    DatabaseError,
+    OperationalError,
+    IntegrityError,
+    AttributeError,
+    TypeError,
+    ValueError,
+)
 
 
 def detect_threats(window_minutes: int | None = None, school=None) -> List[Dict]:
@@ -25,12 +38,16 @@ def detect_threats(window_minutes: int | None = None, school=None) -> List[Dict]
         after_hours_start = db_config.after_hours_start
         after_hours_end = db_config.after_hours_end
         after_hours_threshold = db_config.after_hours_threshold
-        
+
         # Check if muted
         if db_config.is_muted():
             return []
-    except Exception:
+    except _THREAT_CONFIG_FALLBACK_ERRORS:
         # Fall back to settings if DB unavailable
+        logger.debug(
+            "ThreatDetectionConfig unavailable, using settings.THREAT_DETECTION",
+            exc_info=True,
+        )
         cfg = getattr(settings, "THREAT_DETECTION", {})
         window = window_minutes or cfg.get("window_minutes", 60)
         failed_per_user_threshold = cfg.get("failed_per_user", 10)

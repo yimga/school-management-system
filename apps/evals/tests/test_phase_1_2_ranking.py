@@ -6,8 +6,6 @@ Test tie handling, caching, and query optimization.
 
 from django.test import TestCase
 from django.core.cache import cache
-from django.db import connection
-from django.test.utils import CaptureQueriesContext
 
 from apps.academics.models import AcademicYear, Term, Classroom, Subject, SubjectAssignment, Department, Specialty
 from apps.accounts.models import User
@@ -334,8 +332,8 @@ class RankingCachingTest(TestCase):
 
     def test_cache_keys_differ(self):
         """Test that school and class rankings use different cache keys."""
-        class_ranking = get_class_ranking(self.classroom, self.term)
-        school_ranking = get_school_ranking(self.term)
+        get_class_ranking(self.classroom, self.term)
+        get_school_ranking(self.term)
 
         class_key = RankingCache.get_cache_key(self.term, self.classroom)
         school_key = RankingCache.get_cache_key(self.term, None)

@@ -1,6 +1,6 @@
 import json
 from django.db import DatabaseError, connection, transaction
-from .models import SiteSettings, build_platform_default_site_settings, default_header_weather_config
+from .models_support import build_platform_default_site_settings, default_header_weather_config
 from .translations import TranslationManager, SUPPORTED_LANGUAGES
 from .models_dashboard import DashboardUserPreference
 from django.core.files.storage import default_storage
@@ -12,7 +12,7 @@ from apps.accounts.models import User
 from apps.finance.models import Notification
 from apps.global_registries.models import RegionConfig
 from apps.platform_runtime.helpers import get_effective_flags, get_effective_site_settings, get_platform_defaults
-from .preview_state import PREVIEW_MODE_SESSION_KEY, ACT_AS_ROLE_SESSION_KEY
+from .preview_state import ACT_AS_ROLE_SESSION_KEY
 from .portal_sidebar_items import build_portal_sidebar_items
 from apps.policies.policy_registry import get_effective_policy
 
@@ -31,7 +31,18 @@ def _get_portal_sidebar_items(request, site):
     """Return portal sidebar items (optionally sorted by portal_sidebar_order)."""
     try:
         return build_portal_sidebar_items(request, site)
-    except OPTIONAL_CONTEXT_ERRORS:
+    except OPTIONAL_CONTEXT_ERRORS as e:
+        from apps.platform_runtime.structured_logging import log_exception_with_context, request_context_for_log
+        ctx = request_context_for_log(request) if request else {}
+        log_exception_with_context(
+            "portal_sidebar_items_fallback",
+            tenant_id=ctx.get("tenant_id"),
+            school_id=ctx.get("school_id"),
+            actor_id=ctx.get("actor_id"),
+            route=ctx.get("route"),
+            exc_info=False,
+            extra={"error": str(e)[:200]},
+        )
         return []
 
 

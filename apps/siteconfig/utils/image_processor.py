@@ -6,9 +6,8 @@ Provides image compression, resizing, and optimization for better performance.
 import os
 import logging
 from io import BytesIO
-from PIL import Image, ImageOps
+from PIL import Image
 from django.core.files.base import ContentFile
-from django.core.files.storage import default_storage
 
 logger = logging.getLogger(__name__)
 

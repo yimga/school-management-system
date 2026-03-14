@@ -29,7 +29,7 @@ class TeacherTimetableViewTests(TestCase):
             is_active=True,
         )
         dept = Department.objects.create(name="Science", code="SCI")
-        spec = Specialty.objects.create(name="General", code="GEN", department=dept)
+        Specialty.objects.create(name="General", code="GEN", department=dept)
         self.classroom = Classroom.objects.create(
             name="Form 1A",
             code="F1A",

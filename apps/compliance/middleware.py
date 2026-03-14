@@ -10,7 +10,6 @@ import logging
 from time import time
 from django.utils.deprecation import MiddlewareMixin
 from django.utils import timezone
-from django.contrib.auth.models import AnonymousUser
 from django.http import HttpResponseForbidden, JsonResponse
 from django.conf import settings
 from django.db import DatabaseError, connection, transaction
@@ -215,7 +214,7 @@ class AccessControlMiddleware(MiddlewareMixin):
         Attach access control context to request.
         This enriches decorators with audit information.
         """
-        user = getattr(request, 'user', None)
+        getattr(request, 'user', None)
         
         # Attach user info for decorators to use
         request.user_ip = self._get_ip_address(request)

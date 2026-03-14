@@ -1,14 +1,14 @@
 from django.test import TestCase
 
 from apps.finance.models import ComplianceProfile
+from apps.platform_runtime.helpers import get_platform_site_settings_record
 from apps.siteconfig.forms import SiteSettingsForm
-from apps.siteconfig.models import SiteSettings
 
 
 class SiteSettingsComplianceProfilePointerTests(TestCase):
     def test_property_and_form_initialise_pointer_without_model_relation(self):
         profile = ComplianceProfile.objects.create(name="CM Default", country_code="CM")
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.compliance_profile = profile
         site.save()
 

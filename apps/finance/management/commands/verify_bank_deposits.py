@@ -8,8 +8,10 @@ Usage:
 """
 
 from django.core.management.base import BaseCommand
-from django.utils import timezone
+from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.utils import DatabaseError, IntegrityError
+from django.utils import timezone
 from apps.finance.models import PaymentProofUpload, BankAccount, BankStatementEntry
 from apps.finance.bank_verification import BankDepositVerifier
 from apps.finance.services import create_payment_from_receipt
@@ -177,7 +179,7 @@ class Command(BaseCommand):
                 
                 receipt_upload.save()
                 
-            except Exception as e:
+            except (ValidationError, DatabaseError, IntegrityError, ValueError, TypeError, AttributeError) as e:
                 error_count += 1
                 self.stdout.write(
                     self.style.ERROR(

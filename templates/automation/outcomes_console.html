@@ -1,0 +1,96 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Automation outcomes" %}{% endblock %}
+{% block backend_title %}{% trans "Automation outcomes" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <h1 class="h4 mb-3">{% trans "Automation outcomes" %}</h1>
+  <p class="text-muted">{% trans "Recent migration runs and execution logs. Outcomes only; manage profiles and playbooks in Configuration Engine." %}</p>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-header">
+      <h5 class="mb-0">{% trans "Recent migration runs" %}</h5>
+    </div>
+    <div class="card-body p-0">
+      {% if recent_runs %}
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>{% trans "Type" %}</th>
+              <th>{% trans "Status" %}</th>
+              <th>{% trans "Rows" %}</th>
+              <th>{% trans "Created" %}</th>
+              <th>{% trans "Updated" %}</th>
+              <th>{% trans "Errors" %}</th>
+              <th>{% trans "Started" %}</th>
+              <th>{% trans "By" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in recent_runs %}
+            <tr>
+              <td><code>{{ r.migration_type }}</code></td>
+              <td><span class="badge {% if r.status == 'SUCCESS' %}bg-success{% elif r.status == 'FAILED' %}bg-danger{% elif r.status == 'PARTIAL' %}bg-warning{% else %}bg-secondary{% endif %}">{{ r.get_status_display }}</span></td>
+              <td>{{ r.row_count }}</td>
+              <td>{{ r.created_count }}</td>
+              <td>{{ r.updated_count }}</td>
+              <td>{{ r.error_count }}</td>
+              <td>{{ r.started_at|date:"Y-m-d H:i" }}</td>
+              <td>{{ r.triggered_by.get_full_name|default:r.triggered_by.username|default:"—" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p class="small text-muted px-3 py-2 mb-0">{% trans "Last 30 runs." %}</p>
+      {% else %}
+      <p class="text-muted px-3 py-3 mb-0">{% trans "No migration runs yet." %}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-header">
+      <h5 class="mb-0">{% trans "Recent execution logs" %}</h5>
+    </div>
+    <div class="card-body p-0">
+      {% if recent_logs %}
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>{% trans "Task" %}</th>
+              <th>{% trans "Type" %}</th>
+              <th>{% trans "Status" %}</th>
+              <th>{% trans "Processed" %}</th>
+              <th>{% trans "Failed" %}</th>
+              <th>{% trans "Started" %}</th>
+              <th>{% trans "By" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for log in recent_logs %}
+            <tr>
+              <td><code>{{ log.task_name }}</code></td>
+              <td>{{ log.get_execution_type_display }}</td>
+              <td><span class="badge {% if log.status == 'SUCCESS' %}bg-success{% elif log.status == 'FAILED' %}bg-danger{% elif log.status == 'PARTIAL' %}bg-warning{% else %}bg-secondary{% endif %}">{{ log.get_status_display }}</span></td>
+              <td>{{ log.records_processed }}</td>
+              <td>{{ log.records_failed }}</td>
+              <td>{{ log.started_at|date:"Y-m-d H:i" }}</td>
+              <td>{{ log.triggered_by.get_full_name|default:log.triggered_by.username|default:"—" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p class="small text-muted px-3 py-2 mb-0">{% trans "Last 30 executions." %}</p>
+      {% else %}
+      <p class="text-muted px-3 py-3 mb-0">{% trans "No execution logs yet." %}</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

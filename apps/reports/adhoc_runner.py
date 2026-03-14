@@ -9,7 +9,7 @@ import csv
 import io
 import time
 from datetime import datetime
-from typing import Any, Optional
+from typing import Optional
 
 from django.utils import timezone
 
@@ -86,7 +86,6 @@ def run_adhoc_report(
 
 def _build_queryset(entity_type: str, columns: list, filters: dict, date_from, date_to, school_id, allow_global: bool = False):
     """Build Django queryset and column list from entity_type and filters."""
-    from django.db.models import Q
 
     if not columns:
         columns = ['id']

@@ -1,5 +1,9 @@
+import logging
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import DatabaseError, IntegrityError
 from django.db.models import Count, Q, Sum
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -9,7 +13,6 @@ from apps.billing.models import RevenueSharePayout
 from apps.schools.control_plane import user_has_control_plane_access
 from apps.marketplace.models import (
     AppInstallation,
-    AppScope,
     MarketplaceApp,
     MarketplaceListing,
     MarketplaceReview,
@@ -19,13 +22,25 @@ from apps.marketplace.models import (
 from apps.marketplace.services import (
     activate_sandbox_installation,
     approve_sensitive_scope,
-    check_app_compatibility,
     finalize_marketplace_review,
-    grant_scopes,
     install_app,
     refresh_installation,
     submit_marketplace_review,
     uninstall_app,
+)
+from apps.platform_runtime.catalog_counts import get_platform_catalog_counts
+
+logger = logging.getLogger(__name__)
+
+# §2.4 broad-except: preview can raise from policy/DB layer (typed per broad_exception_audit).
+_MARKETPLACE_PREVIEW_FAILURES = (
+    ValueError,
+    TypeError,
+    KeyError,
+    ObjectDoesNotExist,
+    DatabaseError,
+    ImportError,
+    AttributeError,
 )
 
 
@@ -256,7 +271,8 @@ def blueprint_marketplace(request):
             try:
                 preview = preview_blueprint_pack(school, pack)
                 request.session["blueprint_preview"] = preview
-            except Exception as e:
+            except _MARKETPLACE_PREVIEW_FAILURES as e:
+                logger.warning("Blueprint pack preview failed: %s", e, exc_info=True)
                 messages.error(request, str(e))
             return redirect("super:blueprint_marketplace")
 
@@ -275,6 +291,7 @@ def blueprint_marketplace(request):
         return redirect("super:blueprint_marketplace")
 
     preview = request.session.pop("blueprint_preview", None)
+    catalog_counts = get_platform_catalog_counts()
     return render(request, "marketplace/blueprint_marketplace.html", {
         "packs": packs,
         "schools": schools,
@@ -282,6 +299,7 @@ def blueprint_marketplace(request):
         "school_limit": school_limit,
         "school_bundles": school_bundles,
         "preview": preview,
+        "catalog_counts": catalog_counts,
     })
 
 
@@ -359,6 +377,7 @@ def app_catalog(request):
         "sandbox_ready": sum(1 for listing in installable_listings if getattr(listing, "sensitive_scope_count", 0) == 0),
         "installed_pairs": len(installed),
     }
+    catalog_counts = get_platform_catalog_counts()
     return render(request, "marketplace/app_catalog.html", {
         "listings": installable_listings,
         "schools": schools,
@@ -366,6 +385,7 @@ def app_catalog(request):
         "school_limit": school_limit,
         "installed": installed,
         "catalog_stats": catalog_stats,
+        "catalog_counts": catalog_counts,
     })
 
 
@@ -618,11 +638,13 @@ def tenant_app_catalog(request):
             if getattr(getattr(listing, "publisher", None), "verification_status", "") == PublisherOrganization.VerificationStatus.VERIFIED
         ),
     }
+    catalog_counts = get_platform_catalog_counts()
     return render(request, "marketplace/tenant_app_catalog.html", {
         "listings": installable,
         "school": school,
         "installed_slugs": installed_slugs,
         "catalog_stats": catalog_stats,
+        "catalog_counts": catalog_counts,
     })
 
 
@@ -788,13 +810,14 @@ def sandbox_embed(request):
     if not iframe_src:
         iframe_src = ""
     frame_ancestors = "'self'"
+    _embed_parse_errors = (ValueError, TypeError, AttributeError, KeyError)
     if iframe_src and (iframe_src.startswith("http://") or iframe_src.startswith("https://")):
         from urllib.parse import urlparse
         try:
             parsed = urlparse(iframe_src)
             origin = f"{parsed.scheme}://{parsed.netloc}"
             frame_ancestors = f"'self' {origin}"
-        except Exception:
+        except _embed_parse_errors:
             pass
     # Origin check: only allow embed to be loaded from our own origins (Referer/Origin)
     request_origin = request.META.get("HTTP_ORIGIN") or request.META.get("HTTP_REFERER", "")
@@ -811,7 +834,7 @@ def sandbox_embed(request):
                     content_type="text/html",
                     status=403,
                 )
-        except Exception:
+        except _embed_parse_errors:
             pass
     safe_src = (iframe_src or "about:blank").replace('"', "&quot;").replace("<", "&lt;").replace(">", "&gt;")
     sandbox_attr = "sandbox allow-scripts allow-same-origin"

@@ -363,7 +363,6 @@ def get_grading_scale_choices_for_school(school):
 def grading_settings(request):
     """School grading and default language (Phase 2). Requires request.school and admin-like role."""
     from django.http import HttpResponseForbidden
-    from apps.accounts.models import User
     school = getattr(request, "school", None)
     if not school:
         messages.warning(request, "Select a school (use your school subdomain) to manage grading.")
@@ -417,7 +416,6 @@ def module_market(request):
     from django.http import HttpResponseForbidden
     from apps.schools.feature_registry import get_available_modules
     from apps.siteconfig.feature_toggles import set_toggle_state
-    from apps.accounts.models import User
     school = getattr(request, "school", None)
     if not school:
         messages.warning(request, "Select a school to manage modules.")

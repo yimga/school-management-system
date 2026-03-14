@@ -94,9 +94,9 @@
                       <div class="d-flex flex-wrap gap-2 mt-2">
                         <button type="button" class="btn btn-sm btn-outline-primary js-load-live-preview" data-style-slug="{{ style.slug }}" data-report-type="term">{% trans "Load term in live preview" %}</button>
                         <button type="button" class="btn btn-sm btn-outline-secondary js-load-live-preview" data-style-slug="{{ style.slug }}" data-report-type="annual">{% trans "Load annual in live preview" %}</button>
-                        <a class="btn btn-sm btn-outline-dark" href="{% url 'siteconfig:reportcard_style_preview' style.slug %}" target="_blank" rel="noopener">{% trans "Open HTML preview" %}</a>
-                        <a class="btn btn-sm btn-outline-dark" href="{% url 'siteconfig:reportcard_style_pdf' style.slug 'term' %}" target="_blank" rel="noopener">{% trans "Term PDF" %}</a>
-                        <a class="btn btn-sm btn-outline-dark" href="{% url 'siteconfig:reportcard_style_pdf' style.slug 'annual' %}" target="_blank" rel="noopener">{% trans "Annual PDF" %}</a>
+                        <a class="btn btn-sm btn-outline-dark" href="{% url 'siteconfig:reportcard_style_preview' style.slug %}" target="_blank" rel="noopener noreferrer">{% trans "Open HTML preview" %}</a>
+                        <a class="btn btn-sm btn-outline-dark" href="{% url 'siteconfig:reportcard_style_pdf' style.slug 'term' %}" target="_blank" rel="noopener noreferrer">{% trans "Term PDF" %}</a>
+                        <a class="btn btn-sm btn-outline-dark" href="{% url 'siteconfig:reportcard_style_pdf' style.slug 'annual' %}" target="_blank" rel="noopener noreferrer">{% trans "Annual PDF" %}</a>
                       </div>
                     </article>
                   {% endfor %}

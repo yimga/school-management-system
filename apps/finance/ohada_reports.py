@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from django.db.models import Q, Sum
 from django.db.models.functions import Coalesce
@@ -32,7 +32,7 @@ def _to_decimal(value) -> Decimal:
         return value
     try:
         return Decimal(str(value))
-    except Exception:
+    except (ValueError, TypeError, InvalidOperation, ArithmeticError):
         return Decimal("0.00")
 
 

@@ -48,12 +48,20 @@ def api_center_dashboard(request):
     if school is not None:
         audit_logs = audit_logs.filter(Q(integration__school__isnull=True) | Q(integration__school=school))
     audit_logs = audit_logs.order_by("-created_at")[:50]
+    # Governance: scope/permission/rate visibility per integration (Step 37).
+    quotas = list(APIQuota.objects.filter(Q(school__isnull=True) | Q(school=school)).order_by("quota_type"))
+    quotas_by_school = {}
+    for q in quotas:
+        key = q.school_id or "platform"
+        quotas_by_school.setdefault(key, []).append(q)
     return render(
         request,
         "apicenter/dashboard.html",
         {
             "integrations": integrations,
             "audit_logs": audit_logs,
+            "api_quotas": quotas,
+            "quotas_by_school": quotas_by_school,
         },
     )
 

@@ -8,7 +8,6 @@ validate_translations - Verify translation completeness
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 import json
-import os
 from pathlib import Path
 
 
@@ -90,7 +89,6 @@ class GenerateRegionalReportsCommand(BaseCommand):
         from apps.reports.localization import (
             RegionalReportGenerator,
             ReportCompilationService,
-            LocalizedReportFormatter,
         )
         
         region = options['region']

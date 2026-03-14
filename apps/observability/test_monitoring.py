@@ -41,7 +41,7 @@ class HealthCheckAlertTestCase(TestCase):
     """Test health check alerts"""
     
     def setUp(self):
-        from apps.observability.monitoring import SystemHealthMetric, HealthCheckAlert
+        from apps.observability.monitoring import SystemHealthMetric
         
         self.metric = SystemHealthMetric.objects.create(
             metric_type='CPU',
@@ -224,7 +224,7 @@ class PerformanceProfilerTestCase(TestCase):
         from apps.observability.monitoring import PerformanceProfiler
         import time
         
-        with PerformanceProfiler('test_operation', user_id=1) as profiler:
+        with PerformanceProfiler('test_operation', user_id=1):
             time.sleep(0.01)  # Sleep 10ms
         
         # Operation should be recorded
@@ -234,7 +234,7 @@ class PerformanceProfilerTestCase(TestCase):
         from apps.observability.monitoring import PerformanceProfiler
         
         try:
-            with PerformanceProfiler('failing_operation') as profiler:
+            with PerformanceProfiler('failing_operation'):
                 raise ValueError('Test error')
         except ValueError:
             pass

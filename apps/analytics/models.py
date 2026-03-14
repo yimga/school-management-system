@@ -1,7 +1,7 @@
 # Imports
 from django.conf import settings
 from django.db import models
-from apps.academics.models import AcademicYear, Term, Classroom
+from apps.academics.models import AcademicYear, Term
 from apps.accounts.validators import validate_grade_import_file, validate_file_size_5mb
 # --- Phase 8: AttendanceLog stub for dashboard metrics ---
 

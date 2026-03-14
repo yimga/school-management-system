@@ -4,10 +4,6 @@ Phase 7 Task 3: Accessibility testing and WCAG compliance checking
 from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from django.urls import reverse
-from django.test.utils import override_settings
-import os
-import json
-from pathlib import Path
 
 User = get_user_model()
 

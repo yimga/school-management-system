@@ -11,8 +11,8 @@ from django.urls import reverse
 from apps.accounts.models import User
 from apps.analytics.models import RiskThresholds, InterventionLog, RiskFactor
 from apps.people.models import StudentProfile
+from apps.platform_runtime.helpers import get_platform_site_settings_record
 from apps.schools.models import School, SchoolMembership
-from apps.siteconfig.models import SiteSettings
 
 
 def _tenant_v1_url(school_slug: str, name: str, **kwargs) -> str:
@@ -85,7 +85,7 @@ class EnrollmentForecastViewTests(TestCase):
         )
 
     def _enable_forecast(self):
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         flags = dict(site.backend_feature_flags or {})
         flags["enable_enrollment_forecast_api"] = True
         site.backend_feature_flags = flags

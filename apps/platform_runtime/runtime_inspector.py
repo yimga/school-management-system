@@ -5,7 +5,7 @@ Use for debugging and control-plane visibility; not for tenant-facing UI.
 """
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from django.db import DatabaseError
 from django.db.models import Q
@@ -117,12 +117,12 @@ def get_runtime_inspection(request: Any) -> Dict[str, Any]:
             from apps.tenancy.middleware import build_tenant_context_from_request
             tenant_ctx = build_tenant_context_from_request(request)
         if tenant_ctx is None:
-            return {"error": "no_tenant_context", "effective_blueprint": {}, "override_sources": {}, "governor_limits": get_governor_usage_for_tenant()}
+            return {"error": "no_tenant_context", "effective_blueprint": {}, "override_sources": {}, "governor_limits": get_governor_usage_for_tenant(), "feature_toggles": []}
         school = getattr(request, "school", None) or getattr(getattr(request, "tenant", None), "school", None)
         try:
             rt = build_tenant_runtime(tenant_ctx, request=request, school=school)
         except (AttributeError, DatabaseError, RuntimeResolutionError, TypeError, ValueError) as e:
-            return {"error": str(e), "effective_blueprint": {}, "override_sources": {}, "governor_limits": None}
+            return {"error": str(e), "effective_blueprint": {}, "override_sources": {}, "governor_limits": None, "feature_toggles": []}
     out = inspect_runtime(rt)
     tid = rt.tenant_ctx.tenant_id if rt.tenant_ctx else None
     sid = rt.tenant_ctx.school_id if rt.tenant_ctx else None
@@ -134,8 +134,12 @@ def get_feature_toggle_inspection(school: Any) -> list:
     """
     Phase 10 — 10.2: Active feature toggle overrides for a school (why this feature is on, expiry).
     Returns list of dicts: key, is_enabled, expires_at, source (school|global).
+    §2.4 exception discipline: narrow catches + structured log. Fail closed: on error returns [] (no override info).
     """
+    import logging
+    from django.db import DatabaseError
     from django.utils import timezone
+    logger = logging.getLogger(__name__)
     out = []
     try:
         from apps.policies_rules.models import FeatureToggleState
@@ -143,7 +147,6 @@ def get_feature_toggle_inspection(school: Any) -> list:
         q = FeatureToggleState.objects.filter(
             Q(expires_at__isnull=True) | Q(expires_at__gt=now)
         ).select_related("definition").order_by("definition__key")
-        # School-specific first, then global (school__isnull=True)
         for state in q.filter(school=school):
             key = None
             if getattr(state, "definition", None):
@@ -164,8 +167,14 @@ def get_feature_toggle_inspection(school: Any) -> list:
                 "expires_at": state.expires_at.strftime("%Y-%m-%d %H:%M") if state.expires_at else None,
                 "source": "global",
             })
-    except Exception:
-        pass
+    except (AttributeError, DatabaseError, ImportError, TypeError, ValueError) as e:
+        logger.warning(
+            "feature_toggle_inspection_skipped school_id=%s error=%s",
+            getattr(school, "id", None),
+            e,
+            exc_info=True,
+        )
+        # Fail closed: return empty list so UI does not show incorrect override state
     return out
 
 
@@ -197,4 +206,4 @@ def get_runtime_inspection_for_school(school: Any) -> Dict[str, Any]:
         out["feature_toggles"] = get_feature_toggle_inspection(school)
         return out
     except (AttributeError, DatabaseError, RuntimeResolutionError, TypeError, ValueError) as e:
-        return {"error": str(e), "effective_blueprint": {}, "override_sources": {}, "governor_limits": None}
+        return {"error": str(e), "effective_blueprint": {}, "override_sources": {}, "governor_limits": None, "feature_toggles": []}

@@ -11,11 +11,12 @@ from django.utils import timezone
 from rest_framework.test import APIClient, APIRequestFactory, force_authenticate
 
 from apps.accounts.models import User
-from apps.academics.models import AcademicYear, Attendance, Classroom, Department
+from apps.academics.models import AcademicYear, Classroom, Department
 from apps.api.sync_delta_api import DeltaSyncAPI
 from apps.people.models import StudentProfile
+from apps.platform_runtime.helpers import get_platform_site_settings_record
 from apps.schools.models import School
-from apps.siteconfig.models import SiteSettings, SyncConflict
+from apps.siteconfig.models import SyncConflict
 
 
 class DeltaSyncConflictTestCase(TestCase):
@@ -56,8 +57,7 @@ class DeltaSyncConflictTestCase(TestCase):
             date_of_birth="2012-01-01",
         )
 
-        SiteSettings.get_solo()
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.enable_offline_mode = True
         site.save(update_fields=["enable_offline_mode"])
 
@@ -135,7 +135,7 @@ class DeltaSyncSuccessClearQueueTestCase(TestCase):
         self.client_api = APIClient()
         self.client_api.force_authenticate(user=self.user)
         self.request_factory = APIRequestFactory()
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.enable_offline_mode = True
         site.save(update_fields=["enable_offline_mode"])
 
@@ -202,7 +202,7 @@ class DeltaSyncTenantIsolationTestCase(TestCase):
             last_name="Y",
             date_of_birth="2012-01-01",
         )
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.enable_offline_mode = True
         site.save(update_fields=["enable_offline_mode"])
 

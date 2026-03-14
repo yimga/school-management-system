@@ -9,8 +9,7 @@ Tests for:
 """
 
 from decimal import Decimal
-from unittest.mock import patch, Mock
-import json
+from unittest.mock import patch
 import hashlib
 import hmac
 
@@ -33,8 +32,6 @@ from apps.finance.security import (
 from apps.accounts.permissions import (
     has_role_hierarchy,
     can_view_invoice,
-    can_view_student_data,
-    can_edit_student_grades,
 )
 from apps.evals.models import Evaluation
 from apps.people.models import StudentProfile, StudentGuardian

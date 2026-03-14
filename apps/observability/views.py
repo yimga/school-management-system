@@ -12,12 +12,14 @@ from urllib.parse import urlencode
 import requests
 from django.conf import settings
 from django.http import HttpResponse, JsonResponse, HttpResponseForbidden
-from django.db import connection
+from apps.observability.db_liveness import check_db_liveness
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
 from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils import timezone
+from django.db import DatabaseError, IntegrityError
 from django.db.models import Count, Q, Sum, Avg
+from django.core.exceptions import ValidationError
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 from django.core.cache import cache
 from apps.platform_runtime.helpers import get_effective_site_settings
@@ -198,7 +200,8 @@ def _resolve_weather_payload(config: dict, *, scope: str, request=None) -> dict:
     try:
         from apps.siteconfig.cache_utils import get_tenant_cache_prefix
         prefix = get_tenant_cache_prefix(request)
-    except Exception:
+    except (ImportError, AttributeError, TypeError):
+        logger.debug("get_tenant_cache_prefix unavailable, using public prefix")
         prefix = "public"
     base_key = _weather_cache_key(config, scope=scope)
     cache_key = f"{prefix}:{base_key}"
@@ -223,10 +226,11 @@ def _resolve_weather_payload(config: dict, *, scope: str, request=None) -> dict:
         cache.set(cache_key, payload, WEATHER_CACHE_TTL_SECONDS)
         cache.set(stale_cache_key, payload, WEATHER_STALE_CACHE_TTL_SECONDS)
         return payload
-    except Exception:
+    except (OSError, requests.RequestException, ValueError, KeyError) as exc:
         logger.warning(
-            "Weather provider request failed (scope=%s).",
+            "Weather provider request failed (scope=%s): %s",
             scope,
+            exc,
             exc_info=True,
         )
 
@@ -276,13 +280,15 @@ def observability_auth_required(view_func):
 def healthz(request):
     """Internal health check including DB connectivity (RBAC/API-key protected)."""
     try:
-        # Simple DB round-trip
-        # Raw SQL: health check only; no tenant scope or user input (raw_sql_audit).
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT 1")
-            cursor.fetchone()
-        status = "ok"
-    except Exception as exc:  # noqa: BLE001
+        result = check_db_liveness()
+        status = "ok" if result.get("status") == "healthy" else "error"
+        if status != "ok":
+            return JsonResponse(
+                {"status": "error", "error": result.get("error", "db check failed")},
+                status=500,
+            )
+    except (ValueError, TypeError, KeyError) as exc:
+        logger.exception("healthz: check_db_liveness result handling failed")
         return JsonResponse({"status": "error", "error": str(exc)}, status=500)
 
     return JsonResponse({"status": status})
@@ -344,9 +350,8 @@ def metrics(request):
             # Sanitize role label value
             role_label = str(role).replace('"', '')
             lines.append(f'ai_copilot_usage_role{{role="{role_label}"}} {int(val)}')
-    except Exception:
-        # If cache backend doesn't support this, skip appending
-        pass
+    except (ImportError, AttributeError, TypeError) as _exc:
+        logger.debug("metrics: cache/copilot counters skipped: %s", _exc)
 
     extra = ('\n'.join(lines) + '\n').encode('utf-8') if lines else b''
     return HttpResponse(base_output + extra, content_type=CONTENT_TYPE_LATEST)
@@ -387,7 +392,8 @@ def copilot_metrics_json(request):
             'last_error_ts': float(last_error_ts) if last_error_ts else None,
             'roles': role_counts,
         })
-    except Exception as exc:  # noqa: BLE001
+    except (ImportError, AttributeError, TypeError, ValueError, KeyError) as exc:
+        logger.warning("copilot_metrics_json: cache read failed: %s", exc, exc_info=True)
         return JsonResponse({
             'success': True,
             'total': 0,
@@ -413,11 +419,13 @@ def api_health(request):
     Used by dashboard to display system state.
     """
     try:
-        # Raw SQL: health check only; no tenant scope or user input (raw_sql_audit).
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT 1")
-            cursor.fetchone()
-        
+        result = check_db_liveness()
+        if result.get("status") != "healthy":
+            return JsonResponse({
+                "status": "unhealthy",
+                "database": "disconnected",
+                "error": result.get("error", "db check failed"),
+            }, status=503)
         return JsonResponse({
             "status": "healthy",
             "database": "connected",
@@ -425,7 +433,8 @@ def api_health(request):
             "uptime": "running",
             "cache": "available"
         })
-    except Exception as exc:
+    except (ValueError, TypeError, KeyError) as exc:
+        logger.exception("api_health: unexpected error after check_db_liveness")
         return JsonResponse({
             "status": "error",
             "error": str(exc)
@@ -447,8 +456,8 @@ def api_weather_context(request):
         config = _build_admin_weather_config()
         payload = _resolve_weather_payload(config, scope="context", request=request)
         return JsonResponse(payload)
-    except Exception as exc:
-        logger.warning("api_weather_context failed: %s", exc, exc_info=False)
+    except (OSError, requests.RequestException, ValueError, KeyError, ImportError, AttributeError) as exc:
+        logger.warning("api_weather_context failed: %s", exc, exc_info=True)
         return JsonResponse({
             "status": "disabled",
             "enabled": False,
@@ -480,7 +489,8 @@ def api_notifications_mark_all_read(request):
             "message": "All notifications marked as read",
             "count": updated
         })
-    except Exception as exc:
+    except (IntegrityError, ValidationError, DatabaseError) as exc:
+        logger.exception("api_notifications_mark_all_read: update failed")
         return JsonResponse({
             "status": "error",
             "error": str(exc)
@@ -526,7 +536,8 @@ def api_notifications(request):
             "notifications": mapped,
             "count": len(mapped)
         })
-    except Exception as exc:
+    except (IntegrityError, ValidationError, DatabaseError) as exc:
+        logger.exception("api_notifications: query failed")
         return JsonResponse({
             "status": "error",
             "error": str(exc)
@@ -578,7 +589,8 @@ def api_activities(request):
             "total": total,
             "page": page
         })
-    except Exception as exc:
+    except (DatabaseError, ValueError, TypeError) as exc:
+        logger.exception("api_activities: LogEntry query failed")
         return JsonResponse({
             "status": "error",
             "error": str(exc)
@@ -593,7 +605,7 @@ def api_dashboard_charts(request):
     Returns data for enrollment trends, fee collection, performance analytics, etc.
     """
     try:
-        from apps.people.models import StudentProfile, TeacherAttendance
+        from apps.people.models import TeacherAttendance
         from apps.academics.models import Classroom
         from apps.finance.models import Invoice, Payment
         from apps.evals.models import Evaluation
@@ -678,7 +690,8 @@ def api_dashboard_charts(request):
             "performance": performance,
             "attendance": attendance,
         })
-    except Exception as exc:
+    except (DatabaseError, ValueError, TypeError, KeyError) as exc:
+        logger.exception("api_dashboard_charts: chart aggregation failed")
         return JsonResponse({
             "status": "error",
             "error": str(exc)

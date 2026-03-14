@@ -11,7 +11,8 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.db.models import Q
-from django.core.exceptions import FieldDoesNotExist
+from django.db.utils import DatabaseError
+from django.core.exceptions import FieldDoesNotExist, ObjectDoesNotExist
 from django.views.decorators.http import require_http_methods
 from django.urls import reverse, NoReverseMatch
 import logging
@@ -150,7 +151,7 @@ class GlobalSearchAPI(View):
             data = search_read_layer(q=query, search_type=search_type if search_type != 'all' else None, school_id=school_id, limit=limit)
             if data is not None:
                 return JsonResponse(data)
-        except Exception as e:
+        except (ImportError, AttributeError, TypeError, ValueError) as e:
             logger.debug("Search read layer skipped: %s", e)
         
         results = []
@@ -167,8 +168,8 @@ class GlobalSearchAPI(View):
             try:
                 items = self._search_type(config, query, limit, request.user, school=school)
                 results.extend(items)
-            except Exception as e:
-                logger.error(f"Search error for {search_type_key}: {e}")
+            except (ImportError, AttributeError, TypeError, ValueError, ObjectDoesNotExist, DatabaseError) as e:
+                logger.error("Search error for %s: %s", search_type_key, e)
         
         return JsonResponse({
             'query': query,

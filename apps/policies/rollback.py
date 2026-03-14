@@ -4,7 +4,12 @@ TenantBlueprint.active_bundle points to the active PolicyBundle; rollback = poin
 """
 from __future__ import annotations
 
-from typing import Optional
+import logging
+
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import DatabaseError, IntegrityError
+
+logger = logging.getLogger(__name__)
 
 
 def set_active_policy_bundle(school, bundle) -> bool:
@@ -31,7 +36,8 @@ def set_active_policy_bundle(school, bundle) -> bool:
             tb.active_bundle = bundle
             tb.save(update_fields=["active_bundle"])
         return True
-    except Exception:
+    except (ObjectDoesNotExist, DatabaseError, IntegrityError, ValueError, TypeError) as e:
+        logger.debug("set_active_policy_bundle failed: %s", e)
         return False
 
 

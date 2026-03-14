@@ -1,6 +1,8 @@
 import json
+import os
 from io import StringIO
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.files.base import ContentFile
@@ -88,7 +90,7 @@ def emis_dashboard(request):
         'supported_countries': supported_countries,
         'recent_exports': recent_exports,
         'export_types': EMISExport.EXPORT_TYPES,
-        'default_country': getattr(site, "country_code", "") or 'CMR',
+        'default_country': getattr(site, "country_code", "") or os.getenv('DEFAULT_COUNTRY_CODE', '') or getattr(settings, 'PLATFORM_DEFAULT_REGION_CODE', '') or 'CMR',
         'allow_custom_layout': allow_custom_layout,
         'dashboard_settings': dashboard_settings,
         'dashboard_layout_url': dashboard_layout_url,
@@ -105,10 +107,12 @@ def emis_dashboard(request):
 @require_POST
 def export_emis_data(request):
     """Handle EMIS data export requests"""
+    site = get_effective_site_settings(request)
+    default_country = getattr(site, "country_code", "") or os.getenv('DEFAULT_COUNTRY_CODE', '') or getattr(settings, 'PLATFORM_DEFAULT_REGION_CODE', '') or 'CMR'
     export_type = request.POST.get('export_type')
     academic_year_id = request.POST.get('academic_year')
     term_id = request.POST.get('term', '')
-    country_code = request.POST.get('country_code', 'CMR')
+    country_code = request.POST.get('country_code', default_country)
     format_type = request.POST.get('format', 'csv')
 
     try:

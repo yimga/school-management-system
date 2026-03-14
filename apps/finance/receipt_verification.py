@@ -117,7 +117,7 @@ class ReceiptVerificationService:
                 "extraction_method": self.verification_method,
                 "raw_text": text[:500]  # Limit text length
             }
-        except Exception as e:
+        except (ValueError, TypeError, OSError, UnicodeDecodeError) as e:
             return {
                 "amount": None,
                 "reference": None,
@@ -184,7 +184,7 @@ class ReceiptVerificationService:
         except subprocess.TimeoutExpired:
             logging.getLogger(__name__).warning("Receipt OCR tesseract timed out (25s)")
             return ""
-        except Exception as e:
+        except (OSError, IOError, ValueError, TypeError, UnicodeDecodeError) as e:
             logging.getLogger(__name__).debug("Receipt OCR tesseract error: %s", e)
             return ""
 

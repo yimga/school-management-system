@@ -141,7 +141,7 @@ class SignatureRequestForm(forms.ModelForm):
         }
     
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop("user", None)
+        kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
         
         # Only show forms that require signature

@@ -5,11 +5,11 @@ Goal: keep SchoolDomain, legacy School.custom_domain fields, and django-tenants
 customers.Domain records consistent so verification implies routability.
 """
 import logging
-import os
 from typing import Optional
 
 from django.conf import settings
 from django.db import transaction
+from django.db.utils import DatabaseError
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
@@ -60,7 +60,7 @@ def is_runtime_domain_in_use(domain: str, school=None) -> bool:
         return False
     try:
         from apps.customers.models import Domain
-    except Exception:
+    except (ImportError, AttributeError, DatabaseError):
         return False
     qs = Domain.objects.filter(domain=domain)
     if school is not None:
@@ -94,7 +94,7 @@ def ensure_tenant_client_for_school(school):
         if connection.vendor != "postgresql":
             return None
         from apps.customers.models import Client
-    except Exception:
+    except (ImportError, AttributeError, DatabaseError):
         return None
 
     client = Client.objects.filter(school=school).first()
@@ -264,5 +264,9 @@ def sync_school_domains_to_runtime(school):
         for row in SchoolDomain.objects.filter(school=school, is_verified=True).order_by("kind", "domain"):
             try:
                 sync_verified_schooldomain(row)
-            except Exception:
-                logger.exception("Failed to sync verified domain '%s' for school '%s'", row.domain, school.id)
+            except (OSError, ConnectionError, DatabaseError, AttributeError, TypeError, ValueError):
+                log_exception_with_context(
+                    "domain_sync.sync_verified_schooldomain: failed to sync verified domain for school",
+                    school_id=school.id,
+                    extra={"domain": str(row.domain)},
+                )

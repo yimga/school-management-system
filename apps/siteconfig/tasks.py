@@ -73,13 +73,13 @@ def emergency_broadcast_fanout(self, campaign_id, recipient_ids=None):
     """
     from .models import BroadcastCampaign
     try:
-        campaign = BroadcastCampaign.objects.get(pk=campaign_id)
+        _campaign = BroadcastCampaign.objects.get(pk=campaign_id)
     except BroadcastCampaign.DoesNotExist:
         return {"ok": False, "error": "campaign_not_found"}
     ids = list(recipient_ids or [])[:10000]
     total = len(ids)
     for i in range(0, total, BROADCAST_BATCH_SIZE):
-        batch = ids[i : i + BROADCAST_BATCH_SIZE]
+        _batch = ids[i : i + BROADCAST_BATCH_SIZE]
         # Stub: actual delivery via WebSocket/Redis Pub/Sub; slide-to-confirm UI on client
         pass
     return {"ok": True, "campaign_id": campaign_id, "batches": (total + BROADCAST_BATCH_SIZE - 1) // BROADCAST_BATCH_SIZE}

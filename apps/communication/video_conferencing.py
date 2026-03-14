@@ -13,9 +13,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from datetime import timedelta
-import json
-import hashlib
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 User = get_user_model()
 

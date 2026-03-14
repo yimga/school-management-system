@@ -4,8 +4,8 @@
 
 ## Command rename
 
-- **Primary command:** `ensure_default_tenant_admin` — ensures a tenant admin for `--slug` or first active tenant. Use `DEFAULT_TENANT_SLUG` to target a tenant (e.g. `gilead-school` for existing DBs).
-- **Deprecated alias:** `ensure_gilead_admin` — calls `ensure_default_tenant_admin` with same args. Use for backward compatibility only.
+- **Command:** `ensure_default_tenant_admin` — ensures a tenant admin for `--slug` or first active tenant. Use `DEFAULT_TENANT_SLUG` to target a tenant (e.g. `gilead-school` for existing DBs). Use `--use-admin-user` to link the platform admin user as tenant admin.
+- **Removed:** `ensure_gilead_admin` — legacy alias removed (NEXT_50 step 6 subtractive cleanup). Use `ensure_default_tenant_admin` with the same args (e.g. `--use-admin-user`, `--slug`).
 
 ## Migrations (do not edit)
 
@@ -42,5 +42,4 @@ New installs get one default tenant with slug `gilead-school`; set `DEFAULT_TENA
 ## References
 
 - `apps/accounts/management/commands/ensure_default_tenant_admin.py`
-- `apps/accounts/management/commands/ensure_gilead_admin.py` (deprecated wrapper)
 - `apps/accounts/management/commands/seed_render_users.py` (calls `ensure_default_tenant_admin`)

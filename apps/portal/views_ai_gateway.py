@@ -10,7 +10,7 @@ import logging
 from typing import Any
 
 from django.contrib.auth.decorators import login_required
-from django.db import DatabaseError
+from django.db import DatabaseError, IntegrityError
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_http_methods
@@ -24,6 +24,18 @@ from services.inference import strip_pii_for_inference
 
 logger = logging.getLogger(__name__)
 OPTIONAL_GATEWAY_ERRORS = (AttributeError, DatabaseError, ImportError, TypeError, ValueError)
+# Service/gateway failures (invoke, embedding, etc.) — used for view-level catch after json.JSONDecodeError
+GATEWAY_VIEW_ERRORS = (
+    AttributeError,
+    DatabaseError,
+    ImportError,
+    TypeError,
+    ValueError,
+    OSError,
+    ConnectionError,
+    RuntimeError,
+    KeyError,
+)
 
 # Rate limit: same as copilot (per-user sliding window)
 def _gateway_rate_limit(request):
@@ -59,7 +71,7 @@ def _actor_roles(request) -> list[str]:
             name = getattr(group, "name", None)
             if name:
                 roles.add(str(name).strip().lower())
-    except Exception:
+    except (AttributeError, DatabaseError, TypeError):
         pass
     if getattr(user, "is_staff", False):
         roles.update({"staff", "admin"})
@@ -93,6 +105,11 @@ def _redact_audit_meta(meta: dict | None) -> dict:
     return safe
 
 
+def _gateway_permission_denied_response(meta: dict) -> JsonResponse:
+    """§2.3: return 403 when get_ai_permission_for_user denied."""
+    return JsonResponse({"success": False, "error": meta.get("error", "Permission denied")}, status=403)
+
+
 def _log_gateway_audit(request, feature: str, task_type: str, outcome: str, meta: dict | None = None):
     try:
         safe_meta = _redact_audit_meta(meta or {})
@@ -109,11 +126,15 @@ def _log_gateway_audit(request, feature: str, task_type: str, outcome: str, meta
             sensitivity=AuditLog.Sensitivity.LOW,
             new_values=dict(outcome=outcome, **safe_meta),
         )
-    except Exception as e:
+    except (DatabaseError, IntegrityError, AttributeError, TypeError, ValueError) as e:
         logger.debug("Gateway audit log failed: %s", e)
 
 
 def _gateway_response(request, task_type: str, prompt: str, user_query: str = "", response_schema: str | None = None):
+    from services.ai_permissions import get_ai_permission_for_user
+    school = getattr(request, "school", None)
+    if not get_ai_permission_for_user(request.user, task_type, school):
+        return None, {"outcome": "permission_denied", "error": "AI permission denied for this task"}
     md = {
         "request": request,
         "school_id": _school_id(request),
@@ -172,13 +193,15 @@ def api_setup_assistant(request):
                 prompt += f"Relevant context:\n{context}\n\n"
             prompt += f"User question: {query}\n\nProvide 3–5 short actionable setup tips or explain the requested config."
         result, meta = _gateway_response(request, TaskType.SETUP_RECOMMEND, prompt, user_query=query)
+        if meta.get("outcome") == "permission_denied":
+            return _gateway_permission_denied_response(meta)
         if meta.get("budget_exceeded"):
             return JsonResponse({"success": False, "error": "AI request budget exceeded for this tenant.", "meta": meta}, status=429)
         _log_gateway_audit(request, "setup_assistant", "setup_recommend", "success", meta)
         return JsonResponse({"success": True, "response": result, "citations": citations, "meta": meta})
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
-    except Exception as e:
+    except GATEWAY_VIEW_ERRORS as e:
         logger.exception("Setup assistant failed")
         _log_gateway_audit(request, "setup_assistant", "setup_recommend", "error", {"error": str(e)[:200]})
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
@@ -206,13 +229,15 @@ def api_workflow_draft(request):
         result, meta = _gateway_response(
             request, TaskType.WORKFLOW_DRAFT, prompt, user_query=description, response_schema="workflow_draft"
         )
+        if meta.get("outcome") == "permission_denied":
+            return _gateway_permission_denied_response(meta)
         if meta.get("budget_exceeded"):
             return JsonResponse({"success": False, "error": "AI request budget exceeded for this tenant.", "meta": meta}, status=429)
         _log_gateway_audit(request, "workflow_draft", "workflow_draft", "success", meta)
         return JsonResponse({"success": True, "draft": result if isinstance(result, dict) else {"description": result}, "meta": meta})
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
-    except Exception as e:
+    except GATEWAY_VIEW_ERRORS as e:
         logger.exception("Workflow draft failed")
         _log_gateway_audit(request, "workflow_draft", "workflow_draft", "error", {"error": str(e)[:200]})
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
@@ -263,13 +288,15 @@ def api_policy_explain(request):
         result, meta = _gateway_response(
             request, TaskType.POLICY_EXPLAIN, prompt, user_query=query, response_schema="policy_explain"
         )
+        if meta.get("outcome") == "permission_denied":
+            return _gateway_permission_denied_response(meta)
         if meta.get("budget_exceeded"):
             return JsonResponse({"success": False, "error": "AI request budget exceeded for this tenant.", "meta": meta}, status=429)
         _log_gateway_audit(request, "policy_explain", "policy_explain", "success", meta)
         return JsonResponse({"success": True, "explanation": result if isinstance(result, dict) else {"summary": result}, "citations": citations, "meta": meta})
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
-    except Exception as e:
+    except GATEWAY_VIEW_ERRORS as e:
         logger.exception("Policy explain failed")
         _log_gateway_audit(request, "policy_explain", "policy_explain", "error", {"error": str(e)[:200]})
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
@@ -296,13 +323,15 @@ def api_document_classify(request):
         result, meta = _gateway_response(
             request, TaskType.DOC_CLASSIFY, prompt, user_query=text[:500], response_schema="doc_classify"
         )
+        if meta.get("outcome") == "permission_denied":
+            return _gateway_permission_denied_response(meta)
         if meta.get("budget_exceeded"):
             return JsonResponse({"success": False, "error": "AI request budget exceeded for this tenant.", "meta": meta}, status=429)
         _log_gateway_audit(request, "document_classify", "doc_classify", "success", meta)
         return JsonResponse({"success": True, "classification": result if isinstance(result, dict) else {"category": "general"}, "meta": meta})
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
-    except Exception as e:
+    except GATEWAY_VIEW_ERRORS as e:
         logger.exception("Document classify failed")
         _log_gateway_audit(request, "document_classify", "doc_classify", "error", {"error": str(e)[:200]})
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
@@ -339,6 +368,8 @@ def api_semantic_search(request):
                 f"Based on this context, answer briefly: {query}\n\nContext: {context}"
             )
             summary, meta = _gateway_response(request, TaskType.SEMANTIC_SEARCH, prompt, user_query=query)
+            if meta.get("outcome") == "permission_denied":
+                return _gateway_permission_denied_response(meta)
             if meta.get("budget_exceeded"):
                 return JsonResponse({"success": False, "error": "AI request budget exceeded for this tenant.", "meta": meta}, status=429)
             _log_gateway_audit(request, "semantic_search", "semantic_search", "success", meta)
@@ -356,7 +387,7 @@ def api_semantic_search(request):
         })
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
-    except Exception as e:
+    except GATEWAY_VIEW_ERRORS as e:
         logger.exception("Semantic search failed")
         _log_gateway_audit(request, "semantic_search", "semantic_search", "error", {"error": str(e)[:200]})
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
@@ -395,13 +426,15 @@ def api_admin_copilot(request):
             f"{context}\n\nQuestion: {query}\n\nAnswer concisely; include links or doc refs if relevant."
         )
         result, meta = _gateway_response(request, TaskType.ADMIN_COPILOT, prompt, user_query=query)
+        if meta.get("outcome") == "permission_denied":
+            return _gateway_permission_denied_response(meta)
         if meta.get("budget_exceeded"):
             return JsonResponse({"success": False, "error": "AI request budget exceeded for this tenant.", "meta": meta}, status=429)
         _log_gateway_audit(request, "admin_copilot", "admin_copilot", "success", meta)
         return JsonResponse({"success": True, "response": result, "citations": citations, "meta": meta})
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
-    except Exception as e:
+    except GATEWAY_VIEW_ERRORS as e:
         logger.exception("Admin copilot failed")
         _log_gateway_audit(request, "admin_copilot", "admin_copilot", "error", {"error": str(e)[:200]})
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
@@ -432,12 +465,14 @@ def api_theme_recommend(request):
             user_query=query,
             response_schema="theme_experience",
         )
+        if meta.get("outcome") == "permission_denied":
+            return _gateway_permission_denied_response(meta)
         if meta.get("budget_exceeded"):
             return JsonResponse({"success": False, "error": "AI request budget exceeded.", "meta": meta}, status=429)
         _log_gateway_audit(request, "theme_recommend", "config_explain", "success", meta)
         out = result if isinstance(result, dict) else {"suggestions": [], "rationale": str(result)}
         return JsonResponse({"success": True, "suggestions": out.get("suggestions", []), "rationale": out.get("rationale", ""), "meta": meta})
-    except Exception as e:
+    except GATEWAY_VIEW_ERRORS:
         logger.exception("Theme recommend failed")
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
 
@@ -461,11 +496,13 @@ def api_feature_control_explain(request):
             "Respond concisely with what the feature does and when to enable/disable it."
         )
         result, meta = _gateway_response(request, TaskType.CONFIG_EXPLAIN, prompt, user_query=query)
+        if meta.get("outcome") == "permission_denied":
+            return _gateway_permission_denied_response(meta)
         if meta.get("budget_exceeded"):
             return JsonResponse({"success": False, "error": "AI request budget exceeded.", "meta": meta}, status=429)
         _log_gateway_audit(request, "feature_control_explain", "config_explain", "success", meta)
         return JsonResponse({"success": True, "explanation": result if isinstance(result, str) else str(result), "meta": meta})
-    except Exception as e:
+    except GATEWAY_VIEW_ERRORS:
         logger.exception("Feature control explain failed")
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
 
@@ -495,12 +532,14 @@ def api_report_recommend(request):
             user_query=query,
             response_schema="report_recommend",
         )
+        if meta.get("outcome") == "permission_denied":
+            return _gateway_permission_denied_response(meta)
         if meta.get("budget_exceeded"):
             return JsonResponse({"success": False, "error": "AI request budget exceeded.", "meta": meta}, status=429)
         _log_gateway_audit(request, "report_recommend", "setup_recommend", "success", meta)
         recs = result.get("recommendations", []) if isinstance(result, dict) else []
         return JsonResponse({"success": True, "recommendations": recs, "meta": meta})
-    except Exception as e:
+    except GATEWAY_VIEW_ERRORS:
         logger.exception("Report recommend failed")
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
 
@@ -530,12 +569,14 @@ def api_design_studio_draft(request):
             user_query=query,
             response_schema="design_studio",
         )
+        if meta.get("outcome") == "permission_denied":
+            return _gateway_permission_denied_response(meta)
         if meta.get("budget_exceeded"):
             return JsonResponse({"success": False, "error": "AI request budget exceeded.", "meta": meta}, status=429)
         _log_gateway_audit(request, "design_studio_draft", "config_explain", "success", meta)
         out = result if isinstance(result, dict) else {"suggestions": [], "components": []}
         return JsonResponse({"success": True, "suggestions": out.get("suggestions", []), "components": out.get("components", []), "meta": meta})
-    except Exception as e:
+    except GATEWAY_VIEW_ERRORS:
         logger.exception("Design studio draft failed")
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
 
@@ -558,11 +599,13 @@ def api_live_preview_explain(request):
             f"Explain live preview behaviour for setup or design. User question: {query}\n\nAnswer concisely."
         )
         result, meta = _gateway_response(request, TaskType.CONFIG_EXPLAIN, prompt, user_query=query)
+        if meta.get("outcome") == "permission_denied":
+            return _gateway_permission_denied_response(meta)
         if meta.get("budget_exceeded"):
             return JsonResponse({"success": False, "error": "AI request budget exceeded.", "meta": meta}, status=429)
         _log_gateway_audit(request, "live_preview_explain", "config_explain", "success", meta)
         return JsonResponse({"success": True, "explanation": result if isinstance(result, str) else str(result), "meta": meta})
-    except Exception as e:
+    except GATEWAY_VIEW_ERRORS:
         logger.exception("Live preview explain failed")
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
 
@@ -586,11 +629,13 @@ def api_system_config_explain(request):
             "Answer concisely; do not include secrets or internal URLs."
         )
         result, meta = _gateway_response(request, TaskType.CONFIG_EXPLAIN, prompt, user_query=query)
+        if meta.get("outcome") == "permission_denied":
+            return _gateway_permission_denied_response(meta)
         if meta.get("budget_exceeded"):
             return JsonResponse({"success": False, "error": "AI request budget exceeded.", "meta": meta}, status=429)
         _log_gateway_audit(request, "system_config_explain", "config_explain", "success", meta)
         return JsonResponse({"success": True, "explanation": result if isinstance(result, str) else str(result), "meta": meta})
-    except Exception as e:
+    except GATEWAY_VIEW_ERRORS:
         logger.exception("System config explain failed")
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
 
@@ -620,12 +665,14 @@ def api_dashboard_pack_recommend(request):
             user_query=query,
             response_schema="dashboard_pack_recommend",
         )
+        if meta.get("outcome") == "permission_denied":
+            return _gateway_permission_denied_response(meta)
         if meta.get("budget_exceeded"):
             return JsonResponse({"success": False, "error": "AI request budget exceeded.", "meta": meta}, status=429)
         _log_gateway_audit(request, "dashboard_pack_recommend", "setup_recommend", "success", meta)
         out = result if isinstance(result, dict) else {"dashboards": [], "packs": [], "rationale": str(result)}
         return JsonResponse({"success": True, "dashboards": out.get("dashboards", []), "packs": out.get("packs", []), "rationale": out.get("rationale", ""), "meta": meta})
-    except Exception as e:
+    except GATEWAY_VIEW_ERRORS:
         logger.exception("Dashboard pack recommend failed")
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
 
@@ -655,11 +702,13 @@ def api_support_assistant(request):
             f"Based on the following context, suggest a support response.\n\n{context}\n\nUser message: {query}\n\nProvide a helpful, professional reply."
         )
         result, meta = _gateway_response(request, TaskType.SUPPORT_SUGGEST, prompt, user_query=query)
+        if meta.get("outcome") == "permission_denied":
+            return _gateway_permission_denied_response(meta)
         if meta.get("budget_exceeded"):
             return JsonResponse({"success": False, "error": "AI request budget exceeded.", "meta": meta}, status=429)
         _log_gateway_audit(request, "support_assistant", "support_suggest", "success", meta)
         return JsonResponse({"success": True, "response": result if isinstance(result, str) else str(result), "meta": meta})
-    except Exception as e:
+    except GATEWAY_VIEW_ERRORS:
         logger.exception("Support assistant failed")
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
 
@@ -674,16 +723,16 @@ def api_tenant_maturity(request):
     if rate_err:
         return rate_err
     try:
-        school_id = _school_id(request)
-        # Deterministic score from config/features (no LLM required for base score)
-        from apps.siteconfig.models import SiteSettings
+        _school_id(request)
+        # §3.2: Use runtime helper instead of direct SiteSettings read (tenant-facing).
         score = 0
         try:
-            settings_obj = SiteSettings.objects.filter(school_id=school_id).first()
+            from apps.platform_runtime.helpers import get_effective_site_settings
+            settings_obj = get_effective_site_settings(request=request)
             if settings_obj and getattr(settings_obj, "features", None):
                 features = settings_obj.features if isinstance(settings_obj.features, dict) else {}
                 score = min(100, 20 + len(features) * 5)
-        except Exception:
+        except (AttributeError, TypeError, ValueError):
             pass
         recommendations = []
         if score < 50:
@@ -695,7 +744,7 @@ def api_tenant_maturity(request):
             "recommendations": recommendations,
             "meta": {},
         })
-    except Exception as e:
+    except GATEWAY_VIEW_ERRORS:
         logger.exception("Tenant maturity failed")
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
 
@@ -728,11 +777,13 @@ def api_data_quality_assistant(request):
             f"Context:\n{context}\n\nUser question: {query}\n\nProvide 3–5 concrete suggestions."
         )
         result, meta = _gateway_response(request, TaskType.CONFIG_EXPLAIN, prompt, user_query=query)
+        if meta.get("outcome") == "permission_denied":
+            return _gateway_permission_denied_response(meta)
         if meta.get("budget_exceeded"):
             return JsonResponse({"success": False, "error": "AI request budget exceeded.", "meta": meta}, status=429)
         _log_gateway_audit(request, "data_quality_assistant", "config_explain", "success", meta)
         return JsonResponse({"success": True, "response": result if isinstance(result, str) else str(result), "meta": meta})
-    except Exception as e:
+    except GATEWAY_VIEW_ERRORS:
         logger.exception("Data quality assistant failed")
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
 
@@ -762,12 +813,14 @@ def api_marketplace_recommend(request):
             user_query=query,
             response_schema="marketplace_recommend",
         )
+        if meta.get("outcome") == "permission_denied":
+            return _gateway_permission_denied_response(meta)
         if meta.get("budget_exceeded"):
             return JsonResponse({"success": False, "error": "AI request budget exceeded.", "meta": meta}, status=429)
         _log_gateway_audit(request, "marketplace_recommend", "setup_recommend", "success", meta)
         out = result if isinstance(result, dict) else {"recommendations": [], "rationale": str(result)}
         return JsonResponse({"success": True, "recommendations": out.get("recommendations", []), "rationale": out.get("rationale", ""), "meta": meta})
-    except Exception as e:
+    except GATEWAY_VIEW_ERRORS:
         logger.exception("Marketplace recommend failed")
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
 
@@ -800,11 +853,13 @@ def api_control_plane_intelligence(request):
             f"Context:\n{context}\n\nQuestion: {query}\n\nAnswer:"
         )
         result, meta = _gateway_response(request, TaskType.ADMIN_COPILOT, prompt, user_query=query)
+        if meta.get("outcome") == "permission_denied":
+            return _gateway_permission_denied_response(meta)
         if meta.get("budget_exceeded"):
             return JsonResponse({"success": False, "error": "AI request budget exceeded.", "meta": meta}, status=429)
         _log_gateway_audit(request, "control_plane_intelligence", "admin_copilot", "success", meta)
         return JsonResponse({"success": True, "response": result if isinstance(result, str) else str(result), "meta": meta})
-    except Exception as e:
+    except GATEWAY_VIEW_ERRORS:
         logger.exception("Control plane intelligence failed")
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
 
@@ -864,7 +919,7 @@ def api_ai_feedback(request):
         return JsonResponse({"success": False, "error": str(e)}, status=400)
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
-    except Exception as e:
+    except GATEWAY_VIEW_ERRORS as e:
         logger.exception("AI feedback failed")
         _log_gateway_audit(request, "ai_feedback", "feedback", "error", {"error": str(e)[:200]})
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
@@ -899,6 +954,8 @@ def api_migration_suggest(request):
         result, meta = _gateway_response(
             request, TaskType.MIGRATION_MAPPING, prompt, response_schema="migration_mapping"
         )
+        if meta.get("outcome") == "permission_denied":
+            return _gateway_permission_denied_response(meta)
         if meta.get("budget_exceeded"):
             return JsonResponse({"success": False, "error": "AI request budget exceeded for this tenant.", "meta": meta}, status=429)
         _log_gateway_audit(request, "migration_suggest", "migration_mapping", "success", meta)
@@ -909,7 +966,7 @@ def api_migration_suggest(request):
         })
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
-    except Exception as e:
+    except GATEWAY_VIEW_ERRORS as e:
         logger.exception("Migration suggest failed")
         _log_gateway_audit(request, "migration_suggest", "migration_mapping", "error", {"error": str(e)[:200]})
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)

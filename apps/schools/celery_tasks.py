@@ -5,6 +5,8 @@ Use for tasks that must run with a specific tenant scope. Pass schema_name/clien
 import logging
 
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import DatabaseError, OperationalError
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +16,7 @@ def get_active_school_ids():
     try:
         from apps.schools.models import School
         return list(School.objects.filter(is_active=True).values_list("id", flat=True))
-    except Exception as e:
+    except (ImportError, DatabaseError, OperationalError, AttributeError, TypeError) as e:
         logger.warning("get_active_school_ids: %s", e)
         return []
 
@@ -37,7 +39,7 @@ def _resolve_client(schema_name=None, client_id=None, school_id=None):
             school = School.objects.filter(pk=school_id).first()
             if school:
                 return ensure_tenant_client_for_school(school)
-    except Exception as e:
+    except (ImportError, ObjectDoesNotExist, DatabaseError, OperationalError, AttributeError, TypeError) as e:
         logger.warning("Could not resolve tenant client: %s", e)
     return None
 
@@ -69,7 +71,7 @@ def _run_with_tenant_context(schema_name=None, client_id=None, school_id=None, r
                 school = School.objects.filter(id=c.id).first() or School.objects.filter(slug=c.schema_name).first()
                 if school:
                     sid = str(school.id)
-            except Exception:
+            except (ImportError, ObjectDoesNotExist, DatabaseError, OperationalError, AttributeError, TypeError):
                 pass
         if sid is None and schema_name:
             school = School.objects.filter(slug=schema_name).first() or School.objects.filter(subdomain=schema_name).first()

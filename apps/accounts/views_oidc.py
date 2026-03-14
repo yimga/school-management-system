@@ -65,7 +65,7 @@ def _decode_unverified_jwt(id_token: str) -> dict:
         decoded = base64.urlsafe_b64decode(payload.encode("utf-8")).decode("utf-8")
         body = json.loads(decoded)
         return body if isinstance(body, dict) else {}
-    except Exception:
+    except (ValueError, TypeError, KeyError, json.JSONDecodeError, UnicodeDecodeError):
         return {}
 
 
@@ -200,7 +200,7 @@ def oidc_callback(request, integration_id: int):
                 redirect_uri=redirect_uri,
             )
             id_token = str(tokens.get("id_token") or "").strip()
-        except Exception:
+        except (OSError, ConnectionError, TimeoutError, ValueError, TypeError, KeyError, json.JSONDecodeError):
             return JsonResponse({"error": "Token exchange failed"}, status=502)
 
     if not id_token:
@@ -227,7 +227,7 @@ def oidc_callback(request, integration_id: int):
     user = User.objects.filter(email__iexact=email).first() if email else None
     if not user:
         user = User.objects.filter(username__iexact=username).first()
-    created = False
+    _created = False
     if not user:
         user = User.objects.create_user(
             username=username,
@@ -239,7 +239,7 @@ def oidc_callback(request, integration_id: int):
         )
         user.set_unusable_password()
         user.save(update_fields=["password"])
-        created = True
+        _created = True
     else:
         updated = False
         if email and user.email != email:
@@ -266,7 +266,7 @@ def oidc_callback(request, integration_id: int):
     try:
         del request.session[pending_key]
         request.session.modified = True
-    except Exception:
+    except (KeyError, TypeError, RuntimeError):
         pass
 
     login(request, user, backend="django.contrib.auth.backends.ModelBackend")

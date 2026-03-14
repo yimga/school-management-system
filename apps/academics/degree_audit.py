@@ -4,13 +4,15 @@ Phase 3-4 (global platform). Uses Subject.credits and evals/grades; TransferCred
 """
 from __future__ import annotations
 
+import logging
 from collections import defaultdict
 
 from apps.metadata.services import get_dynamic_field_value
 from decimal import Decimal, InvalidOperation
 from typing import Any, Iterable
 
-from django.db.models import Sum
+from django.db import DatabaseError
+from django.db.models import ObjectDoesNotExist, Sum
 
 from .models import GraduateMilestone, StudentDegreeEnrollment, TransferCredit
 from .services import get_approved_transfer_equivalency_map
@@ -140,9 +142,9 @@ def run_degree_audit(enrollment: StudentDegreeEnrollment) -> dict[str, Any]:
                 continue
             credited_subject_ids.add(subject_id)
             earned_credits += _to_decimal(getattr(subject, "credits", None), Decimal("0.00"))
-    except Exception:
+    except (ImportError, AttributeError, TypeError, ValueError, ObjectDoesNotExist, DatabaseError) as e:
         # Keep degree audit resilient if eval subsystem is unavailable.
-        pass
+        logging.getLogger(__name__).debug("Degree audit eval credits skipped: %s", e)
 
     transfer_qs = TransferCredit.objects.filter(student=student, approved_at__isnull=False)
     for transfer_credit in transfer_qs.only("course_code"):

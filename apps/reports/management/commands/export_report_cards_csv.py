@@ -8,11 +8,9 @@ from __future__ import annotations
 import csv
 import io
 from django.core.management.base import BaseCommand
-from django.http import HttpResponse
 
 from apps.academics.models import AcademicYear, Term
 from apps.evals.models import Evaluation
-from apps.people.models import StudentProfile
 
 
 def export_term_grades_csv(

@@ -6,7 +6,7 @@ from django.template import TemplateDoesNotExist
 from django.template.loader import render_to_string
 from django.utils.html import format_html
 from django.contrib import messages
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse
 from django.utils.safestring import mark_safe
 from django.utils import timezone
 from django.db import DatabaseError, models, OperationalError, ProgrammingError
@@ -17,73 +17,54 @@ from django.urls import NoReverseMatch, reverse
 from urllib.parse import quote
 
 from apps.brand_experience.models import (
-    BrandProfile,
-    BrandSettings,
-    DesignTemplate,
-    GlobalBrandRegistry,
     ThemePack,
 )
-from apps.brand_experience.admin import ThemePackAdmin
-from .models import (
-    DynamicFieldDefinition,
-    DynamicFieldValue,
-    Integration,
+# Import from concrete submodules so admin loads when siteconfig.models is only partially loaded.
+from apps.academics.models import HolidayCalendar, ReportCardStyleAssignment
+from .models import SiteSettings, default_backend_feature_flags
+from .models_metadata_catalog import DynamicFieldDefinition, DynamicFieldValue
+from .models_platform_catalog import (
+    BillingWaiverAuditLog,
+    CustomFeatureTicket,
+    CustomNuance,
+    EducationSystemProfile,
+    FeatureFragment,
+    PendingNuance,
+    RegionConfig,
+    RevenueSnapshot,
+    TenantAdmissionNumberPolicy,
+    WaiverRequest,
+)
+from .models_tooling import (
     OfficialReportTemplate,
     ReportCardStyle,
-    ReportCardStyleAssignment,
     ReportTemplate,
-    SiteSettings,
-    TenantAdmissionNumberPolicy,
-    ServiceIntegration,
     UserPreference,
-    RegionConfig,
-    EducationSystemProfile,
-    GradingScaleConfig,
-    HolidayCalendar,
-    WeatherLocation,
+)
+from .models_global_experience import GradingScaleConfig, GlobalSyllabus, LearningPassport
+from .models_feature_controls import (
     FeatureToggleDefinition,
     FeatureToggleState,
     TourStep,
     FeatureUsageEvent,
-    Plan,
-    PlanAddon,
-    CountryMultiplier,
-    RegionalAIConfig,
+)
+from .models_ai import (
     AIGatewayMetric,
     AIEmbeddingStore,
     AIModelRegistry,
     AIPromptRegistry,
-    RevenueSnapshot,
-    BillingWaiverAuditLog,
-    WaiverRequest,
-    CustomFeatureTicket,
-    FeatureFragment,
-    CustomNuance,
-    PendingNuance,
-    GlobalSyllabus,
-    LearningPassport,
-    BreakGlassOverride,
-    BroadcastCampaign,
-    ProductFeedback,
-    MarketingContent,
-    BlogPost,
+    RegionalAIConfig,
 )
+from .models_runtime_ops import BreakGlassOverride, BroadcastCampaign
+from .models_marketing import BlogPost, MarketingContent, ProductFeedback
 from .models_dashboard import (
-    DashboardPack,
-    DashboardPackAssignment,
     DashboardUserPreference,
-    SuperAdminDashboardPreference,
-    DashboardWidget,
-    DashboardLayout,
-    DashboardTemplate,
-    TenantLayoutAssignment,
     FeatureControlAudit,
 )
-from .models_workflow import WorkflowPack, WorkflowPackAssignment, WorkflowTemplate, TenantWorkflow, WorkflowRunLog
+from .models_workflow import WorkflowRunLog
 from .context_processors import SESSION_KEY
 from .theme_palette_groups import THEME_PALETTE_GROUPS, build_theme_pack_groups
 from apps.academics.models import AcademicYear
-from .models import default_backend_feature_flags
 from apps.accounts.models import User
 from apps.schools.models import School
 
@@ -823,7 +804,7 @@ class SiteSettingsAdmin(ModelAdmin):
         """Read-only summary for the first tab: site name, logo, primary color, key toggles."""
         if not obj or not obj.pk:
             return mark_safe("<p>Save once to see the summary.</p>")
-        brand_metadata = (
+        _brand_metadata = (
             obj.get_brand_metadata()
             if callable(getattr(obj, "get_brand_metadata", None))
             else {}

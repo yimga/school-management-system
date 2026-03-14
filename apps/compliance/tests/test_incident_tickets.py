@@ -1,11 +1,9 @@
 """
 Integration tests for incident ticket creation.
 """
-import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from django.test import TestCase
 from django.contrib.auth import get_user_model
-from django.utils import timezone
 from apps.compliance.models_audit import AuditLog
 from apps.compliance.alerts import send_threat_alert, notify_audit_event
 from apps.observability.models import PlatformIncident

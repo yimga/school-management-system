@@ -5,7 +5,7 @@ from datetime import date, timedelta
 from apps.siteconfig.models import RegionConfig
 from apps.accounts.models import User
 from apps.compliance.models import (
-    ComplianceRule, RegionalComplianceRequirement, ComplianceCheck, LegalDocument, ComplianceAuditLog, StudentIDFormat, CertificateTemplate
+    ComplianceRule, RegionalComplianceRequirement, ComplianceCheck, LegalDocument, ComplianceAuditLog, StudentIDFormat
 )
 from apps.compliance.validators import StudentIDValidator, CertificateValidator, RegionalComplianceValidator
 

@@ -27,7 +27,7 @@
             {% if i.install_phase == 'sandbox' %}<span class="badge bg-warning text-dark ms-1">{% trans "Sandbox" %}</span>{% endif %}
           </div>
           <div class="d-flex align-items-center gap-1">
-            <a href="{% url 'siteconfig:marketplace_sandbox_embed' %}?app_slug={{ i.app.slug }}" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener">{% trans "Open sandbox" %}</a>
+            <a href="{% url 'siteconfig:marketplace_sandbox_embed' %}?app_slug={{ i.app.slug }}" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener noreferrer">{% trans "Open sandbox" %}</a>
             {% if i.install_phase == 'sandbox' %}
             <form method="post" action="{% url 'tenant_activate_installation' %}" class="d-inline">
               {% csrf_token %}

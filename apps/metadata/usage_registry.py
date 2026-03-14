@@ -8,7 +8,7 @@ workflows, policies, reports) for impact preview and rollback safety.
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from django.db import DatabaseError
 

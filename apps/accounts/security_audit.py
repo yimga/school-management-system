@@ -144,7 +144,6 @@ def lockdown_user_account(user, request=None, initiator: str = "self", school=No
     Emergency Lockdown (plan 3.16): invalidate sessions, force password change, notify admin.
     Cooldown: 24h (check last_lockdown_at); optional recovery flow after.
     """
-    from django.contrib.auth import update_session_auth_hash
     from apps.accounts.models import SecurityAuditLog, User
 
     if not user or not isinstance(user, User):

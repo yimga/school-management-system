@@ -64,7 +64,7 @@ def student_360_page(request, student_id):
     if not school:
         return HttpResponseForbidden("School context required.")
     from apps.people.models import StudentProfile
-    student = get_object_or_404(StudentProfile, pk=student_id, school=school, is_active=True)
+    _student = get_object_or_404(StudentProfile, pk=student_id, school=school, is_active=True)
     user = request.user
     if not user.is_staff:
         from apps.accounts.permissions import can_view_student_data
@@ -90,7 +90,7 @@ def student_360_export(request, student_id):
     if not school:
         return HttpResponseForbidden("School context required.")
     from apps.people.models import StudentProfile
-    student = get_object_or_404(StudentProfile, pk=student_id, school=school, is_active=True)
+    _student = get_object_or_404(StudentProfile, pk=student_id, school=school, is_active=True)
     user = request.user
     if not user.is_staff:
         from apps.accounts.permissions import can_view_student_data
@@ -117,7 +117,7 @@ def transcript_archive(request, student_id):
     if not school:
         return HttpResponseForbidden("School context required.")
     from apps.people.models import StudentProfile
-    student = get_object_or_404(StudentProfile, pk=student_id, school=school, is_active=True)
+    _student = get_object_or_404(StudentProfile, pk=student_id, school=school, is_active=True)
     user = request.user
     if not user.is_staff:
         from apps.accounts.permissions import can_view_student_data
@@ -141,7 +141,7 @@ def transcript_archive_year(request, student_id, year_id):
         return HttpResponseForbidden("School context required.")
     from apps.people.models import StudentProfile
     from .models import ImmutableTranscript
-    student = get_object_or_404(StudentProfile, pk=student_id, school=school, is_active=True)
+    _student = get_object_or_404(StudentProfile, pk=student_id, school=school, is_active=True)
     user = request.user
     if not user.is_staff:
         from apps.accounts.permissions import can_view_student_data
@@ -171,7 +171,7 @@ def transcript_freeze(request, student_id):
     if not school:
         return HttpResponseForbidden("School context required.")
     from apps.people.models import StudentProfile
-    student = get_object_or_404(StudentProfile, pk=student_id, school=school, is_active=True)
+    _student = get_object_or_404(StudentProfile, pk=student_id, school=school, is_active=True)
     user = request.user
     if not user.is_staff:
         from apps.accounts.permissions import can_view_student_data

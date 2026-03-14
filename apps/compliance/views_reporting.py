@@ -11,28 +11,26 @@ Provides endpoints for generating, viewing, and exporting compliance reports:
 
 import csv
 import json
-from datetime import datetime, timedelta
+from datetime import timedelta
 from io import BytesIO, StringIO
-from decimal import Decimal
 
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.views import View
-from django.views.generic import ListView, DetailView
+from django.views.generic import ListView
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-from django.db.models import Q, Count, Max
+from django.db.models import Q, Count
 from django.utils import timezone
 from django.conf import settings
 from django.db.models.functions import ExtractHour
-from reportlab.lib.pagesizes import letter, A4
+from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib import colors
 
-from apps.compliance.models_audit import AuditLog, UserActivitySession, AccessLog, ComplianceReport
-from apps.accounts.models import User
+from apps.compliance.models_audit import AuditLog, UserActivitySession, AccessLog
 from apps.compliance.tenant_scope import (
     get_compliance_scope_school,
     school_user_queryset,

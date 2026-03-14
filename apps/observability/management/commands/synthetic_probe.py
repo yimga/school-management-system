@@ -4,14 +4,19 @@ Synthetic monitoring probe for SRE/observability (Section 25.4).
 Runs lightweight checks (healthz, ready, optional DB) to simulate external monitoring.
 Use in cron or scheduler for uptime/availability checks.
 
+§2.4 Raw SQL wrap: --db check delegates to db_liveness.check_db_liveness() (single SELECT 1 in one place).
+
 Usage:
   python manage.py synthetic_probe
   python manage.py synthetic_probe --db
   python manage.py synthetic_probe --db --ready
 """
 from django.core.management.base import BaseCommand
-from django.db import connection
+from django.core.exceptions import ImproperlyConfigured
 from django.urls import reverse
+from django.urls.exceptions import NoReverseMatch
+
+from apps.observability.db_liveness import check_db_liveness
 
 
 class Command(BaseCommand):
@@ -35,19 +40,17 @@ class Command(BaseCommand):
         self.stdout.write("synthetic_probe: healthz OK (process running)")
 
         if options["db"]:
-            try:
-                with connection.cursor() as cursor:
-                    cursor.execute("SELECT 1")
-                    cursor.fetchone()
+            result = check_db_liveness()
+            if result.get("status") != "healthy":
+                failed.append("db: %s" % result.get("error", "unknown"))
+            else:
                 self.stdout.write("synthetic_probe: db OK")
-            except Exception as e:
-                failed.append("db: %s" % e)
 
         if options["ready"]:
             try:
                 path = reverse("ready")
                 self.stdout.write("synthetic_probe: ready path=%s OK" % path)
-            except Exception as e:
+            except (NoReverseMatch, ImproperlyConfigured) as e:
                 failed.append("ready: %s" % e)
 
         if failed:

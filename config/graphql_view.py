@@ -4,12 +4,16 @@ POST /graphql/ with JSON body { "query": "query { health me { username } schoolC
 Uses config.schema (Query: health, me, schoolCount, schools).
 """
 import json
+import logging
+
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from apps.api.rate_limit import throttle_ip_request
 from config.schema import schema
+
+logger = logging.getLogger(__name__)
 
 
 @require_http_methods(["GET", "POST"])
@@ -64,6 +68,15 @@ def graphql_gateway(request):
     operation_name = body.get("operationName")
     if operation_name is not None and not isinstance(operation_name, str):
         return JsonResponse({"errors": [{"message": "operationName must be a string"}]}, status=400)
+
+    # Audit log for public_endpoint_audit §2.4 (no PII; operation + auth only)
+    is_authenticated = getattr(request, "user", None) and getattr(request.user, "is_authenticated", False)
+    logger.info(
+        "graphql_gateway_post op=%s authenticated=%s",
+        operation_name or "(anonymous)",
+        is_authenticated,
+        extra={"scope": "graphql_gateway_post"},
+    )
 
     result = schema.execute(
         query,

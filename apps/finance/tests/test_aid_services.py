@@ -17,8 +17,8 @@ from apps.finance.models import (
 )
 from apps.finance.services import recalculate_invoice
 from apps.people.models import StudentProfile
+from apps.platform_runtime.helpers import get_platform_site_settings_record
 from apps.schools.models import School
-from apps.siteconfig.models import SiteSettings
 
 
 class AidDisbursementLedgerTests(TestCase):
@@ -35,7 +35,7 @@ class AidDisbursementLedgerTests(TestCase):
             currency_code="USD",
             is_active=True,
         )
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.compliance_profile = self.profile
         site.save(update_fields=["compliance_profile", "updated_at"])
 

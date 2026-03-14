@@ -6,6 +6,7 @@ import logging
 
 from django.conf import settings
 from django.core.cache import cache
+from django.db.utils import DatabaseError
 
 logger = logging.getLogger(__name__)
 
@@ -31,14 +32,14 @@ def _throttle(key: str, max_count: int, window_seconds: int) -> tuple[bool, int]
             return True, 0
         try:
             count = int(cache.incr(key))
-        except Exception:
+        except (TypeError, ValueError, AttributeError):
             count = int(cache.get(key, 0) or 0) + 1
             cache.set(key, count, timeout=window_seconds)
         if count > int(max_count):
             return False, int(window_seconds)
         return True, 0
-    except Exception:
-        logger.debug("Rate-limit cache unavailable for key=%s", key)
+    except (TypeError, ValueError, AttributeError) as e:
+        logger.debug("Rate-limit cache unavailable for key=%s: %s", key, e)
         return True, 0
 
 
@@ -116,8 +117,8 @@ def _check_tenant_quota_limit(school, limit_type: str = "api_calls") -> tuple[bo
         retry = 60 if period_days else 60
         cache.set(cache_key, {"allowed": allowed, "retry": retry}, timeout=60)
         return allowed, retry if not allowed else 0
-    except Exception:
-        logger.debug("_check_tenant_quota_limit failed", exc_info=True)
+    except (ImportError, AttributeError, TypeError, ValueError, DatabaseError) as e:
+        logger.debug("_check_tenant_quota_limit failed: %s", e, exc_info=True)
         return True, 0
 
 
@@ -128,7 +129,6 @@ def _get_apicenter_quota_for_school(school, quota_type: str = "requests_per_minu
     """
     try:
         from apps.apicenter.models import APIQuota
-        from django.db.models import Q
         if school and getattr(school, "pk", None):
             row = (
                 APIQuota.objects.filter(quota_type=quota_type, school_id=school.pk).first()
@@ -146,8 +146,8 @@ def _get_apicenter_quota_for_school(school, quota_type: str = "requests_per_minu
         else:
             window = 60
         return limit, window
-    except Exception:
-        logger.debug("_get_apicenter_quota_for_school failed", exc_info=True)
+    except (ImportError, AttributeError, TypeError, ValueError, DatabaseError) as e:
+        logger.debug("_get_apicenter_quota_for_school failed: %s", e, exc_info=True)
         return None, None
 
 
@@ -200,7 +200,7 @@ def get_tenant_api_request_count(tenant_id: str | int) -> int:
     try:
         val = cache.get(key)
         return int(val) if val is not None else 0
-    except Exception:
+    except (TypeError, ValueError, AttributeError):
         return 0
 
 
@@ -227,5 +227,5 @@ def record_tenant_api_usage(school, limit_type: str = "api_calls"):
             defaults={"request_count": 0},
         )
         TenantApiUsage.objects.filter(pk=obj.pk).update(request_count=F("request_count") + 1)
-    except Exception:
-        logger.debug("record_tenant_api_usage failed", exc_info=True)
+    except (ImportError, AttributeError, TypeError, ValueError, DatabaseError) as e:
+        logger.debug("record_tenant_api_usage failed: %s", e, exc_info=True)

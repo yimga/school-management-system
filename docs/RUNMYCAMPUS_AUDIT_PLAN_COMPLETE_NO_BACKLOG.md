@@ -4,6 +4,8 @@
 **Scope:** All audit documents, blueprints, roadmaps, and codebase (main branch).  
 **Purpose:** Validate what is done, what is not done, and produce an attack plan so everything is complete with no excuses, no backlog, and thorough testing.
 
+**For all agents:** Canonical execution and backlog live in [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md), [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md), [docs_truth_ledger.md](docs_truth_ledger.md), and [NEXT_50_EXECUTION_STEPS.md](NEXT_50_EXECUTION_STEPS.md). Named plan: [RUNMYCAMPUS_11_10_NORTH_STAR_COMPLETION_PLAN.md](RUNMYCAMPUS_11_10_NORTH_STAR_COMPLETION_PLAN.md). Check ledger and NEXT_50 before starting work.
+
 ---
 
 ## STATUS: ALL WAVES IMPLEMENTED AND COMPLETE (NON-NEGOTIABLE)

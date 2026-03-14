@@ -20,7 +20,6 @@ from typing import Any
 from apps.policies.resolver import (
     get_effective_policy,
     get_tenant_blueprint,
-    invalidate_policy_cache,
 )
 
 

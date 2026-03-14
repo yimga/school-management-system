@@ -5,7 +5,6 @@ Extended models for Grade Import and performance tracking
 
 from django.db import models
 from django.conf import settings
-from django.utils import timezone
 
 from apps.accounts.validators import validate_grade_import_file, validate_file_size_5mb
 

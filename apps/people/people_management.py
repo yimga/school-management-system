@@ -326,7 +326,6 @@ class DataSyncService:
     @staticmethod
     def backup_data(model):
         """Backup data"""
-        import json
         from datetime import datetime
         
         backup = {

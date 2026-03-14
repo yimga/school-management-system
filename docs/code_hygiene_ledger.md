@@ -1,0 +1,73 @@
+# Code Hygiene Ledger
+
+**Purpose:** §10 of the [embedded remediation plan](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md). Track print(), structured logging, management commands, clutter, subprocess, lint/CI, deprecation. Nothing deferred.
+
+**Status:** In progress — CI gates in place; inventory and replacement ongoing.
+
+---
+
+## 1. print() reduction
+
+- **Policy:** No `print()` in application code (apps/, services/). Use `logging` with appropriate level (logger.info, logger.warning, logger.exception, etc.).
+- **CI:** `scripts/lint_no_print_in_apps.py` — run in `scripts/pre_deploy_gate.sh`. Violations fail the gate.
+- **Action:** Replace any remaining print() in apps/ with structured logging; add tenant/actor/route context where relevant.
+
+---
+
+## 2. Structured logging
+
+- **Standard:** Use `logging.getLogger(__name__)` or module logger; include tenant_id, school_id, user_id, route, or request_id where available for critical paths.
+- **Exception logging:** Prefer `logger.exception()` or `logger.error(..., exc_info=True)` instead of broad `except Exception` with no log.
+
+---
+
+## 3. Management commands inventory
+
+- **Location:** `apps/*/management/commands/*.py`. High count (150+); many are operational (migrations, seeds, health checks). 
+- **Action:** Inventory and classify: keep (operational), deprecate (replaced by UI or service), remove (unused). See docs/management_commands_inventory.md.
+- **When adding a new command (NEXT_50 step 38):** Ledger entry + tests (or docstring verification); see management_commands_inventory.md §3.
+
+---
+
+## 4. Repo root / docs clutter
+
+- **CI:** `scripts/check_root_clutter.py`, `scripts/check_repo_hygiene.py` in pre_deploy_gate. Root DB/artifacts moved under `artifacts/`; historical docs in `docs/archive/`.
+
+---
+
+## 5. Subprocess usage
+
+- **Action:** Classify subprocess usage (scripts, management commands, celery); ensure no unsanitized user input, timeouts, and audit where security-sensitive.
+
+---
+
+## 6. Lint / CI gates
+
+- **pre_deploy_gate.sh** runs: check_no_committed_env, check_repo_hygiene, check_root_clutter, lint_bounded_context_imports, lint_siteconfig_legacy_imports, lint_secret_exposure, lint_gilead_residue, lint_no_print_in_apps, lint_tenant_settings, lint_csrf_exempt_usage, lint_allow_any_usage, lint_raw_sql_usage, lint_broad_except, lint_mega_files (optional strict), makemigrations --check, audit_tenant_models, smoke tests, targeted hardening tests, theme matrix, phase checks, visual QA, multi-tenant tests.
+
+---
+
+## 7. Deprecation policy
+
+- **Rule:** Deprecate before delete; add deprecation warnings and document replacement path; remove legacy paths after migration (per §1.7 and SITECONFIG_FREEZE_POLICY).
+
+---
+
+## 8. Completion gate (§10)
+
+- [x] print() forbidden in apps (CI enforced). lint_no_print_in_apps.py in pre_deploy_gate.sh; no print() in apps outside tests/management/migrations.
+- [x] Replace remaining print() with structured logging where found. Application paths (apps excluding tests, management, migrations) have zero print(); tests/management allowlisted by design for dev/debug.
+- [ ] Management commands inventoried and pruned/deprecated as needed. See management_commands_inventory.md; incremental.
+- [x] No major hygiene debt as systemic pattern. Step 40 DONE (F401/F841 clean); CI gates in place; print and get_solo blocked in tenant paths.
+
+**Step 40 (NEXT_50):** Dead code removal sprint — **DONE.** All apps F401/F841 clean. siteconfig re-exports: noqa: F401 added to all re-export blocks in siteconfig/models.py; `ruff check apps --select F401,F841` passes.
+
+---
+
+## 9. Migration / flow check
+
+- **makemigrations --check:** Run `python manage.py makemigrations --check --dry-run` to detect uncreated migrations. As of last run: **reports** (0017) and **siteconfig** (0156) had pending changes; do not run `makemigrations` blindly — coordinate with owners of reports/siteconfig before creating or applying. Pre_deploy_gate runs `makemigrations --check`; fix by creating migrations when model changes are intended.
+
+---
+
+*Source of truth: [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §10.*

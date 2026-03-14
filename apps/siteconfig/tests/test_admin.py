@@ -10,7 +10,6 @@ from django.contrib.admin.sites import AdminSite
 from apps.siteconfig.models import RegionConfig, GradingScaleConfig, HolidayCalendar
 from apps.siteconfig.admin import RegionConfigAdmin, GradingScaleConfigAdmin, HolidayCalendarAdmin
 from apps.academics.models import AcademicYear
-from apps.schools.models import School
 from datetime import date
 
 
@@ -86,7 +85,7 @@ class RegionConfigAdminTestCase(TestCase):
         
         # Call action
         queryset = RegionConfig.objects.filter(pk=self.region.pk)
-        result = admin_obj.clone_region(request, queryset)
+        _ = admin_obj.clone_region(request, queryset)
         
         # Check new region was created
         cloned = RegionConfig.objects.get(code=f"{self.region.code}_COPY")
@@ -396,7 +395,6 @@ class ManagementCommandTestCase(TestCase):
         """Test import_config management command."""
         from django.core.management import call_command
         from io import StringIO
-        import json
         import os
         
         # Create export file first

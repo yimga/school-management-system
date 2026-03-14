@@ -46,12 +46,12 @@
             <a href="{{ cta.url }}" class="btn {% if cta.primary %}btn-primary{% else %}btn-outline-light{% endif %}" data-cta="{% if cta.primary %}primary{% else %}secondary{% endif %}" data-page="home">{% trans cta.label %}</a>
           {% endfor %}
           {% if demo_tenant_url %}
-            <a href="{{ demo_tenant_url }}" class="btn btn-outline-light" target="_blank" rel="noopener">{% trans "Try demo" %}</a>
+            <a href="{{ demo_tenant_url }}" class="btn btn-outline-light" target="_blank" rel="noopener noreferrer">{% trans "Try demo" %}</a>
           {% endif %}
-          {% if marketing_product_tour_url %}<a href="{{ marketing_product_tour_url }}" class="btn btn-outline-light" target="_blank" rel="noopener" data-cta="secondary" data-page="home">{% trans "See product tour" %}</a>{% else %}<a href="{% url 'marketing_interactive_preview' %}" class="btn btn-outline-light" data-cta="secondary" data-page="home">{% trans "See product tour" %}</a>{% endif %}
+          {% if marketing_product_tour_url %}<a href="{{ marketing_product_tour_url }}" class="btn btn-outline-light" target="_blank" rel="noopener noreferrer" data-cta="secondary" data-page="home">{% trans "See product tour" %}</a>{% else %}<a href="{% url 'marketing_interactive_preview' %}" class="btn btn-outline-light" data-cta="secondary" data-page="home">{% trans "See product tour" %}</a>{% endif %}
         </div>
       </div>
-      <div class="mkt-hero-visual">
+      <div class="mkt-hero-visual"{% if proof_hero_image_key %} data-proof-hero-key="{{ proof_hero_image_key }}"{% endif %}>
         {% if hero_video_url %}
         <video class="mkt-hero-video" width="800" height="450" poster="{% if hero_video_poster_url %}{{ hero_video_poster_url }}{% endif %}" preload="metadata" playsinline muted loop aria-label="RunMyCampus platform overview">
           <source src="{{ hero_video_url }}" type="video/mp4">
@@ -89,6 +89,20 @@
     <p class="mkt-section-lead">{% trans "Education OS, Control Plane, Marketplace, Migration Cloud, and Analytics—one infrastructure." %}</p>
     <div class="text-center">
       <img src="{{ platform_architecture_diagram_url }}" alt="{% trans 'RunMyCampus platform architecture' %}" width="800" height="450" loading="lazy" decoding="async" class="img-fluid rounded">
+    </div>
+    {% if control_plane_diagram_url %}
+    <div class="text-center mt-3">
+      <img src="{{ control_plane_diagram_url }}" alt="{% trans 'Control plane' %}" width="800" height="450" loading="lazy" decoding="async" class="img-fluid rounded">
+    </div>
+    {% endif %}
+  </section>
+  {% endif %}
+  {% if setup_studio_flow_image_url %}
+  <section id="setup-studio-flow" class="mkt-section" aria-label="{% trans 'Setup flow' %}">
+    <h2 class="mkt-section-heading">{% trans "Guided setup" %}</h2>
+    <p class="mkt-section-lead">{% trans "From signup to launch with health score and role preview." %}</p>
+    <div class="text-center">
+      <img src="{{ setup_studio_flow_image_url }}" alt="{% trans 'Setup Studio flow' %}" width="800" height="450" loading="lazy" decoding="async" class="img-fluid rounded">
     </div>
   </section>
   {% endif %}
@@ -488,7 +502,7 @@
       {% for v in video_testimonials %}
         <article class="mkt-testimonial-card mkt-video-testimonial">
           {% if v.url %}
-          <a href="{{ v.url }}" target="_blank" rel="noopener" class="mkt-video-testimonial-link" aria-label="{% if v.title %}{{ v.title }}{% else %}Watch video testimonial{% endif %}">
+          <a href="{{ v.url }}" target="_blank" rel="noopener noreferrer" class="mkt-video-testimonial-link" aria-label="{% if v.title %}{{ v.title }}{% else %}Watch video testimonial{% endif %}">
             {% if v.thumbnail_url %}<img src="{{ v.thumbnail_url }}" alt="" width="320" height="180" loading="lazy" decoding="async" class="mkt-video-testimonial-thumb">{% endif %}
             <span class="mkt-video-testimonial-play" aria-hidden="true">&#9658;</span>
           </a>

@@ -4,7 +4,7 @@ CI enforcement: PackageEngine validate, preview, apply, promote, rollback.
 from django.test import TestCase
 
 from apps.metadata.models import MetadataDependency
-from apps.packages.engine import PackageEngine, apply_package, promote_package, rollback, validate_package
+from apps.packages.engine import apply_package, promote_package, rollback, validate_package
 from apps.packages.models import InstalledPackage, PackageChangeLog, PackageVersion
 
 

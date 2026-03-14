@@ -19,7 +19,6 @@ class Wave2PlatformAdminOnlyOnManagerHostTests(TestCase):
     def test_manager_urlconf_uses_platform_admin_site(self):
         """Manager URLConf must serve /admin/ from platform_admin_site."""
         from config.manager_urls import urlpatterns
-        from config.admin import platform_admin_site
         # Find the admin path; it should be the one that uses platform_admin_site.
         admin_pattern = next((p for p in urlpatterns if getattr(p, "pattern", None) and "admin" in str(getattr(p.pattern, "_route", ""))), None)
         self.assertIsNotNone(admin_pattern, "Manager URLConf must define /admin/.")

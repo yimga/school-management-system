@@ -5,7 +5,6 @@ import io
 import json
 import logging
 import uuid
-from calendar import monthrange
 from datetime import timedelta
 from decimal import Decimal, InvalidOperation
 
@@ -18,13 +17,11 @@ from django.core.exceptions import ValidationError
 from django.db import DatabaseError, IntegrityError, models, transaction
 from django.db.models import Count, Q, Sum, Prefetch
 from django.db.models.functions import Coalesce
-from typing import Optional
 from django.http import (
     HttpRequest,
     HttpResponse,
     HttpResponseBadRequest,
     HttpResponseForbidden,
-    HttpResponseNotAllowed,
     JsonResponse,
 )
 from django.shortcuts import get_object_or_404, redirect, render
@@ -36,20 +33,17 @@ from django.views.decorators.http import require_http_methods, require_POST
 from django.urls import reverse
 from django.core.mail import send_mail
 from django.conf import settings
-from django.utils.safestring import mark_safe
 
 from django.template.loader import render_to_string
 
 from apps.academics.models import AcademicYear
-from apps.payroll.models import Payslip
 from apps.platform_runtime.helpers import get_effective_flags, get_effective_site_settings
 from apps.accounts.utils import get_dashboard_context
 from apps.evals.notifications import NotificationService
 
-from .forms import CashOfficeClosureForm, ReportRequestForm, SplitAllocationForm, TellerScanForm
+from .forms import CashOfficeClosureForm, SplitAllocationForm, TellerScanForm
 from .bank_statement_import import BankStatementImportService
 from .notifications import notify_guardians_new_invoices_bulk
-from .ohada_reports import build_dsf_report
 from .models import (
     ComplianceProfile,
     FeePlan,
@@ -63,7 +57,6 @@ from .models import (
     Payment,
     PaymentProofUpload,
     PaymentMethodCode,
-    ReportRequest,
     SuspensePayment,
     WebhookLog,
 )
@@ -74,7 +67,6 @@ from .services import (
     assign_invoice_payer_shares,
     split_amount_equally,
     apply_payment,
-    create_payment_from_receipt,
     PROVIDER_SLUG_TO_METHOD,
     create_fee_invoices,
     finance_dashboard_data,
@@ -86,7 +78,6 @@ from .services import (
 from .security import (
     PaymentValidator,
     WebhookSecurityValidator,
-    webhook_security_required,
 )
 from apps.communication.models import Message
 
@@ -1051,9 +1042,9 @@ def invoice_detail(request: HttpRequest, invoice_id: int):
     reminder = getattr(invoice, "reminder", None)
     
     # Get reminder history (last 10 logs)
-    reminder_logs = []
+    _reminder_logs = []
     if reminder:
-        reminder_logs = reminder.logs.order_by("-sent_at")[:10]
+        _reminder_logs = reminder.logs.order_by("-sent_at")[:10]
 
     finance_summary = None
     if access_state["guardian_count"]:
@@ -2311,7 +2302,7 @@ def expense_vs_budget(request: HttpRequest):
     if not _can_access_accounting(request.user):
         return HttpResponseForbidden("You do not have permission to view expense vs budget.")
     from apps.accounts.utils import get_dashboard_context
-    from .models import Budget, BudgetLine
+    from .models import Budget
     budgets = Budget.objects.select_related("academic_year").order_by("-academic_year__start_date")[:5]
     dashboard_context = get_dashboard_context(request.user, "finance")
     return render(request, "finance/expense_vs_budget.html", {
@@ -2380,4 +2371,3 @@ def claim_suspense_payment(request: HttpRequest, suspense_id: int):
 
 
 # Re-export reports views (2.1 decomposition)
-from .views_reports import finance_reports, submit_report_request

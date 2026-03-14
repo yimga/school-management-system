@@ -7,6 +7,8 @@ Optional: regional SMTP — set Django EMAIL_BACKEND / use SES Frankfurt etc. pe
 from __future__ import annotations
 
 import logging
+from smtplib import SMTPException
+
 from django.conf import settings
 from django.core.mail import EmailMessage
 
@@ -48,10 +50,11 @@ def render_welcome_email_html(
         from apps.platform_runtime.helpers import get_effective_site_settings
 
         brand = resolve_brand_profile(school=school, site=get_effective_site_settings(school=school))
-    except Exception:
+    except (ImportError, AttributeError, TypeError, ValueError, KeyError) as e:
+        logger.debug("Welcome email brand resolve fallback for school %s: %s", getattr(school, "id", None), e)
         brand = {}
     primary = brand.get("primary_color") or getattr(school, "primary_color", None) or "#0d6efd"
-    logo_url = brand.get("logo_url") or getattr(school, "logo_url", None) or ""
+    _logo_url = brand.get("logo_url") or getattr(school, "logo_url", None) or ""
     name = getattr(school, "name", None) or "Your School"
     login = login_url or _login_url(school)
     block = (dynamic_block or "").strip()
@@ -104,7 +107,7 @@ def send_welcome_email(school_id: str, contact_email: str) -> bool:
         msg.send(fail_silently=False)
         logger.info("Welcome email sent to %s for school %s", contact_email, school_id)
         return True
-    except Exception as e:
+    except (OSError, SMTPException) as e:
         logger.warning("Welcome email failed for school %s: %s", school_id, e)
         return False
 

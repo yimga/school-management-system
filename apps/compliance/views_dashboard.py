@@ -10,21 +10,19 @@ Provides comprehensive compliance dashboard for administrators:
 - Security summary (failed logins, suspicious activity)
 """
 
-import json
-from datetime import datetime, timedelta
+from datetime import timedelta
 from collections import defaultdict, Counter
 
 from django.shortcuts import render
 from django.views import View
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils.decorators import method_decorator
-from django.db.models import Count, Q, Avg
+from django.db.models import Count, Q
 from django.utils import timezone
 from django.core.cache import cache
 from django.conf import settings
 
 from apps.compliance.models_audit import AuditLog, UserActivitySession, AccessLog
-from apps.accounts.models import User
 from apps.compliance.auth_utils import is_admin_or_staff
 from apps.compliance.tenant_scope import (
     get_compliance_scope_school,
@@ -244,7 +242,7 @@ class ComplianceDashboardView(View):
         school = getattr(self, "scope_school", None)
 
         # Failed logins
-        failed_logins = AuditLog.objects.filter(
+        AuditLog.objects.filter(
             timestamp__gte=week_ago,
             action='LOGIN',
             sensitivity='MEDIUM'  # Assuming failed logins marked differently

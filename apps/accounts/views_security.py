@@ -81,12 +81,12 @@ def _user_has_mfa(user) -> bool:
             has_device = user_has_device(user)
         if has_device:
             return True
-    except Exception:
+    except (ImportError, AttributeError, TypeError):
         pass
     try:
         from apps.accounts.models import UserPasskey
         return UserPasskey.objects.filter(user=user).exists()
-    except Exception:
+    except (ImportError, AttributeError, TypeError):
         return False
 
 

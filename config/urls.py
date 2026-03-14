@@ -9,7 +9,6 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.template.response import TemplateResponse
 from django.http import HttpResponseForbidden
 
-from apps.siteconfig.models import SiteSettings
 from apps.platform_runtime.helpers import get_effective_flags
 
 from apps.observability import views as obs_views
@@ -104,6 +103,16 @@ def admin_siteconfig_customizer_redirect(request):
     return redirect(reverse("studio_os:experience"))
 
 
+def legacy_workflow_hub_redirect(request):
+    """Step 6 / Optional 12: Legacy workflow hub → Studio OS Automation. When product confirms a different path, add it here or replace this path."""
+    return redirect(reverse("studio_os:automation"))
+
+
+def legacy_report_library_redirect(request):
+    """Step 6 / Optional 12: Legacy report library → Studio OS Output. When product confirms a different path, add it here or replace this path."""
+    return redirect(reverse("studio_os:output"))
+
+
 def permission_denied(request, exception):
     """Custom 403: friendly message when staff hit Admin without superuser."""
     is_admin_forbidden = (
@@ -187,6 +196,10 @@ urlpatterns = [
     # Back-compat shortcut
     path('admin/siteconfig/customizer/', admin_siteconfig_customizer_redirect),
 
+    # Step 6 / Optional 12: Legacy workflow hub and report library → Studio OS (product-confirmed paths; defaults below)
+    path('siteconfig/workflow-hub/', legacy_workflow_hub_redirect),
+    path('siteconfig/report-library/', legacy_report_library_redirect),
+
     # API Routes
     path("verify/<str:token>/", __import__("apps.siteconfig.views_verify", fromlist=["verify_student_id"]).verify_student_id, name="verify_student_id"),
     path('api/', include(('apps.api.urls', 'api'), namespace='api')),
@@ -196,6 +209,7 @@ urlpatterns = [
     path('siteconfig/', include(('apps.siteconfig.urls', 'siteconfig'), namespace='siteconfig')),
     path('studio/', include(('apps.studio_os.urls', 'studio_os'), namespace='studio_os')),
     path('api-center/', include(('apps.apicenter.urls', 'apicenter'), namespace='apicenter')),
+    path('automation/', include(('apps.automation.urls', 'automation'), namespace='automation')),
     path('authentication/', include(('apps.accounts.urls', 'accounts'), namespace='accounts')),
     path('evals/', include(('apps.evals.urls', 'evals'), namespace='evals')),
     path('academics/', include(('apps.academics.urls', 'academics'), namespace='academics')),
@@ -213,6 +227,8 @@ urlpatterns = [
     path('organization/network/', parent_tenant_dashboard, name='organization_network_dashboard'),
     # Super Admin (multi-tenant provisioning)
     path('super/', include(('apps.schools.super_urls', 'super'), namespace='super')),
+    # §3.3 Metadata search (staff-only)
+    path('api/internal/metadata/', include(('apps.metadata.urls', 'metadata'), namespace='metadata')),
     # Section 8: Caddy on-demand TLS ask (no auth; restrict by IP in production)
     path('api/caddy-check/', verify_caddy_domain),
     path('api/v1/auth/check-domain/', verify_caddy_domain),

@@ -2,7 +2,7 @@
 
 **Short answer: Yes. A scorecard of 10 (and above) is achievable.**
 
-The platform is at **9.5/10** across categories today. Reaching **10/10** means completing the "Path-to-10" work already identified in `AUDIT_VS_PLAN_VALIDATION.md` and the toolsets ledger. Nothing is speculative—each item is defined and scoped.
+**Completion authority:** The platform **does not claim 9.5/10** until [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §12 gates are satisfied (see [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md)). Path-to-10 work and this scorecard move toward that bar. Reaching **10/10** means completing the "Path-to-10" work already identified in `AUDIT_VS_PLAN_VALIDATION.md` and the toolsets ledger. Nothing is speculative—each item is defined and scoped.
 
 ---
 

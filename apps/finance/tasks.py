@@ -37,7 +37,7 @@ from apps.integrations_marketplace.models import Integration
 from apps.people.models import StudentGuardian
 from apps.platform_runtime.helpers import get_effective_flags_for_school
 from apps.automation.models import AutomationExecutionLog, AutomationApprovalQueue
-from apps.automation.helpers import get_cached_site_settings, get_current_academic_year, get_current_term, get_notification_channels
+from apps.automation.helpers import get_cached_site_settings, get_current_academic_year, get_notification_channels
 from apps.evals.notifications import NotificationService
 from apps.schools.celery_tasks import _run_with_tenant_context, get_active_school_ids
 
@@ -777,7 +777,6 @@ def apply_split_late_fees_task(self, dry_run: bool = False, school_id: str | Non
 
 def _auto_generate_fee_invoices_body(dry_run: bool) -> dict:
     """Inner body: run inside tenant context."""
-    from apps.finance.models import ComplianceProfile
     from apps.automation.helpers import get_current_academic_year, get_current_term
 
     execution_log = AutomationExecutionLog.objects.create(
@@ -1282,7 +1281,6 @@ def _process_payment_receipt_upload_impl(proof_upload_id: int) -> dict:
         # Extract receipt date for fraud detection
         receipt_date_str = receipt_data.get("date")
         if receipt_date_str:
-            from datetime import datetime
             try:
                 # Parse date
                 fraud_detector = ReceiptFraudDetector()

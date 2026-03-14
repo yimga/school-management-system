@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from .models import resolve_dashboard_widgets
+from .models_support import resolve_dashboard_widgets
 from .dashboard_registry import get_tenant_dashboard_registry
 
 

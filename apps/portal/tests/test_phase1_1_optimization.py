@@ -6,23 +6,19 @@ These tests validate that:
 2. Cache is working correctly
 3. Performance meets targets
 """
-import unittest
 from decimal import Decimal
-from unittest.mock import patch, MagicMock
 
 from django.core.cache import cache
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
-from django.db.models import Count
 from django.test import TestCase, TransactionTestCase
-from django.test.utils import override_settings
 
 from apps.academics.models import AcademicYear, Term, Department, Classroom, Specialty, Subject, SubjectAssignment
 from apps.accounts.models import User
-from apps.evals.models import Evaluation, AssessmentWeights
-from apps.finance.models import Invoice, PaymentReminder, PaymentMethod, ComplianceProfile
+from apps.evals.models import Evaluation
+from apps.finance.models import Invoice, ComplianceProfile
 from apps.people.models import StudentProfile, StudentGuardian, TeacherProfile
-from apps.siteconfig.models import SiteSettings
+from apps.platform_runtime.helpers import get_platform_site_settings_record
 from apps.portal.services import (
     parent_dashboard_widget_data,
     _performance_overview,
@@ -55,7 +51,7 @@ class PerformanceOptimizationTest(TransactionTestCase):
         )
         
         # Create site settings
-        self.site = SiteSettings.get_solo()
+        self.site = get_platform_site_settings_record(create=True)
         self.site.pass_mark = 12
         self.site.save()
         
@@ -233,10 +229,10 @@ class PerformanceOptimizationTest(TransactionTestCase):
         
         # Get initial widget data
         widget_data1 = parent_dashboard_widget_data(self.students)
-        initial_attendance = widget_data1["attendance"]["overall"]
+        widget_data1["attendance"]["overall"]
         
         # Modify a student evaluation
-        eval = Evaluation.objects.create(
+        Evaluation.objects.create(
             student=self.students[0],
             academic_year=self.year,
             term=self.term,
@@ -399,13 +395,13 @@ class CacheStrategyTest(TestCase):
         )
         
         # Get data for student 1
-        result1 = parent_dashboard_widget_data([student1])
+        parent_dashboard_widget_data([student1])
         
         # Get data for student 2
-        result2 = parent_dashboard_widget_data([student2])
+        parent_dashboard_widget_data([student2])
         
         # Get data for both
-        result_both = parent_dashboard_widget_data([student1, student2])
+        parent_dashboard_widget_data([student1, student2])
         
         # Cache should store them separately
         cache_keys = list(cache._cache.keys()) if hasattr(cache._cache, 'keys') else []

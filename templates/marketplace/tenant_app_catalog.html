@@ -33,6 +33,15 @@
           <div class="proof-strip-card"><strong>{{ catalog_stats.verified_publishers|default:0 }}</strong><span>{% trans "verified publishers" %}</span></div>
           <div class="proof-strip-card"><strong>{{ catalog_stats.installed|default:0 }}</strong><span>{% trans "already installed" %}</span></div>
         </div>
+        {% if catalog_counts %}
+        <div class="proof-strip mt-2">
+          <div class="proof-strip-card"><strong>{{ catalog_counts.first_party_apps|default:0 }}</strong><span>{% trans "first-party apps" %}</span></div>
+          <div class="proof-strip-card"><strong>{{ catalog_counts.blueprint_packs|default:0 }}</strong><span>{% trans "blueprint packs" %}</span></div>
+          <div class="proof-strip-card"><strong>{{ catalog_counts.workflow_packs|default:0 }}</strong><span>{% trans "workflow packs" %}</span></div>
+          <div class="proof-strip-card"><strong>{{ catalog_counts.dashboard_packs|default:0 }}</strong><span>{% trans "dashboard packs" %}</span></div>
+          <div class="proof-strip-card"><strong>{{ catalog_counts.policy_bundles|default:0 }}</strong><span>{% trans "policy bundles" %}</span></div>
+        </div>
+        {% endif %}
       </div>
       <div class="proof-visual">
         <div class="proof-app-screen h-100">

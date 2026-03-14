@@ -8,6 +8,9 @@ from __future__ import annotations
 import logging
 
 from django.core.management.base import BaseCommand
+from django.db import DatabaseError, OperationalError
+
+from services.ai_memory import AIMemoryService
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +38,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        from services.ai_memory import AIMemoryService, get_embedding_for_text
+        from services.ai_memory import get_embedding_for_text
 
         if not get_embedding_for_text("test", max_tokens=10):
             self.stdout.write(self.style.ERROR("Embedding provider unavailable. Set AI_EMBEDDING_*."))
@@ -84,7 +87,7 @@ class Command(BaseCommand):
                 else:
                     count += 1
             return count
-        except Exception as e:
+        except (ImportError, AttributeError, TypeError, ValueError, KeyError, DatabaseError, OperationalError, OSError) as e:
             logger.warning("index policy_bundles: %s", e)
             return 0
 
@@ -140,7 +143,7 @@ class Command(BaseCommand):
                 else:
                     count += 1
             return count
-        except Exception as e:
+        except (ImportError, AttributeError, TypeError, ValueError, KeyError, DatabaseError, OperationalError, OSError) as e:
             logger.warning("index workflow_packs: %s", e)
             return 0
 
@@ -171,7 +174,7 @@ class Command(BaseCommand):
                 else:
                     count += 1
             return count
-        except Exception as e:
+        except (ImportError, AttributeError, TypeError, ValueError, KeyError, DatabaseError, OperationalError, OSError) as e:
             logger.warning("index report_templates: %s", e)
             return 0
 

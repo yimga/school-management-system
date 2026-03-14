@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from django.utils import timezone
 
-from .models import MigrationQuarantineRecord, MigrationRun
+from .models import MigrationQuarantineRecord
 
 
 def add_to_quarantine(

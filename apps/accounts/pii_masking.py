@@ -26,7 +26,7 @@ def mask_date(date_obj) -> str:
         from datetime import date
         if isinstance(date_obj, date):
             return f"**/**/{date_obj.year}"
-    except Exception:
+    except (TypeError, AttributeError, ValueError):
         pass
     return "**/**/****"
 
@@ -62,7 +62,7 @@ def can_show_pii(request) -> bool:
         if timezone.now() - dt > timedelta(minutes=5):
             return False
         return True
-    except Exception:
+    except (ValueError, TypeError, AttributeError):
         return False
 
 

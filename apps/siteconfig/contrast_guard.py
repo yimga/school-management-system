@@ -59,7 +59,7 @@ def text_color_for_background(
     Defaults use design-token–aligned values.
     """
     try:
-        bg_lum = luminance(hex_to_rgb(background_hex))
+        _ = luminance(hex_to_rgb(background_hex))
     except (ValueError, TypeError):
         return dark_option
     dark_ratio = contrast_ratio(background_hex, dark_option)

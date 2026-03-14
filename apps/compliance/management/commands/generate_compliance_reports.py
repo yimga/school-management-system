@@ -23,7 +23,6 @@ from django.db.models import Count, Q
 from apps.compliance.models_audit import (
     AuditLog, ComplianceReport, AccessLog, UserActivitySession
 )
-from apps.accounts.models import User
 from apps.compliance.alerts import send_compliance_report_email
 from apps.compliance.tenant_scope import (
     school_user_queryset,

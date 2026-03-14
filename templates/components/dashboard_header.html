@@ -1,7 +1,7 @@
 {% load static %}
 {% load region_format %}
 {# Role-based dashboard header with branding, user info, and key metrics #}
-<div class="dashboard-header-wrapper sticky-top shadow-sm" style="background: var(--admin-content-bg);">
+<div class="dashboard-header-wrapper statement-header sticky-top shadow-sm" style="background: var(--admin-content-bg, var(--statement-header-bg, #FDFDFD));">
   <div class="dashboard-header" id="dashboardHeader">
     <div class="container-fluid py-3">
       <div class="row align-items-center g-3">

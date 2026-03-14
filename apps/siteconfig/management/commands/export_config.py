@@ -3,12 +3,14 @@ Export regional configurations to JSON or CSV format.
 Usage: python manage.py export_config --format json --output configs.json
 """
 
-from django.core.management.base import BaseCommand, CommandError
-import json
 import csv
+import json
 from datetime import datetime
 
-from apps.siteconfig.models import RegionConfig, GradingScaleConfig, HolidayCalendar
+from django.core.management.base import BaseCommand, CommandError
+from django.db import DatabaseError
+
+from apps.siteconfig.models import RegionConfig
 
 
 class Command(BaseCommand):
@@ -62,11 +64,9 @@ class Command(BaseCommand):
                 self._export_json(regions, output_file, options)
             elif export_format == 'csv':
                 self._export_csv(regions, output_file, options)
-            
             self.stdout.write(self.style.SUCCESS(f'\n✓ Exported {regions.count()} region(s) to {output_file}\n'))
-        
-        except Exception as e:
-            raise CommandError(f"Error exporting configurations: {str(e)}")
+        except (OSError, TypeError, ValueError, KeyError, DatabaseError) as e:
+            raise CommandError(f"Error exporting configurations: {e}") from e
 
     def _export_json(self, regions, output_file, options):
         """Export configurations to JSON format."""

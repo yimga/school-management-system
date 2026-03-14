@@ -2,7 +2,7 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 
 from apps.accounts.models import User
-from apps.siteconfig.models import SiteSettings
+from apps.platform_runtime.helpers import get_platform_site_settings_record
 
 
 class EntityFeatureFlagTests(TestCase):
@@ -15,7 +15,7 @@ class EntityFeatureFlagTests(TestCase):
             is_staff=True,
         )
         self.client.force_authenticate(user=self.admin)
-        self.site = SiteSettings.get_solo()
+        self.site = get_platform_site_settings_record(create=True)
 
     def test_bulk_commit_respects_flag(self):
         self.site.backend_feature_flags = {"allow_bulk_commit": False}

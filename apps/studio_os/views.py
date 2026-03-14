@@ -7,21 +7,35 @@ Shared preview (2.1) and publish/rollback (2.2) via studio_preview, studio_publi
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
 
 from .services import (
     get_studio_activity_feed,
+    get_studio_global_search,
     get_studio_preview_url,
     get_studio_publish_audit,
     get_studio_recommendations,
+    get_studio_role_preview_entries,
     get_studio_command_palette_entries,
     get_studio_version_history,
     studio_rollback_available,
     studio_publish,
     studio_save_draft,
 )
+
+
+@never_cache
+@require_http_methods(["GET"])
+@login_required
+def studio_recommendations_api(request):
+    """§4.1 Unified recommendation engine hook. GET ?mode= — returns JSON {recommendations: [{label, url, detail, tone}]}."""
+    if not getattr(request.user, "is_staff", False):
+        return JsonResponse({"recommendations": []})
+    mode = (request.GET.get("mode") or "").strip().lower() or None
+    recs = get_studio_recommendations(request, mode)
+    return JsonResponse({"recommendations": recs})
 
 
 STUDIO_MODES = [
@@ -47,7 +61,7 @@ def _resolve_legacy_urls(request):
         legacy["reportcard_builder"] = reverse("siteconfig:reportcard_builder")
         legacy["workflow_flow_gallery"] = reverse("siteconfig:workflow_flow_gallery")
         legacy["backend_dashboard"] = reverse("accounts:backend_dashboard")
-    except Exception:
+    except NoReverseMatch:
         pass
     return legacy
 
@@ -89,15 +103,15 @@ def studio_shell(request, mode=None):
 
     try:
         preview_from_form_url = reverse("siteconfig:preview_from_form")
-    except Exception:
+    except NoReverseMatch:
         preview_from_form_url = ""
     try:
         studio_preview_url = reverse("studio_os:preview")
-    except Exception:
+    except NoReverseMatch:
         studio_preview_url = preview_from_form_url
     try:
         studio_publish_url = reverse("studio_os:publish")
-    except Exception:
+    except NoReverseMatch:
         studio_publish_url = ""
 
     context = {
@@ -109,6 +123,7 @@ def studio_shell(request, mode=None):
         "studio_activity_feed": activity_feed,
         "studio_recommendations": recommendations,
         "studio_command_palette_entries": command_palette_entries,
+        "studio_role_preview_entries": get_studio_role_preview_entries(request),
         "studio_show_bottom_bar": False,
         "studio_bottom_bar_actions": [],
         "studio_rollback_available": rollback_available,
@@ -127,10 +142,36 @@ def studio_shell(request, mode=None):
             context["back_url"] = reverse("studio_os:experience")
             context["studio_version_history"] = get_studio_version_history(request, "experience", limit=5)
             context["studio_audit"] = get_studio_publish_audit(request, "experience", limit=8)
-        except Exception:
+        except (NoReverseMatch, ImportError, AttributeError, TypeError, ValueError):
             context["use_experience_in_page"] = False
             context["studio_version_history"] = []
             context["studio_audit"] = []
+        experience_rail = []
+        try:
+            experience_rail.append({
+                "label": "Theme & colors",
+                "url": reverse("siteconfig:theme_colors") + "?embed=1",
+                "embed": True,
+            })
+        except NoReverseMatch:
+            pass
+        try:
+            experience_rail.append({
+                "label": "Customizer",
+                "url": reverse("siteconfig:customizer") + "?embed=1",
+                "embed": True,
+            })
+        except NoReverseMatch:
+            pass
+        try:
+            experience_rail.append({
+                "label": "School theme",
+                "url": reverse("siteconfig:school_theme_settings") + "?embed=1",
+                "embed": True,
+            })
+        except NoReverseMatch:
+            pass
+        context["experience_left_rail"] = experience_rail
 
     if mode == "launch" and school:
         try:
@@ -140,7 +181,7 @@ def studio_shell(request, mode=None):
             context["launch_role_previews"] = payload.get("role_previews") or []
             context["launch_health_summary"] = payload.get("health_summary") or ""
             context["launch_ready"] = payload.get("launch_ready", False)
-        except Exception:
+        except (NoReverseMatch, ImportError, AttributeError, TypeError, ValueError):
             context["launch_payload"] = None
             context["launch_role_previews"] = []
             context["launch_health_summary"] = ""
@@ -151,30 +192,123 @@ def studio_shell(request, mode=None):
         context["launch_health_summary"] = ""
         context["launch_ready"] = False
 
+    if mode == "launch":
+        launch_rail = []
+        try:
+            launch_rail.append({
+                "label": "Guided onboarding",
+                "url": reverse("siteconfig:guided_onboarding") + "?embed=1",
+                "embed": True,
+            })
+        except NoReverseMatch:
+            pass
+        try:
+            launch_rail.append({
+                "label": "Create school",
+                "url": reverse("super:create_school_wizard"),
+                "embed": True,
+            })
+        except NoReverseMatch:
+            pass
+        try:
+            launch_rail.append({
+                "label": "Blueprint gallery",
+                "url": reverse("siteconfig:get_blueprints") + "?embed=1",
+                "embed": True,
+            })
+        except NoReverseMatch:
+            pass
+        context["launch_left_rail"] = launch_rail
+
     if mode == "automation":
         workflow_entries = []
+        automation_rail = []
         try:
+            workflow_entries.append({"label": "Outcomes", "url": reverse("automation:outcomes_console") + "?embed=1"})
             workflow_entries.append({"label": "Workflow hub", "url": reverse("siteconfig:workflow_hub") + "?embed=1"})
             workflow_entries.append({"label": "Flow gallery", "url": reverse("siteconfig:workflow_flow_gallery")})
             workflow_entries.append({"label": "Approval hub", "url": reverse("accounts:approval_workflow_hub")})
-        except Exception:
+            for entry in workflow_entries:
+                automation_rail.append({"label": entry["label"], "url": entry["url"], "embed": True})
+        except NoReverseMatch:
             pass
         context["workflow_entries"] = workflow_entries
+        context["automation_left_rail"] = automation_rail
         context["automation_simulation_summary"] = (
             "Run simulation from Workflow hub to see impact before activating."
         )
+
+    if mode == "output":
+        output_rail = []
+        try:
+            output_rail.append({
+                "label": "Report library",
+                "url": reverse("siteconfig:report_library") + "?embed=1",
+                "embed": True,
+            })
+        except NoReverseMatch:
+            pass
+        try:
+            output_rail.append({
+                "label": "Document library",
+                "url": reverse("portal:document_library_manage") + "?embed=1",
+                "embed": True,
+            })
+        except NoReverseMatch:
+            pass
+        try:
+            output_rail.append({
+                "label": "Report card builder",
+                "url": reverse("siteconfig:reportcard_builder") + "?embed=1",
+                "embed": True,
+            })
+        except NoReverseMatch:
+            pass
+        context["output_left_rail"] = output_rail
 
     if mode == "control":
         try:
             from apps.siteconfig.views_feature_control import get_feature_control_audit_entries
             context["control_audit_entries"] = get_feature_control_audit_entries(request, limit=15)
-        except Exception:
+        except (NoReverseMatch, ImportError, AttributeError, TypeError, ValueError):
             context["control_audit_entries"] = []
         control_rail = []
         try:
-            control_rail.append({"label": "Capabilities", "url": reverse("siteconfig:feature_control_panel") + "?embed=1"})
-            control_rail.append({"label": "Audit log", "url": reverse("siteconfig:feature_control_audit")})
-        except Exception:
+            control_rail.append({
+                "label": "Capabilities",
+                "url": reverse("siteconfig:feature_control_panel") + "?embed=1",
+                "embed": True,
+            })
+            control_rail.append({
+                "label": "Audit log",
+                "url": reverse("siteconfig:feature_control_audit"),
+                "embed": True,
+            })
+        except NoReverseMatch:
+            pass
+        try:
+            control_rail.append({
+                "label": "Runtime inspector",
+                "url": reverse("super:runtime_inspector"),
+                "embed": True,
+            })
+        except NoReverseMatch:
+            pass
+        try:
+            control_rail.append({
+                "label": "Metadata governance",
+                "url": reverse("metadata:metadata_governance"),
+                "embed": True,
+            })
+        except NoReverseMatch:
+            pass
+        try:
+            control_rail.append({
+                "label": "Integrations",
+                "url": reverse("apicenter:dashboard"),
+                "embed": True,
+            })
+        except NoReverseMatch:
             pass
         context["control_left_rail"] = control_rail
         # In-shell control panel (no iframe) when user has permission
@@ -190,7 +324,7 @@ def studio_shell(request, mode=None):
                     request=request,
                 )
                 context["embed_url"] = None  # prefer in-page over iframe
-            except Exception:
+            except (NoReverseMatch, ImportError, AttributeError, TypeError, ValueError):
                 context["control_panel_html"] = None
         else:
             context["control_panel_html"] = None
@@ -206,7 +340,7 @@ def studio_shell(request, mode=None):
             bottom_bar_actions.append({"id": "rollback", "label": "Rollback", "primary": False})
             try:
                 context["studio_rollback_url"] = reverse("studio_os:rollback") + "?mode=" + mode
-            except Exception:
+            except NoReverseMatch:
                 context["studio_rollback_url"] = ""
 
     context["studio_show_bottom_bar"] = show_bottom_bar
@@ -293,7 +427,7 @@ def studio_rollback(request):
             from django.contrib import messages
 
             messages.success(request, "Rolled back theme & experience to the previous saved state.")
-        except Exception:
+        except (TypeError, AttributeError, ValueError):
             pass
 
         redirect_url = reverse("studio_os:experience")
@@ -384,6 +518,19 @@ def studio_version_history_api(request):
 @never_cache
 @require_http_methods(["GET"])
 @login_required
+def studio_global_search(request):
+    """§4.1 global search API. GET ?q= — returns JSON {results: [{label, url, kind}]}."""
+    if not getattr(request.user, "is_staff", False):
+        return JsonResponse({"results": []})
+    q = (request.GET.get("q") or "").strip()
+    try:
+        limit = min(50, max(1, int(request.GET.get("limit", 20))))
+    except (TypeError, ValueError):
+        limit = 20
+    results = get_studio_global_search(request, q, limit=limit)
+    return JsonResponse({"results": results})
+
+
 def studio_audit_api(request):
     """GET ?mode= — recent publish/rollback events. JSON list of activity items."""
     if not getattr(request.user, "is_staff", False):

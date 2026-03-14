@@ -1,4 +1,4 @@
-{% load static %}
+{% load static i18n %}
 {% load accounts_extras %}
 <footer class="dashboard-footer" id="dashboardFooter">
   {% if PUBLIC_BRAND_MODE %}
@@ -24,6 +24,7 @@
           <div class="brand-title">{{ SITE.company_name|default:SITE.site_name|default:"School" }}</div>
           <div class="brand-pill">{{ SITE.footer_accreditation_text|default:"Ministry of Education | UNESCO Standards Compliant" }}</div>
           <p class="brand-micro">{{ SITE.footer_accreditation_subtext|default:"Certified for educational institutions worldwide | ISO 9001:2015 Quality Management" }}</p>
+          <p class="brand-global-reach text-muted small mb-0 mt-1" aria-label="{% trans 'Global reach' %}">{% trans "Built for schools worldwide · Any region · Any currency · Any language" %}</p>
         </div>
       </div>
       <div class="footer-card help-card" id="preview-footer-help" data-preview-label="Support hours &amp; contact">
@@ -32,9 +33,9 @@
         {% if SITE.whatsapp_support_number or SITE.footer_whatsapp_url %}
           {% if SITE.whatsapp_support_number %}
             {# Prefer wa.me link built from configured support number #}
-            <a class="pill-button success" href="https://wa.me/{{ SITE.whatsapp_support_number|urlencode }}?text={{ 'Hello, I need help with the school management system.'|urlencode }}" target="_blank" rel="noreferrer">WhatsApp Support</a>
+            <a class="pill-button success" href="https://wa.me/{{ SITE.whatsapp_support_number|urlencode }}?text={{ 'Hello, I need help with the school management system.'|urlencode }}" target="_blank" rel="noopener noreferrer">WhatsApp Support</a>
           {% else %}
-            <a class="pill-button success" href="{{ SITE.footer_whatsapp_url }}" target="_blank" rel="noreferrer">WhatsApp Support</a>
+            <a class="pill-button success" href="{{ SITE.footer_whatsapp_url }}" target="_blank" rel="noopener noreferrer">WhatsApp Support</a>
           {% endif %}
         {% else %}
           <a class="pill-button success" href="mailto:{{ SITE.company_email|default:'support@school.com' }}">Email Support</a>
@@ -96,7 +97,7 @@
             <a href="mailto:{{ SITE.company_email|default:'support@school.com' }}"><i class="bi bi-envelope-open"></i> {{ SITE.company_email|default:"support@school.com" }}</a>
             <a href="tel:{{ SITE.company_phone|default:'+15551234567' }}"><i class="bi bi-telephone"></i> {{ SITE.company_phone|default:"+1 (555) 123-4567" }}</a>
             {% if MARKETING_BASE_URL %}
-            <a href="{{ MARKETING_BASE_URL }}/uptime/" target="_blank" rel="noopener"><i class="bi bi-activity"></i> Platform Status</a>
+            <a href="{{ MARKETING_BASE_URL }}/uptime/" target="_blank" rel="noopener noreferrer"><i class="bi bi-activity"></i> Platform Status</a>
             {% endif %}
             <span class="status-chip">All Systems Operational</span>
           </div>
@@ -137,8 +138,8 @@
       <span>&copy; {% now "Y" %} {{ SITE.company_name|default:SITE.site_name|default:"School" }}. All rights reserved.</span>
       <span class="meta-powered">Powered by <strong>RunMyCampus</strong></span>
       {% if MARKETING_BASE_URL %}
-      <a href="{{ MARKETING_BASE_URL }}/" target="_blank" rel="noopener" class="ms-2">RunMyCampus</a>
-      <a href="{{ MARKETING_BASE_URL }}/pricing/" target="_blank" rel="noopener" class="ms-2">Pricing</a>
+      <a href="{{ MARKETING_BASE_URL }}/" target="_blank" rel="noopener noreferrer" class="ms-2">RunMyCampus</a>
+      <a href="{{ MARKETING_BASE_URL }}/pricing/" target="_blank" rel="noopener noreferrer" class="ms-2">Pricing</a>
       {% endif %}
     </div>
   </div>

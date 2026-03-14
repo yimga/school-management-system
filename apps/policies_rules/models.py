@@ -15,7 +15,11 @@ from apps.policies.models import (
     TenantBlueprint,
     TenantPolicyOverride,
 )
-from apps.siteconfig.models import FeatureToggleDefinition, FeatureToggleState, TourStep
+from apps.siteconfig.models_feature_controls import (
+    FeatureToggleDefinition,
+    FeatureToggleState,
+    TourStep,
+)
 
 __all__ = [
     "BlueprintCompatibilityRule",

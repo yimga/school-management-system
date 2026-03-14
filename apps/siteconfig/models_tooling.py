@@ -3,7 +3,7 @@ from __future__ import annotations
 from django.apps import apps as django_apps
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.db import DatabaseError, OperationalError, models
+from django.db import models
 from django.db.models import Q
 
 from apps.academics.models import Subject

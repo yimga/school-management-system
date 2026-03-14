@@ -65,7 +65,7 @@ def passkey_registration_options(request):
             challenge=_challenge_bytes(challenge),
         )
         return JsonResponse(json.loads(options_to_json(options)))
-    except Exception as e:
+    except (ValueError, TypeError, KeyError, json.JSONDecodeError, AttributeError) as e:
         return JsonResponse({"error": str(e)}, status=400)
 
 
@@ -99,7 +99,7 @@ def passkey_registration_verify(request):
             sign_count=verification.sign_count,
         )
         return JsonResponse({"ok": True})
-    except Exception as e:
+    except (ValueError, TypeError, KeyError, json.JSONDecodeError, AttributeError) as e:
         return JsonResponse({"error": str(e)}, status=400)
 
 
@@ -126,7 +126,7 @@ def passkey_authentication_options(request):
             allow_credentials=allow_credentials if allow_credentials else None,
         )
         return JsonResponse(json.loads(options_to_json(options)))
-    except Exception as e:
+    except (ValueError, TypeError, KeyError, json.JSONDecodeError, AttributeError) as e:
         return JsonResponse({"error": str(e)}, status=400)
 
 
@@ -169,7 +169,7 @@ def passkey_authentication_verify(request):
             until = timezone.now() + timedelta(days=14)
             request.session["mfa_verified_until"] = until.isoformat()
         return JsonResponse({"ok": True})
-    except Exception as e:
+    except (ValueError, TypeError, KeyError, json.JSONDecodeError, AttributeError) as e:
         return JsonResponse({"error": str(e)}, status=400)
 
 

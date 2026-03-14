@@ -9,9 +9,8 @@ Detects and flags suspicious receipts to prevent fraud:
 """
 
 import hashlib
-from datetime import timedelta
-from decimal import Decimal
-from typing import Dict, List, Optional, Tuple
+from decimal import Decimal, InvalidOperation
+from typing import Dict, Optional
 from django.utils import timezone
 from django.core.files.uploadedfile import UploadedFile
 from PIL import Image
@@ -186,7 +185,6 @@ class ReceiptFraudDetector:
             }
         
         try:
-            from datetime import datetime
             # Parse date string (handles various formats)
             receipt_date = self._parse_date(receipt_date_str)
             if not receipt_date:
@@ -239,7 +237,7 @@ class ReceiptFraudDetector:
                 "receipt_date": receipt_date.isoformat(),
                 "days_old": days_old
             }
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError) as e:
             return {
                 "valid": True,
                 "flag": None,
@@ -277,7 +275,7 @@ class ReceiptFraudDetector:
             # Check file extension vs actual content
             file_name = receipt_file.name.lower()
             is_image = file_name.endswith(('.jpg', '.jpeg', '.png', '.gif'))
-            is_pdf = file_name.endswith('.pdf')
+            _is_pdf = file_name.endswith('.pdf')
             
             if is_image:
                 try:
@@ -309,7 +307,7 @@ class ReceiptFraudDetector:
                         risk_score += 5
                         details["image_size"] = {"width": width, "height": height}
                     
-                except Exception as e:
+                except (OSError, IOError, AttributeError, TypeError, ValueError) as e:
                     details["image_analysis_error"] = str(e)
             
             # Check file size (suspicious if very small - might be edited/cropped)
@@ -322,7 +320,7 @@ class ReceiptFraudDetector:
                 risk_score += 10
                 details["file_size"] = file_size
             
-        except Exception as e:
+        except (OSError, IOError, AttributeError, TypeError, ValueError) as e:
             details["metadata_analysis_error"] = str(e)
         
         return {
@@ -423,7 +421,7 @@ class ReceiptFraudDetector:
                 "risk_score": 0,
                 "reason": "Invoice not found"
             }
-        except Exception as e:
+        except (ValueError, TypeError, InvalidOperation, AttributeError) as e:
             return {
                 "valid": True,
                 "flag": None,

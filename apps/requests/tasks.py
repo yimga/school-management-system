@@ -6,7 +6,8 @@ Runs in tenant context (per school_id or all active schools).
 from __future__ import annotations
 
 import logging
-from django.utils import timezone
+from django.db import DatabaseError, IntegrityError
+from django.core.exceptions import ValidationError
 
 from celery import shared_task
 from apps.automation.models import AutomationExecutionLog
@@ -69,7 +70,7 @@ def _remind_pending_assignees_body() -> dict:
                     link="/requests/",
                 )
                 notified += 1
-            except Exception as e:
+            except (IntegrityError, ValidationError, DatabaseError) as e:
                 logger.warning("Failed to notify assignee %s: %s", assignee_id, e)
 
         result = {"notified": notified, "assignees": len(by_assignee), "pending_total": len(pending_enabled)}
@@ -79,7 +80,7 @@ def _remind_pending_assignees_body() -> dict:
             summary=result,
         )
         return result
-    except Exception as e:
+    except (DatabaseError, IntegrityError, ValidationError, ValueError, TypeError) as e:
         logger.exception("remind_pending_assignees_task failed: %s", e)
         execution_log.mark_completed(
             AutomationExecutionLog.Status.FAILED,

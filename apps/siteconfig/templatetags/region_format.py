@@ -10,7 +10,6 @@ Note: format_currency takes a single value argument and uses context when availa
 (via resolve_currency_context) so that Django's template engine only requires one
 template-provided argument.
 """
-from decimal import Decimal
 
 from django import template
 from django.conf import settings
@@ -53,7 +52,7 @@ def format_date(value, date_format_pattern=None):
     fmt = _date_format_to_django(pattern)
     try:
         return dateformat.format(value, fmt)
-    except Exception:
+    except (TypeError, ValueError, AttributeError):
         return str(value)
 
 
@@ -82,7 +81,7 @@ def format_date_tenant(context, value):
     try:
         from apps.siteconfig.tenant_config import format_date_tenant as _fmt
         return _fmt(value, request=request, school=school)
-    except Exception:
+    except (ImportError, AttributeError, TypeError, ValueError, KeyError):
         from django.utils import dateformat
         return dateformat.format(value, "d/m/Y") if value else ""
 
@@ -97,7 +96,7 @@ def format_currency_tenant(context, value):
     try:
         from apps.siteconfig.tenant_config import format_currency_tenant as _fmt
         return _fmt(value, request=request, school=school)
-    except Exception:
+    except (ImportError, AttributeError, TypeError, ValueError):
         return str(value)
 
 

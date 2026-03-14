@@ -1,14 +1,17 @@
 """
 Views for FAQ and Knowledge Base system
 """
+import logging
+
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.http import FileResponse, HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
-from django.utils import timezone
 from django.contrib import messages
 from django.views.decorators.http import require_POST
+
+logger = logging.getLogger(__name__)
 
 from .models_kb import (
     FAQCategory, FAQ, KBCategory, KBArticle,
@@ -35,16 +38,18 @@ def _get_kb_region(request):
                 if hasattr(region, "country_code"):
                     country_code = (region.country_code or "")[:2].upper()
             plan_tier = (policy.get("plan_slug") or "").strip().lower()
-        except Exception:
-            pass
+        except (ImportError, AttributeError, TypeError, KeyError) as e:
+            ctx = request_context_for_log(request) if request else {}
+            log_exception_with_context(e, logger, "portal.views_kb._get_kb_region(tenant)", **ctx)
     else:
         try:
             from apps.compliance.access_control import get_country_from_ip
             ip = request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip() or request.META.get("REMOTE_ADDR", "")
             if ip:
                 country_code = (get_country_from_ip(ip) or "")[:2].upper()
-        except Exception:
-            pass
+        except (ImportError, OSError, ConnectionError, AttributeError, TypeError) as e:
+            ctx = request_context_for_log(request) if request else {}
+            log_exception_with_context(e, logger, "portal.views_kb._get_kb_region(public)", **ctx)
     return (country_code or "", plan_tier or "")
 
 
@@ -161,7 +166,7 @@ def faq_submit(request):
         if category_id and question and answer:
             category = get_object_or_404(FAQCategory, id=category_id)
             
-            faq = FAQ.objects.create(
+            FAQ.objects.create(
                 category=category,
                 question=question,
                 answer=answer,
@@ -272,7 +277,8 @@ def kb_article_download_odt(request, article_slug):
         response = FileResponse(f, as_attachment=True, filename=f'{article.slug}.odt')
         response['Content-Type'] = 'application/vnd.oasis.opendocument.text'
         return response
-    except Exception:
+    except (OSError, ValueError, TypeError) as e:
+        logger.warning("kb_article_download_odt failed for %s: %s", article_slug, e)
         return redirect('kb:kb_article', article_slug=article_slug)
 
 
@@ -301,7 +307,9 @@ def kb_article_download_docx(request, article_slug):
         return response
     except RuntimeError:
         return redirect('kb:kb_article', article_slug=article_slug)
-    except Exception:
+    except (OSError, IOError, ValueError, TypeError) as e:
+        ctx = request_context_for_log(request) if request else {}
+        log_exception_with_context(e, logger, "portal.views_kb.kb_article_download_docx", **ctx)
         return redirect('kb:kb_article', article_slug=article_slug)
     finally:
         if path and path != getattr(article.odt_file, 'path', None):
@@ -333,7 +341,8 @@ def kb_article_download_pdf(request, article_slug):
         return response
     except RuntimeError:
         return redirect('kb:kb_article', article_slug=article_slug)
-    except Exception:
+    except (OSError, ValueError, TypeError) as e:
+        logger.warning("kb_article_download_pdf failed for %s: %s", article_slug, e)
         return redirect('kb:kb_article', article_slug=article_slug)
     finally:
         if path and path != getattr(article.odt_file, 'path', None):
@@ -388,7 +397,7 @@ def kb_comment_add(request, article_slug):
         if parent_id:
             parent_comment = get_object_or_404(KBComment, id=parent_id)
         
-        comment = KBComment.objects.create(
+        KBComment.objects.create(
             article=article,
             user=request.user,
             comment=comment_text,
@@ -425,7 +434,7 @@ def kb_article_submit(request):
         if category_id and title and summary and content:
             category = get_object_or_404(KBCategory, id=category_id)
             
-            article = KBArticle.objects.create(
+            KBArticle.objects.create(
                 category=category,
                 title=title,
                 summary=summary,

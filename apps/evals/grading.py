@@ -159,7 +159,7 @@ def get_scale_for_school(school) -> str:
     try:
         from apps.siteconfig.tenant_config import get_grading_schema_for_school
         return get_grading_schema_for_school(school).get("scale") or "0-100"
-    except Exception:
+    except (ImportError, AttributeError, TypeError, ValueError, KeyError):
         return "0-100"
 
 

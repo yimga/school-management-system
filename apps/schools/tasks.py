@@ -9,14 +9,16 @@ from contextlib import contextmanager
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.db.utils import DatabaseError, IntegrityError
 
+from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.schools.domain_sync import ensure_tenant_client_for_school, sync_school_domains_to_runtime
 
 logger = logging.getLogger(__name__)
 
 try:
     from kombu.exceptions import OperationalError as KombuOperationalError
-except Exception:  # pragma: no cover - kombu is installed in production/test envs
+except ImportError:  # pragma: no cover - kombu is installed in production/test envs
     class KombuOperationalError(Exception):
         """Fallback exception type when kombu is unavailable."""
 
@@ -39,8 +41,11 @@ def _ensure_tenant_client(school):
     if client:
         try:
             sync_school_domains_to_runtime(school)
-        except Exception:
-            logger.exception("Failed syncing domains for school %s", school.id)
+        except (OSError, ConnectionError, DatabaseError, AttributeError, TypeError, ValueError):
+            log_exception_with_context(
+                "schools.tasks._ensure_tenant_client: failed syncing domains for school",
+                school_id=getattr(school, "id", None),
+            )
     return client
 
 
@@ -78,8 +83,12 @@ def _record_school_event(
             message=message,
             payload=payload or {},
         )
-    except Exception:
-        logger.exception("Failed to record provisioning event %s for school %s", event_type, getattr(school, "id", None))
+    except (DatabaseError, IntegrityError, AttributeError, TypeError, ValueError):
+        log_exception_with_context(
+            "schools.tasks._record_school_event: failed to record provisioning event",
+            school_id=getattr(school, "id", None),
+            extra={"event_type": event_type},
+        )
 
 
 def _record_school_event_by_id(
@@ -103,8 +112,26 @@ def _record_school_event_by_id(
             message=message,
             payload=payload or {},
         )
-    except Exception:
-        logger.exception("Failed to record provisioning event %s for school %s", event_type, school_id)
+    except (DatabaseError, IntegrityError, AttributeError, TypeError, ValueError):
+        log_exception_with_context(
+            "schools.tasks._record_school_event_by_id: failed to record provisioning event",
+            school_id=school_id,
+            extra={"event_type": event_type},
+        )
+
+
+# Exception types that may be raised during provisioning (catch, log, re-raise or retry).
+_PROVISIONING_FAILURES = (
+    DatabaseError,
+    IntegrityError,
+    OSError,
+    ConnectionError,
+    ValueError,
+    TypeError,
+    AttributeError,
+    ImportError,
+    RuntimeError,
+)
 
 
 def provision_school_sync(school_id: str, contact_email: str = "", **kwargs):
@@ -112,7 +139,7 @@ def provision_school_sync(school_id: str, contact_email: str = "", **kwargs):
     try:
         with transaction.atomic():
             _do_provision(school_id, contact_email=contact_email, **kwargs)
-    except Exception as exc:
+    except _PROVISIONING_FAILURES as exc:
         _record_school_event_by_id(
             school_id,
             event_type="FAILED",
@@ -171,7 +198,7 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
     if school.is_active:
         try:
             sync_school_domains_to_runtime(school)
-        except Exception:
+        except (OSError, ConnectionError, DatabaseError, AttributeError, TypeError, ValueError):
             logger.exception("Failed syncing domains for already active school %s", school_id)
         logger.info("School %s already active, skip provisioning", school_id)
         return
@@ -283,7 +310,7 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
                     message="Deep hydration applied (modality/terminology).",
                     payload=applied,
                 )
-        except Exception:
+        except (ImportError, AttributeError, TypeError, ValueError, DatabaseError):
             logger.debug("SystemMorphService hydrate skipped", exc_info=True)
     else:
         _record_school_event(
@@ -299,7 +326,7 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
     if tenant_client is None:
         try:
             sync_school_domains_to_runtime(school)
-        except Exception:
+        except (OSError, ConnectionError, DatabaseError, AttributeError, TypeError, ValueError):
             logger.exception("Failed syncing domains for school %s", school.id)
 
     # Tenant-scoped creation: run inside tenant_context when using schema-per-tenant
@@ -325,7 +352,7 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
             try:
                 from apps.siteconfig.tenant_config import sync_tenant_modules_to_school_features
                 sync_tenant_modules_to_school_features(school)
-            except Exception as e:
+            except (ImportError, AttributeError, TypeError, ValueError, DatabaseError) as e:
                 logger.debug("Optional sync_tenant_modules_to_school_features: %s", e)
 
         # Compile and persist tenant config snapshot (region pack + locks + effective config).
@@ -343,7 +370,7 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
                     "layers": compiled.get("layers") or [],
                 },
             )
-        except Exception:
+        except (ImportError, AttributeError, TypeError, ValueError, DatabaseError):
             logger.exception("Failed to compile tenant config snapshot for school %s", school_id)
 
         now = timezone.now().date()
@@ -450,7 +477,7 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
         if callable(seed_fn):
             try:
                 classroom_seed_names = list(seed_fn())[:3]
-            except Exception:
+            except (TypeError, AttributeError, ValueError):
                 pass
         if not classroom_seed_names:
             classroom_seed_names = ["Class 1", "Class 2", "Class 3"]
@@ -493,7 +520,7 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
         try:
             from apps.policies.policy_registry import invalidate_policy_cache
             invalidate_policy_cache(school)
-        except Exception:
+        except (ImportError, AttributeError, TypeError, ValueError):
             pass
         _record_school_event(
             school,
@@ -508,7 +535,7 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
         try:
             from apps.schools.welcome_email import send_welcome_email_task
             send_welcome_email_task.delay(str(school.id), contact_email=contact_email)
-        except Exception:
+        except (ImportError, AttributeError, ConnectionError, OSError, RuntimeError, TypeError, ValueError):
             from apps.schools.welcome_email import send_welcome_email
             send_welcome_email(str(school.id), contact_email)
 
@@ -522,7 +549,7 @@ try:
         try:
             with transaction.atomic():
                 _do_provision(school_id, contact_email=contact_email, **kwargs)
-        except Exception as exc:
+        except _PROVISIONING_FAILURES as exc:
             logger.exception("Provisioning failed for %s", school_id)
             _record_school_event_by_id(
                 school_id,

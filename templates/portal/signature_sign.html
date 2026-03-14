@@ -63,11 +63,11 @@
 
               <div class="mt-4">
                 {% if form_document.file %}
-                  <a href="{% url 'portal:document_download' form_document.id %}" target="_blank" class="btn btn-outline-primary w-100">
+                  <a href="{% url 'portal:document_download' form_document.id %}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary w-100">
                     <i class="bi bi-file-pdf me-1"></i>View Form PDF
                   </a>
                 {% elif form_document.link %}
-                  <a href="{{ form_document.link }}" target="_blank" class="btn btn-outline-primary w-100">
+                  <a href="{{ form_document.link }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary w-100">
                     <i class="bi bi-box-arrow-up-right me-1"></i>View Form
                   </a>
                 {% endif %}

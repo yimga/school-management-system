@@ -6,6 +6,8 @@
 
 **Done (Path-to-10 executed):** Performance budget script; platform events; empty-state rollout complete; governor limits; governance 9.1. **Phase 10 implementation in progress:** 1.1 done; 1.2 started (RuntimeDefaults + backfill + resolver overlay); 2.1 started (siteconfig models_ai); 4.1 runners + process_orchestration_runs; 7.1 marketing_ai wired into hero/video; 8.1 webhook list + API keys stub; 10.2 FeatureToggleState.expires_at; 10.9 lint_tenant_settings already gates get_solo. See MASTER_PLATFORM_CHECKLIST and GIANT_FILE_DECOMPOSITION.md.
 
+**For all agents:** Canonical execution and backlog: [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md), [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md), [docs_truth_ledger.md](docs_truth_ledger.md), [NEXT_50_EXECUTION_STEPS.md](NEXT_50_EXECUTION_STEPS.md). Named plan: [RUNMYCAMPUS_11_10_NORTH_STAR_COMPLETION_PLAN.md](RUNMYCAMPUS_11_10_NORTH_STAR_COMPLETION_PLAN.md). Check ledger and NEXT_50 before starting work.
+
 ---
 
 ## Siteconfig ownership migration

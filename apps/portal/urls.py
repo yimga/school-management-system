@@ -13,9 +13,6 @@ from .views import (
     parent_attendance_discipline,
     portal_feature_page,
     portal_stats,
-    parent_finance,
-    parent_wallet,
-    parent_feed,
     teacher_feed,
     link_child,
     link_child_wizard,
@@ -46,9 +43,9 @@ from .views import (
     portal_syllabus,
     preview_student_syllabus,
     preview_communication_test,
-    teacher_onboarding_wizard,
-    student_onboarding_wizard,
 )
+from .views_parent_finance import parent_finance, parent_wallet, parent_feed
+from .views_onboarding import teacher_onboarding_wizard, student_onboarding_wizard
 from .views_support import support_request
 from .views_contact_requests import (
     parent_contact_school,

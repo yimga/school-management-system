@@ -9,7 +9,7 @@ from django.utils import timezone
 from django.urls import reverse
 
 from apps.schools.models import School
-from apps.siteconfig.models import BroadcastCampaign, GlobalSyllabus, RegionConfig
+from apps.siteconfig.models import BroadcastCampaign, RegionConfig
 from apps.siteconfig.views_impersonation_consent import grant_impersonation_consent, revoke_impersonation_consent
 from apps.siteconfig.tasks import national_syllabus_sync, emergency_broadcast_fanout
 

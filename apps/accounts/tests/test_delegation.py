@@ -12,12 +12,12 @@ from apps.accounts.delegation import (
     can_user_approve_for_workflow,
     get_active_delegation_for_delegate,
 )
-from apps.siteconfig.models import SiteSettings
+from apps.platform_runtime.helpers import get_platform_site_settings_record
 
 
 class DelegationHelperTests(TestCase):
     def setUp(self):
-        self.site = SiteSettings.get_solo()
+        self.site = get_platform_site_settings_record(create=True)
         self.site.syllabus_approval_roles = ["DEAN", "HOD"]
         self.site.grade_approval_roles = ["DEAN", "HOD"]
         self.site.save()

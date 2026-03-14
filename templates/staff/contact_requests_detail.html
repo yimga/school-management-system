@@ -33,7 +33,7 @@
         <p class="mb-1">
           <strong>WhatsApp:</strong>
           {% if ticket.contact_whatsapp %}
-            <a href="https://wa.me/{{ ticket.contact_whatsapp|urlencode }}?text={{ 'Hello, I am following up on your contact request.'|urlencode }}" target="_blank" rel="noreferrer">
+            <a href="https://wa.me/{{ ticket.contact_whatsapp|urlencode }}?text={{ 'Hello, I am following up on your contact request.'|urlencode }}" target="_blank" rel="noopener noreferrer">
               {{ ticket.contact_whatsapp }}
             </a>
           {% else %}

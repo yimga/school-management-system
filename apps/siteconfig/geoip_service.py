@@ -3,14 +3,10 @@ Phase 8 Task 10: GeoIP & Regional Support
 Geographic IP detection, location-based access control, region customization
 """
 
-import geoip2.database
 from django.core.cache import cache
 from django.core.exceptions import ImproperlyConfigured
 from django.db import models
-from django.utils.functional import cached_property
-import requests
-from typing import Optional, Dict, List, Tuple
-import json
+from typing import Optional, Dict, List
 
 try:
     from django.contrib.gis.geos import Point
@@ -344,8 +340,6 @@ class GeoIPEventLogger:
         if not location:
             return
         
-        from django.contrib.admin.models import LogEntry, CHANGE
-        from django.contrib.contenttypes.models import ContentType
         
         event = {
             'timestamp': timezone.now(),
@@ -367,8 +361,8 @@ class GeoIPEventLogger:
         from django.utils import timezone
         from datetime import timedelta
         
-        cutoff = timezone.now() - timedelta(days=days)
-        
+        _cutoff = timezone.now() - timedelta(days=days)
+
         return {
             'period_days': days,
             'total_access_attempts': 0,

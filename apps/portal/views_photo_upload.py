@@ -234,7 +234,7 @@ def photo_upload_status(request, token):
 def photo_upload_qr(request, token):
     if not _photo_upload_remote_enabled():
         raise Http404("Photo upload from another device is disabled.")
-    token_obj = get_object_or_404(PhotoUploadToken, token=token)
+    get_object_or_404(PhotoUploadToken, token=token)
     full_url = request.build_absolute_uri(f"/portal/photo-upload/{token}/")
     try:
         import qrcode

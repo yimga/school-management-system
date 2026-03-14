@@ -3,7 +3,6 @@ Backend UI Forms for People Management
 User-friendly forms for /backend interface (separate from Django Admin)
 """
 from django import forms
-from django.core.exceptions import ValidationError
 from .models import StudentProfile, TeacherProfile, Applicant
 from apps.academics.models import AcademicYear, Classroom, Specialty, Department
 

@@ -4,7 +4,6 @@ Automated tests for items that can be asserted without a live manager host.
 See docs/architecture/phase10_superadmin_vs_tenant_ui.md § Verification checklist.
 """
 from django.contrib.auth.models import AnonymousUser
-from django.http import HttpRequest
 from django.test import RequestFactory, TestCase, override_settings
 from django.urls import resolve, reverse
 

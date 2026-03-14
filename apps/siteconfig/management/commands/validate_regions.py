@@ -8,8 +8,7 @@ from django.db.models import Count
 import pytz
 
 from apps.registries.services import is_known_currency_code
-from apps.siteconfig.models import RegionConfig, GradingScaleConfig, HolidayCalendar
-from apps.academics.models import AcademicYear
+from apps.siteconfig.models import RegionConfig
 
 
 class Command(BaseCommand):

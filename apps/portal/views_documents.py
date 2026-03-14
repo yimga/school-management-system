@@ -4,14 +4,17 @@ Backend UI for admins to upload and manage documents
 """
 
 import csv
+import logging
 import os
 import tempfile
+
+logger = logging.getLogger(__name__)
 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import Http404, HttpResponse, FileResponse
-from django.db.models import Q, Count
+from django.http import HttpResponse, FileResponse
+from django.db.models import Q
 from django.utils import timezone
 from django.urls import reverse
 from django.views.decorators.http import require_POST, require_http_methods
@@ -19,7 +22,7 @@ from django.views.decorators.http import require_POST, require_http_methods
 from apps.accounts.decorators import permission_required
 from apps.accounts.models import User
 from apps.packages.models import DocumentPack
-from apps.people.models import StudentProfile, StudentGuardian
+from apps.people.models import StudentGuardian
 from .document_lifecycle import DOCUMENT_LIFECYCLE_CHOICES
 from .models import PortalFeatureItem, FormSignature
 from .forms_documents import DocumentUploadForm, SignatureRequestForm
@@ -268,7 +271,8 @@ def document_download_pdf(request, document_id):
     except RuntimeError:
         messages.error(request, "PDF conversion is not available (LibreOffice may not be installed).")
         return redirect("portal:document_download", document_id=document_id)
-    except Exception:
+    except (OSError, ValueError, TypeError) as e:
+        logger.warning("PDF conversion failed for document %s: %s", document_id, e)
         messages.error(request, "PDF conversion failed.")
         return redirect("portal:document_download", document_id=document_id)
     finally:
@@ -361,7 +365,7 @@ def signature_pending_list(request):
     
     # Filter out expired
     from django.utils import timezone
-    now = timezone.now()
+    timezone.now()
     pending_requests = [
         req for req in pending_requests
         if not req.is_expired

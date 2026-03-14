@@ -8,7 +8,8 @@ from django.urls import reverse
 from apps.accounts.models import User
 from apps.academics.models import AcademicYear, Classroom, Department, Specialty
 from apps.people.models import StudentProfile
-from apps.siteconfig.models import ReportCardStyle, ReportCardStyleAssignment, SiteSettings
+from apps.platform_runtime.helpers import get_platform_site_settings_record
+from apps.siteconfig.models import ReportCardStyle, ReportCardStyleAssignment
 
 
 class ReportCardBuilderViewTests(TestCase):
@@ -61,7 +62,7 @@ class ReportCardBuilderViewTests(TestCase):
             specialty=self.specialty,
             is_active=True,
         )
-        site = SiteSettings.get_solo()
+        site = get_platform_site_settings_record(create=True)
         site.default_term_report_style = self.style
         site.default_annual_report_style = self.style
         site.save(update_fields=["default_term_report_style", "default_annual_report_style"])

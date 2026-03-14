@@ -20,15 +20,19 @@ from apps.registries.models import (
     SubdivisionRegistry,
     TimeZoneRegistry,
 )
-from apps.siteconfig.models import (
-    EducationSystemProfile as LegacyEducationSystemProfile,
+# Import from concrete modules to avoid circular import when compliance (or others)
+# loads global_registries before siteconfig.models has finished loading.
+from apps.academics.models import HolidayCalendar as LegacyHolidayCalendar
+from apps.siteconfig.models_global_experience import (
     GradingScaleConfig as LegacyGradingScaleConfig,
-    HolidayCalendar as LegacyHolidayCalendar,
+    WeatherLocation as LegacyWeatherLocation,
+)
+from apps.siteconfig.models_platform_catalog import (
+    EducationSystemProfile as LegacyEducationSystemProfile,
     Province as LegacyProvince,
     RegionConfig as LegacyRegionConfig,
     SystemFeature as LegacySystemFeature,
     TenantSystem as LegacyTenantSystem,
-    WeatherLocation as LegacyWeatherLocation,
 )
 
 

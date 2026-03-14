@@ -5,7 +5,7 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 from apps.compliance.models import (
     ComplianceRule, RegionalComplianceRequirement, ComplianceCheck,
-    LegalDocument, ComplianceAuditLog, StudentIDFormat, CertificateTemplate
+    LegalDocument,
 )
 from apps.siteconfig.models import RegionConfig
 

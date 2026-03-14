@@ -14,7 +14,6 @@ from decimal import Decimal, InvalidOperation
 from typing import Any
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.safestring import mark_safe
 import json
 from django.db import DatabaseError
 
@@ -64,9 +63,6 @@ from apps.platform_runtime.helpers import get_effective_flags, get_effective_sit
 from apps.siteconfig.models import default_backend_feature_flags
 from apps.siteconfig.dashboard_resolver import for_role as dashboard_for_role
 from apps.siteconfig.workflow_resolver import get_approval_workflow as workflow_get_approval
-from apps.runtime_blueprints.models import get_dashboard_widget_metadata
-from apps.siteconfig.dashboard_views import load_dashboard_layout_settings
-from apps.siteconfig.dashboard_views import _can_customize
 from apps.finance.models import Notification
 from apps.compliance.models_audit import AuditLog
 
@@ -976,7 +972,7 @@ def teacher_workflow_center(request: HttpRequest):
         width_pct = round((filled / total) * 100, 0) if total else 0
         progress[a.id] = {"filled": filled, "total": total, "width": width_pct}
 
-    widget_data = teacher_dashboard_widget_data(assignments, progress, year, term, teacher=teacher)
+    teacher_dashboard_widget_data(assignments, progress, year, term, teacher=teacher)
     total_slots = sum((p.get("total", 0) for p in progress.values()), 0) or 1
     filled_slots = sum((p.get("filled", 0) for p in progress.values()), 0)
     completion_pct = int(round((filled_slots / total_slots) * 100))
