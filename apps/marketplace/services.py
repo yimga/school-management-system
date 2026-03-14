@@ -25,6 +25,7 @@ _MARKETPLACE_SCHEMA_BILLING_ERRORS = (
     ValueError,
     RuntimeError,
 )
+_SCHEMA_PATCH_ERRORS = _MARKETPLACE_SCHEMA_BILLING_ERRORS
 
 
 def ensure_marketplace_listing(app, *, publisher=None):
