@@ -106,6 +106,7 @@
     "apps/siteconfig/dashboard_views.py": 0,
     "apps/siteconfig/views_dashboard_config.py": 0,
     "apps/marketplace/views.py": 0,
+    "apps/marketplace/services.py": 0,
     "apps/siteconfig/views_console_domains.py": 0,
     "apps/portal/ai_provider.py": 0,
     "apps/metadata/lineage_api.py": 0,

@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import logging
 from datetime import timedelta
 from typing import Any, Dict, Optional
 
 from django.core.cache import cache
+from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
+from django.db import DatabaseError, OperationalError
 from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 
@@ -12,15 +15,38 @@ from apps.dashboard.action_registry import (
     get_contextual_actions,
     VALID_DASHBOARD_INTENTS,
 )
+from apps.dashboard.role_home_engine import (
+    prioritize_destinations,
+    resolve_role_home,
+    select_kpis_for_intent,
+    select_role_home_actions,
+)
 from apps.platform_runtime.helpers import get_effective_flags, get_effective_site_settings
+from apps.platform_runtime.structured_logging import log_exception_with_context, log_view_exception
+
+logger = logging.getLogger(__name__)
+
+# Typed exceptions for dashboard context (§2.4 broad-except policy)
+_DASHBOARD_REVERSE_ERRORS = (NoReverseMatch, ImproperlyConfigured, ValueError, TypeError)
+# Snapshot/query and optional feature failures (resilient counts; log and keep going)
+_DASHBOARD_SNAPSHOT_ERRORS = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    ObjectDoesNotExist,
+    DatabaseError,
+    OperationalError,
+)
+_DASHBOARD_PERMISSION_CHECK_ERRORS = (AttributeError, TypeError, ValueError, ImportError)
+_DASHBOARD_PARSING_ERRORS = (TypeError, ValueError)
+_DASHBOARD_CONFIG_ERRORS = (ImproperlyConfigured,)
 
 
 def __safe_reverse(name: str, fallback: str = "#") -> str:
     try:
         return reverse(name)
-    except NoReverseMatch:
-        return fallback
-    except Exception:
+    except _DASHBOARD_REVERSE_ERRORS:
         return fallback
 
 
@@ -30,7 +56,7 @@ _safe_reverse = __safe_reverse
 def _safe_int(value: Any, default: int = 0) -> int:
     try:
         return int(value or 0)
-    except Exception:
+    except _DASHBOARD_PARSING_ERRORS:
         return default
 
 
@@ -66,7 +92,7 @@ def _has_permission(user, *codes: str) -> bool:
         try:
             if code and checker(code):
                 return True
-        except Exception:
+        except _DASHBOARD_PERMISSION_CHECK_ERRORS:
             continue
     return False
 
@@ -115,14 +141,14 @@ def _build_cached_snapshot(site_id: str, role_code: str) -> Dict[str, int]:
         from apps.people.models import StudentProfile, TeacherProfile
         students = StudentProfile.objects.filter(is_active=True).count()
         teachers = TeacherProfile.objects.filter(is_active=True).count()
-    except Exception:
+    except _DASHBOARD_SNAPSHOT_ERRORS:
         pass
 
     try:
         from apps.academics.models import Classroom, Subject
         classrooms = Classroom.objects.filter(is_active=True).count()
         subjects = Subject.objects.filter(is_active=True).count()
-    except Exception:
+    except _DASHBOARD_SNAPSHOT_ERRORS:
         pass
 
     try:
@@ -130,7 +156,7 @@ def _build_cached_snapshot(site_id: str, role_code: str) -> Dict[str, int]:
         users = User.objects.count()
         if hasattr(User, "role"):
             parents = User.objects.filter(role="PARENT").count()
-    except Exception:
+    except _DASHBOARD_SNAPSHOT_ERRORS:
         pass
 
     try:
@@ -138,13 +164,13 @@ def _build_cached_snapshot(site_id: str, role_code: str) -> Dict[str, int]:
         invoices = Invoice.objects.count()
         overdue = Invoice.objects.filter(status="OVERDUE").count()
         drafts = Invoice.objects.filter(status="DRAFT").count()
-    except Exception:
+    except _DASHBOARD_SNAPSHOT_ERRORS:
         pass
 
     try:
         from apps.requests.models import AccessRequest
         pending_approvals = AccessRequest.objects.filter(status=AccessRequest.Status.PENDING).count()
-    except Exception:
+    except _DASHBOARD_SNAPSHOT_ERRORS:
         pass
 
     try:
@@ -155,13 +181,13 @@ def _build_cached_snapshot(site_id: str, role_code: str) -> Dict[str, int]:
             request_method="POST",
             timestamp__gte=cutoff,
         ).exclude(status__in=["302", "303"]).count()
-    except Exception:
+    except _DASHBOARD_SNAPSHOT_ERRORS:
         failed_logins_24h = 0
 
     try:
         from apps.finance.models import Notification
         system_incidents = Notification.objects.filter(title__icontains="incident").count()
-    except Exception:
+    except _DASHBOARD_SNAPSHOT_ERRORS:
         system_incidents = 0
 
     snapshot = {
@@ -180,150 +206,6 @@ def _build_cached_snapshot(site_id: str, role_code: str) -> Dict[str, int]:
     }
     cache.set(key, snapshot, DASHBOARD_SNAPSHOT_CACHE_TTL)
     return snapshot
-
-
-ROLE_HOME_BY_ROLE = {
-    "ADMIN": "implementation",
-    "IT_ADMIN": "implementation",
-    "SUPERADMIN": "implementation",
-    "PRINCIPAL": "principal",
-    "VICE_PRINCIPAL": "principal",
-    "LEADERSHIP": "district_leader",
-    "PROPRIETOR": "district_leader",
-    "SECRETARY": "admissions",
-    "ACADEMICS_STAFF": "admissions",
-    "BURSAR": "finance",
-    "ACCOUNTANT": "finance",
-    "FINANCE_STAFF": "finance",
-    "TEACHER": "teacher",
-    "PARENT": "parent",
-    "STUDENT": "student",
-}
-
-ROLE_HOME_CONFIG = {
-    "principal": {
-        "key": "principal",
-        "eyebrow": "Principal home",
-        "title": "Lead with status and decisions",
-        "purpose": "See academic, people, finance, and launch signals without reconstructing the story from separate pages.",
-        "focus_areas": ["School pulse", "Decision queue", "Escalations"],
-        "default_intent": "executive",
-        "queue_label": "Decision queue",
-        "next_label": "Recommended next",
-        "recent_label": "Recent movement",
-        "search_hint": "Search students, finance actions, interventions, and workflows",
-        "destinations": ["workflow_center", "documents", "preferences"],
-    },
-    "teacher": {
-        "key": "teacher",
-        "eyebrow": "Teacher home",
-        "title": "Stay focused on class outcomes",
-        "purpose": "This role home favors grading, attendance, and classroom actions over admin navigation.",
-        "focus_areas": ["Class flow", "Assessment", "Family communication"],
-        "default_intent": "academic",
-        "queue_label": "Academic queue",
-        "next_label": "Teaching next steps",
-        "recent_label": "Latest classroom movement",
-        "search_hint": "Search classes, grades, attendance, and parent communication",
-        "destinations": ["workflow_center", "preferences"],
-    },
-    "admissions": {
-        "key": "admissions",
-        "eyebrow": "Admissions home",
-        "title": "Move applicants into active enrollment",
-        "purpose": "Keep enrollment, onboarding, and records flowing without bouncing across utility pages.",
-        "focus_areas": ["Applicant flow", "Onboarding", "Record quality"],
-        "default_intent": "operational",
-        "queue_label": "Admissions queue",
-        "next_label": "Enrollment next",
-        "recent_label": "Recent admissions activity",
-        "search_hint": "Search applicants, students, families, and enrollment tasks",
-        "destinations": ["workflow_center", "documents", "preferences"],
-    },
-    "finance": {
-        "key": "finance",
-        "eyebrow": "Finance home",
-        "title": "Collections and approvals first",
-        "purpose": "Every block in this mode is tuned for payment health, approvals, and billing follow-through.",
-        "focus_areas": ["Collections", "Approvals", "Reconciliation"],
-        "default_intent": "finance",
-        "queue_label": "Collections queue",
-        "next_label": "Finance next",
-        "recent_label": "Recent finance movement",
-        "search_hint": "Search invoices, collections, requests, and approvals",
-        "destinations": ["workflow_center", "preferences"],
-    },
-    "district_leader": {
-        "key": "district_leader",
-        "eyebrow": "District leader home",
-        "title": "See school health before drilling down",
-        "purpose": "Monitor cross-team movement and intervene only where the platform shows risk or friction.",
-        "focus_areas": ["Portfolio pulse", "Priority risks", "Cross-school movement"],
-        "default_intent": "executive",
-        "queue_label": "Leadership queue",
-        "next_label": "Leadership next",
-        "recent_label": "Recent operating movement",
-        "search_hint": "Search schools, approvals, audits, and operations",
-        "destinations": ["workflow_center", "documents", "preferences"],
-    },
-    "implementation": {
-        "key": "implementation",
-        "eyebrow": "Implementation home",
-        "title": "Launch readiness is the main job",
-        "purpose": "Use Setup Studio, queue health, and role previews to remove launch blockers in the right order.",
-        "focus_areas": ["Blueprint", "Preview", "Launch readiness"],
-        "default_intent": "setup",
-        "queue_label": "Launch blockers",
-        "next_label": "Launch next",
-        "recent_label": "Recent setup movement",
-        "search_hint": "Search setup tasks, blueprints, branding, and launch blockers",
-        "destinations": ["workflow_center", "documents", "preferences"],
-    },
-    "parent": {
-        "key": "parent",
-        "eyebrow": "Parent home",
-        "title": "One place for family follow-through",
-        "purpose": "Stay on top of attendance, grades, fees, and messages without chasing separate tools.",
-        "focus_areas": ["Child context", "Fees", "Messages"],
-        "default_intent": "operational",
-        "queue_label": "Family queue",
-        "next_label": "Family next",
-        "recent_label": "Recent family updates",
-        "search_hint": "Search children, fees, messages, and school updates",
-        "destinations": ["preferences"],
-    },
-    "student": {
-        "key": "student",
-        "eyebrow": "Student home",
-        "title": "Keep learning work obvious",
-        "purpose": "Assignments, results, and resources should feel like one path instead of separate utilities.",
-        "focus_areas": ["Schedule", "Deadlines", "Progress"],
-        "default_intent": "academic",
-        "queue_label": "Student queue",
-        "next_label": "Student next",
-        "recent_label": "Recent study updates",
-        "search_hint": "Search assignments, grades, and school resources",
-        "destinations": ["preferences"],
-    },
-}
-
-INTENT_KPI_PRIORITY = {
-    "executive": ["top_performing", "attendance_today", "recent_admissions"],
-    "operational": ["attendance_today", "recent_admissions", "weekly_presence"],
-    "academic": ["top_performing", "attendance_today", "recent_admissions"],
-    "finance": ["recent_admissions", "attendance_today", "weekly_presence"],
-    "setup": ["recent_admissions", "attendance_today", "weekly_presence"],
-}
-
-
-def _resolve_role_home(role_code: str, intent: str | None) -> Dict[str, Any]:
-    key = ROLE_HOME_BY_ROLE.get(role_code or "", "implementation" if intent == "setup" else "principal")
-    role_home = dict(ROLE_HOME_CONFIG.get(key, ROLE_HOME_CONFIG["principal"]))
-    if intent in VALID_DASHBOARD_INTENTS:
-        role_home["active_intent"] = intent
-    else:
-        role_home["active_intent"] = role_home["default_intent"]
-    return role_home
 
 
 def _build_priority_queue(items: list[Dict[str, Any]], *, max_items: int = 4) -> list[Dict[str, Any]]:
@@ -362,84 +244,6 @@ def _build_recent_activity_block(activities: Any, *, max_items: int = 4) -> list
             }
         )
     return results
-
-
-def _prioritize_destinations(
-    role_home: Dict[str, Any],
-    action_chips: list[Dict[str, Any]],
-    quick_links: list[Dict[str, Any]],
-    contextual_actions: list[Dict[str, Any]],
-) -> list[Dict[str, Any]]:
-    combined = _dedupe_nav_items(list(action_chips or []) + list(quick_links or []) + list(contextual_actions or []))
-    preferred_ids = list(role_home.get("destinations") or [])
-    by_id = {str(item.get("id", "")): item for item in combined if item.get("id")}
-    prioritized: list[Dict[str, Any]] = []
-    seen: set[tuple[str, str]] = set()
-
-    def _remember(item: Dict[str, Any]) -> bool:
-        key = (
-            str(item.get("label", "") or "").strip().lower(),
-            str(item.get("url", "") or "").strip().lower(),
-        )
-        if key in seen:
-            return False
-        seen.add(key)
-        return True
-
-    for item_id in preferred_ids:
-        item = by_id.get(item_id)
-        if item and item not in prioritized and _remember(item):
-            prioritized.append(item)
-    for item in combined:
-        if item not in prioritized and _remember(item):
-            prioritized.append(item)
-    return prioritized[:5]
-
-
-def _select_role_home_actions(
-    dashboard_next_best_actions: list[Dict[str, Any]],
-    primary_ctas: list[Dict[str, Any]],
-    role_home_destinations: list[Dict[str, Any]],
-) -> tuple[Dict[str, Any] | None, list[Dict[str, Any]]]:
-    combined = _dedupe_nav_items(
-        list(dashboard_next_best_actions or []) + list(primary_ctas or []) + list(role_home_destinations or [])
-    )
-    primary_action = combined[0] if combined else None
-    supporting_actions: list[Dict[str, Any]] = []
-    seen: set[tuple[str, str]] = set()
-    if primary_action:
-        seen.add(
-            (
-                str(primary_action.get("label", "") or "").strip().lower(),
-                str(primary_action.get("url", "") or "").strip().lower(),
-            )
-        )
-    for item in combined[1:]:
-        key = (
-            str(item.get("label", "") or "").strip().lower(),
-            str(item.get("url", "") or "").strip().lower(),
-        )
-        if key in seen:
-            continue
-        seen.add(key)
-        supporting_actions.append(item)
-        if len(supporting_actions) >= 3:
-            break
-    return primary_action, supporting_actions
-
-
-def _select_kpis_for_intent(kpis: list[Dict[str, Any]], intent: str) -> list[Dict[str, Any]]:
-    desired_ids = INTENT_KPI_PRIORITY.get(intent, [])
-    by_id = {str(item.get("id", "")): item for item in kpis}
-    ordered: list[Dict[str, Any]] = []
-    for item_id in desired_ids:
-        item = by_id.get(item_id)
-        if item and item not in ordered:
-            ordered.append(item)
-    for item in kpis:
-        if item not in ordered:
-            ordered.append(item)
-    return ordered[:3]
 
 
 def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
@@ -493,13 +297,15 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
             "lon": backend_flags.get("header_weather_longitude", weather_defaults["header_weather_longitude"]),
             "unit": backend_flags.get("header_weather_temperature_unit", weather_defaults["header_weather_temperature_unit"]),
         })
-    except Exception:
+    except _DASHBOARD_SNAPSHOT_ERRORS:
         pass
+    except _DASHBOARD_CONFIG_ERRORS:
+        log_view_exception(request, "dashboard backend flags/weather failed", extra={"step": "weather_cfg"})
 
     def _clamp_max_items(value, default=5):
         try:
             parsed = int(value)
-        except Exception:
+        except _DASHBOARD_PARSING_ERRORS:
             parsed = int(default)
         return max(3, min(12, parsed))
 
@@ -632,7 +438,7 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
             n = len(data)
             pts = [f"{i * 100 / (n - 1):.1f},{24 - (v / mx * 22):.1f}" for i, v in enumerate(data)]
             return " ".join(pts)
-        except Exception:
+        except (TypeError, ValueError, ZeroDivisionError):
             return ""
 
     students = snapshot.get("students", 0)
@@ -720,7 +526,7 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
         try:
             from apps.portal.models import FormSignature
             pending_signatures = FormSignature.objects.filter(status=FormSignature.SignatureStatus.PENDING).count()
-        except Exception:
+        except _DASHBOARD_SNAPSHOT_ERRORS:
             pass
     if pending_signatures > 0:
         operations_watch.append({
@@ -739,7 +545,7 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
             contact_requests_count = ContactRequest.objects.exclude(
                 status__in=(ContactRequest.Status.RESOLVED, ContactRequest.Status.CLOSED)
             ).count()
-        except Exception:
+        except _DASHBOARD_SNAPSHOT_ERRORS:
             pass
     if contact_requests_count > 0:
         operations_watch.append({
@@ -756,7 +562,7 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
         from apps.communication.models import Message
         if messages_unread == 0 and user:
             messages_unread = Message.objects.filter(recipient=user, is_read=False).count()
-    except Exception:
+    except _DASHBOARD_SNAPSHOT_ERRORS:
         pass
     if messages_unread > 0:
         operations_watch.append({
@@ -775,7 +581,7 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
             announcements_pending = Announcement.objects.filter(
                 status=Announcement.Status.PENDING_APPROVAL
             ).count()
-        except Exception:
+        except _DASHBOARD_SNAPSHOT_ERRORS:
             pass
     if announcements_pending > 0:
         operations_watch.append({
@@ -798,7 +604,7 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
     intent = (base.get("dashboard_intent") or "").strip().lower()
     if intent not in VALID_DASHBOARD_INTENTS:
         intent = ""
-    role_home = _resolve_role_home(role_code, intent or None)
+    role_home = resolve_role_home(role_code, intent or None)
     intent = intent or role_home["default_intent"]
     actions = get_backend_dashboard_actions(
         perms, _safe_reverse, _build_nav_item, _dedupe_nav_items, intent=intent or None
@@ -836,12 +642,12 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
         prefs = getattr(user, "dashboard_preferences", None)
         if prefs and isinstance(prefs.pinned_sidebar_items, list):
             pinned_order = [str(x).strip() for x in prefs.pinned_sidebar_items if str(x).strip()]
-    except Exception:
+    except _DASHBOARD_PERMISSION_CHECK_ERRORS:
         pinned_order = []
     if pinned_order:
         order_map = {key: idx for idx, key in enumerate(pinned_order)}
         quick_links.sort(key=lambda x: order_map.get(x.get("id", ""), 999))
-    role_home_destinations = _prioritize_destinations(role_home, action_chips, quick_links, contextual_actions)
+    role_home_destinations = prioritize_destinations(role_home, action_chips, quick_links, contextual_actions)
     quick_links = role_home_destinations[:5]
 
     upcoming_events = []
@@ -850,7 +656,7 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
         from apps.portal.services import _merged_upcoming_events
         year, _ = get_active_year_and_term()
         upcoming_events = _merged_upcoming_events(year)[:7]
-    except Exception:
+    except _DASHBOARD_SNAPSHOT_ERRORS:
         pass
 
     top_performing_students = base.get("top_performing_students") or []
@@ -868,7 +674,7 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
     try:
         top_score_value = f"{float(top_score):.1f}/20"
         top_status = "ok"
-    except Exception:
+    except (TypeError, ValueError):
         top_score_value = "--"
         top_status = "warn"
 
@@ -927,7 +733,7 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
             "icon": "bi-activity",
         },
     ]
-    kpi_strip_cards = _select_kpis_for_intent(kpi_strip_cards, intent)
+    kpi_strip_cards = select_kpis_for_intent(kpi_strip_cards, intent)
     dashboard_priority_queue = _build_priority_queue(operations_watch, max_items=4)
     dashboard_recent_activity = _build_recent_activity_block(base.get("recent_activities"), max_items=4)
     if not dashboard_recent_activity:
@@ -951,7 +757,7 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
             }
             for item in contextual_actions[:3]
         ]
-    role_home_primary_action, role_home_supporting_actions = _select_role_home_actions(
+    role_home_primary_action, role_home_supporting_actions = select_role_home_actions(
         dashboard_next_best_actions,
         primary_ctas,
         role_home_destinations,

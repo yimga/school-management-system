@@ -208,7 +208,7 @@
 | adhoc_runner.py | DONE | run_adhoc_report: _REPORT_RUN_ERRORS (DatabaseError, IntegrityError, ValidationError, TypeError, ValueError, KeyError, AttributeError, OSError, ImportError) + log_exception_with_context. Allowlist 0. |
 | bi_services.py | DONE | ScheduledReportRunner.run_due_reports: _SCHEDULED_REPORT_RUN_ERRORS (same typed tuple) + log_exception_with_context. Allowlist 0. |
 | services.py | DONE | notify_parent_report_blocked_by_debt: (OSError, ConnectionError, AttributeError, TypeError, ValueError, KeyError) + log_exception_with_context. _region_display_context: region lookup (ObjectDoesNotExist, DatabaseError, KeyError, TypeError, AttributeError); tenant locale/template_family (ImportError, AttributeError, TypeError, ValueError, KeyError, DatabaseError). All + log_exception_with_context. Allowlist 0. |
-| views.py | DONE (logging) | Publish flow: AuditLog create + honor roll badge create — broad except retained with log_exception_with_context (request/school_id, extra: academic_year_id, term_id, student_id). Allowlist 2. |
+| views.py | DONE | Publish flow: AuditLog create + honor roll badge create — typed (DatabaseError, IntegrityError, ValidationError, TypeError, ValueError) and (DatabaseError, IntegrityError, ValidationError, TypeError, ValueError, KeyError, ObjectDoesNotExist) + log_view_exception. Allowlist 0. |
 | **weasy.py** | **DONE** | _load_weasyprint_html: _WEASYPRINT_LOAD_ERRORS (ImportError, ModuleNotFoundError, AttributeError, OSError) + re-raise RuntimeError. Allowlist 0. |
 
 ### apps/analytics (§2.4 — incremental)
@@ -245,6 +245,7 @@
 | File | Status | Notes |
 |------|--------|------|
 | **views.py** | **DONE** | Blueprint pack preview: _MARKETPLACE_PREVIEW_FAILURES; app sandbox embed: _embed_parse_errors (ValueError, TypeError, AttributeError, KeyError) for urlparse/origin. Allowlist 0. |
+| services.py | DONE | check_app_compatibility blueprint_families: _MARKETPLACE_COMPAT_ERRORS (ImportError, AttributeError, TypeError, ValueError, KeyError) + log_exception_with_context. run_schema_patches_for_installation: _MARKETPLACE_SCHEMA_BILLING_ERRORS (DatabaseError, IntegrityError, OSError, ImportError, AttributeError, TypeError, ValueError, RuntimeError) + log_exception_with_context. install_app billing record: same tuple + log_exception_with_context. Allowlist 0. |
 
 ### apps/setup_studio (§2.4 — incremental)
 | File | Status | Notes |
