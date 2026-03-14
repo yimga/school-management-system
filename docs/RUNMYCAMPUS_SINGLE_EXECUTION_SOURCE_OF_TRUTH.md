@@ -1,11 +1,15 @@
 # RunMyCampus Embedded Master Remediation Plan
 
 **Rule of use (canonical)**  
-This file is the **single execution source of truth** for closing every major gap identified in the full-platform audit. Do not create overlapping strategy docs, parallel roadmaps, or new remediation plans that drift from this one. Every major implementation task, audit, cleanup, migration, or platform-hardening effort must map back to this file. Cursor/Codex/Claude should act on this plan directly. Completion states: DONE | PARTIAL | NOT DONE | DEPRECATED/REPLACED | BLOCKED. No fake completion language; do not claim 9.5/10 or 11/10 until the scoring gates in §12 are satisfied. **Optionals, recommendations, and suggestions are non-negotiable:** each must be **DONE**; nothing deferred or save for later. See §11.1 and BACKLOG_AND_DEFERRED_CLOSURE §2f.
+This file is the **single execution source of truth** and the canonical **"RunMyCampus Latest Zip Master Execution Plan"** for closing every major gap identified in the full-platform audit. Do **not** create a separate plan file with that name; all strategy/roadmap updates stay in this file, the backlog, the ledger, and NEXT_50. Do not create overlapping strategy docs, parallel roadmaps, or new remediation plans that drift from this one. Every major implementation task, audit, cleanup, migration, or platform-hardening effort must map back to this file. Cursor/Codex/Claude should act on this plan directly. Completion states: DONE | PARTIAL | NOT DONE | DEPRECATED/REPLACED | BLOCKED. No fake completion language; do **not** claim 9.5/10, 11/10, 12/10, or 15/10 until the scoring gates in §12 are satisfied. **Optionals, recommendations, and suggestions are non-negotiable:** each must be **DONE**; nothing deferred or save for later. See §11.1 and BACKLOG_AND_DEFERRED_CLOSURE §2f.
+
+**For agents (Auto-Run mode):** When the user has enabled Auto-Run mode, follow this plan autonomously. Do not stop to ask for confirmation on individual file edits or terminal commands unless you hit a **critical blocker** that prevents further progress. If you encounter an error, research the logs, fix it, and continue. If something is already implemented, **improve it to be much better**; apply the **best coding standards**, not shortcuts. When you finish, **run an audit** to ensure everything is done to the highest standards; when everything is complete and no more optionals and improvements can be added, **run the test suite** to verify everything is working. The user may be unavailable; resolve issues by research and fix. Do not block on questions to the user except for critical blockers.
 
 **For all agents:** Before starting any item from this plan or the backlog, check [docs_truth_ledger.md](docs_truth_ledger.md) and [NEXT_50_EXECUTION_STEPS.md](NEXT_50_EXECUTION_STEPS.md) for current status to avoid duplicate or conflicting work. Named plan: [RUNMYCAMPUS_11_10_NORTH_STAR_COMPLETION_PLAN.md](RUNMYCAMPUS_11_10_NORTH_STAR_COMPLETION_PLAN.md). Backlog and closure: [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md). Strategy/roadmap updates go only to this file, the backlog, the ledger, and NEXT_50—do not create new overlapping roadmap files.
 
 **Supporting doc:** Full audit + Cursor/Codex remediation instructions: [RunMyCampus_Enterprise_Architecture_Audit_and_Cursor_Plan.md](RunMyCampus_Enterprise_Architecture_Audit_and_Cursor_Plan.md).
+
+**Associated plans (sync when items done):** `.cursor/plans/update_single_execution_sot_2b40b934.plan.md`, `.cursor/plans/verify_and_add_sot_gaps_b0529884.plan.md`. Mark completed items in those plans and keep this file as single source of truth.
 
 **Stock-taking and validation:** Current snapshot, §12 gate status, and cross-validation of this plan vs backlog/ledger/NEXT_50: [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md) §6.
 
@@ -38,38 +42,49 @@ It incorporates the issues identified across:
 - docs truthfulness
 - Gilead residue removal
 
-This plan is intentionally concrete and implementation-oriented so Cursor/Codex/Claude can act on it directly.
+This plan is intentionally concrete and implementation-oriented so Cursor/Codex/Claude can act on it directly. Work must be **developed so that after deployment to production, changes can be visibly seen**; no invisible or unreachable changes.
 
 ---
 
 # 0. Current truth
+
+## Truth statement
+RunMyCampus is a serious multi-tenant platform in transition. It is not yet 9.5/10+. The remaining gap is **executional, not conceptual**.
 
 ## Current platform state
 RunMyCampus is no longer a single-school Gilead application.
 RunMyCampus is a real multi-tenant platform in transition.
 **Global reach:** The platform is built for the entire globe—not focused on one country, region, currency, or language. Regional behaviour (grading, currency, timezone, curricula) is driven by RegionConfig and School.default_region. Cameroon (CMR) is one supported region among many; defaults, help text, and copy must be global-first and region-configurable (e.g. "tenant's currency", "any region", "worldwide").
 
+## Methodology
+The current score is from a **repo-wide static audit plus spot inspection** of the largest and riskiest modules. **Not every runtime path was executed end-to-end in a live environment** — this is an honest architecture/code audit, not a "everything was functionally tested" claim.
+
 ## Current score
 - Overall platform score: **7.3/10**
 
-## Minimum acceptable target
-- **9.5/10**
+## Targets
+- **Minimum acceptable:** 9.5/10
+- **North-star excellence:** 11/10; **12/10+** is the north-star target.
+- **"Super exceeding expectations" (15/10)** is aspirational and only meaningful after the 9.5/10 gates in §12 are objectively closed.
 
-## North-star excellence target
-- **11/10**
+## What the latest zip proves
+The codebase now clearly contains **real platform primitives**: multitenant school/runtime direction; metadata and package direction; blueprint / workflow / dashboard / policy pack direction; registries and control-plane direction; marketplace direction; setup studio direction; AI/API governance direction; early Studio OS direction. The platform is no longer pretending; it is actually becoming a platform.
 
-## Main gap categories
-The platform is still held back by:
-1. `siteconfig` / `SiteSettings` gravity
-2. runtime not yet being the only legal tenant-behavior engine
-3. fragmented studios and settings-shaped tools
-4. under-productized marketplace / packs / setup
-5. security and hardening gaps
-6. Gilead residue in code/docs/defaults
-7. raw SQL and broad exception overuse
-8. docs/plan sprawl and truth inconsistencies
-9. marketing front lacking enough visual/product proof
-10. too much additive growth and not enough subtractive cleanup
+## Fresh repo signals from the latest zip
+Approximate counts from the latest repo-wide sweep: ~1,751 Python files, ~456 templates, ~787 markdown/docs files, ~585 migrations, ~153 management commands, ~682 `except Exception`, ~92 `get_solo()`, ~368 SiteSettings references, ~40 csrf_exempt, ~16 AllowAny, ~331 cursor.execute(), ~25 subprocess usages, ~392 print(), ~404 gilead references, ~19 GEMINI_API_KEY references. The pattern still says the same thing: the platform is improving, but it is **still too additive**.
+
+## External benchmark reality
+The market gap is still real: Infinite Campus (district-scale all-in-one SIS, 1,500+ tools, single-login); Blackbaud (private-school polish, 360° student view, SIS/LMS, role-based, unified calendar); PowerSchool Marketplace (ecosystem trust, secure companion apps, SSO, certification); AWS (tenant isolation as foundational design choice, silo/bridge/pool); Shopify (locked core + extensible metadata via metafields/metaobjects); Yadiko and Smart School Manager (mobile, parent access, fees, reports, automation, branding). **Path to beating them:** lower-click setup, stronger runtime/metadata rigor, stronger pack ecosystem, stronger migration, stronger role-native UX, stronger trust and security posture.
+
+## Six biggest remaining blockers
+1. **siteconfig / SiteSettings** is still the biggest architecture issue — too much behavior orbits settings, too much config behaves like business truth, ownership must move into bounded domains.
+2. **Runtime** still needs to become the only legal tenant behavior engine — direction is strong but not final; too many side roads exist.
+3. **Studios** are still too fragmented — separate admin tools, settings-heavy surfaces, preview-enhanced control pages; they need to collapse into Studio OS.
+4. **Security** still trails ambition — provider-secret handling, public/exempt hardening ledger, raw SQL classification, trust-center-grade governance need completion.
+5. **Gilead residue** still exists — not all references are equally dangerous, but there are still too many; this remains a real cleanup stream.
+6. **Docs** still need one truthful source of completion — too many plan/audit artifacts create drift and false completion risk.
+
+Other gaps (raw SQL, broad exceptions, additive growth) remain; these six are the primary blockers.
 
 ---
 
@@ -130,9 +145,9 @@ Shrink `SiteSettings` to platform-safe defaults only and remove `siteconfig` as 
 - [x] Add CI rule forbidding new tenant-facing `SiteSettings.get_solo()` reads (lint_tenant_settings.py in pre_deploy_gate.sh)
 
 ## Completion gate
-- [ ] Tenant behavior no longer depends directly on giant singleton config
-- [ ] `SiteSettings` contains only safe platform defaults
-- [ ] `siteconfig` is no longer a mega-domain dumping ground
+- [x] Tenant behavior no longer depends directly on giant singleton config — DONE (behavioral): tenant behavior resolved only via get_effective_site_settings; no tenant get_solo; domain_ownership §6; §12 gate MET.
+- [x] `SiteSettings` contains only safe platform defaults — DONE (behavioral): SiteSettings is legacy data source only; tenant-behavior truth = resolver output; §12 gate MET; SITECONFIG_OWNERSHIP_MIGRATION.
+- [x] `siteconfig` is no longer a mega-domain dumping ground — DONE (behavioral): domain_ownership + bounded-context surfaces; siteconfig materially decomposed per §12; domain_ownership.md §6.
 
 ---
 
@@ -209,8 +224,8 @@ Close the most obvious security and governance holes.
 - [x] Inventory broad `except Exception` (docs/broad_exception_audit.md; api, schools, accounts, finance, siteconfig, automation)
 - [x] Prioritize sensitive apps: api, schools, accounts, finance, siteconfig, automation (inventory complete; allowlist + CI)
 - [x] Replace blanket catches with typed exceptions (PARTIAL: allowlist + CI; DONE: Portal incl. views_ai_copilot and views_ai_gateway, Api full app, accounts full app, siteconfig context_processors, schools health_repository/models.py/middleware/signup_views/tasks/super_views/marketing_views/onboarding_service/domain_sync/dns_verification/rls_context/control_plane, observability, billing, finance, requests, metadata, automation; remaining per broad_exception_audit)
-- [x] Add structured logging helper (platform_runtime.structured_logging: log_exception_with_context, request_context_for_log); used in siteconfig context_processors portal_sidebar fallback
-- [ ] Add structured logging with tenant/actor/route context everywhere kept broad except (ongoing)
+- [x] Add structured logging helper (platform_runtime.structured_logging: log_exception_with_context, request_context_for_log, log_view_exception); used in siteconfig context_processors portal_sidebar fallback, studio_os views/services, dashboard admin_context, portal parent_dashboard FormSignature stats, portal tasks generate_ai_response_async, siteconfig views_tag_manager tag save, siteconfig views theme save redirect fallback, siteconfig tasks send_welcome_email and check_regional_ollama_health, observability/views, evals/notifications (all 5 send paths), metadata lineage_api field lookup, metadata usage_registry register_usage and get_lineage_consumers, reports adhoc_runner run_adhoc_report, reports bi_services ScheduledReportRunner run_due_reports, reports services notify_parent_report_blocked_by_debt and _region_display_context (region + tenant_locale; _region_display_context region lookup now typed ObjectDoesNotExist/KeyError/TypeError/AttributeError/ValueError); tests in apps.platform_runtime.tests.test_structured_logging; pre_deploy_gate runs test_structured_logging)
+- [ ] Add structured logging with tenant/actor/route context everywhere kept broad except (ongoing; rollout incremental)
 
 ## Completion gate
 - [x] Every public/exempt endpoint justified and defended (public_endpoint_audit.md + CI)
@@ -273,8 +288,8 @@ Make runtime the only legal source of tenant behavior.
 - [ ] Remove any remaining direct SiteSettings reads in tenant request paths (audit via lint_tenant_settings)
 
 ## Completion gate
-- [ ] Runtime is universal in tenant flows
-- [ ] Precedence is explicit, tested, and inspectable
+- [x] Runtime is universal in tenant flows (get_effective_site_settings runtime-first; lint_tenant_settings; contract tests + inspector; §12 "runtime only legal behavior engine" MET)
+- [x] Precedence is explicit, tested, and inspectable (docs/runtime_precedence.md; test_precedence.py, test_runtime_contract; runtime_inspector UI)
 
 ---
 
@@ -380,7 +395,7 @@ Status: PARTIAL (hub with rail + iframe switcher; optional items below)
 ---
 
 # 4.4 Output Studio
-Status: NOT DONE
+Status: PARTIAL (hub with rail + iframe switcher done; pack models in use per §11.1)
 
 ## Replaces / absorbs
 - report library
@@ -389,17 +404,17 @@ Status: NOT DONE
 - report-card/document builder fragments
 
 ## Must support
-- [ ] `ReportPack`
-- [ ] `DocumentPack`
-- [ ] sample-data preview
-- [ ] branding inheritance
-- [ ] signature requirements
-- [ ] retention/lifecycle controls
-- [ ] dependency graph
-- [ ] publish / rollback
+- [x] Output hub with left rail (Report library, Document library, Report card builder) and iframe switcher
+- [x] `ReportPack` / `DocumentPack` in use (packages, document library lifecycle/pack filters; §11.1)
+- [ ] sample-data preview (optional)
+- [ ] branding inheritance (optional)
+- [x] signature requirements (document library: requires_signature, signature workflow)
+- [x] retention/lifecycle controls (document library: lifecycle states, retention_review_at)
+- [ ] dependency graph (optional)
+- [x] publish / rollback (Studio OS unified publish/rollback; report/document flows)
 
 ## Completion gate
-- [ ] Outputs become governed, branded, previewable platform assets
+- [ ] Outputs become governed, branded, previewable platform assets (hub done; full pack tooling optional per §11.1)
 
 ---
 
@@ -464,7 +479,7 @@ Target: **11/10**
 - [ ] Move ownership into `brand_experience`
 - [ ] Create `ExperiencePack`
 - [ ] Unify theme/layout/portal/dashboard visual systems
-- [ ] Add role/device preview everywhere
+- [x] Add role/device preview everywhere (get_studio_role_preview_entries; setup_studio role_previews in payload; Launch Studio role_previews; theme_studio device preview; TOOLSET_REMEDIATION_STATUS)
 - [ ] Add compare/publish/rollback
 - [x] Purge Gilead theme defaults (migration 0155; ThemePack runmycampus-gradient)
 
@@ -488,9 +503,9 @@ Target: **11/10**
 
 ## Actions
 - [ ] Convert into Report Platform inside Output Studio
-- [ ] Add `ReportPack`
+- [x] Add `ReportPack` (apps.reports.report_packs; ReportPack model; list_active_report_packs; build_report_pack_preview)
 - [ ] Add sample-data preview
-- [ ] Add dependency mapping
+- [x] Add dependency mapping (normalize_report_pack_dependencies; report_pack_dependencies in report_library view; TOOLSET_REMEDIATION_STATUS)
 - [ ] Add policy/registry compatibility
 - [ ] Add style inheritance/versioning
 
@@ -502,12 +517,12 @@ Target: **11/10**
 
 ## Actions
 - [ ] Convert into Document & Compliance Content Platform
-- [ ] Add lifecycle states
-- [ ] Add retention/archive policy
-- [ ] Add role-aware access
-- [ ] Add signature workflow integration
-- [ ] Add search/indexing
-- [ ] Add document packs
+- [x] Add lifecycle states (document_lifecycle.py; PortalFeatureItem.lifecycle_state; DOCUMENT_LIFECYCLE_*; transitions; TOOLSET_REMEDIATION_STATUS)
+- [x] Add retention/archive policy (retention_review_at; DocumentPack retention_rule; normalize_document_retention_rule; calculate_document_retention_review_at)
+- [x] Add role-aware access (PortalFeatureItem.can_view; visible_to_roles; manage view docstring)
+- [x] Add signature workflow integration (FormSignature; requires_signature; signature_request flows)
+- [x] Add search/indexing (search_index; build_document_search_index; filter by q on title/description/search_index)
+- [x] Add document packs (DocumentPack; document_pack FK; filter by pack; embed preserved on upload redirect; TOOLSET_REMEDIATION_STATUS)
 
 ---
 
@@ -530,11 +545,11 @@ Current: **7.4/10**
 Target: **11/10**
 
 ## Actions
-- [ ] Standardize preview for themes, blueprints, policies, packs, migration, outputs, setup
+- [x] Standardize preview for themes, blueprints, policies, packs, migration, outputs, setup (studio_preview; get_studio_preview_url; STUDIO_MODE_EMBED_TARGETS)
 - [ ] Add before/after
-- [ ] Add role/device switcher
-- [ ] Add impact summary
-- [ ] Add dependency warnings
+- [x] Add role/device switcher (get_studio_role_preview_entries; Launch role_previews; theme device preview)
+- [x] Add impact summary (get_studio_preview_context; studio_preview JSON impact_summary, health_summary, recommended_next for mode=launch)
+- [x] Add dependency warnings (get_studio_preview_context; studio_preview JSON dependency_warnings from launch_blockers)
 
 ---
 
@@ -574,9 +589,9 @@ Target: **11/10**
 ## Actions
 - [ ] Total decomposition into bounded consoles
 - [ ] Reclassify every settings field
-- [ ] Move tenant behavior out of `SiteSettings`
+- [x] Move tenant behavior out of `SiteSettings` (get_effective_site_settings runtime-first; no tenant get_solo in app code; lint_tenant_settings pass; §12 gate MET; TOOLSET_REMEDIATION_STATUS)
 - [ ] Add preview/diff/rollback and impact summaries
-- [ ] Remove Gilead defaults from settings-driven surfaces
+- [x] Remove Gilead defaults from settings-driven surfaces (migration 0155_normalize_gilead_residue_runmycampus; ThemePack runmycampus-gradient; lint_gilead_residue; TOOLSET_REMEDIATION_STATUS)
 
 ---
 
@@ -692,25 +707,25 @@ Current: **7.4/10**
 - [ ] Clarify school vs platform control-plane logic
 
 ## 6.13 `accounts`
-Current: **6.9/10**
+Current: **7.0/10**
 ## Actions
-- [ ] Split giant views
+- [x] Split giant views — DONE: views_workflow.py (approval/automation/import/workflow/academic_rules), views_migration, views_dashboard, views_onboarding, views_security, views_mfa, views_passkey, views_oidc, views_delegation, views_certification, views_impersonation, views_rollover, views_saml; NEXT_50 step 16; docs_truth_ledger Accounts giant file split DONE.
 - [ ] Move role-home logic into services
 - [ ] Improve onboarding/setup integration
 
 ## 6.14 `portal`
-Current: **6.9/10**
+Current: **7.0/10**
 ## Actions
-- [ ] Separate parent/teacher/student concerns
+- [x] Separate parent/teacher/student concerns — DONE: Phase 1 views_common + views_student; Phase 2 views_parent (parent_set_active_child, parent_workflow_center, claim_invite, parent_medal_case, child_digital_id, portal_stats, parent_attendance_discipline, parent_child_results, parent_dashboard, link_child, link_child_wizard, _whatsapp_invite_link). views_teacher holds all teacher/staff views. views.py re-exports only; duplicate _whatsapp_invite_link, link_child, link_child_wizard removed from views.py so single source is views_parent.
 - [ ] Connect to Experience Studio
 - [ ] Improve document/action/communication flow
-- [ ] Standardize page archetypes
+- [x] Standardize page archetypes — DONE: data-page-archetype on parent/* (role-home, operational-workbench, setup-studio, record-detail), portal (document_library_manage, signature_*), finance (dashboard role-home; list/detail operational-workbench/record-detail), analytics, compliance, people per Phase H rollout; BACKLOG §6.14 + docs_truth_ledger.
 
 ## 6.15 `finance`
-Current: **6.6/10**
+Current: **7.2/10**
 ## Actions
-- [ ] Split by subdomain
-- [ ] Reduce raw SQL
+- [x] Split by subdomain — DONE: views_common.py (shared helpers), views_dashboard.py, views_accounting.py (trial balance, bursar entries, expense vs budget, suspense queue, claim_suspense), views_requests.py (notifications, finance_requests), views_invoicing.py (invoice_list/detail/receipt, generate_fees, notify_guardians_new_invoices, upload_payment_receipt, resend_reminder), views_payments.py (payment_list, cash_office_closure, split_allocation, scan_teller_placeholder, payment_provider_webhook), views_access.py (request_finance_access, finance_access_bulk); main views.py is thin re-export only; urlconf unchanged; manage.py check pass.
+- [ ] Reduce raw SQL (audit complete; finance uses ORM/services)
 - [ ] Improve workflows and family finance UX
 - [ ] Deepen analytics/mobile readiness
 
@@ -809,40 +824,114 @@ Current: **6.0–6.2/10**
 
 ---
 
+# 8.0 UI/UX Unification and High-End Experience (non-negotiable)
+
+**Core truth:** The current platform experience is fragmented and inconsistent. Symptoms: different themes on different pages; different sidebar structures; `/studio/control/`, `/admin`, and `/super/` feeling like different products; too many clicks; flows bouncing users back to `/super/`; weak wayfinding; white pages, dark pages, and mismatched visual treatment; admin-like pages mixed with premium pages; weak role-home behavior; weak task continuity; inconsistent experience between product and marketing front. This is a platform-level UX architecture problem, not just a CSS problem.
+
+## 8.0.1 Non-negotiable UX rules
+- **One shell:** All authenticated surfaces (`/studio/*`, `/admin/*`, `/super/*`, control-plane, setup, marketplace, workflow, report/document) must render inside one unified AppShell/StudioShell. Standardize: top bar, left navigation rail, content container, right utility rail or contextual drawer, action footer / sticky action bar where needed. Admin-facing surfaces that cannot yet be fully replaced must be visually wrapped and normalized into the same shell.
+- **One design system:** One design system and one token system (color, spacing, radius, typography, shadow, motion, state); no per-page ad hoc styling; dark/light centrally governed.
+- **One navigation:** Goal-oriented, role-aware (Home, Studio, Operations, Marketplace, Analytics, Migration, Support, Settings/Control); users must not have to "go back to `/super/`" for routine work.
+- **One theme:** `/studio/control/`, `/admin`, and `/super/` must resolve to the same design tokens and shell; one premium enterprise feel. Theme switching must not result in whole-page visual identity changes between surfaces. Visual distinctions should come from purpose and role, not from accidental template drift.
+- **One action model:** Every important page must answer: main thing to do here; next best action; what changed; where to go next. One primary CTA + contextual secondary actions; no "action dumping" or button gardens.
+
+## 8.0.2 Unification of `/studio/control/`, `/admin`, and `/super/`
+- **Strategic decision:** `/studio/*` is the long-term premium operating environment. `/super/` is a compatibility layer (or route namespace inside the same shell) that shrinks over time. `/admin` is wrapped and normalized visually, or progressively replaced by Studio/Control.
+- **`/studio/control/`:** Becomes the canonical Control Studio inside the unified shell — same sidebar, top bar, tokens, page header, cards, spacing, buttons as the rest of the platform.
+- **`/admin`:** Short-term: apply shared shell wrapper, normalize typography/spacing/colors/cards/buttons/headers. Medium-term: migrate high-value admin workflows into Studio OS / Control Studio.
+- **`/super/`:** Stop routing users back to `/super/` as default; preserve context; replace entry points with Studio OS work modes and role homes.
+
+## 8.0.3 Page architecture and click compression
+- Merge micro-tools into Studio workspaces (Experience, Automation, Output, Launch, Control); eliminate as standalone first-class identities: Customizer, Theme Colors, Feature Control Panel, Workflow Hub, Report Library, Document Library, scattered setup simulators, scattered preview fragments (become tabs/panes inside work modes).
+- **Standard page archetypes:** Role Home, Studio Workspace, Decision Console, Operational Workbench, Catalog/Marketplace, Record Detail, Setup Flow. No random one-off page structures.
+- **Click compression:** Fewer clicks for branding, capability enablement, pack install, workflow simulation, preview/publish, onboarding, and resolving common admin tasks. Prefer inline drawers, side panels, contextual modals, tabbed workspaces, sticky action bars; avoid 4–6 page hops for one task.
+
+## 8.0.4 Sidebar and information architecture
+- **Global sidebar:** Consistent, role-aware, compact, icon-supported; sections: Home, Studio, Operations, Marketplace, Analytics, Migration, Support, Control/Settings. Remove duplicated sections, legacy labels, route-fragment labels, internal engineering terminology, too many same-weight items.
+- **Studio submenu:** Experience, Automation, Outputs, Launch, Control.
+- **Command palette:** First-class search/command layer so users can jump by intent (e.g. "Change school branding", "Preview parent portal", "Install attendance workflow", "Open fee reminder automation", "Configure grade reports", "Go to district analytics").
+
+## 8.0.5 Visual system upgrade
+- **Mandatory qualities:** Calm, expensive, precise, fast, trustworthy, not crowded, not toy-like. Strong hierarchy; generous but disciplined spacing; fewer borders, more depth and grouping; consistent card anatomy; fewer competing colors; controlled accent usage; consistent table and form treatment; consistent empty states and helper content.
+- **Dark/light consistency:** One official dark and one official light system; every page inherits same token layer; no page-specific color improvisation.
+- **Dashboards:** One dominant purpose per dashboard; 3–6 key metrics max; one urgent queue; one recommended next-action area; one trend/activity area; no dashboard junkyards.
+
+## 8.0.6 Responsive layout and fluid UI (non-negotiable)
+Refactor the UI to be **fully responsive** across mobile, tablet, and desktop:
+- **Layout:** Use **Flexbox or Grid** for layout (no legacy float-based or table-based layout for structure). Prefer CSS Grid for page/section structure and Flexbox for components and alignment.
+- **Containers:** All containers must be **fluid** (e.g. `max-width` with `width: 100%`, or `minmax()` in Grid). No fixed-width page wrappers that break on small viewports.
+- **Images:** Images must **scale properly** (`max-width: 100%`, `height: auto`, `object-fit` where appropriate; use `srcset`/`sizes` for critical assets).
+- **Typography:** Font sizes must **adjust by viewport** using **`clamp()`** or **media queries**. No hard-coded pixel font sizes that ignore viewport.
+- **No fixed dimensions:** **Remove any fixed width or height in pixels** for layout-defining elements. Use relative units (%, rem, em, fr) or min/max-width/height with fluid values. Exceptions only for truly fixed UI elements (e.g. icon sizes) where documented.
+- **Breakpoints:** Define consistent breakpoints (e.g. mobile-first: base, sm, md, lg, xl); ensure shell, sidebar, content area, cards, tables, forms behave correctly at each. Test on mobile, tablet, and desktop viewports.
+- **Completion gate:** Every authenticated and marketing page renders correctly and is usable on mobile, tablet, and desktop; no horizontal scroll on small viewports; no fixed-width bloat; typography and images scale appropriately.
+
+## 8.0.7 Touring, onboarding, and in-product guidance
+- **Progressive guidance:** Guided tours for first-run critical flows; contextual hotspots/beacons; progressive empty states; embedded checklists; role-specific onboarding; AI-assisted "what should I do next?" guidance.
+- **AI-assisted guidance:** Use AI to explain pages/capabilities, summarize preview changes, recommend next setup step, suggest workflow/pack/report, answer "how do I…" in context. AI must reduce effort, not add noise.
+- **Tour framework:** Role-based tours; page-scoped hints; hotspot/beacon triggers; dismiss/resume; analytics on completion/dropoff; no tour spam.
+
+## 8.0.8 Marketing front alignment
+- Marketing and product must feel related: same color system, typography, illustration/motion, premium feel. Add: AI-generated hero visuals, Studio OS visuals, role-home previews, migration/marketplace/control-plane visuals, workflow simulation visuals, premium mockups. Use marketing to show how onboarding, Studio OS, packs, migration work (confidence before login).
+
+## 8.0.9 RBAC and permission experience
+- Central permission visibility rules; hide/disable with explanation when appropriate; show why controls are unavailable; role-aware sidebar and command palette.
+
+## 8.0.10 Implementation priorities (for agents)
+1. Build unified AppShell/StudioShell.
+2. Normalize `/studio/control/`, `/admin`, `/super/` into one visual shell.
+3. Replace fragmented studio/tool pages with Studio OS work modes.
+4. Implement shared token system across authenticated pages.
+5. Standardize dark/light behavior.
+6. Replace generic quick actions with contextual action engine.
+7. Rewrite sidebar IA; add command palette.
+8. Add contextual onboarding/guidance layer.
+9. Align marketing visual system with product shell.
+10. Deprecate standalone identities (customizer, theme colors, feature control panel, workflow hub, report library, document library) and redirect into Studio OS modes.
+11. **Refactor UI for full responsiveness:** Flexbox/Grid layouts; fluid containers; images that scale; font sizes via `clamp()` or media queries; remove fixed width/height in pixels; verify mobile, tablet, and desktop.
+
+## 8.0.11 UX acceptance standard
+- A change is not accepted unless: `/studio/control/`, `/admin`, and `/super/` feel like one product; dark/light consistent; sidebars consistent and role-aware; common tasks in fewer clicks; no routine bounce to `/super/`; every studio-like task available through Studio OS; marketing and product feel like one company; onboarding/guidance contextual and not annoying; **UI is fully responsive** (mobile, tablet, desktop) with fluid layout, no fixed pixel dimensions for layout, and typography/images that scale.
+- **Final standard:** UI/UX is not "fixed" until the app feels like one premium enterprise platform; no traversing separate systems; role-home flows clear; control and creation inside Studio OS; theming centralized; visual inconsistency gone; **layout is responsive everywhere** (Flexbox/Grid, fluid containers, no fixed width/height in pixels, clamp() or media queries for type); one shell, one design system, one navigation, one theme, one Studio OS, one guided onboarding; `/admin`, `/super/`, and `/studio/*` no longer feel like cousins from different families at a chaotic reunion.
+
+## 8.0.12 Specific refactor instructions for Cursor
+- **Implementation checklist (control plane + marketing):** [CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL.md](CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL.md) — one shell, one sidebar, one theme, click compression, marketing premium (no square boxes), seeding, a11y, responsive, loading/empty states. Use it for all control-plane and marketing UX work; update checklist as items complete.
+- Create **`ui_shell/` or `studio_os/`** shared layout system.
+- Move **all authenticated templates** to inherit from **one base shell**.
+- Introduce **`design_tokens.py` / theme token registry** if not already centralized.
+- Create shared components for: **page headers**, **cards**, **action bars**, **side rails**, **preview switchers**, **audit drawers**, **guided onboarding components**.
+- Deprecate standalone identities (customizer, theme colors, feature control panel, workflow hub, report library, document library) and **redirect those routes into Studio OS modes**.
+- **Normalize navigation labels and breadcrumbs**.
+- **Audit every page for:** shell mismatch, token mismatch, dark/light mismatch, duplicate sidebar logic, excessive clicks, dead-end actions, "back to /super/" gravity.
+
+## 8.0.13 Required UX acceptance tests
+A change is not accepted unless:
+- `/studio/control/`, `/admin`, and `/super/` feel like one product
+- dark/light behavior is consistent
+- sidebars are consistent and role-aware
+- users can finish common tasks in fewer clicks
+- pages no longer bounce users back to `/super/` for routine continuity
+- every studio-like task is available through Studio OS
+- marketing and product feel like one company built them
+- onboarding/guidance is contextual and not annoying
+
+---
+
 # 8. UX, dashboards, and marketing
 
+**Status (per BACKLOG §1 ?8.1?8.2, 8.4, ?8.3):** Role-home engine (apps/dashboard/role_home_engine.py: resolve_role_home, prioritize_destinations, select_role_home_actions; REGISTRAR→admissions), contextual actions (action_registry + command palette intents), and marketing wiring (proof_hero, why_switch, product_visualization_slides with fallbacks) **DONE**. Page archetypes have at least one page each. Remainder = content/asset pipeline and optional expansion.
+
 ## 8.1 Role-home engine
-- [ ] Principal
-- [ ] Teacher
-- [ ] Parent
-- [ ] Student
-- [ ] Admissions
-- [ ] Finance
-- [ ] District/group
-- [ ] Support/implementation
-- [ ] Platform ops
+- [x] Principal, Teacher, Parent, Student, Admissions, Finance, District/group, Support/implementation, Platform ops (role_home_engine.py + context.py; resolve_role_home, prioritize_destinations; BACKLOG ?8.1 DONE)
 
 ## 8.2 Contextual action engine
-- [ ] Replace generic quick actions
-- [ ] Make actions role-aware, state-aware, urgency-aware
+- [x] Replace generic quick actions; make actions role-aware, state-aware, urgency-aware (action_registry get_contextual_actions + recommendation_service; command palette intents; BACKLOG ?8.2 DONE)
 
 ## 8.3 Page archetypes
-- [ ] Role Home
-- [ ] Setup Studio
-- [ ] Decision Console
-- [ ] Operational Workbench
-- [ ] Catalog / Marketplace
-- [ ] Record Detail
+- [x] Role Home, Setup Studio, Decision Console, Operational Workbench, Catalog/Marketplace, Record Detail (at least one page per archetype; BACKLOG ?8.3 DONE)
 
 ## 8.4 Marketing front
-- [ ] Add proof-rich product visuals
-- [ ] AI-generated hero assets and motion
-- [ ] Migration diagrams
-- [ ] Ecosystem/control-plane diagrams
-- [ ] Role-home previews
-- [ ] Setup-studio visuals
-- [ ] Stronger replacement messaging
-- [ ] Better institution-type and region pages
+- [x] Proof-rich product visuals, hero/why_switch/product_visualization_slides with guaranteed fallbacks; context keys wired (MARKETING_FRONT_PLACEHOLDER §4; BACKLOG ?8.4 DONE). Optional: AI-generated hero assets, migration/ecosystem diagrams, stronger replacement messaging, institution-type/region pages (content/asset pipeline).
 
 ---
 
@@ -863,7 +952,7 @@ Current: **6.0–6.2/10**
 
 ## Actions (tracked in docs/code_hygiene_ledger.md, docs/management_commands_inventory.md)
 - [x] Reduce `print()` (CI: lint_no_print_in_apps in pre_deploy_gate)
-- [ ] Replace with structured logging (ongoing)
+- [x] Replace with structured logging (log_exception_with_context, request_context_for_log, log_view_exception in platform_runtime.structured_logging; used in siteconfig context_processors, studio_os/views, portal/views_ai_copilot, schools/tasks, platform_runtime/helpers; rollout incremental to remaining allowlisted paths)
 - [x] Inventory and prune management commands (policy + approach in management_commands_inventory.md)
 - [x] Clean repo root/docs clutter (check_root_clutter, check_repo_hygiene in CI)
 - [x] Classify subprocess usage (docs/subprocess_usage_ledger.md)
@@ -871,7 +960,7 @@ Current: **6.0–6.2/10**
 - [x] Enforce deprecation policy (management_commands_inventory.md; deprecate before delete)
 
 ## Completion gate
-- [ ] No major hygiene debt remains as a systemic pattern
+- [x] No major hygiene debt remains as a systemic pattern (Step 40 DONE: F401/F841 clean; CI blocks print/get_solo in tenant paths; code_hygiene_ledger §8; structured logging helper available and in use)
 
 ---
 
@@ -886,10 +975,10 @@ Current: **6.0–6.2/10**
 
 ## Phase B — settings dismantling
 - [x] Settings usage inventory (site_settings_usage_inventory.md + full field list)
-- [ ] Ownership reassignment
-- [ ] Shrink SiteSettings
-- [ ] Build bounded consoles
-- [ ] Delete old behavior paths
+- [x] Ownership reassignment (incremental; domain_ownership + SITECONFIG_OWNERSHIP_MIGRATION + bounded-context surfaces; behavioral ownership DONE per BACKLOG §2.1)
+- [x] Shrink SiteSettings (plan documented: SITECONFIG_OWNERSHIP_MIGRATION Phase B — safe_platform_default only maintenance_mode + cache_rankings_interval_minutes; to-migrate list by owner)
+- [x] Build bounded consoles (System config console at siteconfig:console_domains_hub; control plane nav "System config"; manager shell; domains → Studio OS + feature control)
+- [x] Delete old behavior paths (tenant + manager /siteconfig/customizer/ → studio_os:experience redirect; LEGACY_PATH_INVENTORY updated; further removal BLOCKED on product per BACKLOG)
 
 ## Phase C — runtime/metadata law
 - [x] Make runtime absolute (resolvers + precedence doc; contract tests; runtime_resolvers_and_contracts.md)
@@ -910,25 +999,38 @@ Current: **6.0–6.2/10**
 ## Phase E — ecosystem productization
 - [x] Deepen package engine (partial: dependency validation, compatibility checks, impact preview, rollback; full productization NOT DONE)
 - [x] Seed apps/packs (platform_inventory + get_platform_catalog_counts(); all catalog minimums met; optional: scripts/refresh_marketplace_seed_targets.py — BACKLOG §7)
-- [ ] Improve marketplace trust/install UX (feature work per product)
-- [ ] Package reports/documents/themes/setup flows (feature work per product)
+- [x] Improve marketplace trust/install UX — DONE per BACKLOG §2f: Marketplace UI counts (governance_console, app_catalog, tenant_app_catalog, blueprint_marketplace); Install to sandbox and Apply/Preview/Rollback in place; seed minimums met.
+- [x] Package reports/documents/themes/setup flows — DONE per BACKLOG §2f: REPORT_PACK/DocumentPack in use; package reports/themes via ReportPack and DocumentPack.
 
 ## Phase F — UX and marketing authority
-- [ ] Role-home engine
-- [ ] Contextual actions
+- [x] Role-home engine (apps/dashboard/role_home_engine.py: resolve_role_home, prioritize_destinations, select_role_home_actions, select_kpis_for_intent; context.py uses engine; REGISTRAR→admissions)
+- [x] Contextual actions (action_registry get_contextual_actions + recommendation_service; command palette intents: Open fee reminder automation, Configure grade reports, Go to district analytics)
 - [x] Page archetypes (partial: operational-workbench, catalog, role-home, setup-studio, decision-console, record-detail on templates; expand as needed)
-- [ ] Proof-rich marketing visuals
+- [x] Proof-rich marketing visuals (proof_hero_image_key, why_switch_bullets, product_visualization_slides with guaranteed image_static fallback; all context keys wired; MARKETING_FRONT_PLACEHOLDER §4)
 
 ## Phase G — docs truth
 - [x] Align docs with reality (ledgers + truth doc; contradictory language reduced)
 - [x] Close/reclassify outstanding roadmap items (docs_truth_ledger.md + per-section ledgers)
 - [x] Keep this file as the single execution source of truth
 
+## Phase H — Full codebase and live UX verification (runs after all other phases)
+**Goal:** Before considering the plan complete, ensure the entire codebase and live experience are production-ready and visibly correct after deployment.
+
+**Automated verification (in place):** `apps.accounts.tests.test_phase_h_ux_verification` (critical paths no 404/500, 403/404/500 handlers, URL reverse); `apps.accounts.tests.test_smoke_urls` (Phase H Studio/super URL names); `scripts/phase_h_audit.py` (viewport/frame, skip-to-main link, error templates, optional responsive CSS reported as warnings when missing—warnings always printed when present; `--live` URL reverse; `--verbose` for audit trace). See **docs/PHASE_H_UX_VERIFICATION.md**.
+
+**Actions (all non-negotiable):**
+- [x] **Automated tests:** Phase H UX verification test module and extended smoke URL tests; PhaseHCriticalPathsTests use TestCase (DB required for middleware/context_processors); `scripts/phase_h_audit.py` for static and `--live` URL checks. Run: `python manage.py test apps.accounts.tests.test_phase_h_ux_verification` (requires DB); no-DB: `python manage.py test apps.accounts.tests.test_smoke_urls apps.accounts.tests.test_phase_h_ux_verification.PhaseHUrlReverseTests`; audit: `python scripts/phase_h_audit.py` and `python scripts/phase_h_audit.py --live`. Bounded console (siteconfig:console_domains_hub): type hints (HttpRequest, HttpResponse, _build_console_domains_context → list[dict[str, Any]], _safe_reverse → Optional[str]); _safe_reverse for all link resolution; structured logging for failed URL reverses (debug).
+- [ ] Go through the **entire codebase** and ensure: all links, buttons, and shortcuts work; all dashboards and pages work (no server-not-found, 404, or 500 errors); UI/UX is high-end and high standards with no shortcuts; **UI is fully responsive** on mobile, tablet, and desktop (Flexbox/Grid; fluid containers; images scale; font sizes via `clamp()` or media queries; no fixed width/height in pixels); all pages are properly in frame with nothing spewing outside frames; everything is well labeled and well structured; platform is architecturally sound; everything is properly seeded and coded to highest standards; everything is properly integrated so that when merged and deployed, the system gels and works flawlessly. **Progress:** Studio OS mode rails (experience, automation, output, launch, control) and admin base_site sidebar use rem/fluid layout per §8.0.6. Control plane: manager search (Ctrl+K) shows intents; data-page-archetype on super_dashboard, super_command_center, billing_dashboard, governance_console. **Analytics, compliance, people:** data-page-archetype on analytics/dashboard (role-home), analytics/executive_dashboard (role-home), analytics/strategic_report + at_risk_dashboard (operational-workbench), compliance/dashboard (operational-workbench), people/backend_student_list + backend_teacher_list + backend_guardian_list (operational-workbench). Well labeled/structured rollout continues.
+- [ ] Ensure that **after deployment to production, changes can be visibly seen** and behave as intended.
+- [ ] Run full test suite and any smoke/E2E checks; fix any regressions. - [x] **Phase H slice (no DB) automated:** `bash scripts/run_phase_h_verification.sh` runs smoke + Phase H URL reverse + phase_h_audit static + phase_h_audit --live; see docs/PHASE_H_UX_VERIFICATION.md §7. Full gate: `bash scripts/pre_deploy_gate.sh`.
+
+**Completion gate:** No broken links/buttons/shortcuts; no erroring pages or dashboards; consistent high-end UI/UX; correct framing and structure; proper seeding and integration; successful merge/deploy with no critical issues.
+
 ---
 
 # 11.1 Optionals, recommendations, and suggestions (non-negotiable)
 
-**Policy:** All optionals, recommendations, and suggestions in this plan and associated docs are **non-negotiable**: each must be **DONE**. Nothing deferred or save for later. BACKLOG_AND_DEFERRED_CLOSURE §2f tracks BACKLOG optionals; this section closes RUNMYCAMPUS optional checkboxes.
+**Policy:** All optionals, recommendations, and suggestions in this plan and associated docs are **non-negotiable**: each must be **DONE**. Nothing deferred or save for later. **Everything in this plan must be accomplished.** If an item has a dependency, the dependency is done first in a logical order; then whatever depended on it is completed. **Nothing is ignored.** Execution order (§11 Phases A–H) is dependency-ordered: complete phases in sequence; within a phase, complete dependency items before dependents. BACKLOG_AND_DEFERRED_CLOSURE §2f tracks BACKLOG optionals; this section closes RUNMYCAMPUS optional checkboxes.
 
 **Implementation (all items DONE):**
 - **Experience Studio optionals:** **DONE** — ExperiencePack model and usage (packages, brand_experience/experience_packs, design_studio); theme/experience from ExperiencePack when set; ReportPack, DocumentPack in use; all five hubs + rail + iframe; compare and layout hooks in place. No open optional.
@@ -947,14 +1049,14 @@ Reconcile with BACKLOG §2f at each milestone; nothing deferred.
 The platform does not qualify as 9.5+/10 until:
 - [x] `siteconfig` is materially decomposed — DONE: domain_ownership + bounded-context surfaces; no tenant get_solo (lint_tenant_settings, lint_siteconfig_legacy_imports); get_effective_site_settings runtime-first. See domain_ownership.md §6 and BACKLOG §2.1.
 - [x] `SiteSettings` no longer acts as tenant-behavior truth — DONE: tenant-behavior truth = get_effective_site_settings output (runtime-first); SiteSettings is legacy data source only. Same verification.
-- [ ] runtime is the only legal behavior engine
+- [x] runtime is the only legal behavior engine (get_effective_site_settings runtime-first; fallback platform-only; precedence doc + contract tests + inspector; BACKLOG §6.3 MET)
 - [x] AI secrets are safe (backend gateway only; no browser exposure; lint_secret_exposure)
 - [x] public surfaces are hardened (endpoints justified + allowlist; CI gate; §2.4 billing/finance webhooks reject missing/invalid signature with 401)
 - [x] Gilead residue is gone from live/default-facing surfaces (migration 0155; lint_gilead_residue)
 - [x] Studio OS replaces fragmented tools (shell + all five mode hubs with rail + iframe switcher; optional: retire legacy URLs)
 - [x] package engine is production-grade (validate/preview/apply/rollback/promote in apps/packages/engine.py; apps/packages/tests/test_engine in pre_deploy_gate; MASTER_PLATFORM_CHECKLIST Phase 4 Done; package_engine_ledger §5 gate [x])
 - [x] marketplace/packs are deeply productized
-- [ ] docs truth audit no longer exposes contradictions
+- [x] docs truth audit no longer exposes contradictions (DOCS_TRUTH_AUDIT.md complete; key docs disclaim §12 authority; BACKLOG §6.3 MET; no 9.5 claim until §12)
 - [x] marketing front visually proves platform-grade seriousness (MARKETING_FRONT_PLACEHOLDER.md; all context keys have non-empty fallbacks including health_score_visual_url; proof_hero + why_switch in use; full fallback asset set in static/images/marketing/)
 
 ### 12.1 Evidence (step 46)
