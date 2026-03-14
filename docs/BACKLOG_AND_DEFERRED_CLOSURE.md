@@ -195,6 +195,7 @@ Other docs (MASTER_PLATFORM_CHECKLIST, WHAT_IS_LEFT_MASTER, PLAN_VERIFICATION_RE
 | 10 | Optional | CMR/XAF advisory in lint_tenant_settings (document only) | **DONE.** Documented in BACKLOG ?3; lint_tenant_settings full run = advisory only; CI uses --check-get-solo-only. |
 | 11 | Optional | get_solo allowlist shrink (allowlisted management ? resolver pass-through) | **Done this run:** backfill_runtime_defaults uses get_platform_site_settings_record(create=True); get_solo only in helpers. SITESETTINGS_GET_SOLO_ALLOWLIST + SITECONFIG_OWNERSHIP_MIGRATION updated. |
 | 12 | Optional | Redirect legacy workflow hub / report library URLs to Studio OS when product confirms | **DONE.** /siteconfig/workflow-hub/ and /siteconfig/report-library/ redirect to studio_os:automation and studio_os:output. LEGACY_PATH_INVENTORY updated. |
+| 13 | §10.5 / Phase I | Operating discipline layers + decision architecture (12 layers; OPERATING_DISCIPLINE_LAYERS.md; DECISION_ARCHITECTURE_CHECKLIST) | **PARTIAL.** RUNMYCAMPUS §10.5 added to SOT; 10.5.1 edge-case, 10.5.2 pack versioning, 10.5.4 trust product DONE. 10.5.3 service/support, 10.5.5 dashboard taxonomy, 10.5.6 content/terminology, 10.5.7 design-system, 10.5.8 boring excellence Phase I incremental. Decision architecture enforced via §8.0 and checklist. |
 
 **Rule:** Update this table when a row is completed or status changes; keep BACKLOG ?1 and NEXT_50 in sync.
 
