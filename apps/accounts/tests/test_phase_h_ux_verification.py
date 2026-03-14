@@ -45,6 +45,8 @@ TENANT_CRITICAL_PATHS = [
     ("/payroll/", (200, 302)),
     ("/automation/outcomes/", (200, 302)),
     ("/communication/groups/", (200, 302)),
+    ("/requests/", (200, 302)),
+    ("/academics/teacher/syllabi/", (200, 302)),
     ("/studio/experience/", (200, 302)),
     ("/siteconfig/customizer/", (200, 302)),
     ("/discover/", (200,)),
@@ -205,3 +207,13 @@ class PhaseHUrlReverseTests(SimpleTestCase):
         """Communication app group list (tenant) must resolve for Phase H link verification."""
         url = reverse("communication:group_list")
         self.assertIn("/communication/", url)
+
+    def test_requests_dashboard_resolves(self):
+        """Requests app dashboard (tenant) must resolve for Phase H link verification."""
+        url = reverse("requests:dashboard")
+        self.assertIn("/requests/", url)
+
+    def test_academics_teacher_syllabus_hub_resolves(self):
+        """Academics app teacher syllabus hub (tenant) must resolve for Phase H link verification."""
+        url = reverse("academics:teacher_syllabus_hub")
+        self.assertIn("/academics/", url)

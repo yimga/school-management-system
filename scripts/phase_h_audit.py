@@ -134,6 +134,8 @@ def run_url_reverse_checks(failures: list[str], verbose: bool = False) -> None:
         "payroll:dashboard",
         "automation:outcomes_console",
         "communication:group_list",
+        "requests:dashboard",
+        "academics:teacher_syllabus_hub",
         "studio_os:shell",
         "studio_os:experience",
         "studio_os:automation",
