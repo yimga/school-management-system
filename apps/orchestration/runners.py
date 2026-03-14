@@ -6,9 +6,31 @@ from __future__ import annotations
 from datetime import timedelta
 from typing import Optional
 
+from django.db import DatabaseError, IntegrityError, OperationalError, ProgrammingError
 from django.utils import timezone
 
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
 from .models import OrchestrationRun, ProcessDefinition
+
+# Typed exceptions for orchestration execute/compensate and run_step query paths.
+_ORCHESTRATION_RUN_ERRORS = (
+    DatabaseError,
+    IntegrityError,
+    ValueError,
+    TypeError,
+    AttributeError,
+    ImportError,
+    RuntimeError,
+)
+_ORCHESTRATION_STEP_QUERY_ERRORS = (
+    ImportError,
+    DatabaseError,
+    OperationalError,
+    ProgrammingError,
+    AttributeError,
+    TypeError,
+)
 
 
 class BaseOrchestrationRunner:
@@ -38,7 +60,17 @@ class BaseOrchestrationRunner:
             self.run.completed_at = timezone.now()
             self.run.save(update_fields=["output_payload", "status", "completed_at", "updated_at"])
             return True
-        except Exception as e:
+        except _ORCHESTRATION_RUN_ERRORS as e:
+            school_id = getattr(self.run, "school_id", None)
+            log_exception_with_context(
+                "Orchestration run step failed",
+                school_id=school_id,
+                extra={
+                    "run_id": getattr(self.run, "pk", None),
+                    "retry_count": (self.run.retry_count or 0) + 1,
+                    "definition_code": getattr(getattr(self.run, "definition", None), "code", None),
+                },
+            )
             self.run.retry_count = (self.run.retry_count or 0) + 1
             self.run.error_message = str(e)[:2000]
             if self.run.retry_count >= self.max_retries:
@@ -49,8 +81,12 @@ class BaseOrchestrationRunner:
                 )
                 try:
                     self.compensate()
-                except Exception:
-                    pass
+                except _ORCHESTRATION_RUN_ERRORS:
+                    log_exception_with_context(
+                        "Orchestration compensate failed",
+                        school_id=school_id,
+                        extra={"run_id": getattr(self.run, "pk", None), "definition_code": getattr(getattr(self.run, "definition", None), "code", None)},
+                    )
                 return False
             self.run.save(
                 update_fields=["retry_count", "error_message", "status", "updated_at"]
@@ -78,8 +114,12 @@ class FeeFollowUpRunner(BaseOrchestrationRunner):
                     is_active=True,
                     next_send_at__lte=timezone.now(),
                 ).count()
-        except Exception:
-            pass
+        except _ORCHESTRATION_STEP_QUERY_ERRORS:
+            log_exception_with_context(
+                "FeeFollowUpRunner run_step query failed",
+                school_id=school_id,
+                extra={"step": "fee_follow_up"},
+            )
         return {"school_id": school_id, "reminders_due": count, "step": "fee_follow_up"}
 
 
@@ -97,8 +137,12 @@ class AdmissionsRunner(BaseOrchestrationRunner):
                     school_id=self.run.school_id,
                     status="PENDING",
                 ).count()
-        except Exception:
-            pass
+        except _ORCHESTRATION_STEP_QUERY_ERRORS:
+            log_exception_with_context(
+                "AdmissionsRunner run_step query failed",
+                school_id=school_id,
+                extra={"step": "admissions"},
+            )
         return {"school_id": school_id, "pending_applications": count, "step": "admissions"}
 
 
@@ -113,8 +157,12 @@ class ReEnrollmentRunner(BaseOrchestrationRunner):
             from apps.accounts.models import StudentProfile
             if self.run.school_id:
                 count = StudentProfile.objects.filter(school_id=self.run.school_id, is_active=True).count()
-        except Exception:
-            pass
+        except _ORCHESTRATION_STEP_QUERY_ERRORS:
+            log_exception_with_context(
+                "ReEnrollmentRunner run_step query failed",
+                school_id=school_id,
+                extra={"step": "re_enrollment"},
+            )
         return {"school_id": school_id, "eligible_students": count, "step": "re_enrollment"}
 
 
@@ -181,7 +229,13 @@ def run_workflow_simulation(definition_code: str, payload: dict, school=None) ->
         return {"impact_count": 0, "steps": [], "dry_run": True}
     try:
         step_out = runner.run_step()
-    except Exception as e:
+    except _ORCHESTRATION_RUN_ERRORS as e:
+        school_id = getattr(school, "pk", None) if school is not None else None
+        log_exception_with_context(
+            "run_workflow_simulation run_step failed",
+            school_id=school_id,
+            extra={"definition_code": definition_code, "dry_run": True},
+        )
         return {"impact_count": 0, "steps": [{"error": str(e)[:200]}], "dry_run": True}
     steps = [step_out]
     impact = 0

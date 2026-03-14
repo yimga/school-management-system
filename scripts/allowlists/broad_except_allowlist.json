@@ -93,6 +93,7 @@
     "apps/siteconfig/management/commands/check_branding_law.py": 0,
     "apps/siteconfig/management/commands/compile_translations.py": 0,
     "apps/compliance/signals.py": 0,
+    "apps/events/tasks.py": 0,
     "apps/events/webhooks.py": 0,
     "apps/observability/db_liveness.py": 0,
     "apps/compliance/access_control.py": 0,
@@ -118,6 +119,7 @@
     "apps/analytics/services.py": 0,
     "apps/portal/views_parent.py": 0,
     "apps/siteconfig/views.py": 0,
-    "apps/portal/tasks.py": 0
+    "apps/portal/tasks.py": 0,
+    "apps/orchestration/runners.py": 0
   }
 }

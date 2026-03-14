@@ -145,6 +145,11 @@
 |------|--------|--------|
 | models.py | DONE | Rollback run: (DatabaseError, IntegrityError, ValidationError, ValueError, TypeError) + logger.exception; result dict + mark_completed(FAILED) preserved; unexpected errors propagate. |
 
+### apps/orchestration (§2.4 — Step 9)
+| File | Status | Notes |
+|------|--------|--------|
+| runners.py | DONE | BaseOrchestrationRunner.execute: _ORCHESTRATION_RUN_ERRORS (DatabaseError, IntegrityError, ValueError, TypeError, AttributeError, ImportError, RuntimeError) + log_exception_with_context; compensate() same tuple + log. FeeFollowUpRunner/AdmissionsRunner/ReEnrollmentRunner.run_step: _ORCHESTRATION_STEP_QUERY_ERRORS (ImportError, DatabaseError, OperationalError, ProgrammingError, AttributeError, TypeError) + log_exception_with_context. run_workflow_simulation: _ORCHESTRATION_RUN_ERRORS + log. Allowlist 0. |
+
 ### apps/platform_runtime (§2.4 — Step 9)
 | File | Status | Notes |
 |------|--------|--------|
@@ -163,6 +168,7 @@
 ### apps/events (§2.4 — Step 9)
 | File | Status | Notes |
 |------|--------|--------|
+| tasks.py | DONE | process_outbox_batch: except Exception → except _EVENT_OUTBOX_PROCESS_ERRORS (IntegrityError, OperationalError, DatabaseError, ValidationError, ValueError, TypeError, OSError, ObjectDoesNotExist, AttributeError, KeyError) + log_exception_with_context; allowlist 0. |
 | webhooks.py | DONE | _default_http_post: HTTPError body decode → (OSError, UnicodeDecodeError, ValueError, TypeError); defensive urlopen branch → (OSError, TimeoutError, ValueError, TypeError); allowlist 0. |
 
 ### apps/billing (§2.4 — Step 9, full app pass)
