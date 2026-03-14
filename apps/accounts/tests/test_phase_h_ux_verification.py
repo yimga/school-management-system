@@ -39,6 +39,8 @@ TENANT_CRITICAL_PATHS = [
     ("/authentication/backend/", (200, 302)),
     ("/portal/parent/", (200, 302)),
     ("/finance/", (200, 302)),
+    ("/analytics/", (200, 302)),
+    ("/compliance/dashboard/", (200, 302)),
     ("/studio/experience/", (200, 302)),
     ("/siteconfig/customizer/", (200, 302)),
     ("/discover/", (200,)),
@@ -169,3 +171,13 @@ class PhaseHUrlReverseTests(SimpleTestCase):
         """Finance app dashboard (tenant) must resolve for Phase H link verification."""
         url = reverse("finance:dashboard")
         self.assertIn("/finance/", url)
+
+    def test_analytics_dashboard_resolves(self):
+        """Analytics app dashboard (tenant) must resolve for Phase H link verification."""
+        url = reverse("analytics:dashboard")
+        self.assertIn("/analytics/", url)
+
+    def test_compliance_dashboard_resolves(self):
+        """Compliance app dashboard (tenant) must resolve for Phase H link verification."""
+        url = reverse("compliance:dashboard")
+        self.assertIn("/compliance/", url)

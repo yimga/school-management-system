@@ -128,6 +128,8 @@ def run_url_reverse_checks(failures: list[str], verbose: bool = False) -> None:
         "accounts:backend_dashboard",
         "portal:parent_dashboard",
         "finance:dashboard",
+        "analytics:dashboard",
+        "compliance:dashboard",
         "studio_os:shell",
         "studio_os:experience",
         "studio_os:automation",
