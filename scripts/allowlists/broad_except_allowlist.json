@@ -97,6 +97,7 @@
     "apps/observability/db_liveness.py": 0,
     "apps/compliance/access_control.py": 0,
     "apps/compliance/threat_detection.py": 0,
+    "apps/dashboard/admin_context.py": 0,
     "apps/siteconfig/templatetags/region_format.py": 0,
     "apps/evals/grading.py": 0,
     "apps/people/management/commands/attach_audit_triggers.py": 0,
@@ -104,6 +105,19 @@
     "apps/siteconfig/views_dashboard_config.py": 0,
     "apps/marketplace/views.py": 0,
     "apps/siteconfig/views_console_domains.py": 0,
-    "apps/portal/ai_provider.py": 0
+    "apps/portal/ai_provider.py": 0,
+    "apps/metadata/lineage_api.py": 0,
+    "apps/evals/notifications.py": 0,
+    "apps/evals/validators.py": 0,
+    "apps/reports/adhoc_runner.py": 0,
+    "apps/reports/bi_services.py": 0,
+    "apps/reports/services.py": 0,
+    "apps/reports/management/commands/generate_regional_reports.py": 0,
+    "apps/reports/views.py": 0,
+    "apps/reports/weasy.py": 0,
+    "apps/analytics/services.py": 0,
+    "apps/portal/views_parent.py": 0,
+    "apps/siteconfig/views.py": 0,
+    "apps/portal/tasks.py": 0
   }
 }

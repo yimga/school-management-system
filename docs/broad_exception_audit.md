@@ -19,6 +19,11 @@
 | entity_api.py | DONE | Bulk create (StudentProfile, Classroom): (DRFValidationError, IntegrityError, DatabaseError, TypeError, ValueError, KeyError); noqa removed. Allowlist 0. |
 | views_v1.py | — | No broad except; allowlist 0. |
 
+### apps/dashboard (§2.4 — allowlist shrink)
+| File | Status | Notes |
+|------|--------|--------|
+| admin_context.py | DONE | _query_action_queue: except Exception → except _ADMIN_WIDGET_QUERY_ERRORS (ImportError, AttributeError, TypeError, ValueError, KeyError, DatabaseError, OperationalError, ObjectDoesNotExist, NoReverseMatch, ImproperlyConfigured). Allowlist 0; lint_broad_except --strict pass. |
+
 ### apps/schools
 | File | Line(s) | Purpose | Verdict | Action |
 |------|---------|---------|---------|--------|
@@ -94,6 +99,7 @@
 | **management/commands/recover_database.py** | — | **DONE** | **DONE** | backup: (OSError, PermissionError, shutil.Error); unlink: (OSError, PermissionError); migrate: (DatabaseError, OSError, PermissionError, SystemError) + logger.warning. Linter skips apps/siteconfig/management/. |
 | **dashboard_views.py** | — | **DONE** | **DONE** | update_theme / update_accessibility_preferences: _DASHBOARD_PREF_ERRORS (ValueError, TypeError, KeyError, DatabaseError, IntegrityError, json.JSONDecodeError) + logger.exception/logger.warning; allowlist 0. |
 | **views_dashboard_config.py** | — | **DONE** | **DONE** | workflow_hub: NoReverseMatch for automation_hub_url; get_blueprints: _OPTIONAL_HUB_ERRORS (ImportError, AttributeError, TypeError, ValueError, DatabaseError) + logger.debug for optional packs/manager_blueprints_url; allowlist 0. |
+| **views.py** | — | **DONE** | **DONE** | theme/experience save redirect: NoReverseMatch for studio_os:experience → fallback to siteconfig:theme_colors + log_view_exception. Allowlist 0. |
 | views / other commands | various | Optional features / reverse / format | keep (allowlist) | In allowlist |
 
 ### apps/people (§2.4 — management commands)
@@ -114,6 +120,9 @@
 | performance_optimization.py | DONE | _tenant_prefix: (ImportError, AttributeError, TypeError); allowlist 0; lint_broad_except --strict pass. |
 | caching.py | DONE | get_cache_stats: (AttributeError, TypeError, ValueError, KeyError) + logger.debug; allowlist 0. |
 | signals.py | DONE | create_audit_trail_and_convert_grades, handle_offline_sync_complete: _EVALS_AUDIT_FAILURES (DatabaseError, IntegrityError, ValidationError, AttributeError, TypeError, ValueError) + log_exception_with_context. Allowlist 0. |
+| **notifications.py** | **DONE** | All 5 send paths: _EVALS_NOTIFICATION_SEND_ERRORS (OSError, ConnectionError, TimeoutError, SMTPException, ValueError, TypeError, AttributeError, KeyError) + log_exception_with_context. Allowlist 0. |
+| notifications.py | DONE | All 5 send paths (grade_publication_email/sms, deadline_reminder, grade_approval_request_email, grade_approval_decision_email): broad except retained with log_exception_with_context(school_id/actor_id, extra=recipient/flow). Missing django.core.mail.send_mail import added. Allowlist 0. |
+| validators.py | DONE | GradeValidator.validate_evaluation: outlier/jump/duplicate_remark use _EVAL_VALIDATION_DETECTION_ERRORS (TypeError, ValueError, ZeroDivisionError, AttributeError, KeyError, DatabaseError) + log_exception_with_context(school_id, extra: evaluation_id, section). Allowlist 0. |
 
 ### apps/studio_os (§2.4 — Step 9)
 | File | Status | Notes |
@@ -145,6 +154,11 @@
 | File | Status | Notes |
 |------|--------|--------|
 | engine.py | DONE | Optional emit_platform_event in apply + rollback: _EVENT_EMIT_ERRORS (ImportError, AttributeError, TypeError, ValueError, ConnectionError, OSError) + logger.debug; allowlist 0. |
+
+### apps/dashboard (§2.4 — Step 9)
+| File | Status | Notes |
+|------|--------|--------|
+| admin_context.py | DONE | _safe_reverse: _ADMIN_REVERSE_ERRORS (NoReverseMatch, ImproperlyConfigured, ValueError, TypeError); all widget query fns: _ADMIN_WIDGET_QUERY_ERRORS (ImportError, AttributeError, TypeError, ValueError, KeyError, DatabaseError, OperationalError, ObjectDoesNotExist, NoReverseMatch, ImproperlyConfigured) + logger.debug or log_view_exception. Allowlist 0. |
 
 ### apps/events (§2.4 — Step 9)
 | File | Status | Notes |
@@ -178,6 +192,22 @@
 | File | Status | Notes |
 |------|--------|--------|
 | changelog.py | DONE | record_metadata_changelog: MetadataChangeLog.objects.create → (DatabaseError, IntegrityError, ValidationError) + logger.warning (no silent pass). |
+| lineage_api.py | DONE | get_unified_lineage field lookup: (FieldCatalogEntry.DoesNotExist, *_FIELD_LOOKUP_ERRORS) with log_exception_with_context on non-DoesNotExist; _FIELD_LOOKUP_ERRORS = AttributeError, DatabaseError, IntegrityError, ImportError, LookupError, TypeError, ValidationError, ValueError. Allowlist 0. |
+| usage_registry.py | DONE | register_usage + get_lineage_consumers: METADATA_USAGE_SOFT_FAILURES; log_exception_with_context in both except blocks (extra: consumer_type/consumer_code/entity_code/field_name, entity_code/field_id). No allowlist entry (typed only). |
+
+### apps/reports (§2.4 — structured logging rollout)
+| File | Status | Notes |
+|------|--------|--------|
+| adhoc_runner.py | DONE | run_adhoc_report: _REPORT_RUN_ERRORS (DatabaseError, IntegrityError, ValidationError, TypeError, ValueError, KeyError, AttributeError, OSError, ImportError) + log_exception_with_context. Allowlist 0. |
+| bi_services.py | DONE | ScheduledReportRunner.run_due_reports: _SCHEDULED_REPORT_RUN_ERRORS (same typed tuple) + log_exception_with_context. Allowlist 0. |
+| services.py | DONE | notify_parent_report_blocked_by_debt: (OSError, ConnectionError, AttributeError, TypeError, ValueError, KeyError) + log_exception_with_context. _region_display_context: region lookup (ObjectDoesNotExist, DatabaseError, KeyError, TypeError, AttributeError); tenant locale/template_family (ImportError, AttributeError, TypeError, ValueError, KeyError, DatabaseError). All + log_exception_with_context. Allowlist 0. |
+| views.py | DONE (logging) | Publish flow: AuditLog create + honor roll badge create — broad except retained with log_exception_with_context (request/school_id, extra: academic_year_id, term_id, student_id). Allowlist 2. |
+| **weasy.py** | **DONE** | _load_weasyprint_html: _WEASYPRINT_LOAD_ERRORS (ImportError, ModuleNotFoundError, AttributeError, OSError) + re-raise RuntimeError. Allowlist 0. |
+
+### apps/analytics (§2.4 — incremental)
+| File | Status | Notes |
+|------|--------|------|
+| **services.py** | **DONE** | get_import_job_status: _IMPORT_JOB_STATUS_ERRORS (ObjectDoesNotExist, AttributeError, TypeError, ValueError); returns None on expected failures. Allowlist 0. |
 
 ### apps/policies (§2.4 — Step 9)
 | File | Status | Notes |
@@ -195,13 +225,29 @@
 | views_kb.py | DONE | _get_kb_region: (ImportError, AttributeError, TypeError, KeyError) and (ImportError, OSError, ConnectionError, AttributeError, TypeError) + log_exception_with_context; kb_article_download_docx: (OSError, IOError, ValueError, TypeError) + log_exception_with_context. Allowlist 0. |
 | views_ai_copilot.py | DONE | Cache: (AttributeError, OSError, RuntimeError, TypeError, ValueError); audit: DatabaseError + log_exception_with_context + request_context_for_log(request); request body: json.JSONDecodeError, (DatabaseError, OSError, RuntimeError, TypeError, ValueError). Allowlist 0. |
 | **views_ai_gateway.py** | **DONE** | GATEWAY_VIEW_ERRORS (AttributeError, DatabaseError, ImportError, TypeError, ValueError, OSError, ConnectionError, RuntimeError, KeyError); _actor_roles: (AttributeError, DatabaseError, TypeError); _log_gateway_audit: (DatabaseError, IntegrityError, AttributeError, TypeError, ValueError); all gateway view handlers use GATEWAY_VIEW_ERRORS after json.JSONDecodeError. Allowlist 0. |
+| **views_parent.py** | **DONE** | parent_dashboard FormSignature stats: (DatabaseError, IntegrityError, AttributeError, TypeError, ValueError) + log_view_exception. Allowlist 0. |
+| **tasks.py** | **DONE** | generate_ai_response_async: (OSError, ConnectionError, TimeoutError, ValueError, TypeError, ImportError, AttributeError, KeyError, RuntimeError) + log_exception_with_context. Allowlist 0. |
 | **forms.py** | **DONE** | LinkChildForm/StudentOnboardingForm: _FORM_POLICY_ERRORS (ImportError, AttributeError, TypeError, ValueError, KeyError) + logger.debug for apply_form_policy; payment_method choices: (DatabaseError, ObjectDoesNotExist, AttributeError, TypeError). Allowlist 0. |
 | **ai_provider.py** | **DONE** | general_chat + get_workflow_clues + suggest_support_ticket_response: _AI_GATEWAY_INVOKE_ERRORS (OSError, ConnectionError, TimeoutError, ValueError, TypeError, KeyError, AttributeError, ImportError) + logger.warning. Allowlist 0. |
+| **management/commands/import_docs_to_kb.py** | PARTIAL (logging) | Broad except retained in file-processing loop and markdown-conversion fallback; log_exception_with_context added in both blocks (extra: command, file). Rollout per BACKLOG §2e row 7. |
+| **management/commands/generate_kb_odt.py** | PARTIAL (logging) | Broad except retained in article-conversion loop and odt_file.delete; log_exception_with_context added (extra: command, article_slug). Rollout per BACKLOG §2e row 7. |
+| **management/commands/generate_regional_reports.py** | PARTIAL (logging) | Two broad excepts retained: per-student report loop and _send_report_email; log_exception_with_context added (school_id, extra: command, student_id, language). Allowlist 2. |
+| **document_generation.py** | **DONE** | markdown_to_html: _MARKDOWN_CONVERT_ERRORS (TypeError, ValueError, KeyError, AttributeError, LookupError) + log_exception_with_context; fallback to _simple_markdown_to_html. Allowlist 0 (no entry needed; 0 broad except). |
 
 ### apps/marketplace (§2.4 — Step 9)
 | File | Status | Notes |
 |------|--------|------|
 | **views.py** | **DONE** | Blueprint pack preview: _MARKETPLACE_PREVIEW_FAILURES; app sandbox embed: _embed_parse_errors (ValueError, TypeError, AttributeError, KeyError) for urlparse/origin. Allowlist 0. |
+
+### apps/setup_studio (§2.4 — incremental)
+| File | Status | Notes |
+|------|--------|------|
+| **services.py** | **DONE** | _safe_reverse: (NoReverseMatch, TypeError, ValueError); _school_surface_url: (ImportError, AttributeError, TypeError, ValueError, OSError, ConnectionError) for school_subdomain_fqdn; _rank_blueprints: (ImportError, AttributeError, TypeError) for BlueprintPack import. Allowlist 0. |
+
+### apps/communication (§2.4 — incremental)
+| File | Status | Notes |
+|------|--------|------|
+| **channels.py** | **DONE** | send_whatsapp: (requests.RequestException, OSError, ValueError, TypeError) + logger.exception; send_push: (OSError, ConnectionError, TimeoutError, ValueError, TypeError) + logger.exception. Allowlist 0. |
 
 ---
 

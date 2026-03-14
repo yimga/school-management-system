@@ -5,7 +5,30 @@ from statistics import mean, stdev
 from typing import Dict, List
 import logging
 
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
 logger = logging.getLogger(__name__)
+
+# Typed exceptions for validation detection (outlier, jump, duplicate remark).
+# Covers attribute access, numeric/statistics, and ORM.
+try:
+    from django.db import DatabaseError
+    _EVAL_VALIDATION_DETECTION_ERRORS = (
+        TypeError,
+        ValueError,
+        ZeroDivisionError,
+        AttributeError,
+        KeyError,
+        DatabaseError,
+    )
+except ImportError:
+    _EVAL_VALIDATION_DETECTION_ERRORS = (
+        TypeError,
+        ValueError,
+        ZeroDivisionError,
+        AttributeError,
+        KeyError,
+    )
 
 
 class GradeValidator:
@@ -70,24 +93,39 @@ class GradeValidator:
             if self._detect_outlier(evaluation, weights):
                 errors.append('outlier_detected')
                 flags['outlier'] = True
-        except Exception as e:
-            logger.warning(f"Outlier detection failed: {e}")
+        except _EVAL_VALIDATION_DETECTION_ERRORS:
+            school_id = getattr(evaluation, 'school_id', None)
+            log_exception_with_context(
+                "Outlier detection failed",
+                school_id=school_id,
+                extra={"evaluation_id": getattr(evaluation, 'pk', None), "section": "outlier"},
+            )
         
         # Check term-over-term jumps
         try:
             if self._detect_impossible_jump(evaluation):
                 errors.append('impossible_jump')
                 flags['impossible_jump'] = True
-        except Exception as e:
-            logger.warning(f"Jump detection failed: {e}")
+        except _EVAL_VALIDATION_DETECTION_ERRORS:
+            school_id = getattr(evaluation, 'school_id', None)
+            log_exception_with_context(
+                "Jump detection failed",
+                school_id=school_id,
+                extra={"evaluation_id": getattr(evaluation, 'pk', None), "section": "impossible_jump"},
+            )
         
         # Check duplicate remarks
         try:
             if self._detect_duplicate_remark(evaluation):
                 errors.append('duplicate_remark')
                 flags['duplicate_remark'] = True
-        except Exception as e:
-            logger.warning(f"Duplicate remark check failed: {e}")
+        except _EVAL_VALIDATION_DETECTION_ERRORS:
+            school_id = getattr(evaluation, 'school_id', None)
+            log_exception_with_context(
+                "Duplicate remark check failed",
+                school_id=school_id,
+                extra={"evaluation_id": getattr(evaluation, 'pk', None), "section": "duplicate_remark"},
+            )
         
         return {
             'is_valid': len(errors) == 0,
