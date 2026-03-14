@@ -3,10 +3,28 @@ Install/uninstall pipeline and widget registry (RunMyCampus blueprint).
 On install: record install, apply schema patches if any, register widgets, audit log.
 """
 import logging
+from django.db import DatabaseError, IntegrityError, OperationalError
 from django.utils import timezone
 from django.core.management import call_command
+from django.core.management.base import CommandError
+
+from apps.platform_runtime.structured_logging import log_exception_with_context
 
 logger = logging.getLogger(__name__)
+
+# Typed exceptions for marketplace service paths (compat check, schema patch, billing record).
+_MARKETPLACE_COMPAT_ERRORS = (ImportError, AttributeError, TypeError, ValueError, KeyError)
+_MARKETPLACE_SCHEMA_BILLING_ERRORS = (
+    DatabaseError,
+    IntegrityError,
+    OperationalError,
+    OSError,
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    RuntimeError,
+)
 
 
 def ensure_marketplace_listing(app, *, publisher=None):
@@ -88,8 +106,13 @@ def check_app_compatibility(school, app, *, warn_only=False):
                     warnings.append(msg)
                 else:
                     errors.append(msg)
-        except Exception:
-            pass
+        except _MARKETPLACE_COMPAT_ERRORS:
+            school_id = getattr(school, "pk", None)
+            log_exception_with_context(
+                "check_app_compatibility blueprint family check failed",
+                school_id=school_id,
+                extra={"section": "blueprint_families"},
+            )
     # Plan tiers
     plan_tiers = compat.get("plan_tiers")
     if plan_tiers and isinstance(plan_tiers, (list, tuple)):
@@ -333,8 +356,12 @@ def run_schema_patches_for_installation(installation):
             payload={"app_label": app_label},
             actor=None,
         )
-    except Exception as e:
-        logger.warning("Schema patch failed for installation %s (app=%s): %s", installation.id, app_label, e)
+    except _SCHEMA_PATCH_ERRORS:
+        log_exception_with_context(
+            "Schema patch failed for installation",
+            school_id=getattr(installation, "school_id", None),
+            extra={"installation_id": installation.id, "app_label": app_label},
+        )
 
 
 def install_app(school, app, *, installed_by=None, config=None, run_schema_patches=True, install_phase="active", skip_compatibility=False):
@@ -388,7 +415,13 @@ def install_app(school, app, *, installed_by=None, config=None, run_schema_patch
     try:
         from apps.billing.services import record_app_install_for_billing
         record_app_install_for_billing(school, app, installation)
-    except Exception as e:
+    except _MARKETPLACE_SCHEMA_BILLING_ERRORS as e:
+        school_id = getattr(school, "pk", None)
+        log_exception_with_context(
+            "Billing record for app install skipped",
+            school_id=school_id,
+            extra={"app_slug": getattr(app, "slug", None), "installation_id": getattr(installation, "id", None)},
+        )
         logger.warning("Billing record for app install skipped: %s", e)
     return installation
 
