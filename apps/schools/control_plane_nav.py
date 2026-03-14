@@ -50,6 +50,9 @@ def build_control_plane_nav(request):
         {"id": "super_dashboard", "label": "Dashboard", "url_name": "super:dashboard", "icon": "bi-speedometer2"},
         {"id": "super_command_center", "label": "Command Center", "url_name": "super:command_center", "icon": "bi-list-check"},
     ])
+    add_group("Studio OS", [
+        {"id": "studio_os", "label": "Studio OS", "url_name": "studio_os:experience", "icon": "bi-window-stack"},
+    ])
     add_group("Schools", [
         {"id": "super_provision", "label": "Setup Studio", "url_name": "super:create_school_wizard", "icon": "bi-plus-circle"},
         {"id": "super_tenant_health", "label": "School Health", "url_name": "super:tenant_health", "icon": "bi-heart-pulse"},

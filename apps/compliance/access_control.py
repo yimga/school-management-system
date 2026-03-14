@@ -178,14 +178,18 @@ def get_country_from_ip(ip_address: str) -> str | None:
     """
     Resolve country code from IP using GeoIP2 (if available).
     Returns ISO 3166-1 alpha-2 code or None.
+    When GEOIP_PATH is not set (e.g. on Render), returns None so callers can fall back.
     """
     try:
-        from django.contrib.gis.geoip2 import GeoIP2
+        from django.contrib.gis.geoip2 import GeoIP2, GeoIP2Exception
+    except ImportError:
+        return None
+    try:
         g = GeoIP2()
         country = g.country(ip_address)
         return country.get("country_code")
-    except (ImportError, AttributeError, TypeError, ValueError, OSError):
-        # GeoIP2 not configured or IP not found
+    except (GeoIP2Exception, AttributeError, TypeError, ValueError, OSError):
+        # GeoIP2 not configured (no GEOIP_PATH), IP not found, or DB missing
         return None
 
 

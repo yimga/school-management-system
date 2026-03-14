@@ -30,6 +30,10 @@
             <i class="bi bi-speedometer2"></i>
             <span class="d-none d-lg-inline">{% trans "Control plane" %}</span>
           </a>
+          <a href="{{ public_site_url|default:'https://runmycampus.com' }}" class="btn btn-sm btn-outline-light d-flex align-items-center gap-1" target="_blank" rel="noopener noreferrer" title="{% trans 'Public site' %}">
+            <i class="bi bi-box-arrow-up-right"></i>
+            <span class="d-none d-lg-inline">{% trans "Public site" %}</span>
+          </a>
           <div class="dropdown">
             <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" id="cpUserDropdownAdmin" data-bs-toggle="dropdown" aria-expanded="false">
               <i class="bi bi-person-circle me-1"></i>

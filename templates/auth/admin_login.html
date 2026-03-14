@@ -9,9 +9,9 @@
 {% endblock %}
 
 {% block content %}
-<section class="admin-login-landing cp-surface" id="cp-main-content" aria-label="{% trans 'Configuration Engine sign-in' %}">
-  <div class="container py-4">
-    <div class="admin-login-hero">
+<section class="admin-login-landing cp-surface cp-ultra-login" id="cp-main-content" aria-label="{% trans 'Configuration Engine sign-in' %}">
+  <div class="container py-4 mx-auto cp-login-container">
+    <div class="admin-login-hero mx-auto">
       <div class="hero-logo" aria-hidden="true">
         {% if PUBLIC_BRAND_FAVICON_URL %}
           <img src="{{ PUBLIC_BRAND_FAVICON_URL }}" alt="" width="32" height="32" style="object-fit: contain;">
@@ -28,7 +28,7 @@
 
     <div class="row justify-content-center">
       <div class="col-md-10 col-lg-6">
-        <div class="card shadow-lg border-0 admin-login-card">
+        <div class="card border-0 admin-login-card">
           <div class="card-body p-4">
             <h2 class="h5 mb-4 text-white" id="admin-login-heading">{% trans "Sign in" %}</h2>
 

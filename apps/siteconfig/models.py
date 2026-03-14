@@ -2307,6 +2307,7 @@ from .models_global_experience import (  # noqa: F401
 from .models_feature_controls import (  # noqa: F401
     FeatureToggleDefinition,
     FeatureToggleState,
+    GlobalSupportTicket,
     TourStep,
 )  # noqa: F401
 # Re-export for admin/forms: models live in academics (moved in 0146 / tenant_runtime).

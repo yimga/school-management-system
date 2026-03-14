@@ -1,0 +1,595 @@
+/**
+ * Control plane ultra high-end revamp.
+ * Admin & configuration panel: manager + admin login, /admin/ shell, /super/ shell.
+ * Single source for premium tokens; no redundancy with manager-control-plane.css beyond overrides.
+ */
+
+/* ---- Tokens (override only) ---- */
+:root,
+[data-surface="control-plane"],
+body.control-plane-shell,
+body.admin-manager-shell {
+  --cp-ultra-bg: #06090e;
+  --cp-ultra-panel: rgba(10, 18, 30, 0.92);
+  --cp-ultra-border: rgba(125, 152, 187, 0.14);
+  --cp-ultra-border-strong: rgba(212, 175, 55, 0.28);
+  --cp-ultra-gold: #d4af37;
+  --cp-ultra-gold-dim: rgba(212, 175, 55, 0.75);
+  --cp-ultra-text: #e8eef6;
+  --cp-ultra-muted: #8b9cb8;
+  --cp-ultra-sidebar-bg: rgba(6, 12, 22, 0.98);
+  --cp-ultra-sidebar-active: rgba(212, 175, 55, 0.12);
+  --cp-ultra-sidebar-active-border: #d4af37;
+  --cp-ultra-radius: 14px;
+  --cp-ultra-radius-lg: 20px;
+  --cp-ultra-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  --cp-ultra-shadow-glow: 0 0 40px rgba(212, 175, 55, 0.12);
+  --cp-ultra-font: "IBM Plex Sans", "Inter", "Segoe UI", system-ui, sans-serif;
+  --cp-ultra-transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root, body.control-plane-shell, body.admin-manager-shell {
+    --cp-ultra-transition: 0.01s;
+  }
+}
+
+/* ---- Login (manager + admin): full-viewport ultra ---- */
+body.control-plane-shell .manager-login-landing.cp-ultra-login,
+body.control-plane-shell .admin-login-landing.cp-ultra-login {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem 3rem;
+  background: var(--cp-ultra-bg);
+  background-image:
+    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(212, 175, 55, 0.08), transparent 50%),
+    radial-gradient(ellipse 80% 50% at 100% 50%, rgba(94, 234, 212, 0.04), transparent 45%);
+}
+
+body.control-plane-shell .cp-login-container {
+  max-width: 480px;
+  width: 100%;
+}
+
+body.control-plane-shell .manager-login-hero,
+body.control-plane-shell .admin-login-hero {
+  width: 100%;
+  max-width: 480px;
+  margin-bottom: 2rem;
+  padding: 1.75rem 2rem;
+  border-radius: var(--cp-ultra-radius-lg);
+  background: var(--cp-ultra-panel);
+  border: 1px solid var(--cp-ultra-border);
+  box-shadow: var(--cp-ultra-shadow);
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+body.control-plane-shell .manager-login-hero .hero-logo,
+body.control-plane-shell .admin-login-hero .hero-logo {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: linear-gradient(145deg, rgba(212, 175, 55, 0.25), rgba(212, 175, 55, 0.08));
+  border: 1px solid var(--cp-ultra-border-strong);
+  display: grid;
+  place-items: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--cp-ultra-gold);
+  flex-shrink: 0;
+}
+
+body.control-plane-shell .manager-login-hero strong,
+body.control-plane-shell .admin-login-hero strong {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--cp-ultra-text);
+  letter-spacing: -0.02em;
+}
+
+body.control-plane-shell .manager-login-hero small,
+body.control-plane-shell .admin-login-hero small {
+  display: block;
+  color: var(--cp-ultra-muted);
+  font-size: 0.875rem;
+  margin-top: 0.2rem;
+  line-height: 1.4;
+}
+
+/* Login card: glass, centered, one column */
+body.control-plane-shell .manager-login-card,
+body.control-plane-shell .admin-login-card {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  border-radius: var(--cp-ultra-radius-lg);
+  border: 1px solid var(--cp-ultra-border);
+  background: var(--cp-ultra-panel);
+  box-shadow: var(--cp-ultra-shadow), var(--cp-ultra-shadow-glow);
+  padding: 2rem;
+  position: relative;
+  transition: box-shadow var(--cp-ultra-transition), transform var(--cp-ultra-transition);
+}
+body.control-plane-shell .manager-login-card::before,
+body.control-plane-shell .admin-login-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(160deg, rgba(212, 175, 55, 0.15), transparent 40%, transparent 70%, rgba(212, 175, 55, 0.05));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+body.control-plane-shell .manager-login-card .card-body,
+body.control-plane-shell .admin-login-card .card-body {
+  padding: 0;
+}
+
+body.control-plane-shell .manager-login-card h2,
+body.control-plane-shell .admin-login-card h2 {
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--cp-ultra-text);
+  margin-bottom: 1.5rem;
+}
+
+body.control-plane-shell .manager-login-card .form-control,
+body.control-plane-shell .admin-login-card .form-control {
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--cp-ultra-border);
+  color: var(--cp-ultra-text);
+  padding: 0.65rem 1rem;
+  font-size: 1rem;
+  transition: border-color var(--cp-ultra-transition), box-shadow var(--cp-ultra-transition), background var(--cp-ultra-transition);
+}
+
+body.control-plane-shell .manager-login-card .form-control:focus,
+body.control-plane-shell .admin-login-card .form-control:focus {
+  border-color: var(--cp-ultra-gold);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.25);
+  background: rgba(15, 23, 42, 0.8);
+}
+
+body.control-plane-shell .manager-login-card .form-control:focus-visible,
+body.control-plane-shell .admin-login-card .form-control:focus-visible {
+  outline: none;
+}
+
+body.control-plane-shell .manager-login-card .btn-primary,
+body.control-plane-shell .admin-login-card .btn-primary {
+  border-radius: 10px;
+  padding: 0.7rem 1.25rem;
+  font-weight: 600;
+  background: linear-gradient(180deg, #e0bc48 0%, var(--cp-ultra-gold) 50%, #c9a02c 100%);
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  color: #0a0c10;
+  box-shadow: 0 2px 12px rgba(212, 175, 55, 0.3);
+  transition: transform var(--cp-ultra-transition), box-shadow var(--cp-ultra-transition), filter var(--cp-ultra-transition);
+}
+
+body.control-plane-shell .manager-login-card .btn-primary:hover,
+body.control-plane-shell .admin-login-card .btn-primary:hover {
+  background: linear-gradient(180deg, #e8c454 0%, #e0bc48 50%, var(--cp-ultra-gold) 100%);
+  border-color: var(--cp-ultra-gold);
+  color: #0a0c10;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(212, 175, 55, 0.4);
+}
+
+body.control-plane-shell .manager-login-card .btn-primary:active,
+body.control-plane-shell .admin-login-card .btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(212, 175, 55, 0.3);
+}
+
+body.control-plane-shell .manager-login-card .btn-primary:focus-visible,
+body.control-plane-shell .admin-login-card .btn-primary:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.5);
+}
+
+body.control-plane-shell .manager-login-footer a,
+body.control-plane-shell .admin-login-footer a,
+body.control-plane-shell .admin-login-reset a {
+  color: var(--cp-ultra-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+body.control-plane-shell .manager-login-footer a:hover,
+body.control-plane-shell .admin-login-footer a:hover,
+body.control-plane-shell .admin-login-reset a:hover {
+  color: var(--cp-ultra-gold);
+}
+
+/* ---- Admin sidebar (nav-sidebar): ultra ---- */
+/* Admin shell (manager): ultra sidebar */
+body.admin-manager-shell #nav-sidebar,
+body.control-plane-shell #nav-sidebar,
+.admin-sidebar-column [id="nav-sidebar"] {
+  background: linear-gradient(180deg, rgba(8, 14, 26, 0.99) 0%, var(--cp-ultra-sidebar-bg) 100%) !important;
+  border-right: 1px solid var(--cp-ultra-border) !important;
+}
+
+#nav-sidebar .admin-sidebar-brand-link-header {
+  padding: 0.75rem 0.5rem;
+  border-radius: var(--cp-ultra-radius);
+}
+
+#nav-sidebar .admin-unfold-sidebar-title {
+  font-weight: 700;
+  color: var(--cp-ultra-text);
+  font-size: 1.05rem;
+}
+
+#nav-sidebar .admin-unfold-sidebar-subtitle {
+  color: var(--cp-ultra-muted);
+  font-size: 0.8rem;
+}
+
+#nav-sidebar .admin-sidebar-section-title,
+#nav-sidebar .admin-sidebar-app-title {
+  color: var(--cp-ultra-muted) !important;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.35rem;
+  padding-left: 0.75rem;
+}
+
+#nav-sidebar .admin-sidebar-link,
+#nav-sidebar .admin-sidebar-model-link,
+#nav-sidebar .admin-sidebar-app-title a {
+  color: var(--cp-ultra-text) !important;
+  border-radius: 10px;
+  padding: 0.5rem 0.75rem !important;
+  margin: 0 0.25rem;
+  transition: background var(--cp-ultra-transition), color var(--cp-ultra-transition), box-shadow var(--cp-ultra-transition);
+}
+
+#nav-sidebar .admin-sidebar-link:hover,
+#nav-sidebar .admin-sidebar-model-link:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--cp-ultra-gold-dim) !important;
+}
+
+#nav-sidebar .admin-sidebar-link.active,
+#nav-sidebar .admin-sidebar-model-link.active {
+  background: var(--cp-ultra-sidebar-active) !important;
+  color: var(--cp-ultra-gold) !important;
+  border-left: 3px solid var(--cp-ultra-sidebar-active-border);
+  margin-left: 0.5rem;
+  padding-left: calc(0.75rem - 3px) !important;
+  box-shadow: inset 0 0 20px rgba(212, 175, 55, 0.06);
+}
+
+#nav-sidebar .admin-sidebar-link:focus-visible,
+#nav-sidebar .admin-sidebar-model-link:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.4);
+}
+
+#nav-sidebar .admin-sidebar-search-hint {
+  font-size: 0.75rem;
+  color: var(--cp-ultra-muted);
+  padding: 0.25rem 0.75rem 0.5rem;
+}
+
+/* ---- /super/ sidebar (cp-sidebar-nav): same language ---- */
+.cp-sidebar-inner {
+  border-radius: var(--cp-ultra-radius);
+  border: 1px solid var(--cp-ultra-border);
+  background: var(--cp-ultra-sidebar-bg) !important;
+  padding: 1rem !important;
+}
+
+.cp-sidebar-nav .nav-link {
+  border-radius: 10px;
+  padding: 0.5rem 0.75rem;
+  color: var(--cp-ultra-text);
+  transition: background 0.15s, color 0.15s;
+}
+
+.cp-sidebar-nav .nav-link:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--cp-ultra-gold-dim);
+}
+
+.cp-sidebar-nav .nav-link.active {
+  background: var(--cp-ultra-sidebar-active);
+  color: var(--cp-ultra-gold);
+  border-left: 3px solid var(--cp-ultra-sidebar-active-border);
+  padding-left: calc(0.75rem - 3px);
+  box-shadow: inset 0 0 20px rgba(212, 175, 55, 0.06);
+}
+
+.cp-sidebar-nav .nav-link:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.4);
+}
+
+.cp-sidebar-nav .cp-nav-group-toggle {
+  color: var(--cp-ultra-muted);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.cp-sidebar-nav .cp-nav-recent .text-uppercase,
+.cp-sidebar-nav .cp-nav-quick-access .text-uppercase {
+  color: var(--cp-ultra-muted);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+}
+
+/* ---- Navbar (admin + super): unified ultra ---- */
+.cp-navbar.admin-cp-navbar-unified,
+.cp-navbar.statement-header {
+  background: var(--cp-ultra-bg) !important;
+  border-bottom: 1px solid var(--cp-ultra-border) !important;
+  padding: 0.5rem 0;
+}
+
+.cp-navbar .navbar-brand {
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: -0.02em;
+}
+
+.cp-navbar .form-control-sm {
+  border-radius: 10px;
+  border: 1px solid var(--cp-ultra-border);
+  background: rgba(15, 23, 42, 0.6);
+  color: var(--cp-ultra-text);
+}
+
+.cp-navbar .form-control-sm:focus {
+  border-color: var(--cp-ultra-gold);
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+}
+
+.cp-navbar .btn-outline-light {
+  border-radius: 999px;
+  font-weight: 500;
+  border-color: var(--cp-ultra-border);
+  color: var(--cp-ultra-text);
+}
+
+.cp-navbar .btn-outline-light:hover {
+  border-color: var(--cp-ultra-gold);
+  color: var(--cp-ultra-gold);
+  background: rgba(212, 175, 55, 0.08);
+}
+
+.cp-navbar .btn-outline-light.active {
+  background: var(--cp-ultra-sidebar-active);
+  border-color: var(--cp-ultra-gold);
+  color: var(--cp-ultra-gold);
+}
+
+.cp-navbar .btn-outline-light:focus-visible,
+.cp-navbar .form-control-sm:focus-visible {
+  outline: none;
+}
+
+.cp-navbar .dropdown-menu {
+  border-radius: var(--cp-ultra-radius);
+  border: 1px solid var(--cp-ultra-border);
+  background: var(--cp-ultra-panel);
+  box-shadow: var(--cp-ultra-shadow);
+  padding: 0.5rem;
+}
+
+.cp-navbar .dropdown-item {
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  transition: background var(--cp-ultra-transition);
+}
+
+.cp-navbar .dropdown-item:hover,
+.cp-navbar .dropdown-item:focus {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.cp-navbar .dropdown-item:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.3);
+}
+
+/* ---- Panels & hero (index_superadmin, dashboards) ---- */
+.cp-hero {
+  border-radius: var(--cp-ultra-radius-lg);
+  border: 1px solid var(--cp-ultra-border);
+  background: var(--cp-ultra-panel);
+  box-shadow: var(--cp-ultra-shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.cp-hero::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--cp-ultra-gold), transparent);
+  opacity: 0.6;
+}
+
+.cp-panel {
+  border-radius: var(--cp-ultra-radius-lg);
+  border: 1px solid var(--cp-ultra-border);
+  background: var(--cp-ultra-panel);
+  box-shadow: var(--cp-ultra-shadow);
+}
+
+.cp-overview-card {
+  border-radius: var(--cp-ultra-radius);
+  border: 1px solid var(--cp-ultra-border);
+  background: var(--cp-ultra-panel);
+  position: relative;
+  overflow: hidden;
+  transition: border-color var(--cp-ultra-transition), box-shadow var(--cp-ultra-transition);
+}
+
+.cp-overview-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, var(--cp-ultra-gold), transparent);
+  opacity: 0.7;
+}
+
+.cp-overview-card:hover {
+  border-color: var(--cp-ultra-border-strong);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.cp-admin-app-card {
+  border-radius: var(--cp-ultra-radius);
+  border: 1px solid var(--cp-ultra-border);
+  background: var(--cp-ultra-panel);
+  transition: border-color var(--cp-ultra-transition), box-shadow var(--cp-ultra-transition), transform var(--cp-ultra-transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.cp-admin-app-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.4), transparent);
+  opacity: 0;
+  transition: opacity var(--cp-ultra-transition);
+}
+
+.cp-admin-app-card .cp-admin-app-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 12px;
+  background: linear-gradient(145deg, rgba(212, 175, 55, 0.2), rgba(212, 175, 55, 0.05));
+  border: 1px solid var(--cp-ultra-border-strong);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.cp-admin-app-card:hover {
+  border-color: var(--cp-ultra-border-strong);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25), 0 0 24px rgba(212, 175, 55, 0.06);
+  transform: translateY(-2px);
+}
+
+.cp-admin-app-card:hover::before {
+  opacity: 1;
+}
+
+.cp-admin-app-card:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.4);
+}
+
+.cp-admin-index .cp-primary-action {
+  background: linear-gradient(180deg, #e0bc48 0%, var(--cp-ultra-gold) 50%, #c9a02c 100%) !important;
+  border: 1px solid rgba(212, 175, 55, 0.5) !important;
+  color: #0a0c10 !important;
+  font-weight: 600;
+  box-shadow: 0 2px 12px rgba(212, 175, 55, 0.3);
+  transition: transform var(--cp-ultra-transition), box-shadow var(--cp-ultra-transition);
+}
+
+.cp-admin-index .cp-primary-action:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(212, 175, 55, 0.4);
+  color: #0a0c10 !important;
+}
+
+.cp-admin-index .cp-action-row .btn-outline-light:hover,
+.cp-admin-index .cp-admin-app-btn:hover {
+  transform: translateY(-1px);
+}
+
+/* ---- Offcanvas (mobile /super/) ---- */
+.cp-sidebar-offcanvas {
+  background: var(--cp-ultra-sidebar-bg) !important;
+  border-right: 1px solid var(--cp-ultra-border) !important;
+}
+
+.cp-sidebar-offcanvas .offcanvas-title {
+  color: var(--cp-ultra-text);
+  font-weight: 600;
+}
+
+/* ---- Skip link (all shells) ---- */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0.5rem;
+  z-index: 9999;
+  padding: 0.5rem 1rem;
+  background: var(--cp-ultra-gold);
+  color: #0a0c10;
+  font-weight: 600;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.skip-link:focus {
+  left: 0.5rem;
+}
+
+.skip-link:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.6);
+}
+
+/* ---- Global focus-visible (control plane only): gold ring ---- */
+body.control-plane-shell a:focus-visible,
+body.admin-manager-shell a:focus-visible,
+body.control-plane-shell button:focus-visible,
+body.admin-manager-shell button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.5);
+  border-radius: 4px;
+}
+
+/* ---- Login hero: subtle shine ---- */
+body.control-plane-shell .manager-login-hero .hero-logo img,
+body.control-plane-shell .admin-login-hero .hero-logo img {
+  filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.2));
+}
+
+/* ---- Eyebrow / labels: premium typography ---- */
+.cp-eyebrow,
+.cp-panel-eyebrow {
+  letter-spacing: 0.14em;
+  font-weight: 600;
+}
+
+.cp-hero-title {
+  letter-spacing: -0.03em;
+  font-weight: 700;
+}

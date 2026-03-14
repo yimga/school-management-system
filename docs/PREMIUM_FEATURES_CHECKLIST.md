@@ -8,13 +8,13 @@ Use this to confirm all premium/high-end styling and features are in place befor
 
 | Item | Location | Status |
 |------|----------|--------|
-| Control plane skeleton | `templates/control_plane_skeleton.html` | Navy/gold `:root`, `control-plane-shell`, `cp-surface`, design-tokens, manager-control-plane.css, platform-high-end.css, surface-themes |
-| Manager login | `templates/auth/manager_login.html` | Extends control_plane_skeleton, manager-login.css, `#cp-main-content` |
-| Admin (Configuration Engine) login | `templates/auth/admin_login.html` | Extends control_plane_skeleton, manager-login.css, form/CSRF/next, password reset link, Back to public site |
-| Admin shell (all /admin/ pages) | `templates/admin/base_site.html` | manager-control-plane.css, platform-high-end.css, admin-manager-shell.css; body classes `control-plane-shell`, `admin-manager-shell`, `cp-surface` |
+| Control plane skeleton | `templates/control_plane_skeleton.html` | Navy/gold `:root`, control-plane-shell, cp-surface, design-tokens, manager-control-plane.css, platform-high-end.css, **control-plane-ultra.css** (ultra revamp), surface-themes |
+| Manager login | `templates/auth/manager_login.html` | Extends control_plane_skeleton, manager-login.css, control-plane-ultra.css; cp-ultra-login layout; `#cp-main-content` |
+| Admin (Configuration Engine) login | `templates/auth/admin_login.html` | Extends control_plane_skeleton, manager-login.css, control-plane-ultra.css; cp-ultra-login; form/CSRF/next, password reset link, Back to public site |
+| Admin shell (all /admin/ pages) | `templates/admin/base_site.html` | manager-control-plane.css, platform-high-end.css, admin-manager-shell.css, **control-plane-ultra.css**; body classes control-plane-shell, admin-manager-shell, cp-surface; ultra sidebar styling |
 | **Admin on manager: zero tenant UI** | `admin_nav_bridge.html`, `base_site.html`, `app_list.html` | On manager host: nav title "Configuration Engine" / "RunMyCampus Manager — System & data"; actions = Control plane + Public site only; platform favicon; sidebar quick access = Control plane (no Backend Console); no `admin_portal_stats` strip |
-| Superadmin dashboard at /admin/ | `templates/admin/index_superadmin.html` | Heavier structure: hero (Control plane, Command center, Billing), platform stats, app grid; navy/gold |
-| Control plane pages (/super/, marketplace) | control_plane_base.html, super_*.html, marketplace/*.html | Extend skeleton or base; manager-control-plane.css, control-plane-shell class |
+| Superadmin dashboard at /admin/ | `templates/admin/index_superadmin.html` | Hero (Control plane, Command center, Billing), platform stats, app grid; navy/gold; redundancy trimmed; single CTA line |
+| Control plane pages (/super/, marketplace) | control_plane_base.html, super_*.html, marketplace/*.html | Extend skeleton (includes control-plane-ultra.css); manager-control-plane.css; cp-sidebar-ultra; unified navbar and sidebar |
 
 ---
 
@@ -42,6 +42,7 @@ Use this to confirm all premium/high-end styling and features are in place befor
 
 - `static/css/manager-control-plane.css`
 - `static/css/manager-login.css`
+- `static/css/control-plane-ultra.css` (ultra high-end admin/super revamp)
 - `static/css/admin-manager-shell.css`
 - `static/css/platform-high-end.css`
 - `static/css/portal-premium-shell.css`
