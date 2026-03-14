@@ -43,7 +43,7 @@ class SupportRequestHelperTests(SimpleTestCase):
                                 return_value={"plan_slug": "pro", "country_code": "US"},
                             ):
                                 with patch(
-                                    "apps.siteconfig.models.GlobalSupportTicket.objects.create",
+                                    "apps.siteconfig.models_feature_controls.GlobalSupportTicket.objects.create",
                                     side_effect=AttributeError,
                                 ):
                                     support_request(request)

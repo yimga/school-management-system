@@ -71,7 +71,7 @@ def support_request(request):
         # Global support ticket (command center)
         if school:
             try:
-                from apps.siteconfig.models import GlobalSupportTicket
+                from apps.siteconfig.models_feature_controls import GlobalSupportTicket
                 from apps.portal.runtime_helpers import get_policy_for_request
                 policy = get_policy_for_request(request)
                 plan_slug = (policy.get("plan_slug") or "").strip().lower()

@@ -285,7 +285,7 @@ def _build_command_center_data() -> dict:
     # Support backlog aging
     stale_urgent_school_ids: set = set()
     try:
-        from apps.siteconfig.models import GlobalSupportTicket
+        from apps.siteconfig.models_feature_controls import GlobalSupportTicket
 
         qs = GlobalSupportTicket.objects.filter(status__in=open_ticket_statuses).select_related("school").order_by("created_at")
         tickets = list(qs[:300])
@@ -1451,7 +1451,7 @@ def super_command_center(request):
     """
     Phase 3 mission-control surface combining approvals, billing, support, and risk posture.
     """
-    from apps.siteconfig.models import GlobalSupportTicket
+    from apps.siteconfig.models_feature_controls import GlobalSupportTicket
 
     command_center = _build_command_center_data()
     pending_schools = list(
@@ -1496,7 +1496,7 @@ def super_command_center_v2(request):
     from apps.events.legacy_bridge import legacy_webhook_sync_snapshot
     from apps.observability.models import PlatformIncident
     from apps.observability.monitoring import SystemHealthMonitor
-    from apps.siteconfig.models import GlobalSupportTicket
+    from apps.siteconfig.models_feature_controls import GlobalSupportTicket
 
     command_center = _build_command_center_data()
     pending_schools = list(
@@ -2439,7 +2439,7 @@ def super_analytics_overview(request):
 
 def super_support_dashboard(request):
     """Global support ticket command center: list tickets with filters; HTMX refreshes queue."""
-    from apps.siteconfig.models import GlobalSupportTicket
+    from apps.siteconfig.models_feature_controls import GlobalSupportTicket
 
     status_filter = request.GET.get("status", "").strip()
     priority_filter = request.GET.get("priority", "").strip()
@@ -2494,7 +2494,7 @@ def _annotate_tickets_sla(tickets):
 
 def support_queue_fragment(request):
     """HTMX fragment: ticket queue table (refresh every 60s). SLA breach from apps.siteconfig.support_sla."""
-    from apps.siteconfig.models import GlobalSupportTicket
+    from apps.siteconfig.models_feature_controls import GlobalSupportTicket
     from apps.siteconfig.support_sla import SUPPORT_SLA_RESPONSE_HOURS, SUPPORT_SLA_RESOLUTION_HOURS
 
     status_filter = request.GET.get("status", "").strip()
@@ -2520,7 +2520,7 @@ def support_queue_fragment(request):
 def support_assign_ticket(request):
     """POST: assign ticket to current user or unassign. Redirects to support dashboard or returns fragment for HTMX."""
     from django.shortcuts import redirect
-    from apps.siteconfig.models import GlobalSupportTicket
+    from apps.siteconfig.models_feature_controls import GlobalSupportTicket
 
     if request.method != "POST":
         return redirect("super:support_dashboard")

@@ -176,7 +176,7 @@ def create_auto_ticket(school, rule, trigger_context=None):
     trigger_context: dict with event details for title/description.
     """
     try:
-        from apps.siteconfig.models import GlobalSupportTicket
+        from apps.siteconfig.models_feature_controls import GlobalSupportTicket
     except ImportError:
         return None
     trigger_context = trigger_context or {}

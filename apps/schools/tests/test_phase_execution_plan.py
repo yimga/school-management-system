@@ -8,7 +8,7 @@ from django.utils import timezone
 from apps.accounts.models import User
 from apps.observability.models import PlatformIncident
 from apps.schools.models import School, SchoolProvisioningEvent
-from apps.siteconfig.models import GlobalSupportTicket
+from apps.siteconfig.models_feature_controls import GlobalSupportTicket
 
 
 @override_settings(ALLOWED_HOSTS=["*"], DEBUG=False, SECURE_SSL_REDIRECT=False)
