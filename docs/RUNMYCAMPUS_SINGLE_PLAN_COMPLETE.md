@@ -5,9 +5,13 @@ todos: []
 isProject: false
 ---
 
+**Superseded:** Execution and completion authority are in [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md), [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md), [docs_truth_ledger.md](docs_truth_ledger.md), and [NEXT_50_EXECUTION_STEPS.md](NEXT_50_EXECUTION_STEPS.md). This file is **reference only** (historical). Do not use for status or new work.
+
+---
+
 # RunMyCampus Codebase Audit and World-Class Roadmap (Single Plan)
 
-This is the **one plan** for the codebase audit and world-class roadmap. It covers: tenant-per-schema as the config, all your questions, dashboard catalog, workflow catalog, full blueprint checklist, strengths/weaknesses, deep-dive execution, world-class blueprint index, and prioritized actions. **Nothing is missed.**
+This is the **one plan** for the codebase audit and world-class roadmap (reference; see supersession notice above). It covers: tenant-per-schema as the config, all your questions, dashboard catalog, workflow catalog, full blueprint checklist, strengths/weaknesses, deep-dive execution, world-class blueprint index, and prioritized actions. **Nothing is missed.**
 
 ---
 

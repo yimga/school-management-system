@@ -1,6 +1,8 @@
 # RunMyCampus Execution Master — completion checklist
 
-This checklist maps **every** requirement in `RunMyCampus_ONE_FILE_Cursor_Execution_Master.md` to the implementing artifact or code. It is the single place to verify "everything in this plan is done."
+**Superseded:** Completion and status live in [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §12, [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md), [docs_truth_ledger.md](docs_truth_ledger.md), and [NEXT_50_EXECUTION_STEPS.md](NEXT_50_EXECUTION_STEPS.md). This file is **reference only** (historical).
+
+This checklist maps **every** requirement in `RunMyCampus_ONE_FILE_Cursor_Execution_Master.md` to the implementing artifact or code. It is the single place to verify "everything in this plan is done" for that legacy plan only.
 
 ---
 

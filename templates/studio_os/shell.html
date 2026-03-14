@@ -48,6 +48,9 @@
 <div class="container-fluid py-2" data-page-archetype="operational-workbench">
   <a href="#studio-canvas" class="visually-hidden-focusable btn btn-sm btn-outline-primary position-absolute top-0 start-0 m-2 px-3 py-2 rounded z-1" style="z-index: 1060;">{% trans "Skip to Studio content" %}</a>
   <div class="d-flex align-items-center gap-2 mb-3 flex-wrap" role="toolbar" aria-label="{% trans 'Studio toolbar' %}">
+    {% if request.public_host_kind == 'manager' %}
+    <a href="{% url 'super:dashboard' %}" class="btn btn-sm btn-outline-secondary" aria-label="{% trans 'Control plane' %}"><i class="bi bi-building me-1"></i>{% trans "Manager" %}</a>
+    {% endif %}
     <a href="{% url 'studio_os:shell' %}" class="btn btn-sm btn-outline-secondary" aria-label="{% trans 'Studio home' %}">
       <i class="bi bi-grid-3x3-gap"></i>
     </a>

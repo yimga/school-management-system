@@ -82,6 +82,9 @@ def build_control_plane_nav(request):
     add_group("Migration Cloud", [
         {"id": "super_migration", "label": "Migration", "url_name": "super:migration_cloud", "icon": "bi-cloud-arrow-up"},
     ])
+    add_group("Integrations", [
+        {"id": "apicenter_dashboard", "label": "API Center", "url_name": "apicenter:dashboard", "icon": "bi-plug"},
+    ])
     add_group("Observability", [
         {"id": "super_usage", "label": "Usage", "url_name": "super:usage", "icon": "bi-bar-chart"},
         {"id": "super_pulse", "label": "Pulse", "url_name": "super:pulse", "icon": "bi-activity"},

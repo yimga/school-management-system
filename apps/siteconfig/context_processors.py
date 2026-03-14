@@ -523,7 +523,7 @@ def site_settings(request):
     public_brand_mode = (public_host_kind in {"base", "verify", "support", "manager"}) and not school
     ctx["PUBLIC_BRAND_MODE"] = public_brand_mode
     path = (request.path or "").strip()
-    ctx["CONTROL_PLANE_SHELL"] = public_host_kind == "manager" and path.startswith("/super/")
+    ctx["CONTROL_PLANE_SHELL"] = public_host_kind == "manager"
     if ctx["CONTROL_PLANE_SHELL"]:
         try:
             from apps.schools.control_plane_nav import build_control_plane_nav

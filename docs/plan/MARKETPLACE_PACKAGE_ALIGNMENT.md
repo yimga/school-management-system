@@ -17,3 +17,5 @@
 - [x] Install flows use PackageEngine so governance, audit, and rollback are consistent.
 
 New install flows should call `PackageEngine.apply_package()` (or `preview_diff` then `apply_package`) so governance, audit, and rollback are consistent.
+
+**Completion status:** For platform completion and 9.5/10 eligibility use [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](../RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §12 and [docs_truth_ledger.md](../docs_truth_ledger.md).

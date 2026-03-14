@@ -8,6 +8,14 @@ After a deploy completes, you can run these in the **Render Dashboard → your w
 
 If the app looks unchanged after a deploy (no new marketplace/catalog data, Studio OS, marketing, or control-plane content), do the following.
 
+**If you don't see Studio OS, marketplace, or control plane at all:**
+
+1. **Use the manager URL, not the default Render URL.** Studio OS and `/super/` (control plane, marketplace) are **only** on the manager host: **https://manager.&lt;your-base-domain&gt;** (e.g. **https://manager.runmycampus.com**). The default Render URL (e.g. `xxx.onrender.com`) is the public/marketing host and does not serve `/super/` or `/studio/`. See **§0b** for the full table.
+2. **Set up the manager host:** In Render, add a custom domain **manager.runmycampus.com** (or `manager.&lt;your-base-domain&gt;`) pointing to your web service; set **MULTI_TENANT_BASE_DOMAIN** and add **manager.runmycampus.com** to **ALLOWED_HOSTS**. Then log in as superuser and open **https://manager.runmycampus.com/super/** and **https://manager.runmycampus.com/studio/**.
+3. **Seed and clear cache:** Run the Shell commands in **B** below (`bootstrap_platform_catalog --all`, then cache clear). Optional: set **RUN_BOOTSTRAP_PLATFORM_CATALOG=1** in Render env so future deploys seed automatically.
+
+**One-line Shell (after deploy):** `python manage.py check && python manage.py bootstrap_platform_catalog --all && python manage.py shell -c "from django.core.cache import cache; cache.clear(); print('Cache cleared')"`
+
 ### A. Confirm deploy and pre-deploy ran
 
 1. **Render Dashboard** → your **Web** service → **Deployments**.
