@@ -2,9 +2,8 @@
 {% load i18n %}
 {% block title %}Upgrade progress{% endblock %}
 {% block content %}
-<div class="container-fluid">
-  <h1>Global AI upgrade progress</h1>
-  <p><a href="{{ dashboard_url }}">Super dashboard</a></p>
+<div class="container-fluid" data-page-archetype="operational-workbench">
+  {% include "studio_os/components/page_header.html" with title=_("Global AI upgrade progress") subtitle=_("Upgrade run in progress. Run ID below.") action_url=dashboard_url action_text=_("Back to dashboard") %}
   <div class="card shadow-sm">
     <div class="card-body">
       <p id="progress-text">Loading…</p>

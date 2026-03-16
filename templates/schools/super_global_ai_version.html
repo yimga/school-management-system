@@ -2,10 +2,9 @@
 {% load i18n %}
 {% block title %}Global AI Version{% endblock %}
 {% block content %}
-<div class="container-fluid">
-  <h1>Global AI Version</h1>
-  <p class="text-muted">Upgrade all regions to a target model. Enqueues sync_regional_models per cluster.</p>
-  <p><a href="{{ dashboard_url }}">Super dashboard</a> | <a href="{{ ai_model_hub_url }}">AI Model Hub</a></p>
+<div class="container-fluid" data-page-archetype="operational-workbench">
+  {% include "studio_os/components/page_header.html" with title=_("Global AI Version") subtitle=_("Upgrade all regions to a target model. Enqueues sync_regional_models per cluster.") action_url=dashboard_url action_text=_("Back to dashboard") %}
+  {% if ai_model_hub_url %}<p class="mb-2"><a href="{{ ai_model_hub_url }}">{% trans "AI Model Hub" %}</a></p>{% endif %}
   <div class="card shadow-sm">
     <div class="card-header">Upgrade all regions</div>
     <div class="card-body">
