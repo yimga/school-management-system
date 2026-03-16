@@ -127,9 +127,13 @@ Adopt shared `studio_os/components/page_header.html` incrementally so every cont
 | **studio_os/output_dependency_graph** (Output Studio) | **studio_os page_header** (Dependency graph, subtitle, Back to Outputs) + data-page-archetype=operational-workbench | **DONE** |
 | **studio_os/experience_compare** (Experience Studio) | **studio_os page_header** (Compare before/after, subtitle, Back to Experience) + data-page-archetype=operational-workbench | **DONE** |
 | **studio_os/automation_dependency_graph** (Automation Studio) | **studio_os page_header** (Dependency graph, subtitle, Back to Automation) + data-page-archetype=operational-workbench | **DONE** |
+| **studio_os/control_impact** (Control Studio) | **studio_os page_header** (Diff / impact summary, subtitle, Back to Control) + data-page-archetype=operational-workbench | **DONE** |
+| **studio_os/ai_cleanup** (Control Studio) | **studio_os page_header** (AI cleanup suggestions, subtitle, Back to Control) + data-page-archetype=operational-workbench | **DONE** |
 | people/backend_student_list.html (tenant backend) | **studio_os page_header** (title, subtitle, Add Student) | **DONE** — migrated from title_block; §8.0.11 platform-wide bar. |
 | **people/backend_guardian_list.html** (tenant backend) | **studio_os page_header** (Guardians, subtitle, Back to students) | **DONE** — §2e row 8 tenant backend page maturity. |
 | **people/backend_teacher_list.html** (tenant backend) | **studio_os page_header** (Teachers, subtitle, Add Teacher) | **DONE** — §2e row 8 tenant backend page maturity. |
+| **people/backend_classroom_list.html** (tenant backend) | **studio_os page_header** (Classrooms, subtitle, Add classroom) + Back to students link; data-page-archetype=operational-workbench | **DONE** — §2e row 8 tenant backend page maturity. |
+| **people/backend_applicant_list.html** (tenant backend) | **studio_os page_header** (Applicants, subtitle, Add applicant) + Back to students link; data-page-archetype=operational-workbench | **DONE** — §2e row 8 tenant backend page maturity. |
 | Other control_plane_base pages | — | Add page_header or title_block when adding new pages |
 
 **Rule:** New control-plane content pages must include either `studio_os/components/page_header.html` or a cp-hero with clear title and primary action. Migrate title_block pages to page_header when touching them. Tenant backend pages: same UX bar per §8.0.11; adopt page_header when touching (e.g. people/backend_student_list [x]).

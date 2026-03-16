@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import NoReverseMatch, reverse
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
 
@@ -60,6 +61,10 @@ def studio_control_impact(request):
         {
             "impact_summary": preview_ctx.get("impact_summary") or "",
             "dependency_warnings": preview_ctx.get("dependency_warnings") or [],
+            "page_title": _("Diff / impact summary"),
+            "page_subtitle": _("Review feature toggles and runtime state before publishing. Use Runtime inspector for impact and source tracing."),
+            "action_url": reverse("studio_os:control"),
+            "action_text": _("Back to Control"),
         },
     )
 
@@ -75,7 +80,13 @@ def studio_ai_cleanup(request):
     return render(
         request,
         "studio_os/ai_cleanup.html",
-        {"recommendations": recs},
+        {
+            "recommendations": recs,
+            "page_title": _("AI cleanup suggestions"),
+            "page_subtitle": _("Capabilities and audit log suggestions for feature state."),
+            "action_url": reverse("studio_os:control"),
+            "action_text": _("Back to Control"),
+        },
     )
 
 
