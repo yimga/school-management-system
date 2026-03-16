@@ -4,12 +4,8 @@
 {% block backend_title %}Migration Wizard{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-  <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
-    <h1 class="h4 mb-1 fw-bold">Data migration wizard</h1>
-    <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:import_hub' %}">Back to Import Hub</a>
-  </div>
-  <p class="text-muted small mb-4">Choose your current system, upload a CSV, map columns to target fields, preview, then run. Backed by students bulk-commit and grade import.</p>
+<div class="container-fluid py-4" data-page-archetype="operational-workbench">
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
 
   {% if not wizard_data.source_system %}
   <div class="card shadow-sm">

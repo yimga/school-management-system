@@ -3,12 +3,9 @@
 {% load region_format %}
 {% block backend_title %}{% trans "Legacy data (read-only)" %}{% endblock %}
 {% block content %}
-<div class="container-fluid py-4">
-  <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
-    <h1 class="h4 mb-1 fw-bold">{% trans "Legacy data (read-only)" %}</h1>
-    <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:migration_run_list' %}">{% trans "Back to runs" %}</a>
-  </div>
-  <p class="text-muted small">Run #{{ run.id }} — {{ run.migration_type }} ({{ run.started_at|date:"SHORT_DATETIME_FORMAT" }}). This view is read-only.</p>
+<div class="container-fluid py-4" data-page-archetype="operational-workbench">
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
+  <p class="text-muted small mb-3">Run #{{ run.id }} — {{ run.migration_type }} ({{ run.started_at|date:"SHORT_DATETIME_FORMAT" }}).</p>
   <div class="table-responsive">
     <table class="table table-sm table-bordered">
       <thead>

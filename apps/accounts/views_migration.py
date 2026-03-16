@@ -291,6 +291,10 @@ def migration_wizard(request):
         "scorecard": scorecard,
         "schema_hints": schema_hints,
         "schema_hints_json": schema_hints_json,
+        "page_title": _("Data migration wizard"),
+        "page_subtitle": _("Choose your current system, upload a CSV, map columns to target fields, preview, then run."),
+        "action_url": reverse("accounts:import_hub"),
+        "action_text": _("Back to Import Hub"),
     })
 
 
@@ -357,6 +361,10 @@ def migration_legacy_view(request, run_id):
         "run": run,
         "rows_matrix": rows_matrix,
         "headers": headers,
+        "page_title": _("Legacy data (read-only)"),
+        "page_subtitle": _("Run #%(run_id)s — %(migration_type)s. This view is read-only.") % {"run_id": run.id, "migration_type": run.migration_type},
+        "action_url": reverse("accounts:migration_run_list"),
+        "action_text": _("Back to runs"),
     })
 
 
