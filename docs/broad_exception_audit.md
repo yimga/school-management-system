@@ -258,7 +258,7 @@
 ### apps/requests (§2.4 sprint — Step 9)
 | File | Status | Notes |
 |------|--------|--------|
-| tasks.py | DONE | Notification create → (IntegrityError, ValidationError, DatabaseError) + logger.warning; task body → (DatabaseError, IntegrityError, ValidationError, ValueError, TypeError) + logger.exception + re-raise. |
+| tasks.py | DONE | Notification create → (IntegrityError, ValidationError, DatabaseError) + logger.warning; task body → (DatabaseError, IntegrityError, ValidationError, ValueError, TypeError) + log_exception_with_context(extra: task, execution_log_id, error) + re-raise. §2e row 7. |
 | services.py | DONE | GradeApprovalRequest filter → (DatabaseError, IntegrityError); target = None on failure. |
 
 ### apps/metadata (§2.4 sprint — Step 9)
@@ -362,6 +362,7 @@
 - [x] All current usages classified and allowlisted; CI blocks unlisted new usage.
 - [x] Portal pass: views_parent_finance, models_kb, views_documents, services, views_kb — broad except replaced with typed + structured logging (see §portal above).
 - [x] portal/views_ai_gateway DONE (GATEWAY_VIEW_ERRORS; allowlist 0). Future: remaining allowlisted files per backlog.
+- [x] **Tests (lint skips):** tenancy/tests/test_control_plane_boundary.py _file_contains_forbidden_imports → OSError; schools/tests/test_control_plane_boundary.py resolver traversal → (AttributeError, TypeError, IndexError, KeyError). §2e row 6 incremental.
 
 ---
 

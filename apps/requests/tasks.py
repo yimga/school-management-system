@@ -12,6 +12,7 @@ from django.core.exceptions import ValidationError
 from celery import shared_task
 from apps.automation.models import AutomationExecutionLog
 from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.schools.celery_tasks import _run_with_tenant_context, get_active_school_ids
 
 logger = logging.getLogger(__name__)
@@ -81,7 +82,10 @@ def _remind_pending_assignees_body() -> dict:
         )
         return result
     except (DatabaseError, IntegrityError, ValidationError, ValueError, TypeError) as e:
-        logger.exception("remind_pending_assignees_task failed: %s", e)
+        log_exception_with_context(
+            "remind_pending_assignees_task failed",
+            extra={"task": "remind_pending_assignees", "execution_log_id": getattr(execution_log, "id", None), "error": str(e)},
+        )
         execution_log.mark_completed(
             AutomationExecutionLog.Status.FAILED,
             error_message=str(e),
