@@ -133,7 +133,11 @@ Adopt shared `studio_os/components/page_header.html` incrementally so every cont
 | **studio_os/experience_compare** (Experience Studio) | **studio_os page_header** (Compare before/after, subtitle, Back to Experience) + data-page-archetype=operational-workbench | **DONE** |
 | **studio_os/automation_dependency_graph** (Automation Studio) | **studio_os page_header** (Dependency graph, subtitle, Back to Automation) + data-page-archetype=operational-workbench | **DONE** |
 | **studio_os/automation_staged_activation** (Automation Studio) | **studio_os page_header** (Staged activation, subtitle, Back to Automation) + data-page-archetype=operational-workbench | **DONE** — §4.3 optional. |
+| **studio_os/automation_replay_rollback** (Automation Studio) | **studio_os page_header** (Replay / rollback, subtitle, Back to Automation) + data-page-archetype=operational-workbench | **DONE** — §4.3 optional. |
 | **studio_os/automation_workflow_health** (Automation Studio) | **studio_os page_header** (Workflow health metrics, subtitle, Back to Automation) + data-page-archetype=operational-workbench | **DONE** — §4.3 optional. |
+| **studio_os/automation_visual_builder** (Automation Studio) | **studio_os page_header** (Visual builder, subtitle, Back to Automation) + data-page-archetype=operational-workbench | **DONE** — §4.3 optional. |
+| **studio_os/automation_natural_language_workflow** (Automation Studio) | **studio_os page_header** (Natural-language workflow, subtitle, Back to Automation) + data-page-archetype=operational-workbench | **DONE** — §4.3 optional. |
+| **studio_os/automation_simulation_engine** (Automation Studio) | **studio_os page_header** (Simulation engine, subtitle, Back to Automation) + data-page-archetype=operational-workbench | **DONE** — §4.3 optional. |
 | **automation/outcomes_console** (Automation rail) | **studio_os page_header** (Automation outcomes, subtitle, Back to Automation) + data-page-archetype=operational-workbench | **DONE** — §2e row 8 page maturity. |
 | **studio_os/control_impact** (Control Studio) | **studio_os page_header** (Diff / impact summary, subtitle, Back to Control) + data-page-archetype=operational-workbench | **DONE** |
 | **studio_os/ai_cleanup** (Control Studio) | **studio_os page_header** (AI cleanup suggestions, subtitle, Back to Control) + data-page-archetype=operational-workbench | **DONE** |
