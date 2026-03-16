@@ -15,7 +15,7 @@ Use this for each release (tag or deploy to production). Expand steps as needed 
 
 - [ ] Migrate: `python manage.py migrate` (or let predeploy run it).
 - [ ] Static: `python manage.py collectstatic --noinput` (or equivalent).
-- [ ] Tests: run full test suite or at least `scripts/pre_deploy_gate.sh`.
+- [ ] Tests: run full test suite or at least `scripts/pre_deploy_gate.sh`. To run the gate without Browser visual QA (e.g. CI without Playwright/server), set `SKIP_VISUAL_QA=1`; run `bash scripts/run_visual_qa.sh` manually when server and Playwright are available.
 - [ ] **Record gate output (RUNMYCAMPUS §12.1; required, nothing deferred):** Run `bash scripts/record_pre_deploy_gate_output.sh` (or `bash scripts/pre_deploy_gate.sh 2>&1 | tee docs/generated/pre_deploy_gate_run.txt`). Commit or attach `docs/generated/pre_deploy_gate_run.txt` for this release so gate results are recorded.
 
 ## Deploy
@@ -43,6 +43,16 @@ Before release candidate, complete the following and record result in [SECURITY_
 
 ---
 
-**Date:** _______________  
-**Release / tag:** _______________  
-**Checked by:** _______________
+## Release sign-off (required to declare plan "done")
+
+Per [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §11.4: the plan is **done** when (1) §12 gates MET, (2) **release sign-off** recorded, (3) pre-release checklist complete. Do not claim 9.5/10 or "plan complete" until this sign-off is filled.
+
+| Field | Value |
+|-------|--------|
+| **Date** | _______________ |
+| **Release / tag** | _______________ |
+| **Checked by** | _______________ |
+| **Launch 10-point run in staging** | Date _______________ Sign-off _______________ (see [launch_studio_checklist.md](launch_studio_checklist.md) §4) |
+| **Phase H manual pass** | Done / Deferred (if deferred: phase_h_audit + run_phase_h_verification automated slice in place; full manual when prioritized) |
+
+**To unblock "plan done":** Complete all Pre-release and Build steps above; run 10-point checklist in staging and add sign-off in launch_studio_checklist.md §4; fill this table and commit. Then SOT §11.4 "Why not declared done yet" can be updated to "Release sign-off recorded on [date]."

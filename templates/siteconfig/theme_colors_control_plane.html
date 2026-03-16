@@ -1,0 +1,19 @@
+{% extends "control_plane_base.html" %}
+{% load i18n static %}
+{% load region_format %}
+
+{% block title %}{% trans "Theme & Experience" %} – RunMyCampus Manager{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Manager" %}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'studio_os:shell' %}">{% trans "Studio" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Theme & Experience" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+{% include "siteconfig/partials/theme_colors_page_body.html" %}
+{% endblock %}

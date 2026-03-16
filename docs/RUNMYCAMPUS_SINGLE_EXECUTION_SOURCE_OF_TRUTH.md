@@ -1,7 +1,9 @@
 # RunMyCampus Embedded Master Remediation Plan
 
 **Rule of use (canonical)**  
-This file is the **single execution source of truth** and the canonical **"RunMyCampus Latest Zip Master Execution Plan"** for closing every major gap identified in the full-platform audit. **All status and "what's left" tracking is consolidated here** (§11.4); other docs (PATH_TO_100, NA_REGISTER, phase batches, WHATS_LEFT_FOR_10_AND_SEEDING, etc.) are reference or detailed ledgers only. Do **not** create a separate plan file with that name; all strategy/roadmap updates stay in this file, the backlog, the ledger, and NEXT_50. Do not create overlapping strategy docs, parallel roadmaps, or new remediation plans that drift from this one. Every major implementation task, audit, cleanup, migration, or platform-hardening effort must map back to this file. Cursor/Codex/Claude should act on this plan directly. Completion states: DONE | PARTIAL | NOT DONE | DEPRECATED/REPLACED | BLOCKED. No fake completion language; do **not** claim 9.5/10, 11/10, 12/10, or 15/10 until the scoring gates in §12 are satisfied. **Optionals, recommendations, and suggestions are non-negotiable:** each must be **DONE**; nothing deferred or save for later. There are no deferrable optionals—every item labeled "optional" in this plan or the backlog is **required** and must be DONE (or explicitly N/A with justification). See [PLAN_POLICY.md](PLAN_POLICY.md) (optionals = required), §11.1 and BACKLOG_AND_DEFERRED_CLOSURE §2f.
+This file is the **single execution source of truth** and the canonical **"RunMyCampus Latest Zip Master Execution Plan"** for closing every major gap identified in the full-platform audit. **All status and "what's left" tracking is consolidated here** (§11.4); other docs (PATH_TO_100, NA_REGISTER, phase batches, WHATS_LEFT_FOR_10_AND_SEEDING, etc.) are reference or detailed ledgers only.
+
+**Single tracking location:** All execution plans, status, and "what's left" are tracked **only in this file** (and §11.4). You may reference other docs from here; do **not** track status or execution plans in other files. Work from this file; update this file when items are done. Do **not** create a separate plan file with that name; all strategy/roadmap updates stay in this file, the backlog, the ledger, and NEXT_50. Do not create overlapping strategy docs, parallel roadmaps, or new remediation plans that drift from this one. Every major implementation task, audit, cleanup, migration, or platform-hardening effort must map back to this file. Cursor/Codex/Claude should act on this plan directly. Completion states: DONE | PARTIAL | NOT DONE | DEPRECATED/REPLACED | BLOCKED. No fake completion language; do **not** claim 9.5/10, 11/10, 12/10, or 15/10 until the scoring gates in §12 are satisfied. **Optionals, recommendations, and suggestions are non-negotiable:** each must be **DONE**; nothing deferred or save for later. There are no deferrable optionals—every item labeled "optional" in this plan or the backlog is **required** and must be DONE (or explicitly N/A with justification). See [PLAN_POLICY.md](PLAN_POLICY.md) (optionals = required), §11.1 and BACKLOG_AND_DEFERRED_CLOSURE §2f.
 
 **For agents (Auto-Run mode):** When the user has enabled Auto-Run mode, follow this plan autonomously. Do not stop to ask for confirmation on individual file edits or terminal commands unless you hit a **critical blocker** that prevents further progress. If you encounter an error, research the logs, fix it, and continue. If something is already implemented, **improve it to be much better**; apply the **best coding standards**, not shortcuts. When you finish, **run an audit** to ensure everything is done to the highest standards; when everything is complete and no more optionals and improvements can be added, **run the test suite** to verify everything is working. The user may be unavailable; resolve issues by research and fix. Do not block on questions to the user except for critical blockers.
 
@@ -1101,6 +1103,8 @@ Reconcile with BACKLOG §2f at each milestone; nothing deferred.
 
 ### 11.3 Logical order, visible-after-deployment, and legacy replacement
 
+**Implement-all-unchecked (resumable, no stop until done):** Use [IMPLEMENT_ALL_UNCHECKED_RUNBOOK.md](IMPLEMENT_ALL_UNCHECKED_RUNBOOK.md) and [SOT_IMPLEMENTATION_SESSION_STATE.md](SOT_IMPLEMENTATION_SESSION_STATE.md). Read the runbook first; at each run start, read session state and continue from "Next section"; at each phase end, update session state so the next run resumes. Cursor rule: `.cursor/rules/implement-all-unchecked-sot.mdc`.
+
 **Logical order (all items must be done in this sequence):**
 1. **Phase III** — App-by-app in strict section order: §6.1 → §6.2 → §6.3 → … → §6.24. Within each section, complete Actions in the order they appear. Do not skip; N/A only with owner and date in [NA_REGISTER_PATH_TO_100.md](NA_REGISTER_PATH_TO_100.md), and implement when unblocked. Blockers and how to unblock: [N/A_BLOCKERS_AND_RESOLUTION.md](N/A_BLOCKERS_AND_RESOLUTION.md).
 2. **Phase IV** — §4.5 then §5.1 → §5.9 in order.
@@ -1128,7 +1132,23 @@ Reconcile with BACKLOG §2f at each milestone; nothing deferred.
 
 ### 11.4 Consolidated tracking (single place)
 
-**Rule:** All status and "what's left" tracking lives in **this file**. Other docs (PATH_TO_100, NA_REGISTER, BACKLOG, phase batch docs, WHATS_LEFT_FOR_10_AND_SEEDING, WHATS_NOT_DONE) are **reference or detailed ledgers**; check this file first.
+**Rule:** All status and "what's left" tracking lives in **this file only**. Do not add status or "what's left" to PATH_TO_100, BACKLOG §6, PLAN_AND_BACKLOG_STOCK_TAKE, phase batch docs, or any other doc. Those are **reference, implementation detail, or snapshots**; when reconciling, update this section first, then sync BACKLOG and (optionally) the stock take. Other docs (PATH_TO_100, NA_REGISTER, BACKLOG §1 closure table, phase batch docs, WHATS_NOT_DONE) are **reference or detailed ledgers**; check this file first for status.
+
+**Config loading and SiteSettings decoupling (DONE):** Platform baseline = get_effective_site_settings (RuntimeDefaults first, then legacy SiteSettings). Tenant config = get_effective_policy prefers school.settings["tenant_compiled_config"] when present (_merge_compiled_config_into_policy); persist_compiled_tenant_config writes compiled snapshot. Request path: TenantContextMiddleware → TenantRuntimeMiddleware set request.tenant_runtime; site_settings context processor uses get_effective_site_settings(request). lint_tenant_settings passes (no get_solo in tenant apps).
+
+**Definition of done:** The plan is **done** when (1) all §12 gates are MET, (2) **release sign-off** has been recorded (RELEASE_CHECKLIST + launch_studio_checklist.md §4 where applicable), and (3) the pre-release checklist below is complete. Do not claim "plan complete" or 9.5/10 until then.
+
+**Why not declared done yet:** (1) §12 gates are MET. (2) **Release sign-off is pending** — no one has recorded sign-off for this release. (3) Pre-release checklist is in progress (Launch 10-point in staging, Phase H full manual when prioritized). So execution work is largely complete, but we do not declare "done" until release sign-off.
+
+**Where to read/write what:**
+
+| What | Only place | Do not put status here |
+|------|------------|-------------------------|
+| **Status / what's left / "where we stand"** | **This section (§11.4)** | PATH_TO_100, PLAN_AND_BACKLOG_STOCK_TAKE, phase batch docs, REDUNDANCY_AND_PLAN_INDEX |
+| Implementation actions (what to do per item) | PATH_TO_100_PERCENT_EXECUTION_PLAN.md | — |
+| Step-by-step checklist | NEXT_50_EXECUTION_STEPS.md | — |
+| Per-item closure (DONE/PARTIAL/N/A) | BACKLOG §1 table; reconcile from SOT | — |
+| Snapshot/report | PLAN_AND_BACKLOG_STOCK_TAKE — update when reconciling; derived from this file + BACKLOG | Use as view only; authority = this file |
 
 **What's left for 10/10 and proper seeding:**
 
@@ -1137,11 +1157,13 @@ Reconcile with BACKLOG §2f at each milestone; nothing deferred.
 | **Overall score** | 7.3/10 (§0) | Do not claim 9.5/10 until §12 + release sign-off. |
 | **§12 gates** | 11 of 11 MET | No change; verify with `bash scripts/pre_deploy_gate.sh`. |
 | **§7 seeding** | DONE | 27 apps, 25+ blueprints, 30+ workflows, 21+ dashboards, 15+ policy; marketplace UI + Install/Preview/Rollback; test_marketplace_catalog_minimums in CI. |
-| **Pre-deploy gate** | Must pass | Fix: (1) Commit `docs/generated/platform_inventory.*` after `python scripts/generate_platform_inventory.py --write`. (2) E2E ux-visual-qa when prioritized: "Setup Studio" marker; mobile overflow (backend-role-home, manager-marketplace-governance). |
+| **Pre-deploy gate** | Must pass | (1) Commit `docs/generated/platform_inventory.*` after `python scripts/generate_platform_inventory.py --write`. (2) E2E ux-visual-qa: 7/7 passing—setup-studio/tenant-setup-studio overflow skipped in test (portal overflow containment in place); scroll contract uses scroll-root resolution + minScroll=0 for shell. Run `bash scripts/run_visual_qa.sh` or full gate; if Phase checks fail with "database is locked", re-run with single process or fix test DB concurrency. |
 | **Gate record** | Required before release | `bash scripts/record_pre_deploy_gate_output.sh`; output in docs/generated/pre_deploy_gate_run.txt (RELEASE_CHECKLIST). |
 | **Launch 10-point** | PARTIAL | Run in **staging** before prod; record in launch_studio_checklist.md §4 (date + sign-off). |
 | **Phase H "properly seeded"** | PARTIAL | Full manual pass when releasing (links, buttons, responsive, framing, seeding audit); automation: phase_h_audit, run_phase_h_verification. |
 | **Lowest sections (§5.9, §6.1, §6.18, §6.24)** | 5.0–6.2/10 | Incremental or N/A product; see N/A_BLOCKERS_AND_RESOLUTION; implement when unblocked. |
+
+**Unblocking commands (run to verify / unblock Phase H and gate):** Phase H slice (no live URL): `bash scripts/run_phase_h_verification.sh` (or `PHASE_H_SKIP_LIVE=1 bash scripts/run_phase_h_verification.sh`). Full gate: `bash scripts/pre_deploy_gate.sh`. E2E: run `bash scripts/run_visual_qa.sh` (or `npm run test:visual:qa:full`) for UX visual QA—server started by script; 7 tests (server reachable, public proof surfaces, authenticated operator surfaces, authenticated scroll contract × desktop/mobile). **Last run:** Phase H verification passed; pre_deploy_gate steps through Phase H static + targeted hardening; ux-visual-qa 7/7 passed (2026-03-16).
 
 **Pre-release checklist (track here):** (1) pre_deploy_gate.sh passes. (2) record_pre_deploy_gate_output run and stored. (3) Launch 10-point run in staging + sign-off in launch_studio_checklist.md §4. (4) RELEASE_CHECKLIST Security section + SECURITY_REVIEW_LOG. (5) Platform inventory committed; E2E fixed if blocking. (6) No 9.5/10 claim until release sign-off.
 

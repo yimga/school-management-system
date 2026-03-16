@@ -199,6 +199,8 @@
 | Single source of truth (all checkboxes) | [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) |
 | Phase H verification | [PHASE_H_UX_VERIFICATION.md](PHASE_H_UX_VERIFICATION.md), `scripts/phase_h_audit.py` |
 | Raw SQL / public endpoints / feature control | [raw_sql_audit.md](raw_sql_audit.md), [public_endpoint_audit.md](public_endpoint_audit.md), [feature_control_ledger.md](feature_control_ledger.md) |
+| **Unblock any N/A item** | [N/A_BLOCKERS_AND_RESOLUTION.md](N/A_BLOCKERS_AND_RESOLUTION.md) — concrete steps and key files per category |
+| **Declare plan done** | [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) "Release sign-off"; [launch_studio_checklist.md](launch_studio_checklist.md) §4 staging run |
 
 ---
 

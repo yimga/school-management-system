@@ -4,20 +4,18 @@
  * Applied globally via portal_base.html.
  */
 
-/* ===== Viewport-fixed layout: single scroll in main (tenant + backend + workflows) ===== */
-/* Ensure every dashboard/page can scroll: body bounded so main column is the scroll container */
+/* ===== Viewport-fixed layout: sidebar stays visible, only main scrolls (tenant + backend) ===== */
+/* Body does NOT scroll; only .portal-main-col / #main-content scrolls so sidebar stays on all pages */
 body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  overflow-x: hidden;
+  overflow-x: clip;
+  max-width: 100vw;
 }
 body.portal-body-with-layout,
 body:has(.portal-layout-wrap) {
-  height: auto;
-  max-height: none;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: hidden;
 }
 body > nav.topbar,
 body > .topbar {
@@ -25,26 +23,33 @@ body > .topbar {
 }
 .portal-layout-wrap {
   flex: 1 1 auto;
-  min-height: auto;
-  overflow: visible;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
 }
 @media (min-width: 992px) {
   .portal-layout-wrap {
     flex-direction: row;
-    align-items: flex-start;
+    align-items: stretch;
   }
   .portal-layout-wrap .portal-layout-row {
     flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
   }
 }
-/* Main content: always scrollable so all page/dashboard content is reachable */
+/* Main content: ONLY this area scrolls; sidebar stays fixed */
 .portal-layout-wrap .portal-main-col,
 .portal-layout-wrap #main-content {
   flex: 1 1 auto !important;
-  min-height: auto !important;
-  overflow: visible !important;
+  min-height: 0 !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow-y: auto !important;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
   padding-bottom: 2.5rem; /* breathing room so last section is not flush */
@@ -103,27 +108,27 @@ body.portal-backend-dark .portal-layout-wrap #main-content::-webkit-scrollbar-th
   }
 }
 .portal-layout-wrap .portal-layout-row {
-  min-height: auto;
-  overflow: visible;
-  align-items: flex-start;
+  min-height: 0;
+  overflow: hidden;
+  align-items: stretch;
 }
-/* Sidebar column: fixed height, inner .sidebar scrolls */
+/* Sidebar column: always visible, inner .sidebar scrolls if nav is long */
 @media (min-width: 992px) {
   .portal-layout-wrap .portal-sidebar-col {
     display: flex;
     flex-direction: column;
-    min-height: auto;
-    overflow: visible;
-    align-self: flex-start;
+    min-height: 0;
+    overflow: hidden;
+    flex-shrink: 0;
+    align-self: stretch;
   }
   .portal-layout-wrap .portal-sidebar-col .sidebar {
-    flex: 0 0 auto;
-    min-height: auto;
+    flex: 1 1 auto;
+    min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
-    max-height: calc(100vh - var(--portal-shell-sticky-offset, 5rem) - 1.5rem);
     scrollbar-width: thin;
     scrollbar-color: rgba(15, 23, 42, 0.25) rgba(15, 23, 42, 0.04);
   }

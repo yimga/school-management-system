@@ -76,6 +76,8 @@
 
 **Requirement:** Hero headline and primary CTA must use platform design tokens so marketing and product share one design system. Use `design-tokens.css` (or THEME_CANONICAL_TOKENS) for typography (e.g. `--studio-font-heading`) and primary color (e.g. `--color-primary-500`). Marketing base and landing templates should load the same token set as control-plane/product where possible; CTAs use `btn-primary` with token-backed `--bs-btn-bg`/`--bs-btn-border-color` or equivalent. Non-negotiable per RUNMYCAMPUS §11.1.
 
+**What we're doing (plan alignment):** The plan ([CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL.md](CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL.md) §4, BACKLOG §2e row 8) requires marketing to be **ultra high-end**, **no generic square boxes**, and **same design system** as product. Marketing uses a **different header by design** (hero + CTAs for the landing), not the control-plane app navbar; that’s correct. We are doing: (1) design tokens on hero and primary CTA, (2) proper seeding and fallbacks for all MARKETING_* keys, (3) navigation and inner pages from one base (base_marketing, same header/footer). Remaining work is content/asset pipeline (final copy and images); wiring is DONE.
+
 ---
 
 *Source of truth: [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §8.4, §12. Implementation order: [IMPLEMENTATION_DEPENDENCIES_AND_ORDER.md](IMPLEMENTATION_DEPENDENCIES_AND_ORDER.md) §5.*

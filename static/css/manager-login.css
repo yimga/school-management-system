@@ -1,12 +1,48 @@
 /**
  * Shared high-end login styles for manager (control plane) and admin (Configuration Engine).
  * Dark theme, gold accent (#d4af37), hero strip + card. Used by auth/manager_login.html and auth/admin_login.html.
- * Only loaded on those two templates, so body background is safe.
+ * Optimized for all viewports: desktop gets a proper wide layout, not a narrow mobile strip.
  */
 body { background: #0B0E14; }
 
 .manager-login-landing,
 .admin-login-landing { min-height: 100vh; padding: 2rem 0 4rem; }
+
+/* Desktop: use full container width so layout doesn't look like mobile */
+@media (min-width: 992px) {
+  .manager-login-landing .container,
+  .admin-login-landing .container {
+    max-width: 720px;
+  }
+  .manager-login-hero,
+  .admin-login-hero {
+    padding: 2rem 2.5rem;
+  }
+  .manager-login-hero .hero-logo,
+  .admin-login-hero .hero-logo {
+    width: 56px;
+    height: 56px;
+    font-size: 1.6rem;
+  }
+  .manager-login-hero strong,
+  .admin-login-hero strong { font-size: 1.35rem; }
+  .manager-login-card,
+  .admin-login-card {
+    max-width: 440px;
+    min-width: 380px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .manager-login-landing .container,
+  .admin-login-landing .container {
+    max-width: 560px;
+  }
+  .manager-login-card,
+  .admin-login-card {
+    max-width: 460px;
+  }
+}
 
 .manager-login-hero,
 .admin-login-hero {
@@ -27,6 +63,7 @@ body { background: #0B0E14; }
   width: 48px; height: 48px; border-radius: 12px;
   background: rgba(212, 175, 55, 0.2);
   display: grid; place-items: center; font-size: 1.4rem; font-weight: 700; color: #d4af37;
+  flex-shrink: 0;
 }
 
 .manager-login-hero strong,
@@ -40,8 +77,16 @@ body { background: #0B0E14; }
   border-radius: 18px;
   border: 1px solid rgba(125, 152, 187, 0.18);
   background: rgba(8, 16, 30, 0.92);
-  max-width: 420px;
+  max-width: 100%;
+  width: 100%;
   margin: 0 auto;
+}
+
+@media (max-width: 991.98px) {
+  .manager-login-card,
+  .admin-login-card {
+    max-width: 420px;
+  }
 }
 
 .manager-login-card .form-control,

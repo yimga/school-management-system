@@ -2,6 +2,8 @@
 
 **Purpose:** During this critical phase, track **only** the items in §1 below. All other plan/strategy/roadmap docs are superseded or reference-only; completion authority is RUNMYCAMPUS §12 and the four canonical docs. This file is the **only index** you need to avoid missing, overlooking, or duplicating work. **§6** is the single place to see how every external plan or directive (Cursor master prompt, Cursor implementation plan, 12 layers, UX directive, scroll-storytelling) maps into the SOT and where progress is tracked.
 
+**Status lives in one place only:** **All "where we stand" and "what's left" status** is written and read in **[RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §11.4.** Do not add status or "what's left" to PATH_TO_100, PLAN_AND_BACKLOG_STOCK_TAKE, phase batch docs, or this file. When reconciling, update SOT §11.4 first; then sync BACKLOG and (optionally) the stock take. See SOT §11.4 "Where to read/write what" table.
+
 **For all agents:** Strategy and completion updates go **only** to the four canonical docs (§1). Do not create new strategy or roadmap files. When given a Cursor prompt, pasted implementation plan, or "12 layers" / UX / marketing directive, use **§6** to see where it lives and where to record progress; then update RUNMYCAMPUS, BACKLOG, docs_truth_ledger, or NEXT_50 as appropriate.
 
 ---

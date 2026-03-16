@@ -41,7 +41,7 @@ COUNT_PATTERNS = {
     "print_calls": re.compile(r"\bprint\s*\("),
     "gilead": re.compile(r"gilead", re.IGNORECASE),
 }
-SKIP_PARTS = {".git", ".venv", "venv", "node_modules", "__pycache__", ".pytest_cache"}
+SKIP_PARTS = {".git", ".venv", "venv", "node_modules", "__pycache__", ".pytest_cache", "test-results"}
 
 
 def _iter_files(*suffixes: str):

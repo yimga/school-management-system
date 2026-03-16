@@ -65,7 +65,9 @@ Document any failure or gap; mark row DONE only after successful staging run.
 | Date | Environment | Sign-off | Notes |
 |------|-------------|----------|--------|
 | 2026-03-13 | local/CI | Automated verification | 10-point checklist: all items have implementation verified (create school, select plan, recommend blueprint, import branding, starter stack, migration path, preview by role, launch checklist, health score, launch confidence). lint_secret_exposure, lint_broad_except, lint_raw_sql, manage.py check pass; smoke URL tests pass. Step 34 DONE. Re-run in staging before prod deploy per RELEASE_CHECKLIST. |
-| Pending | staging | — | Optional: run 10-point checklist in staging again before production release; add row with date and sign-off. |
+| Pending | staging | — | **Required before release:** Run 10-point checklist in staging; add row with date and sign-off. See RELEASE_CHECKLIST Pre-release. |
+
+**To unblock Step 34 and release sign-off:** (1) Run the 10 items above in a **staging** environment. (2) Add a row to this table with Date, Environment=staging, Sign-off=(name or "Release manager"), Notes=any gaps. (3) In [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) complete the "Release sign-off" section. Once both are filled, the plan can be declared done per SOT §11.4.
 
 ---
 

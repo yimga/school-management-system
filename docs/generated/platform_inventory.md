@@ -2,18 +2,18 @@
 
 - Installed app modules: `41`
 - Python files: `1848`
-- HTML templates: `492`
-- Markdown files: `897`
+- HTML templates: `497`
+- Markdown files: `895`
 - Migration files: `600`
 - Management commands: `138` (full list in JSON key `management_commands_list`)
-- `SiteSettings` refs: `1104`
+- `SiteSettings` refs: `1106`
 - `get_solo()` refs: `181`
 - `except Exception`: `156`
 - `cursor.execute()`: `351`
 - `csrf_exempt`: `106`
 - `AllowAny`: `61`
 - `print()`: `483`
-- `gilead` matches: `683` across `135` files
+- `gilead` matches: `682` across `134` files
 
 
 ## Management Commands (full list)
@@ -87,7 +87,7 @@ Total: `138` commands. First 25 by app/command:
 - `apps/siteconfig/models.py`: `2360` lines / `95144` bytes
 - `apps/api/views_v1.py`: `1741` lines / `90640` bytes
 - `apps/portal/views_parent.py`: `1736` lines / `86491` bytes
-- `apps/siteconfig/views.py`: `1902` lines / `80663` bytes
+- `apps/siteconfig/views.py`: `1908` lines / `80868` bytes
 - `apps/finance/tasks.py`: `1775` lines / `80075` bytes
 - `apps/siteconfig/management/commands/seed_admin_dashboard_palettes.py`: `1482` lines / `63755` bytes
 

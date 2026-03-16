@@ -1,6 +1,8 @@
 # Plan and Backlog — Where We Stand
 
-**Purpose:** Single snapshot of where the plan, backlog, and execution stand at this time. Update when reconciling or at major milestones. Authority: [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md), [PATH_TO_100_PERCENT_EXECUTION_PLAN.md](PATH_TO_100_PERCENT_EXECUTION_PLAN.md), [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md).
+**Purpose:** Single snapshot of where the plan, backlog, and execution stand at this time. Update when reconciling or at major milestones.
+
+**Authority:** Status and "what's left" live **only** in [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §11.4. This doc is a **derived snapshot** — do not use it as the source of truth. When reconciling, update SOT §11.4 first, then refresh this snapshot. Sources: SOT, [PATH_TO_100_PERCENT_EXECUTION_PLAN.md](PATH_TO_100_PERCENT_EXECUTION_PLAN.md), [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md).
 
 **Last updated:** 2026-03-16.
 

@@ -1,0 +1,22 @@
+{% extends "control_plane_base.html" %}
+{% load static i18n %}
+
+{% block cp_title %}{% if current_mode %}{% for m in studio_modes %}{% if m.id == current_mode %}{{ m.label }}{% endif %}{% endfor %} – {% endif %}{% trans "Studio" %}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+{% include "studio_os/partials/shell_extrastyle.html" %}
+{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="{% trans 'Breadcrumb' %}">
+  <ol class="breadcrumb mb-0 flex-wrap">
+    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Manager" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Studio" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+{% include "studio_os/partials/shell_main_content.html" %}
+{% endblock %}

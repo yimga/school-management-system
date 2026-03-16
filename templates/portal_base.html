@@ -300,13 +300,28 @@
       }
 
       /* Overflow safety contract for all module pages (no text/frame bleed). */
+      body.portal-body-with-layout,
+      body:has(.portal-layout-wrap) {
+        overflow-x: clip;
+      }
+      .portal-layout-wrap,
       .portal-main-col,
       #main-content,
+      .page-wrap {
+        max-width: 100%;
+        min-width: 0;
+        overflow-x: hidden;
+      }
       #main-content .row > [class*="col-"],
       #main-content .card,
       #main-content .card .card-body,
       #main-content .table-responsive {
         min-width: 0;
+      }
+      body.backend-shell #main-content,
+      body.backend-shell .page-wrap {
+        max-width: 100%;
+        overflow-x: hidden;
       }
       #main-content .card-title,
       #main-content .table td,
@@ -502,6 +517,10 @@
 
       /* Mobile-First Responsive Portal Design (breakpoints from design-tokens) */
       @media (max-width: var(--bp-content-sm-max, 479px)) {
+        body { overflow-x: hidden; }
+        .portal-layout-wrap, .portal-layout-row { max-width: 100%; min-width: 0; overflow-x: hidden; }
+        #main-content, .page-wrap { max-width: 100%; min-width: 0; overflow-x: hidden; }
+        #portalHeader .container-fluid { max-width: 100%; min-width: 0; }
         .topbar {
           padding: 0.75rem 1rem;
         }

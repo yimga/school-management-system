@@ -63,6 +63,7 @@ from .preview_state import PREVIEW_MODE_SESSION_KEY, ACT_AS_ROLE_SESSION_KEY
 from .tenant_config import apply_tenant_settings_overrides
 from apps.accounts.decorators import permission_required
 from apps.accounts.models import User
+from apps.schools.control_plane import use_control_plane_shell
 logger = logging.getLogger(__name__)
 
 CACHE_KEY = "site_settings_v1"
@@ -1198,9 +1199,14 @@ def theme_colors_page(request):
         contrast_values[field_name] = incoming
     contrast_report = build_theme_contrast_report(contrast_values)
 
+    template = (
+        "siteconfig/theme_colors_control_plane.html"
+        if use_control_plane_shell(request)
+        else "siteconfig/theme_colors.html"
+    )
     return render(
         request,
-        "siteconfig/theme_colors.html",
+        template,
         {
             "form": form,
             "site_settings": site,

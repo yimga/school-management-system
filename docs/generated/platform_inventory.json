@@ -5,15 +5,15 @@
     "cursor_execute": 351,
     "except_exception": 156,
     "get_solo": 181,
-    "gilead": 683,
-    "gilead_files": 135,
-    "html_files": 492,
+    "gilead": 682,
+    "gilead_files": 134,
+    "html_files": 497,
     "management_commands": 138,
-    "markdown_files": 897,
+    "markdown_files": 895,
     "migration_files": 600,
     "print_calls": 483,
     "python_files": 1848,
-    "site_settings": 1104
+    "site_settings": 1106
   },
   "doc_drift": {
     "actual_installed_app_count": 41,
@@ -68,8 +68,8 @@
       "path": "apps/portal/views_parent.py"
     },
     {
-      "bytes": 80663,
-      "lines": 1902,
+      "bytes": 80868,
+      "lines": 1908,
       "path": "apps/siteconfig/views.py"
     },
     {

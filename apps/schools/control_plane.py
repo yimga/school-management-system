@@ -36,6 +36,16 @@ def is_control_plane_request(request) -> bool:
     return (getattr(request, "public_host_kind", None) or "").lower() == "manager"
 
 
+def use_control_plane_shell(request) -> bool:
+    """
+    True when the request should see the control-plane UI (same top bar/sidebar as /super/).
+    Use for template choice (Studio, Theme & Experience). Includes "local" so localhost
+    gets the same shell without requiring manager.localhost.
+    """
+    kind = (getattr(request, "public_host_kind", None) or "").lower()
+    return kind in ("manager", "local")
+
+
 def require_control_plane_access(view_func):
     """
     Restrict view to authenticated platform operators.

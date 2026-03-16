@@ -631,14 +631,73 @@ a.cp-queue-card-header:hover {
   }
 }
 
-/* ========== Layout: sticky scrollable sidebar + scrollable main ========== */
-/* Body: full viewport flex column; one scrollable main area, sidebar fixed height and scrolls internally */
+@media (max-width: 576px) {
+  .cp-hero-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+/* Mobile/tablet: contain horizontal overflow (E2E viewport 390px and up to 991px) */
+@media (max-width: 991px) {
+  body.control-plane-shell { overflow-x: clip; max-width: 100vw; }
+  body.control-plane-shell .cp-shell-content,
+  body.control-plane-shell .cp-layout {
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: clip;
+  }
+  #cp-main-content {
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+  }
+  #cp-main-content .control-plane-shell,
+  #cp-main-content .container-fluid,
+  #cp-main-content > .d-flex {
+    max-width: 100%;
+    min-width: 0;
+  }
+  .cp-hero-grid,
+  .cp-overview-grid { min-width: 0; }
+  .cp-hero-grid > *,
+  .cp-chip-row { min-width: 0; }
+}
+@media (max-width: 480px) {
+  body.control-plane-shell { overflow-x: clip; }
+  .cp-shell-content, .cp-layout { max-width: 100%; min-width: 0; overflow-x: hidden; }
+  #cp-main-content {
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+  }
+  #cp-main-content .control-plane-shell,
+  #cp-main-content .container-fluid {
+    max-width: 100%;
+    min-width: 0;
+  }
+  .cp-hero-grid,
+  .cp-overview-grid {
+    min-width: 0;
+  }
+  .cp-hero-grid > *,
+  .cp-chip-row {
+    min-width: 0;
+  }
+}
+
+/* ========== Layout: fixed sidebar + scrollable main only ========== */
+/* Body does NOT scroll; only #cp-main-content scrolls so sidebar stays visible on all pages */
 body.control-plane-shell {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden;
+  overflow-x: clip;
+  max-width: 100vw;
+}
+body.control-plane-shell .cp-shell-content,
+body.control-plane-shell .cp-layout {
+  max-width: 100%;
+  overflow-x: clip;
 }
 /* Skip link: out of flow so flex layout has one growing child (cp-shell-content) */
 body.control-plane-shell .skip-link {
@@ -654,54 +713,45 @@ body.control-plane-shell .skip-link {
 }
 body.control-plane-shell .cp-shell-content {
   flex: 1 1 auto;
-  min-height: auto;
+  min-height: 0;
   min-width: 0;
-  overflow: visible;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 body.control-plane-shell .cp-navbar {
   flex-shrink: 0;
-  position: sticky;
-  top: 0;
   z-index: 1030;
 }
 .cp-layout {
   flex: 1 1 auto;
-  min-height: auto;
-  overflow: visible;
+  min-height: 0;
+  overflow: hidden;
   min-width: 0;
   display: flex;
   flex-direction: column;
 }
 .cp-layout .row {
   flex: 1 1 auto;
-  min-height: auto;
-  overflow: visible;
-  align-items: flex-start;
+  min-height: 0;
+  overflow: hidden;
+  align-items: stretch;
   flex-wrap: nowrap;
 }
-/* Sidebar: sticky in layout; inner scrolls when content overflows */
+/* Sidebar: always visible, does not scroll with page; inner scrolls if nav is long */
 .cp-sidebar-col {
   min-width: 0;
-  min-height: auto;
-  position: relative;
+  flex-shrink: 0;
   display: flex !important;
   flex-direction: column !important;
-  height: auto;
-  max-height: none;
-  overflow: visible !important;
-  flex-shrink: 0;
-  align-self: flex-start;
+  overflow: hidden !important;
+  align-self: stretch;
 }
 .cp-sidebar-col .cp-sidebar-inner {
-  position: sticky;
-  top: calc(var(--cp-shell-sticky-offset, 4.75rem) + 0.75rem);
-  max-height: calc(100vh - var(--cp-shell-sticky-offset, 4.75rem) - 1.5rem);
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto !important;
   overflow-x: hidden !important;
-  flex: 0 0 auto !important;
-  min-height: auto !important;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
@@ -739,19 +789,27 @@ body.control-plane-shell .cp-navbar {
 .cp-sidebar-col::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.45);
 }
-/* Main content column: must scroll when content overflows (viewport-bound via flex min-height: 0 chain) */
+/* Main content column: ONLY this area scrolls; sidebar stays fixed (min-height: 0 enables flex child to scroll) */
 .cp-main-col,
 #cp-main-content {
   flex: 1 1 auto !important;
   min-width: 0 !important;
-  min-height: auto !important;
-  overflow: visible !important;
+  min-height: 0 !important;
+  max-height: calc(100vh - 56px) !important; /* below navbar so content scrolls inside main (e2e scroll contract) */
+  overflow-y: auto !important;
+  overflow-x: hidden;
   overflow-wrap: break-word;
   padding-bottom: 2.5rem; /* breathing room so last section is not flush */
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.28) rgba(255, 255, 255, 0.04);
+}
+/* Inner wrappers must not force main to grow; allow main to be the scroll container */
+#cp-main-content > .container-fluid,
+#cp-main-content > .control-plane-shell,
+#cp-main-content > .d-flex {
+  min-height: 0;
 }
 .cp-main-col::-webkit-scrollbar,
 #cp-main-content::-webkit-scrollbar {

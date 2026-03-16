@@ -101,6 +101,11 @@
       <strong class="cp-overview-value">Monitor</strong>
       <span class="cp-overview-meta"><a href="{% url 'api_health' %}" target="_blank" rel="noopener noreferrer" class="text-warning">View API health</a></span>
     </article>
+    <article class="cp-overview-card cp-overview-card-slate">
+      <span class="cp-overview-label">{% trans "Execution status" %}</span>
+      <strong class="cp-overview-value">Phases A–G done</strong>
+      <span class="cp-overview-meta">{% trans "§12 gates MET. Plan drives what we build; this UI is the result." %} <a href="{% url 'super:dashboard' %}" class="text-warning">{% trans "Control plane" %}</a> {% trans "for phase summary." %}</span>
+    </article>
   </div>
 
   <section class="cp-panel">

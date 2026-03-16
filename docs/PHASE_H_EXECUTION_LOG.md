@@ -52,4 +52,16 @@ Record any broken link, 404/500, or responsive/framing issue and whether it was 
 
 ---
 
+## To unblock Phase H (SOT §11 Phase H items)
+
+**Blocked by:** Phase H full manual pass and "after deployment visibly seen" are N/A until prioritized (automation in place: phase_h_audit, run_phase_h_verification.sh, test_phase_h_ux_verification, pre_deploy_gate).
+
+**Unblock steps (do in order):**
+1. **Run automated slice:** `bash scripts/run_phase_h_verification.sh` and `bash scripts/pre_deploy_gate.sh`. Fix any failures.
+2. **Run manual pass:** Use [PHASE_H_MANUAL_CHECKLIST.md](PHASE_H_MANUAL_CHECKLIST.md); record results in this log (Run metadata + Checklist summary + Failures and fixes).
+3. **Staging deploy:** Deploy to staging; verify key flows visible per [CHANGES_NOT_VISIBLE_AFTER_DEPLOY.md](CHANGES_NOT_VISIBLE_AFTER_DEPLOY.md) if needed; note in "After deployment" section.
+4. **Sign-off:** Fill Sign-off above and date/completed by. Then in SOT §11 Phase H mark the two manual items [x] with note "Phase H manual pass completed [date]; see PHASE_H_EXECUTION_LOG."
+
+---
+
 *Source: [PHASE_H_MANUAL_CHECKLIST.md](PHASE_H_MANUAL_CHECKLIST.md), [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §11 Phase H.*

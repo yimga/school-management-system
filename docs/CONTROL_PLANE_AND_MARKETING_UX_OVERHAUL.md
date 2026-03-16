@@ -6,6 +6,36 @@
 
 ---
 
+## 0. Why things look different — and what we're doing (plan vs current state)
+
+**Why Studio / Theme & Experience looks different from /super/**
+
+- The plan requires **one shell** for manage.runmycampus.com: **same top bar**, **one left sidebar**, same design tokens for every page under manage (including `/super/*`, `/studio/*`, Theme & Experience, workflow, marketplace, etc.).
+- **Current state:**
+  - **`/super/*`** uses `control_plane_base.html`: dark top bar (“RunMyCampus Manager”), **one** control-plane sidebar (`partials/control_plane_sidebar.html`), same tokens. This is the target shell.
+  - **Studio OS** (Experience, Automation, Output, Launch, Control) and the **Theme & Experience** page use `backend_base.html` → `portal_base.html`: they get the **portal/tenant top bar** (e.g. “RunMyCampus School Management Platform” with the statement-header styling) and the **portal sidebar**, not the control-plane bar and sidebar. So when you open Studio or Theme & Experience on manage.runmycampus.com, the **header and sidebar are different** from /super/ — that’s why it “looks different from /super/”.
+- **What we’re doing to close the gap:** The next step to fulfil “one shell” is: when the user is on the **manager domain** (manage.runmycampus.com) and hits **Studio** or **Theme & Experience**, those pages should render inside the **same** shell as /super/ (same top bar and same sidebar). That means either (a) serving those views from a base that extends `control_plane_base` on the manager host, or (b) including the same navbar and sidebar partials so the header and IA match. Until that change is done, the header will keep looking different on Studio/Theme & Experience vs /super/.
+
+**Why the marketing front looks different (and what we’re doing)**
+
+- The **marketing front** (public landing, hero, “The Operating System for Modern Schools”) is **intentionally** a different surface: it uses `marketing_header.html` / `marketing_footer.html` and a **hero-style header** (large headline + CTAs), not the control-plane top bar. The plan does **not** require the marketing landing to use the same top bar as /super/; it requires **same design tokens** (typography, primary/accent) and **ultra high-end** look (no generic square boxes, proper hierarchy). So:
+  - **Control-plane** (manage): one shell, one top bar, one sidebar — **we are aligning everything under one shell** (see above).
+  - **Marketing** (public): hero header + marketing layout; **we are using** design tokens (e.g. `--studio-font-display`, `--color-primary-500` in [MARKETING_FRONT_PLACEHOLDER.md](MARKETING_FRONT_PLACEHOLDER.md)), proper seeding, and no repetitive square boxes so marketing and product feel like one company.
+
+**Header reference — “what’s happening on all pages”**
+
+| Surface | Base template | Top bar / header | Sidebar |
+|--------|----------------|------------------|--------|
+| **/super/*** (manage) | control_plane_base | Dark bar “RunMyCampus Manager”, search, user menu | control_plane_sidebar (one nav) |
+| **Studio OS** (manage) | portal_base (via shell) | Portal/statement header (e.g. gradient brand bar) | Portal sidebar |
+| **Theme & Experience** (manage) | backend_base → portal_base | Same as Studio (portal header) | Portal sidebar |
+| **Marketing landing** | base_marketing | Hero (logo + headline + CTAs), not app navbar | N/A (marketing layout) |
+| **Tenant backend** (school) | backend_base → portal_base | Portal header for that school | Portal sidebar |
+
+So “this is happening on all pages” = **control-plane pages** (/super/) use one header; **Studio and Theme & Experience** on manage currently use a **different** header (portal). Unifying them is the next implementation step for §2 “One shell”.
+
+---
+
 ## 1. Problem statement (user requirements)
 
 ### 1.1 manage.runmycampus.com (control plane)
@@ -90,7 +120,7 @@ super_workflow_packs, super_workflow_simulator, super_runtime_inspector, super_c
 
 **Templates extending backend_base (portal_base):** Many school-scoped/tenant backend pages (accounts, apicenter, metadata, people, orchestration, etc.). For **manager-hosted** routes only, migrate to control_plane_base when the URL is under manage.runmycampus.com (e.g. metadata lineage, apicenter dashboard on manager). Leave tenant backend pages on backend_base.
 
-**Studio OS:** `studio_os/shell.html` extends portal_base; per §8.0 it must align with same design system. Future: same tokens/sidebar IA or entry points from control plane.
+**Studio OS:** `studio_os/shell.html` extends portal_base; per §8.0 it must align with same design system. **One-shell gap (see §0):** When the request is on the manager domain (manage.runmycampus.com), Studio and Theme & Experience (siteconfig/theme_colors) should eventually render inside the same shell as /super/ — i.e. use control_plane_base (or the same navbar + control_plane_sidebar) so the header and sidebar match. Until then, Studio/Theme & Experience keep the portal header/sidebar; §5.1 page maturity (page_header, data-page-archetype) is done for content consistency.
 
 ### 5.1 Page maturity checklist (§8.0.12)
 

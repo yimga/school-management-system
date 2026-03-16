@@ -49,15 +49,21 @@ body.control-plane-shell .admin-login-landing.cp-ultra-login {
     radial-gradient(ellipse 80% 50% at 100% 50%, rgba(94, 234, 212, 0.04), transparent 45%);
 }
 
+/* Login container: narrow on mobile only; desktop gets proper width (no "mobile strip" on large screens) */
 body.control-plane-shell .cp-login-container {
-  max-width: 480px;
   width: 100%;
+  max-width: 480px;
+}
+@media (min-width: 992px) {
+  body.control-plane-shell .cp-login-container {
+    max-width: 560px;
+  }
 }
 
 body.control-plane-shell .manager-login-hero,
 body.control-plane-shell .admin-login-hero {
   width: 100%;
-  max-width: 480px;
+  max-width: 100%;
   margin-bottom: 2rem;
   padding: 1.75rem 2rem;
   border-radius: var(--cp-ultra-radius-lg);
@@ -67,6 +73,12 @@ body.control-plane-shell .admin-login-hero {
   display: flex;
   align-items: center;
   gap: 1.25rem;
+}
+@media (max-width: 991.98px) {
+  body.control-plane-shell .manager-login-hero,
+  body.control-plane-shell .admin-login-hero {
+    max-width: 480px;
+  }
 }
 
 body.control-plane-shell .manager-login-hero .hero-logo,
@@ -101,7 +113,7 @@ body.control-plane-shell .admin-login-hero small {
   line-height: 1.4;
 }
 
-/* Login card: glass, centered, one column */
+/* Login card: glass, centered; desktop gets wider card so layout is not a narrow strip */
 body.control-plane-shell .manager-login-card,
 body.control-plane-shell .admin-login-card {
   width: 100%;
@@ -114,6 +126,13 @@ body.control-plane-shell .admin-login-card {
   padding: 2rem;
   position: relative;
   transition: box-shadow var(--cp-ultra-transition), transform var(--cp-ultra-transition);
+}
+@media (min-width: 992px) {
+  body.control-plane-shell .manager-login-card,
+  body.control-plane-shell .admin-login-card {
+    max-width: 460px;
+    min-width: 380px;
+  }
 }
 body.control-plane-shell .manager-login-card::before,
 body.control-plane-shell .admin-login-card::before {

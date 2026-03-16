@@ -16,6 +16,7 @@ from apps.platform_runtime.structured_logging import (
     log_exception_with_context,
     request_context_for_log,
 )
+from apps.schools.control_plane import use_control_plane_shell
 from .services import (
     get_studio_activity_feed,
     get_studio_compare_context,
@@ -1172,7 +1173,10 @@ def studio_shell(request, mode=None):
     context["studio_show_bottom_bar"] = show_bottom_bar
     context["studio_bottom_bar_actions"] = bottom_bar_actions
 
-    template = f"studio_os/modes/{mode}.html" if mode else "studio_os/shell.html"
+    if use_control_plane_shell(request):
+        template = "studio_os/shell_control_plane.html"
+    else:
+        template = f"studio_os/modes/{mode}.html" if mode else "studio_os/shell.html"
     return render(request, template, context)
 
 

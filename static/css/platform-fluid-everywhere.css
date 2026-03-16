@@ -8,11 +8,11 @@
 /* Root typography scale by viewport (when not overridden by design-tokens) */
 html {
   font-size: clamp(14px, 2vw, 16px);
+  overflow-x: clip;
 }
-
 body {
   min-width: 0;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 /* Fluid page wrappers — no fixed width */

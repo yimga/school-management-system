@@ -111,7 +111,11 @@ echo "[pre_deploy_gate] UX completion audit"
 python scripts/verify_ux_completion.py
 
 echo "[pre_deploy_gate] Browser visual QA"
-bash scripts/run_visual_qa.sh
+if [[ "${SKIP_VISUAL_QA:-0}" = "1" ]]; then
+  echo "[pre_deploy_gate] SKIP_VISUAL_QA=1: skipping Browser visual QA (E2E). Run 'bash scripts/run_visual_qa.sh' manually when server/Playwright available."
+else
+  bash scripts/run_visual_qa.sh
+fi
 
 echo "[pre_deploy_gate] Multi-tenant coverage checks"
 # Run only tests that are committed on main (omit test_global_catalog, test_tenant_audit if not yet merged)

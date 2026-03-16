@@ -19,6 +19,7 @@ from apps.schools.models import School, SchoolMembership, SchoolProvisioningEven
 from apps.schools.tasks import provision_school_sync
 from apps.people.models import StudentProfile
 from apps.academics.models import AcademicYear, Term, Subject
+from apps.platform_runtime.helpers import get_platform_site_settings_record
 from apps.siteconfig.models import EducationSystemProfile, RegionConfig, TenantSystem, SystemFeature
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
 
@@ -162,8 +163,9 @@ class ProvisioningJobTests(TestCase):
         subjects = set(Subject.objects.filter(school=school).values_list("name", flat=True))
         self.assertIn("Biology", subjects)
         self.assertIn("Mathematics", subjects)
-        # Auto-created profile code is {region}-{sub_system}-auto (education_profile_engine._profile_code)
-        self.assertEqual((school.settings or {}).get("education_profile_code"), "uga-en-auto")
+        # Profile code: uga-national-default when seeded (migration 0090), else uga-en-auto (education_profile_engine)
+        profile_code = (school.settings or {}).get("education_profile_code")
+        self.assertIn(profile_code, ("uga-national-default", "uga-en-auto"), profile_code)
 
     def test_provision_school_auto_generates_country_profile_when_missing(self):
         japan, _ = RegionConfig.objects.get_or_create(

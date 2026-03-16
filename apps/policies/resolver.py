@@ -28,6 +28,35 @@ _POLICY_MERGE_ERRORS = (
 )
 _POLICY_REGISTER_USAGE_ERRORS = (ImportError, AttributeError, TypeError, ValueError, KeyError)
 
+# Policy section keys that may appear in tenant_compiled_config (from tenant_config.compile_effective_tenant_config).
+_COMPILED_POLICY_SECTIONS = (
+    "terminology", "grading", "grade_approval", "workflows", "features", "admissions",
+    "finance", "attendance", "communication", "hr_staff", "compliance", "a11y", "ai_governance",
+    "operational_identity", "forms", "portal", "payroll",
+)
+# Flat keys in compiled config that map into policy (resolver uses these).
+_COMPILED_FLAT_TO_POLICY = {"default_language": "default_language", "grading_scale": ("grading", "grading_scale"), "currency": "currency", "date_format": "date_format", "rtl": "rtl"}
+
+
+def _merge_compiled_config_into_policy(out: Dict[str, Any], compiled: Dict[str, Any]) -> None:
+    """Merge tenant_compiled_config into policy out so runtime uses compiled config as source of truth."""
+    for key, value in compiled.items():
+        if key in _COMPILED_POLICY_SECTIONS and isinstance(value, dict):
+            out[key] = {**out.get(key, {}), **value}
+        elif key == "forms" and isinstance(value, dict):
+            for form_name, form_schema in value.items():
+                if isinstance(form_schema, dict) and "fields" in form_schema:
+                    out["forms"][form_name] = form_schema
+        elif key in _COMPILED_FLAT_TO_POLICY:
+            target = _COMPILED_FLAT_TO_POLICY[key]
+            if isinstance(target, tuple):
+                section, subkey = target
+                out.setdefault(section, {})
+                if isinstance(out[section], dict):
+                    out[section][subkey] = value
+            else:
+                out[key] = value
+
 
 def _policy_cache_key(school) -> str:
     sid = getattr(school, "id", None)
@@ -97,6 +126,13 @@ def get_effective_policy(
 
     if school is None:
         return out
+
+    # Prefer compiled tenant config when present (decouple from raw SiteSettings; single source from tenant_config).
+    settings = getattr(school, "settings", None)
+    if isinstance(settings, dict):
+        compiled = settings.get("tenant_compiled_config")
+        if isinstance(compiled, dict) and compiled:
+            _merge_compiled_config_into_policy(out, compiled)
 
     # Per-tenant policy cache (R2): return cached policy when POLICY_CACHE_TTL is set and capability not requested
     if capability is None:

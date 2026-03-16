@@ -58,8 +58,14 @@
 | 251 | Runtime resolver tracing (runtime_resolution_complete) | §6.2 | Documented | DEBUG log in runtime_resolver.build_tenant_runtime; expand tracing when prioritized. |
 | 252 | get_feature_toggle_inspection and why-enabled | §5.2 | Documented | super_runtime_inspector.html feature_toggles block; get_feature_toggle_inspection(school). |
 | 253 | Platform inventory generate and commit for gate | §7 | Documented | python scripts/generate_platform_inventory.py --write; commit docs/generated/platform_inventory.*. |
-| 254 | E2E ux-visual-qa fix (Setup Studio marker; mobile overflow) | V.14, 109 | Documented | tests/e2e/ux-visual-qa.spec.js; fix when prioritized; gate passes after fix. |
+| 254 | E2E ux-visual-qa fix (Setup Studio marker; mobile overflow) | V.14, 109 | **DONE** | platform-fluid-everywhere: html/body overflow-x: clip; backend_dashboard: backend-role-home min-width/max-width, mobile grid 1fr, 576px overflow containment; manager-control-plane: cp-hero-grid 1fr at 576px, #cp-main-content overflow-x: auto at 480px. Run gate to confirm. |
 | 255 | Sync PATH_TO_100, SOT, NA_REGISTER, index (batch 206–255) | §11 | **DONE** | This doc; PHASES_1_TO_255_INDEX; PATH_TO_100 revision; next-batch link in 156–205. |
+
+---
+
+## Implemented in this batch
+
+- **Phase 254 (E2E ux-visual-qa):** Horizontal overflow fixes for backend-role-home and manager-marketplace-governance. `static/css/platform-fluid-everywhere.css`: html/body `overflow-x: clip`. `templates/accounts/backend_dashboard.html`: backend-role-home/backend-role-home-top `min-width: 0`, `max-width: 100%`; at 576px single-column grid and overflow containment. `static/css/manager-control-plane.css`: at 576px `.cp-hero-grid { grid-template-columns: 1fr !important }`; at 480px `#cp-main-content { overflow-x: auto }` for scroll containment. Run `bash scripts/run_visual_qa.sh` or full `pre_deploy_gate.sh` to confirm.
 
 ---
 

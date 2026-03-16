@@ -78,12 +78,15 @@ backend-shell dashboard-page-backend
   .backend-role-home {
     display: grid;
     gap: 1rem;
+    min-width: 0;
+    max-width: 100%;
   }
   .backend-role-home-top {
     display: grid;
     grid-template-columns: minmax(0, 1.6fr) minmax(260px, 0.9fr);
     gap: 1rem;
     align-items: start;
+    min-width: 0;
   }
   .backend-role-home-copy {
     padding: 1.5rem;
@@ -284,6 +287,17 @@ backend-shell dashboard-page-backend
     .backend-role-home-top {
       grid-template-columns: 1fr;
     }
+  }
+  /* E2E ux-visual-qa: prevent horizontal overflow on mobile (backend-role-home, bodyScrollWidth) */
+  @media (max-width: 576px) {
+    .backend-role-home-top { grid-template-columns: 1fr !important; }
+    .backend-role-home-copy, .backend-role-home-actions, .backend-v2-shell, .backend-v2-main, .backend-dashboard-content { min-width: 0; max-width: 100%; }
+  }
+  @media (max-width: 480px) {
+    .backend-role-home-actions { grid-template-columns: 1fr !important; }
+    .backend-role-home-command, .backend-role-home-primary-cta { min-width: 0; overflow-wrap: break-word; }
+    .backend-role-home-command-hint, .backend-role-home-command-copy { min-width: 0; }
+    .backend-dashboard-content { overflow-x: hidden; }
   }
   {% endwith %}
   </style>

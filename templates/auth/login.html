@@ -190,6 +190,13 @@
         align-items: flex-start;
       }
     }
+    /* Desktop: ensure login does not look like a narrow mobile strip */
+    @media (min-width: 992px) {
+      .auth-landing .container { max-width: 1140px; }
+      .auth-hero { padding: 2rem 2.5rem; }
+      .auth-hero .hero-logo { width: 56px; height: 56px; font-size: 1.3rem; }
+      .login-card, .info-card { min-width: 320px; }
+    }
   </style>
 {% endblock %}
 
