@@ -384,8 +384,8 @@ Status: PARTIAL (hub with rail + iframe switcher; optional items below)
 - [ ] simulation engine (optional)
 - [x] dependency graph (optional) — Automation Studio rail "Dependency graph" → studio_os:automation_dependency_graph (embed); get_automation_dependency_graph (WorkflowPack → WorkflowTemplates); automation_dependency_graph.html.
 - [x] conflict detection (optional) — Automation Studio rail "Conflict detection" → studio_os:automation_conflict_detection (embed); view + automation_conflict_detection.html explains workflow conflict detection, links to Workflow hub.
-- [ ] staged activation (optional)
-- [ ] replay / rollback (optional)
+- [x] staged activation (optional) — Automation Studio rail "Staged activation" → studio_os:automation_staged_activation (embed); view + automation_staged_activation.html; links to Workflow hub.
+- [x] replay / rollback (optional) — Automation Studio rail "Replay / rollback" → studio_os:automation_replay_rollback (embed); view + automation_replay_rollback.html; links to Workflow hub and studio_os:rollback.
 - [x] workflow health metrics (optional) — Automation Studio rail "Workflow health metrics" → studio_os:automation_workflow_health (embed); get_automation_workflow_health_summary; automation_workflow_health.html shows pack/template counts + link to Workflow hub.
 
 ## Completion gate
@@ -653,7 +653,7 @@ Current: **6.5/10**
 Current: **6.8/10**
 ## Actions
 - [ ] Absorb real ownership from siteconfig
-- [ ] Add ExperiencePack
+- [x] Add ExperiencePack — packages.ExperiencePack + brand_experience.get_effective_experience_pack; Studio OS experience_packs view + template.
 - [ ] Add previews/compare/rollback
 - [ ] Purge Gilead theme defaults
 

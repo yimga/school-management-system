@@ -387,6 +387,62 @@ def studio_automation_conflict_detection(request):
 @never_cache
 @require_http_methods(["GET"])
 @login_required
+def studio_automation_staged_activation(request):
+    """§4.3 Automation Studio optional: Staged activation. Explains activating workflows in stages and links to Workflow hub."""
+    if not getattr(request.user, "is_staff", False):
+        return redirect(reverse("accounts:backend_dashboard"))
+    workflow_hub_url = ""
+    try:
+        workflow_hub_url = reverse("siteconfig:workflow_hub") + "?embed=1"
+    except NoReverseMatch:
+        pass
+    return render(
+        request,
+        "studio_os/automation_staged_activation.html",
+        {
+            "workflow_hub_url": workflow_hub_url,
+            "page_title": _("Staged activation"),
+            "page_subtitle": _("Activate workflows in stages; run simulations before going live."),
+            "action_url": reverse("studio_os:automation"),
+            "action_text": _("Back to Automation"),
+        },
+    )
+
+
+@never_cache
+@require_http_methods(["GET"])
+@login_required
+def studio_automation_replay_rollback(request):
+    """§4.3 Automation Studio optional: Replay / rollback. Explains workflow replay and rollback; links to Workflow hub and unified rollback."""
+    if not getattr(request.user, "is_staff", False):
+        return redirect(reverse("accounts:backend_dashboard"))
+    workflow_hub_url = ""
+    rollback_url = ""
+    try:
+        workflow_hub_url = reverse("siteconfig:workflow_hub") + "?embed=1"
+    except NoReverseMatch:
+        pass
+    try:
+        rollback_url = reverse("studio_os:rollback") + "?mode=automation"
+    except NoReverseMatch:
+        pass
+    return render(
+        request,
+        "studio_os/automation_replay_rollback.html",
+        {
+            "workflow_hub_url": workflow_hub_url,
+            "rollback_url": rollback_url,
+            "page_title": _("Replay / rollback"),
+            "page_subtitle": _("Re-run workflow instances and roll back workflow or config changes."),
+            "action_url": reverse("studio_os:automation"),
+            "action_text": _("Back to Automation"),
+        },
+    )
+
+
+@never_cache
+@require_http_methods(["GET"])
+@login_required
 def studio_automation_dependency_graph(request):
     """§4.3 Automation Studio optional: Dependency graph. Shows workflow packs and their templates for embedding in Automation rail."""
     if not getattr(request.user, "is_staff", False):
@@ -734,6 +790,14 @@ def studio_shell(request, mode=None):
             workflow_entries.append({
                 "label": "Conflict detection",
                 "url": reverse("studio_os:automation_conflict_detection") + "?embed=1",
+            })
+            workflow_entries.append({
+                "label": "Staged activation",
+                "url": reverse("studio_os:automation_staged_activation") + "?embed=1",
+            })
+            workflow_entries.append({
+                "label": "Replay / rollback",
+                "url": reverse("studio_os:automation_replay_rollback") + "?embed=1",
             })
             for entry in workflow_entries:
                 automation_rail.append({"label": entry["label"], "url": entry["url"], "embed": True})

@@ -2,13 +2,11 @@
 {% load i18n %}
 {% block backend_title %}{% trans "Legacy data cleaner" %}{% endblock %}
 {% block content %}
-<div class="container-fluid py-4">
-  <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
-    <h1 class="h4 mb-1 fw-bold">{% trans "Legacy data cleaner" %}</h1>
+<div class="container-fluid py-4" data-page-archetype="operational-workbench">
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
+  <div class="d-flex flex-wrap align-items-center gap-2 mb-4">
     <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:migration_run_list' %}">{% trans "Migration runs" %}</a>
   </div>
-  <p class="text-muted small">Section 11.1: Detect duplicate admission numbers, missing required fields, and optionally run safe cleanups.</p>
-
   <div class="card shadow-sm mb-4">
     <div class="card-header">{% trans "Detected issues" %}</div>
     <div class="card-body">

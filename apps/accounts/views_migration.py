@@ -9,6 +9,8 @@ import json
 from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test
 from django.shortcuts import redirect, render, get_object_or_404
+from django.urls import reverse
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods
 
 from apps.accounts.decorators import permission_required
@@ -306,6 +308,10 @@ def migration_run_list(request):
     return render(request, "accounts/migration_run_list.html", {
         "runs": runs,
         "school": school,
+        "page_title": _("Migration runs"),
+        "page_subtitle": _("Audit of migration runs. Open a run to view read-only legacy data."),
+        "action_url": reverse("accounts:workflow_center"),
+        "action_text": _("Back to Workflow Center"),
     })
 
 
@@ -372,10 +378,18 @@ def legacy_data_cleaner_view(request):
             "school": school,
             "issues": detect_legacy_issues(school),
             "clean_result": result,
+            "page_title": _("Legacy data cleaner"),
+            "page_subtitle": _("Detect duplicate admission numbers, missing required fields, and optionally run safe cleanups."),
+            "action_url": reverse("accounts:workflow_center"),
+            "action_text": _("Back to Workflow Center"),
         })
     issues = detect_legacy_issues(school)
     return render(request, "accounts/legacy_data_cleaner.html", {
         "school": school,
         "issues": issues,
         "clean_result": None,
+        "page_title": _("Legacy data cleaner"),
+        "page_subtitle": _("Detect duplicate admission numbers, missing required fields, and optionally run safe cleanups."),
+        "action_url": reverse("accounts:workflow_center"),
+        "action_text": _("Back to Workflow Center"),
     })

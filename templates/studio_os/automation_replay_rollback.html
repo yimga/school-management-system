@@ -1,0 +1,19 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Replay / rollback" %} · {% trans "Automation" %}{% endblock %}
+
+{% block content %}
+<div class="container py-3" data-page-archetype="operational-workbench">
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
+  <div class="studio-os__card py-3 px-3">
+    <p class="mb-3">{% trans "Replay lets you re-run workflow instances for debugging or recovery. Rollback reverts workflow or configuration changes to a previous state. Use the Workflow hub to inspect runs and the shell rollback action when available for this mode." %}</p>
+    {% if workflow_hub_url %}
+    <p class="mb-2"><a href="{{ workflow_hub_url }}">{% trans "Workflow hub" %}</a> — {% trans "View runs, replay instances, and manage workflow config." %}</p>
+    {% endif %}
+    {% if rollback_url %}
+    <p class="mb-0"><a href="{{ rollback_url }}">{% trans "Rollback" %}</a> — {% trans "Revert to the last saved state when rollback is available for Automation." %}</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
