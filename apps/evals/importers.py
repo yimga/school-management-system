@@ -10,7 +10,21 @@ from dataclasses import dataclass
 from typing import Iterable, List, Sequence
 
 from django.apps import apps as django_apps
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.db import DatabaseError, IntegrityError
+
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
+# §2.4: Typed tuple for row-level import lookups and DB operations.
+_EVALS_IMPORTERS_ROW_ERRORS = (
+    ObjectDoesNotExist,
+    ValidationError,
+    ValueError,
+    TypeError,
+    KeyError,
+    DatabaseError,
+    IntegrityError,
+)
 
 
 REQUIRED_HEADERS = [
@@ -231,7 +245,11 @@ def preview_import_with_validation(csv_rows):
             
             rows_with_validation.append(row_obj)
         
-        except Exception as e:
+        except _EVALS_IMPORTERS_ROW_ERRORS as e:
+            log_exception_with_context(
+                "evals importers preview_import_with_validation row failed",
+                extra={"row_index": idx, "student_code": row.get("student_code")},
+            )
             errors.append(f"Row {idx}: {str(e)}")
     
     return rows_with_validation, errors
@@ -285,10 +303,12 @@ def apply_import(csv_rows, academic_year=None):
             else:
                 updated_count += 1
         
-        except Exception as e:
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.error(f"Import row failed: {e}")
+        except _EVALS_IMPORTERS_ROW_ERRORS:
+            log_exception_with_context(
+                "evals importers apply_import row failed",
+                school_id=getattr(academic_year, "school_id", None) if academic_year else None,
+                extra={"row": row, "academic_year_id": getattr(academic_year, "id", None)},
+            )
             continue
     
     duration = time.time() - start_time
@@ -342,7 +362,11 @@ def dry_run_grade_import(csv_rows, academic_year=None):
                 would_update += 1
             else:
                 would_create += 1
-        except Exception as e:
+        except _EVALS_IMPORTERS_ROW_ERRORS as e:
+            log_exception_with_context(
+                "evals importers dry_run_grade_import row failed",
+                extra={"row_index": idx, "student_code": row.get("student_code")},
+            )
             errors.append(f"Row {idx}: {e}")
 
     duration = time.time() - start_time

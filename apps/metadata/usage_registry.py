@@ -12,6 +12,8 @@ from typing import Any
 
 from django.db import DatabaseError
 
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
 logger = logging.getLogger(__name__)
 
 METADATA_USAGE_SOFT_FAILURES = (
@@ -78,6 +80,10 @@ def get_lineage_consumers(
             entity_code=entity_code,
             field_id=field_id,
         )
-    except METADATA_USAGE_SOFT_FAILURES as e:
-        logger.debug("metadata get_lineage_consumers skipped: %s", e)
+    except METADATA_USAGE_SOFT_FAILURES:
+        log_exception_with_context(
+            "metadata get_lineage_consumers skipped (soft fail)",
+            extra={"entity_code": entity_code, "field_id": field_id},
+            exc_info=True,
+        )
         return []

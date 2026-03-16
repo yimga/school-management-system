@@ -13,10 +13,35 @@ testability, reuse, and future role-home packs.
 §10.5 / §1.8 Decision architecture: New or materially changed dashboards/pages must
 satisfy the seven-question declaration in docs/DECISION_ARCHITECTURE_CHECKLIST.md
 before merge. See docs/DASHBOARD_TAXONOMY_AND_REGISTRY.md for registry and when-to-use.
+Edge-case and failure strategy: docs/EDGE_CASE_AND_FAILURE_STRATEGY.md (§10.5.1).
+Pack versioning and compatibility: docs/PACK_VERSIONING_AND_COMPATIBILITY.md (§10.5.2).
+Service/support operating layer (onboarding, maturity, support queue, incidents):
+docs/SERVICE_AND_SUPPORT_OPERATING_LAYER.md (§10.5.3).
+Trust product (visible security and trust): docs/TRUST_PRODUCT_SURFACES.md (§10.5.4).
+Content/terminology and UX copy: docs/CONTENT_AND_TERMINOLOGY_GOVERNANCE.md (§10.5.6).
+Design system (behavior, archetypes, a11y): docs/DESIGN_SYSTEM_BEHAVIOR.md (§10.5.7).
+Recurring discipline (dead links, observability, exception/secret lints, docs truth):
+docs/BORING_EXCELLENCE_PROGRAM.md (RUNMYCAMPUS §10.5.8).
 """
 
 # Non-negotiable: decision architecture checklist for new/changed dashboards (RUNMYCAMPUS §1.8, §8.0)
 DECISION_ARCHITECTURE_CHECKLIST_DOC = "docs/DECISION_ARCHITECTURE_CHECKLIST.md"
+# Dashboard registry: new dashboards must add a row here before merge (RUNMYCAMPUS §10.5.5)
+DASHBOARD_TAXONOMY_AND_REGISTRY_DOC = "docs/DASHBOARD_TAXONOMY_AND_REGISTRY.md"
+# Edge-case and failure strategy: partial failures, policy collisions, rollover, etc. (RUNMYCAMPUS §10.5.1)
+EDGE_CASE_AND_FAILURE_STRATEGY_DOC = "docs/EDGE_CASE_AND_FAILURE_STRATEGY.md"
+# Pack versioning and compatibility: semver, upgrade/downgrade, tenant impact (RUNMYCAMPUS §10.5.2)
+PACK_VERSIONING_AND_COMPATIBILITY_DOC = "docs/PACK_VERSIONING_AND_COMPATIBILITY.md"
+# Service/support operating layer: dimension→surface mapping, control-plane entry points (RUNMYCAMPUS §10.5.3)
+SERVICE_AND_SUPPORT_OPERATING_LAYER_DOC = "docs/SERVICE_AND_SUPPORT_OPERATING_LAYER.md"
+# Trust product: visible security and trust surfaces (MFA, sessions, audit export, etc.) (RUNMYCAMPUS §10.5.4)
+TRUST_PRODUCT_SURFACES_DOC = "docs/TRUST_PRODUCT_SURFACES.md"
+# Content and terminology: glossary, UX writing guide, CTA/alert/empty-state (RUNMYCAMPUS §10.5.6)
+CONTENT_AND_TERMINOLOGY_GOVERNANCE_DOC = "docs/CONTENT_AND_TERMINOLOGY_GOVERNANCE.md"
+# Design system behavior: archetypes, drawers, wizards, a11y, command palette (RUNMYCAMPUS §10.5.7)
+DESIGN_SYSTEM_BEHAVIOR_DOC = "docs/DESIGN_SYSTEM_BEHAVIOR.md"
+# Recurring discipline: CI/scheduled checks (dead links, observability, lints, docs truth) (RUNMYCAMPUS §10.5.8)
+BORING_EXCELLENCE_PROGRAM_DOC = "docs/BORING_EXCELLENCE_PROGRAM.md"
 
 from typing import Any, Dict, List, Optional, Tuple
 

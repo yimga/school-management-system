@@ -1,0 +1,47 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Compare (before / after)" %} · {% trans "Experience" %}{% endblock %}
+
+{% block content %}
+<div class="container py-3" data-page-archetype="operational-workbench">
+  {% trans "Back to Experience" as back_action %}
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=back_action %}
+  <div class="studio-os__card py-3 px-3">
+    {% if has_before %}
+    <div class="row g-3">
+      <div class="col-md-6">
+        <h2 class="h6 text-muted mb-2">{% trans "Before" %}</h2>
+        <ul class="list-unstyled mb-0">
+          {% for e in before_entries %}
+          <li class="d-flex align-items-center mb-2">
+            <span class="me-2 rounded border" style="width:1.25rem;height:1.25rem;background:{{ e.value|default:'#f0f0f0' }};" title="{{ e.value|default:'' }}"></span>
+            <span class="small">{{ e.label }}:</span>
+            <code class="small ms-1 text-break">{{ e.value|default:"—" }}</code>
+          </li>
+          {% empty %}
+          <li class="text-muted small">—</li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="col-md-6">
+        <h2 class="h6 text-muted mb-2">{% trans "After" %}</h2>
+        <ul class="list-unstyled mb-0">
+          {% for e in after_entries %}
+          <li class="d-flex align-items-center mb-2">
+            <span class="me-2 rounded border" style="width:1.25rem;height:1.25rem;background:{{ e.value|default:'#f0f0f0' }};" title="{{ e.value|default:'' }}"></span>
+            <span class="small">{{ e.label }}:</span>
+            <code class="small ms-1 text-break">{{ e.value|default:"—" }}</code>
+          </li>
+          {% empty %}
+          <li class="text-muted small">—</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    {% else %}
+    <p class="text-muted mb-0">{% trans "Publish a theme change (Theme & colors or Customizer) to see before/after comparison here." %}</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -15,10 +15,14 @@ from django.http import HttpResponse
 from django.template.loader import get_template
 from django.conf import settings
 
+# Expected failures when WeasyPrint or system deps are missing (ImportError, OSError for libs).
+_WEASYPRINT_LOAD_ERRORS = (ImportError, ModuleNotFoundError, AttributeError, OSError)
+
+
 def _load_weasyprint_html():
     try:
         from weasyprint import HTML
-    except Exception as exc:
+    except _WEASYPRINT_LOAD_ERRORS as exc:
         raise RuntimeError(
             "WeasyPrint dependencies are missing. Install system libraries first."
         ) from exc

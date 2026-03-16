@@ -1,19 +1,51 @@
 # Platform Inventory
 
 - Installed app modules: `41`
-- Python files: `1818`
-- HTML templates: `461`
-- Markdown files: `841`
-- Migration files: `594`
-- Management commands: `139`
-- `SiteSettings` refs: `1073`
-- `get_solo()` refs: `178`
-- `except Exception`: `399`
-- `cursor.execute()`: `349`
-- `csrf_exempt`: `97`
-- `AllowAny`: `52`
-- `print()`: `451`
-- `gilead` matches: `657` across `128` files
+- Python files: `1845`
+- HTML templates: `490`
+- Markdown files: `862`
+- Migration files: `598`
+- Management commands: `139` (full list in JSON key `management_commands_list`)
+- `SiteSettings` refs: `1096`
+- `get_solo()` refs: `180`
+- `except Exception`: `153`
+- `cursor.execute()`: `351`
+- `csrf_exempt`: `98`
+- `AllowAny`: `53`
+- `print()`: `472`
+- `gilead` matches: `666` across `130` files
+
+
+## Management Commands (full list)
+
+Total: `139` commands. First 25 by app/command:
+
+- `academics` / `export_certification_pack` — `apps/academics/management/commands/export_certification_pack.py`
+- `academics` / `fix_term_positions` — `apps/academics/management/commands/fix_term_positions.py`
+- `academics` / `import_curriculum_nodes` — `apps/academics/management/commands/import_curriculum_nodes.py`
+- `academics` / `run_auto_promotion` — `apps/academics/management/commands/run_auto_promotion.py`
+- `academics` / `seed_buea_synthetic` — `apps/academics/management/commands/seed_buea_synthetic.py`
+- `academics` / `seed_demo` — `apps/academics/management/commands/seed_demo.py`
+- `academics` / `seed_testdata_2425` — `apps/academics/management/commands/seed_testdata_2425.py`
+- `accounts` / `backfill_user_roles` — `apps/accounts/management/commands/backfill_user_roles.py`
+- `accounts` / `check_roles` — `apps/accounts/management/commands/check_roles.py`
+- `accounts` / `create_teacher_parent_accounts` — `apps/accounts/management/commands/create_teacher_parent_accounts.py`
+- `accounts` / `ensure_default_tenant_admin` — `apps/accounts/management/commands/ensure_default_tenant_admin.py`
+- `accounts` / `ensure_superadmin` — `apps/accounts/management/commands/ensure_superadmin.py`
+- `accounts` / `ensure_superuser` — `apps/accounts/management/commands/ensure_superuser.py`
+- `accounts` / `list_expired_temporary_grants` — `apps/accounts/management/commands/list_expired_temporary_grants.py`
+- `accounts` / `security_log_retention` — `apps/accounts/management/commands/security_log_retention.py`
+- `accounts` / `seed_render_users` — `apps/accounts/management/commands/seed_render_users.py`
+- `analytics` / `compute_benchmark_aggregates` — `apps/analytics/management/commands/compute_benchmark_aggregates.py`
+- `analytics` / `compute_nightly_risk` — `apps/analytics/management/commands/compute_nightly_risk.py`
+- `analytics` / `send_deadline_reminders` — `apps/analytics/management/commands/send_deadline_reminders.py`
+- `automation` / `seed_migration_profiles` — `apps/automation/management/commands/seed_migration_profiles.py`
+- `billing` / `import_platform_billing_snapshot` — `apps/billing/management/commands/import_platform_billing_snapshot.py`
+- `billing` / `run_platform_billing_lifecycle` — `apps/billing/management/commands/run_platform_billing_lifecycle.py`
+- `billing` / `run_revenue_share_payouts` — `apps/billing/management/commands/run_revenue_share_payouts.py`
+- `communication` / `sync_department_threads` — `apps/communication/management/commands/sync_department_threads.py`
+- `compliance` / `archive_old_audits` — `apps/compliance/management/commands/archive_old_audits.py`
+- … and 114 more (see `platform_inventory.json` key `management_commands_list`).
 
 ## Public Endpoint Review
 
@@ -46,18 +78,18 @@
 
 ## Largest Python Files
 
-- `apps/schools/marketing_views.py`: `3659` lines / `212639` bytes
-- `apps/schools/super_views.py`: `2797` lines / `121007` bytes
+- `apps/schools/marketing_views.py`: `3664` lines / `213014` bytes
+- `apps/schools/super_views.py`: `2905` lines / `125258` bytes
 - `apps/evals/views.py`: `2564` lines / `107567` bytes
 - `apps/siteconfig/admin.py`: `2542` lines / `106877` bytes
 - `apps/accounts/views.py`: `2331` lines / `103900` bytes
-- `apps/finance/views.py`: `2373` lines / `100201` bytes
-- `apps/portal/views.py`: `2216` lines / `96105` bytes
 - `apps/finance/models.py`: `2556` lines / `95914` bytes
-- `apps/siteconfig/models.py`: `2378` lines / `95888` bytes
-- `apps/api/views_v1.py`: `1740` lines / `90067` bytes
-- `apps/siteconfig/views.py`: `1916` lines / `81212` bytes
+- `apps/siteconfig/models.py`: `2360` lines / `95144` bytes
+- `apps/api/views_v1.py`: `1741` lines / `90640` bytes
+- `apps/portal/views_parent.py`: `1736` lines / `86491` bytes
+- `apps/siteconfig/views.py`: `1902` lines / `80663` bytes
 - `apps/finance/tasks.py`: `1775` lines / `80075` bytes
+- `apps/siteconfig/management/commands/seed_admin_dashboard_palettes.py`: `1482` lines / `63755` bytes
 
 ## Documentation Drift
 

@@ -5,6 +5,8 @@ Enhanced Grade Import Views with:
 - Delta detection
 - Async processing support
 - Detailed import logs
+
+§2.4: Typed exceptions + structured logging (no broad except).
 """
 
 import csv
@@ -15,9 +17,25 @@ from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.http import require_http_methods
 from django.db.models import Count
+from django.db import DatabaseError, IntegrityError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 
 from apps.academics.services import get_active_year_and_term
+from apps.platform_runtime.structured_logging import log_view_exception
 from apps import evals
+
+# §2.4: Typed tuple for grade import view failures (no broad except).
+_EVALS_IMPORT_VIEW_ERRORS = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    KeyError,
+    ObjectDoesNotExist,
+    DatabaseError,
+    IntegrityError,
+    ValidationError,
+)
 
 
 @staff_member_required
@@ -74,7 +92,12 @@ def grade_import_upload_with_tracking(request):
             
             return redirect("evals:grade_import_job_detail", job_id=job.id)
         
-        except Exception as e:
+        except _EVALS_IMPORT_VIEW_ERRORS as e:
+            log_view_exception(
+                request,
+                "grade_import_upload_with_tracking: import_grades failed",
+                extra={"academic_year": year, "term": term, "error": str(e)},
+            )
             messages.error(request, f"Import failed: {str(e)}")
             return render(request, "evals/grade_import_upload_advanced.html", {
                 "year": year,
@@ -300,7 +323,12 @@ def grade_import_retry_job(request, job_id):
         )
         messages.success(request, "Retry completed.")
         return redirect("evals:grade_import_job_detail", job_id=new_job.id)
-    except Exception as e:
+    except _EVALS_IMPORT_VIEW_ERRORS as e:
+        log_view_exception(
+            request,
+            "grade_import_retry_job: import_grades failed",
+            extra={"job_id": job_id, "error": str(e)},
+        )
         messages.error(request, f"Retry failed: {str(e)}")
         return redirect("evals:grade_import_job_detail", job_id=job.id)
 

@@ -17,6 +17,7 @@ from django.shortcuts import render
 from django.views import View
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils.decorators import method_decorator
+from django.db import DatabaseError, IntegrityError, OperationalError
 from django.db.models import Count, Q
 from django.utils import timezone
 from django.core.cache import cache
@@ -31,6 +32,7 @@ from apps.compliance.tenant_scope import (
     scope_audit_logs,
     scope_sessions,
 )
+from apps.platform_runtime.structured_logging import log_exception_with_context
 
 SUCCESS_ACCESS_FILTER = Q(status=AccessLog.Status.SUCCESS) | Q(status="200")
 FAILED_ACCESS_FILTER = ~SUCCESS_ACCESS_FILTER
@@ -331,7 +333,12 @@ class ComplianceDashboardView(View):
             config = ThreatDetectionConfig.get_active()
             is_muted = config.is_muted()
             mute_until = config.mute_until
-        except Exception:
+        except (AttributeError, TypeError, ValueError, DatabaseError, OperationalError, IntegrityError):
+            log_exception_with_context(
+                "compliance dashboard threat config lookup failed",
+                school_id=getattr(self, "scope_school", None),
+                extra={"section": "_get_threat_metrics"},
+            )
             is_muted = False
             mute_until = None
 

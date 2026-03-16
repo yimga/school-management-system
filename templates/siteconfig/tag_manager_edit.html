@@ -2,10 +2,9 @@
 {% load i18n %}
 {% block title %}{% trans "Edit tag" %}: {{ tag.name }}{% endblock %}
 {% block content %}
-<div class="card shadow-sm mb-4">
-  <div class="card-body">
-    <h1 class="h4 mb-4">{% trans "Edit tag" %}: <span class="badge" style="background-color: {{ tag.color_hex }}; color: #fff;">{{ tag.name }}</span></h1>
-    <form method="post">
+<div class="container-fluid py-4" data-page-archetype="record-detail">
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
+  <form method="post" class="card card-body shadow-sm">
       {% csrf_token %}
       <input type="hidden" name="action" value="save">
       <div class="row g-3 mb-3">
@@ -49,9 +48,8 @@
       <input type="hidden" name="action" value="delete">
       <button type="submit" class="btn btn-outline-danger btn-sm">{% trans "Deactivate tag" %}</button>
     </form>
-    <p class="small text-muted mt-3">
-      <a href="{% url 'siteconfig:tag_manager' %}">{% trans "Back to Tag Manager" %}</a>
-    </p>
-  </div>
+  <p class="small text-muted mt-3">
+    <a href="{% url 'siteconfig:tag_manager' %}">{% trans "Back to Tag Manager" %}</a>
+  </p>
 </div>
 {% endblock %}

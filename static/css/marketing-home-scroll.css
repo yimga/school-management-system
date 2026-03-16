@@ -1,0 +1,124 @@
+/**
+ * RunMyCampus marketing — scroll-storytelling (scrollytelling).
+ * Reveal-on-scroll, chapter progress, pinned product frame.
+ * Respects prefers-reduced-motion. Load after marketing-home.css.
+ */
+.marketing-home[data-scroll-story="true"] {
+  --mkt-reveal-duration: 0.6s;
+  --mkt-reveal-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --mkt-stagger-step: 0.08s;
+  --mkt-progress-height: 3px;
+}
+
+/* ----- Scroll progress indicator ----- */
+.mkt-scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--mkt-progress-height, 3px);
+  background: rgba(15, 23, 42, 0.08);
+  z-index: 1030;
+  pointer-events: none;
+}
+.mkt-scroll-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--mkt-primary, #0B3D91), var(--mkt-secondary, #00A878));
+  transition: width 0.12s ease-out;
+}
+
+/* ----- Reveal on scroll (fade + rise) ----- */
+.marketing-home .mkt-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity var(--mkt-reveal-duration) var(--mkt-reveal-ease),
+              transform var(--mkt-reveal-duration) var(--mkt-reveal-ease);
+}
+.marketing-home .mkt-reveal.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+/* Stagger children */
+.marketing-home .mkt-reveal-stagger > * {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity var(--mkt-reveal-duration) var(--mkt-reveal-ease),
+              transform var(--mkt-reveal-duration) var(--mkt-reveal-ease);
+}
+.marketing-home .mkt-reveal-stagger.in-view > *:nth-child(1) { transition-delay: 0s; }
+.marketing-home .mkt-reveal-stagger.in-view > *:nth-child(2) { transition-delay: var(--mkt-stagger-step); }
+.marketing-home .mkt-reveal-stagger.in-view > *:nth-child(3) { transition-delay: calc(var(--mkt-stagger-step) * 2); }
+.marketing-home .mkt-reveal-stagger.in-view > *:nth-child(4) { transition-delay: calc(var(--mkt-stagger-step) * 3); }
+.marketing-home .mkt-reveal-stagger.in-view > *:nth-child(5) { transition-delay: calc(var(--mkt-stagger-step) * 4); }
+.marketing-home .mkt-reveal-stagger.in-view > *:nth-child(6) { transition-delay: calc(var(--mkt-stagger-step) * 5); }
+.marketing-home .mkt-reveal-stagger.in-view > *:nth-child(7) { transition-delay: calc(var(--mkt-stagger-step) * 6); }
+.marketing-home .mkt-reveal-stagger.in-view > *:nth-child(8) { transition-delay: calc(var(--mkt-stagger-step) * 7); }
+.marketing-home .mkt-reveal-stagger.in-view > * {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Reduced motion: instant reveal, no transform */
+@media (prefers-reduced-motion: reduce) {
+  .marketing-home .mkt-reveal,
+  .marketing-home .mkt-reveal-stagger > * {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .marketing-home .mkt-reveal.in-view,
+  .marketing-home .mkt-reveal-stagger.in-view > * {
+    opacity: 1;
+    transform: none;
+  }
+  .mkt-scroll-progress-fill {
+    transition: none;
+  }
+}
+
+/* ----- Pinned chapter layout (desktop): copy left, sticky visual right ----- */
+@media (min-width: 992px) {
+  .marketing-home .mkt-chapter-pinned {
+    display: grid;
+    grid-template-columns: 1fr minmax(360px, 42%);
+    gap: var(--mkt-spacing-xl, 2.5rem);
+    align-items: start;
+  }
+  .marketing-home .mkt-chapter-pinned .mkt-chapter-copy {
+    padding-top: var(--mkt-spacing-md);
+  }
+  .marketing-home .mkt-chapter-pinned .mkt-chapter-visual {
+    position: sticky;
+    top: calc(56px + var(--mkt-spacing-md, 1rem));
+    border-radius: var(--mkt-radius-lg, 16px);
+    overflow: hidden;
+    background: var(--mkt-surface, #1E293B);
+    box-shadow: var(--mkt-shadow-lg, 0 18px 48px rgba(15, 23, 42, 0.12));
+  }
+  .marketing-home .mkt-chapter-pinned .mkt-chapter-visual img {
+    width: 100%;
+    height: auto;
+    display: block;
+    vertical-align: middle;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .marketing-home .mkt-chapter-pinned {
+    display: block;
+  }
+  .marketing-home .mkt-chapter-pinned .mkt-chapter-visual {
+    position: relative;
+    top: 0;
+    margin-top: var(--mkt-spacing-md);
+  }
+}
+
+/* ----- Chapter section spacing for narrative rhythm ----- */
+.marketing-home [data-chapter] {
+  scroll-margin-top: 2rem;
+}
+.marketing-home .mkt-section[data-chapter] .mkt-section-heading {
+  transition: opacity var(--mkt-reveal-duration) var(--mkt-reveal-ease);
+}

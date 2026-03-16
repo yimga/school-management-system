@@ -19,14 +19,53 @@ from typing import List, Tuple, Optional, TYPE_CHECKING
 from decimal import Decimal, InvalidOperation
 
 from django.db import transaction
+from django.db.utils import IntegrityError, DatabaseError, OperationalError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.apps import apps as django_apps
 from django.core.files.uploadedfile import UploadedFile
+from django.utils import timezone
+
+from apps.platform_runtime.structured_logging import log_exception_with_context
 
 if TYPE_CHECKING:
     from apps.people.models import StudentProfile, TeacherProfile
     from apps.academics.models import SubjectAssignment
 
 logger = logging.getLogger(__name__)
+
+# Typed exception tuples for §2.4 / §2e row 6 — no broad except
+_EVALS_IMPORT_SERVICES_VALIDATE_ROW_ERRORS = (
+    KeyError,
+    TypeError,
+    AttributeError,
+    ValueError,
+    InvalidOperation,
+    LookupError,
+)
+_EVALS_IMPORT_SERVICES_PROCESS_ROW_ERRORS = (
+    ObjectDoesNotExist,
+    ValidationError,
+    IntegrityError,
+    DatabaseError,
+    OperationalError,
+    ValueError,
+    TypeError,
+    KeyError,
+    AttributeError,
+)
+_EVALS_IMPORT_SERVICES_IMPORT_JOB_ERRORS = (
+    ObjectDoesNotExist,
+    ValidationError,
+    IntegrityError,
+    DatabaseError,
+    OperationalError,
+    ValueError,
+    TypeError,
+    KeyError,
+    AttributeError,
+    OSError,
+    IOError,
+)
 
 
 @dataclass
@@ -151,7 +190,12 @@ class GradeImportValidator:
             )
             return True, row_data
         
-        except Exception as e:
+        except _EVALS_IMPORT_SERVICES_VALIDATE_ROW_ERRORS as e:
+            log_exception_with_context(
+                "evals import_services: validate_row failed",
+                school_id=None,
+                extra={"row_num": row_num, "error": str(e)},
+            )
             self.errors.append(f"Row {row_num}: {str(e)}")
             return False, None
     
@@ -325,8 +369,17 @@ class GradeImportProcessor:
                 teacher_obj=teacher,
             )
         
-        except Exception as e:
-            logger.exception(f"Error processing row {row_number}")
+        except _EVALS_IMPORT_SERVICES_PROCESS_ROW_ERRORS as e:
+            school_id = getattr(self.academic_year, "school_id", None)
+            log_exception_with_context(
+                "evals import_services: process row failed",
+                school_id=school_id,
+                extra={
+                    "row_number": row_number,
+                    "student_code": row_data.student_code,
+                    "error": str(e),
+                },
+            )
             return ImportRowResult(
                 row_number=row_number,
                 row_data=row_data,
@@ -452,7 +505,6 @@ class GradeImportService:
                 return job
             
             # Process rows
-            from django.utils import timezone
             job.started_processing_at = timezone.now()
             job.save()
             
@@ -491,8 +543,13 @@ class GradeImportService:
             
             return job
         
-        except Exception as e:
-            logger.exception(f"Import failed for job {job.id}")
+        except _EVALS_IMPORT_SERVICES_IMPORT_JOB_ERRORS as e:
+            school_id = getattr(academic_year, "school_id", None)
+            log_exception_with_context(
+                "evals import_services: import_grades failed",
+                school_id=school_id,
+                extra={"job_id": job.id, "academic_year_id": academic_year.id, "error": str(e)},
+            )
             job.status = self.GradeImportJob.Status.FAILED
             job.error_summary = json.dumps({"fatal_error": str(e)})
             job.completed_at = timezone.now()

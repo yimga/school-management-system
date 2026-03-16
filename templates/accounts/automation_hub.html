@@ -1,19 +1,12 @@
 {% extends "backend_base.html" %}
-{% load static %}
+{% load static i18n %}
 
 {% block backend_title %}Automation Hub{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-  <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
-    <div>
-      <h1 class="h4 mb-1 fw-bold">Automation Hub</h1>
-      <p class="text-muted small mb-0">Execution logs, approval queue, and schedule configuration</p>
-    </div>
-    <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:workflow_center' %}">
-      <i class="bi bi-arrow-left me-1"></i>Workflow Center
-    </a>
-  </div>
+<div class="container-fluid py-4" data-page-archetype="operational-workbench">
+  {% url 'accounts:workflow_center' as workflow_center_url %}
+  {% include "studio_os/components/page_header.html" with title=_("Automation Hub") subtitle=_("Execution logs, approval queue, and schedule configuration.") action_url=workflow_center_url action_text=_("Workflow Center") %}
 
   <div class="row g-4">
     <div class="col-md-6 col-lg-4">

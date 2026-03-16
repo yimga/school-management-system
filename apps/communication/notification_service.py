@@ -2,19 +2,41 @@
 Unified notification service (internal-first). Single entry point for email, SMS, push, WhatsApp.
 All callers use this; no app imports Twilio/send_mail/EmailMessage directly for notifications.
 SMS fallback: if SMS fails or is not configured, optional fallback to email.
+§2.4: broad except replaced with typed exception tuples.
 """
 from __future__ import annotations
 
 import logging
+from smtplib import SMTPException
 from typing import Any, List, Optional
 
 from django.conf import settings
 from django.core.mail import send_mail as django_send_mail
 
+from .circuit_breaker import (
+    is_open as circuit_is_open,
+    record_failure as circuit_record_failure,
+    record_success as circuit_record_success,
+)
 from .providers import get_sms_provider
-from .circuit_breaker import is_open as circuit_is_open, record_failure as circuit_record_failure, record_success as circuit_record_success
 
 logger = logging.getLogger(__name__)
+
+# §2.4: typed exceptions for settings resolution and email send
+_NOTIFICATION_SETTINGS_RESOLVE_ERRORS: tuple[type[BaseException], ...] = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+)
+_NOTIFICATION_EMAIL_SEND_ERRORS: tuple[type[BaseException], ...] = (
+    OSError,
+    ConnectionError,
+    TimeoutError,
+    ValueError,
+    TypeError,
+    SMTPException,
+)
 
 
 def _resolve_site_settings(school: Any = None, site_settings: Any = None):
@@ -25,8 +47,12 @@ def _resolve_site_settings(school: Any = None, site_settings: Any = None):
         try:
             from apps.platform_runtime.helpers import get_effective_site_settings
             return get_effective_site_settings(school=school)
-        except Exception:
-            pass
+        except _NOTIFICATION_SETTINGS_RESOLVE_ERRORS:
+            logger.debug(
+                "resolve_site_settings skip for school id=%s",
+                getattr(school, "id", None),
+                exc_info=True,
+            )
     return getattr(settings, "SITE_SETTINGS", None)
 
 
@@ -60,7 +86,7 @@ def send_email(
         )
         logger.info("Email sent to %s: %s", to_addresses, subject[:50])
         return True
-    except Exception as e:
+    except _NOTIFICATION_EMAIL_SEND_ERRORS as e:
         logger.exception("Email send failed: %s", e)
         if not fail_silently:
             raise

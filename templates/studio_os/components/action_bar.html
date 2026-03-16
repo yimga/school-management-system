@@ -1,0 +1,18 @@
+{% load i18n %}
+{% load i18n %}
+{% comment %}
+§8.0.12 Shared component: Sticky action bar / action footer for Studio OS. Uses design tokens.
+Usage: {% include "studio_os/components/action_bar.html" with primary_url=url primary_text="Save" secondary_url=back_url secondary_text="Cancel" %}
+Or pass action_html for custom buttons.
+{% endcomment %}
+<div class="studio-os-bottom-bar mt-3" role="toolbar" aria-label="{% trans 'Page actions' %}">
+  <div class="d-flex flex-wrap gap-2 align-items-center">
+    {% if primary_url and primary_text %}
+      <a class="btn btn-primary studio-os-cmd-btn" href="{{ primary_url }}">{{ primary_text }}</a>
+    {% endif %}
+    {% if secondary_url and secondary_text %}
+      <a class="btn btn-outline-secondary btn-sm" href="{{ secondary_url }}">{{ secondary_text }}</a>
+    {% endif %}
+    {% if action_html %}{{ action_html|safe }}{% endif %}
+  </div>
+</div>

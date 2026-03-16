@@ -10,17 +10,8 @@ from django.db import DatabaseError, OperationalError
 from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 
-from apps.dashboard.action_registry import (
-    get_backend_dashboard_actions,
-    get_contextual_actions,
-    VALID_DASHBOARD_INTENTS,
-)
-from apps.dashboard.role_home_engine import (
-    prioritize_destinations,
-    resolve_role_home,
-    select_kpis_for_intent,
-    select_role_home_actions,
-)
+from apps.dashboard.role_home_engine import select_kpis_for_intent
+from apps.dashboard.services.role_home_service import build_role_home_context
 from apps.platform_runtime.helpers import get_effective_flags, get_effective_site_settings
 from apps.platform_runtime.structured_logging import log_exception_with_context, log_view_exception
 
@@ -146,8 +137,8 @@ def _build_cached_snapshot(site_id: str, role_code: str) -> Dict[str, int]:
 
     try:
         from apps.academics.models import Classroom, Subject
-        classrooms = Classroom.objects.filter(is_active=True).count()
-        subjects = Subject.objects.filter(is_active=True).count()
+        classrooms = Classroom.objects.count()
+        subjects = Subject.objects.count()
     except _DASHBOARD_SNAPSHOT_ERRORS:
         pass
 
@@ -601,54 +592,27 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
         "can_use_messages": can_use_messages,
         "can_manage_rbac": can_manage_rbac,
     }
-    intent = (base.get("dashboard_intent") or "").strip().lower()
-    if intent not in VALID_DASHBOARD_INTENTS:
-        intent = ""
-    role_home = resolve_role_home(role_code, intent or None)
-    intent = intent or role_home["default_intent"]
-    actions = get_backend_dashboard_actions(
-        perms, _safe_reverse, _build_nav_item, _dedupe_nav_items, intent=intent or None
-    )
-    primary_ctas = actions["primary_ctas"]
-    action_chips = actions["action_chips"]
-    welcome_action_grid = actions["welcome_action_grid"]
-    quick_links = actions["quick_links"]
-    command_palette = actions["command_palette"]
-    contextual_actions = get_contextual_actions(
-        "backend_dashboard",
+    # Role-home slice from single service (RUNMYCAMPUS §6.13: move role-home logic into services)
+    role_home_result = build_role_home_context(
+        request,
+        base,
         perms,
-        __safe_reverse,
-        intent=intent or None,
-        workflow_progress=base.get("workflow_progress") if isinstance(base.get("workflow_progress"), dict) else None,
-        recommended_steps=base.get("recommended_next_steps") if isinstance(base.get("recommended_next_steps"), list) else None,
-        max_items=5,
+        safe_reverse=lambda name, fallback="#": _safe_reverse(name, fallback),
+        build_nav_item=_build_nav_item,
+        dedupe_nav_items=_dedupe_nav_items,
     )
-
-    if role_code in {"BURSAR", "FINANCE_STAFF"} and not any(
-        item.get("id") == "finance_console" for item in welcome_action_grid
-    ):
-        finance_console = _build_nav_item(
-            "Finance Console",
-            "bi-cash-stack",
-            _safe_reverse("finance:dashboard"),
-            item_id="finance_console",
-            allow=can_manage_finance,
-        )
-        if finance_console:
-            welcome_action_grid.insert(0, finance_console)
-
-    pinned_order = []
-    try:
-        prefs = getattr(user, "dashboard_preferences", None)
-        if prefs and isinstance(prefs.pinned_sidebar_items, list):
-            pinned_order = [str(x).strip() for x in prefs.pinned_sidebar_items if str(x).strip()]
-    except _DASHBOARD_PERMISSION_CHECK_ERRORS:
-        pinned_order = []
-    if pinned_order:
-        order_map = {key: idx for idx, key in enumerate(pinned_order)}
-        quick_links.sort(key=lambda x: order_map.get(x.get("id", ""), 999))
-    role_home_destinations = prioritize_destinations(role_home, action_chips, quick_links, contextual_actions)
-    quick_links = role_home_destinations[:5]
+    role_home = role_home_result["role_home"]
+    intent = role_home_result["intent"]
+    primary_ctas = role_home_result["primary_ctas"]
+    action_chips = role_home_result["action_chips"]
+    welcome_action_grid = role_home_result["welcome_action_grid"]
+    quick_links = role_home_result["quick_links"]
+    command_palette = role_home_result["command_palette"]
+    contextual_actions = role_home_result["contextual_actions"]
+    role_home_destinations = role_home_result["role_home_destinations"]
+    role_home_primary_action = role_home_result["role_home_primary_action"]
+    role_home_supporting_actions = role_home_result["role_home_supporting_actions"]
+    dashboard_next_best_actions = role_home_result.get("dashboard_next_best_actions") or []
 
     upcoming_events = []
     try:
@@ -745,23 +709,6 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
                 "time_ago": "just now",
             }
         ]
-    dashboard_next_best_actions = list(base.get("recommended_next_steps") or [])[:3]
-    if not dashboard_next_best_actions:
-        dashboard_next_best_actions = [
-            {
-                "label": item["label"],
-                "url": item["url"],
-                "icon": item.get("icon", "bi-arrow-right"),
-                "reason": item.get("reason", ""),
-                "category": item.get("group", "Action"),
-            }
-            for item in contextual_actions[:3]
-        ]
-    role_home_primary_action, role_home_supporting_actions = select_role_home_actions(
-        dashboard_next_best_actions,
-        primary_ctas,
-        role_home_destinations,
-    )
     dashboard_contract = {
         "dominant_purpose": role_home["purpose"],
         "primary_action_count": len(primary_ctas[:1]),

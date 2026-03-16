@@ -1,0 +1,19 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Dashboard visual packs" %} · {% trans "Experience" %}{% endblock %}
+
+{% block content %}
+<div class="container py-3" data-page-archetype="operational-workbench">
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
+  <div class="studio-os__card py-3 px-3">
+    <p class="mb-2">{% trans "Dashboard visual packs define widgets, charts, and layout presets for role-based dashboards (parent, teacher, staff). Configure which widgets appear and how they are arranged via the Backend dashboard and Customizer so each role sees a consistent, branded experience." %}</p>
+    {% if dashboard_url %}
+    <p class="mb-1"><a href="{{ dashboard_url }}">{% trans "Backend dashboard" %}</a> — {% trans "View and manage dashboard widgets and layout by role." %}</p>
+    {% endif %}
+    {% if customizer_url %}
+    <p class="mb-0"><a href="{{ customizer_url }}">{% trans "Customizer" %}</a> — {% trans "Adjust dashboard layout and visual presets." %}</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -5,11 +5,8 @@
 {% block cp_title %}Sync Repair — {{ school.name }}{% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-4">
-  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
-    <h1 class="h4 mb-0">Emergency Sync Repair</h1>
-    <a href="{{ dashboard_url }}" class="btn btn-outline-secondary js-return-to-origin" data-fallback="{{ dashboard_url }}">← Back to Super Dashboard</a>
-  </div>
+<div class="container-fluid py-4" data-page-archetype="record-detail">
+  {% include "studio_os/components/page_header.html" with title="Emergency Sync Repair" subtitle=school.name action_url=dashboard_url action_text="Back to Super Dashboard" %}
   <p class="text-muted small">School: <strong>{{ school.name }}</strong> ({{ school.id }})</p>
 
   {% if conflicts %}

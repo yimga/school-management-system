@@ -5,16 +5,11 @@
 {% block backend_title %}Create Student - Backend{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" data-page-archetype="record-detail">
   <div class="row">
     <div class="col-12">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h2 class="fw-bold mb-1">Create Student</h2>
-          <p class="text-muted mb-0">Add a new student to the system</p>
-        </div>
-        <a href="{% url 'accounts:backend_student_list' %}" class="btn btn-sm btn-outline-secondary btn-back-secondary"><i class="bi bi-arrow-left me-1"></i>Back to List</a>
-      </div>
+      {% url 'accounts:backend_student_list' as list_url %}
+      {% include "studio_os/components/page_header.html" with title="Create Student" subtitle="Add a new student to the system" action_url=list_url action_text="Back to List" %}
 
       {% if has_draft %}
       <div class="alert alert-info d-flex align-items-center justify-content-between mb-3" role="alert">

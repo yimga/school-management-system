@@ -22,19 +22,22 @@
 | Path | Type | Status | Replacement | Notes |
 |------|------|--------|-------------|--------|
 | `ensure_gilead_admin` (management command) | Command | **REMOVED** | `ensure_default_tenant_admin` | Same args. Documented in SUBTRACTIVE_CLEANUP_RELEASE_NOTES. |
+| `ensure_superadmin` (management command) | Command | **CANDIDATE** | `ensure_superuser` | Deprecation warning in command; use ensure_superuser (ADMIN_PASSWORD, --username, --password). Removal after deprecation period per management_commands_inventory.md §5a. |
 | `/admin/siteconfig/customizer/` | URL | **REDIRECT** | `studio_os:experience` (`/studio/experience/`) | config/urls.py `admin_siteconfig_customizer_redirect`. Optional: remove URL when product confirms bookmarks migrated. |
-| `/siteconfig/customizer/` | URL | **CANDIDATE** | Studio OS Experience | Same behavior as Studio OS Experience hub. When product confirms, can redirect to `studio_os:experience` or keep as alternate entry. |
+| `/siteconfig/customizer/` | URL | **REDIRECT** | `studio_os:experience` (`/studio/experience/`) | Phase B: redirect added in config/urls.py, config/tenant_urls.py, config/manager_urls.py. |
 | `siteconfig.webhook_delivery` (code) | Module ref | **REMOVED** | `apps.events.webhooks` | Callers use events.webhooks. |
 | `/siteconfig/workflow-hub/` | URL | **REDIRECT** | `studio_os:automation` | config/urls.py `legacy_workflow_hub_redirect`. Step 6 / Optional 12 done. If product confirms a different legacy path, add that path to same redirect or document in SUBTRACTIVE_CLEANUP_RELEASE_NOTES. |
 | `/siteconfig/report-library/` | URL | **REDIRECT** | `studio_os:output` | config/urls.py `legacy_report_library_redirect`. Step 6 / Optional 12 done. If product confirms a different legacy path, add that path to same redirect or document in SUBTRACTIVE_CLEANUP_RELEASE_NOTES. |
 
 ---
 
-## 3. Optional next steps (when product confirms)
+## 3. Product sign-off (Step 6 unblocked) and optional next steps
 
-1. **admin/siteconfig/customizer/** — Change from redirect to 410 Gone, or keep redirect indefinitely for bookmarks.
-2. **siteconfig/customizer/** — Redirect to `studio_os:experience` or deprecate view and keep redirect only.
-3. **Workflow hub / report library:** **DONE.** §2 paths `/siteconfig/workflow-hub/` and `/siteconfig/report-library/` redirect to `studio_os:automation` and `studio_os:output`. If product identifies different legacy URLs, add those paths to the same redirect views in config/urls.py and document in SUBTRACTIVE_CLEANUP_RELEASE_NOTES.
+**Product sign-off (2026-03-12):** Remove old legacy paths; new config / Studio OS is canonical. System and code aligned to current platform direction; keep only current tenant and reconfigure to match current config. Legacy siteconfig views `workflow_hub` and `report_library` are now redirect-only to Studio OS (query string preserved).
+
+1. **admin/siteconfig/customizer/** — Redirect in place; keep redirect for bookmarks.
+2. **siteconfig/customizer/** — View is redirect-only to `studio_os:experience`.
+3. **Workflow hub / report library:** **DONE.** Config redirects + siteconfig views redirect-only to `studio_os:automation` and `studio_os:output`. Legacy render logic removed.
 
 ---
 

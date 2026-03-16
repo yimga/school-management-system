@@ -2,8 +2,9 @@
 {% load i18n %}
 {% block title %}Confirm on-site hours{% endblock %}
 {% block content %}
-<div class="container-fluid">
-  <h4 class="mb-3">{% trans "Confirm on-site hours" %}</h4>
+<div class="container-fluid py-4" data-page-archetype="record-detail">
+  {% url 'portal:employer_dashboard' as dashboard_url %}
+  {% include "studio_os/components/page_header.html" with title=_("Confirm on-site hours") subtitle=_("Add hours for this placement") action_url=dashboard_url action_text=_("Back to dashboard") %}
   <div class="card shadow-sm">
     <div class="card-body">
       <p><strong>Student:</strong> {{ placement.student.get_full_name }}</p>

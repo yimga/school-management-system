@@ -1,15 +1,22 @@
 """
 Tag Manager UI: School Settings → create/edit InformationTag (zero-hardcoding tags).
 Scoped to request.school; only tags for current tenant.
+§2.4 Structured logging: tag save failures logged via log_view_exception for audit.
 """
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
+from django.db import DatabaseError, IntegrityError
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
 from apps.accounts.decorators import permission_required
 from apps.people.models import InformationTag
+from apps.platform_runtime.structured_logging import log_view_exception
+
+_TAG_SAVE_ERRORS = (ValidationError, IntegrityError, DatabaseError, TypeError, ValueError)
 
 
 def _school_required(view_func):
@@ -88,7 +95,19 @@ def tag_manager_edit(request, tag_id):
             try:
                 tag.save()
                 messages.success(request, f"Tag «{tag.name}» updated.")
-            except Exception as e:
+            except _TAG_SAVE_ERRORS as e:
+                log_view_exception(
+                    request,
+                    "siteconfig tag_manager edit: tag save failed",
+                    extra={"tag_id": tag.pk, "tag_name": tag.name, "error": str(e)},
+                )
                 messages.error(request, str(e))
             return redirect("siteconfig:tag_manager")
-    return render(request, "siteconfig/tag_manager_edit.html", {"tag": tag, "category_choices": InformationTag.Category.choices})
+    return render(request, "siteconfig/tag_manager_edit.html", {
+        "tag": tag,
+        "category_choices": InformationTag.Category.choices,
+        "page_title": "Edit tag",
+        "page_subtitle": tag.name,
+        "action_url": reverse("siteconfig:tag_manager"),
+        "action_text": "Back to List",
+    })

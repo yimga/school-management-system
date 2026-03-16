@@ -19,8 +19,13 @@ logger = logging.getLogger(__name__)
 # Phase 2/7: Tenant behavior must not be sourced from SiteSettings; use runtime resolvers and
 # bounded-context services. Migration plan: docs/SITECONFIG_OWNERSHIP_MIGRATION.md
 
-REPORT_CARD_TYPE_TERM = "TERM"
-REPORT_CARD_TYPE_ANNUAL = "ANNUAL"
+from .models_constants import (
+    BACKEND_CONSOLE_THEME_CHOICES,
+    LOGO_BG_MODE_CHOICES,
+    REPORT_CARD_TYPE_ANNUAL,
+    REPORT_CARD_TYPE_TERM,
+)
+
 PLATFORM_DEFAULT_SITE_NAME = "RunMyCampus"
 PLATFORM_DEFAULT_SCHOOL_CODE = "RMC"
 PLATFORM_DEFAULT_TAGLINE = "Education management for every school."
@@ -144,19 +149,13 @@ class SiteSettings(models.Model):
         validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
         help_text="Opacity for logo background (0.0 = fully transparent, 1.0 = fully opaque)"
     )
-    LOGO_BG_MODE_CHOICES = [
-        ("none", "None (disabled)"),
-        ("contain", "Contain (default)"),
-        ("cover", "Cover"),
-        ("tile", "Tile/Repeat"),
-        ("center", "Center (no scale)"),
-    ]
     logo_background_mode = models.CharField(
         max_length=16,
         choices=LOGO_BG_MODE_CHOICES,
         default="contain",
         help_text="How the logo background image is displayed: contain, cover, tile, or center."
     )
+    LOGO_BG_MODE_CHOICES = LOGO_BG_MODE_CHOICES  # from models_constants; backward compat
     BRIGHTNESS_CHOICES = [
         ("system", "System"),
         ("light", "Light"),
@@ -271,33 +270,13 @@ class SiteSettings(models.Model):
     warning_color = models.CharField(max_length=20, default="#fbbf24")
     danger_color = models.CharField(max_length=20, default="#ef4444")
     use_dark_mode = models.BooleanField(default=False)
-    BACKEND_CONSOLE_THEME_CHOICES = [
-        ("dark", "Dark (slate grey)"),
-        ("light", "Light (lavender tint)"),
-        ("system", "System (follows OS)"),
-        ("black", "Black (true black #000)"),
-        ("ink", "Ink (deep black #030712)"),
-        ("onyx", "Onyx (rich black #0c0c0c)"),
-        ("charcoal", "Charcoal (soft black)"),
-        ("graphite", "Graphite (zinc grey)"),
-        ("midnight", "Midnight (deep blue-black)"),
-        ("ocean", "Ocean (dark blue)"),
-        ("steel", "Steel (blue-grey)"),
-        ("slate", "Slate (medium grey)"),
-        ("forest", "Forest (dark green)"),
-        ("indigo", "Indigo (dark purple)"),
-        ("amber", "Amber (warm dark)"),
-        ("sand", "Sand (warm light)"),
-        ("snow", "Snow (cool light)"),
-        ("cream", "Cream (ivory light)"),
-        ("lavender", "Lavender (soft purple light)"),
-    ]
     backend_console_theme = models.CharField(
         max_length=20,
         choices=BACKEND_CONSOLE_THEME_CHOICES,
         default="dark",
         help_text="Theme for the Backend Console (Workflow Center, Entity Console).",
     )
+    BACKEND_CONSOLE_THEME_CHOICES = BACKEND_CONSOLE_THEME_CHOICES  # from models_constants; backward compat
     # Color harmony for theme palette (DETAILED_IMPLEMENTATION_PLAN / NON_NEGOTIABLE_BACKLOG item 7)
     THEME_HARMONY_CHOICES = [
         ("square", "Square (four evenly spaced hues)"),
@@ -2288,9 +2267,11 @@ from .models_platform_catalog import (  # noqa: F401
     RegionConfig,
     RevenueSnapshot,
     ServiceIntegration,
+    SyncConflict,
     SystemFeature,
     TenantSystem,
     WaiverRequest,
+    WebhookDelivery,
     WebhookSubscription,
     default_education_term_labels,
     default_education_subject_seed,

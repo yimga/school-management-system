@@ -1,6 +1,8 @@
 # Master Plan – Build Order
 
-**Purpose**: One plan to build from. **Site Settings redesign is very important** and is Phase 1. Everything else is ordered by dependency and impact.
+**Superseded.** For execution and completion, track only [REDUNDANCY_AND_PLAN_INDEX.md](REDUNDANCY_AND_PLAN_INDEX.md) (consolidated plan index) and the four canonical docs: RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH, BACKLOG_AND_DEFERRED_CLOSURE, docs_truth_ledger, NEXT_50_EXECUTION_STEPS. This file is **reference only**.
+
+**Purpose**: One plan to build from (historical). **Site Settings redesign is very important** and is Phase 1. Everything else is ordered by dependency and impact.
 
 **Related docs**:  
 - [SITE_SETTINGS_REDESIGN_PLAN.md](SITE_SETTINGS_REDESIGN_PLAN.md) – Site Settings UX and navigation  

@@ -9,17 +9,8 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4 hub-page professional-page">
-  {% if backend_url %}
-  <p class="mb-3">
-    <a href="{{ backend_url }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{% trans "Back to backend" %}</a>
-  </p>
-  {% endif %}
-  <header class="hub-hero">
-    <span class="hub-eyebrow">{% trans "Platform hub" %}</span>
-    <h1 class="hub-title">{% trans "Dashboard Hub" %}</h1>
-    <p class="hub-copy">{% blocktrans with school_name=school.name %}Dashboards are composed by role via the platform resolver. Assign a template per role to control default layout and widgets for <strong>{{ school_name }}</strong>.{% endblocktrans %}</p>
-  </header>
+<div class="container-fluid py-4 hub-page professional-page" data-page-archetype="operational-workbench">
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
 
   <div class="hub-cards">
     <article class="hub-action-card">

@@ -64,39 +64,16 @@ def dashboard_hub(request):
 @login_required
 def workflow_hub(request):
     """
-    Phase 4: Workflow hub — single tenant-facing entry. When not embedded in Studio, redirect to Studio Automation.
+    Legacy path: always redirect to Studio OS Automation (Step 6 product sign-off).
+    Preserves query string (e.g. embed=1) for iframe usage.
     """
-    if request.GET.get("embed") != "1":
-        from django.shortcuts import redirect
-        from django.urls import reverse
-        return redirect(reverse("studio_os:automation"))
-    if not getattr(request.user, "is_staff", False):
-        messages.warning(request, "Access restricted to staff.")
-        return redirect(reverse("accounts:backend_dashboard"))
-    school = getattr(request, "school", None)
-    if not school:
-        messages.warning(request, "No school context.")
-        return redirect(reverse("accounts:backend_dashboard"))
-    approval_hub_url = reverse("accounts:approval_workflow_hub")
-    flow_gallery_url = reverse("siteconfig:workflow_flow_gallery")
-    backend_url = reverse("accounts:backend_dashboard")
-    workflow_center_url = reverse("accounts:workflow_center")
-    try:
-        automation_hub_url = reverse("accounts:automation_hub")
-    except NoReverseMatch:
-        automation_hub_url = None
-    return render(
-        request,
-        "siteconfig/workflow_hub.html",
-        {
-            "school": school,
-            "approval_hub_url": approval_hub_url,
-            "flow_gallery_url": flow_gallery_url,
-            "backend_url": backend_url,
-            "workflow_center_url": workflow_center_url,
-            "automation_hub_url": automation_hub_url,
-        },
-    )
+    from django.shortcuts import redirect
+    from django.urls import reverse
+
+    url = reverse("studio_os:automation")
+    if request.GET:
+        url = f"{url}?{request.GET.urlencode()}"
+    return redirect(url)
 
 
 @never_cache

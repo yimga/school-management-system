@@ -3,9 +3,35 @@ Phase 8 Task 8: People Management - Enhanced Admin & Utilities
 Student/teacher bulk operations, import/export functionality
 """
 
-from django.utils.html import format_html
+from __future__ import annotations
+
 import csv
 from datetime import datetime
+from smtplib import SMTPException
+
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError
+from django.utils.html import format_html
+
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
+# §2.4 Typed exception sets for import/export and bulk email (broad_exception_audit)
+_PEOPLE_IMPORT_ROW_ERRORS = (
+    IntegrityError,
+    ValidationError,
+    ValueError,
+    TypeError,
+    AttributeError,
+    KeyError,
+    UnicodeDecodeError,
+)
+_PEOPLE_IMPORT_FILE_ERRORS = (
+    UnicodeDecodeError,
+    OSError,
+    TypeError,
+    csv.Error,
+)
+_PEOPLE_BULK_EMAIL_ERRORS = (SMTPException, OSError, ValueError, TypeError)
 
 
 class StudentAdminEnhancements:
@@ -111,13 +137,20 @@ class StudentAdminEnhancements:
                         results['imported'] += 1
                     else:
                         results['updated'] += 1
-                
-                except Exception as e:
+                except _PEOPLE_IMPORT_ROW_ERRORS as e:
                     results['errors'].append(f'Row {row_num}: {str(e)}')
-        
-        except Exception as e:
+                    log_exception_with_context(
+                        "people_management import_students_csv row failed",
+                        school_id=None,
+                        extra={"row_num": row_num, "error": str(e)},
+                    )
+        except _PEOPLE_IMPORT_FILE_ERRORS as e:
             results['errors'].append(f'File error: {str(e)}')
-        
+            log_exception_with_context(
+                "people_management import_students_csv file error",
+                school_id=None,
+                extra={"error": str(e)},
+            )
         return results
 
 
@@ -237,10 +270,18 @@ class TeacherAdminEnhancements:
                     else:
                         results['updated'] += 1
                 
-                except Exception as e:
+                except _PEOPLE_IMPORT_ROW_ERRORS as e:
+                    log_exception_with_context(
+                        "people.import_teachers_csv: row import failed",
+                        extra={"task": "import_teachers_csv", "row_num": row_num, "error": str(e)},
+                    )
                     results['errors'].append(f'Row {row_num}: {str(e)}')
         
-        except Exception as e:
+        except _PEOPLE_IMPORT_FILE_ERRORS as e:
+            log_exception_with_context(
+                "people.import_teachers_csv: file error",
+                extra={"task": "import_teachers_csv", "error": str(e)},
+            )
             results['errors'].append(f'File error: {str(e)}')
         
         return results
@@ -277,7 +318,11 @@ class BulkOperationService:
         try:
             sent = send_mass_mail(email_list, fail_silently=False)
             return {'sent': sent}
-        except Exception as e:
+        except _PEOPLE_BULK_EMAIL_ERRORS as e:
+            log_exception_with_context(
+                "people.bulk_send_email: send failed",
+                extra={"task": "bulk_send_email", "error": str(e)},
+            )
             return {'error': str(e)}
     
     @staticmethod

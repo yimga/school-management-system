@@ -46,6 +46,8 @@ Acceptable status codes: 200, 301, 302, 403 (not 404 or 500).
 
 ## 4. Responsive and layout (Phase H gate)
 
+**Platform-wide standard (RUNMYCAMPUS §8.0.11, §8.0.6) — no exceptions:** Every page — tenant portal, backend, admin, super, studio, marketing, onboarding, auth, errors — must be fully responsive (mobile, tablet, desktop), fluid layout, no fixed pixel dimensions for layout, typography and images that scale. No page is exempt; the same high bar applies to the entire codebase. Phase H "entire codebase" verification includes this bar for all surfaces.
+
 - **Static audit:** `python scripts/phase_h_audit.py` — checks base shells for viewport meta and overflow containment; **skip-to-main-content link** in base and control_plane_skeleton (a11y); tenant and control-plane error templates exist and extend base; optional responsive CSS assets reported as **warnings when missing (warnings always printed when present, not only with --verbose)**.
 - **With URL checks:** `python scripts/phase_h_audit.py --live` — same plus URL reverse for critical names (requires Django).
 - **Verbose:** `python scripts/phase_h_audit.py --verbose` or `--live -v` — prints each check performed; warnings (e.g. missing optional CSS) are always shown when present; --verbose adds per-check trace.

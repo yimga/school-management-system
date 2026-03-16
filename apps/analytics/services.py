@@ -588,9 +588,16 @@ def get_audit_trail(evaluation_id, limit=50):
 
 
 def get_import_job_status(import_job_id):
-    """Get detailed import job status."""
+    """Get detailed import job status. Returns None if job not found or serialization fails."""
     from apps.analytics.models import GradeImportJob
-    
+    from django.core.exceptions import ObjectDoesNotExist
+
+    _IMPORT_JOB_STATUS_ERRORS = (
+        ObjectDoesNotExist,
+        AttributeError,
+        TypeError,
+        ValueError,
+    )
     try:
         job = GradeImportJob.objects.get(id=import_job_id)
         return {
@@ -605,7 +612,7 @@ def get_import_job_status(import_job_id):
             'completed_at': job.completed_at.isoformat() if job.completed_at else None,
             'duration_seconds': (job.completed_at - job.created_at).total_seconds() if job.completed_at else None,
         }
-    except Exception:
+    except _IMPORT_JOB_STATUS_ERRORS:
         return None
 
 

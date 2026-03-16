@@ -11,6 +11,7 @@ import shutil
 import subprocess
 import tempfile
 
+from apps.platform_runtime.structured_logging import log_exception_with_context
 from .document_conversion import (
     convert_html_to_docx,
     convert_html_to_odt,
@@ -92,13 +93,20 @@ def _simple_markdown_to_html(content: str) -> str:
     return "\n".join(out)
 
 
+# §2.4: Typed exceptions for markdown conversion fallback (broad_exception_audit)
+_MARKDOWN_CONVERT_ERRORS = (TypeError, ValueError, KeyError, AttributeError, LookupError)
+
+
 def markdown_to_html(content: str) -> str:
     if MARKDOWN_AVAILABLE:
         try:
             md = markdown.Markdown(extensions=["fenced_code", "tables", "nl2br", "sane_lists"])
             return md.convert(content)
-        except Exception:
-            pass
+        except _MARKDOWN_CONVERT_ERRORS:
+            log_exception_with_context(
+                "portal.document_generation: markdown convert failed, using simple fallback",
+                extra={"module": "document_generation", "fallback": "_simple_markdown_to_html"},
+            )
     return _simple_markdown_to_html(content)
 
 

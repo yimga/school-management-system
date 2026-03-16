@@ -72,6 +72,8 @@ from .views_security import (
     api_security_activity,
     api_security_export_log,
     api_security_lockdown,
+    sessions_page,
+    sessions_revoke,
 )
 from .views_oidc import oidc_start, oidc_callback
 from .views_saml import saml_start, saml_acs, saml_metadata
@@ -167,6 +169,8 @@ urlpatterns = [
     path("profile/security/activity/", api_security_activity, name="api_security_activity"),
     path("profile/security/export/", api_security_export_log, name="api_security_export_log"),
     path("profile/security/lockdown/", api_security_lockdown, name="api_security_lockdown"),
+    path("profile/security/sessions/", sessions_page, name="sessions_page"),
+    path("profile/security/sessions/<str:session_key>/revoke/", sessions_revoke, name="sessions_revoke"),
     path("oidc/start/<str:integration_ref>/", oidc_start, name="oidc_start"),
     path("oidc/callback/<int:integration_id>/", oidc_callback, name="oidc_callback"),
     path("saml/start/<str:integration_ref>/", saml_start, name="saml_start"),

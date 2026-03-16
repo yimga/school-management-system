@@ -1,21 +1,33 @@
+"""
+OCR marksheet processing (Tesseract). §2.4: Typed exception tuples and log_exception_with_context.
+"""
 from __future__ import annotations
 
 import logging
 import re
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from typing import Any, Dict, List, Optional, Tuple
 
 try:
     from PIL import Image
+    from PIL.Image import UnidentifiedImageError
     import pytesseract
     from pytesseract import Output, TesseractNotFoundError
 except ImportError:  # pragma: no cover
     Image = None  # type: ignore[assignment]
+    UnidentifiedImageError = Exception  # type: ignore[assignment, misc]
     pytesseract = None  # type: ignore[assignment]
     Output = None  # type: ignore[assignment]
     TesseractNotFoundError = Exception  # fallback
 
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
 logger = logging.getLogger(__name__)
+
+# §2.4: Typed exception tuples for OCR paths (no broad except).
+_EVALS_OCR_TESSERACT_ERRORS = (OSError, RuntimeError, ValueError, TypeError, TesseractNotFoundError)
+_EVALS_OCR_IMAGE_OPEN_ERRORS = (OSError, IOError, ValueError, TypeError, AttributeError, UnidentifiedImageError)
+_EVALS_OCR_DECIMAL_PARSE_ERRORS = (ValueError, TypeError, InvalidOperation)
 
 DEFAULT_TESSERACT_CMD = "tesseract"
 
@@ -36,7 +48,12 @@ def is_tesseract_available(cmd: Optional[str] = None) -> Tuple[bool, Optional[st
         return True, str(version)
     except TesseractNotFoundError:
         return False, None
-    except Exception as exc:  # pragma: no cover
+    except _EVALS_OCR_TESSERACT_ERRORS as exc:  # pragma: no cover
+        log_exception_with_context(
+            "evals.ocr: unexpected Tesseract failure",
+            school_id=None,
+            extra={"operation": "get_tesseract_version"},
+        )
         logger.warning("Unexpected Tesseract failure", exc_info=exc)
         return False, None
 
@@ -92,7 +109,12 @@ def process_marksheet_upload(file_obj, tesseract_cmd: Optional[str] = None) -> D
         file_obj.seek(0)
         image = Image.open(file_obj)
         image = _preprocess_image(image)
-    except Exception as exc:  # pragma: no cover
+    except _EVALS_OCR_IMAGE_OPEN_ERRORS as exc:  # pragma: no cover
+        log_exception_with_context(
+            "evals.ocr: failed to decode marksheet file",
+            school_id=None,
+            extra={"operation": "image_open_preprocess"},
+        )
         logger.exception("Failed to decode marksheet file for OCR", exc_info=exc)
         return {
             "success": False,
@@ -104,7 +126,12 @@ def process_marksheet_upload(file_obj, tesseract_cmd: Optional[str] = None) -> D
 
     try:
         preview_text = provider.extract_text(image)
-    except Exception as exc:
+    except _EVALS_OCR_TESSERACT_ERRORS as exc:
+        log_exception_with_context(
+            "evals.ocr: OCR engine error",
+            school_id=None,
+            extra={"operation": "extract_text"},
+        )
         logger.exception("OCR engine error", exc_info=exc)
         return {
             "success": False,
@@ -143,7 +170,7 @@ def _parse_text(text: str) -> List[Dict[str, Any]]:
         for idx, num in enumerate(numbers[: len(FIELD_ORDER)]):
             try:
                 scores[FIELD_ORDER[idx]] = Decimal(num)
-            except Exception:
+            except _EVALS_OCR_DECIMAL_PARSE_ERRORS:
                 continue
         if not scores:
             continue
@@ -166,7 +193,7 @@ def _parse_text_with_confidence(image: Image.Image) -> Tuple[List[Dict[str, Any]
         # Get detailed OCR data with confidence per word
         data = pytesseract.image_to_data(image, output_type=Output.DICT, lang="eng")
         text_lines = pytesseract.image_to_string(image, lang="eng").splitlines()
-    except Exception:
+    except _EVALS_OCR_TESSERACT_ERRORS:
         return _parse_text(pytesseract.image_to_string(image, lang="eng") if pytesseract else ""), {}
     
     rows = []
@@ -210,9 +237,9 @@ def _parse_text_with_confidence(image: Image.Image) -> Tuple[List[Dict[str, Any]
                 else:
                     # Fallback: use average confidence for the line
                     line_confidences[field] = 50.0
-            except Exception:
+            except _EVALS_OCR_PARSE_ROW_ERRORS:
                 continue
-        
+
         if scores:
             rows.append(
                 {
@@ -237,7 +264,7 @@ def _estimate_confidence(image) -> float:
         return 0.0
     try:
         data = pytesseract.image_to_data(image, output_type=Output.DICT)
-    except Exception:
+    except _EVALS_OCR_TESSERACT_ERRORS:
         return 0.0
     conf_values = [
         int(conf)

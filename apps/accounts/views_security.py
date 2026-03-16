@@ -1,6 +1,7 @@
 """
 Security & Identity Powerhouse API (plan 3.13–3.23).
 Strength, audit feed, export (MFA-gated), lockdown.
+§10.5.4 Trust product: Sessions page (TRUST_PRODUCT_SURFACES.md).
 """
 from __future__ import annotations
 
@@ -9,7 +10,11 @@ import io
 from datetime import timedelta
 
 from django.contrib.auth.decorators import login_required
+from django.contrib.sessions.exceptions import SuspiciousSession
+from django.contrib.sessions.models import Session
+from django.core.exceptions import SuspiciousOperation
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
+from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
@@ -126,3 +131,89 @@ def api_security_lockdown(request):
     if lockdown_user_account(user, request=request, initiator="self"):
         return JsonResponse({"ok": True, "message": "Account locked. Please set a new password on next login."})
     return JsonResponse({"ok": False, "message": "Lockdown cooldown: wait 24 hours or contact admin."}, status=400)
+
+
+def _sessions_for_user(user, limit=50):
+    """Return list of Session objects belonging to this user (decode session_data for _auth_user_id)."""
+    user_pk_str = str(user.pk)
+    out = []
+    for session in Session.objects.order_by("-expire_date")[: limit * 2]:
+        if len(out) >= limit:
+            break
+        try:
+            data = session.get_decoded()
+            if data.get("_auth_user_id") == user_pk_str:
+                out.append(session)
+        except _SECURITY_SESSION_DECODE_ERRORS:
+            continue
+    return out
+
+
+@login_required
+@require_GET
+def sessions_page(request):
+    """
+    §10.5.4 Trust product: Sessions & devices page (TRUST_PRODUCT_SURFACES.md).
+    Lists active sessions for the current user; supports revoke.
+    """
+    sessions = _sessions_for_user(request.user)
+    current_session_key = request.session.session_key
+    session_list = []
+    for s in sessions:
+        try:
+            data = s.get_decoded()
+            user_agent = (data.get("_auth_user_backend") or "")[:80]
+            # Django session often has no user_agent in data; we don't store it by default
+            session_list.append({
+                "session_key": s.session_key,
+                "expire_date": s.expire_date,
+                "is_current": s.session_key == current_session_key,
+                "user_agent": user_agent or "—",
+            })
+        except _SECURITY_SESSION_DECODE_ERRORS:
+            session_list.append({
+                "session_key": s.session_key,
+                "expire_date": s.expire_date,
+                "is_current": s.session_key == current_session_key,
+                "user_agent": "—",
+            })
+    return render(
+        request,
+        "accounts/sessions_page.html",
+        {"sessions": session_list, "current_session_key": current_session_key},
+    )
+
+
+@login_required
+@require_POST
+def sessions_revoke(request, session_key):
+    """
+    Revoke a session (delete + audit). §10.5.4 Trust product.
+    User can revoke any of their own sessions except the current one (to avoid locking themselves out).
+    """
+    if request.session.session_key == session_key:
+        return JsonResponse(
+            {"ok": False, "message": "Cannot revoke current session."},
+            status=400,
+        )
+    user_pk_str = str(request.user.pk)
+    session = Session.objects.filter(session_key=session_key).first()
+    if not session:
+        return JsonResponse({"ok": False, "message": "Session not found."}, status=404)
+    try:
+        data = session.get_decoded()
+        if data.get("_auth_user_id") != user_pk_str:
+            return HttpResponseForbidden("Not your session.")
+    except _SECURITY_SESSION_DECODE_ERRORS:
+        return HttpResponseForbidden("Invalid session.")
+    session.delete()
+    school = getattr(request, "school", None)
+    log_security_event(
+        request.user,
+        SecurityAuditLog.EventType.SESSION_REVOKED,
+        request=request,
+        school=school,
+    )
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest" or request.GET.get("format") == "json":
+        return JsonResponse({"ok": True})
+    return redirect("accounts:sessions_page")

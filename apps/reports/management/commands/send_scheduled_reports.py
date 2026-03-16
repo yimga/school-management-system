@@ -4,12 +4,27 @@ Processes ScheduledReport (bi_models) where next_run <= now: run report, email r
 Usage: python manage.py send_scheduled_reports [--dry-run]
 """
 from datetime import timedelta
+from smtplib import SMTPException
 
 from django.core.management.base import BaseCommand
 from django.core.mail import EmailMessage
+from django.db import DatabaseError, IntegrityError
 from django.utils import timezone
 
+from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.reports.bi_models import ScheduledReport, ReportExecution
+
+# Typed exceptions for §2.4 broad-except replacement (BACKLOG §2e row 6)
+_SCHEDULED_REPORT_RUN_ONE_ERRORS = (
+    DatabaseError,
+    IntegrityError,
+    OSError,
+    ConnectionError,
+    TimeoutError,
+    SMTPException,
+    TypeError,
+    ValueError,
+)
 
 
 def _compute_next_run(last_run, frequency, schedule_time):
@@ -68,7 +83,16 @@ class Command(BaseCommand):
                 continue
             try:
                 self._run_one(sr, now)
-            except Exception as e:
+            except _SCHEDULED_REPORT_RUN_ONE_ERRORS as e:
+                log_exception_with_context(
+                    "send_scheduled_reports: run_one failed",
+                    extra={
+                        "command": "send_scheduled_reports",
+                        "scheduled_report_id": getattr(sr, "id", None),
+                        "report_definition_id": getattr(getattr(sr, "report_definition", None), "id", None),
+                    },
+                    exc_info=True,
+                )
                 self.stderr.write(self.style.ERROR(f"Failed {sr}: {e}"))
 
     def _run_one(self, sr, now):
@@ -93,10 +117,21 @@ class Command(BaseCommand):
                 msg.send(fail_silently=False)
             execution.status = "COMPLETED"
             execution.completed_at = timezone.now()
-        except Exception as e:
+        except _SCHEDULED_REPORT_RUN_ONE_ERRORS as e:
             execution.status = "FAILED"
             execution.error_message = str(e)
             execution.completed_at = timezone.now()
+            rd = getattr(sr, "report_definition", None)
+            log_exception_with_context(
+                "send_scheduled_reports: run_one report send failed",
+                school_id=getattr(rd, "school_id", None) if rd else None,
+                extra={
+                    "command": "send_scheduled_reports",
+                    "scheduled_report_id": getattr(sr, "id", None),
+                    "execution_id": getattr(execution, "id", None),
+                    "report_definition_id": getattr(rd, "id", None) if rd else None,
+                },
+            )
             raise
         finally:
             execution.save()

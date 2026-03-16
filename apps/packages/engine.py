@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 _EVENT_EMIT_ERRORS = (ImportError, AttributeError, TypeError, ValueError, ConnectionError, OSError)
 
 from apps.metadata.services import build_metadata_blast_radius, get_downstream_dependencies
+from apps.platform_runtime.structured_logging import log_exception_with_context
 
 from .models import InstalledPackage, PackageChangeLog, PackageVersion
 

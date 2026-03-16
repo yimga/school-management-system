@@ -17,7 +17,9 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-2">
+<div class="container-fluid py-4" data-page-archetype="catalog">
+  {% include "studio_os/components/page_header.html" with title=_("Metadata Catalog") subtitle=_("Entity and field catalog with usage references; platform catalog (schema, experience, runtime, registry) from Master Platform Checklist.") action_url=dashboard_url action_text=_("Back to Dashboard") %}
+  <div class="py-2">
   <p class="text-secondary small mb-3">{% trans "Entity and field catalog with usage references; platform catalog (schema, experience, runtime, registry) from Master Platform Checklist." %}</p>
 
   {% if platform_catalog %}
@@ -110,6 +112,7 @@
         </tbody>
       </table>
     </div>
+  </div>
   </div>
 </div>
 {% endblock %}

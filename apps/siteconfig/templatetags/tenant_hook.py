@@ -1,10 +1,24 @@
 """
 Request-to-Feature: {% tenant_hook 'hook_name' %} renders fragment for school if present (plan 3.20).
+§2.4: Typed exception tuple for template-tag fail-soft (no broad except).
 """
 from django import template
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import DatabaseError
 from django.utils.safestring import mark_safe
 
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
 register = template.Library()
+
+_TENANT_HOOK_QUERY_ERRORS = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    ObjectDoesNotExist,
+    DatabaseError,
+)
 
 
 @register.simple_tag(takes_context=True)
@@ -33,5 +47,11 @@ def tenant_hook(context, hook_name: str):
             # Optional: load HTMX partial by name
             return ""
         return ""
-    except Exception:
+    except _TENANT_HOOK_QUERY_ERRORS as e:
+        log_exception_with_context(
+            "tenant_hook: fragment render skipped",
+            school_id=getattr(school, "id", None),
+            route=getattr(context.get("request"), "path", None) if context.get("request") else None,
+            extra={"hook_name": hook_name.strip().upper(), "error": str(e)},
+        )
         return ""

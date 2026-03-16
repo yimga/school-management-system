@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-4 control-plane-shell">
+<div class="container-fluid py-4 control-plane-shell" data-page-archetype="operational-workbench">
   <section class="cp-hero cp-hero-compact mb-4">
     <div class="cp-hero-grid">
       <div>
@@ -20,9 +20,9 @@
         </p>
       </div>
       <div class="cp-hero-actions">
+        <a href="{{ dashboard_url }}" class="btn btn-outline-light btn-sm">Back to Dashboard</a>
         <a href="{% url 'super:marketplace_sandbox_inspector' %}" class="btn btn-outline-light btn-sm">Sandbox</a>
         <a href="{% url 'super:marketplace_incident_dashboard' %}" class="btn btn-outline-light btn-sm">Incidents</a>
-        <a href="{% url 'super:dashboard' %}" class="btn btn-outline-light btn-sm">Control plane</a>
       </div>
     </div>
   </section>

@@ -1,6 +1,10 @@
 {% extends "schools/marketing_base.html" %}
 {% load static i18n %}
 {% block title %}{{ seo_title|default:"RunMyCampus - The Global Operating System for Education" }}{% endblock %}
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/marketing-home.css' %}">
+{% endblock %}
 {% block extrahead %}
   <meta name="description" content="{{ seo_description|default:'One platform for admissions, academics, finance, communication, and compliance. Run your campus with clarity and scale.' }}">
   {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
@@ -13,8 +17,11 @@
   {% if marketing_analytics_script_url %}<script src="{{ marketing_analytics_script_url }}" async></script>{% endif %}
 {% endblock %}
 {% block content %}
-<div class="marketing-home">
+<div class="marketing-home" data-scroll-story="true">
   <a href="#hero" class="mkt-skip-link">{% trans "Skip to main content" %}</a>
+  <div id="mkt-scroll-progress" class="mkt-scroll-progress" role="presentation" aria-hidden="true">
+    <div id="mkt-scroll-progress-fill" class="mkt-scroll-progress-fill"></div>
+  </div>
   <div id="mkt-sticky-cta-bar" class="mkt-sticky-cta-bar" aria-hidden="true">
     <div class="container d-flex align-items-center justify-content-between gap-2 flex-wrap py-2">
       <span class="text-white small fw-medium">{% trans "Ready to run your campus?" %}</span>
@@ -64,16 +71,16 @@
     </div>
   </section>
 
-  {# Pillar grid — four pillars #}
+  {# Chapter 2 — Why schools switch / platform pillars #}
   {% if platform_pillar_grid %}
-  <section id="platform-pillars" class="mkt-section" aria-label="{% trans 'Platform pillars' %}">
+  <section id="platform-pillars" class="mkt-section mkt-section-pillars mkt-reveal" aria-label="{% trans 'Platform pillars' %}" data-chapter="2">
     <div class="container">
-      <div class="row g-3 text-center">
+      <div class="row g-3 g-md-4 text-center mkt-reveal-stagger">
         {% for pillar in platform_pillar_grid %}
-        <div class="col-md-3 col-6">
-          <div class="mkt-pillar-card p-3 border rounded">
-            <strong class="d-block">{{ pillar.label }}</strong>
-            <span class="small text-muted">{{ pillar.sub }}</span>
+        <div class="col-md-6 col-lg-3">
+          <div class="mkt-pillar-card">
+            <strong class="mkt-pillar-label">{{ pillar.label }}</strong>
+            <span class="mkt-pillar-sub">{{ pillar.sub }}</span>
           </div>
         </div>
         {% endfor %}
@@ -82,9 +89,9 @@
   </section>
   {% endif %}
 
-  {# One platform — architecture diagram (required per Visual Asset plan) #}
+  {# Chapter 3 — Platform architecture #}
   {% if platform_architecture_diagram_url %}
-  <section id="one-platform" class="mkt-section" aria-label="{% trans 'One platform' %}">
+  <section id="one-platform" class="mkt-section mkt-reveal" aria-label="{% trans 'One platform' %}" data-chapter="3">
     <h2 class="mkt-section-heading">{% trans "One platform. Every school operation." %}</h2>
     <p class="mkt-section-lead">{% trans "Education OS, Control Plane, Marketplace, Migration Cloud, and Analytics—one infrastructure." %}</p>
     <div class="text-center">
@@ -98,7 +105,7 @@
   </section>
   {% endif %}
   {% if setup_studio_flow_image_url %}
-  <section id="setup-studio-flow" class="mkt-section" aria-label="{% trans 'Setup flow' %}">
+  <section id="setup-studio-flow" class="mkt-section mkt-reveal" aria-label="{% trans 'Setup flow' %}" data-chapter="3">
     <h2 class="mkt-section-heading">{% trans "Guided setup" %}</h2>
     <p class="mkt-section-lead">{% trans "From signup to launch with health score and role preview." %}</p>
     <div class="text-center">
@@ -107,9 +114,8 @@
   </section>
   {% endif %}
 
-  {# From single school to enterprise #}
   {% if from_single_to_enterprise %}
-  <section id="from-single-to-enterprise" class="mkt-section" aria-label="{% trans 'From single school to enterprise' %}">
+  <section id="from-single-to-enterprise" class="mkt-section mkt-reveal" aria-label="{% trans 'From single school to enterprise' %}" data-chapter="3">
     <h2 class="mkt-section-heading">{% trans "From single school to enterprise" %}</h2>
     <p class="mkt-section-lead">{% trans "One platform for every stage." %}</p>
     <div class="mkt-platform-grid">
@@ -123,9 +129,8 @@
   </section>
   {% endif %}
 
-  {# By-the-numbers strip #}
   {% if by_the_numbers %}
-  <section id="by-the-numbers" class="mkt-section mkt-numbers-strip" aria-label="{% trans 'By the numbers' %}">
+  <section id="by-the-numbers" class="mkt-section mkt-numbers-strip mkt-reveal" aria-label="{% trans 'By the numbers' %}">
     <div class="container">
       <div class="row g-3 text-center">
         {% for stat in by_the_numbers %}
@@ -139,18 +144,18 @@
   </section>
   {% endif %}
 
-  {# Outcome metrics — stat cards with mini charts #}
+  {# Outcome metrics — stat cards with mini charts (premium depth, not flat boxes) #}
   {% if outcome_metrics %}
-  <section id="outcome-metrics" class="mkt-section" aria-label="{% trans 'Outcomes' %}">
+  <section id="outcome-metrics" class="mkt-section mkt-section-outcomes" aria-label="{% trans 'Outcomes' %}">
     <h2 class="mkt-section-heading">{% trans "Outcomes from real schools" %}</h2>
     <p class="mkt-section-lead">{% trans "What schools achieve with RunMyCampus." %}</p>
-    <div class="row g-3">
+    <div class="row g-3 g-md-4">
       {% for m in outcome_metrics %}
       <div class="col-md-6">
-        <div class="mkt-outcome-card border rounded p-3 h-100">
+        <div class="mkt-outcome-card mkt-card-premium h-100">
           <div class="mkt-outcome-value">{{ m.value }}</div>
           <div class="mkt-outcome-label">{{ m.label }}</div>
-          {% if m.detail %}<p class="small text-muted mb-2">{{ m.detail }}</p>{% endif %}
+          {% if m.detail %}<p class="mkt-outcome-detail">{{ m.detail }}</p>{% endif %}
           {% if m.bar_pct %}
           <div class="mkt-outcome-bar" role="img" aria-label="{{ m.value }} {{ m.label }}">
             <span class="mkt-outcome-bar-fill" style="width: {{ m.bar_pct }}%;"></span>
@@ -163,9 +168,9 @@
   </section>
   {% endif %}
 
-  {# Product visualization — scrolling UI strip #}
+  {# Chapter 5 — Studio OS / product in action #}
   {% if product_visualization_slides %}
-  <section id="product-visualization" class="mkt-section" aria-label="{% trans 'Product in action' %}" data-tour="product-visualization">
+  <section id="product-visualization" class="mkt-section mkt-reveal" aria-label="{% trans 'Product in action' %}" data-tour="product-visualization" data-chapter="5">
     <h2 class="mkt-section-heading">{% trans "See your entire school in real time" %}</h2>
     <p class="mkt-section-lead">{% trans "Student profiles, teacher dashboards, and admin analytics—one platform." %}</p>
     <div class="mkt-product-viz-scroll" role="list">
@@ -237,9 +242,9 @@
   </section>
   {% endif %}
 
-  {# For your role #}
+  {# Chapter 8 — Role experiences #}
   {% if for_your_role %}
-  <section id="for-your-role" class="mkt-section" aria-label="{% trans 'For your role' %}">
+  <section id="for-your-role" class="mkt-section mkt-reveal" aria-label="{% trans 'For your role' %}" data-chapter="8">
     <h2 class="mkt-section-heading">{% trans "For your role" %}</h2>
     <p class="mkt-section-lead">{% trans "Purpose-built workflows for every stakeholder." %}</p>
     <div class="mkt-modules-grid">
@@ -267,9 +272,8 @@
   </section>
   {% endif %}
 
-  {# 3-step Get started #}
   {% if get_started_three_steps %}
-  <section id="get-started" class="mkt-section" aria-label="{% trans 'Get started' %}">
+  <section id="get-started" class="mkt-section mkt-reveal" aria-label="{% trans 'Get started' %}" data-chapter="4">
     <h2 class="mkt-section-heading">{% trans "Start in three steps" %}</h2>
     <div class="row g-3">
       {% for step in get_started_three_steps %}
@@ -346,7 +350,7 @@
   </section>
 
   {# 5. Global compliance #}
-  <section id="global-compliance" class="mkt-section" aria-label="{% trans 'Global compliance' %}">
+  <section id="global-compliance" class="mkt-section mkt-reveal" aria-label="{% trans 'Global compliance' %}" data-chapter="9">
     <h2 class="mkt-section-heading">{% trans "Global compliance" %}</h2>
     <p class="mkt-section-lead">{% trans "Regional defaults, audit trails, and role-based access—ready for FERPA, GDPR, and local regulations." %}</p>
     <ul class="mkt-migration-list">
@@ -406,7 +410,8 @@
   </section>
 
   {# 6. Migration angle #}
-  <section id="migration" class="mkt-section">
+  {# Chapter 7 — Migration Cloud #}
+  <section id="migration" class="mkt-section mkt-reveal" data-chapter="7">
     <h2 class="mkt-section-heading">{% trans "Migrate with confidence" %}</h2>
     <p class="mkt-section-lead">{% trans "Move from spreadsheets or legacy systems with guided setup and support. 195+ country-ready profiles, multi-currency, and data residency options." %}</p>
     <div class="mkt-migration">
@@ -648,7 +653,8 @@
   {% endif %}
 
   {# 11. Trust + security — support & accessibility #}
-  <section id="security-compliance" class="mkt-section">
+  {# Chapter 9 — Security & trust #}
+  <section id="security-compliance" class="mkt-section mkt-reveal" data-chapter="9">
     <h2 class="mkt-section-heading">{% trans "Security & compliance" %}</h2>
     <p class="mkt-section-lead">{% trans "Enterprise-grade safeguards and regional compliance readiness." %}</p>
     {% if support_implementation_copy %}
@@ -678,6 +684,7 @@
     </div>
   </section>
 </div>
+<script src="{% static 'marketing/js/marketing-landing-scroll.js' %}" defer></script>
 <script>
 (function () {
   var bar = document.getElementById('mkt-sticky-cta-bar');

@@ -5,8 +5,8 @@
 {% block cp_title %}Migration Profile Registry{% endblock %}
 
 {% block cp_content %}
-  <div class="container-fluid py-4">
-    {% include "partials/page_families/title_block.html" with title="Migration Profile Registry" subtitle="Profiles grouped by source system and category. Use the Migration Cloud to run imports." action_url=migration_cloud_url action_label="Migration Cloud" return_to_origin=1 %}
+  <div class="container-fluid py-4" data-page-archetype="catalog">
+    {% include "studio_os/components/page_header.html" with title="Migration Profile Registry" subtitle="Profiles grouped by source system and category. Use the Migration Cloud to run imports." action_url=migration_cloud_url action_text="Migration Cloud" %}
 
     {% comment %}1. Top status bar — counts and Refresh{% endcomment %}
     <div class="d-flex flex-wrap align-items-center gap-3 mb-3 py-2 border-bottom page-family-content-card">

@@ -338,7 +338,7 @@ class OfflineSyncPerSchoolTests(TestCase):
         self.assertEqual(response.status_code, 403, response.content)
         try:
             data = response.json()
-        except Exception:
+        except (ValueError, TypeError, KeyError, json.JSONDecodeError):
             data = {}
         self.assertIn("error", data)
         self.assertIn("Offline", str(data.get("error", "")))

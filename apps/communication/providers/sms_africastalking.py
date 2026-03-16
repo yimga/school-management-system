@@ -10,6 +10,19 @@ from .sms_base import SMSProvider, SMSResult
 
 logger = logging.getLogger(__name__)
 
+# Typed exceptions for AfricasTalking send (SDK/network/response parsing).
+_SMS_AFRICASTALKING_SEND_ERRORS: tuple[type[BaseException], ...] = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    KeyError,
+    OSError,
+    ConnectionError,
+    TimeoutError,
+    RuntimeError,
+)
+
 
 class AfricasTalkingSMSProvider(SMSProvider):
     """SMS via AfricasTalking API."""
@@ -45,6 +58,6 @@ class AfricasTalkingSMSProvider(SMSProvider):
                 ok = True
             logger.info("SMS sent via AfricasTalking: %s", msg_id or response)
             return SMSResult(ok=ok, provider_message_id=msg_id)
-        except Exception as e:
+        except _SMS_AFRICASTALKING_SEND_ERRORS as e:
             logger.exception("AfricasTalking SMS failed: %s", e)
             return SMSResult(ok=False, error=str(e))

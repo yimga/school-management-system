@@ -1,5 +1,6 @@
 """
 Celery tasks for analytics (deadline reminders, etc.).
+§2.4: Typed exception tuples and log_exception_with_context for deadline reminder and run paths.
 Run via: send_deadline_reminders_task.delay(days_str="7,3,1,0.5", dry_run=False)
 Or synchronously from management command when no broker: task.apply(kwargs={...})
 """
@@ -7,8 +8,11 @@ from __future__ import annotations
 
 import logging
 from datetime import timedelta
+from smtplib import SMTPException
 
 from celery import shared_task
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.db import DatabaseError, IntegrityError
 from django.db.models import Q
 from django.utils import timezone
 
@@ -17,9 +21,40 @@ from apps.automation.models import AutomationExecutionLog
 from apps.automation.helpers import get_cached_site_settings
 from apps.evals.models import TeacherAssignment
 from apps.evals.notifications import NotificationService
+from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.schools.celery_tasks import _run_with_tenant_context
 
 logger = logging.getLogger(__name__)
+
+# §2.4: Typed tuples for deadline reminder and task run (no broad except).
+_ANALYTICS_DEADLINE_EMAIL_ERRORS = (
+    OSError,
+    ConnectionError,
+    TimeoutError,
+    SMTPException,
+    UnicodeError,
+    AttributeError,
+    TypeError,
+)
+_ANALYTICS_DEADLINE_SMS_ERRORS = (
+    OSError,
+    ConnectionError,
+    TimeoutError,
+    ValueError,
+    TypeError,
+    AttributeError,
+    KeyError,
+)
+_ANALYTICS_DEADLINE_RUN_ERRORS = (
+    DatabaseError,
+    IntegrityError,
+    ValidationError,
+    ValueError,
+    TypeError,
+    AttributeError,
+    ObjectDoesNotExist,
+    KeyError,
+)
 
 
 def run_deadline_reminders(days_str: str = "7,3,1,0.5", dry_run: bool = False, school=None) -> dict:
@@ -79,8 +114,13 @@ def run_deadline_reminders(days_str: str = "7,3,1,0.5", dry_run: bool = False, s
                     )
                     reminder_count += 1
                     logger.info("Sent deadline reminder to %s", teacher.user.email)
-                except Exception as e:
+                except _ANALYTICS_DEADLINE_EMAIL_ERRORS as e:
                     error_count += 1
+                    log_exception_with_context(
+                        "Failed to send deadline reminder email",
+                        school_id=getattr(sa, "school_id", None) or (getattr(school, "id", None) if school else None),
+                        extra={"teacher_email": getattr(teacher.user, "email", ""), "subject_assignment_id": sa.id},
+                    )
                     logger.exception("Failed to send reminder to %s: %s", teacher.user.email, e)
 
                 if not dry_run and getattr(site_settings, "sms_provider", None) and site_settings.sms_provider != "console":
@@ -94,7 +134,12 @@ def run_deadline_reminders(days_str: str = "7,3,1,0.5", dry_run: bool = False, s
                             phone_number=getattr(teacher.user, "phone_number", "") or "",
                             body=sms_body,
                         )
-                    except Exception as e:
+                    except _ANALYTICS_DEADLINE_SMS_ERRORS as e:
+                        log_exception_with_context(
+                            "Deadline reminder SMS failed",
+                            school_id=getattr(sa, "school_id", None) or (getattr(school, "id", None) if school else None),
+                            extra={"phone": getattr(teacher.user, "phone_number", "")},
+                        )
                         logger.warning("SMS failed for %s: %s", getattr(teacher.user, "phone_number", ""), e)
 
     return {"sent": reminder_count, "errors": error_count, "dry_run": dry_run}
@@ -135,7 +180,12 @@ def send_deadline_reminders_task(self, days_str: str | None = None, dry_run: boo
                 summary={"dry_run": dry_run, "days_str": resolved_days, "school_id": str(current_school_id)},
             )
             return {**result, "school_id": str(current_school_id)}
-        except Exception as e:
+        except _ANALYTICS_DEADLINE_RUN_ERRORS as e:
+            log_exception_with_context(
+                "send_deadline_reminders_task failed for school",
+                school_id=current_school_id,
+                extra={"days_str": resolved_days, "dry_run": dry_run},
+            )
             logger.exception("send_deadline_reminders_task failed for school=%s", current_school_id)
             execution_log.mark_completed(
                 AutomationExecutionLog.Status.FAILED,

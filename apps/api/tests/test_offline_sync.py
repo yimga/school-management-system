@@ -7,6 +7,7 @@ are applied correctly when replayed.
 import uuid
 from django.test import TestCase
 from django.urls import reverse
+from django.urls.exceptions import NoReverseMatch
 from django.utils import timezone
 from rest_framework.test import APIClient
 
@@ -73,7 +74,7 @@ class OfflineSyncBatchTestCase(TestCase):
         the server creates the Attendance record so offline-queued save is visible."""
         try:
             url = reverse("api:offline-sync-sync-batch")
-        except Exception:
+        except NoReverseMatch:
             url = "/api/sync/sync_batch/"
         payload = {
             "device_id": str(self.device.device_id),

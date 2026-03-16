@@ -14,7 +14,7 @@
 {% block studio_canvas %}
   {% if launch_left_rail %}
   <div class="d-flex gap-3 flex-wrap flex-lg-nowrap studio-os__launch-wrap">
-    <nav class="studio-os__launch-rail flex-shrink-0 mb-2 mb-lg-0" aria-label="{% trans 'Launch' %}" style="width: 200px;">
+    <nav class="studio-os__launch-rail flex-shrink-0 mb-2 mb-lg-0" aria-label="{% trans 'Launch' %}" style="width: min(12.5rem, 100%); min-width: 0;">
       <div class="studio-os__card py-2">
         <div class="h6 mb-2">{% trans "Launch" %}</div>
         <ul class="list-unstyled small mb-0" id="launch-rail-list">
@@ -29,8 +29,37 @@
         <hr class="my-2">
         <div class="h6 mb-1 small">{% trans "Progress" %}</div>
         <p class="small mb-1"><strong>{% trans "Health:" %} {{ launch_payload.health_score|default:0 }}%</strong></p>
+        {% if launch_payload.launch_ready %}
+        <p class="small text-success mb-1">{% trans "Ready to launch" %}</p>
+        {% elif launch_payload.launch_blockers %}
+        <p class="small text-warning mb-1">{% blocktrans count counter=launch_payload.launch_blockers|length %}{{ counter }} blocker{% plural %}{{ counter }} blockers{% endblocktrans %}</p>
+        {% endif %}
+        {% if launch_payload.health_summary %}<p class="small text-muted mb-0">{{ launch_payload.health_summary }}</p>{% endif %}
         {% if launch_payload.recommended_next %}
         <p class="small text-muted mb-0">{% trans "Next:" %} {{ launch_payload.recommended_next.label|default:"" }}</p>
+        {% endif %}
+        {% if launch_payload.recommended_blueprint and launch_payload.recommended_blueprint.cta_url %}
+        <hr class="my-2">
+        <div class="h6 mb-1 small">{% trans "Recommend blueprint" %}</div>
+        <p class="small mb-1">{{ launch_payload.recommended_blueprint.title|default:"" }}</p>
+        <a href="{{ launch_payload.recommended_blueprint.cta_url }}" class="launch-rail-link text-decoration-none small" data-embed="1">{{ launch_payload.recommended_blueprint.cta_label|default:"Review blueprints" }}</a>
+        {% endif %}
+        {% if launch_payload.recommended_starter_stack and launch_payload.recommended_starter_stack.items %}
+        <hr class="my-2">
+        <div class="h6 mb-1 small">{% trans "Starter stack" %}</div>
+        <p class="small mb-0">{% for item in launch_payload.recommended_starter_stack.items %}{{ item }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+        {% endif %}
+        {% if launch_payload.migration_path_flow %}
+        <hr class="my-2">
+        <div class="h6 mb-1 small">{% trans "Migration path" %}</div>
+        <ul class="list-unstyled small mb-0">
+          {% for step in launch_payload.migration_path_flow %}
+          <li class="mb-1">
+            <a href="{{ step.cta_url|default:'#' }}" class="launch-rail-link text-decoration-none" {% if step.cta_url %}data-embed="1"{% endif %}>{{ step.label|default:step.key }}</a>
+            {% if step.status %}<span class="text-muted"> — {{ step.status }}</span>{% endif %}
+          </li>
+          {% endfor %}
+        </ul>
         {% endif %}
         {% endif %}
       </div>
@@ -61,10 +90,16 @@
   </script>
   {% elif launch_payload %}
   <div class="d-flex gap-3 flex-wrap flex-lg-nowrap">
-    <nav class="studio-os__launch-rail flex-shrink-0 mb-2 mb-lg-0" aria-label="{% trans 'Launch' %}" style="width: 200px;">
+    <nav class="studio-os__launch-rail flex-shrink-0 mb-2 mb-lg-0" aria-label="{% trans 'Launch' %}" style="width: min(12.5rem, 100%); min-width: 0;">
       <div class="studio-os__card py-2">
         <div class="h6 mb-2">{% trans "Progress" %}</div>
         <p class="small mb-2"><strong>{% trans "Health:" %} {{ launch_payload.health_score|default:0 }}%</strong></p>
+        {% if launch_payload.launch_ready %}
+        <p class="small text-success mb-1">{% trans "Ready to launch" %}</p>
+        {% elif launch_payload.launch_blockers %}
+        <p class="small text-warning mb-1">{% blocktrans count counter=launch_payload.launch_blockers|length %}{{ counter }} blocker{% plural %}{{ counter }} blockers{% endblocktrans %}</p>
+        {% endif %}
+        {% if launch_payload.health_summary %}<p class="small text-muted mb-0">{{ launch_payload.health_summary }}</p>{% endif %}
         {% if launch_payload.steps %}
         <ul class="list-unstyled small mb-2">
           {% for step in launch_payload.steps|slice:":8" %}
@@ -73,7 +108,27 @@
         </ul>
         {% endif %}
         {% if launch_payload.recommended_next %}
-        <p class="small mb-0"><span class="text-muted">{% trans "Next:" %}</span> {{ launch_payload.recommended_next.label|default:"" }}</p>
+        <p class="small mb-2"><span class="text-muted">{% trans "Next:" %}</span> {{ launch_payload.recommended_next.label|default:"" }}</p>
+        {% endif %}
+        {% if launch_payload.recommended_blueprint and launch_payload.recommended_blueprint.cta_url %}
+        <hr class="my-2">
+        <div class="h6 mb-1 small">{% trans "Recommend blueprint" %}</div>
+        <p class="small mb-1">{{ launch_payload.recommended_blueprint.title|default:"" }}</p>
+        <a href="{{ launch_payload.recommended_blueprint.cta_url }}" class="text-decoration-none small">{{ launch_payload.recommended_blueprint.cta_label|default:"Review blueprints" }}</a>
+        {% endif %}
+        {% if launch_payload.recommended_starter_stack and launch_payload.recommended_starter_stack.items %}
+        <hr class="my-2">
+        <div class="h6 mb-1 small">{% trans "Starter stack" %}</div>
+        <p class="small mb-0">{% for item in launch_payload.recommended_starter_stack.items %}{{ item }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+        {% endif %}
+        {% if launch_payload.migration_path_flow %}
+        <hr class="my-2">
+        <div class="h6 mb-1 small">{% trans "Migration path" %}</div>
+        <ul class="list-unstyled small mb-0">
+          {% for step in launch_payload.migration_path_flow %}
+          <li class="mb-1"><a href="{{ step.cta_url|default:'#' }}" class="text-decoration-none">{{ step.label|default:step.key }}</a>{% if step.status %} <span class="text-muted">— {{ step.status }}</span>{% endif %}</li>
+          {% endfor %}
+        </ul>
         {% endif %}
       </div>
     </nav>

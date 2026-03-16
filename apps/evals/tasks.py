@@ -3,8 +3,24 @@ World Engine: bulk grading and evals tasks with chunking to avoid memory exhaust
 Run workers with high-concurrency pool when needed: celery -A config worker -P gevent -c 100
 """
 from celery import shared_task
+from django.db import DatabaseError, OperationalError
+
+from apps.platform_runtime.structured_logging import log_exception_with_context
 
 BULK_GRADES_BATCH_SIZE = 100
+
+# Typed exception set for tenant-context run (§2e broad-except replacement).
+_EVALS_BULK_GRADES_TENANT_ERRORS = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    ConnectionError,
+    OSError,
+    RuntimeError,
+    DatabaseError,
+    OperationalError,
+)
 
 
 @shared_task(bind=True, name="evals.process_bulk_grades")
@@ -26,7 +42,12 @@ def process_bulk_grades(self, student_ids=None, academic_year_id=None, term_id=N
                 school_id=school_id,
                 runnable=run,
             )
-        except Exception as e:
+        except _EVALS_BULK_GRADES_TENANT_ERRORS as e:
+            log_exception_with_context(
+                "evals.process_bulk_grades: tenant context run failed",
+                school_id=school_id,
+                extra={"task": "process_bulk_grades", "schema_name": schema_name, "error": str(e)},
+            )
             self.retry(exc=e, countdown=60)
     return _run_bulk_grades(student_ids, academic_year_id, term_id)
 

@@ -13,8 +13,10 @@ import requests
 from django.conf import settings
 from django.http import HttpResponse, JsonResponse, HttpResponseForbidden
 from apps.observability.db_liveness import check_db_liveness
+from apps.platform_runtime.structured_logging import log_view_exception
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
 from django.shortcuts import redirect, render
+from django.urls import reverse, NoReverseMatch
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils import timezone
 from django.db import DatabaseError, IntegrityError
@@ -288,7 +290,11 @@ def healthz(request):
                 status=500,
             )
     except (ValueError, TypeError, KeyError) as exc:
-        logger.exception("healthz: check_db_liveness result handling failed")
+        log_view_exception(
+            request,
+            "observability.views.healthz: check_db_liveness result handling failed",
+            extra={"error": str(exc)},
+        )
         return JsonResponse({"status": "error", "error": str(exc)}, status=500)
 
     return JsonResponse({"status": status})
@@ -434,7 +440,11 @@ def api_health(request):
             "cache": "available"
         })
     except (ValueError, TypeError, KeyError) as exc:
-        logger.exception("api_health: unexpected error after check_db_liveness")
+        log_view_exception(
+            request,
+            "observability.views.api_health: unexpected error after check_db_liveness",
+            extra={"error": str(exc)},
+        )
         return JsonResponse({
             "status": "error",
             "error": str(exc)
@@ -490,7 +500,11 @@ def api_notifications_mark_all_read(request):
             "count": updated
         })
     except (IntegrityError, ValidationError, DatabaseError) as exc:
-        logger.exception("api_notifications_mark_all_read: update failed")
+        log_view_exception(
+            request,
+            "observability.views.api_notifications_mark_all_read: update failed",
+            extra={"error": str(exc)},
+        )
         return JsonResponse({
             "status": "error",
             "error": str(exc)
@@ -537,7 +551,11 @@ def api_notifications(request):
             "count": len(mapped)
         })
     except (IntegrityError, ValidationError, DatabaseError) as exc:
-        logger.exception("api_notifications: query failed")
+        log_view_exception(
+            request,
+            "observability.views.api_notifications: query failed",
+            extra={"error": str(exc)},
+        )
         return JsonResponse({
             "status": "error",
             "error": str(exc)
@@ -590,7 +608,11 @@ def api_activities(request):
             "page": page
         })
     except (DatabaseError, ValueError, TypeError) as exc:
-        logger.exception("api_activities: LogEntry query failed")
+        log_view_exception(
+            request,
+            "observability.views.api_activities: LogEntry query failed",
+            extra={"error": str(exc)},
+        )
         return JsonResponse({
             "status": "error",
             "error": str(exc)
@@ -691,7 +713,11 @@ def api_dashboard_charts(request):
             "attendance": attendance,
         })
     except (DatabaseError, ValueError, TypeError, KeyError) as exc:
-        logger.exception("api_dashboard_charts: chart aggregation failed")
+        log_view_exception(
+            request,
+            "observability.views.api_dashboard_charts: chart aggregation failed",
+            extra={"error": str(exc)},
+        )
         return JsonResponse({
             "status": "error",
             "error": str(exc)
@@ -1128,6 +1154,10 @@ def api_operational_slo_dashboard(request):
         "webhook_stack": _webhook_stack_summary(),
     }
     if request.GET.get("format") == "html" or (request.META.get("HTTP_ACCEPT") or "").strip().split(",")[0].strip().startswith("text/html"):
+        try:
+            data["dashboard_url"] = reverse("super:dashboard")
+        except NoReverseMatch:
+            data["dashboard_url"] = "/super/"
         return render(request, "observability/slo_dashboard.html", data)
     return JsonResponse({"status": "success", **data})
 

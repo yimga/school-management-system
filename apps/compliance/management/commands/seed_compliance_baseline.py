@@ -10,6 +10,18 @@ from __future__ import annotations
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
+# §2.4: Typed allowlist for invalidate_policy_cache in seed_compliance_baseline.
+_SEED_COMPLIANCE_BASELINE_POLICY_CACHE_ERRORS = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    RuntimeError,
+    ConnectionError,
+)
+
 
 class Command(BaseCommand):
     help = "Seed region feature rules and tenant compliance snapshots for active schools."
@@ -73,9 +85,14 @@ class Command(BaseCommand):
                 school.save(update_fields=["default_region", "settings", "updated_at"])
                 try:
                     from apps.policies.policy_registry import invalidate_policy_cache
+
                     invalidate_policy_cache(school)
-                except Exception:
-                    pass
+                except _SEED_COMPLIANCE_BASELINE_POLICY_CACHE_ERRORS as e:
+                    log_exception_with_context(
+                        "seed_compliance_baseline: invalidate_policy_cache failed",
+                        school_id=school.pk,
+                        extra={"command": "seed_compliance_baseline", "error": str(e)},
+                    )
                 updated_schools += 1
 
             region_ids.add(region.pk)

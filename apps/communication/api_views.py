@@ -14,8 +14,12 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from datetime import timedelta
 
+from django.core.exceptions import ValidationError
+from django.db import DatabaseError, IntegrityError
+
 from apps.api.permissions import IsAdminUser
 from apps.accounts.permissions import api_user_has_any_role
+from apps.platform_runtime.structured_logging import log_exception_with_context
 
 
 def _school_user_queryset(school):
@@ -542,6 +546,13 @@ class BroadcastAPI(APIView):
         else:
             recipient_ids = list(users.filter(id__in=recipient_ids).values_list('id', flat=True))
         
+        _COMMUNICATION_MESSAGE_CREATE_ERRORS = (
+            IntegrityError,
+            DatabaseError,
+            ValidationError,
+            ValueError,
+            TypeError,
+        )
         messages_created = 0
         for recipient_id in recipient_ids:
             try:
@@ -553,7 +564,12 @@ class BroadcastAPI(APIView):
                     body=body
                 )
                 messages_created += 1
-            except Exception:
+            except _COMMUNICATION_MESSAGE_CREATE_ERRORS as e:
+                log_exception_with_context(
+                    "communication.api_views: Message.create skipped",
+                    school_id=getattr(school, "id", None),
+                    extra={"recipient_id": recipient_id, "error": str(e)},
+                )
                 continue
         
         return Response({

@@ -219,6 +219,9 @@ def site_settings(request):
 
     session = getattr(request, "session", None)
     preview_settings = session.get(SESSION_KEY) if session else None
+    # §5.6 Before/after: studio_compare=current forces saved state (no session overlay) for side-by-side compare
+    if request.GET.get("studio_compare") == "current":
+        preview_settings = None
     preview_config = (
         site.get_preview_platform_config()
         if callable(getattr(site, "get_preview_platform_config", None))

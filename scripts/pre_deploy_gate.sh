@@ -49,6 +49,9 @@ python scripts/lint_csrf_exempt_usage.py
 python scripts/lint_allow_any_usage.py
 python scripts/lint_raw_sql_usage.py
 python scripts/lint_broad_except.py --allowlist scripts/allowlists/broad_except_allowlist.json --strict
+echo "[pre_deploy_gate] §10.5 operating-discipline doc refs (role_home_engine *_DOC → docs/)"
+python scripts/verify_operating_discipline_docs.py
+
 echo "[pre_deploy_gate] Codex guardrails (mega-files)"
 if [ "${CODEX_STRICT:-0}" = "1" ]; then
   python scripts/lint_mega_files.py
@@ -62,8 +65,11 @@ python manage.py makemigrations --check --dry-run
 echo "[pre_deploy_gate] Tenant model audit"
 python manage.py audit_tenant_models --strict
 
-echo "[pre_deploy_gate] Smoke URLs"
-run_django_tests apps.accounts.tests.test_smoke_urls
+echo "[pre_deploy_gate] Smoke URLs + Phase H URL reverse"
+run_django_tests apps.accounts.tests.test_smoke_urls apps.accounts.tests.test_phase_h_ux_verification.PhaseHUrlReverseTests
+
+echo "[pre_deploy_gate] Phase H static audit (viewport, error templates, control-plane errors)"
+python scripts/phase_h_audit.py
 
 echo "[pre_deploy_gate] Targeted hardening regressions"
 TARGETED_HARDENING_TESTS=(
@@ -77,6 +83,7 @@ TARGETED_HARDENING_TESTS=(
   apps.siteconfig.tests.test_metadata_catalog
   apps.packages.tests.test_engine
   apps.platform_runtime.tests.test_precedence
+  apps.platform_runtime.tests.test_structured_logging
   apps.platform_runtime.tests.test_public_api_lints
   apps.platform_runtime.tests.test_marketplace_catalog_minimums
   apps.portal.tests.test_ai_copilot_config

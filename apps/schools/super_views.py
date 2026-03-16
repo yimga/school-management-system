@@ -2424,8 +2424,116 @@ def super_compliance_overview(request):
     return render(
         request,
         "schools/super_compliance_overview.html",
-        {"dashboard_url": reverse("super:dashboard")},
+        {
+            "dashboard_url": reverse("super:dashboard"),
+            "trust_center_url": reverse("super:trust_center"),
+        },
     )
+
+
+def super_trust_center(request):
+    """§10.5.4 Trust product: Security & Trust hub — Compliance, API Center, Sessions, Audit export (TRUST_PRODUCT_SURFACES.md)."""
+    return render(
+        request,
+        "schools/super_trust_center.html",
+        {
+            "dashboard_url": reverse("super:dashboard"),
+            "compliance_url": reverse("super:compliance_overview"),
+            "apicenter_url": reverse("apicenter:dashboard"),
+        },
+    )
+
+
+@require_http_methods(["GET"])
+def super_audit_export(request):
+    """Export platform audit log (date range, CSV/JSON). Rate limit: one export per 60 seconds per user. TRUST_PRODUCT_SURFACES.md §3."""
+    from django.core.cache import cache
+    from django.http import HttpResponse
+    from django.utils.dateparse import parse_date
+    from datetime import timedelta
+
+    dashboard_url = reverse("super:dashboard")
+    from_date_str = request.GET.get("from_date", "").strip()
+    to_date_str = request.GET.get("to_date", "").strip()
+    fmt = (request.GET.get("format") or "csv").strip().lower()
+    if fmt not in ("csv", "json"):
+        fmt = "csv"
+
+    if not from_date_str or not to_date_str:
+        return render(
+            request,
+            "schools/super_audit_export.html",
+            {"dashboard_url": dashboard_url, "trust_center_url": trust_center_url},
+        )
+
+    from_date = parse_date(from_date_str)
+    to_date = parse_date(to_date_str)
+    if not from_date or not to_date:
+        return render(
+            request,
+            "schools/super_audit_export.html",
+            {"dashboard_url": dashboard_url, "error": "Invalid date format."},
+        )
+    if from_date > to_date:
+        return render(
+            request,
+            "schools/super_audit_export.html",
+            {"dashboard_url": dashboard_url, "trust_center_url": trust_center_url, "error": "From date must be before to date."},
+        )
+    if (to_date - from_date).days > 365:
+        return render(
+            request,
+            "schools/super_audit_export.html",
+            {"dashboard_url": dashboard_url, "trust_center_url": trust_center_url, "error": "Date range must not exceed 365 days."},
+        )
+
+    cache_key = f"super_audit_export_last:{getattr(request.user, 'id', 0)}"
+    if cache.get(cache_key):
+        return render(
+            request,
+            "schools/super_audit_export.html",
+            {"dashboard_url": dashboard_url, "trust_center_url": trust_center_url, "error": "Rate limit: one export per 60 seconds."},
+        )
+    cache.set(cache_key, True, timeout=60)
+
+    from apps.compliance.models_audit import AuditLog
+    from django.utils import timezone
+    from datetime import datetime
+
+    start_naive = timezone.make_aware(datetime.combine(from_date, datetime.min.time()))
+    end_naive = timezone.make_aware(datetime.combine(to_date, datetime.max.time()))
+    qs = (
+        AuditLog.objects.filter(timestamp__gte=start_naive, timestamp__lte=end_naive)
+        .select_related("user")
+        .order_by("timestamp")
+    )
+    rows = list(
+        qs.values(
+            "id", "timestamp", "action", "model_name", "object_id", "object_repr",
+            "sensitivity", "app_label", "reason", "user_id", "ip_address",
+        )
+    )
+    for r in rows:
+        r["timestamp"] = r["timestamp"].isoformat() if hasattr(r["timestamp"], "isoformat") else str(r["timestamp"])
+
+    if fmt == "json":
+        import json
+        response = HttpResponse(
+            json.dumps(rows, indent=2, default=str),
+            content_type="application/json",
+        )
+        response["Content-Disposition"] = 'attachment; filename="audit_export.json"'
+        return response
+    import csv
+    from io import StringIO
+    buf = StringIO()
+    if rows:
+        writer = csv.DictWriter(buf, fieldnames=rows[0].keys(), extrasaction="ignore")
+        writer.writeheader()
+        writer.writerows(rows)
+    response = HttpResponse(buf.getvalue(), content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="audit_export.csv"'
+    return response
 
 
 def super_analytics_overview(request):

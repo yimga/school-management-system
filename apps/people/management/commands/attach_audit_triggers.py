@@ -5,19 +5,19 @@ Part 4.6. Migration 0037 already attaches to people_studentprofile and people_te
 Use this command to add the same trigger to other tables without a new migration.
 
 §2.4 Raw SQL wrap: delegates to people.repositories.audit_repository.
-§2.4 Broad except: replaced with typed _AUDIT_TRIGGER_ERRORS (DatabaseError, OperationalError, ProgrammingError, InterfaceError).
+§2.4 Broad except: replaced with typed _AUDIT_TRIGGER_ERRORS (DatabaseError, OperationalError, ProgrammingError).
+§2.4 Structured logging: log_exception_with_context in both single-schema and per-tenant paths.
 
   python manage.py attach_audit_triggers --tables finance_invoice finance_payment
   python manage.py attach_audit_triggers --tables finance_invoice --schema my_tenant_schema
 
 Runs in each tenant schema (or the given schema). PostgreSQL only.
 """
-import logging
-
 from django.core.management.base import BaseCommand
 from django.db import connection
 from django.db import DatabaseError, OperationalError, ProgrammingError
 
+from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.people.repositories.audit_repository import (
     create_audit_trigger,
     create_audit_trigger_function,
@@ -27,8 +27,6 @@ from apps.people.repositories.audit_repository import (
 
 # §2.4 Typed exceptions for trigger attach (cursor/DDL); allowlist 0.
 _AUDIT_TRIGGER_ERRORS = (DatabaseError, OperationalError, ProgrammingError)
-
-logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
@@ -73,7 +71,11 @@ class Command(BaseCommand):
                             create_audit_trigger(cursor, table)
                     self.stdout.write(self.style.SUCCESS("OK %s: %s" % (single_schema, tables)))
                 except _AUDIT_TRIGGER_ERRORS as e:
-                    logger.warning("attach_audit_triggers schema=%s failed: %s", single_schema, e)
+                    log_exception_with_context(
+                        "attach_audit_triggers failed (single schema)",
+                        school_id=None,
+                        extra={"schema": single_schema, "tables": tables, "error": str(e)},
+                    )
                     self.stdout.write(self.style.ERROR("FAILED %s: %s" % (single_schema, e)))
             return
 
@@ -102,5 +104,9 @@ class Command(BaseCommand):
                             create_audit_trigger(cursor, table)
                 self.stdout.write(self.style.SUCCESS("OK %s: %s" % (label, tables)))
             except _AUDIT_TRIGGER_ERRORS as e:
-                logger.warning("attach_audit_triggers tenant=%s failed: %s", label, e)
+                log_exception_with_context(
+                    "attach_audit_triggers failed (tenant)",
+                    school_id=getattr(client, "id", None),
+                    extra={"schema_name": schema_name, "label": label, "tables": tables, "error": str(e)},
+                )
                 self.stdout.write(self.style.ERROR("FAILED %s: %s" % (label, e)))

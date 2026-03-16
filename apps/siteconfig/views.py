@@ -889,46 +889,20 @@ def user_preferences(request):
         {
             "form": form,
             "previous_page": next_page,
+            "page_title": "Portal preferences",
+            "page_subtitle": "Pick your dashboard style, theme, timezone, and how often to refresh data.",
+            "action_url": next_page,
         },
     )
 
 
 @permission_required("settings.manage")
 def report_library(request):
-    if request.GET.get("embed") != "1":
-        return redirect("studio_os:output")
-    from django.db.models import Q
-    from apps.reports.report_packs import (
-        build_report_pack_preview,
-        list_active_report_packs,
-        normalize_report_pack_dependencies,
-    )
-    from apps.siteconfig.tenant_config import get_report_template_family_for_school
-
-    templates = ReportTemplate.objects.filter(is_active=True)
-    report_packs = list_active_report_packs()
-    school = getattr(request, "school", None)
-    if school:
-        family = get_report_template_family_for_school(school)
-        if family:
-            templates = templates.filter(Q(template_family="") | Q(template_family=family))
-    selected_pack_code = (request.GET.get("pack") or "").strip()
-    selected_pack = next((pack for pack in report_packs if pack.code == selected_pack_code), None)
-    if selected_pack is None and report_packs:
-        selected_pack = report_packs[0]
-    pack_preview = build_report_pack_preview(selected_pack) if selected_pack else None
-    pack_dependencies = normalize_report_pack_dependencies(selected_pack) if selected_pack else []
-    return render(
-        request,
-        "siteconfig/report_library.html",
-        {
-            "reports": templates,
-            "report_packs": report_packs,
-            "selected_report_pack": selected_pack,
-            "report_pack_preview": pack_preview,
-            "report_pack_dependencies": pack_dependencies,
-        },
-    )
+    """Legacy path: always redirect to Studio OS Output (Step 6 product sign-off)."""
+    url = reverse("studio_os:output")
+    if request.GET:
+        url = f"{url}?{request.GET.urlencode()}"
+    return redirect(url)
 
 
 def _get_classrooms_queryset():

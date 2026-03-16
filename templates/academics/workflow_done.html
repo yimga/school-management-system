@@ -1,7 +1,7 @@
 {% extends "backend_base.html" %}
 {% load i18n %}
 {% block content %}
-<div class="container py-4">
+<div class="container py-4" data-page-archetype="operational-workbench">
   <h2>{% trans "Workflow complete" %}</h2>
   <p class="text-muted">{% trans "You have completed the workflow:" %} <strong>{{ workflow_key }}</strong></p>
 </div>

@@ -19,8 +19,8 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-2">
-  <h5 class="mb-3">{{ school.name }}</h5>
+<div class="container-fluid py-2" data-page-archetype="record-detail">
+  {% include "studio_os/components/page_header.html" with title=_("School 360") subtitle=school.name action_url=dashboard_url action_text=_("Back to Dashboard") %}
   <div class="row">
     <div class="col-md-6">
       <div class="card shadow-sm border-secondary mb-3">

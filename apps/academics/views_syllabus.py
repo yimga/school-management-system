@@ -4,15 +4,24 @@ Uses workflow_resolver.get_approval_workflow(school, "syllabus_approval") and lo
 """
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import DatabaseError, IntegrityError
 from django.shortcuts import redirect, render, get_object_or_404
 from django.http import HttpResponseForbidden
 from django.urls import reverse
 from django.utils import timezone
 
 from apps.academics.models import CourseSyllabus, SubjectAssignment, CurriculumNode
+from apps.platform_runtime.structured_logging import log_view_exception
 from apps.academics.services import get_active_year_and_term
 from apps.people.models import TeacherProfile
 from apps.evals.models import TeacherAssignment
+
+# Typed exception sets for syllabus approval soft-fail paths (§2e broad-except replacement).
+_SYLLABUS_BADGE_ERRORS = (
+    ImportError, AttributeError, TypeError, ValueError,
+    ObjectDoesNotExist, DatabaseError, IntegrityError,
+)
 
 
 def _get_teacher_assignments(user):
@@ -276,9 +285,13 @@ def syllabus_approve(request, subject_assignment_id: int):
         try:
             from apps.people.badge_services import create_teacher_badge_for_syllabus_approval
             create_teacher_badge_for_syllabus_approval(syllabus)
-        except Exception:
-            pass
-        # Sync to Document Library (portal syllabus feature)
+        except _SYLLABUS_BADGE_ERRORS as e:
+            log_view_exception(
+                request,
+                "syllabus_approve: teacher badge creation skipped",
+                extra={"syllabus_id": syllabus.pk, "subject_assignment_id": sa.pk, "error": str(e)},
+            )
+        # Sync to Document Library (portal syllabus feature); do not fail approval if sync fails
         try:
             from apps.portal.models import PortalFeatureItem
             preview_url = request.build_absolute_uri(
@@ -302,8 +315,12 @@ def syllabus_approve(request, subject_assignment_id: int):
                 )
                 syllabus.portal_item = item
                 syllabus.save(update_fields=["portal_item"])
-        except Exception:
-            pass  # Don't fail approval if sync fails
+        except (ImportError, AttributeError, TypeError, ValueError, ObjectDoesNotExist, DatabaseError, IntegrityError) as e:
+            log_view_exception(
+                request,
+                "syllabus_approve: portal syllabus sync skipped",
+                extra={"syllabus_id": syllabus.pk, "subject_assignment_id": sa.pk, "error": str(e)},
+            )
         messages.success(request, "Syllabus approved.")
         return redirect("academics:syllabus_approval_queue")
     return redirect("academics:syllabus_approval_queue")

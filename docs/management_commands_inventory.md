@@ -39,8 +39,8 @@ This keeps "any new command gets ledger entry + tests" as a repeatable process.
 
 ## 4. Commands count (reference)
 
-- Plan states ~153 management commands. High count is acceptable if each is justified (operational, seed, migration, health). Prune only when a command is unused or fully replaced.
-- **To refresh count:** `find apps -path '*/management/commands/*.py' -name '*.py' | wc -l` (Unix) or equivalent; update this doc or platform inventory when classifying.
+- Plan states ~153–156 management commands. **Full list generated:** `scripts/generate_platform_inventory.py --write` writes `docs/generated/platform_inventory.json` (key `management_commands_list`: list of `{app`, `command`, `path}`) and `docs/generated/platform_inventory.md` (summary + first 25). High count is acceptable if each is justified (operational, seed, migration, health). Prune only when a command is unused or fully replaced.
+- **To refresh count and list:** run `python scripts/generate_platform_inventory.py --write` from repo root; CI can use `--check` to ensure artifacts are up to date.
 
 ---
 
@@ -57,7 +57,16 @@ This keeps "any new command gets ledger entry + tests" as a repeatable process.
 - [x] Deprecation policy documented.
 - [x] Inventory approach documented (classify keep/deprecate/remove).
 - [x] When-adding rule documented (§3; step 38: ledger entry + tests + docstring).
-- [ ] Full inventory generated and classified (optional script or manual pass).
+- [x] Full inventory generated: `scripts/generate_platform_inventory.py --write` outputs `management_commands_list` in `docs/generated/platform_inventory.json` and a summary in `platform_inventory.md`. Classify keep/deprecate/remove per §2 when pruning.
+
+## 5a. Deprecation implementation
+
+- **Helper:** `apps.platform_runtime.management_utils.emit_command_deprecation(stdout, style, message, replacement=None)` — call at the start of `handle()` for deprecated commands; writes a warning to stdout and optional replacement text. See BACKLOG §2e row 9.
+- **When deprecating a command:** (1) Add the call to `emit_command_deprecation` in `handle()`; (2) Document replacement in the command docstring and in this section; (3) After deprecation period, remove or redirect per LEGACY_PATH_INVENTORY and SUBTRACTIVE_CLEANUP_RELEASE_NOTES.
+
+| Command | App | Replacement | Notes |
+|---------|-----|-------------|--------|
+| ensure_superadmin | accounts | ensure_superuser | ensure_superuser supports ADMIN_PASSWORD, --username, --password, and promotes existing users. ensure_superadmin still creates admin/admin if no admin exists (deprecation period). |
 
 ---
 

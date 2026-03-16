@@ -113,6 +113,11 @@ def legacy_report_library_redirect(request):
     return redirect(reverse("studio_os:output"))
 
 
+def legacy_siteconfig_customizer_redirect(request):
+    """Phase B: /siteconfig/customizer/ → Studio OS Experience. Replaces old behavior path (manager and tenant)."""
+    return redirect(reverse("studio_os:experience"))
+
+
 def permission_denied(request, exception):
     """Custom 403: friendly message when staff hit Admin without superuser."""
     is_admin_forbidden = (
@@ -196,7 +201,8 @@ urlpatterns = [
     # Back-compat shortcut
     path('admin/siteconfig/customizer/', admin_siteconfig_customizer_redirect),
 
-    # Step 6 / Optional 12: Legacy workflow hub and report library → Studio OS (product-confirmed paths; defaults below)
+    # Step 6 / Phase B: Legacy siteconfig paths → Studio OS (product-confirmed paths)
+    path('siteconfig/customizer/', legacy_siteconfig_customizer_redirect),
     path('siteconfig/workflow-hub/', legacy_workflow_hub_redirect),
     path('siteconfig/report-library/', legacy_report_library_redirect),
 

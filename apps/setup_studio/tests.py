@@ -38,7 +38,14 @@ class SetupStudioServiceTests(TestCase):
         self.assertIn("launch_orchestration", payload)
         self.assertIn("recommendations", payload)
         self.assertIn("blueprint_rankings", payload)
+        self.assertIn("recommended_starter_stack", payload)
+        self.assertIn("migration_path_flow", payload)
         self.assertIn("data_path_choices", payload)
+        self.assertEqual(len(payload["migration_path_flow"]), 4)
+        self.assertEqual(
+            [s["key"] for s in payload["migration_path_flow"]],
+            ["assess", "blueprint", "import", "verify"],
+        )
         self.assertGreaterEqual(len(payload["launch_blockers"]), 1)
         self.assertGreaterEqual(payload["progress_percent"], 0)
         self.assertEqual(payload["recommended_next"]["key"], "plan_choice")
@@ -67,3 +74,15 @@ class SetupStudioServiceTests(TestCase):
         self.assertIn("preview_note", payload["preview_workspace"])
         orchestration_keys = {item["key"] for item in payload["launch_orchestration"]}
         self.assertEqual(orchestration_keys, {"preflight", "preview", "launch_control", "post_launch"})
+
+    def test_launch_orchestration_stages_have_required_fields(self):
+        """RUNMYCAMPUS §6.5: launch_orchestration stages must have key, label, detail, done, link, status."""
+        payload = get_setup_studio_payload(self.school)
+        for stage in payload["launch_orchestration"]:
+            self.assertIn("key", stage)
+            self.assertIn("label", stage)
+            self.assertIn("detail", stage)
+            self.assertIn("done", stage)
+            self.assertIn("link", stage)
+            self.assertIn("status", stage)
+            self.assertIn(stage["status"], ("Ready", "Needs action"))

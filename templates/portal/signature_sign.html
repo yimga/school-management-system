@@ -18,18 +18,11 @@
 {% endblock %}
 
 {% block content %}
-<div class="container py-4">
+<div class="container py-4" data-page-archetype="record-detail">
   <div class="row justify-content-center">
     <div class="col-lg-10">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h1 class="h4 mb-1">Sign Form</h1>
-          <p class="text-muted mb-0">{{ form_document.title }}</p>
-        </div>
-        <a href="{% url 'portal:signature_pending_list' %}" class="btn btn-outline-secondary">
-          <i class="bi bi-arrow-left me-1"></i>Back
-        </a>
-      </div>
+      {% url 'portal:signature_pending_list' as pending_url %}
+      {% include "studio_os/components/page_header.html" with title="Sign Form" subtitle=form_document.title action_url=pending_url action_text="Back to list" %}
 
       <div class="row g-4">
         <!-- Form Preview -->

@@ -43,10 +43,15 @@ class RuntimeMetadataCatalogTests(TestCase):
 
         payload = get_runtime_metadata()
 
-        self.assertEqual(payload["blueprints"][0]["code"], "core-secondary")
-        self.assertEqual(payload["workflow_packs"][0]["code"], "workflow-admissions")
-        self.assertEqual(payload["dashboard_packs"][0]["code"], "dashboard-admin")
-        self.assertEqual(payload["policy_bundles"][0]["code"], "policy-core")
+        # Assert created packs appear in payload (order-independent; seed data may exist).
+        blueprint_codes = [b["code"] for b in payload["blueprints"]]
+        workflow_codes = [w["code"] for w in payload["workflow_packs"]]
+        dashboard_codes = [d["code"] for d in payload["dashboard_packs"]]
+        policy_codes = [p["code"] for p in payload["policy_bundles"]]
+        self.assertIn("core-secondary", blueprint_codes, "Created blueprint pack must appear in runtime metadata")
+        self.assertIn("workflow-admissions", workflow_codes, "Created workflow pack must appear in runtime metadata")
+        self.assertIn("dashboard-admin", dashboard_codes, "Created dashboard pack must appear in runtime metadata")
+        self.assertIn("policy-core", policy_codes, "Created policy bundle must appear in runtime metadata")
 
     def test_runtime_metadata_includes_lineage_registry_and_package_rollbacks(self):
         entity = EntityCatalogEntry.objects.create(code="student", name="Student")

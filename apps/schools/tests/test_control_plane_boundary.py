@@ -102,7 +102,7 @@ class SuperNamespacePurityTests(TestCase):
                     for p in pattern.url_patterns:
                         if hasattr(p, "pattern") and "parent" in str(getattr(p.pattern, "_route", "")):
                             self.fail("super_urls must not contain a path with 'parent' (tenant hierarchy).")
-        except Exception:
+        except (AttributeError, TypeError, IndexError, KeyError):
             pass
         # Just ensure super_urls exists and has expected structure (dashboard, etc.).
         self.assertTrue(hasattr(super_urls, "urlpatterns"))

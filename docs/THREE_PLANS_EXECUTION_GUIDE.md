@@ -1,5 +1,7 @@
 # Three Plans — Detailed Execution Guide
 
+**Superseded.** For execution and next steps use [REDUNDANCY_AND_PLAN_INDEX.md](REDUNDANCY_AND_PLAN_INDEX.md) and the four canonical docs (RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH, BACKLOG §2e, docs_truth_ledger, NEXT_50). This file is **reference only**.
+
 This guide breaks down **every item** in `THREE_PLANS_MERGED_CHECKLIST.md` into concrete sub-steps, dependencies, acceptance criteria, and verification. Execute in order; do not skip. Update the checklist status (⬜ → 🔄 → ✅) as you go.
 
 **Reference:** `docs/THREE_PLANS_MERGED_CHECKLIST.md`

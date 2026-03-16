@@ -3,11 +3,10 @@
 {% block title %}Finance Access Requests{% endblock %}
 
 {% block content %}
+<div class="container-fluid py-2" data-page-archetype="operational-workbench">
+{% trans "Back to Finance" as back_action %}
+{% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=back_action %}
 <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
-  <div>
-    <h2 class="mb-0">Finance access requests</h2>
-    <p class="text-muted small mb-0">Review guardian requests and acknowledge them with a single action.</p>
-  </div>
   <div class="badge bg-warning text-dark">Unread {{ unread_count }}</div>
 </div>
 
@@ -133,4 +132,5 @@
     </div>
   </div>
 {% endif %}
+</div>
 {% endblock %}

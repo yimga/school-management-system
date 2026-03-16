@@ -2,10 +2,9 @@
 {% load i18n %}
 {% block title %}AI Model Hub{% endblock %}
 {% block content %}
-<div class="container-fluid">
-  <h1>AI Model Hub</h1>
-  <p class="text-muted">Per-region Ollama config and health. Single source: RegionalAIConfig + cache health.</p>
-  <p><a href="{{ dashboard_url }}">Super dashboard</a> | <a href="{{ global_ai_version_url }}">Global AI version upgrade</a></p>
+<div class="container-fluid" data-page-archetype="operational-workbench">
+  {% include "studio_os/components/page_header.html" with title="AI Model Hub" subtitle="Per-region Ollama config and health. Single source: RegionalAIConfig + cache health." action_url=dashboard_url action_text=_("Back to dashboard") %}
+  {% if global_ai_version_url %}<p class="mb-2"><a href="{{ global_ai_version_url }}">{% trans "Global AI version upgrade" %}</a></p>{% endif %}
   <div class="card shadow-sm">
     <div class="card-header">Regions</div>
     <div class="card-body p-0">

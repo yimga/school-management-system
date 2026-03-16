@@ -1,0 +1,19 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "School website blocks" %} · {% trans "Experience" %}{% endblock %}
+
+{% block content %}
+<div class="container py-3" data-page-archetype="operational-workbench">
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
+  <div class="studio-os__card py-3 px-3">
+    <p class="mb-2">{% trans "School website blocks define landing page sections, hero areas, and content blocks for your school's public site. Configure hero headlines, feature sections, and call-to-action blocks via the Customizer and marketing pages so your school presents a consistent, branded experience to families and visitors." %}</p>
+    {% if marketing_url %}
+    <p class="mb-1"><a href="{{ marketing_url }}">{% trans "Marketing landing" %}</a> — {% trans "View the public marketing site and content structure." %}</p>
+    {% endif %}
+    {% if customizer_url %}
+    <p class="mb-0"><a href="{{ customizer_url }}">{% trans "Customizer" %}</a> — {% trans "Adjust school website blocks and visual presets." %}</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

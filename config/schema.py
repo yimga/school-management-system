@@ -4,9 +4,22 @@ Query: health, me { username, email, isStaff }, schoolCount (staff only), school
 """
 import graphene
 from django.contrib.auth import get_user_model
+from django.db import DatabaseError, OperationalError, ProgrammingError
+
 from apps.schools.control_plane import user_has_control_plane_access
 
 User = get_user_model()
+
+# §2.4: Typed tuple for GraphQL school registry resolve (allowlist 0).
+_GRAPHQL_SCHOOL_RESOLVE_ERRORS = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    DatabaseError,
+    OperationalError,
+    ProgrammingError,
+)
 
 
 def _can_access_global_school_registry(request) -> bool:
@@ -75,7 +88,7 @@ class Query(graphene.ObjectType):
         try:
             from apps.schools.models import School
             return School.objects.filter(is_active=True).count()
-        except Exception:
+        except _GRAPHQL_SCHOOL_RESOLVE_ERRORS:
             return None
 
     def resolve_schools(self, info, limit=20):
@@ -85,7 +98,7 @@ class Query(graphene.ObjectType):
         try:
             from apps.schools.models import School
             return list(School.objects.filter(is_active=True).order_by("name")[: max(1, min(limit, 100))])
-        except Exception:
+        except _GRAPHQL_SCHOOL_RESOLVE_ERRORS:
             return []
 
 

@@ -171,6 +171,34 @@
   --surface-bg-subtle: #f8fafc;
   --surface-bg-muted: #f1f5f9;
 
+  /* Color-base scale: neutral palette for Studio OS and unified shells (SOT §8.0).
+     Use var(--color-base-N) for rail, canvas, cards, borders; dark theme overrides in theme files. */
+  --color-base-0: #ffffff;
+  --color-base-50: #f8fafc;
+  --color-base-100: #f1f5f9;
+  --color-base-200: #e2e8f0;
+  --color-base-300: #cbd5e1;
+  --color-base-400: #94a3b8;
+  --color-base-500: #64748b;
+  --color-base-600: #475569;
+  --color-base-700: #334155;
+  --color-base-800: #1e293b;
+  --color-base-900: #0f172a;
+  --color-primary-50: #eff6ff;
+  --color-primary-500: #3b82f6;
+  --color-primary-700: #1d4ed8;
+
+  /* Studio OS layout tokens (fluid; SOT §8.0.6 responsive) */
+  --studio-rail-width: minmax(min(12rem, 100%), 16rem);
+  --studio-right-width: minmax(min(14rem, 100%), 18rem);
+  --studio-gap: clamp(0.75rem, 2vw, 1.5rem);
+  --studio-font-base: clamp(0.8125rem, 1.5vw + 0.5rem, 0.9375rem);
+  --studio-font-heading: clamp(0.9375rem, 1.2vw + 0.6rem, 1.125rem);
+  /* Hero/display typography: marketing and product share one design system (CONTROL_PLANE §4, MARKETING_FRONT_PLACEHOLDER Design tokens) */
+  --studio-font-display: clamp(2rem, 4vw, 3.25rem);
+  --studio-radius: 0.5rem;
+  --studio-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+
   /* Table densities (compact / comfortable / spacious) */
   --table-density-compact: 0.35rem 0.5rem;
   --table-density-comfortable: 0.5rem 0.75rem;

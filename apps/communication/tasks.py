@@ -1,5 +1,6 @@
 """
 Celery tasks for communication (e.g. Plan XIII: 3 days perfect attendance → Kudos).
+§2.4: broad except replaced with typed exception tuples and structured logging.
 """
 from __future__ import annotations
 
@@ -13,6 +14,33 @@ from django.utils import timezone
 from apps.schools.celery_tasks import _run_with_tenant_context
 
 logger = logging.getLogger(__name__)
+
+# §2.4: typed exceptions for narrative creation and outbound send (provider/DB/network)
+_COMMUNICATION_TASK_NARRATIVE_ERRORS: tuple[type[BaseException], ...] = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    KeyError,
+    OSError,
+    ConnectionError,
+    TimeoutError,
+)
+try:
+    from django.db.utils import DatabaseError, IntegrityError, OperationalError
+    _COMMUNICATION_TASK_NARRATIVE_ERRORS = (*_COMMUNICATION_TASK_NARRATIVE_ERRORS, DatabaseError, IntegrityError, OperationalError)
+except ImportError:
+    pass
+_COMMUNICATION_TASK_OUTBOUND_SEND_ERRORS: tuple[type[BaseException], ...] = (
+    OSError,
+    ConnectionError,
+    TimeoutError,
+    ValueError,
+    TypeError,
+    KeyError,
+    AttributeError,
+    ImportError,
+)
 
 PERFECT_ATTENDANCE_3D_EVENT = "perfect_attendance_3d"
 
@@ -84,8 +112,14 @@ def kudos_perfect_attendance_3d_task(self, as_of_date_str: str | None = None, sc
                     generate_ai=True,
                 )
                 created += 1
-            except Exception as e:
-                logger.warning("kudos_perfect_attendance_3d: skip student %s: %s", student.id, e)
+            except _COMMUNICATION_TASK_NARRATIVE_ERRORS as e:
+                from apps.platform_runtime.structured_logging import log_exception_with_context
+                log_exception_with_context(
+                    "communication.tasks.kudos_perfect_attendance_3d: skip student (narrative/create)",
+                    school_id=getattr(school, "id", None),
+                    extra={"student_id": getattr(student, "id", None), "event_type": PERFECT_ATTENDANCE_3D_EVENT, "error": str(e)},
+                )
+                skipped += 1
         logger.info(
             "kudos_perfect_attendance_3d: school=%s created=%s skipped=%s",
             school.id,
@@ -177,7 +211,7 @@ def process_outbound_message_queue(self, school_id=None, limit=50) -> dict:
                         item.error_message = "Provider returned false or no integration"
                     item.save(update_fields=["status", "error_message", "retry_count"])
                     failed += 1
-            except Exception as e:
+            except _COMMUNICATION_TASK_OUTBOUND_SEND_ERRORS as e:
                 item.retry_count = (item.retry_count or 0) + 1
                 if item.retry_count >= max_retries:
                     item.status = "failed"

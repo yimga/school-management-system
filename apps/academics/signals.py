@@ -1,14 +1,38 @@
 """
 Signals for academics app: e.g. notify parents when a student is marked absent or when a disciplinary incident is recorded.
 Domain events: enrollment.created, attendance.recorded (non-negotiable).
+§2.4: All broad except replaced with _ACADEMICS_SIGNAL_ERRORS + structured logging.
 """
 import logging
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.db import DatabaseError, IntegrityError
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from .models import Attendance, Incident, StudentDegreeEnrollment
 
 logger = logging.getLogger(__name__)
+
+# §2.4 Typed exceptions for signal handlers (emit_event, get_effective_flags, Notification.create).
+_ACADEMICS_SIGNAL_ERRORS = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    KeyError,
+    DatabaseError,
+    IntegrityError,
+    ObjectDoesNotExist,
+    ValidationError,
+)
+
+
+def _log_signal_failure(message: str, school_id=None, extra=None):
+    try:
+        from apps.platform_runtime.structured_logging import log_exception_with_context
+        log_exception_with_context(message, school_id=school_id, extra=extra or {})
+    except (ImportError, AttributeError, TypeError, ValueError) as e:
+        logger.debug("%s (school_id=%s): %s", message, school_id, e, exc_info=True)
 
 
 @receiver(post_save, sender=StudentDegreeEnrollment)
@@ -29,8 +53,9 @@ def emit_enrollment_created(sender, instance, created, **kwargs):
             },
             school_id=school_id,
         )
-    except Exception as e:
+    except _ACADEMICS_SIGNAL_ERRORS as e:
         logger.debug("emit enrollment.created skipped: %s", e)
+        _log_signal_failure("academics signal enrollment.created failed", school_id=getattr(instance.student, "school_id", None) if instance.student_id else None, extra={"enrollment_id": instance.id})
 
 
 @receiver(post_save, sender=Attendance)
@@ -50,8 +75,9 @@ def emit_attendance_recorded(sender, instance, created, **kwargs):
             },
             school_id=school_id,
         )
-    except Exception as e:
+    except _ACADEMICS_SIGNAL_ERRORS as e:
         logger.debug("emit attendance.recorded skipped: %s", e)
+        _log_signal_failure("academics signal attendance.recorded failed", school_id=getattr(instance.student, "school_id", None) if getattr(instance, "student_id", None) else None, extra={"attendance_id": instance.id})
 
 
 @receiver(post_save, sender=Attendance)
@@ -78,6 +104,7 @@ def on_attendance_saved(sender, instance, created, **kwargs):
         student_name = student.get_full_name() or f"Student {student.id}"
         msg = f"{student_name} was marked absent on {instance.date}."
         title = "Absence notice"
+        school_id = getattr(school, "id", None) if school else None
         try:
             portal_url = "/portal/parent/"
             for g in guardians:
@@ -90,10 +117,10 @@ def on_attendance_saved(sender, instance, created, **kwargs):
                         recipient_id=g.guardian_user_id,
                         created_by_id=None,
                     )
-        except Exception:
-            pass
-    except Exception:
-        pass
+        except _ACADEMICS_SIGNAL_ERRORS:
+            _log_signal_failure("academics on_attendance_saved notify guardians failed", school_id=school_id, extra={"attendance_id": instance.id})
+    except _ACADEMICS_SIGNAL_ERRORS:
+        _log_signal_failure("academics on_attendance_saved failed", school_id=getattr(getattr(instance.student, "school", None), "id", None) if getattr(instance, "student_id", None) else None, extra={"attendance_id": instance.id})
 
 
 @receiver(post_save, sender=Incident)
@@ -116,6 +143,7 @@ def on_incident_saved(sender, instance, created, **kwargs):
         if instance.description:
             msg += f" {instance.description[:200]}"
         title = "Disciplinary notice"
+        school_id = getattr(getattr(student, "school", None), "id", None) if student else None
         try:
             portal_url = "/portal/parent/"
             for g in guardians:
@@ -128,7 +156,7 @@ def on_incident_saved(sender, instance, created, **kwargs):
                         recipient_id=g.guardian_user_id,
                         created_by_id=instance.created_by_id,
                     )
-        except Exception:
-            pass
-    except Exception:
-        pass
+        except _ACADEMICS_SIGNAL_ERRORS:
+            _log_signal_failure("academics on_incident_saved notify guardians failed", school_id=school_id, extra={"incident_id": instance.id})
+    except _ACADEMICS_SIGNAL_ERRORS:
+        _log_signal_failure("academics on_incident_saved failed", school_id=getattr(getattr(instance.student, "school", None), "id", None) if getattr(instance, "student_id", None) else None, extra={"incident_id": instance.id})

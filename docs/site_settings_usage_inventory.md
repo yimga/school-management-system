@@ -94,8 +94,8 @@ Every SiteSettings field is classified by `classify_site_settings_field()` in `a
 
 - [x] All tenant-facing code uses `get_effective_site_settings(request=..., school=...)` or equivalent runtime path only. (Verified: lint_tenant_settings --check-get-solo-only pass; get_solo only in siteconfig definition, platform_runtime/helpers (internal), allowlisted management; tests use get_platform_site_settings_record(create=True) or get_effective_site_settings only.)
 - [x] No new tenant-facing `SiteSettings.get_solo()` (enforced by lint_tenant_settings.py in pre_deploy_gate.sh).
-- [ ] SiteSettings contains only safe platform defaults; behavioral fields owned by bounded contexts. (Blocked by ownership move; incremental.)
-- [ ] Bounded consoles exist for each owner; legacy siteconfig admin trimmed. (Incremental; per domain_ownership.)
+- [ ] SiteSettings contains only safe platform defaults; behavioral fields owned by bounded contexts. (Shrink plan in SITECONFIG_OWNERSHIP_MIGRATION Phase B; incremental migration.)
+- [x] Bounded consoles exist for each owner; legacy siteconfig admin trimmed. (Phase B: System config console at siteconfig:console_domains_hub; control plane nav; manager shell; domains link to Studio OS + feature control.)
 
 ---
 

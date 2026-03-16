@@ -84,6 +84,34 @@ def _site_settings_fields() -> list[dict[str, str]]:
     return fields
 
 
+def _management_commands_list() -> list[dict[str, str]]:
+    """List all management commands (app, command name, relative path) for §10 inventory."""
+    apps_dir = ROOT / "apps"
+    if not apps_dir.is_dir():
+        return []
+    result: list[dict[str, str]] = []
+    for path in sorted(apps_dir.rglob("management/commands/*.py")):
+        if path.name == "__init__.py":
+            continue
+        if any(part in SKIP_PARTS for part in path.parts):
+            continue
+        try:
+            rel = path.relative_to(ROOT)
+            # apps/<app>/management/commands/<name>.py
+            parts = rel.parts
+            if len(parts) >= 4 and parts[0] == "apps" and parts[2] == "management" and parts[3] == "commands":
+                app_label = parts[1]
+                command_name = path.stem
+                result.append({
+                    "app": app_label,
+                    "command": command_name,
+                    "path": rel.as_posix(),
+                })
+        except ValueError:
+            continue
+    return result
+
+
 def _baseline_counts() -> dict[str, int]:
     counters = Counter()
     py_files = list(_iter_files(".py"))
@@ -91,11 +119,8 @@ def _baseline_counts() -> dict[str, int]:
     counters["html_files"] = sum(1 for _ in _iter_files(".html"))
     counters["markdown_files"] = sum(1 for _ in _iter_files(".md"))
     counters["migration_files"] = sum(1 for path in py_files if "migrations" in path.parts)
-    counters["management_commands"] = sum(
-        1
-        for path in py_files
-        if "management" in path.parts and "commands" in path.parts and path.name != "__init__.py"
-    )
+    commands_list = _management_commands_list()
+    counters["management_commands"] = len(commands_list)
     gilead_files = set()
     file_pool = py_files + list(_iter_files(".html", ".md", ".json", ".yaml", ".yml", ".sh", ".ps1"))
     for path in file_pool:
@@ -194,7 +219,7 @@ def _to_markdown(inventory: dict[str, object]) -> str:
         f"- HTML templates: `{metrics['html_files']}`",
         f"- Markdown files: `{metrics['markdown_files']}`",
         f"- Migration files: `{metrics['migration_files']}`",
-        f"- Management commands: `{metrics['management_commands']}`",
+        f"- Management commands: `{metrics['management_commands']}` (full list in JSON key `management_commands_list`)",
         f"- `SiteSettings` refs: `{metrics['site_settings']}`",
         f"- `get_solo()` refs: `{metrics['get_solo']}`",
         f"- `except Exception`: `{metrics['except_exception']}`",
@@ -204,16 +229,31 @@ def _to_markdown(inventory: dict[str, object]) -> str:
         f"- `print()`: `{metrics['print_calls']}`",
         f"- `gilead` matches: `{metrics['gilead']}` across `{metrics['gilead_files']}` files",
         "",
-        "## Public Endpoint Review",
         "",
-        f"- Reviewed `csrf_exempt` files: `{public_audits['csrf_exempt']['reviewed_files']}`",
-        f"- Reviewed `csrf_exempt` endpoints: `{public_audits['csrf_exempt']['reviewed_endpoints']}`",
-        f"- Reviewed `AllowAny` files: `{public_audits['allow_any']['reviewed_files']}`",
-        f"- Reviewed `AllowAny` occurrences: `{public_audits['allow_any']['reviewed_occurrences']}`",
+        "## Management Commands (full list)",
         "",
-        "## SiteSettings Ownership",
+        f"Total: `{len(inventory['management_commands_list'])}` commands. First 25 by app/command:",
         "",
     ]
+    for entry in inventory["management_commands_list"][:25]:
+        lines.append(f"- `{entry['app']}` / `{entry['command']}` — `{entry['path']}`")
+    rest = len(inventory["management_commands_list"]) - 25
+    if rest > 0:
+        lines.append(f"- … and {rest} more (see `platform_inventory.json` key `management_commands_list`).")
+    lines.extend(
+        [
+            "",
+            "## Public Endpoint Review",
+            "",
+            f"- Reviewed `csrf_exempt` files: `{public_audits['csrf_exempt']['reviewed_files']}`",
+            f"- Reviewed `csrf_exempt` endpoints: `{public_audits['csrf_exempt']['reviewed_endpoints']}`",
+            f"- Reviewed `AllowAny` files: `{public_audits['allow_any']['reviewed_files']}`",
+            f"- Reviewed `AllowAny` occurrences: `{public_audits['allow_any']['reviewed_occurrences']}`",
+            "",
+            "## SiteSettings Ownership",
+            "",
+        ]
+    )
     owner_counts = Counter(item["owner"] for item in inventory["site_settings_fields"])
     for owner, count in sorted(owner_counts.items()):
         lines.append(f"- `{owner}`: `{count}` fields")
@@ -254,6 +294,7 @@ def _to_markdown(inventory: dict[str, object]) -> str:
 def _build_inventory() -> dict[str, object]:
     return {
         "baseline_counts": _baseline_counts(),
+        "management_commands_list": _management_commands_list(),
         "public_endpoint_audits": _public_endpoint_audits(),
         "site_settings_fields": _site_settings_fields(),
         "largest_python_files": _largest_python_files(),

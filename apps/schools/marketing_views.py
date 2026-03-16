@@ -2274,6 +2274,8 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
     hero_video_poster_url = getattr(settings, "MARKETING_HERO_VIDEO_POSTER_URL", None) or hero_dashboard_image_url or ""
     product_demo_image_url = getattr(settings, "MARKETING_PRODUCT_DEMO_IMAGE_URL", None) or getattr(settings, "MARKETING_HERO_IMAGE_URL", None) or ""
     # Product visualization strip: 5 slides required (Batch 1 — admin, teacher, parent, student, analytics).
+    # Proof-rich §8.4: every slide has non-empty image_static when image_url missing so section never shows empty frames.
+    _proof_viz_fallback = "images/marketing/platform-diagram-marketing.svg"
     product_visualization_slides = getattr(settings, "MARKETING_PRODUCT_VISUALIZATION_SLIDES", None) or [
         {"title": "Admin dashboard", "caption": "Real-time enrollment, finance, and compliance dashboards.", "image_url": "", "image_static": "images/marketing/viz-admin.svg"},
         {"title": "Teacher dashboard", "caption": "Grades, attendance, and class tools in one place.", "image_url": "", "image_static": "images/marketing/viz-teacher.svg"},
@@ -2281,6 +2283,9 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         {"title": "Student 360", "caption": "One view per student: attendance, grades, interventions.", "image_url": "", "image_static": "images/marketing/viz-student360.svg"},
         {"title": "Admin analytics", "caption": "Operational intelligence and reporting at a glance.", "image_url": "", "image_static": "images/marketing/viz-admin.svg"},
     ]
+    for slide in product_visualization_slides:
+        if not slide.get("image_url") and not slide.get("image_static"):
+            slide["image_static"] = _proof_viz_fallback
     _ecosystem_icon = static("images/marketing/logo-placeholder.svg")
     _marketplace_path = _safe_reverse("marketing_app_marketplace") or "/app-marketplace/"
     _integrations_path = _safe_reverse("marketing_integrations") or "/integrations/"

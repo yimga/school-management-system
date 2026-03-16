@@ -3,7 +3,24 @@ Section 23.4 & 24.8: Policy-driven form field visibility, required/optional, pic
 document requirements, validation rules, default values.
 All form behavior is driven by policy["forms"][form_name] so config is metadata-driven (24.8).
 """
+import logging
 from typing import Any, Dict, List
+
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import DatabaseError
+
+logger = logging.getLogger(__name__)
+
+# §2.4 Typed exceptions for choice resolution (import/attribute/query failures); fail-soft return [].
+_FORM_POLICY_CHOICES_RESOLVE_ERRORS = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    KeyError,
+    DatabaseError,
+    ObjectDoesNotExist,
+)
 
 
 def get_form_schema(policy: Dict[str, Any], form_name: str) -> Dict[str, Any]:
@@ -46,32 +63,37 @@ def _resolve_choices_for_key(choices_key: str, school=None) -> list:
         try:
             from apps.people.models import StudentProfile
             return list(StudentProfile.Gender.choices)
-        except Exception:
+        except _FORM_POLICY_CHOICES_RESOLVE_ERRORS as e:
+            logger.debug("form_policy: resolve choices_key=%s failed: %s", choices_key, e)
             return []
     if choices_key == "relationship":
         try:
             from apps.people.models import StudentGuardian
             return list(StudentGuardian.Relationship.choices)
-        except Exception:
+        except _FORM_POLICY_CHOICES_RESOLVE_ERRORS as e:
+            logger.debug("form_policy: resolve choices_key=%s failed: %s", choices_key, e)
             return []
     if choices_key == "preferred_contact":
         try:
             from apps.people.models import StudentGuardian
             return list(StudentGuardian.PreferredContact.choices)
-        except Exception:
+        except _FORM_POLICY_CHOICES_RESOLVE_ERRORS as e:
+            logger.debug("form_policy: resolve choices_key=%s failed: %s", choices_key, e)
             return []
     if choices_key == "student_status":
         try:
             from apps.people.models import StudentProfile
             return list(StudentProfile.Status.choices)
-        except Exception:
+        except _FORM_POLICY_CHOICES_RESOLVE_ERRORS as e:
+            logger.debug("form_policy: resolve choices_key=%s failed: %s", choices_key, e)
             return []
     if choices_key == "payment_method":
         try:
             from apps.finance.models import PaymentMethod
             qs = PaymentMethod.objects.filter(is_active=True)
             return [(str(m.id), m.name) for m in qs[:50]]
-        except Exception:
+        except _FORM_POLICY_CHOICES_RESOLVE_ERRORS as e:
+            logger.debug("form_policy: resolve choices_key=%s failed: %s", choices_key, e)
             return []
     # Future: choices_key "region", "education_level" from registries
     return []

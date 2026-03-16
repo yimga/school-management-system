@@ -17,8 +17,8 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-2">
-  <p class="text-secondary small mb-4">{% trans "Canonical source of world facts: countries, subdivisions, education levels, document types, fee categories, grade scales. Manage via Admin for CRUD and activation." %}</p>
+<div class="container-fluid py-2" data-page-archetype="catalog">
+  {% include "studio_os/components/page_header.html" with title=_("Global Registries") subtitle=_("Canonical source of world facts: countries, subdivisions, education levels, document types, fee categories, grade scales. Manage via Admin for CRUD and activation.") action_url=dashboard_url action_text=_("Back to Dashboard") %}
   <div class="card shadow-sm border-secondary" style="background: var(--cp-panel-bg, rgba(8,16,30,0.6)); border-color: var(--cp-panel-border) !important;">
     <div class="card-body p-0">
       <table class="table table-dark table-hover mb-0">

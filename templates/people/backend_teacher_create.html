@@ -4,16 +4,11 @@
 {% block backend_title %}Create Teacher - Backend{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" data-page-archetype="record-detail">
   <div class="row">
     <div class="col-12">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h2 class="fw-bold mb-1">Create Teacher</h2>
-          <p class="text-muted mb-0">Add a new teacher to the system</p>
-        </div>
-        <a href="{% url 'accounts:backend_teacher_list' %}" class="btn btn-sm btn-outline-secondary btn-back-secondary"><i class="bi bi-arrow-left me-1"></i>Back to List</a>
-      </div>
+      {% url 'accounts:backend_teacher_list' as list_url %}
+      {% include "studio_os/components/page_header.html" with title="Create Teacher" subtitle="Add a new teacher to the system" action_url=list_url action_text="Back to List" %}
 
       <div class="card shadow-sm">
         <div class="card-body">

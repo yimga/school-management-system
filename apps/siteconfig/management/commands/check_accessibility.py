@@ -6,9 +6,30 @@ from django.core.management.base import BaseCommand
 from django.test import Client
 from django.contrib.auth import get_user_model
 from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 import re
 from pathlib import Path
 from datetime import datetime
+
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
+# §2.4 Typed exceptions for allowlist shrink (broad_exception_audit)
+_ACCESSIBILITY_USER_CREATE_ERRORS = (
+    IntegrityError,
+    ValidationError,
+    ValueError,
+    TypeError,
+    AttributeError,
+)
+_ACCESSIBILITY_CHECK_PAGE_ERRORS = (
+    ValueError,
+    UnicodeDecodeError,
+    TypeError,
+    AttributeError,
+    OSError,
+    ConnectionError,
+)
 
 User = get_user_model()
 
@@ -39,14 +60,14 @@ class Command(BaseCommand):
         pages_to_check = options['pages']
         results = {}
 
-        # Create test users
+        # Create test users (or use existing if already created)
         try:
             _ = User.objects.create_user(
                 username="a11y_test_teacher",
                 password="test123",
                 role="TEACHER"
             )
-        except Exception:
+        except _ACCESSIBILITY_USER_CREATE_ERRORS:
             _ = User.objects.get(username="a11y_test_teacher")
 
         try:
@@ -55,7 +76,7 @@ class Command(BaseCommand):
                 email="a11y@test.com",
                 password="admin123"
             )
-        except Exception:
+        except _ACCESSIBILITY_USER_CREATE_ERRORS:
             _ = User.objects.get(username="a11y_test_admin")
 
         # Portal pages
@@ -146,7 +167,12 @@ class Command(BaseCommand):
 
             return {'status': 'ok', 'path': path, 'issues': issues}
 
-        except Exception as e:
+        except _ACCESSIBILITY_CHECK_PAGE_ERRORS as e:
+            log_exception_with_context(
+                "check_accessibility: page check failed",
+                school_id=None,
+                extra={"page_name": page_name, "path": path, "error": str(e)},
+            )
             self.stdout.write(self.style.ERROR(f"  ✗ {page_name}: {str(e)}"))
             return {'status': 'error', 'error': str(e), 'issues': []}
 

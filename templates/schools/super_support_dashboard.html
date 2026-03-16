@@ -10,13 +10,11 @@
 </nav>
 {% endblock %}
 {% block cp_content %}
-<div class="container-fluid py-4">
-  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
-    <h1 class="h4 mb-0">{% trans "Support mission control" %}</h1>
-    <div class="d-flex gap-2">
-      <a href="{% url 'super:command_center' %}" class="btn btn-outline-warning">{% trans "Open command center" %}</a>
-      <a href="{% url 'super:dashboard' %}" class="btn btn-outline-secondary js-return-to-origin" data-fallback="{% url 'super:dashboard' %}">{% trans "Back to dashboard" %}</a>
-    </div>
+{% url 'super:dashboard' as dashboard_url %}
+<div class="container-fluid py-4" data-page-archetype="operational-workbench">
+  {% include "studio_os/components/page_header.html" with title=_("Support mission control") subtitle=_("Ticket queue, SLA, and support health.") action_url=dashboard_url action_text=_("Back to dashboard") %}
+  <div class="d-flex flex-wrap gap-2 mb-3" style="margin-top: -0.5rem;">
+    <a href="{% url 'super:command_center' %}" class="btn btn-sm btn-outline-warning">{% trans "Open command center" %}</a>
   </div>
   <div class="row g-3 mb-4">
     <div class="col-md-4">

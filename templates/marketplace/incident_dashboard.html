@@ -10,23 +10,13 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-4 control-plane-shell">
-  <section class="cp-hero cp-hero-compact mb-4">
-    <div class="cp-hero-grid">
-      <div>
-        <div class="cp-eyebrow">RunMyCampus Manager</div>
-        <h1 class="cp-hero-title">Marketplace incidents</h1>
-        <p class="cp-hero-copy">
-          Central place for marketplace-related incidents. Use the support dashboard for full incident queue.
-        </p>
-      </div>
-      <div class="cp-hero-actions">
-        <a href="{{ support_url }}" class="btn btn-outline-light btn-sm">Support dashboard</a>
-        <a href="{% url 'super:marketplace_installation_health' %}" class="btn btn-outline-light btn-sm">Installation health</a>
-        <a href="{% url 'super:dashboard' %}" class="btn btn-outline-light btn-sm">Control plane</a>
-      </div>
-    </div>
-  </section>
+<div class="container-fluid py-4 control-plane-shell" data-page-archetype="operational-workbench">
+  {% load i18n %}
+  {% include "studio_os/components/page_header.html" with title=_("Marketplace incidents") subtitle=_("Central place for marketplace-related incidents. Use the support dashboard for full incident queue.") action_url=dashboard_url action_text=_("Back to Dashboard") %}
+  <div class="d-flex flex-wrap gap-2 mb-3">
+    <a href="{{ support_url }}" class="btn btn-outline-secondary btn-sm">Support dashboard</a>
+    <a href="{% url 'super:marketplace_installation_health' %}" class="btn btn-outline-secondary btn-sm">Installation health</a>
+  </div>
 
   <section class="cp-panel mb-4">
     <div class="cp-panel-header">

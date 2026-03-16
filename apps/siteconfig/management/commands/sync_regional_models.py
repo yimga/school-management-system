@@ -9,9 +9,19 @@ from typing import List
 
 from django.core.management.base import BaseCommand
 
+from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.siteconfig.models import AIModelRegistry
 
 logger = logging.getLogger(__name__)
+
+# §2.4 Typed exceptions for allowlist shrink (broad_exception_audit)
+_SYNC_REGIONAL_MODELS_ERRORS = (
+    OSError,
+    ValueError,
+    TypeError,
+    RuntimeError,
+    subprocess.SubprocessError,
+)
 
 
 def _pull_model(model_id: str, cluster: str) -> None:
@@ -29,8 +39,12 @@ def _pull_model(model_id: str, cluster: str) -> None:
         logger.warning("Pull timeout for %s (cluster %s).", model_id, cluster)
     except FileNotFoundError:
         logger.warning("ollama CLI not found; install Ollama or set PATH.")
-    except Exception as e:
-        logger.exception("Pull failed for %s (cluster %s): %s", model_id, cluster, e)
+    except _SYNC_REGIONAL_MODELS_ERRORS as e:
+        log_exception_with_context(
+            "sync_regional_models: pull failed",
+            school_id=None,
+            extra={"model_id": model_id, "cluster": cluster, "error": str(e)},
+        )
 
 
 class Command(BaseCommand):

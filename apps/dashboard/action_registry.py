@@ -96,6 +96,10 @@ BACKEND_COMMAND_PALETTE = [
     {"label": "Finance Dashboard", "icon": "bi-cash-stack", "url_name": "finance:dashboard", "allow_key": "can_manage_finance"},
     {"label": "Experience", "icon": "bi-palette", "url_name": "studio_os:experience", "fallback_url_name": "studio_os:shell", "allow_key": "can_manage_settings"},
     {"label": "Workflow Center", "icon": "bi-diagram-3", "url_name": "accounts:workflow_center", "allow_key": "always"},
+    # §8.0.4 Command palette example intents (UI/UX doc)
+    {"label": "Open fee reminder automation", "icon": "bi-clock-history", "url_name": "studio_os:automation", "fallback_url_name": "accounts:workflow_center", "allow_key": "can_manage_settings"},
+    {"label": "Configure grade reports", "icon": "bi-file-earmark-bar-graph", "url_name": "studio_os:output", "fallback_url_name": "reports:publish_term_results", "allow_key": "can_manage_reports"},
+    {"label": "Go to district analytics", "icon": "bi-graph-up", "url_name": "super:analytics_overview", "fallback_url_name": "accounts:backend_dashboard", "allow_key": "can_manage_settings"},
 ]
 
 # Dashboard intents: primary CTA index (0 or 1) into BACKEND_PRIMARY_CTAS, and welcome action item_ids to prioritize.

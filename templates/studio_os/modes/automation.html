@@ -14,7 +14,7 @@
 {% block studio_canvas %}
   {% if automation_left_rail %}
   <div class="d-flex gap-3 flex-wrap flex-lg-nowrap studio-os__automation-wrap">
-    <nav class="studio-os__automation-rail flex-shrink-0 mb-2 mb-lg-0" aria-label="{% trans 'Automation' %}" style="width: 200px;">
+    <nav class="studio-os__automation-rail flex-shrink-0 mb-2 mb-lg-0" aria-label="{% trans 'Automation' %}" style="width: min(12.5rem, 100%); min-width: 0;">
       <div class="studio-os__card py-2">
         <div class="h6 mb-2">{% trans "Workflows" %}</div>
         <ul class="list-unstyled small mb-0" id="automation-rail-list">
@@ -55,7 +55,7 @@
   {% else %}
   <div class="d-flex gap-3 flex-wrap flex-lg-nowrap">
     {% if workflow_entries %}
-    <nav class="studio-os__automation-rail flex-shrink-0 mb-2 mb-lg-0" aria-label="{% trans 'Automation' %}" style="width: 200px;">
+    <nav class="studio-os__automation-rail flex-shrink-0 mb-2 mb-lg-0" aria-label="{% trans 'Automation' %}" style="width: min(12.5rem, 100%); min-width: 0;">
       <div class="studio-os__card py-2">
         <div class="h6 mb-2">{% trans "Workflows" %}</div>
         <ul class="list-unstyled small mb-2">

@@ -4,13 +4,27 @@ from calendar import monthrange
 from datetime import date
 
 from django.core.management.base import BaseCommand, CommandError
+from django.db import DatabaseError, IntegrityError
 from django.utils import timezone
+from django.core.exceptions import ValidationError
 
 from apps.automation.models import AutomationExecutionLog
 from apps.payroll.models import PayrollRun
 from apps.payroll.services import (
     generate_payslips,
     get_active_payroll_profile,
+)
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
+# §2.4: Typed allowlist for run_payroll_cycle handle() (profile, get_or_create, generate_payslips, mark_completed).
+_PAYROLL_RUN_CYCLE_ERRORS = (
+    DatabaseError,
+    IntegrityError,
+    ValidationError,
+    ValueError,
+    TypeError,
+    AttributeError,
+    KeyError,
 )
 
 
@@ -88,7 +102,18 @@ class Command(BaseCommand):
                 summary=summary,
             )
             self.stdout.write(self.style.SUCCESS(f"Payroll run {run} processed with {len(payslips)} payslips."))
-        except Exception as exc:
+        except _PAYROLL_RUN_CYCLE_ERRORS as exc:
+            school_id = getattr(profile, "school_id", None) if profile else None
+            log_exception_with_context(
+                "run_payroll_cycle: payroll run failed",
+                school_id=school_id,
+                extra={
+                    "command": "run_payroll_cycle",
+                    "period_start": period_start_str,
+                    "period_end": period_end_str,
+                    "error": str(exc),
+                },
+            )
             execution_log.mark_completed(
                 AutomationExecutionLog.Status.FAILED,
                 error_message=str(exc),

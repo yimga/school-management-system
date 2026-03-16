@@ -12,15 +12,14 @@ from apps.finance.tasks import (
     retry_bank_verification_task,
     update_invoice_statuses_task,
 )
-from apps.finance.views import _backend_flags
-from apps.finance.views import _notification_delivery_settings
+from apps.finance.views_common import _backend_flags, _notification_delivery_settings
 
 
 class FinanceHardeningHelperTests(SimpleTestCase):
     def test_backend_flags_returns_empty_dict_when_runtime_lookup_fails(self):
         request = RequestFactory().get("/finance/")
 
-        with patch("apps.finance.views.get_effective_flags", side_effect=RuntimeError("runtime unavailable")):
+        with patch("apps.finance.views_common.get_effective_flags", side_effect=RuntimeError("runtime unavailable")):
             self.assertEqual(_backend_flags(request), {})
 
     def test_finance_runtime_config_prefers_owner_accessor(self):

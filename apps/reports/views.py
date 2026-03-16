@@ -4,6 +4,8 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.core.files.base import ContentFile
 from django.core.mail import EmailMessage
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.db import DatabaseError, IntegrityError
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -35,6 +37,7 @@ from apps.reports.services import (
     term_report_context,
     terms_for_student,
 )
+from apps.platform_runtime.structured_logging import log_view_exception
 from apps.reports.weasy import render_pdf_bytes
 from apps.siteconfig.models import ReportCardStyle, get_report_card_style_for_student
 
@@ -735,8 +738,16 @@ def publish_term_results(request: HttpRequest):
                     app_label="reports",
                     new_values={"publish_school": publish_school, "classroom_ids": list(selected_classrooms)},
                 )
-            except Exception:
-                pass
+            except (DatabaseError, IntegrityError, ValidationError, TypeError, ValueError):
+                log_view_exception(
+                    request,
+                    "reports publish: AuditLog create failed",
+                    extra={
+                        "academic_year_id": getattr(year_obj, "id", None),
+                        "term_id": getattr(term_obj, "id", None),
+                        "publish_school": publish_school,
+                    },
+                )
             # Phase 3: Award Honor Roll badges for students in published classrooms
             published_classroom_ids = {str(c.id) for c in classrooms} if publish_school else selected_classrooms
             if published_classroom_ids:
@@ -756,8 +767,17 @@ def publish_term_results(request: HttpRequest):
                             avg = ctx.get("average")
                             if avg is not None:
                                 create_honor_roll_badge_for_student(student, year_obj, term_obj, avg)
-                        except Exception:
-                            pass
+                        except (DatabaseError, IntegrityError, ValidationError, TypeError, ValueError, KeyError, ObjectDoesNotExist):
+                            log_view_exception(
+                                request,
+                                "reports publish: honor roll badge create failed",
+                                extra={
+                                    "school_id": getattr(school, "id", None),
+                                    "student_id": getattr(student, "id", None),
+                                    "academic_year_id": getattr(year_obj, "id", None),
+                                    "term_id": getattr(term_obj, "id", None),
+                                },
+                            )
             messages.success(request, "Publish status updated.")
             return redirect(f"{request.path}?year={year_obj.id}&term={term_obj.id}")
 

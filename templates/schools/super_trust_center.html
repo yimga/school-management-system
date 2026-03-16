@@ -1,0 +1,60 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Security & Trust" %}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Control Plane" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Trust center" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-2" data-page-archetype="decision-console">
+  {% trans "Security & Trust" as page_title %}
+  {% trans "MFA, sessions, admin activity, audit export, and integrations. §10.5.4 Trust product (TRUST_PRODUCT_SURFACES.md)." as page_subtitle %}
+  {% trans "Open Compliance" as page_action %}
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=compliance_url action_text=page_action %}
+  <div class="row g-3">
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-secondary">
+        <div class="card-body">
+          <h6 class="card-title"><span class="bi bi-shield-check me-2" aria-hidden="true"></span>{% trans "Compliance" %}</h6>
+          <p class="card-text small text-secondary">{% trans "Policy pack, audit review, export risk." %}</p>
+          <a href="{{ compliance_url }}" class="btn btn-outline-primary btn-sm">{% trans "Open" %}</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-secondary">
+        <div class="card-body">
+          <h6 class="card-title"><span class="bi bi-plug me-2" aria-hidden="true"></span>{% trans "API Center" %}</h6>
+          <p class="card-text small text-secondary">{% trans "Integration and API key governance." %}</p>
+          <a href="{{ apicenter_url }}" class="btn btn-outline-primary btn-sm">{% trans "Open" %}</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-secondary">
+        <div class="card-body">
+          <h6 class="card-title"><span class="bi bi-laptop me-2" aria-hidden="true"></span>{% trans "Sessions & devices" %}</h6>
+          <p class="card-text small text-secondary">{% trans "Active sessions; revoke if needed." %}</p>
+          <a href="{% url 'accounts:sessions_page' %}" class="btn btn-outline-primary btn-sm">{% trans "Manage sessions" %}</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-secondary">
+        <div class="card-body">
+          <h6 class="card-title"><span class="bi bi-download me-2" aria-hidden="true"></span>{% trans "Export audit" %}</h6>
+          <p class="card-text small text-secondary">{% trans "Export security and admin audit (date range, CSV/JSON)." %}</p>
+          <a href="{% url 'super:audit_export' %}" class="btn btn-outline-primary btn-sm">{% trans "Export" %}</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

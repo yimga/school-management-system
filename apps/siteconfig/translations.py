@@ -9,6 +9,12 @@ from typing import Dict
 
 from django.conf import settings
 
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
+# Typed exceptions for §2.4 broad-except replacement (allowlist 0).
+_SITECONFIG_TRANSLATIONS_DATE_ERRORS = (TypeError, ValueError, AttributeError)
+_SITECONFIG_TRANSLATIONS_FORMAT_ERRORS = (KeyError, ValueError, TypeError)
+
 
 # --- Phase 8: Regionalizer and LocalizationService stubs for test compatibility ---
 class Regionalizer:
@@ -82,7 +88,12 @@ class LocalizationService:
                 fmt = _date_format_to_strftime(pattern)
                 return dt.strftime(fmt)
             return dt.strftime("%d/%m/%Y") if lang == "en" else dt.isoformat()
-        except Exception:
+        except _SITECONFIG_TRANSLATIONS_DATE_ERRORS as e:
+            log_exception_with_context(
+                "LocalizationService.format_date failed",
+                school_id=None,
+                extra={"dt_repr": str(dt), "error": str(e)},
+            )
             return str(dt)
 
     @staticmethod
@@ -366,7 +377,11 @@ class MultiLanguageContent:
     def create_multilingual_report(template: str, data: dict, languages: list[str]) -> dict[str, str]:
         try:
             rendered = template.format(**data)
-        except Exception:
+        except _SITECONFIG_TRANSLATIONS_FORMAT_ERRORS:
+            log_exception_with_context(
+                "MultiLanguageContent.create_multilingual_report: template.format failed",
+                extra={"fallback": "template"},
+            )
             rendered = template
 
         previews: dict[str, str] = {}

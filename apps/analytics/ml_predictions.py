@@ -1,18 +1,38 @@
 """
 Phase 9 Task 3: ML-Based Predictions
 Fee default likelihood, performance forecasting, churn risk prediction
+§2.4: Typed exception tuples and structured logging; no broad except.
 
 INTEGRATION: Extends apps.analytics.services.AdvancedAnalyticsService
 Uses existing PerformanceMetrics model for training data
 """
 
-from django.db import models
-from django.utils import timezone
+import logging
 from datetime import timedelta
+
 import numpy as np
-from typing import Dict, List, Tuple
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import DatabaseError, models
+from django.utils import timezone
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingRegressor
 from sklearn.preprocessing import StandardScaler
+from typing import Dict, List, Tuple
+
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
+logger = logging.getLogger(__name__)
+
+# §2.4: Typed tuples for ML prediction paths (no broad except).
+_ML_RESOLVE_PROFILE_ERRORS = (ImportError, ModuleNotFoundError, AttributeError, TypeError)
+_ML_EXTRACT_FEATURES_ATTENDANCE_ERRORS = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    ObjectDoesNotExist,
+    DatabaseError,
+)
+_ML_EXTRACT_FEATURES_LAST_LOGIN_ERRORS = (TypeError, AttributeError, ValueError)
 
 
 def _resolve_student_profile(student):
@@ -24,7 +44,7 @@ def _resolve_student_profile(student):
     """
     try:
         from apps.people.models import StudentProfile
-    except Exception:
+    except _ML_RESOLVE_PROFILE_ERRORS:
         return None
     if isinstance(student, StudentProfile):
         return student
@@ -53,7 +73,7 @@ class FeeDefaultPredictor:
         """
         try:
             from apps.people.models import StudentProfile
-        except Exception:
+        except _ML_RESOLVE_PROFILE_ERRORS:
             return None
         if isinstance(student, StudentProfile):
             return student
@@ -362,8 +382,13 @@ class ChurnRiskPredictor:
                 attendance_rate = (present_count / total_logs * 100) if total_logs > 0 else 100.0
             else:
                 attendance_rate = 100.0
-        except Exception:
-            # If AttendanceLog isn't available or query fails, default to 100%
+        except _ML_EXTRACT_FEATURES_ATTENDANCE_ERRORS as e:
+            log_exception_with_context(
+                "ml_predictions ChurnRiskPredictor.extract_features attendance fallback",
+                school_id=None,
+                extra={"context": "extract_features.attendance", "student_id": getattr(student_profile, "id", None)},
+            )
+            logger.debug("AttendanceLog unavailable or query failed, defaulting to 100%%: %s", e)
             attendance_rate = 100.0
 
         # Performance trend
@@ -383,7 +408,13 @@ class ChurnRiskPredictor:
         try:
             last_login = getattr(student, 'last_login', None)
             days_since_login = (timezone.now() - last_login).days if last_login else 999
-        except Exception:
+        except _ML_EXTRACT_FEATURES_LAST_LOGIN_ERRORS as e:
+            log_exception_with_context(
+                "ml_predictions ChurnRiskPredictor.extract_features last_login fallback",
+                school_id=None,
+                extra={"context": "extract_features.days_since_login"},
+            )
+            logger.debug("last_login computation failed, defaulting to 999: %s", e)
             days_since_login = 999
 
         # Disciplinary incidents (if compliance app has this)

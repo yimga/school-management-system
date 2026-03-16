@@ -9,9 +9,25 @@ from pathlib import Path
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
+from django.db import DatabaseError, IntegrityError
+from django.core.exceptions import ValidationError
 
+from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.portal.document_generation import markdown_to_document
 from apps.portal.models_kb import KBArticle
+
+# Typed exception tuples for §2.4 broad-except rollout (broad_exception_audit)
+_KB_ODT_ARTICLE_ERRORS = (
+    OSError,
+    ValueError,
+    TypeError,
+    DatabaseError,
+    IntegrityError,
+    ValidationError,
+    KeyError,
+    AttributeError,
+)
+_KB_ODT_DELETE_ERRORS = (OSError, PermissionError)
 
 
 class Command(BaseCommand):
@@ -136,8 +152,12 @@ class Command(BaseCommand):
                     stats=stats,
                 )
                 self.stdout.write(self.style.SUCCESS(f"  [OK] {article.slug}"))
-            except Exception as exc:
+            except _KB_ODT_ARTICLE_ERRORS as exc:
                 stats["errors"] += 1
+                log_exception_with_context(
+                    "generate_kb_odt: article conversion failed",
+                    extra={"command": "generate_kb_odt", "article_slug": article.slug},
+                )
                 self.stdout.write(self.style.ERROR(f"  [ERROR] {article.slug}: {exc}"))
 
         self.stdout.write("")
@@ -180,8 +200,11 @@ class Command(BaseCommand):
                 if article.odt_file:
                     try:
                         article.odt_file.delete(save=False)
-                    except Exception:
-                        pass
+                    except _KB_ODT_DELETE_ERRORS:
+                        log_exception_with_context(
+                            "generate_kb_odt: odt_file delete failed (non-fatal)",
+                            extra={"command": "generate_kb_odt", "article_slug": article.slug},
+                        )
                 article.odt_file.save(f"{article.slug}.odt", ContentFile(odt_bytes), save=True)
                 stats["odt_generated"] += 1
                 if export_dir:

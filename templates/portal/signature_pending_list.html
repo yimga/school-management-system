@@ -4,14 +4,9 @@
 {% block title %}Pending Signatures{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-      <h1 class="h3 mb-1">Forms Requiring Signature</h1>
-      <p class="text-muted mb-0">Please review and sign the following forms</p>
-    </div>
-    <a href="{% url 'portal:parent_dashboard' %}" class="btn btn-sm btn-outline-secondary btn-back-primary"><i class="bi bi-arrow-left me-1"></i>Back to Dashboard</a>
-  </div>
+<div class="container py-4" data-page-archetype="operational-workbench">
+  {% url 'portal:parent_dashboard' as dashboard_url %}
+  {% include "studio_os/components/page_header.html" with title="Forms Requiring Signature" subtitle="Please review and sign the following forms" action_url=dashboard_url action_text="Back to Dashboard" %}
 
   {% if pending_requests %}
     <div class="row g-3">

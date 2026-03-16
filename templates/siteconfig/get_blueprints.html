@@ -1,15 +1,13 @@
 {% extends "portal_base.html" %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Blueprints{% endblock %}
+{% block title %}{% trans "Blueprints" %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4 professional-page">
+<div class="container-fluid py-4 professional-page" data-page-archetype="catalog">
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
+  <p class="text-muted small mb-3"><a href="{% url 'siteconfig:dashboard_hub' %}">{% trans "Dashboard hub" %}</a> · <a href="{% url 'siteconfig:workflow_hub' %}">{% trans "Workflow hub" %}</a>.</p>
   <div class="card shadow-sm border-0">
-    <div class="card-header bg-light border-bottom py-3 px-4">
-      <h1 class="h5 mb-1 fw-semibold">Blueprints</h1>
-      <p class="text-muted small mb-0">Policy blueprint packs for <strong>{{ school.name }}</strong>. Packs are applied by your platform administrator. <a href="{% url 'siteconfig:dashboard_hub' %}">Dashboard hub</a> · <a href="{% url 'siteconfig:workflow_hub' %}">Workflow hub</a>.</p>
-    </div>
     <div class="card-body p-4">
       {% if applied_pack %}
         <p class="mb-3"><strong>Current pack:</strong> {{ applied_pack.name }} ({{ applied_pack.slug }}) — v{{ applied_pack.version }}</p>

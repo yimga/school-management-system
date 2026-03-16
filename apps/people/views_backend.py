@@ -4,16 +4,23 @@ User-friendly views for /backend interface (separate from Django Admin)
 Section 26.5 UX rules: list search, filters, export.
 """
 import csv
+import smtplib
+
+from django.conf import settings
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.db import IntegrityError, DatabaseError
 from django.db.models import Q
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core.exceptions import ValidationError
 from django.urls import reverse
 from django.http import HttpResponse
 from django.utils import timezone
+
+from apps.platform_runtime.structured_logging import log_view_exception
 from .models import StudentProfile, TeacherProfile, StudentGuardian, Applicant
 from .forms_backend import StudentCreateForm, TeacherCreateForm, ClassroomCreateForm, ApplicantCreateForm
 from apps.academics.models import AcademicYear, Classroom, Department
@@ -21,6 +28,17 @@ from apps.siteconfig.models import FormDraft
 from apps.siteconfig.admissions_services import get_admissions_config, get_required_documents
 
 User = get_user_model()
+
+# §2.4 Typed exception sets for backend create/save flows (RUNMYCAMPUS §2.4; broad_exception_audit)
+_PEOPLE_BACKEND_SAVE_ERRORS = (
+    IntegrityError,
+    DatabaseError,
+    ValidationError,
+    ValueError,
+    TypeError,
+    AttributeError,
+)
+_PEOPLE_BACKEND_EMAIL_ERRORS = (OSError, ConnectionError, TimeoutError, smtplib.SMTPException)
 
 FORM_DRAFT_KEY_STUDENT_CREATE = "backend_student_create"
 FORM_DRAFT_KEY_APPLICATION_FORM = "application_form"
@@ -126,8 +144,12 @@ def backend_student_create(request):
                                         recipient_list=[parent_email],
                                         fail_silently=True,
                                     )
-                            except Exception:
-                                pass
+                            except _PEOPLE_BACKEND_EMAIL_ERRORS:
+                                log_view_exception(
+                                    request,
+                                    "backend_student_create: send_mail to parent failed",
+                                    extra={"recipient": parent_email},
+                                )
                         else:
                             # Existing user: only link if they are already a parent (avoid linking staff/teacher as guardian)
                             if getattr(parent_user, "role", None) != User.Role.PARENT:
@@ -155,7 +177,8 @@ def backend_student_create(request):
                     
                     messages.success(request, f"Student '{student.first_name} {student.last_name}' created successfully!")
                     return redirect('accounts:backend_student_list')
-            except Exception as e:
+            except _PEOPLE_BACKEND_SAVE_ERRORS as e:
+                log_view_exception(request, "backend_student_create failed", extra={"step": "student_create"})
                 messages.error(request, f"Error creating student: {str(e)}")
     else:
         initial, draft_updated_at, has_draft = _student_create_draft_initial(request)
@@ -207,7 +230,8 @@ def backend_teacher_create(request):
                     messages.success(request, f"Teacher '{teacher.user.get_full_name()}' created successfully!")
                     messages.info(request, f"Login credentials: Username: {username}, Password: [as set]")
                     return redirect('accounts:backend_teacher_list')
-            except Exception as e:
+            except _PEOPLE_BACKEND_SAVE_ERRORS as e:
+                log_view_exception(request, "backend_teacher_create failed", extra={"step": "teacher_create"})
                 messages.error(request, f"Error creating teacher: {str(e)}")
     else:
         form = TeacherCreateForm()
@@ -284,7 +308,8 @@ def backend_classroom_create(request):
                 classroom = form.save()
                 messages.success(request, f"Classroom '{classroom.name}' created successfully!")
                 return redirect('accounts:backend_classroom_list')
-            except Exception as e:
+            except _PEOPLE_BACKEND_SAVE_ERRORS as e:
+                log_view_exception(request, "backend_classroom_create failed", extra={"step": "classroom_create"})
                 messages.error(request, f"Error creating classroom: {str(e)}")
     else:
         form = ClassroomCreateForm()
@@ -492,7 +517,8 @@ def backend_applicant_create(request):
                 ).delete()
                 messages.success(request, f"Applicant '{applicant.first_name} {applicant.last_name}' added.")
                 return redirect("accounts:backend_applicant_list")
-            except Exception as e:
+            except _PEOPLE_BACKEND_SAVE_ERRORS as e:
+                log_view_exception(request, "backend_applicant_create failed", extra={"step": "applicant_create"})
                 messages.error(request, str(e))
     else:
         initial, draft_updated_at, has_draft = _application_form_draft_initial(request)

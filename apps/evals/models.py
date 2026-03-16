@@ -1,4 +1,5 @@
 import uuid
+from decimal import InvalidOperation
 from typing import Optional
 
 from django.conf import settings
@@ -455,7 +456,7 @@ class Evaluation(models.Model):
         # Persist final_score for efficient aggregation/reporting
         try:
             self.final_score = self.total_score
-        except Exception:
+        except _EVALS_MODEL_SAVE_FINAL_SCORE_ERRORS:
             self.final_score = None
         # Persist normalized_value (0.0–1.0) for cross-tenant/cross-system (Rosetta Stone)
         try:
@@ -465,7 +466,7 @@ class Evaluation(models.Model):
                 self.normalized_value = score_to_normalized(float(self.final_score), school)
             else:
                 self.normalized_value = None
-        except Exception:
+        except _EVALS_MODEL_SAVE_NORMALIZED_ERRORS:
             self.normalized_value = None
         super().save(*args, **kwargs)
 

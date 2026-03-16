@@ -5,8 +5,8 @@
 {% block cp_title %}Migration Cloud{% endblock %}
 
 {% block cp_content %}
-  <div class="container-fluid py-4">
-    {% include "partials/page_families/title_block.html" with title="Migration cloud" subtitle="Govern connector profiles, recent runs, parity, and rollback readiness from the control plane." action_url=dashboard_url action_label="Back to dashboard" return_to_origin=1 %}
+  <div class="container-fluid py-4" data-page-archetype="operational-workbench">
+    {% include "studio_os/components/page_header.html" with title="Migration cloud" subtitle="Govern connector profiles, recent runs, parity, and rollback readiness from the control plane." action_url=dashboard_url action_text="Back to dashboard" %}
     {% if registry_url %}
     <p class="mb-2"><a href="{{ registry_url }}">Migration Profile Registry</a> (by source system and category)</p>
     {% endif %}

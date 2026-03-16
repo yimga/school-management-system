@@ -10,6 +10,7 @@ from django.db.models import Q
 from apps.academics.models import Classroom
 from apps.brand_experience.models import ThemePack
 from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.runtime_blueprints.models import ReportCardStyle
 
 from .models_support import (
@@ -25,6 +26,17 @@ from .models_tooling import UserPreference
 from .translations import SUPPORTED_LANGUAGES
 from .models_dashboard import DashboardUserPreference
 from .widgets import ColorInputWithPreview
+
+# §2.4: Typed tuple for get_effective_site_settings resolution in theme/experience forms.
+_SITECONFIG_FORMS_RESOLVE_ERRORS = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    LookupError,
+    KeyError,
+    DatabaseError,
+)
 
 
 def _school_for_user(user):
@@ -827,8 +839,12 @@ class ThemeColorsForm(forms.ModelForm):
                 instance = get_effective_site_settings(request=request)
                 if instance is not None:
                     self.instance = instance
-            except Exception:
-                pass
+            except _SITECONFIG_FORMS_RESOLVE_ERRORS:
+                log_exception_with_context(
+                    "ThemeColorsForm __init__: get_effective_site_settings failed",
+                    school_id=getattr(getattr(request, "school", None), "id", None),
+                    extra={"form": "ThemeColorsForm"},
+                )
         instance = getattr(self, "instance", None)
         theme_experience_settings = (
             instance.get_theme_experience_settings()
@@ -969,7 +985,11 @@ class ThemeColorsForm(forms.ModelForm):
             try:
                 from apps.platform_runtime.helpers import get_effective_site_settings
                 instance = get_effective_site_settings(request=None)
-            except Exception:
+            except _SITECONFIG_FORMS_RESOLVE_ERRORS:
+                log_exception_with_context(
+                    "ThemeColorsForm save: get_effective_site_settings(request=None) failed",
+                    extra={"form": "ThemeColorsForm"},
+                )
                 instance = None
             if instance is not None:
                 self.instance = instance

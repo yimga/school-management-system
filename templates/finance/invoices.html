@@ -1,11 +1,13 @@
 {% extends "portal_base.html" %}
+{% load i18n %}
 {% load region_format %}
 
-{% block title %}Invoices{% endblock %}
+{% block title %}{% trans "Invoices" %}{% endblock %}
 
 {% block content %}
-{% url 'finance:dashboard' as finance_dashboard_url %}
-{% include "components/page_header.html" with title="Invoices" subtitle="Accounts receivable and payable." action_url=finance_dashboard_url action_text="Back to Finance" %}
+<div class="container-fluid py-2" data-page-archetype="operational-workbench">
+{% trans "Back to Finance" as back_action %}
+{% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=back_action %}
 
 {% if finance_access_required and not finance_access_granted %}
 <div class="alert alert-warning d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-3" role="alert">
@@ -251,4 +253,5 @@
 })();
 </script>
 {% include "components/was_this_helpful.html" with feedback_id="finance-invoices" %}
+</div>
 {% endblock %}

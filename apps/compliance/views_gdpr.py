@@ -1,10 +1,27 @@
 # Phase Compliance optional: Data portability (GDPR Art. 20) and Erasure request (Art. 17)
+import logging
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
+from django.db import DatabaseError, IntegrityError
+from django.http import JsonResponse, HttpResponseForbidden
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
-from django.http import JsonResponse, HttpResponseForbidden
 
-from django.contrib.auth.decorators import login_required
+from apps.platform_runtime.structured_logging import log_view_exception
+
+logger = logging.getLogger(__name__)
+
+# §2.4: Typed tuples for GDPR views (no broad except).
+_GDPR_MFA_VERIFY_PARSE_ERRORS = (ValueError, TypeError, AttributeError)
+_GDPR_VIEW_AUDIT_LOG_ERRORS = (
+    DatabaseError,
+    IntegrityError,
+    ValidationError,
+    TypeError,
+    ValueError,
+    AttributeError,
+)
 
 
 def _mfa_verified(request):
@@ -20,7 +37,8 @@ def _mfa_verified(request):
         if timezone.is_naive(until_dt):
             until_dt = timezone.make_aware(until_dt, timezone.get_current_timezone())
         return timezone.now() <= until_dt
-    except Exception:
+    except _GDPR_MFA_VERIFY_PARSE_ERRORS:
+        logger.debug("_mfa_verified: invalid mfa_verified_until session value")
         return False
 
 
@@ -73,8 +91,12 @@ def data_portability_export(request):
                 user=request.user,
                 severity="high",
             )
-    except Exception:
-        pass
+    except _GDPR_VIEW_AUDIT_LOG_ERRORS:
+        log_view_exception(
+            request,
+            "GDPR portability audit log create failed",
+            extra={"student_id": student_id, "format": export_format},
+        )
     return JsonResponse(result)
 
 
@@ -139,8 +161,12 @@ def erasure_request_view(request):
                     user=request.user,
                     severity="high",
                 )
-        except Exception:
-            pass
+        except _GDPR_VIEW_AUDIT_LOG_ERRORS:
+            log_view_exception(
+                request,
+                "GDPR erasure request audit log create failed",
+                extra={"student_id": sid},
+            )
         messages.success(request, "Erasure request logged. An administrator will process it.")
         return redirect("compliance:erasure_request")
     return render(request, "compliance/erasure_request.html", {"school": school})

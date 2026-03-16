@@ -21,7 +21,17 @@ from dataclasses import dataclass
 from django.core.management.base import BaseCommand, CommandError
 from django.db import models
 
+from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.policies.policy_registry import get_effective_policy
+
+# §2.4: Typed allowlist for _resolve_guard_feature_codes import/attr fallback.
+_COMPLIANCE_AUDITOR_RESOLVE_GUARD_ERRORS = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    KeyError,
+)
 
 
 @dataclass(frozen=True)
@@ -70,7 +80,12 @@ class Command(BaseCommand):
             from apps.compliance.middleware import COMPLIANCE_GUARD_PATH_MAP
 
             return sorted({str(v).strip() for v in COMPLIANCE_GUARD_PATH_MAP.values() if str(v).strip()})
-        except Exception:
+        except _COMPLIANCE_AUDITOR_RESOLVE_GUARD_ERRORS as e:
+            log_exception_with_context(
+                "compliance_auditor: resolve guard feature codes failed",
+                school_id=None,
+                extra={"command": "compliance_auditor", "error": str(e)},
+            )
             # Conservative fallback for DSAR/interoperability paths.
             return sorted(
                 {

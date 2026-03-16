@@ -1,13 +1,31 @@
-"""Notification service for SMS, email, digests. Uses unified communication notification service (no direct Twilio/AfricasTalking)."""
+"""Notification service for SMS, email, digests. Uses unified communication notification service (no direct Twilio/AfricasTalking).
+§2.4 Typed exceptions + structured logging for send failure paths (broad_exception_audit; allowlist 0).
+"""
 
-from django.template.loader import render_to_string
-from django.utils import timezone
-from django.conf import settings
 import logging
+from smtplib import SMTPException
 from typing import Any, Dict, List
 from urllib.parse import quote_plus
 
+from django.conf import settings
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils import timezone
+
 from apps.communication.notification_service import send_email as _send_email, send_sms as _send_sms
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
+# §2.4: Typed exceptions for email/SMS send failures (broad_exception_audit)
+_EVALS_NOTIFICATION_SEND_ERRORS = (
+    OSError,
+    ConnectionError,
+    TimeoutError,
+    SMTPException,
+    ValueError,
+    TypeError,
+    AttributeError,
+    KeyError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -55,8 +73,14 @@ class NotificationService:
             
             logger.info(f"Grade publication email sent to {recipient_email}")
             return True
-        except Exception as e:
-            logger.error(f"Failed to send grade publication email: {e}")
+        except _EVALS_NOTIFICATION_SEND_ERRORS as e:
+            school_id = getattr(student, "school_id", None) or getattr(getattr(term, "academic_year", None), "school_id", None)
+            log_exception_with_context(
+                "evals send_grade_publication_email failed",
+                school_id=school_id,
+                exc_info=True,
+                extra={"recipient": recipient_email, "error": str(e)},
+            )
             return False
     
     def send_grade_publication_sms(self, guardian, student, term):
@@ -69,8 +93,14 @@ class NotificationService:
                 f"View: {portal_link}"
             )
             return _send_sms(guardian.phone, message, site_settings=self.site_settings)
-        except Exception as e:
-            logger.error(f"Failed to send grade publication SMS: {e}")
+        except _EVALS_NOTIFICATION_SEND_ERRORS as e:
+            school_id = getattr(student, "school_id", None) or getattr(getattr(term, "academic_year", None), "school_id", None)
+            log_exception_with_context(
+                "evals send_grade_publication_sms failed",
+                school_id=school_id,
+                exc_info=True,
+                extra={"recipient_phone": getattr(guardian, "phone", None), "error": str(e)},
+            )
             return False
     
     def send_deadline_reminder_email(self, teacher, deadline_at, subject_count):
@@ -100,8 +130,11 @@ class NotificationService:
             
             logger.info(f"Deadline reminder email sent to {teacher.user.email}")
             return True
-        except Exception as e:
-            logger.error(f"Failed to send deadline reminder: {e}")
+        except _EVALS_NOTIFICATION_SEND_ERRORS as e:
+            log_exception_with_context(
+                "evals send_deadline_reminder_email failed",
+                extra={"recipient": getattr(teacher.user, "email", None), "error": str(e)},
+            )
             return False
     
     def send_sms(self, phone_number: str, message: str, *, fallback_email: str | None = None) -> bool:
@@ -241,8 +274,15 @@ class NotificationService:
             )
             logger.info(f"Grade approval email sent to {approver.email}")
             return True
-        except Exception as exc:
-            logger.error("Failed to send grade approval email", exc_info=exc)
+        except _EVALS_NOTIFICATION_SEND_ERRORS as exc:
+            school_id = getattr(getattr(approval_request, "academic_year", None), "school_id", None) or getattr(approval_request, "school_id", None)
+            log_exception_with_context(
+                "evals send_grade_approval_request_email failed",
+                school_id=school_id,
+                actor_id=getattr(approver, "id", None),
+                exc_info=True,
+                extra={"recipient": getattr(approver, "email", None), "approval_request_id": getattr(approval_request, "id", None)},
+            )
             return False
 
     def send_grade_approval_decision_email(self, approval_request, status) -> bool:
@@ -269,6 +309,13 @@ class NotificationService:
             )
             logger.info(f"Grade approval decision email sent to {teacher_user.email}")
             return True
-        except Exception as exc:
-            logger.error("Failed to send grade approval decision email", exc_info=exc)
+        except _EVALS_NOTIFICATION_SEND_ERRORS as exc:
+            school_id = getattr(getattr(approval_request, "academic_year", None), "school_id", None) or getattr(approval_request, "school_id", None)
+            log_exception_with_context(
+                "evals send_grade_approval_decision_email failed",
+                school_id=school_id,
+                actor_id=getattr(teacher_user, "id", None),
+                exc_info=True,
+                extra={"recipient": getattr(teacher_user, "email", None), "approval_request_id": getattr(approval_request, "id", None), "status": status},
+            )
             return False

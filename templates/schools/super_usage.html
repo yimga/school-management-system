@@ -4,9 +4,9 @@
 {% block cp_title %}API Usage & Quotas{% endblock %}
 
 {% block cp_content %}
-  <div class="container-fluid py-4">
+  <div class="container-fluid py-4" data-page-archetype="operational-workbench">
     {% url 'super:dashboard' as super_dashboard_url %}
-    {% include "partials/page_families/title_block.html" with title="Per-school API usage & quotas" subtitle="Usage is sampled (throttled writes). Quotas are configured in Admin → School quota limits." action_url=super_dashboard_url action_label="Back to Schools" return_to_origin=1 %}
+    {% include "studio_os/components/page_header.html" with title="Per-school API usage & quotas" subtitle="Usage is sampled (throttled writes). Quotas are configured in Admin → School quota limits." action_url=super_dashboard_url action_text="Back to Schools" %}
     <div class="card shadow-sm border-0 page-family-content-card">
       <div class="card-body p-0">
         {% if schools %}

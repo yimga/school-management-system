@@ -18,12 +18,15 @@ Typical cron setup (APScheduler or Celery Beat):
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from datetime import timedelta
+from django.db import DatabaseError, IntegrityError, OperationalError
 from django.db.models import Count, Q
+from django.core.exceptions import ValidationError
 
 from apps.compliance.models_audit import (
     AuditLog, ComplianceReport, AccessLog, UserActivitySession
 )
 from apps.compliance.alerts import send_compliance_report_email
+from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.compliance.tenant_scope import (
     school_user_queryset,
     scope_access_logs,
@@ -31,6 +34,17 @@ from apps.compliance.tenant_scope import (
     scope_sessions,
 )
 from apps.schools.models import School
+
+# §2.4: Typed tuple for report creation / DB operations (allowlist 0).
+_GENERATE_COMPLIANCE_REPORTS_ERRORS = (
+    DatabaseError,
+    IntegrityError,
+    OperationalError,
+    ValidationError,
+    ValueError,
+    TypeError,
+    AttributeError,
+)
 
 SUCCESS_ACCESS_FILTER = Q(status=AccessLog.Status.SUCCESS) | Q(status="200")
 FAILED_ACCESS_FILTER = ~SUCCESS_ACCESS_FILTER
@@ -142,7 +156,12 @@ class Command(BaseCommand):
                 self.style.SUCCESS(f"✓ Daily audit report created: {stats['total_actions']} actions")
             )
             return report
-        except Exception as e:
+        except _GENERATE_COMPLIANCE_REPORTS_ERRORS as e:
+            log_exception_with_context(
+                "generate_compliance_reports: failed to create daily audit report",
+                school_id=getattr(self.scope_school, "id", None),
+                extra={"command": "generate_compliance_reports", "report_type": "AUDIT_TRAIL", "error": str(e)},
+            )
             self.stdout.write(self.style.ERROR(f"✗ Failed to create daily audit report: {e}"))
             return None
 
@@ -194,7 +213,12 @@ class Command(BaseCommand):
                 self.style.SUCCESS(f"✓ Weekly access report created: {total_access} accesses")
             )
             return report
-        except Exception as e:
+        except _GENERATE_COMPLIANCE_REPORTS_ERRORS as e:
+            log_exception_with_context(
+                "generate_compliance_reports: failed to create weekly access report",
+                school_id=getattr(self.scope_school, "id", None),
+                extra={"command": "generate_compliance_reports", "report_type": "DATA_ACCESS", "error": str(e)},
+            )
             self.stdout.write(self.style.ERROR(f"✗ Failed to create weekly access report: {e}"))
             return None
 
@@ -231,7 +255,12 @@ class Command(BaseCommand):
             try:
                 deleted = UserActivitySession.objects.filter(user__isnull=True).delete()[0]
                 fixes.append(f"Deleted {deleted} orphaned sessions")
-            except Exception as e:
+            except _GENERATE_COMPLIANCE_REPORTS_ERRORS as e:
+                log_exception_with_context(
+                    "generate_compliance_reports: failed to delete orphaned sessions",
+                    school_id=getattr(self.scope_school, "id", None),
+                    extra={"command": "generate_compliance_reports", "section": "orphaned_sessions", "error": str(e)},
+                )
                 fixes.append(f"Failed to delete orphaned sessions: {e}")
 
         # Check suspicious activities
@@ -270,6 +299,11 @@ class Command(BaseCommand):
             for fix in fixes:
                 self.stdout.write(self.style.SUCCESS(f"  → {fix}"))
             return report
-        except Exception as e:
+        except _GENERATE_COMPLIANCE_REPORTS_ERRORS as e:
+            log_exception_with_context(
+                "generate_compliance_reports: failed to create monthly integrity report",
+                school_id=getattr(self.scope_school, "id", None),
+                extra={"command": "generate_compliance_reports", "report_type": "INTEGRITY_CHECK", "error": str(e)},
+            )
             self.stdout.write(self.style.ERROR(f"✗ Failed to create monthly integrity report: {e}"))
             return None

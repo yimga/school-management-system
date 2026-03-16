@@ -1,36 +1,96 @@
-# Redundancy and plan index
+# Consolidated plan index (single place to track)
 
-Single entry point so the codebase has **one plan** and **one completion reference**; redundancy is reduced and clear.
+**Purpose:** During this critical phase, track **only** the items in §1 below. All other plan/strategy/roadmap docs are superseded or reference-only; completion authority is RUNMYCAMPUS §12 and the four canonical docs. This file is the **only index** you need to avoid missing, overlooking, or duplicating work. **§6** is the single place to see how every external plan or directive (Cursor master prompt, Cursor implementation plan, 12 layers, UX directive, scroll-storytelling) maps into the SOT and where progress is tracked.
 
-**Canonical authority (per BACKLOG_AND_DEFERRED_CLOSURE §2c):** Strategy and completion updates go **only** to the four docs in "Single plan and completion" below. Do not create new overlapping strategy or roadmap files.
+**For all agents:** Strategy and completion updates go **only** to the four canonical docs (§1). Do not create new strategy or roadmap files. When given a Cursor prompt, pasted implementation plan, or "12 layers" / UX / marketing directive, use **§6** to see where it lives and where to record progress; then update RUNMYCAMPUS, BACKLOG, docs_truth_ledger, or NEXT_50 as appropriate.
 
-## Single plan and completion
+---
 
-- **Plan (execution source of truth):** [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) — single execution source of truth; §12 gates; evidence table §12.1.
-- **Backlog/closure:** [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md) — every unchecked/deferred item closed with status + closure note.
-- **Completion ledger:** [docs_truth_ledger.md](docs_truth_ledger.md) — item → DONE / PARTIAL / NOT DONE.
-- **Numbered checklist:** [NEXT_50_EXECUTION_STEPS.md](NEXT_50_EXECUTION_STEPS.md) — implementation order; status per step.
-- **Superseded (reference only):** [RUNMYCAMPUS_SINGLE_PLAN_COMPLETE.md](RUNMYCAMPUS_SINGLE_PLAN_COMPLETE.md) and [PLAN_COMPLETION_CHECKLIST.md](PLAN_COMPLETION_CHECKLIST.md) — use for historical context only.
-- **Deployment:** [RUNMYCAMPUS_DEPLOYMENT.md](RUNMYCAMPUS_DEPLOYMENT.md) or [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) — schema-per-tenant, pre-deploy, health; no duplicate deployment plan docs.
+## 1. What to track (only these)
 
-## Other gap/audit docs (scope)
+| # | Document | Role |
+|---|----------|------|
+| 1 | [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) | **Single execution source of truth.** §12 gates; evidence table §12.1; phases A–I; all remediation must map here. |
+| 2 | [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md) | **Backlog/closure.** Every unchecked/deferred item has status (DONE/PARTIAL/NOT DONE/BLOCKED) + closure note. §2e = next logical steps. |
+| 3 | [docs_truth_ledger.md](docs_truth_ledger.md) | **Completion ledger.** Item → DONE / PARTIAL / NOT DONE. Snapshot of where we stand. |
+| 4 | [NEXT_50_EXECUTION_STEPS.md](NEXT_50_EXECUTION_STEPS.md) | **Numbered checklist.** Implementation order; status per step. |
+| 5 | **This file** (REDUNDANCY_AND_PLAN_INDEX.md) | **Consolidated plan index.** One place to see what to track and what is superseded. |
 
-These are **not** duplicates of the single plan; they cover specific areas. For "is the plan complete?" use RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH §12 and docs_truth_ledger.
+**Deployment (no duplicate deployment plans):** [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) for pre-deploy, migrations, launch. [RUNMYCAMPUS_DEPLOYMENT.md](RUNMYCAMPUS_DEPLOYMENT.md) if present — otherwise RELEASE_CHECKLIST only.
+
+---
+
+## 2. Implementation checklists (referenced by SOT; update when doing that work)
+
+These are **not** sources of completion status. The SOT and BACKLOG reference them for specific work. Update them when implementing the referenced section only.
+
+| Doc | Referenced by | Use |
+|-----|----------------|-----|
+| [OPERATING_DISCIPLINE_LAYERS.md](OPERATING_DISCIPLINE_LAYERS.md) | RUNMYCAMPUS §10.5, Phase I | Edge-case, pack versioning, service/support, trust, dashboard taxonomy, content, design-system, boring excellence. |
+| [CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL.md](CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL.md) | RUNMYCAMPUS §8.0, BACKLOG §2e row 8 | One shell/sidebar/theme; marketing ultra high-end; implementation checklist. |
+| [MASTER_PLATFORM_CHECKLIST.md](MASTER_PLATFORM_CHECKLIST.md) | BACKLOG §6, verification | Phase ledger; completion authority remains RUNMYCAMPUS §12 + docs_truth_ledger. |
+| [RunMyCampus_Enterprise_Architecture_Audit_and_Cursor_Plan.md](RunMyCampus_Enterprise_Architecture_Audit_and_Cursor_Plan.md) | RUNMYCAMPUS (supporting doc) | Context and audit; execution checklist lives in RUNMYCAMPUS + BACKLOG. |
+
+---
+
+## 3. Superseded / reference-only (do not use as source of truth)
+
+**Completion and “what to do next” come only from §1.** The docs below are **superseded** or **reference-only**. Do not update them for strategy or completion status; do not create new docs that duplicate them.
+
+| Doc | Status | Authority instead |
+|-----|--------|--------------------|
+| RUNMYCAMPUS_SINGLE_PLAN_COMPLETE.md | Superseded | RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md |
+| PLAN_COMPLETION_CHECKLIST.md | Superseded | BACKLOG + docs_truth_ledger + NEXT_50 |
+| RUNMYCAMPUS_11_10_NORTH_STAR_COMPLETION_PLAN.md | Closed; named plan only | RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md |
+| THREE_PLANS_EXECUTION_GUIDE.md | Superseded | RUNMYCAMPUS + BACKLOG §2e |
+| THREE_PLANS_MERGED_CHECKLIST.md | Superseded | BACKLOG §1 + §2e + NEXT_50 |
+| MASTER_PLAN.md | Superseded | RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md |
+| RUNMYCAMPUS_BLUEPRINT_FULL_EXECUTABLE_PLAN.md | Superseded | RUNMYCAMPUS + BACKLOG |
+| PLAN_VERIFICATION_REPORT.md | Reference / verification only | Completion = RUNMYCAMPUS §12 + ledger |
+| PLAN_COMPLETION_STATUS.md | Superseded | docs_truth_ledger + BACKLOG |
+| RunMyCampus_Metadata_Driven_Gap_Closure_Plan.md | Reference / context | Execution = RUNMYCAMPUS + BACKLOG |
+| RUNMYCAMPUS_AUDIT_PLAN_COMPLETE_NO_BACKLOG.md | Reference | RUNMYCAMPUS §12 + BACKLOG |
+| All other docs matching *PLAN*.md, *plan*.md in docs/ | Superseded or domain-specific | For “is the plan complete?” and “what next?” use §1 only. Domain-specific (e.g. THEME_*, ADMIN_*, PAYMENT_*) are reference only; do not treat as execution plan. |
+
+**.cursor/plans/*.plan.md:** Task-specific or historical. For execution source of truth and next steps use RUNMYCAMPUS and BACKLOG §2e; mark completed items in those plan files when the SOT says to sync.
+
+---
+
+## 4. Other gap/audit docs (scope only; not completion authority)
+
+For “is the plan complete?” use RUNMYCAMPUS §12 and docs_truth_ledger. These cover specific scopes only:
 
 | Doc | Purpose |
 |-----|---------|
-| [CODE_REVIEW_GAPS_REDUNDANCIES.md](CODE_REVIEW_GAPS_REDUNDANCIES.md) | Structural and feature-level code review; TODOs and placeholders. |
-| [GAPS_AND_REDUNDANCY_AUDIT.md](GAPS_AND_REDUNDANCY_AUDIT.md) | Templates, locale, placeholder TODOs. |
-| [GAPS_SECTION8_AND_TAGGING.md](GAPS_SECTION8_AND_TAGGING.md) | Section 8 and information tagging. |
-| [PREMIUM_FRONTEND_AUDIT.md](PREMIUM_FRONTEND_AUDIT.md) | Backlog/deferred status and premium frontend assessment for marketing, superadmin, workflow hub, dashboard manager. |
-| [REPORTS/AUDIT_LOG.md](../REPORTS/AUDIT_LOG.md) | Technical audit (tenant scope, i18n, rate limiting, jobs, audit trail). |
+| CODE_REVIEW_GAPS_REDUNDANCIES.md | Structural/feature code review; TODOs. |
+| GAPS_AND_REDUNDANCY_AUDIT.md | Templates, locale, placeholder TODOs. |
+| GAPS_SECTION8_AND_TAGGING.md | Section 8 and tagging. |
+| PREMIUM_FRONTEND_AUDIT.md | Premium frontend assessment; backlog/deferred. |
+| REPORTS/AUDIT_LOG.md | Technical audit (tenant scope, i18n, audit trail). |
 
-## Premium frontend (selected surfaces)
+---
 
-Use a **premium frontend** for: **marketing**, **superadmin** (manager), **workflow hub**, **dashboard manager** (tenant backend + dashboard hub). Standards: design tokens, clear hierarchy, WCAG AA where applicable. See [PREMIUM_FRONTEND_AUDIT.md](PREMIUM_FRONTEND_AUDIT.md) for assessment, backlog/deferred confirmation, and references to [THEME_COMPONENT_KITS.md](THEME_COMPONENT_KITS.md) and hub shell (`static/css/hub-premium.css`).
+## 5. Redundancy rules (unchanged)
 
-## Redundancy addressed
+- **Single plan:** Only RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md is the execution source of truth.
+- **Single completion set:** BACKLOG + docs_truth_ledger + NEXT_50. No duplicate closure/checklist docs.
+- **Master Table List:** One doc (MASTER_TABLE_LIST.md).
+- **Deployment:** RELEASE_CHECKLIST (and RUNMYCAMPUS_DEPLOYMENT if present); no extra deployment plan docs.
 
-- **No duplicate “single plan”:** Only RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md is the execution source of truth; BACKLOG, docs_truth_ledger, and NEXT_50 are the canonical closure/checklist. Other roadmap docs (e.g. RUNMYCAMPUS_SINGLE_PLAN_COMPLETE) are reference or superseded.
-- **Master Table List:** One doc ([MASTER_TABLE_LIST.md](MASTER_TABLE_LIST.md)); onboarding references it; no second list elsewhere.
-- **Audit trail:** One design doc (AUDIT_TRAIL_TRIGGER_BASED.md); one revoke command (revoke_audit_log_permissions); REPORTS/AUDIT_LOG section 11 points to both.
+---
+
+## 6. Consolidated plan and directive map (single place to track progress)
+
+Use this section to see where every named plan, directive, or "12 layers" style checklist lives and how progress is tracked. **Do not create new docs for these;** they are already folded into the SOT and supporting checklists.
+
+| Name / source | Where it lives in this repo | Progress tracked in |
+|---------------|-----------------------------|---------------------|
+| **12 operating-discipline layers** (edge-case, pack versioning, service/support, trust product, dashboard taxonomy, content/terminology, design-system behavior, boring excellence) | RUNMYCAMPUS §10.5; [OPERATING_DISCIPLINE_LAYERS.md](OPERATING_DISCIPLINE_LAYERS.md) | RUNMYCAMPUS §11 Phase I; BACKLOG §2e row 13 |
+| **Decision architecture** (seven questions: who, what question, what state, next action, confidence, wrong-path, fallback) | RUNMYCAMPUS §1.8; OPERATING_DISCIPLINE_LAYERS (meta-layer); [DECISION_ARCHITECTURE_CHECKLIST.md](DECISION_ARCHITECTURE_CHECKLIST.md) | §8.0 enforcement; DASHBOARD_TAXONOMY_AND_REGISTRY; DESIGN_SYSTEM_BEHAVIOR |
+| **Cursor Master Prompt / North Star** (one shell, Studio OS, dashboard doctrine, security, marketplace, marketing, boring excellence) | RUNMYCAMPUS (full plan: §2 objectives, §8.0 UX, §10 security, §4 Studio OS, §11 phases) | §11 Phases A–I; BACKLOG §2e; NEXT_50 |
+| **Cursor Implementation Plan** (Phase 1 stop bleeding → … → Phase 9 boring excellence) | RUNMYCAMPUS §11 Phases A–I (same execution order) | §11; BACKLOG §2e; NEXT_50 |
+| **UX ultra-high-end / dashboard directive** (one shell, one design system, dashboard doctrine, control-plane restructuring, 5-second rule, inverted pyramid, role-home) | RUNMYCAMPUS §8.0; [CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL.md](CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL.md) | §8.0; BACKLOG §2e row 8 |
+| **Scroll-storytelling marketing directive** (chapter narrative, pinned product frame, motion rules, marketing/product one family) | RUNMYCAMPUS §8 (marketing); [MARKETING_FRONT_PLACEHOLDER.md](MARKETING_FRONT_PLACEHOLDER.md); CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL | Phase F; BACKLOG |
+| **RunMyCampus Enterprise Architecture Audit** | [RunMyCampus_Enterprise_Architecture_Audit_and_Cursor_Plan.md](RunMyCampus_Enterprise_Architecture_Audit_and_Cursor_Plan.md) (reference only) | Execution = RUNMYCAMPUS + BACKLOG; no separate checklist |
+
+**How to use:** When you have a Cursor prompt, a pasted "Cursor implementation plan," or a "12 layers" / "UX directive" / "scroll-storytelling" checklist, **do not create a new plan file.** Check this table: the content is already represented in RUNMYCAMPUS and the implementation checklists (§2). Update only RUNMYCAMPUS, BACKLOG, docs_truth_ledger, or NEXT_50 for completion; update OPERATING_DISCIPLINE_LAYERS or CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL only when implementing that specific work.

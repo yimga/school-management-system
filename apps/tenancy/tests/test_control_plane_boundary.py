@@ -61,7 +61,7 @@ def _file_contains_forbidden_imports(path: Path) -> list[str]:
                 if pattern in stripped:
                     found.append(pattern)
                     break
-    except Exception:
+    except OSError:
         pass
     return found
 

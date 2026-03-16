@@ -4,15 +4,12 @@
 {% block title %}Signature Requests Management{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
-    <div>
-      <h1 class="h3 mb-1">Signature Requests</h1>
-      <p class="text-muted mb-0">Manage electronic signature requests for forms</p>
-    </div>
-    <a href="{% url 'portal:signature_request_create' %}" class="btn btn-primary">
-      <i class="bi bi-plus-circle me-1"></i>Create Request
-    </a>
+<div class="container-fluid py-4" data-page-archetype="operational-workbench">
+  {% url 'portal:signature_request_create' as create_url %}
+  {% include "studio_os/components/page_header.html" with title="Signature Requests" subtitle="Manage electronic signature requests for forms" action_url=create_url action_text="Create Request" %}
+  <div class="d-flex gap-2 mb-3 small">
+    <a href="{% url 'studio_os:output' %}?pane=documents" class="text-muted" title="Document library in Output Studio"><i class="bi bi-box-arrow-up-right me-1"></i>Output Studio</a>
+    <a href="{% url 'portal:document_library_manage' %}" class="text-muted">Document Library</a>
   </div>
 
   <!-- Stats Cards -->

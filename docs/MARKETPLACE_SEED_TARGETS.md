@@ -25,7 +25,7 @@
 
 ## 2. Current state (filled from catalog)
 
-Run: `python manage.py platform_inventory` (text) or `python manage.py platform_inventory --format json` for scripted §2 refresh. Optional: `python scripts/refresh_marketplace_seed_targets.py` writes `docs/generated/marketplace_seed_counts.json` for automation/CI.
+Run: `python manage.py platform_inventory` (text) or `python manage.py platform_inventory --format json` for scripted §2 refresh. Optional: `python scripts/refresh_marketplace_seed_targets.py` writes `docs/generated/marketplace_seed_counts.json` (with `_refreshed_at` timestamp); script validates minimums and exits 1 if not met. Minimums are defined in `apps.platform_runtime.catalog_counts.MARKETPLACE_MINIMUMS` (single source; must match this doc §1).
 
 **Last refreshed:** 2026-03-13 (after seed_workflow_dashboard_packs + seed_blueprint_policy_packs; all catalog minimums met).
 

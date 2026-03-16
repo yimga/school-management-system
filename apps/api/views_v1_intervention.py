@@ -16,6 +16,7 @@ from django.views import View
 from django.views.decorators.http import require_http_methods
 
 from apps.api.views_v1 import _backend_flag_enabled, _get_school_from_request
+from apps.platform_runtime.structured_logging import log_view_exception
 
 logger = logging.getLogger(__name__)
 
@@ -155,5 +156,5 @@ class InterventionGenerateRoadmapView(View):
         except StudentProfile.DoesNotExist:
             return JsonResponse({"error": "Student not found"}, status=404)
         except (AttributeError, DatabaseError, ImportError, TypeError, ValueError) as e:
-            logger.exception("intervention/generate-roadmap")
+            log_view_exception(request, "api.views_v1_intervention: intervention/generate-roadmap", extra={"error": str(e)})
             return JsonResponse({"error": str(e)}, status=500)

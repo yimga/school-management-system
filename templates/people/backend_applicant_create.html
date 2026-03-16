@@ -5,16 +5,11 @@
 {% block backend_title %}{% trans "Add applicant" %} - Backend{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" data-page-archetype="record-detail">
   <div class="row">
     <div class="col-12">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h2 class="fw-bold mb-1">{% trans "Add applicant" %}</h2>
-          <p class="text-muted mb-0">{% trans "Record a lead or new application." %}</p>
-        </div>
-        <a href="{% url 'accounts:backend_applicant_list' %}" class="btn btn-sm btn-outline-secondary btn-back-secondary"><i class="bi bi-arrow-left me-1"></i>{% trans "Back to list" %}</a>
-      </div>
+      {% url 'accounts:backend_applicant_list' as list_url %}
+      {% include "studio_os/components/page_header.html" with title="Add applicant" subtitle="Record a lead or new application." action_url=list_url action_text="Back to list" %}
 
       {% if has_draft %}
       <div class="alert alert-info d-flex align-items-center justify-content-between mb-3" role="alert">

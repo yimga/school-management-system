@@ -40,7 +40,7 @@
       "audit_logging": "manual_review_required",
       "notes": "Billing webhook callback."
     },
-    "apps/finance/views.py": {
+    "apps/finance/views_payments.py": {
       "expected_count": 1,
       "owner": "finance_payments",
       "verdict": "keep",
@@ -48,7 +48,7 @@
       "replay_protection": "provider_signature_timestamp_manual_review_required",
       "rate_limiting": "not_applicable",
       "audit_logging": "manual_review_required",
-      "notes": "Payment provider webhook callback."
+      "notes": "Payment provider webhook callback (payment_provider_webhook)."
     },
     "apps/schools/section8_views.py": {
       "expected_count": 5,

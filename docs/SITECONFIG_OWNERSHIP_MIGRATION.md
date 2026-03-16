@@ -29,3 +29,29 @@
    Mark legacy access paths with `# DEPRECATED: use apps.platform_runtime.helpers.get_effective_site_settings` (or equivalent) and target removal date.
 
 **Rule:** No new tenant behavior may be sourced from `SiteSettings` or other siteconfig singletons; use runtime resolvers and bounded-context services. See `docs/SITESETTINGS_GET_SOLO_ALLOWLIST.md` and `scripts/lint_tenant_settings.py --report-allowlisted`. **Ordering (nothing left behind):** [RESOLVER_MIGRATE_DELETE_ORDERING.md](RESOLVER_MIGRATE_DELETE_ORDERING.md) — resolver first, then migrate, then delete; phases 1–3 checklist.
+
+---
+
+## Phase B: Shrink SiteSettings (explicit plan)
+
+**Goal:** SiteSettings eventually contains only **safe platform defaults**; all behavioral and tenant-facing fields move to bounded contexts and are read via runtime resolvers.
+
+### Stay in SiteSettings (safe platform defaults only)
+
+| Field | Reason |
+|-------|--------|
+| `maintenance_mode` | Platform-wide operational toggle; no tenant override. |
+| `cache_rankings_interval_minutes` | Platform cache tuning; already mirrored to RuntimeDefaults where tenant override is needed; singleton default is sufficient. |
+
+These are the only fields that remain as **safe platform defaults** in the singleton. All other fields are classified in `apps/siteconfig/domain_ownership.py` (EXACT_FIELD_OWNERS, PREFIX_FIELD_OWNERS) and have a target owner (brand_experience, runtime_blueprints, policies_rules, global_registries, marketplace_integrations, reports, documents, preview_platform, etc.).
+
+### To migrate (by owner)
+
+- **brand_experience:** site_name, tagline, theme_pack, admin_theme_pack, primary_color, favicon, custom_css, meta_description, etc. → resolve via runtime/branding; ownership in brand_experience.
+- **runtime_blueprints:** admin_portal_stats_config, default_widgets_per_role, school_code, admission_number_*, etc. → RuntimeDefaults or blueprint resolver.
+- **policies_rules:** backend_feature_flags, portal_features, grade_approval_enabled, require_mfa_*, etc. → get_effective_flags / policies resolver.
+- **global_registries:** country, region, ministry, default_region, default_grading_scale → registries/runtime.
+- **marketplace_integrations:** sms_provider, sms_api_key, email_from_address, whatsapp_*, etc. → integration config; no secrets in tenant path.
+- **reports / documents / preview_platform / delete:** per domain_ownership; migrate or deprecate.
+
+Shrink is **incremental**: each field move = add column (or model) in bounded context → backfill → resolver consumes it → stop reading from SiteSettings for that field. Full field list and classification: `site_settings_usage_inventory.md` §2.1 and `domain_ownership.py`.

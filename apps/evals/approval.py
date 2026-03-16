@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from decimal import Decimal, InvalidOperation
 from typing import Iterable, List
 from datetime import timedelta
@@ -17,6 +18,18 @@ from apps.people.models import StudentProfile, TeacherProfile
 
 from .models import GradeApprovalRequest, AssessmentWeights
 from .notifications import NotificationService
+
+logger = logging.getLogger(__name__)
+
+# §2.4 Typed exceptions for get_grade_approval_policy (policy registry + site settings).
+_EVALS_APPROVAL_POLICY_ERRORS = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    KeyError,
+    LookupError,
+)
 
 SCORE_FIELDS = ["seq1", "seq2", "exam", "mock", "practical"]
 FINAL_STATUSES = {GradeApprovalRequest.Status.APPROVED, GradeApprovalRequest.Status.REJECTED}
@@ -40,8 +53,8 @@ def get_grade_approval_policy(school=None, policy=None):
             ga = out.get("grade_approval")
             if isinstance(ga, dict) and ga:
                 return ga
-        except Exception:
-            pass
+        except _EVALS_APPROVAL_POLICY_ERRORS:
+            logger.debug("get_grade_approval_policy: policy registry fallback for school %s", school)
     try:
         site = get_effective_site_settings(school=school)
         return {
@@ -52,7 +65,8 @@ def get_grade_approval_policy(school=None, policy=None):
             "grade_approval_auto_validate": getattr(site, "grade_approval_auto_validate", True),
             "grade_approval_enabled": getattr(site, "grade_approval_enabled", False),
         }
-    except Exception:
+    except _EVALS_APPROVAL_POLICY_ERRORS:
+        logger.debug("get_grade_approval_policy: site settings fallback for school %s", school)
         return {
             "grade_post_roles": default_grade_post_roles(),
             "grade_approval_roles": default_grade_approval_roles(),

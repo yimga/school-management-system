@@ -7,8 +7,26 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import DatabaseError, IntegrityError
+
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
 if TYPE_CHECKING:
     pass
+
+# Do not fail blueprint apply if package engine is unavailable (§2.4 allowlist 0).
+_BLUEPRINT_PACKAGE_ENGINE_ERRORS = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    DatabaseError,
+    IntegrityError,
+    ObjectDoesNotExist,
+)
+# Per-school apply failure in update_bundle_for_schools (log and continue).
+_BLUEPRINT_APPLY_ERRORS = _BLUEPRINT_PACKAGE_ENGINE_ERRORS
 
 
 def preview_blueprint_pack(school, pack) -> dict[str, Any]:
@@ -79,8 +97,13 @@ def apply_blueprint_pack(school, pack, *, applied_by=None):
             mode="production",
             actor_id=getattr(applied_by, "id", None) if applied_by else None,
         )
-    except Exception:
-        pass  # Do not fail blueprint apply if package engine is unavailable
+    except _BLUEPRINT_PACKAGE_ENGINE_ERRORS:
+        log_exception_with_context(
+            "apply_blueprint_pack: PackageEngine.apply_package skipped (do not fail blueprint apply)",
+            school_id=getattr(school, "id", None),
+            actor_id=getattr(applied_by, "id", None) if applied_by else None,
+            extra={"pack_slug": getattr(pack, "slug", None)},
+        )
     return bundle
 
 
@@ -103,6 +126,12 @@ def update_bundle_for_schools(pack, *, school_ids=None, applied_by=None):
         try:
             bundle = apply_blueprint_pack(school, pack, applied_by=applied_by)
             result.append((school, bundle))
-        except Exception:
+        except _BLUEPRINT_APPLY_ERRORS as e:
+            log_exception_with_context(
+                "update_bundle_for_schools: apply_blueprint_pack skipped for school",
+                school_id=getattr(school, "id", None),
+                actor_id=getattr(applied_by, "id", None) if applied_by else None,
+                extra={"pack_slug": getattr(pack, "slug", None), "error": str(e)},
+            )
             continue
     return result

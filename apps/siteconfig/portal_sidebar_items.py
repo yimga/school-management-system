@@ -382,6 +382,10 @@ def build_portal_sidebar_items(request, site):
         if import_hub_url:
             items.append({"id": "import_hub", "label": "Import & bulk", "url": import_hub_url, "icon": "bi-upload", "section": "Admin Panel", "badge": None})
         if can_manage_site:
+            # §6.14 Connect portal to Experience Studio: direct link for theme/branding (RUNMYCAMPUS SOT)
+            experience_url = _safe_reverse("studio_os:experience")
+            if experience_url:
+                items.append({"id": "experience_studio", "label": "Theme & Experience", "url": experience_url, "icon": "bi-palette", "section": "Admin Panel", "badge": None})
             items.append({"id": "studio", "label": "Studio", "url": _safe_reverse("studio_os:shell"), "icon": "bi-grid-3x3-gap", "section": "Admin Panel", "badge": None})
         # Multi-tenant: Modules and Grading are per-school; show only when a school is in context.
         _school = getattr(request, "school", None)

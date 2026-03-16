@@ -4,12 +4,47 @@ Converts markdown files from docs/ directory into KB articles
 """
 import re
 from pathlib import Path
+
 from django.core.management.base import BaseCommand
 from django.core.management import call_command
+from django.core.exceptions import ValidationError
 from django.utils.text import slugify
 from django.contrib.auth import get_user_model
+from django.db import DatabaseError, IntegrityError, OperationalError, ProgrammingError
+
+from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.portal.models_kb import KBCategory, KBArticle
 from apps.portal.sanitizers import sanitize_html
+
+# Admin user resolve (User.objects.filter).
+_KB_IMPORT_ADMIN_RESOLVE_ERRORS = (
+    DatabaseError,
+    OperationalError,
+    ProgrammingError,
+    AttributeError,
+    TypeError,
+)
+# File processing (create/save, file read, slugify).
+_KB_IMPORT_FILE_PROCESSING_ERRORS = (
+    DatabaseError,
+    IntegrityError,
+    ValidationError,
+    OSError,
+    IOError,
+    TypeError,
+    ValueError,
+    KeyError,
+    AttributeError,
+    UnicodeDecodeError,
+)
+# Markdown library convert (md.convert).
+_KB_IMPORT_MARKDOWN_CONVERT_ERRORS = (
+    ValueError,
+    TypeError,
+    KeyError,
+    AttributeError,
+    IndexError,
+)
 
 # Try to import markdown, fallback to simple conversion if not available
 try:
@@ -138,7 +173,11 @@ class Command(BaseCommand):
             admin_user = User.objects.filter(is_superuser=True).first()
             if not admin_user:
                 admin_user = User.objects.filter(is_staff=True).first()
-        except:
+        except _KB_IMPORT_ADMIN_RESOLVE_ERRORS:
+            log_exception_with_context(
+                "import_docs_to_kb: resolve admin user failed (non-fatal)",
+                extra={"command": "import_docs_to_kb"},
+            )
             admin_user = None
         
         # Map documentation files to categories and metadata
@@ -258,7 +297,11 @@ class Command(BaseCommand):
                 
                 imported_count += 1
                 
-            except Exception as e:
+            except _KB_IMPORT_FILE_PROCESSING_ERRORS as e:
+                log_exception_with_context(
+                    "import_docs_to_kb: error processing file",
+                    extra={"command": "import_docs_to_kb", "file": md_file.name},
+                )
                 self._safe_write(self.style.ERROR(f'  [ERROR] Error processing {md_file.name}: {e}'))
         
         self._safe_write('')
@@ -463,7 +506,11 @@ class Command(BaseCommand):
                     'sane_lists',
                 ])
                 html_content = md.convert(content)
-            except Exception as e:
+            except _KB_IMPORT_MARKDOWN_CONVERT_ERRORS as e:
+                log_exception_with_context(
+                    "import_docs_to_kb: markdown conversion failed, using simple conversion",
+                    extra={"command": "import_docs_to_kb"},
+                )
                 self._safe_write(self.style.WARNING(f'Markdown conversion error: {e}, using simple conversion'))
                 html_content = self._simple_markdown_to_html(content)
         else:

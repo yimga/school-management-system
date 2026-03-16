@@ -1,7 +1,33 @@
 """
 Celery tasks for siteconfig (Phase E: revenue stats; Phase Welcome: welcome email).
+§2.4: Typed exception tuples and log_exception_with_context for send_welcome_email and check_regional_ollama_health.
 """
+from smtplib import SMTPException
+from urllib.error import URLError
+
 from celery import shared_task
+
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
+# §2.4: Typed tuples for task exception paths (no broad except).
+_SITECONFIG_TASK_EMAIL_ERRORS = (
+    OSError,
+    ConnectionError,
+    TimeoutError,
+    SMTPException,
+    UnicodeError,
+    AttributeError,
+    TypeError,
+)
+_SITECONFIG_TASK_OLLAMA_ERRORS = (
+    OSError,
+    ConnectionError,
+    TimeoutError,
+    URLError,
+    ValueError,
+    AttributeError,
+    TypeError,
+)
 
 
 @shared_task(name="siteconfig.calculate_monthly_revenue_stats")
@@ -46,8 +72,14 @@ def send_welcome_email(school_id: int, contact_email: str = ""):
             html_message=body.replace("\n", "<br>\n"),
         )
         return {"ok": True, "sent_to": email}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
+    except _SITECONFIG_TASK_EMAIL_ERRORS:
+        log_exception_with_context(
+            "siteconfig.send_welcome_email failed",
+            school_id=school_id,
+            exc_info=True,
+            extra={"contact_email": email},
+        )
+        return {"ok": False, "error": "Failed to send welcome email."}
 
 
 # World Engine: National Syllabus Sync (Ministry API/OCR → LLM 36-week schemes); chunked for 195-country scale.
@@ -123,7 +155,11 @@ def check_regional_ollama_health(cluster: str = None):
                     cache.set(key, {"status": "ok", "last_check_at": now}, timeout=AI_HEALTH_CACHE_TTL)
                 else:
                     cache.set(key, {"status": "unavailable", "last_check_at": now, "code": resp.status}, timeout=AI_HEALTH_CACHE_TTL)
-        except Exception as e:
+        except _SITECONFIG_TASK_OLLAMA_ERRORS as e:
+            log_exception_with_context(
+                "siteconfig.check_regional_ollama_health: ollama check failed",
+                extra={"cluster": config.regional_cluster, "url": base, "error": str(e)},
+            )
             cache.set(key, {"status": "unavailable", "last_check_at": now, "error": str(e)}, timeout=AI_HEALTH_CACHE_TTL)
     return {"checked": len(config_list)}
 

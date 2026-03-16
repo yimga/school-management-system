@@ -5,6 +5,7 @@ Usage: python manage.py generate_regional_reports [--language LANG] [--region RE
 
 from django.core.management.base import BaseCommand
 from django.core.mail import EmailMessage
+from django.db import DatabaseError, IntegrityError
 from django.template.loader import render_to_string
 from django.utils import translation
 from datetime import datetime
@@ -12,12 +13,35 @@ from datetime import datetime
 from apps.academics.models import AcademicYear, Term
 from apps.people.models import StudentProfile
 from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.reports.localization import (
     get_certificate_localizer,
 )
 from apps.siteconfig.translations import SUPPORTED_LANGUAGES
 from apps.global_registries.models import RegionConfig
 from apps.evals.models import Evaluation
+
+# §2.4 Typed exceptions for allowlist shrink (broad_exception_audit)
+_REGIONAL_REPORT_BUILD_ERRORS = (
+    DatabaseError,
+    IntegrityError,
+    TypeError,
+    ValueError,
+    KeyError,
+    AttributeError,
+    OSError,
+    ImportError,
+)
+_REGIONAL_REPORT_EMAIL_ERRORS = (
+    OSError,
+    ConnectionError,
+    TimeoutError,
+    smtplib.SMTPException,
+    TypeError,
+    ValueError,
+    AttributeError,
+    KeyError,
+)
 
 
 class Command(BaseCommand):
@@ -144,8 +168,17 @@ class Command(BaseCommand):
                 success_count += 1
                 self.stdout.write(f'[+] Generated for {student.user.get_full_name()}')
             
-            except Exception as e:
+            except _REGIONAL_REPORT_BUILD_ERRORS as e:
                 error_count += 1
+                log_exception_with_context(
+                    "generate_regional_reports: per-student report failed",
+                    school_id=getattr(student, "school_id", None),
+                    extra={
+                        "command": "generate_regional_reports",
+                        "student_id": getattr(student, "id", None),
+                        "language": language,
+                    },
+                )
                 self.stdout.write(self.style.ERROR(f'[!] Error for {student}: {str(e)}'))
 
         self.stdout.write('=' * 60)
@@ -249,5 +282,13 @@ class Command(BaseCommand):
             
             self.stdout.write(self.style.SUCCESS(f'  [+] Email sent to guardians'))
         
-        except Exception as e:
+        except _REGIONAL_REPORT_EMAIL_ERRORS as e:
+            log_exception_with_context(
+                "generate_regional_reports: send report email failed",
+                school_id=getattr(student, "school_id", None),
+                extra={
+                    "command": "generate_regional_reports",
+                    "student_id": getattr(student, "id", None),
+                },
+            )
             self.stdout.write(self.style.ERROR(f'  [!] Email error: {str(e)}'))

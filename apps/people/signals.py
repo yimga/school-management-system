@@ -1,13 +1,47 @@
 """
 Signal handlers for people models.
+§2.4: Typed exception tuples and log_exception_with_context for event/leadership/AccessRequest paths.
 """
 import logging
+
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.db import DatabaseError, IntegrityError, OperationalError, ProgrammingError
 from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
+
 from apps.communication.models import MessageThread
 from apps.people.models import TeacherProfile, StudentGuardian, StudentProfile, TeacherAttendance
+from apps.platform_runtime.structured_logging import log_exception_with_context
 
 logger = logging.getLogger(__name__)
+
+# §2.4: Typed tuples for signal/event emission and query paths (no broad except).
+_SIGNAL_EMIT_ERRORS = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    ObjectDoesNotExist,
+    KeyError,
+    DatabaseError,
+)
+_LEADERSHIP_QUERY_ERRORS = (
+    ObjectDoesNotExist,
+    DatabaseError,
+    OperationalError,
+    ProgrammingError,
+    AttributeError,
+    TypeError,
+)
+_ACCESS_REQUEST_CREATE_ERRORS = (
+    IntegrityError,
+    ValidationError,
+    ObjectDoesNotExist,
+    DatabaseError,
+    ValueError,
+    TypeError,
+    KeyError,
+)
 
 
 @receiver(post_save, sender=TeacherAttendance)
@@ -29,7 +63,12 @@ def emit_attendance_recorded_teacher(sender, instance, created, **kwargs):
             },
             school_id=school_id,
         )
-    except Exception as e:
+    except _SIGNAL_EMIT_ERRORS as e:
+        log_exception_with_context(
+            "emit attendance.recorded (teacher) skipped",
+            school_id=getattr(instance.teacher, "school_id", None),
+            extra={"teacher_attendance_id": instance.id},
+        )
         logger.debug("emit attendance.recorded (teacher) skipped: %s", e)
 
 
@@ -50,7 +89,12 @@ def emit_student_created_event(sender, instance, created, **kwargs):
             },
             school_id=school_id,
         )
-    except Exception as e:
+    except _SIGNAL_EMIT_ERRORS as e:
+        log_exception_with_context(
+            "emit student.created skipped",
+            school_id=school_id,
+            extra={"student_id": instance.id},
+        )
         logger.debug("emit student.created skipped: %s", e)
     try:
         from apps.platform_runtime.events import emit_platform_event
@@ -59,7 +103,12 @@ def emit_student_created_event(sender, instance, created, **kwargs):
             {"student_id": instance.id, "school_id": school_id},
             school_id=school_id,
         )
-    except Exception as e:
+    except _SIGNAL_EMIT_ERRORS as e:
+        log_exception_with_context(
+            "emit_platform_event student_created skipped",
+            school_id=school_id,
+            extra={"student_id": instance.id},
+        )
         logger.debug("emit_platform_event student_created skipped: %s", e)
 
 
@@ -123,7 +172,7 @@ def _get_school_leadership_for_assignment(school):
             .first()
         )
         return membership.user if membership and membership.user_id else None
-    except Exception:
+    except _LEADERSHIP_QUERY_ERRORS:
         return None
 
 
@@ -178,5 +227,10 @@ def on_student_critical_tag_added(sender, instance, action, pk_set, **kwargs):
             target_object_id=str(student.pk),
         )
         logger.info("Created AccessRequest for critical tag(s); assigned_to=%s", assigned_to)
-    except Exception as e:
+    except _ACCESS_REQUEST_CREATE_ERRORS as e:
+        log_exception_with_context(
+            "Could not create AccessRequest for critical tag",
+            school_id=school_id,
+            extra={"student_id": student.pk, "tags": critical_tags},
+        )
         logger.warning("Could not create AccessRequest for critical tag: %s", e, exc_info=True)

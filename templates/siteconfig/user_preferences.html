@@ -1,9 +1,12 @@
 {% extends "portal_base.html" %}
+{% load i18n %}
 
-{% block title %}Portal Preferences - {{ SITE.site_name|default:"Portal" }}{% endblock %}
+{% block title %}{% trans "Portal preferences" %} - {{ SITE.site_name|default:"Portal" }}{% endblock %}
 
 {% block content %}
-  {% include "components/page_header.html" with title="Portal preferences" subtitle="Pick your dashboard style, theme, timezone, and how often to refresh data." action_url=previous_page action_text="Back to dashboard" %}
+<div class="container py-3" data-page-archetype="operational-workbench">
+  {% trans "Back to dashboard" as back_action %}
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=back_action %}
   <div class="row justify-content-center">
     <div class="col-lg-8 col-xl-7">
       <div class="alert alert-info d-flex align-items-start gap-2">
@@ -98,6 +101,7 @@
       </div>
     </div>
   </div>
+</div>
 
   <script>
     (function () {

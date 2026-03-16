@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from django.db import transaction
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 
 from .models import SetupProgress, SetupStepDefinition
@@ -88,7 +88,7 @@ STEP_DEFINITIONS = (
 def _safe_reverse(name: str) -> str:
     try:
         return reverse(name)
-    except Exception:
+    except (NoReverseMatch, TypeError, ValueError):
         return "#"
 
 
@@ -120,7 +120,7 @@ def _school_surface_url(school, path: str = "/") -> str:
             from apps.schools.domain_sync import school_subdomain_fqdn
 
             host = school_subdomain_fqdn(school)
-        except Exception:
+        except (ImportError, AttributeError, TypeError, ValueError, OSError, ConnectionError):
             host = ""
     if not host:
         return "#"
@@ -477,6 +477,54 @@ def _recommended_starter_stack() -> dict[str, Any]:
     }
 
 
+def _migration_path_flow(school, step_state: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
+    """
+    Ordered migration path stages for schools moving from another system (RUNMYCAMPUS §6.5).
+    Surfaces: assess → blueprint → data import → verify; each stage links to setup/Launch Studio.
+    """
+    data_done = step_state["data_path"]["done"]
+    blueprint_done = step_state["blueprint"]["done"]
+    launch_done = step_state["launch"]["done"]
+    return [
+        {
+            "key": "assess",
+            "label": "Assess source system",
+            "detail": "Identify data scope, format, and constraints from the current system before mapping.",
+            "cta_label": "Open setup",
+            "cta_url": step_state["institution_basics"]["link"],
+            "status": "Ready",
+            "order": 1,
+        },
+        {
+            "key": "blueprint",
+            "label": "Apply baseline blueprint",
+            "detail": "Apply a regional or institution-type blueprint so policies and workflows match before data load.",
+            "cta_label": "Choose blueprint",
+            "cta_url": step_state["blueprint"]["link"],
+            "status": "Ready" if not blueprint_done else "Done",
+            "order": 2,
+        },
+        {
+            "key": "import",
+            "label": "Import or connect data",
+            "detail": "Bring in roster, finance, or historical data via import or integration.",
+            "cta_label": "Open data path",
+            "cta_url": step_state["data_path"]["link"],
+            "status": "Ready" if not data_done else "Done",
+            "order": 3,
+        },
+        {
+            "key": "verify",
+            "label": "Verify and launch",
+            "detail": "Run the launch checklist and role previews to confirm migration readiness.",
+            "cta_label": "Launch checklist",
+            "cta_url": step_state["launch"]["link"],
+            "status": "Ready" if not launch_done else "Done",
+            "order": 4,
+        },
+    ]
+
+
 def _build_data_path_choices(school, step_state: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
     has_students = step_state["data_path"]["done"]
     has_plan = step_state["plan_choice"]["done"]
@@ -517,7 +565,7 @@ def _build_data_path_choices(school, step_state: dict[str, dict[str, Any]]) -> l
 def _rank_blueprints(school) -> list[dict[str, Any]]:
     try:
         from apps.policies.models import BlueprintPack
-    except Exception:
+    except (ImportError, AttributeError, TypeError):
         return []
 
     country_code = str(getattr(school, "country_code", "") or "").strip().upper()[:2]
@@ -704,6 +752,7 @@ def compile_setup_studio(school) -> dict[str, Any]:
     preview_workspace = _build_preview_workspace(school, role_previews, preview_cards)
     blueprint_rankings = _rank_blueprints(school)
     data_path_choices = _build_data_path_choices(school, step_state)
+    migration_path_flow = _migration_path_flow(school, step_state)
     launch_orchestration = _build_launch_orchestration(step_state, launch_blockers, preview_workspace)
     current_step_key = next((key for key, state in step_state.items() if not state["done"]), "launch")
     completed_keys = [key for key, state in step_state.items() if state["done"]]
@@ -735,6 +784,7 @@ def compile_setup_studio(school) -> dict[str, Any]:
         "recommended_blueprint": _recommended_blueprint(school),
         "blueprint_rankings": blueprint_rankings,
         "recommended_starter_stack": _recommended_starter_stack(),
+        "migration_path_flow": migration_path_flow,
         "data_path_choices": data_path_choices,
         "recommended_next": recommended_next,
         "ai_recommended": True,  # Blueprint/stack rankings from recommendation engine (9.5 AI multiplier).

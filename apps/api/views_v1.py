@@ -16,6 +16,7 @@ from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
 
 from apps.platform_runtime.helpers import get_effective_flags
+from apps.platform_runtime.structured_logging import log_view_exception
 
 logger = logging.getLogger(__name__)
 
@@ -152,7 +153,7 @@ class IntegrationCatalogView(View):
             catalog = {k: {**v, "config_schema": v.get("config_schema", {})} for k, v in INTEGRATION_CATALOG.items()}
             return JsonResponse({"keys": keys, "catalog": catalog})
         except (AttributeError, DatabaseError, ImportError, TypeError, ValueError) as e:
-            logger.exception("config/integration-catalog")
+            log_view_exception(request, "api.views_v1: config/integration-catalog", extra={"error": str(e)})
             return JsonResponse({"error": str(e)}, status=500)
 
 
@@ -216,7 +217,7 @@ class EducationDNAView(View):
                 "date_format": locale.get("date_format", "DD/MM/YYYY"),
             })
         except (AttributeError, DatabaseError, ImportError, TypeError, ValueError) as e:
-            logger.exception("education-dna")
+            log_view_exception(request, "api.views_v1: education-dna", extra={"error": str(e)})
             return JsonResponse({"error": str(e)}, status=500)
 
 
@@ -475,7 +476,7 @@ class FinanceGenerateBatchView(View):
                 out = auto_generate_fee_invoices_task(dry_run=False)
                 return JsonResponse({"ok": True, "message": "Batch generation completed (sync).", "result": out}, status=200)
             except (AttributeError, DatabaseError, ImportError, OSError, RuntimeError, TypeError, ValueError) as e2:
-                logger.exception("finance/generate-batch")
+                log_view_exception(request, "api.views_v1: finance/generate-batch", extra={"error": str(e2)})
                 return JsonResponse({"error": str(e2)}, status=500)
 
 
@@ -669,7 +670,7 @@ class VocationalLogHoursView(View):
             )
             return JsonResponse({"ok": True, "id": rec.id, "hours": str(rec.hours), "date": rec.date.isoformat()}, status=201)
         except (AttributeError, DatabaseError, ImportError, TypeError, ValueError) as e:
-            logger.exception("vocational/log-hours")
+            log_view_exception(request, "api.views_v1: vocational/log-hours", extra={"error": str(e)})
             return JsonResponse({"error": str(e)}, status=500)
 
 
@@ -715,7 +716,7 @@ class VocationalVerifySkillView(View):
         except CompetencyItem.DoesNotExist:
             return JsonResponse({"error": "Competency item not found"}, status=404)
         except (AttributeError, DatabaseError, ImportError, TypeError, ValueError) as e:
-            logger.exception("vocational/verify-skill")
+            log_view_exception(request, "api.views_v1: vocational/verify-skill", extra={"error": str(e)})
             return JsonResponse({"error": str(e)}, status=500)
 
 
@@ -743,7 +744,7 @@ class VocationalDigitalBadgeView(View):
         except StudentProfile.DoesNotExist:
             return JsonResponse({"error": "Student not found"}, status=404)
         except (AttributeError, DatabaseError, ImportError, TypeError, ValueError) as e:
-            logger.exception("vocational/digital-badge")
+            log_view_exception(request, "api.views_v1: vocational/digital-badge", extra={"error": str(e)})
             return JsonResponse({"error": str(e)}, status=500)
 
 
@@ -783,7 +784,7 @@ class SchedulerGenerateView(View):
         except (Term.DoesNotExist, AcademicYear.DoesNotExist):
             return JsonResponse({"error": "Term or academic year not found"}, status=404)
         except (AttributeError, DatabaseError, ImportError, TypeError, ValueError) as e:
-            logger.exception("scheduler/generate")
+            log_view_exception(request, "api.views_v1: scheduler/generate", extra={"error": str(e)})
             return JsonResponse({"error": str(e)}, status=500)
 
 
@@ -870,7 +871,7 @@ class SyllabusPacingView(View):
             actual_pct = round(100 * completed / total, 1) if total else 0
             return JsonResponse({"subject_assignment_id": sa_id, "planned_pct": 100, "actual_pct": actual_pct, "total_topics": total, "completed_topics": completed})
         except (AttributeError, DatabaseError, ImportError, TypeError, ValueError) as e:
-            logger.exception("syllabus/pacing")
+            log_view_exception(request, "api.views_v1: syllabus/pacing", extra={"error": str(e)})
             return JsonResponse({"error": str(e)}, status=500)
 
 
@@ -972,7 +973,7 @@ class SuperRecoveryRateView(View):
                 "recovery_rate_pct": recovery_rate_pct,
             })
         except (AttributeError, DatabaseError, ImportError, TypeError, ValueError) as e:
-            logger.exception("super/recovery-rate")
+            log_view_exception(request, "api.views_v1: super/recovery-rate", extra={"error": str(e)})
             return JsonResponse({"error": str(e)}, status=500)
 
 
@@ -1223,7 +1224,7 @@ class RegulatoryExportView(View):
                 "hint": "Use reports app and template_family from preset.",
             }, status=501)
         except (AttributeError, DatabaseError, ImportError, OSError, RuntimeError, TypeError, ValueError) as e:
-            logger.exception("regulatory-export")
+            log_view_exception(request, "api.views_v1: regulatory-export", extra={"error": str(e)})
             return JsonResponse({"error": str(e)}, status=500)
 
 

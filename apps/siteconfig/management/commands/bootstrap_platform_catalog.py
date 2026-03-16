@@ -2,10 +2,31 @@
 Bootstrap platform catalogs so Manager surfaces (Blueprint marketplace, App catalog,
 registries, workflow/dashboard packs, portal FAQs/KB, etc.) are not empty.
 Idempotent. Run at deploy or manually: python manage.py bootstrap_platform_catalog [--all]
+§2.4: Typed exception tuple and log_exception_with_context for call_command failures.
 """
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
+from django.core.exceptions import ImproperlyConfigured
+from django.db import DatabaseError, OperationalError, IntegrityError
+from django.core.exceptions import ValidationError
 
+from apps.platform_runtime.structured_logging import log_exception_with_context
+from django.core.management.base import CommandError
+
+# §2.4 broad-except shrink: call_command can raise these from nested commands.
+_BOOTSTRAP_PLATFORM_CATALOG_ERRORS = (
+    CommandError,
+    ImproperlyConfigured,
+    DatabaseError,
+    OperationalError,
+    IntegrityError,
+    ValidationError,
+    OSError,
+    TypeError,
+    ValueError,
+    AttributeError,
+    ImportError,
+)
 
 # Order matters: global/regions first, then registries, then catalogs, then portal/compliance.
 BOOTSTRAP_STEPS = [
@@ -119,7 +140,12 @@ class Command(BaseCommand):
                 extra.append("--dry-run")
             try:
                 call_command(cmd_name, *extra, verbosity=verbosity)
-            except Exception as e:
+            except _BOOTSTRAP_PLATFORM_CATALOG_ERRORS as e:
+                log_exception_with_context(
+                    "bootstrap_platform_catalog: step failed",
+                    school_id=None,
+                    extra={"command": cmd_name, "extra_args": extra, "error": str(e)},
+                )
                 self.stdout.write(self.style.WARNING(f"{cmd_name} failed: {e}"))
                 if verbosity >= 1:
                     raise

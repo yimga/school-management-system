@@ -3,8 +3,8 @@
 {% load region_format %}
 {% block title %}Employer portal — Apprentice progress{% endblock %}
 {% block content %}
-<div class="container-fluid">
-  <h4 class="mb-3">{% trans "Apprentice progress" %}</h4>
+<div class="container-fluid py-4" data-page-archetype="operational-workbench">
+  {% include "studio_os/components/page_header.html" with title=_("Apprentice progress") subtitle=_("View and confirm apprentice placements") %}
   <div class="card shadow-sm">
     <div class="card-body">
       {% if placements %}

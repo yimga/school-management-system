@@ -3,12 +3,30 @@ Phase 8 Task 5: Internationalization Management Commands
 compile_translations - Compile translation files
 generate_regional_reports - Generate region-specific reports
 validate_translations - Verify translation completeness
+§2.4: Typed exception tuple and log_exception_with_context for GenerateRegionalReportsCommand.
 """
 
-from django.core.management.base import BaseCommand, CommandError
-from django.utils import timezone
 import json
 from pathlib import Path
+
+from django.core.management.base import BaseCommand, CommandError
+from django.db import DatabaseError, OperationalError
+from django.utils import timezone
+
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
+# §2.4 broad-except shrink: report generation and file write can raise these.
+_I18N_GENERATE_REPORT_ERRORS = (
+    ValueError,
+    TypeError,
+    KeyError,
+    AttributeError,
+    DatabaseError,
+    OperationalError,
+    ImportError,
+    OSError,
+    FileNotFoundError,
+)
 
 
 class Command(BaseCommand):
@@ -123,7 +141,12 @@ class GenerateRegionalReportsCommand(BaseCommand):
             
             self.stdout.write(self.style.SUCCESS('✓ Regional report generated successfully'))
         
-        except Exception as e:
+        except _I18N_GENERATE_REPORT_ERRORS as e:
+            log_exception_with_context(
+                "i18n generate_regional_reports: report generation failed",
+                school_id=options.get("school_id"),
+                extra={"region": region, "report_type": report_type, "error": str(e)},
+            )
             self.stdout.write(self.style.ERROR(f'✗ Error generating report: {str(e)}'))
             raise CommandError(str(e))
 

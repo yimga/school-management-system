@@ -17,7 +17,9 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-2">
+<div class="container-fluid py-4" data-page-archetype="catalog">
+  {% include "studio_os/components/page_header.html" with title=_("Policy Bundles") subtitle=_("Behavioral rules by country/region. Platform bundles (no school) and per-school bundles.") action_url=dashboard_url action_text=_("Back to Dashboard") %}
+  <div class="py-2">
   {% comment %}Operational workbench: status bar, work queue, one primary action per row. See docs/ui/OPERATIONAL_WORKBENCH.md.{% endcomment %}
   <p class="text-secondary small mb-2">{% trans "Behavioral rules by country/region. Platform bundles (no school) and per-school bundles." %}</p>
   <div class="d-flex flex-wrap align-items-center gap-3 mb-3 py-2 border-bottom">
@@ -60,6 +62,7 @@
         </tbody>
       </table>
     </div>
+  </div>
   </div>
 </div>
 {% endblock %}

@@ -1,19 +1,19 @@
 {
   "baseline_counts": {
-    "allow_any": 52,
-    "csrf_exempt": 97,
-    "cursor_execute": 349,
-    "except_exception": 399,
-    "get_solo": 178,
-    "gilead": 657,
-    "gilead_files": 128,
-    "html_files": 461,
+    "allow_any": 53,
+    "csrf_exempt": 98,
+    "cursor_execute": 351,
+    "except_exception": 153,
+    "get_solo": 180,
+    "gilead": 666,
+    "gilead_files": 130,
+    "html_files": 490,
     "management_commands": 139,
-    "markdown_files": 841,
-    "migration_files": 594,
-    "print_calls": 451,
-    "python_files": 1818,
-    "site_settings": 1073
+    "markdown_files": 862,
+    "migration_files": 598,
+    "print_calls": 472,
+    "python_files": 1845,
+    "site_settings": 1096
   },
   "doc_drift": {
     "actual_installed_app_count": 41,
@@ -23,13 +23,13 @@
   },
   "largest_python_files": [
     {
-      "bytes": 212639,
-      "lines": 3659,
+      "bytes": 213014,
+      "lines": 3664,
       "path": "apps/schools/marketing_views.py"
     },
     {
-      "bytes": 121007,
-      "lines": 2797,
+      "bytes": 125258,
+      "lines": 2905,
       "path": "apps/schools/super_views.py"
     },
     {
@@ -48,39 +48,736 @@
       "path": "apps/accounts/views.py"
     },
     {
-      "bytes": 100201,
-      "lines": 2373,
-      "path": "apps/finance/views.py"
-    },
-    {
-      "bytes": 96105,
-      "lines": 2216,
-      "path": "apps/portal/views.py"
-    },
-    {
       "bytes": 95914,
       "lines": 2556,
       "path": "apps/finance/models.py"
     },
     {
-      "bytes": 95888,
-      "lines": 2378,
+      "bytes": 95144,
+      "lines": 2360,
       "path": "apps/siteconfig/models.py"
     },
     {
-      "bytes": 90067,
-      "lines": 1740,
+      "bytes": 90640,
+      "lines": 1741,
       "path": "apps/api/views_v1.py"
     },
     {
-      "bytes": 81212,
-      "lines": 1916,
+      "bytes": 86491,
+      "lines": 1736,
+      "path": "apps/portal/views_parent.py"
+    },
+    {
+      "bytes": 80663,
+      "lines": 1902,
       "path": "apps/siteconfig/views.py"
     },
     {
       "bytes": 80075,
       "lines": 1775,
       "path": "apps/finance/tasks.py"
+    },
+    {
+      "bytes": 63755,
+      "lines": 1482,
+      "path": "apps/siteconfig/management/commands/seed_admin_dashboard_palettes.py"
+    }
+  ],
+  "management_commands_list": [
+    {
+      "app": "academics",
+      "command": "export_certification_pack",
+      "path": "apps/academics/management/commands/export_certification_pack.py"
+    },
+    {
+      "app": "academics",
+      "command": "fix_term_positions",
+      "path": "apps/academics/management/commands/fix_term_positions.py"
+    },
+    {
+      "app": "academics",
+      "command": "import_curriculum_nodes",
+      "path": "apps/academics/management/commands/import_curriculum_nodes.py"
+    },
+    {
+      "app": "academics",
+      "command": "run_auto_promotion",
+      "path": "apps/academics/management/commands/run_auto_promotion.py"
+    },
+    {
+      "app": "academics",
+      "command": "seed_buea_synthetic",
+      "path": "apps/academics/management/commands/seed_buea_synthetic.py"
+    },
+    {
+      "app": "academics",
+      "command": "seed_demo",
+      "path": "apps/academics/management/commands/seed_demo.py"
+    },
+    {
+      "app": "academics",
+      "command": "seed_testdata_2425",
+      "path": "apps/academics/management/commands/seed_testdata_2425.py"
+    },
+    {
+      "app": "accounts",
+      "command": "backfill_user_roles",
+      "path": "apps/accounts/management/commands/backfill_user_roles.py"
+    },
+    {
+      "app": "accounts",
+      "command": "check_roles",
+      "path": "apps/accounts/management/commands/check_roles.py"
+    },
+    {
+      "app": "accounts",
+      "command": "create_teacher_parent_accounts",
+      "path": "apps/accounts/management/commands/create_teacher_parent_accounts.py"
+    },
+    {
+      "app": "accounts",
+      "command": "ensure_default_tenant_admin",
+      "path": "apps/accounts/management/commands/ensure_default_tenant_admin.py"
+    },
+    {
+      "app": "accounts",
+      "command": "ensure_superadmin",
+      "path": "apps/accounts/management/commands/ensure_superadmin.py"
+    },
+    {
+      "app": "accounts",
+      "command": "ensure_superuser",
+      "path": "apps/accounts/management/commands/ensure_superuser.py"
+    },
+    {
+      "app": "accounts",
+      "command": "list_expired_temporary_grants",
+      "path": "apps/accounts/management/commands/list_expired_temporary_grants.py"
+    },
+    {
+      "app": "accounts",
+      "command": "security_log_retention",
+      "path": "apps/accounts/management/commands/security_log_retention.py"
+    },
+    {
+      "app": "accounts",
+      "command": "seed_render_users",
+      "path": "apps/accounts/management/commands/seed_render_users.py"
+    },
+    {
+      "app": "analytics",
+      "command": "compute_benchmark_aggregates",
+      "path": "apps/analytics/management/commands/compute_benchmark_aggregates.py"
+    },
+    {
+      "app": "analytics",
+      "command": "compute_nightly_risk",
+      "path": "apps/analytics/management/commands/compute_nightly_risk.py"
+    },
+    {
+      "app": "analytics",
+      "command": "send_deadline_reminders",
+      "path": "apps/analytics/management/commands/send_deadline_reminders.py"
+    },
+    {
+      "app": "automation",
+      "command": "seed_migration_profiles",
+      "path": "apps/automation/management/commands/seed_migration_profiles.py"
+    },
+    {
+      "app": "billing",
+      "command": "import_platform_billing_snapshot",
+      "path": "apps/billing/management/commands/import_platform_billing_snapshot.py"
+    },
+    {
+      "app": "billing",
+      "command": "run_platform_billing_lifecycle",
+      "path": "apps/billing/management/commands/run_platform_billing_lifecycle.py"
+    },
+    {
+      "app": "billing",
+      "command": "run_revenue_share_payouts",
+      "path": "apps/billing/management/commands/run_revenue_share_payouts.py"
+    },
+    {
+      "app": "communication",
+      "command": "sync_department_threads",
+      "path": "apps/communication/management/commands/sync_department_threads.py"
+    },
+    {
+      "app": "compliance",
+      "command": "archive_old_audits",
+      "path": "apps/compliance/management/commands/archive_old_audits.py"
+    },
+    {
+      "app": "compliance",
+      "command": "check_compliance",
+      "path": "apps/compliance/management/commands/check_compliance.py"
+    },
+    {
+      "app": "compliance",
+      "command": "cleanup_expired_rules",
+      "path": "apps/compliance/management/commands/cleanup_expired_rules.py"
+    },
+    {
+      "app": "compliance",
+      "command": "compliance_auditor",
+      "path": "apps/compliance/management/commands/compliance_auditor.py"
+    },
+    {
+      "app": "compliance",
+      "command": "detect_threats",
+      "path": "apps/compliance/management/commands/detect_threats.py"
+    },
+    {
+      "app": "compliance",
+      "command": "export_compliance_evidence_pack",
+      "path": "apps/compliance/management/commands/export_compliance_evidence_pack.py"
+    },
+    {
+      "app": "compliance",
+      "command": "generate_compliance_reports",
+      "path": "apps/compliance/management/commands/generate_compliance_reports.py"
+    },
+    {
+      "app": "compliance",
+      "command": "generate_legal_docs",
+      "path": "apps/compliance/management/commands/generate_legal_docs.py"
+    },
+    {
+      "app": "compliance",
+      "command": "privacy_request",
+      "path": "apps/compliance/management/commands/privacy_request.py"
+    },
+    {
+      "app": "compliance",
+      "command": "purge_compliance_data",
+      "path": "apps/compliance/management/commands/purge_compliance_data.py"
+    },
+    {
+      "app": "compliance",
+      "command": "seed_compliance_baseline",
+      "path": "apps/compliance/management/commands/seed_compliance_baseline.py"
+    },
+    {
+      "app": "compliance",
+      "command": "send_digest_alerts",
+      "path": "apps/compliance/management/commands/send_digest_alerts.py"
+    },
+    {
+      "app": "compliance",
+      "command": "verify_access_control",
+      "path": "apps/compliance/management/commands/verify_access_control.py"
+    },
+    {
+      "app": "compliance",
+      "command": "verify_data_integrity",
+      "path": "apps/compliance/management/commands/verify_data_integrity.py"
+    },
+    {
+      "app": "customers",
+      "command": "ensure_tenant_schemas",
+      "path": "apps/customers/management/commands/ensure_tenant_schemas.py"
+    },
+    {
+      "app": "evals",
+      "command": "grade_import_template",
+      "path": "apps/evals/management/commands/grade_import_template.py"
+    },
+    {
+      "app": "evals",
+      "command": "import_grades",
+      "path": "apps/evals/management/commands/import_grades.py"
+    },
+    {
+      "app": "evals",
+      "command": "mark_completion",
+      "path": "apps/evals/management/commands/mark_completion.py"
+    },
+    {
+      "app": "events",
+      "command": "process_event_outbox",
+      "path": "apps/events/management/commands/process_event_outbox.py"
+    },
+    {
+      "app": "events",
+      "command": "process_webhook_deliveries",
+      "path": "apps/events/management/commands/process_webhook_deliveries.py"
+    },
+    {
+      "app": "events",
+      "command": "retire_legacy_webhooks",
+      "path": "apps/events/management/commands/retire_legacy_webhooks.py"
+    },
+    {
+      "app": "events",
+      "command": "sync_legacy_webhooks_to_events",
+      "path": "apps/events/management/commands/sync_legacy_webhooks_to_events.py"
+    },
+    {
+      "app": "finance",
+      "command": "apply_split_late_fees",
+      "path": "apps/finance/management/commands/apply_split_late_fees.py"
+    },
+    {
+      "app": "finance",
+      "command": "claim_suspense_payment",
+      "path": "apps/finance/management/commands/claim_suspense_payment.py"
+    },
+    {
+      "app": "finance",
+      "command": "import_bank_statement",
+      "path": "apps/finance/management/commands/import_bank_statement.py"
+    },
+    {
+      "app": "finance",
+      "command": "integration_preflight",
+      "path": "apps/finance/management/commands/integration_preflight.py"
+    },
+    {
+      "app": "finance",
+      "command": "report_finance_opt_in_gaps",
+      "path": "apps/finance/management/commands/report_finance_opt_in_gaps.py"
+    },
+    {
+      "app": "finance",
+      "command": "seed_finance_defaults",
+      "path": "apps/finance/management/commands/seed_finance_defaults.py"
+    },
+    {
+      "app": "finance",
+      "command": "send_payment_reminders",
+      "path": "apps/finance/management/commands/send_payment_reminders.py"
+    },
+    {
+      "app": "finance",
+      "command": "verify_bank_deposits",
+      "path": "apps/finance/management/commands/verify_bank_deposits.py"
+    },
+    {
+      "app": "marketplace",
+      "command": "marketplace_health_check",
+      "path": "apps/marketplace/management/commands/marketplace_health_check.py"
+    },
+    {
+      "app": "marketplace",
+      "command": "marketplace_report_updates",
+      "path": "apps/marketplace/management/commands/marketplace_report_updates.py"
+    },
+    {
+      "app": "marketplace",
+      "command": "seed_capability_registry",
+      "path": "apps/marketplace/management/commands/seed_capability_registry.py"
+    },
+    {
+      "app": "marketplace",
+      "command": "seed_marketplace_apps",
+      "path": "apps/marketplace/management/commands/seed_marketplace_apps.py"
+    },
+    {
+      "app": "metadata",
+      "command": "seed_business_glossary",
+      "path": "apps/metadata/management/commands/seed_business_glossary.py"
+    },
+    {
+      "app": "metadata",
+      "command": "seed_entity_catalog",
+      "path": "apps/metadata/management/commands/seed_entity_catalog.py"
+    },
+    {
+      "app": "observability",
+      "command": "db_health_check",
+      "path": "apps/observability/management/commands/db_health_check.py"
+    },
+    {
+      "app": "observability",
+      "command": "synthetic_probe",
+      "path": "apps/observability/management/commands/synthetic_probe.py"
+    },
+    {
+      "app": "orchestration",
+      "command": "process_orchestration_runs",
+      "path": "apps/orchestration/management/commands/process_orchestration_runs.py"
+    },
+    {
+      "app": "orchestration",
+      "command": "seed_process_definitions",
+      "path": "apps/orchestration/management/commands/seed_process_definitions.py"
+    },
+    {
+      "app": "orchestration",
+      "command": "trigger_orchestration_runs",
+      "path": "apps/orchestration/management/commands/trigger_orchestration_runs.py"
+    },
+    {
+      "app": "packages",
+      "command": "seed_first_party_apps",
+      "path": "apps/packages/management/commands/seed_first_party_apps.py"
+    },
+    {
+      "app": "packages",
+      "command": "seed_ultra_high_end_experience_packs",
+      "path": "apps/packages/management/commands/seed_ultra_high_end_experience_packs.py"
+    },
+    {
+      "app": "payroll",
+      "command": "run_payroll_cycle",
+      "path": "apps/payroll/management/commands/run_payroll_cycle.py"
+    },
+    {
+      "app": "people",
+      "command": "attach_audit_triggers",
+      "path": "apps/people/management/commands/attach_audit_triggers.py"
+    },
+    {
+      "app": "people",
+      "command": "check_badge_expiry_alerts",
+      "path": "apps/people/management/commands/check_badge_expiry_alerts.py"
+    },
+    {
+      "app": "people",
+      "command": "revoke_audit_log_permissions",
+      "path": "apps/people/management/commands/revoke_audit_log_permissions.py"
+    },
+    {
+      "app": "platform_runtime",
+      "command": "backfill_runtime_defaults",
+      "path": "apps/platform_runtime/management/commands/backfill_runtime_defaults.py"
+    },
+    {
+      "app": "platform_runtime",
+      "command": "platform_inventory",
+      "path": "apps/platform_runtime/management/commands/platform_inventory.py"
+    },
+    {
+      "app": "policies",
+      "command": "seed_blueprint_policy_packs",
+      "path": "apps/policies/management/commands/seed_blueprint_policy_packs.py"
+    },
+    {
+      "app": "policies",
+      "command": "update_blueprint_bundles",
+      "path": "apps/policies/management/commands/update_blueprint_bundles.py"
+    },
+    {
+      "app": "portal",
+      "command": "cleanup_photo_upload_tokens",
+      "path": "apps/portal/management/commands/cleanup_photo_upload_tokens.py"
+    },
+    {
+      "app": "portal",
+      "command": "generate_kb_odt",
+      "path": "apps/portal/management/commands/generate_kb_odt.py"
+    },
+    {
+      "app": "portal",
+      "command": "import_docs_to_kb",
+      "path": "apps/portal/management/commands/import_docs_to_kb.py"
+    },
+    {
+      "app": "portal",
+      "command": "seed_faqs",
+      "path": "apps/portal/management/commands/seed_faqs.py"
+    },
+    {
+      "app": "portal",
+      "command": "seed_kb_articles",
+      "path": "apps/portal/management/commands/seed_kb_articles.py"
+    },
+    {
+      "app": "portal",
+      "command": "verify_kb_exports",
+      "path": "apps/portal/management/commands/verify_kb_exports.py"
+    },
+    {
+      "app": "portal",
+      "command": "verify_onboarding_setup",
+      "path": "apps/portal/management/commands/verify_onboarding_setup.py"
+    },
+    {
+      "app": "registries",
+      "command": "seed_platform_registries",
+      "path": "apps/registries/management/commands/seed_platform_registries.py"
+    },
+    {
+      "app": "registries",
+      "command": "seed_terminology_registry",
+      "path": "apps/registries/management/commands/seed_terminology_registry.py"
+    },
+    {
+      "app": "registries",
+      "command": "verify_registry_coverage",
+      "path": "apps/registries/management/commands/verify_registry_coverage.py"
+    },
+    {
+      "app": "reports",
+      "command": "export_report_cards_csv",
+      "path": "apps/reports/management/commands/export_report_cards_csv.py"
+    },
+    {
+      "app": "reports",
+      "command": "generate_regional_reports",
+      "path": "apps/reports/management/commands/generate_regional_reports.py"
+    },
+    {
+      "app": "reports",
+      "command": "send_scheduled_reports",
+      "path": "apps/reports/management/commands/send_scheduled_reports.py"
+    },
+    {
+      "app": "schools",
+      "command": "align_tenant_config",
+      "path": "apps/schools/management/commands/align_tenant_config.py"
+    },
+    {
+      "app": "schools",
+      "command": "backfill_schooldomain",
+      "path": "apps/schools/management/commands/backfill_schooldomain.py"
+    },
+    {
+      "app": "schools",
+      "command": "check_tenant_runtime",
+      "path": "apps/schools/management/commands/check_tenant_runtime.py"
+    },
+    {
+      "app": "schools",
+      "command": "migrate_schools_to_tenants",
+      "path": "apps/schools/management/commands/migrate_schools_to_tenants.py"
+    },
+    {
+      "app": "schools",
+      "command": "migrate_tenant_schemas_one_by_one",
+      "path": "apps/schools/management/commands/migrate_tenant_schemas_one_by_one.py"
+    },
+    {
+      "app": "schools",
+      "command": "phase_i_gap_analysis",
+      "path": "apps/schools/management/commands/phase_i_gap_analysis.py"
+    },
+    {
+      "app": "schools",
+      "command": "run_tenant_migrations",
+      "path": "apps/schools/management/commands/run_tenant_migrations.py"
+    },
+    {
+      "app": "schools",
+      "command": "tenant_health_check",
+      "path": "apps/schools/management/commands/tenant_health_check.py"
+    },
+    {
+      "app": "schools",
+      "command": "tenant_wind_down",
+      "path": "apps/schools/management/commands/tenant_wind_down.py"
+    },
+    {
+      "app": "schools",
+      "command": "validate_marketing_urls",
+      "path": "apps/schools/management/commands/validate_marketing_urls.py"
+    },
+    {
+      "app": "schools",
+      "command": "verify_custom_domains",
+      "path": "apps/schools/management/commands/verify_custom_domains.py"
+    },
+    {
+      "app": "schools",
+      "command": "verify_tenant_rls",
+      "path": "apps/schools/management/commands/verify_tenant_rls.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "aggregate_ai_metrics",
+      "path": "apps/siteconfig/management/commands/aggregate_ai_metrics.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "audit_tenant_models",
+      "path": "apps/siteconfig/management/commands/audit_tenant_models.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "backfill_service_integrations",
+      "path": "apps/siteconfig/management/commands/backfill_service_integrations.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "bootstrap_platform_catalog",
+      "path": "apps/siteconfig/management/commands/bootstrap_platform_catalog.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "bootstrap_runmycampus_platform",
+      "path": "apps/siteconfig/management/commands/bootstrap_runmycampus_platform.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "calculate_monthly_revenue_stats",
+      "path": "apps/siteconfig/management/commands/calculate_monthly_revenue_stats.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "check_accessibility",
+      "path": "apps/siteconfig/management/commands/check_accessibility.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "check_api_health",
+      "path": "apps/siteconfig/management/commands/check_api_health.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "check_branding_law",
+      "path": "apps/siteconfig/management/commands/check_branding_law.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "check_integrations",
+      "path": "apps/siteconfig/management/commands/check_integrations.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "check_ui_parity",
+      "path": "apps/siteconfig/management/commands/check_ui_parity.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "clone_region",
+      "path": "apps/siteconfig/management/commands/clone_region.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "compile_translations",
+      "path": "apps/siteconfig/management/commands/compile_translations.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "dispatch_webhook_deliveries",
+      "path": "apps/siteconfig/management/commands/dispatch_webhook_deliveries.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "export_config",
+      "path": "apps/siteconfig/management/commands/export_config.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "export_ui_config",
+      "path": "apps/siteconfig/management/commands/export_ui_config.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "generate_models_diagram",
+      "path": "apps/siteconfig/management/commands/generate_models_diagram.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "i18n_commands",
+      "path": "apps/siteconfig/management/commands/i18n_commands.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "import_config",
+      "path": "apps/siteconfig/management/commands/import_config.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "import_ui_config",
+      "path": "apps/siteconfig/management/commands/import_ui_config.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "index_ai_knowledge",
+      "path": "apps/siteconfig/management/commands/index_ai_knowledge.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "migrate_dashboard_layouts",
+      "path": "apps/siteconfig/management/commands/migrate_dashboard_layouts.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "normalize_ui_config",
+      "path": "apps/siteconfig/management/commands/normalize_ui_config.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "recover_database",
+      "path": "apps/siteconfig/management/commands/recover_database.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "run_phase7_checks",
+      "path": "apps/siteconfig/management/commands/run_phase7_checks.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "run_workflows",
+      "path": "apps/siteconfig/management/commands/run_workflows.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "seed_admin_dashboard_palettes",
+      "path": "apps/siteconfig/management/commands/seed_admin_dashboard_palettes.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "seed_country_profiles",
+      "path": "apps/siteconfig/management/commands/seed_country_profiles.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "seed_global_brand_registry",
+      "path": "apps/siteconfig/management/commands/seed_global_brand_registry.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "seed_global_data",
+      "path": "apps/siteconfig/management/commands/seed_global_data.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "seed_global_regions",
+      "path": "apps/siteconfig/management/commands/seed_global_regions.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "seed_preview_fixtures",
+      "path": "apps/siteconfig/management/commands/seed_preview_fixtures.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "seed_provider_registry",
+      "path": "apps/siteconfig/management/commands/seed_provider_registry.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "seed_regions",
+      "path": "apps/siteconfig/management/commands/seed_regions.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "seed_workflow_dashboard_packs",
+      "path": "apps/siteconfig/management/commands/seed_workflow_dashboard_packs.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "sync_regional_models",
+      "path": "apps/siteconfig/management/commands/sync_regional_models.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "test_core_workflows",
+      "path": "apps/siteconfig/management/commands/test_core_workflows.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "validate_regions",
+      "path": "apps/siteconfig/management/commands/validate_regions.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "verify_region_coverage",
+      "path": "apps/siteconfig/management/commands/verify_region_coverage.py"
     }
   ],
   "public_endpoint_audits": {

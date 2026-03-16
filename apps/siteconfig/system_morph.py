@@ -2,12 +2,26 @@
 Phase Global: Deep hydration on school create — set modality, terminology, grading from template.
 SystemMorphService runs after profile is applied in provisioning to inject config from
 EducationSystemProfile (e.g. modality Hybrid → BigBlueButton; terminology from translation_map).
+§2.4: Typed exception tuple for policy cache invalidation (no broad except).
 """
 from __future__ import annotations
 
+import logging
 from typing import Any
 
+from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.siteconfig.education_profile_engine import resolve_profile_for_school
+
+logger = logging.getLogger(__name__)
+
+# §2.4: Typed tuple for invalidate_policy_cache (optional post-save; fail soft).
+_SYSTEM_MORPH_POLICY_CACHE_ERRORS = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    KeyError,
+)
 
 
 def hydrate_school_from_profile(school) -> dict[str, Any]:
@@ -48,6 +62,11 @@ def hydrate_school_from_profile(school) -> dict[str, Any]:
         try:
             from apps.policies.policy_registry import invalidate_policy_cache
             invalidate_policy_cache(school)
-        except Exception:
-            pass
+        except _SYSTEM_MORPH_POLICY_CACHE_ERRORS as e:
+            log_exception_with_context(
+                "hydrate_school_from_profile: invalidate_policy_cache failed",
+                school_id=getattr(school, "id", None),
+                extra={"applied_keys": list(applied.keys())},
+            )
+            logger.debug("invalidate_policy_cache skip for school: %s", e, exc_info=True)
     return applied

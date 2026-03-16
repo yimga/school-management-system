@@ -8,11 +8,27 @@ Options:
     --frequency: 'hourly' or 'daily' (default: hourly)
     --dry-run: Show what would be sent without sending
 """
+from collections import defaultdict
+from datetime import timedelta
+
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from datetime import timedelta
-from collections import defaultdict
+
 from apps.compliance.models_audit import AlertDigest
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
+# §2.4: Typed tuple for digest email send (allowlist 0).
+import smtplib
+
+_SEND_DIGEST_ALERTS_EMAIL_ERRORS = (
+    OSError,
+    ConnectionError,
+    TimeoutError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    smtplib.SMTPException,
+)
 
 
 class Command(BaseCommand):
@@ -142,5 +158,10 @@ class Command(BaseCommand):
         try:
             send_email_alert(subject, message)
             self.stdout.write(self.style.SUCCESS(f"📧 Digest email sent"))
-        except Exception as e:
+        except _SEND_DIGEST_ALERTS_EMAIL_ERRORS as e:
+            log_exception_with_context(
+                "send_digest_alerts: failed to send digest email",
+                school_id=None,
+                extra={"command": "send_digest_alerts", "frequency": frequency, "error": str(e)},
+            )
             self.stdout.write(self.style.ERROR(f"❌ Failed to send digest: {e}"))

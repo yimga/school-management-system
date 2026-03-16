@@ -1,20 +1,17 @@
 /**
  * RunMyCampus marketing homepage — world-class SaaS front (Stripe/Shopify tier).
  * Scoped under .marketing-home. Load only on landing; do not use in tenant/superadmin.
- * Design system alignment: primary #0B3D91, secondary #00A878, accent #FFC857, neutrals from slate.
+ * Hero headline and primary CTA use platform design tokens (design-tokens.css) per
+ * CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL §4 and MARKETING_FRONT_PLACEHOLDER § Design tokens.
  */
 .marketing-home {
   position: relative; /* anchor for skip-link positioning */
-  /* Design tokens (RunMyCampus design system) */
-  --mkt-primary: #0B3D91;
-  --mkt-secondary: #00A878;
-  --mkt-accent: #FFC857;
+  /* Local spacing/shape; hero/CTA colors from design-tokens.css (--color-primary-500, --focus-ring-color) */
   --mkt-bg-dark: #0F172A;
   --mkt-surface: #1E293B;
   --mkt-text: #F8FAFC;
   --mkt-text-muted: #94a3b8;
   --mkt-border: rgba(148, 163, 184, 0.2);
-  /* Spacing and shape */
   --mkt-spacing-xs: 0.5rem;
   --mkt-spacing-sm: 1rem;
   --mkt-spacing-md: 1.5rem;
@@ -29,6 +26,16 @@
   --mkt-shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08);
   --mkt-shadow-lg: 0 18px 48px rgba(15, 23, 42, 0.12);
   font-family: var(--portal-font, Inter, system-ui, sans-serif);
+}
+
+/* All primary CTAs on landing use platform design tokens (design-tokens.css) */
+.marketing-home .btn-primary {
+  background: var(--color-primary-500, var(--school-primary, #2563eb));
+  border-color: var(--color-primary-500, var(--school-primary, #2563eb));
+}
+.marketing-home .btn-primary:hover {
+  background: var(--color-primary-700, #1d4ed8);
+  border-color: var(--color-primary-700, #1d4ed8);
 }
 
 /* Skip link (a11y) */
@@ -90,12 +97,14 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+/* Hero headline: platform typography token (design-tokens.css — THEME_CANONICAL_TOKENS; CONTROL_PLANE §4 Ultra high-end) */
 .marketing-home .mkt-hero-headline {
-  font-size: var(--type-hero, clamp(2rem, 4vw, 3.25rem));
+  font-size: var(--studio-font-display, var(--mkt-type-hero, clamp(2rem, 4vw, 3.25rem)));
   font-weight: 700;
   line-height: 1.15;
   letter-spacing: -0.02em;
   margin-bottom: var(--mkt-spacing-sm);
+  color: var(--mkt-text-inverse, #f8fafc);
 }
 .marketing-home .mkt-hero-subheadline {
   font-size: var(--type-body, 1.125rem);
@@ -122,13 +131,14 @@
   text-decoration: none;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
+/* Primary CTA: platform color tokens (design-tokens.css — CONTROL_PLANE §4) */
 .marketing-home .mkt-hero-ctas .btn-primary {
-  background: #2563eb;
+  background: var(--color-primary-500, var(--school-primary, #2563eb));
   color: #fff;
   border: none;
 }
 .marketing-home .mkt-hero-ctas .btn-primary:hover {
-  background: #1d4ed8;
+  background: var(--color-primary-700, #1d4ed8);
   color: #fff;
   transform: translateY(-1px);
   box-shadow: var(--mkt-shadow-md);
@@ -205,9 +215,60 @@
   max-height: 450px;
 }
 
-/* ----- Outcome metrics ----- */
+/* ----- Platform pillars (premium: depth, not flat square boxes) ----- */
+.marketing-home .mkt-section-pillars {
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0.6) 0%, rgba(241, 245, 249, 0.4) 100%);
+  border-radius: var(--mkt-radius-lg);
+  margin-bottom: var(--mkt-spacing-md);
+}
+.marketing-home .mkt-pillar-card {
+  background: var(--admin-content-bg, #fff);
+  border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
+  border-radius: var(--mkt-radius-md);
+  padding: var(--mkt-spacing-md) var(--mkt-spacing-lg);
+  box-shadow: var(--mkt-shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+.marketing-home .mkt-pillar-card:hover {
+  box-shadow: var(--mkt-shadow-md);
+  transform: translateY(-2px);
+}
+.marketing-home .mkt-pillar-label {
+  display: block;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--admin-content-text, #0f172a);
+  letter-spacing: -0.01em;
+}
+.marketing-home .mkt-pillar-sub {
+  font-size: 0.875rem;
+  color: var(--admin-content-text-muted, #64748b);
+  line-height: 1.4;
+}
+
+/* ----- Outcome metrics (premium cards, not flat boxes) ----- */
+.marketing-home .mkt-section-outcomes .container {
+  max-width: 100%;
+}
+.marketing-home .mkt-card-premium,
 .marketing-home .mkt-outcome-card {
   background: var(--admin-content-bg, #fff);
+  border: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
+  border-radius: var(--mkt-radius-md);
+  padding: var(--mkt-spacing-md) var(--mkt-spacing-lg);
+  box-shadow: var(--mkt-shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.marketing-home .mkt-outcome-card:hover,
+.marketing-home .mkt-card-premium:hover {
+  box-shadow: var(--mkt-shadow-md);
+  transform: translateY(-2px);
 }
 .marketing-home .mkt-outcome-value {
   font-size: 1.75rem;
@@ -217,6 +278,12 @@
 .marketing-home .mkt-outcome-label {
   font-weight: 600;
   margin-bottom: 0.25rem;
+}
+.marketing-home .mkt-outcome-detail {
+  font-size: 0.875rem;
+  color: var(--admin-content-text-muted, #64748b);
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
 }
 .marketing-home .mkt-outcome-bar {
   height: 6px;

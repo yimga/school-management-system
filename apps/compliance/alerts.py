@@ -3,10 +3,12 @@ Compliance alert utilities for real-time notifications and scheduled report deli
 - Dispatch alerts for critical audit events via email/Slack/webhooks
 - Provide escalation thresholds and runbook references
 - Send scheduled compliance report emails
+§2.4: Typed exception tuples and structured logging (no broad except).
 """
 
 import json
 import logging
+import smtplib
 import time
 from urllib import request, error as urllib_error
 
@@ -14,7 +16,46 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.utils import timezone
 
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
 logger = logging.getLogger(__name__)
+
+# §2.4: Typed tuples for compliance alert failure paths (allowlist 0).
+_COMPLIANCE_ALERTS_EMAIL_ERRORS = (
+    OSError,
+    ConnectionError,
+    TimeoutError,
+    smtplib.SMTPException,
+    UnicodeError,
+    AttributeError,
+    TypeError,
+    ValueError,
+)
+_COMPLIANCE_ALERTS_WEBHOOK_ERRORS = (
+    urllib_error.HTTPError,
+    urllib_error.URLError,
+    TimeoutError,
+    OSError,
+    ConnectionError,
+    ValueError,
+    TypeError,
+    RuntimeError,  # _post_json raises after retries exhausted
+)
+_COMPLIANCE_ALERTS_CACHE_PREFIX_ERRORS = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    LookupError,
+    KeyError,
+)
+_COMPLIANCE_ALERTS_CACHE_BACKEND_ERRORS = (
+    ConnectionError,
+    ValueError,
+    TypeError,
+    AttributeError,
+    RuntimeError,
+)
 
 SEVERITY_ORDER = {
     "LOW": 1,
@@ -165,7 +206,7 @@ def _post_json(url, payload, max_retries=3):
             time.sleep(backoff_seconds)
     
     # Should never reach here due to raise in last attempt
-    raise Exception(f"Webhook POST failed after {max_retries} retries")
+    raise RuntimeError(f"Webhook POST failed after {max_retries} retries")
 
 
 def _send_email(subject: str, message: str):
@@ -181,8 +222,12 @@ def _send_email(subject: str, message: str):
             recipients,
             fail_silently=True,
         )
-    except Exception as exc:  # noqa: BLE001
-        logger.warning("Failed to send compliance alert email: %s", exc)
+    except _COMPLIANCE_ALERTS_EMAIL_ERRORS as exc:
+        log_exception_with_context(
+            "compliance alert: failed to send email",
+            school_id=None,
+            extra={"subject": subject[:200], "error": str(exc)},
+        )
 
 
 def send_email_alert(subject: str, message: str):
@@ -200,8 +245,12 @@ def _send_slack(message: str):
     payload = {"text": message}
     try:
         _post_json(webhook, payload)
-    except Exception as exc:  # noqa: BLE001
-        logger.warning("Failed to send Slack alert: %s", exc)
+    except _COMPLIANCE_ALERTS_WEBHOOK_ERRORS as exc:
+        log_exception_with_context(
+            "compliance alert: failed to send Slack alert",
+            school_id=None,
+            extra={"error": str(exc)},
+        )
 
 
 def _send_webhook(payload: dict):
@@ -211,8 +260,12 @@ def _send_webhook(payload: dict):
         return
     try:
         _post_json(webhook, payload)
-    except Exception as exc:  # noqa: BLE001
-        logger.warning("Failed to send webhook alert: %s", exc)
+    except _COMPLIANCE_ALERTS_WEBHOOK_ERRORS as exc:
+        log_exception_with_context(
+            "compliance alert: failed to send webhook alert",
+            school_id=None,
+            extra={"error": str(exc)},
+        )
 
 
 def _create_incident_ticket(payload: dict):
@@ -239,8 +292,12 @@ def _create_incident_ticket(payload: dict):
     try:
         _post_json(webhook, ticket_payload)
         logger.info("Incident ticket created for: %s", payload.get("title"))
-    except Exception as exc:  # noqa: BLE001
-        logger.warning("Failed to create incident ticket: %s", exc)
+    except _COMPLIANCE_ALERTS_WEBHOOK_ERRORS as exc:
+        log_exception_with_context(
+            "compliance alert: failed to create incident ticket",
+            school_id=None,
+            extra={"title": payload.get("title", "")[:200], "error": str(exc)},
+        )
 
 
 from django.core.cache import cache
@@ -259,7 +316,7 @@ def notify_audit_event(audit_log):
         from apps.siteconfig.cache_utils import get_tenant_cache_prefix
         school_id = getattr(audit_log, "school_id", None)
         prefix = f"school:{school_id}" if school_id else get_tenant_cache_prefix()
-    except Exception:
+    except _COMPLIANCE_ALERTS_CACHE_PREFIX_ERRORS:
         prefix = "public"
     dedupe_key = f"{prefix}:audit_alert_sent:{audit_log.id}:{ts_token}"
     # If already processed recently, skip to avoid duplicates
@@ -267,7 +324,7 @@ def notify_audit_event(audit_log):
         if cache.get(dedupe_key):
             logger.debug("Skipping duplicate alert for audit_log %s", audit_log.id)
             return
-    except Exception:
+    except _COMPLIANCE_ALERTS_CACHE_BACKEND_ERRORS:
         # If cache backend not available, proceed without dedupe
         pass
 
@@ -293,7 +350,7 @@ def notify_audit_event(audit_log):
         # Mark as processed for a short time to avoid duplicates
         try:
             cache.set(dedupe_key, True, 60)
-        except Exception:
+        except _COMPLIANCE_ALERTS_CACHE_BACKEND_ERRORS:
             pass
         return  # Don't send immediately
 
@@ -341,7 +398,7 @@ def notify_audit_event(audit_log):
         # Mark as processed for a short time to avoid duplicates
         try:
             cache.set(dedupe_key, True, 60)
-        except Exception:
+        except _COMPLIANCE_ALERTS_CACHE_BACKEND_ERRORS:
             pass
 
 
@@ -428,5 +485,9 @@ def send_compliance_report_email(reports):
             recipient_list=recipients,
             fail_silently=True,
         )
-    except Exception as exc:  # noqa: BLE001
-        logger.warning("Failed to send compliance report email: %s", exc)
+    except _COMPLIANCE_ALERTS_EMAIL_ERRORS as exc:
+        log_exception_with_context(
+            "compliance report: failed to send scheduled report email",
+            school_id=None,
+            extra={"error": str(exc)},
+        )

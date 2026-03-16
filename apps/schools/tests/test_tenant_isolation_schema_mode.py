@@ -3,7 +3,9 @@ Schema-per-tenant isolation: in tenant A context, only A data is visible.
 Requires PostgreSQL and USE_DJANGO_TENANTS=True. Tag: tenants_schema.
 """
 import unittest
+
 from django.db import connection
+from django.db.utils import DatabaseError, IntegrityError, OperationalError, ProgrammingError
 from django.test import TestCase, override_settings, tag
 
 
@@ -26,12 +28,18 @@ class TenantIsolationSchemaModeTests(TestCase):
         Domain.objects.create(domain="tenant-b.test.com", tenant=self.client_b, is_primary=True)
 
     def tearDown(self):
+        _teardown_delete_errors = (
+            DatabaseError,
+            IntegrityError,
+            OperationalError,
+            ProgrammingError,
+        )
         for attr in ("client_b", "client_a"):
             c = getattr(self, attr, None)
             if c is not None:
                 try:
                     c.delete()
-                except Exception:
+                except _teardown_delete_errors:
                     pass
 
     def test_tenant_context_isolates_data(self):

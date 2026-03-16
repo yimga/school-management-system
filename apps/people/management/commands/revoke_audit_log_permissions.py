@@ -11,8 +11,17 @@ PostgreSQL only. Use --dry-run to print SQL without executing.
 """
 from django.core.management.base import BaseCommand
 from django.db import connection
+from django.db.utils import DatabaseError, OperationalError, ProgrammingError
 
 from apps.people.repositories.audit_repository import revoke_audit_log_mutations, set_search_path
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
+# Typed exceptions for revoke_audit_log DDL (per-schema loop).
+_REVOKE_AUDIT_LOG_PERMISSIONS_ERRORS: tuple[type[BaseException], ...] = (
+    DatabaseError,
+    OperationalError,
+    ProgrammingError,
+)
 
 
 class Command(BaseCommand):
@@ -61,5 +70,10 @@ class Command(BaseCommand):
                     set_search_path(cursor, schema_name)
                     revoke_audit_log_mutations(cursor)
                 self.stdout.write(self.style.SUCCESS("OK %s (%s)" % (label, schema_name)))
-            except Exception as e:
+            except _REVOKE_AUDIT_LOG_PERMISSIONS_ERRORS as e:
+                log_exception_with_context(
+                    "revoke_audit_log_permissions: failed for schema",
+                    school_id=None,
+                    extra={"schema_name": schema_name, "label": label, "error": str(e)},
+                )
                 self.stdout.write(self.style.ERROR("FAILED %s: %s" % (schema_name, e)))

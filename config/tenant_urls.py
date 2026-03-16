@@ -88,6 +88,12 @@ def admin_siteconfig_customizer_redirect(request):
     return redirect(reverse("studio_os:experience"))
 
 
+def legacy_siteconfig_customizer_redirect(request):
+    """Phase B: /siteconfig/customizer/ → Studio OS Experience (tenant). Replaces old behavior path."""
+    from django.urls import reverse
+    return redirect(reverse("studio_os:experience"))
+
+
 def permission_denied(request, exception):
     is_admin_forbidden = (
         request.path.startswith("/admin")
@@ -141,6 +147,7 @@ urlpatterns = [
     path("api/ai-copilot/config/", ai_copilot_config, name="ai_copilot_config"),
     path("api/ai-copilot/audit/", ai_copilot_audit_feed, name="ai_copilot_audit"),
     path("admin/siteconfig/customizer/", admin_siteconfig_customizer_redirect),
+    path("siteconfig/customizer/", legacy_siteconfig_customizer_redirect),
     path("studio/", include(("apps.studio_os.urls", "studio_os"), namespace="studio_os")),
     path("verify/<str:token>/", __import__("apps.siteconfig.views_verify", fromlist=["verify_student_id"]).verify_student_id, name="verify_student_id"),
     path("api/", include(("apps.api.urls", "api"), namespace="api")),

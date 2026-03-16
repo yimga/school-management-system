@@ -62,7 +62,7 @@ def TerminologyResolver(school, request=None) -> dict[str, Any]:
         if isinstance(ctx.get("labels_map"), dict):
             out.setdefault("labels_map", {})
             out["labels_map"] = {**out["labels_map"], **ctx["labels_map"]}
-    except Exception:
+    except (ImportError, AttributeError, TypeError, ValueError, KeyError):
         pass
     return out
 
@@ -89,7 +89,7 @@ def ComplianceResolver(school) -> dict[str, Any]:
         comp = ctx.get("compliance_config")
         if isinstance(comp, dict):
             out.update(comp)
-    except Exception:
+    except (ImportError, AttributeError, TypeError, ValueError, KeyError):
         pass
     for key in ("compliance", "retention", "evidence", "safeguarding"):
         val = policy.get(key)
@@ -113,7 +113,7 @@ def BrandingResolver(school, country_code=None, language_code=None) -> dict[str,
             country_code=country_code,
             language_code=language_code,
         )
-    except Exception:
+    except (ImportError, AttributeError, TypeError, ValueError, KeyError):
         return {
             "labels_map": {},
             "ui_config": {"date_format": "DD/MM/YYYY", "is_rtl": False},

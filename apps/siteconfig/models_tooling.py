@@ -10,7 +10,11 @@ from apps.academics.models import Subject
 from apps.people.models import StudentProfile
 
 from .image_utils import optimize_image
-from .models import REPORT_CARD_TYPE_TERM, SiteSettings
+from .models_constants import (
+    BACKEND_CONSOLE_THEME_CHOICES,
+    LOGO_BG_MODE_CHOICES,
+    REPORT_CARD_TYPE_TERM,
+)
 from .models_support import (
     DashboardView,
     ThemeLayout,
@@ -34,14 +38,14 @@ class ThemePack(models.Model):
     video_background = models.FileField(upload_to="branding/themepack/video/", blank=True, null=True, help_text="Optional: Video background for this theme pack.")
     svg_background = models.FileField(upload_to="branding/themepack/svg/", blank=True, null=True, help_text="Optional: SVG background for this theme pack.")
     logo_opacity = models.FloatField(default=0.3, blank=True, null=True, validators=[MinValueValidator(0.0), MaxValueValidator(1.0)], help_text="Opacity for theme logo background (0.0 = transparent, 1.0 = opaque)")
-    logo_background_mode = models.CharField(max_length=16, choices=SiteSettings.LOGO_BG_MODE_CHOICES, default="contain", help_text="How the theme logo background image is displayed.")
+    logo_background_mode = models.CharField(max_length=16, choices=LOGO_BG_MODE_CHOICES, default="contain", help_text="How the theme logo background image is displayed.")
     applies_to_admin = models.BooleanField(
         default=False,
         help_text="Use this pack for the Django /admin interface.",
     )
     backend_console_theme = models.CharField(
         max_length=20,
-        choices=SiteSettings.BACKEND_CONSOLE_THEME_CHOICES,
+        choices=BACKEND_CONSOLE_THEME_CHOICES,
         blank=True,
         default="",
         help_text="Optional: When set, this pack's console mode (light/dark) is used for /backend and /admin. Leave blank to use the site-level Backend console theme.",

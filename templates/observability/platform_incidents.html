@@ -4,12 +4,11 @@
 {% block cp_title %}Platform Incidents{% endblock %}
 
 {% block cp_content %}
-<div class="container py-4">
+<div class="container py-4" data-page-archetype="operational-workbench">
+  {% load i18n %}
+  {% include "studio_os/components/page_header.html" with title=_("Platform incident console") subtitle=_("Shared control-plane incidents for availability, security, billing, integrations, and data integrity.") action_url=dashboard_url action_text=_("Back to Dashboard") %}
   <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
-    <div>
-      <h1 class="h4 mb-1">Platform incident console</h1>
-      <p class="text-muted mb-0">Shared control-plane incidents for availability, security, billing, integrations, and data integrity.</p>
-    </div>
+    <div class="flex-grow-1"></div>
     <div class="text-end">
       <div class="small text-uppercase text-muted">Webhook migration drift</div>
       <div class="h5 mb-0">{{ webhook_stack.unsynced_legacy_groups }} unsynced legacy groups</div>

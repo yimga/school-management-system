@@ -1,15 +1,18 @@
 """
 API endpoints for compliance dashboard actions.
 """
-from django.http import JsonResponse
-from django.views.decorators.http import require_POST
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.utils import timezone
-from django_ratelimit.decorators import ratelimit
 from datetime import timedelta
 
-from apps.compliance.models_audit import ThreatDetectionConfig
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.db import DatabaseError, IntegrityError, OperationalError
+from django.http import JsonResponse
+from django.utils import timezone
+from django.views.decorators.http import require_POST
+from django_ratelimit.decorators import ratelimit
+
 from apps.compliance.auth_utils import is_admin_or_staff
+from apps.compliance.models_audit import ThreatDetectionConfig
+from apps.platform_runtime.structured_logging import log_view_exception
 
 
 @require_POST
@@ -27,8 +30,12 @@ def mute_threats(request):
     
     try:
         config = ThreatDetectionConfig.get_active()
-    except Exception:
-        # Create default config if doesn't exist
+    except (AttributeError, TypeError, ValueError, DatabaseError, OperationalError, IntegrityError):
+        log_view_exception(
+            request,
+            "mute_threats threat config get/create failed",
+            extra={"section": "mute_threats", "duration": duration_str},
+        )
         config = ThreatDetectionConfig.objects.create()
     
     now = timezone.now()

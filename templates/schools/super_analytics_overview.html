@@ -13,8 +13,8 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-4">
-  {% include "partials/page_families/title_block.html" with title="Analytics & Observability" subtitle="School health, adoption, feature usage, workflow success/failure, migration success, marketplace usage." %}
+<div class="container-fluid py-4" data-page-archetype="operational-workbench">
+  {% include "studio_os/components/page_header.html" with title="Analytics & Observability" subtitle="School health, adoption, feature usage, workflow success/failure, migration success, marketplace usage." action_url=dashboard_url action_text="Back to dashboard" %}
   <div class="card shadow-sm border-0 page-family-content-card card-grammar mb-3">
     <div class="card-body">
       <p class="mb-0">{% trans "Placeholder: link to usage, pulse, school health, and observability surfaces." %}</p>

@@ -1,12 +1,24 @@
 """Phase 8 Task 1: Management Commands"""
 
+from datetime import timedelta
+
+from django.apps import apps
 from django.core.management.base import BaseCommand
+from django.db import connection
+from django.db import DatabaseError, OperationalError, ProgrammingError
 from django.utils import timezone
+
+# §2.4: Typed tuple for verify_data_integrity cursor check (no broad except).
+_VERIFY_DATA_INTEGRITY_ERRORS = (DatabaseError, OperationalError, ProgrammingError)
+
 from apps.compliance.models import (
-    AccessLog, AuditLog, ComplianceReport, IncidentTicket
+    AccessLog,
+    AuditLog,
+    ComplianceReport,
+    IncidentTicket,
 )
 from apps.compliance.threat_detection import ThreatDetector
-from datetime import timedelta
+from apps.platform_runtime.structured_logging import log_exception_with_context
 
 
 class CheckComplianceCommand(BaseCommand):
@@ -84,19 +96,25 @@ class VerifyDataIntegrityCommand(BaseCommand):
     
     def handle(self, *args, **options):
         self.stdout.write("Verifying data integrity...")
-        
-        from django.db import connection
-        from django.apps import apps
-        
+
         errors = []
-        
+
         # Check for orphaned records
         for model in apps.get_models():
             try:
                 # Check foreign key constraints
                 with connection.cursor():
                     pass  # Database integrity check
-            except Exception as e:
+            except _VERIFY_DATA_INTEGRITY_ERRORS as e:
+                log_exception_with_context(
+                    "verify_data_integrity: integrity check failed for model",
+                    school_id=None,
+                    extra={
+                        "command": "verify_data_integrity",
+                        "model": getattr(model, "__name__", str(model)),
+                        "error": str(e),
+                    },
+                )
                 errors.append(str(e))
         
         if errors:

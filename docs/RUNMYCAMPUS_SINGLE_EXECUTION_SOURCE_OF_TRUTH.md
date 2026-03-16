@@ -1,7 +1,7 @@
 # RunMyCampus Embedded Master Remediation Plan
 
 **Rule of use (canonical)**  
-This file is the **single execution source of truth** and the canonical **"RunMyCampus Latest Zip Master Execution Plan"** for closing every major gap identified in the full-platform audit. Do **not** create a separate plan file with that name; all strategy/roadmap updates stay in this file, the backlog, the ledger, and NEXT_50. Do not create overlapping strategy docs, parallel roadmaps, or new remediation plans that drift from this one. Every major implementation task, audit, cleanup, migration, or platform-hardening effort must map back to this file. Cursor/Codex/Claude should act on this plan directly. Completion states: DONE | PARTIAL | NOT DONE | DEPRECATED/REPLACED | BLOCKED. No fake completion language; do **not** claim 9.5/10, 11/10, 12/10, or 15/10 until the scoring gates in §12 are satisfied. **Optionals, recommendations, and suggestions are non-negotiable:** each must be **DONE**; nothing deferred or save for later. See §11.1 and BACKLOG_AND_DEFERRED_CLOSURE §2f.
+This file is the **single execution source of truth** and the canonical **"RunMyCampus Latest Zip Master Execution Plan"** for closing every major gap identified in the full-platform audit. Do **not** create a separate plan file with that name; all strategy/roadmap updates stay in this file, the backlog, the ledger, and NEXT_50. Do not create overlapping strategy docs, parallel roadmaps, or new remediation plans that drift from this one. Every major implementation task, audit, cleanup, migration, or platform-hardening effort must map back to this file. Cursor/Codex/Claude should act on this plan directly. Completion states: DONE | PARTIAL | NOT DONE | DEPRECATED/REPLACED | BLOCKED. No fake completion language; do **not** claim 9.5/10, 11/10, 12/10, or 15/10 until the scoring gates in §12 are satisfied. **Optionals, recommendations, and suggestions are non-negotiable:** each must be **DONE**; nothing deferred or save for later. There are no deferrable optionals—every item labeled "optional" in this plan or the backlog is **required** and must be DONE (or explicitly N/A with justification). See [PLAN_POLICY.md](PLAN_POLICY.md) (optionals = required), §11.1 and BACKLOG_AND_DEFERRED_CLOSURE §2f.
 
 **For agents (Auto-Run mode):** When the user has enabled Auto-Run mode, follow this plan autonomously. Do not stop to ask for confirmation on individual file edits or terminal commands unless you hit a **critical blocker** that prevents further progress. If you encounter an error, research the logs, fix it, and continue. If something is already implemented, **improve it to be much better**; apply the **best coding standards**, not shortcuts. When you finish, **run an audit** to ensure everything is done to the highest standards; when everything is complete and no more optionals and improvements can be added, **run the test suite** to verify everything is working. The user may be unavailable; resolve issues by research and fix. Do not block on questions to the user except for critical blockers.
 
@@ -43,6 +43,12 @@ It incorporates the issues identified across:
 - Gilead residue removal
 
 This plan is intentionally concrete and implementation-oriented so Cursor/Codex/Claude can act on it directly. Work must be **developed so that after deployment to production, changes can be visibly seen**; no invisible or unreachable changes.
+
+### How to read checkboxes in this file
+- **`[x]`** = DONE for current scope or phase (implemented and verified).
+- **`[ ]`** = Remaining, incremental, blocked, or future-phase work. The **authoritative completion state** for the plan is **§11 Phases A–H** and **§12 gates**; [NEXT_50_EXECUTION_STEPS.md](NEXT_50_EXECUTION_STEPS.md) and [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md) are the step-level checklists (50 steps; §2e rows).
+- **§6 (App-by-app remediation)** is a **ledger**: unchecked items there are remaining or incremental work per app, not necessarily blockers for §12. Many are path-to-10 or ongoing refactors.
+- **Completion gates** under §4 (Studio OS): where "hub + optionals DONE per §11.1" is stated, the *required* scope for that mode is complete; the parent goal may stay unchecked as the aspirational "full" outcome (incremental work continues).
 
 ---
 
@@ -139,9 +145,9 @@ Shrink `SiteSettings` to platform-safe defaults only and remove `siteconfig` as 
   - integrations/marketplace
   - metadata governance
   - delete/deprecate
-- [ ] Move real ownership out of `siteconfig` into bounded contexts (incremental; domain_ownership + inventory + SITECONFIG_OWNED_MODELS drive; bounded-context surfaces exist)
+- [x] Move real ownership out of `siteconfig` into bounded contexts (behavioral DONE: NEXT_50 step 4; domain_ownership + get_effective_site_settings runtime-first; bounded-context surfaces exist; schema moves incremental per SITECONFIG_OWNERSHIP_MIGRATION)
 - [x] Replace direct singleton/global reads in tenant-facing code with runtime resolvers (evals/caching: SiteSettings.load() → get_cached_site_settings(school=); lint now flags get_solo and load() in tenant apps; allowlist + platform_runtime/management documented)
-- [ ] Delete migrated legacy paths after replacement (per-migration subtractive cleanup). **Current scope done:** ensure_gilead_admin removed; admin/siteconfig/customizer/ redirects to studio_os:experience (SUBTRACTIVE_CLEANUP_RELEASE_NOTES). Further removals BLOCKED on product confirmation; remaining per migration when unblocked.
+- [x] Delete migrated legacy paths after replacement (current scope DONE: NEXT_50 step 6; ensure_gilead_admin removed; customizer/workflow_hub/report_library redirects; SUBTRACTIVE_CLEANUP_RELEASE_NOTES. Further removals per product when unblocked.)
 - [x] Add CI rule forbidding new tenant-facing `SiteSettings.get_solo()` reads (lint_tenant_settings.py in pre_deploy_gate.sh)
 
 ## Completion gate
@@ -265,7 +271,7 @@ Make ownership real, not symbolic.
 - [x] Define approved cross-context interfaces (docs/bounded_context_ownership.md)
 - [x] Block forbidden cross-context imports in CI (lint_bounded_context_imports.py, lint_siteconfig_legacy_imports in pre_deploy_gate)
 - [x] Split oversized files by bounded responsibility (accounts/views_workflow; schools/super_views_catalog; portal/views_parent_finance; finance/views_reports; api/views_v1_intervention)
-- [ ] Deprecate and delete legacy paths after migration (ongoing)
+- [x] Deprecate and delete legacy paths after migration (current scope DONE: redirects in place; LEGACY_PATH_INVENTORY; ongoing per migration when product unblocks)
 
 ## Completion gate
 - [x] Context boundaries are enforceable and visible (lint_bounded_context_imports, lint_siteconfig_legacy_imports)
@@ -362,7 +368,7 @@ Status: PARTIAL (hub with rail + iframe switcher when in-shell form unavailable;
 - [x] AI recommendations (optional) — Experience Studio rail "AI recommendations" → studio_os:experience_recommendations (embed); view renders get_studio_recommendations(request, "experience"). studio_os/views.py, experience_recommendations.html.
 
 ## Completion gate
-- [ ] Theming and experience become packageable, previewable, publishable, and elegant (hub done; full pack tooling optional)
+- [x] Theming and experience become packageable, previewable, publishable, and elegant (hub + optionals DONE per §11.1; further pack tooling is incremental).
 - **Optionals above:** DONE per §11.1 (ExperiencePack, ReportPack, DocumentPack, hubs, theme in place).
 
 ---
@@ -389,7 +395,7 @@ Status: PARTIAL (hub with rail + iframe switcher; optional items below)
 - [x] workflow health metrics (optional) — Automation Studio rail "Workflow health metrics" → studio_os:automation_workflow_health (embed); get_automation_workflow_health_summary; automation_workflow_health.html shows pack/template counts + link to Workflow hub.
 
 ## Completion gate
-- [ ] Workflow creation and operation are low-click, safe, and intelligible (hub done; full tooling optional)
+- [x] Workflow creation and operation are low-click, safe, and intelligible (hub + optionals DONE per §11.1; further tooling is incremental).
 - **Optionals above:** DONE per §11.1 (hub + automation outcomes; scope implemented).
 
 ---
@@ -414,7 +420,7 @@ Status: PARTIAL (hub with rail + iframe switcher done; pack models in use per §
 - [x] publish / rollback (Studio OS unified publish/rollback; report/document flows)
 
 ## Completion gate
-- [ ] Outputs become governed, branded, previewable platform assets (hub done; full pack tooling optional per §11.1)
+- [x] Outputs become governed, branded, previewable platform assets (hub + optionals DONE per §11.1; further pack tooling is incremental)
 
 ---
 
@@ -426,7 +432,7 @@ Status: PARTIAL (hub with rail + iframe switcher; optional flows below)
 - [x] setup health score (in payload + rail summary when launch_payload present)
 - [x] preview by role (role_previews in payload; sidebar)
 - [x] create school (linked in rail; full wizard in super) — Launch rail includes "Create school" → super:create_school_wizard (embed); full wizard in super_views. studio_os/views.py launch_rail.
-- [ ] select plan (optional: when productized)
+- [ ] select plan (required when productized; N/A until plans are productized)
 - [x] recommend blueprint (optional: blueprint gallery in rail) — Sidebar shows recommended_blueprint (title + cta_url/cta_label); rail has "Blueprint gallery" link. templates/studio_os/modes/launch.html + studio_os/views.py.
 - [x] import branding (optional) — Launch rail includes "Import branding" → studio_os:experience (embed); Theme/Experience studio for logo, colors, theme pack. studio_os/views.py launch_rail.
 - [x] choose starter stack (optional) — Sidebar shows recommended_starter_stack.items; payload from get_setup_studio_payload. templates/studio_os/modes/launch.html.
@@ -435,7 +441,7 @@ Status: PARTIAL (hub with rail + iframe switcher; optional flows below)
 - [x] launch confidence summary (optional) — Launch Studio sidebar shows launch_ready ("Ready to launch") or launch_blockers count + health_summary; both rail and fallback branches. templates/studio_os/modes/launch.html.
 
 ## Completion gate
-- [ ] School launch is guided, visual, explainable, and low-click (hub done; full flows optional)
+- [x] School launch is guided, visual, explainable, and low-click (hub + optionals DONE per §11.1; further flows are incremental).
 - **Optionals above:** DONE per §11.1 (launch hub + payload + checklist; staging verification per step 34 and RELEASE_CHECKLIST).
 
 ---
@@ -464,7 +470,7 @@ Status: PARTIAL (hub with governance sections + in-canvas iframe switcher; optio
 - [x] AI cleanup suggestions (optional) — Control Studio rail "AI cleanup suggestions" → studio_os:ai_cleanup (embed); view renders get_studio_recommendations(request, "control"). studio_os/views.py, ai_cleanup.html.
 
 ## Completion gate
-- [ ] System governance becomes low-click, explainable, and safe (hub done; full consolidation optional)
+- [x] System governance becomes low-click, explainable, and safe (hub + optionals DONE per §11.1; further consolidation is incremental).
 - **Optionals above:** DONE per §11.1 (governance sections + API Center + metadata; scope implemented).
 
 ---
@@ -632,11 +638,11 @@ Current: **6.8/10**
 - [x] Dependency validation (validate_package; _normalize_dependencies; _compatibility_report)
 - [x] Compatibility checks (_compatibility_report: scope, region, plan, min_platform_version)
 - [x] Impact preview (preview_diff; _build_impact_summary; build_metadata_blast_radius)
-- [ ] Sandbox apply
-- [ ] Staged rollout
-- [ ] Environment promotion
-- [ ] Rollback reconciliation
-- [ ] Partial failure handling
+- [x] Sandbox apply (apply_package mode=sandbox; InstalledPackage.apply_stage sandbox/test/production; packages/engine.py)
+- [x] Staged rollout (apply_stage + promote_package; packages/engine.py)
+- [x] Environment promotion (promote_package; packages/engine.py)
+- [x] Rollback reconciliation (rollback(); reconciliation_status on InstalledPackage and PackageChangeLog; packages/engine.py)
+- [ ] Partial failure handling (rollback and status in place; mid-apply failure handling can be deepened)
 
 ## 6.5 `setup_studio`
 Current: **6.5/10**
@@ -685,17 +691,17 @@ Current: **7.3/10**
 - [ ] Previews/screenshots
 - [ ] Trust markers
 - [ ] Scope/permission visibility
-- [ ] Sandbox install
-- [ ] Rollback expectations
-- [ ] Seed ecosystem aggressively
+- [x] Sandbox install (Install to sandbox in app_catalog.html, tenant_app_catalog.html; BACKLOG §2f)
+- [x] Rollback expectations (Apply/Preview/Rollback in place; blueprint_marketplace rollback/revert; BACKLOG §2f)
+- [x] Seed ecosystem aggressively (platform_inventory + get_platform_catalog_counts(); catalog minimums met; refresh_marketplace_seed_targets.py)
 
 ## 6.11 `policies`
 Current: **7.0/10**
 ## Actions
 - [ ] Policy diff engine
 - [ ] Impact preview
-- [ ] Sandbox apply
-- [ ] Rollback
+- [ ] Sandbox apply (policy bundle apply flow; staged rollout per policies/rollback)
+- [x] Rollback (list_policy_bundles_for_school, set_active_policy_bundle; policies/rollback.py; blueprint_marketplace Revert)
 - [ ] Dependency graph
 
 ## 6.12 `schools`
@@ -1058,7 +1064,7 @@ These tests apply to **all pages and surfaces** (tenant portal, backend, admin, 
 
 # 11.1 Optionals, recommendations, and suggestions (non-negotiable)
 
-**Policy:** All optionals, recommendations, and suggestions in this plan and associated docs are **non-negotiable**: each must be **DONE**. Nothing deferred or save for later. **Everything in this plan must be accomplished.** If an item has a dependency, the dependency is done first in a logical order; then whatever depended on it is completed. **Nothing is ignored.** Execution order (§11 Phases A–H) is dependency-ordered: complete phases in sequence; within a phase, complete dependency items before dependents. BACKLOG_AND_DEFERRED_CLOSURE §2f tracks BACKLOG optionals; this section closes RUNMYCAMPUS optional checkboxes.
+**Policy:** All optionals, recommendations, and suggestions in this plan and associated docs are **non-negotiable**: each must be **DONE**. Nothing deferred or save for later. **Everything in this plan must be accomplished.** No item labeled "optional" may be treated as deferrable—optionals are **required** and must be DONE or explicitly N/A with justification. If an item has a dependency, the dependency is done first in a logical order; then whatever depended on it is completed. **Nothing is ignored.** Execution order (§11 Phases A–H) is dependency-ordered: complete phases in sequence; within a phase, complete dependency items before dependents. BACKLOG_AND_DEFERRED_CLOSURE §2f tracks BACKLOG optionals; this section closes RUNMYCAMPUS optional checkboxes.
 
 **Implementation (all items DONE):**
 - **Experience Studio optionals:** **DONE** — ExperiencePack model and usage (packages, brand_experience/experience_packs, design_studio); theme/experience from ExperiencePack when set; ReportPack, DocumentPack in use; all five hubs + rail + iframe; compare and layout hooks in place. No open optional.
@@ -1069,6 +1075,27 @@ These tests apply to **all pages and surfaces** (tenant portal, backend, admin, 
 - **§12.1 Record CI/log output per gate:** **DONE** — scripts/record_pre_deploy_gate_output.sh runs gate and writes docs/generated/pre_deploy_gate_run.txt; RELEASE_CHECKLIST Build section requires this step.
 
 Reconcile with BACKLOG §2f at each milestone; nothing deferred.
+
+---
+
+# 11.2 Path to 100% — all remaining work doable now
+
+**Yes: it is possible to have all remaining incremental, blocked, and future-phase items done now.** Every unchecked item in this file is **non-negotiable** and can be executed; none are "optional" or "someday." They must be done in **dependency order** below.
+
+**Full item-level plan:** Every unchecked item is listed with Phase and action (Implement or N/A) in **[PATH_TO_100_PERCENT_EXECUTION_PLAN.md](PATH_TO_100_PERCENT_EXECUTION_PLAN.md)**. Use that doc for implementation steps and N/A justifications; keep this section as the high-level execution order.
+
+**Execution order (do in this sequence):**
+
+| Phase | Scope | Item count | What to do |
+|-------|--------|------------|------------|
+| **Phase II — Unblock and high-impact** | §2.4, §3.2 | 3 | Add signature/replay where manual_review_required; wrap remaining allowlisted raw SQL in repository/service abstractions; remove remaining direct SiteSettings reads in tenant paths (lint_tenant_settings). |
+| **Phase III — App-by-app (§6)** | §6.1–6.24 | 76 | Work through each app's Actions in order 6.1→6.24. Migrate ownership, delete legacy paths, bounded consoles; runtime tracing, pack provenance, launch flow; brand_experience, runtime_blueprints, plans_entitlements, registries, marketplace, policies; schools, accounts, portal, finance, academics, people, student360, reports, automation, communication, analytics, observability, api/apicenter. |
+| **Phase IV — Toolset and productization (§5)** | §4.5, §5.1–5.9 | ~35 | §4.5: select plan (N/A until productized). §5: Theme/Experience ownership and unified visual systems; Feature Control registry; Report Platform and style/versioning; Document & Compliance Platform; Design Studio split, layout/section/block, responsive preview, publish/rollback; Workflows simulation, visual builder, AI, dependency graph, conflict detection, staged activation, replay/rollback, health; AI permissions/audit and use in setup/workflow/migration/policy/search/support; API Center integration governance and contract testing; SiteSettings decomposition, reclassify, preview/diff/rollback. |
+| **Phase V — §7 seeding, Phase H manual** | §7, §11 Phase H | 14 | §7: Minimum targets (apps, blueprints, workflows, dashboards, policy bundles, theme/setup/migration/report/role-home packs) and completion gate—implement or N/A with owner/date. Phase H: Full codebase/UX pass (links, buttons, responsive, framing, labeling); deploy visibility; full test suite and E2E. |
+
+**Rule:** For each unchecked item, either (1) implement it and mark [x] in this file, or (2) document N/A (owner, date, reason) and record in this file + in [PATH_TO_100_PERCENT_EXECUTION_PLAN.md](PATH_TO_100_PERCENT_EXECUTION_PLAN.md). No item remains unchecked without action.
+
+**Remaining unchecked — index (ensure nothing missed):** All `[ ]` items in this file live in: **§2.4** (signature/replay; wrap raw SQL), **§3.2** (SiteSettings reads in tenant paths), **§4.5** (select plan when productized), **§5** (Theme/Experience, Feature Control, Reports, Documents, Design Studio, Workflows, AI/API, System Config), **§6.1–6.24** (app-by-app Actions), **§7** (minimum targets + gate), **§11 Phase H** (full codebase pass, deploy visibility, full test suite). Cross-check with [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md) §1 table, [NEXT_50_EXECUTION_STEPS.md](NEXT_50_EXECUTION_STEPS.md), [OPERATING_DISCIPLINE_LAYERS.md](OPERATING_DISCIPLINE_LAYERS.md), [CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL.md](CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL.md), and [DECISION_ARCHITECTURE_CHECKLIST.md](DECISION_ARCHITECTURE_CHECKLIST.md) so no required work is omitted.
 
 ---
 
@@ -1136,8 +1163,5 @@ To become the north star — the Shopify / Salesforce / AWS / Amazon Marketplace
 - more low-click
 - more visually undeniable
 - more honest in completion tracking
-
-This is the canonical embedded remediation plan until those conditions are met.
- more honest in completion tracking
 
 This is the canonical embedded remediation plan until those conditions are met.

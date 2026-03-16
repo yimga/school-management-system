@@ -24,6 +24,8 @@ from apps.platform_runtime.helpers import get_effective_flags, get_effective_sit
 
 usage_logger = logging.getLogger("analytics.usage")
 
+# Typed exceptions for analytics usage logging (§2.4 broad-except policy)
+_ANALYTICS_USAGE_LOG_ERRORS = (AttributeError, TypeError, KeyError, ValueError)
 
 from .services import (
     DEADLINE_MODE_CUSTOM,
@@ -302,8 +304,8 @@ def dashboard(request: HttpRequest):
                 "deadline_mode": deadline_mode,
             },
         )
-    except Exception:
-        # Never block the request if logging fails
+    except _ANALYTICS_USAGE_LOG_ERRORS:
+        # Never block the request if usage logging fails
         pass
     response = render(request, "analytics/dashboard.html", context)
     if cache_ttl > 0 and cache_key and response.status_code == 200:

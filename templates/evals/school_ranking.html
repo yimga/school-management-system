@@ -4,6 +4,7 @@
 {% block title %}School Ranking{% endblock %}
 
 {% block content %}
+<div class="container-fluid py-2" data-page-archetype="operational-workbench">
 <div class="d-flex align-items-center justify-content-between mb-3">
   <div>
     <h2 class="mb-0">School Ranking</h2>
@@ -75,5 +76,6 @@
       {% include "components/pagination.html" with page_obj=page_obj pagination_extra_query=pagination_extra_query %}
     {% endif %}
   </div>
+</div>
 </div>
 {% endblock %}

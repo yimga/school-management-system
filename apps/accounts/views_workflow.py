@@ -12,6 +12,7 @@ from apps.academics.models import Classroom
 from apps.academics.services import get_active_year_and_term
 from apps.people.models import StudentProfile, TeacherProfile
 from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.structured_logging import log_exception_with_context
 
 from .decorators import permission_required
 from .models import User
@@ -53,7 +54,12 @@ def _workflow_progress(year):
             "has_students": students > 0,
             "has_teachers": teachers > 0,
         }
-    except (AttributeError, DatabaseError, OperationalError, ProgrammingError, TypeError, ValueError):
+    except (AttributeError, DatabaseError, OperationalError, ProgrammingError, TypeError, ValueError) as e:
+        log_exception_with_context(
+            "accounts _workflow_progress: query failed",
+            school_id=None,
+            extra={"view": "_workflow_progress", "error": str(e)},
+        )
         return {}
 
 
@@ -107,8 +113,12 @@ def automation_hub(request):
     try:
         site = get_effective_site_settings(request=request)
         site_settings_url = reverse("admin:siteconfig_sitesettings_change", args=[site.pk])
-    except ACCOUNTS_SOFT_FAILURES:
-        pass
+    except ACCOUNTS_SOFT_FAILURES as e:
+        log_exception_with_context(
+            "accounts automation_hub: get_effective_site_settings or site_settings_url failed",
+            school_id=getattr(getattr(request, "school", None), "id", None),
+            extra={"view": "automation_hub", "error": str(e)},
+        )
     return render(request, "accounts/automation_hub.html", {
         "BREADCRUMBS": [
             {"label": "Backend", "url": reverse("accounts:backend_dashboard")},
@@ -153,7 +163,12 @@ def workflow_center(request):
         student_create_url = reverse("accounts:backend_student_create")
         _teacher_list_url = reverse("accounts:backend_teacher_list")
         teacher_create_url = reverse("accounts:backend_teacher_create")
-    except ACCOUNTS_SOFT_FAILURES:
+    except ACCOUNTS_SOFT_FAILURES as e:
+        log_exception_with_context(
+            "accounts workflow_center: reverse backend student/teacher URLs failed",
+            school_id=getattr(getattr(request, "school", None), "id", None),
+            extra={"view": "workflow_center", "error": str(e)},
+        )
         student_list_url = reverse("admin:people_studentprofile_changelist")
         student_create_url = reverse("admin:people_studentprofile_add")
         _teacher_list_url = reverse("admin:people_teacherprofile_changelist")

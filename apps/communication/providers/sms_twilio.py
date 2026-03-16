@@ -12,6 +12,18 @@ from .sms_base import SMSProvider, SMSResult
 
 logger = logging.getLogger(__name__)
 
+# Typed exceptions for Twilio send (SDK/network).
+_SMS_TWILIO_SEND_ERRORS: tuple[type[BaseException], ...] = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    OSError,
+    ConnectionError,
+    TimeoutError,
+    RuntimeError,
+)
+
 
 class TwilioSMSProvider(SMSProvider):
     """SMS via Twilio API."""
@@ -55,6 +67,6 @@ class TwilioSMSProvider(SMSProvider):
             )
             logger.info("SMS sent via Twilio: %s", getattr(msg, "sid", None))
             return SMSResult(ok=True, provider_message_id=getattr(msg, "sid", None))
-        except Exception as e:
+        except _SMS_TWILIO_SEND_ERRORS as e:
             logger.exception("Twilio SMS failed: %s", e)
             return SMSResult(ok=False, error=str(e))

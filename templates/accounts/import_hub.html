@@ -1,19 +1,11 @@
 {% extends "backend_base.html" %}
-{% load static %}
+{% load static i18n %}
 
-{% block backend_title %}Import Hub{% endblock %}
+{% block backend_title %}{% trans "Import Hub" %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-  <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
-    <div>
-      <h1 class="h4 mb-1 fw-bold">Import Hub</h1>
-      <p class="text-muted small mb-0">Bulk import students, grades, and data. Use the Migration Wizard for upload → mapping → preview → run.</p>
-    </div>
-    <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:workflow_center' %}">
-      <i class="bi bi-arrow-left me-1"></i>Workflow Center
-    </a>
-  </div>
+<div class="container-fluid py-4" data-page-archetype="operational-workbench">
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
 
   <div class="row g-4">
     <div class="col-md-6 col-lg-4">

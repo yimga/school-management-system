@@ -1,4 +1,6 @@
-"""GDPR services: Right to Erasure (Art.17) and Data Portability (Art.20)."""
+"""GDPR services: Right to Erasure (Art.17) and Data Portability (Art.20).
+§2.4: Typed exception tuples and log_exception_with_context for model lookup, audit log, and scrub paths.
+"""
 
 from __future__ import annotations
 
@@ -9,18 +11,34 @@ from typing import Any
 from uuid import uuid4
 
 from django.apps import apps
-from django.db import transaction
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.db import DatabaseError, IntegrityError, transaction
 from django.utils import timezone
 
 from apps.metadata.services import get_dynamic_field_map, set_dynamic_field_value
+from apps.platform_runtime.structured_logging import log_exception_with_context
 
 logger = logging.getLogger(__name__)
+
+# §2.4: Typed tuples for GDPR service paths (no broad except).
+_GDPR_GET_MODEL_ERRORS = (LookupError, ImportError, ValueError, AttributeError, TypeError)
+_GDPR_AUDIT_LOG_ERRORS = (
+    DatabaseError,
+    IntegrityError,
+    ValidationError,
+    ObjectDoesNotExist,
+    AttributeError,
+    TypeError,
+    ValueError,
+)
+_GDPR_FILE_DELETE_ERRORS = (OSError, PermissionError, ValueError, AttributeError, TypeError)
+_GDPR_STATUS_ASSIGN_ERRORS = (AttributeError, ValueError, TypeError)
 
 
 def _get_model(app_label: str, model_name: str):
     try:
         return apps.get_model(app_label, model_name)
-    except Exception:
+    except _GDPR_GET_MODEL_ERRORS:
         return None
 
 
@@ -53,7 +71,12 @@ def _log_compliance_event(*, school_id: Any, student_id: Any, action: str, detai
             user=actor,
             severity="high",
         )
-    except Exception:
+    except _GDPR_AUDIT_LOG_ERRORS:
+        log_exception_with_context(
+            "Failed to write ComplianceAuditLog for GDPR action",
+            school_id=school_id,
+            extra={"student_id": student_id, "gdpr_action": action},
+        )
         logger.exception("Failed to write ComplianceAuditLog for GDPR action")
 
 
@@ -147,7 +170,12 @@ def gdpr_scrub_student(
         if getattr(student, "profile_photo", None):
             try:
                 student.profile_photo.delete(save=False)
-            except Exception:
+            except _GDPR_FILE_DELETE_ERRORS:
+                log_exception_with_context(
+                    "Could not delete student profile photo during GDPR scrub",
+                    school_id=school_id,
+                    extra={"student_id": student_id},
+                )
                 logger.debug("Could not delete student profile photo for student_id=%s", student_id)
             student.profile_photo = None
 
@@ -171,8 +199,12 @@ def gdpr_scrub_student(
         if hasattr(student, "status"):
             try:
                 student.status = student.Status.ALUMNI
-            except Exception:
-                pass
+            except _GDPR_STATUS_ASSIGN_ERRORS:
+                log_exception_with_context(
+                    "Could not set student status to ALUMNI during GDPR scrub",
+                    school_id=school_id,
+                    extra={"student_id": student_id},
+                )
         student.save()
         set_dynamic_field_value(
             student,

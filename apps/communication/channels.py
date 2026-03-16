@@ -98,7 +98,7 @@ def send_whatsapp(
             return True
         logger.warning("WhatsApp API error %s: %s", r.status_code, r.text[:500])
         return False
-    except Exception as e:
+    except (requests.RequestException, OSError, ValueError, TypeError) as e:
         logger.exception("WhatsApp send failed: %s", e)
         return False
 
@@ -160,6 +160,6 @@ def send_push(
             return r.status_code in (200, 201, 204)
         logger.warning("Push: unsupported provider %s", provider)
         return False
-    except Exception as e:
+    except (OSError, ConnectionError, TimeoutError, ValueError, TypeError) as e:
         logger.exception("Push send failed: %s", e)
         return False

@@ -60,7 +60,7 @@
 |---|--------------|------------------------|--------|--------|
 | 1 | Hero image | `proof_hero_image_key`, marketing_landing hero | In use | DONE |
 | 2 | Why switch bullets | `why_switch_bullets`, comparison block | In use | DONE |
-| 3 | Product visuals | `product_demo_slides`, `hero_dashboard_image_url`, `product_visualization_slides` | **Wiring DONE** (context + fallbacks in marketing_views). Add real assets to `static/images/marketing/` or CDN; set MARKETING_* env if needed | Wiring DONE; assets TBD |
+| 3 | Product visuals | `product_demo_slides`, `hero_dashboard_image_url`, `product_visualization_slides` | **Wiring DONE** (context + fallbacks in marketing_views). Each slide gets `image_static` fallback when `image_url` missing (platform-diagram-marketing.svg). Add real assets to `static/images/marketing/` or CDN; set MARKETING_* env if needed | Wiring DONE; assets TBD |
 | 4 | Migration diagram | `migration_studio_image_url`, `migration_diagram_url` | **Wiring DONE.** Add image(s); set MARKETING_MIGRATION_STUDIO_IMAGE_URL / MARKETING_MIGRATION_DIAGRAM_URL or use fallback | Wiring DONE; assets TBD |
 | 5 | Ecosystem/control-plane diagram | `ecosystem_diagram_url`, `control_plane_diagram_url` | **Wiring DONE.** Add images; set MARKETING_ECOSYSTEM_* / MARKETING_CONTROL_PLANE_* or use fallback | Wiring DONE; assets TBD |
 | 6 | Role-home previews | `role_preview_images` (list of {role, image_url}); marketing_landing / role section | **Wiring DONE.** Add per-role images; set MARKETING_ROLE_PREVIEW_IMAGES or use default list | Wiring DONE; assets TBD |
@@ -69,6 +69,12 @@
 | 9 | Institution-type / region pages | `institution_type_hero`, `region_hero`, page_slug content | Pages and context by slug exist in marketing_views; add hero assets per slug when building verticals | Wiring DONE; content TBD |
 
 *Application logic: nothing left behind. All keys and template slots are wired; remaining work is content/asset pipeline (create/source images and copy; plug via env or static).*
+
+---
+
+## Design tokens (ultra high-end; CONTROL_PLANE §4)
+
+**Requirement:** Hero headline and primary CTA must use platform design tokens so marketing and product share one design system. Use `design-tokens.css` (or THEME_CANONICAL_TOKENS) for typography (e.g. `--studio-font-heading`) and primary color (e.g. `--color-primary-500`). Marketing base and landing templates should load the same token set as control-plane/product where possible; CTAs use `btn-primary` with token-backed `--bs-btn-bg`/`--bs-btn-border-color` or equivalent. Non-negotiable per RUNMYCAMPUS §11.1.
 
 ---
 

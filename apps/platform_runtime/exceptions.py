@@ -1,8 +1,8 @@
 """
 Platform runtime and metadata-driven exception taxonomy.
 
-Use these instead of broad `except Exception` in tenant-facing and platform
-resolution paths. Supports observability, structured logging, and user-safe
+Use these instead of broad (untyped) exception handling in tenant-facing and
+platform resolution paths. Supports observability, structured logging, and user-safe
 messages. See plan: Workstream A3, Metadata Codex §13.
 """
 

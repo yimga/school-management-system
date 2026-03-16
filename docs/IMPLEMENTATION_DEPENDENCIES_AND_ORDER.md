@@ -8,6 +8,22 @@
 
 ---
 
+## 0. Dependency audit (why some items are NOT DONE / BLOCKED)
+
+**Use this section** when rerunning an audit to see where things stand and what blocks progress.
+
+| Blocker | Why NOT DONE | Unlock / resolve |
+|--------|---------------|-------------------|
+| **Step 6 (legacy path deletion)** | BACKLOG §2d: further URL/view removal **BLOCKED on product confirmation**. Agreed scope (customizer redirect, workflow-hub/report-library redirects) DONE. | Product sign-off to remove or redirect next legacy URL; then delete route/view and document in SUBTRACTIVE_CLEANUP_RELEASE_NOTES. |
+| **Reports app: makemigrations --check** | Django discovers models only from `reports.models`. BI models (ReportDefinition, ScheduledReport, AdHocReportDefinition, etc.) live in `reports.bi_models`. Importing `bi_models` from `reports.models` causes **circular import** (reports → bi_models → runtime_blueprints → siteconfig.models_tooling → siteconfig.models). So `makemigrations --check --dry-run` reports "pending" for reports; generating migrations would create a **destructive** migration (delete those tables). | **Option A:** Break the circular import (e.g. siteconfig.models avoid importing models_tooling at module load, or move FormDraft). **Option B:** Run `makemigrations --check` per-app in CI and skip `reports` until Option A. Do **not** commit a migration that deletes ReportDefinition/ScheduledReport/AdHocReportDefinition — code still uses them via `apps.reports.bi_models`. |
+| **§2.4 broad except / structured logging** | Incremental; remaining broad excepts are in **skipped** paths (siteconfig/management/, migrations, tests). Linter allowlist already 0 for all in-scope files. | Optional: expand linter to include siteconfig/management and fix those files; or treat as complete for in-scope and document skip list. |
+| **§8 marketing / full asset set** | MARKETING_FRONT_PLACEHOLDER: wiring DONE; remaining = **content/asset pipeline** (images, diagrams, copy), not application logic. | Create/source assets; plug URLs via env or static; no code blocker. |
+| **Full Django test suite** | Large suite; DB creation and many tests take time. Phase H slice and targeted hardening tests run in pre_deploy_gate. | Run `python manage.py test --keepdb` in CI or nightly; fix failing tests per app. |
+
+**Unlocked this run (2026-03):** (1) Fixed **IndentationError** in `apps/marketplace/tasks.py` (removed duplicate/orphan lines). (2) Fixed **SyntaxError** in `apps/people/people_management.py` (stray `}`). (3) Created **migrations** for platform_runtime (0005), schools (0035), siteconfig (0157) so `makemigrations --check` passes for those apps. (4) Reverted bad **reports** migration 0017 (would have deleted BI models still in use); documented reports blocker above.
+
+---
+
 ## 1. Dependency / ordering
 
 ### 1.1 §2.1 SiteSettings / siteconfig — order of work

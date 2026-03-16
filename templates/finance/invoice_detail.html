@@ -4,6 +4,7 @@
 {% block title %}Invoice Detail{% endblock %}
 
 {% block content %}
+<div data-page-archetype="record-detail">
 {% if access_denied %}
 <div class="card border-warning mb-3">
   <div class="card-body">
@@ -369,4 +370,5 @@
   }
 })();
 </script>
+</div>
 {% endblock %}

@@ -1,11 +1,35 @@
 """
 Phase 7 Task 8: Third-Party Integrations (WhatsApp, Zoom, Communication)
+
+§2.4: Broad except replaced with typed exception tuples and structured logging.
 """
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from django.conf import settings
 import logging
+from json import JSONDecodeError
+
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
+
+# Typed exception set for external API/HTTP and token/serialization failures (§2.4)
+try:
+    import requests
+    _REQUESTS_ERRORS: tuple[type[BaseException], ...] = (requests.RequestException,)
+except ImportError:
+    _REQUESTS_ERRORS = ()
+_COMMUNICATION_INTEGRATION_ERRORS: tuple[type[BaseException], ...] = (
+    OSError,
+    ConnectionError,
+    TimeoutError,
+    ValueError,
+    TypeError,
+    KeyError,
+    AttributeError,
+    ImportError,
+    JSONDecodeError,
+) + _REQUESTS_ERRORS
 
 
 class IntegrationService(ABC):
@@ -81,14 +105,17 @@ class WhatsAppIntegration(IntegrationService):
             )
 
             if response.status_code in [200, 201]:
-                logger.info(f"WhatsApp message sent to {recipient}")
+                logger.info("WhatsApp message sent to %s", recipient)
                 return {'success': True, 'message_id': response.json().get('messages')[0]['id']}
-            else:
-                logger.error(f"WhatsApp send failed: {response.text}")
-                return {'success': False, 'error': response.text}
+            logger.error("WhatsApp send failed: %s", response.text)
+            return {'success': False, 'error': response.text}
 
-        except Exception as e:
-            logger.error(f"WhatsApp integration error: {str(e)}")
+        except _COMMUNICATION_INTEGRATION_ERRORS as e:
+            logger.exception(
+                "WhatsApp integration error: %s",
+                e,
+                extra={"recipient": recipient, "integration": "whatsapp"},
+            )
             return {'success': False, 'error': str(e)}
 
     def verify_webhook(self, request):
@@ -103,10 +130,11 @@ class WhatsAppIntegration(IntegrationService):
             response = requests.get(
                 f"{self.api_url}/health",
                 headers={"Authorization": f"Bearer {self.api_token}"},
-                timeout=5
+                timeout=5,
             )
             return response.status_code == 200
-        except Exception:
+        except _COMMUNICATION_INTEGRATION_ERRORS as e:
+            logger.debug("WhatsApp health check failed: %s", e, extra={"integration": "whatsapp"})
             return False
 
 
@@ -170,12 +198,15 @@ class ZoomIntegration(IntegrationService):
                     'join_url': data['join_url'],
                     'start_time': data.get('start_time'),
                 }
-            else:
-                logger.error(f"Zoom meeting creation failed: {response.text}")
-                return {'success': False, 'error': response.text}
+            logger.error("Zoom meeting creation failed: %s", response.text)
+            return {'success': False, 'error': response.text}
 
-        except Exception as e:
-            logger.error(f"Zoom integration error: {str(e)}")
+        except _COMMUNICATION_INTEGRATION_ERRORS as e:
+            logger.exception(
+                "Zoom integration error: %s",
+                e,
+                extra={"host_email": host_email, "topic": topic, "integration": "zoom"},
+            )
             return {'success': False, 'error': str(e)}
 
     def send_message(self, recipient, message, **kwargs):
@@ -192,11 +223,12 @@ class ZoomIntegration(IntegrationService):
             import requests
             response = requests.get(
                 f"{self.api_url}/users/me",
-                headers={'Authorization': f'Bearer {self.get_token()}'},
-                timeout=5
+                headers={"Authorization": f"Bearer {self.get_token()}"},
+                timeout=5,
             )
             return response.status_code == 200
-        except Exception:
+        except _COMMUNICATION_INTEGRATION_ERRORS as e:
+            logger.debug("Zoom health check failed: %s", e, extra={"integration": "zoom"})
             return False
 
 
@@ -224,9 +256,13 @@ class CommunicationService:
         for name, service in self.providers.items():
             try:
                 results[name] = service.check_health()
-            except Exception:
+            except _COMMUNICATION_INTEGRATION_ERRORS as e:
+                logger.debug(
+                    "Communication provider health check failed: %s",
+                    e,
+                    extra={"provider": name},
+                )
                 results[name] = False
-
         return results
 
 

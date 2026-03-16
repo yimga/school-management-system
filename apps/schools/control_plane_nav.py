@@ -93,6 +93,9 @@ def build_control_plane_nav(request):
     add_group("Support & Success", [
         {"id": "super_support", "label": "Support", "url_name": "super:support_dashboard", "icon": "bi-headset"},
     ])
+    add_group("Security & Trust", [
+        {"id": "super_trust_center", "label": "Trust center", "url_name": "super:trust_center", "icon": "bi-shield-lock"},
+    ])
     add_group("Compliance", [
         {"id": "super_compliance", "label": "Compliance", "url_name": "super:compliance_overview", "icon": "bi-shield-check"},
     ])
@@ -100,6 +103,7 @@ def build_control_plane_nav(request):
         {"id": "super_billing", "label": "Billing", "url_name": "super:billing_dashboard", "icon": "bi-credit-card"},
     ])
     add_group("Platform Settings", [
+        {"id": "config_console", "label": "System config", "url_name": "siteconfig:console_domains_hub", "icon": "bi-sliders"},
         {"id": "admin_index", "label": "Configuration Engine", "url_name": "admin:index", "icon": "bi-gear-wide-connected"},
     ])
 

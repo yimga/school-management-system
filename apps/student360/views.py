@@ -3,10 +3,11 @@ Student 360 full-page view (Section 26.1 / 15.1).
 Permission-gated; tabbed UI: Summary, Academic, Finance, Attendance, Timeline.
 Immutable transcript: freeze action and cross-year archive view.
 """
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseForbidden, HttpResponseBadRequest
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.db import DatabaseError
+from django.http import HttpResponseBadRequest, HttpResponseForbidden
+from django.shortcuts import get_object_or_404, redirect, render
 
 from .services import (
     get_student_360_summary,
@@ -34,7 +35,7 @@ def _student_360_academic(student):
                 Evaluation.objects.filter(student=student)
                 .select_related("term", "academic_year")[:20]
             )
-    except Exception:
+    except (ImportError, LookupError, AttributeError, TypeError, ValueError, DatabaseError):
         pass
     return {"enrollments": enrollments, "evaluations": evaluations}
 
@@ -49,7 +50,7 @@ def _student_360_finance(student):
             invoices = list(
                 Invoice.objects.filter(student=student).order_by("-created_at")[:20]
             )
-    except Exception:
+    except (ImportError, LookupError, AttributeError, TypeError, ValueError, DatabaseError):
         pass
     return {"invoices": invoices}
 

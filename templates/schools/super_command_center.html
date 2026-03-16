@@ -19,7 +19,7 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-4 control-plane-shell">
+<div class="container-fluid py-4 control-plane-shell" data-page-archetype="operational-workbench">
   <section class="cp-hero cp-hero-compact mb-4">
     <div class="cp-hero-grid">
       <div>
@@ -93,7 +93,7 @@
             <span class="cp-status-badge cp-status-badge-pending">Pending</span>
           </div>
           {% empty %}
-          <div class="cp-empty-state">No pending approvals.</div>
+          {% include "studio_os/components/loading_empty_states.html" with state="empty" message=_("No pending approvals.") empty_icon="bi-check2-circle" only %}
           {% endfor %}
         </div>
       </section>
@@ -117,7 +117,7 @@
             <span class="cp-status-badge cp-status-badge-warning">Trial</span>
           </div>
           {% empty %}
-          <div class="cp-empty-state">No active trial watchlist.</div>
+          {% include "studio_os/components/loading_empty_states.html" with state="empty" message=_("No active trial watchlist.") empty_icon="bi-clock-history" only %}
           {% endfor %}
         </div>
       </section>
@@ -141,7 +141,7 @@
             <span class="cp-status-badge cp-status-badge-danger">{{ row.hours }}h</span>
           </div>
           {% empty %}
-          <div class="cp-empty-state">No provisioning breaches in the sampled window.</div>
+          {% include "studio_os/components/loading_empty_states.html" with state="empty" message=_("No provisioning breaches in the sampled window.") empty_icon="bi-shield-check" only %}
           {% endfor %}
         </div>
       </section>
@@ -165,7 +165,7 @@
             <span class="cp-status-badge cp-status-badge-warning">{{ row.age_hours }}h</span>
           </div>
           {% empty %}
-          <div class="cp-empty-state">No stale support tickets.</div>
+          {% include "studio_os/components/loading_empty_states.html" with state="empty" message=_("No stale support tickets.") empty_icon="bi-headset" only %}
           {% endfor %}
         </div>
       </section>
@@ -189,7 +189,7 @@
             <span class="cp-status-badge cp-status-badge-{{ incident.status }}">{{ incident.status|title }}</span>
           </div>
           {% empty %}
-          <div class="cp-empty-state">No unresolved incidents.</div>
+          {% include "studio_os/components/loading_empty_states.html" with state="empty" message=_("No unresolved incidents.") empty_icon="bi-exclamation-triangle" only %}
           {% endfor %}
         </div>
       </section>
@@ -213,7 +213,7 @@
             <span class="cp-status-badge cp-status-badge-{{ subscription.status|lower }}">{{ subscription.status|title }}</span>
           </div>
           {% empty %}
-          <div class="cp-empty-state">No billing exceptions right now.</div>
+          {% include "studio_os/components/loading_empty_states.html" with state="empty" message=_("No billing exceptions right now.") empty_icon="bi-credit-card" only %}
           {% endfor %}
         </div>
       </section>
@@ -237,7 +237,7 @@
             <span class="cp-status-badge cp-status-badge-warning">{{ row.risk_score }}</span>
           </div>
           {% empty %}
-          <div class="cp-empty-state">No churn-risk schools detected.</div>
+          {% include "studio_os/components/loading_empty_states.html" with state="empty" message=_("No churn-risk schools detected.") empty_icon="bi-graph-down" only %}
           {% endfor %}
         </div>
       </section>

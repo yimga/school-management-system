@@ -1,0 +1,45 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Export audit" %}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Control Plane" %}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'super:trust_center' %}">{% trans "Trust center" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Export audit" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-2" data-page-archetype="record-detail">
+  {% trans "Export audit" as page_title %}
+  {% trans "Security and admin audit log. Date range max 365 days. Rate limit: one export per 60 seconds." as page_subtitle %}
+  {% trans "Back to Trust center" as page_action %}
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=trust_center_url action_text=page_action %}
+  {% if error %}
+  <div class="alert alert-warning mb-3" role="alert">{{ error }}</div>
+  {% endif %}
+
+  <form method="get" action="" class="card shadow-sm border-secondary p-3" style="max-width: 28rem;">
+    <div class="mb-2">
+      <label for="from_date" class="form-label">{% trans "From date" %}</label>
+      <input type="date" name="from_date" id="from_date" class="form-control" required>
+    </div>
+    <div class="mb-2">
+      <label for="to_date" class="form-label">{% trans "To date" %}</label>
+      <input type="date" name="to_date" id="to_date" class="form-control" required>
+    </div>
+    <div class="mb-3">
+      <label for="format" class="form-label">{% trans "Format" %}</label>
+      <select name="format" id="format" class="form-select">
+        <option value="csv">CSV</option>
+        <option value="json">JSON</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">{% trans "Download" %}</button>
+  </form>
+</div>
+{% endblock %}

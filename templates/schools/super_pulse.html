@@ -1,15 +1,13 @@
 {% extends "control_plane_base.html" %}
-{% load static %}
+{% load static i18n %}
 {% load region_format %}
 
 {% block cp_title %}Global Pulse Map{% endblock %}
 
 {% block cp_content %}
-  <div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
-      <h1 class="h4 mb-0">Global Pulse Map</h1>
-      <a href="{% url 'super:dashboard' %}" class="btn btn-outline-secondary js-return-to-origin" data-fallback="{% url 'super:dashboard' %}">Back to Schools</a>
-    </div>
+  <div class="container-fluid py-4" data-page-archetype="operational-workbench">
+    {% url 'super:dashboard' as dashboard_url %}
+    {% include "studio_os/components/page_header.html" with title=_("Global Pulse Map") subtitle=_("Schools, student counts, and global revenue. API: GET /api/v1/super/pulse") action_url=dashboard_url action_text=_("Back to Schools") %}
     <p class="text-muted small">Schools, student counts, and global revenue. API: <code>GET /api/v1/super/pulse</code></p>
     <div class="row g-3 mb-4">
       <div class="col-md-4">

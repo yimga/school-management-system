@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block content %}
-  <div class="report-card-print-wrapper">
+  <div class="report-card-print-wrapper" data-page-archetype="record-detail">
   <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2 no-print">
     {% include "components/pin_to_quick_access.html" with sidebar_item_id="finance" %}
     <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print();" aria-label="{% trans 'Print fee statement' %}"><i class="bi bi-printer me-1"></i>{% trans "Print" %}</button>

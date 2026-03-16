@@ -13,6 +13,10 @@ from django.contrib.auth.decorators import login_required
 
 from apps.accounts.utils import get_user_role
 from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.structured_logging import (
+    log_exception_with_context,
+    request_context_for_log,
+)
 from apps.siteconfig.models_dashboard import (
     DashboardLayout,
     DashboardLayoutAudit,
@@ -259,7 +263,15 @@ def update_theme(request):
         return JsonResponse({"success": True, "theme": theme})
 
     except _DASHBOARD_PREF_ERRORS as e:
-        logger.exception("Failed to update theme preference for %s", request.user.username)
+        ctx = request_context_for_log(request) if request else {}
+        log_exception_with_context(
+            "dashboard_views.update_theme_preference: failed to update theme preference",
+            school_id=ctx.get("school_id"),
+            tenant_id=ctx.get("tenant_id"),
+            actor_id=ctx.get("actor_id"),
+            route=ctx.get("route"),
+            extra={"username": getattr(request.user, "username", None), "error": str(e)},
+        )
         return JsonResponse({"success": False, "error": str(e)}, status=400)
 
 
@@ -292,5 +304,13 @@ def update_accessibility_preferences(request):
         })
 
     except _DASHBOARD_PREF_ERRORS as e:
-        logger.warning("Failed to update accessibility preferences for %s: %s", request.user.username, e)
+        ctx = request_context_for_log(request) if request else {}
+        log_exception_with_context(
+            "dashboard_views.update_accessibility_preferences: failed to update accessibility preferences",
+            school_id=ctx.get("school_id"),
+            tenant_id=ctx.get("tenant_id"),
+            actor_id=ctx.get("actor_id"),
+            route=ctx.get("route"),
+            extra={"username": getattr(request.user, "username", None), "error": str(e)},
+        )
         return JsonResponse({"success": False, "error": str(e)}, status=400)

@@ -1,8 +1,9 @@
-from django.db import models
+from django.db import models, DatabaseError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from apps.academics.models import AcademicYear, Term, Classroom
 from apps.people.models import StudentProfile
 from apps.accounts.models import User
-from django.core.exceptions import ValidationError
+from apps.platform_runtime.structured_logging import log_exception_with_context
 
 
 def reportcard_pdf_upload_to(instance, filename):
@@ -78,8 +79,12 @@ class ReportCard(models.Model):
                 region = RegionConfig.objects.filter(code=self.region_code).only("default_language").first()
                 if region and region.default_language:
                     return region.default_language
-            except Exception:
-                pass
+            except (ObjectDoesNotExist, DatabaseError, TypeError, ValueError, AttributeError):
+                log_exception_with_context(
+                    "reports.ReportCard.get_language: region default_language lookup failed",
+                    school_id=getattr(self.student, "school_id", None) if getattr(self, "student", None) else None,
+                    extra={"region_code": self.region_code, "report_card_id": getattr(self, "id", None)},
+                )
         return 'en'
     
     def get_region(self):
@@ -92,13 +97,7 @@ class ReportCard(models.Model):
             except RegionConfig.DoesNotExist:
                 pass
         
-        # Try to get from student's school (would need school region mapping)
-        if self.student and self.student.current_classroom:
-            try:
-                # Placeholder for future school region mapping
-                pass
-            except Exception:
-                pass
+        # Placeholder: future school region mapping (student.current_classroom → region)
         return None
 
 
@@ -290,3 +289,6 @@ class ReportPack(models.Model):
 
 # ReportDefinition and MaterializedReportCache are defined in `apps.reports.bi_models`.
 # Import them here for backwards compatibility so existing imports continue to work.
+# NOTE: Not imported here to avoid circular import (reports->bi_models->runtime_blueprints->siteconfig).
+# Django makemigrations --check may report pending changes for reports; bi_models are registered via
+# apps.reports.bi_models and migration history. See BACKLOG §2e / docs for coordination.

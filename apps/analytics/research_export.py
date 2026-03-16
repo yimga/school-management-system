@@ -5,7 +5,23 @@ Stub service: aggregates and snapshot without PII; schema versioned.
 from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
+
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import DatabaseError
 from django.utils import timezone
+
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
+# Typed exceptions for research aggregates (§2.4 broad-except policy)
+_RESEARCH_AGGREGATE_ERRORS = (
+    ImportError,
+    AttributeError,
+    LookupError,
+    TypeError,
+    ValueError,
+    DatabaseError,
+    ObjectDoesNotExist,
+)
 
 
 RESEARCH_SCHEMA_VERSION = "1.0"
@@ -46,8 +62,13 @@ def get_deidentified_aggregates(
             tot = Invoice.objects.filter(school_id=school_id).aggregate(s=Sum("total_amount"))
             out["aggregates"]["invoices_total"] = float(tot["s"] or 0)
             out["aggregates"]["invoices_count"] = Invoice.objects.filter(school_id=school_id).count()
-    except Exception:
-        pass
+    except _RESEARCH_AGGREGATE_ERRORS:
+        log_exception_with_context(
+            "research get_deidentified_aggregates failed",
+            school_id=school_id,
+            extra={"step": "aggregates"},
+            exc_info=False,
+        )
     return out
 
 

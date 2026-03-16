@@ -1,15 +1,34 @@
 """
 Import regional configurations from JSON or CSV format.
 Usage: python manage.py import_config configs.json
+§2.4: Typed exception tuple and log_exception_with_context for handle() catch-all.
 """
 
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
+from django.db import DatabaseError, IntegrityError
+from django.core.exceptions import ValidationError
 import json
 import csv
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from apps.siteconfig.models import RegionConfig, GradingScaleConfig
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
+# §2.4: Typed tuple for handle() import path (no broad except).
+_IMPORT_CONFIG_HANDLE_ERRORS = (
+    KeyError,
+    ValueError,
+    TypeError,
+    AttributeError,
+    DatabaseError,
+    IntegrityError,
+    ValidationError,
+    InvalidOperation,
+    OSError,
+    UnicodeDecodeError,
+    csv.Error,
+)
 
 
 class Command(BaseCommand):
@@ -91,7 +110,12 @@ class Command(BaseCommand):
             raise CommandError(f"File not found: {input_file}")
         except json.JSONDecodeError:
             raise CommandError(f"Invalid JSON file: {input_file}")
-        except Exception as e:
+        except _IMPORT_CONFIG_HANDLE_ERRORS as e:
+            log_exception_with_context(
+                "import_config: error importing configurations",
+                school_id=None,
+                extra={"command": "import_config", "input_file": input_file, "error": str(e)},
+            )
             raise CommandError(f"Error importing configurations: {str(e)}")
 
     def _load_json(self, file_path):

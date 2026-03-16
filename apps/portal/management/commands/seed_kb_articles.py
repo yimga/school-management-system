@@ -3,8 +3,15 @@ Management command to seed initial Knowledge Base articles
 Populates database with comprehensive how-to guides and tutorials
 """
 from django.core.management.base import BaseCommand
+from django.db import DatabaseError
+from django.core.exceptions import ObjectDoesNotExist
+
+from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.portal.models_kb import KBCategory, KBArticle
 from django.contrib.auth.models import User
+
+# Typed exception tuple for §2.4 broad-except rollout (broad_exception_audit)
+_KB_SEED_RESOLVE_ERRORS = (DatabaseError, ObjectDoesNotExist, AttributeError, TypeError)
 
 
 class Command(BaseCommand):
@@ -92,7 +99,11 @@ class Command(BaseCommand):
             admin_user = User.objects.filter(is_superuser=True).first()
             if not admin_user:
                 admin_user = User.objects.first()
-        except:
+        except _KB_SEED_RESOLVE_ERRORS:
+            log_exception_with_context(
+                "seed_kb_articles: resolve admin user failed (non-fatal)",
+                extra={"command": "seed_kb_articles"},
+            )
             admin_user = None
 
         # KB Articles Data

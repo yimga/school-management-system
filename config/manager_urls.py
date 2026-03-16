@@ -20,11 +20,12 @@ from apps.schools.control_plane import require_control_plane_access, user_has_co
 from apps.schools.tenant_url import build_public_absolute_url
 from config.admin import platform_admin_site
 
-# Reuse main urlconf error handlers so 500/404/403 pages get user in context.
+# Reuse main urlconf error handlers and Phase B legacy redirects.
 from config.urls import (
     page_not_found as handler404_view,
     permission_denied as handler403_view,
     server_error as handler500_view,
+    legacy_siteconfig_customizer_redirect,
 )
 
 handler403 = handler403_view
@@ -157,7 +158,36 @@ def manager_search_api(request):
 
 
 def _manager_search_static_catalog():
+    # §8 Click compression: intents per CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL (≤3 clicks)
     return [
+        {
+            "title": "Open report library",
+            "description": "Reports and documents; publish and rollback.",
+            "url": reverse("studio_os:output"),
+            "type": "report",
+            "meta": ["Studio Output", "Report library"],
+        },
+        {
+            "title": "Feature control",
+            "description": "Feature flags and capabilities.",
+            "url": reverse("studio_os:control"),
+            "type": "class",
+            "meta": ["Studio Control", "Feature flags"],
+        },
+        {
+            "title": "Launch checklist",
+            "description": "Launch readiness and setup studio.",
+            "url": reverse("studio_os:launch"),
+            "type": "student",
+            "meta": ["Studio Launch", "Setup"],
+        },
+        {
+            "title": "Studio Output",
+            "description": "Report library, document library, and outputs.",
+            "url": reverse("studio_os:output"),
+            "type": "report",
+            "meta": ["Studio", "Reports"],
+        },
         {
             "title": "Tenant Mission Control",
             "description": "Global tenant registry, readiness, and platform posture.",
@@ -228,6 +258,7 @@ urlpatterns = [
     path("admin/", platform_admin_site.urls),
     path("authentication/", include(("apps.accounts.urls", "accounts"), namespace="accounts")),
     path("super/", include(("apps.schools.super_urls", "super"), namespace="super")),
+    path("siteconfig/customizer/", legacy_siteconfig_customizer_redirect),
     path("siteconfig/", include(("apps.siteconfig.urls", "siteconfig"), namespace="siteconfig")),
     path("studio/", include(("apps.studio_os.urls", "studio_os"), namespace="studio_os")),
     path("api-center/", include(("apps.apicenter.urls", "apicenter"), namespace="apicenter")),

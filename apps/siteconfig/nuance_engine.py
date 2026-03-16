@@ -10,7 +10,20 @@ import logging
 import signal
 from typing import Any
 
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
 logger = logging.getLogger(__name__)
+
+# Typed exceptions for §2.4 broad-except replacement (allowlist 0).
+_NUANCE_EVAL_ERRORS = (
+    TypeError,
+    ValueError,
+    KeyError,
+    AttributeError,
+    ZeroDivisionError,
+    RecursionError,
+    OverflowError,
+)
 
 # Hook points and allowed context keys (whitelist). Add keys as needed.
 # student_tags: list of tag names for the student (InformationTag); use in JSON-Logic with "in" op.
@@ -160,8 +173,11 @@ def _run_with_timeout(logic: dict, data: dict, timeout_sec: float = EXECUTION_TI
     else:
         try:
             run_eval()
-        except Exception as e:
-            logger.debug("Nuance eval error: %s", e)
+        except _NUANCE_EVAL_ERRORS as e:
+            log_exception_with_context(
+                "nuance_engine: _run_with_timeout eval failed",
+                extra={"error": str(e)},
+            )
             return None
     return result[0]
 
@@ -203,7 +219,11 @@ def verify_nuance_safety(
     for i, ctx in enumerate(test_contexts or []):
         try:
             result = _run_with_timeout(logic_data, ctx or {})
-        except Exception as e:
+        except _NUANCE_EVAL_ERRORS as e:
+            log_exception_with_context(
+                "nuance_engine: verify_nuance_safety test crashed",
+                extra={"test_index": i},
+            )
             return False, f"Test {i + 1} crashed: {e}"
         if reject_negative_fee and result is not None:
             try:

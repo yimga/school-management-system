@@ -10,7 +10,9 @@ INTEGRATION NOTE: This extends existing infrastructure:
 
 from django.core.cache import cache
 from django.utils import timezone
+from django.db import DatabaseError, IntegrityError
 from django.db.models import Count, Sum, Avg
+from django.core.exceptions import ValidationError
 from django.db.models.functions import TruncMonth
 from datetime import timedelta, datetime
 import csv
@@ -20,6 +22,7 @@ from typing import Dict, List, Any, Optional
 
 # Import existing services to extend them
 from apps.analytics.services import AdvancedAnalyticsService
+from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.siteconfig.cache_utils import get_tenant_cache_prefix
 
 
@@ -360,8 +363,18 @@ class ScheduledReportRunner:
                     scheduled.schedule_time
                 )
                 scheduled.save()
-                
-            except Exception as e:
+
+            except _SCHEDULED_REPORT_RUN_ERRORS as e:
+                log_exception_with_context(
+                    "scheduled report run failed",
+                    school_id=getattr(getattr(scheduled, "report_definition", None), "school_id", None),
+                    extra={
+                        "scheduled_id": getattr(scheduled, "id", None),
+                        "execution_id": execution.id,
+                        "report_definition_id": getattr(getattr(scheduled, "report_definition", None), "id", None),
+                    },
+                    exc_info=True,
+                )
                 execution.status = 'FAILED'
                 execution.error_message = str(e)
                 execution.completed_at = timezone.now()

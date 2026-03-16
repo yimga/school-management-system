@@ -1,3 +1,9 @@
+"""
+Communication app models. §2.4: broad except in _primary_school_id_for_user replaced with typed tuple.
+"""
+from __future__ import annotations
+
+import logging
 import uuid
 from datetime import timedelta
 
@@ -7,8 +13,22 @@ from django.db.models import Max
 from django.utils import timezone
 
 from apps.academics.models import Classroom, Department
-
 from apps.accounts.validators import validate_kb_attachment_file, validate_file_size_10mb
+
+logger = logging.getLogger(__name__)
+
+# Typed exceptions for user/school resolution (getattr, related access, query); §2.4
+_COMMUNICATION_USER_SCHOOL_RESOLVE_ERRORS: tuple[type[BaseException], ...] = (
+    AttributeError,
+    TypeError,
+    ValueError,
+    KeyError,
+)
+try:
+    from django.db.utils import DatabaseError, OperationalError
+    _COMMUNICATION_USER_SCHOOL_RESOLVE_ERRORS = (*_COMMUNICATION_USER_SCHOOL_RESOLVE_ERRORS, DatabaseError, OperationalError)
+except ImportError:
+    pass
 
 
 def contact_request_attachment_upload_to(instance, filename):
@@ -33,13 +53,13 @@ def _primary_school_id_for_user(user):
         student_profile = getattr(user, "student_profile", None)
         if student_profile and getattr(student_profile, "school_id", None):
             return student_profile.school_id
-    except Exception:
+    except _COMMUNICATION_USER_SCHOOL_RESOLVE_ERRORS:
         pass
     try:
         teacher_profile = getattr(user, "teacher_profile", None)
         if teacher_profile and getattr(teacher_profile, "school_id", None):
             return teacher_profile.school_id
-    except Exception:
+    except _COMMUNICATION_USER_SCHOOL_RESOLVE_ERRORS:
         pass
     try:
         return (
@@ -47,7 +67,7 @@ def _primary_school_id_for_user(user):
             .values_list("school_id", flat=True)
             .first()
         )
-    except Exception:
+    except _COMMUNICATION_USER_SCHOOL_RESOLVE_ERRORS:
         return None
 
 

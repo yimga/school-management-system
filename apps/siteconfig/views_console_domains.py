@@ -5,9 +5,15 @@ Each console supports search, preview, diff, audit, rollback where relevant (9.5
 """
 from __future__ import annotations
 
+import logging
+from typing import Any, Optional
+
 from django.contrib.admin.views.decorators import staff_member_required
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.urls import NoReverseMatch, reverse
+
+logger = logging.getLogger(__name__)
 
 # Per-domain actions for 9.5/10: search, preview, diff (compare before apply), audit (change history), rollback (revert where relevant).
 # Use None to hide; reverse() name or path string. Operator-safe: outcomes not jargon.
@@ -21,7 +27,7 @@ CONSOLE_ACTIONS = {
     },
     "runtime_blueprints": {
         "search": "siteconfig:dashboard_hub",
-        "preview": "siteconfig:workflow_hub",
+        "preview": "studio_os:automation",
         "diff": "siteconfig:dashboard_hub",
         "audit": None,
         "rollback": None,
@@ -82,7 +88,8 @@ CONSOLE_DOMAINS = [
         "outcome": "Blueprints, dashboards, workflows",
         "links": [
             ("Dashboard hub", "siteconfig:dashboard_hub"),
-            ("Workflow hub", "siteconfig:workflow_hub"),
+            ("Automation Studio", "studio_os:automation"),
+            ("Output Studio", "studio_os:output"),
             ("Dashboard configuration", "siteconfig:dashboard_configuration_hub"),
             ("Report builder", "siteconfig:reportcard_builder"),
         ],
@@ -135,34 +142,56 @@ CONSOLE_DOMAINS = [
 
 
 def _safe_reverse(name: str, request=None):
-    """Resolve URL by name; support admin: namespace."""
+    """Resolve URL by name; support admin: namespace. Returns None on NoReverseMatch and logs at debug."""
     try:
         if name.startswith("admin:"):
             return reverse(name)
         return reverse(name)
-    except NoReverseMatch:
+    except NoReverseMatch as e:
+        logger.debug("Console domain URL name %r failed to resolve: %s", name, e)
         return None
 
 
-@staff_member_required
-def console_domains_hub(request):
-    """Single console entry: list seven domains with outcome-first links (search, preview, diff, rollback linked from each area)."""
+def _build_console_domains_context(request: HttpRequest) -> list[dict[str, Any]]:
+    """Build a fresh list of domain dicts with resolved URLs (no mutation of CONSOLE_DOMAINS)."""
+    domains = []
     for d in CONSOLE_DOMAINS:
-        d["resolved_links"] = []
+        resolved_links = []
         for label, name in d["links"]:
             try:
                 url = reverse(name)
-                d["resolved_links"].append({"label": label, "url": url})
-            except NoReverseMatch:
-                d["resolved_links"].append({"label": label, "url": "#"})
+                resolved_links.append({"label": label, "url": url})
+            except NoReverseMatch as e:
+                logger.debug("Console domain %s link %r (%r) failed to resolve: %s", d["code"], label, name, e)
+                resolved_links.append({"label": label, "url": "#"})
         actions = CONSOLE_ACTIONS.get(d["code"], {})
-        d["search_url"] = _safe_reverse(actions.get("search")) if actions.get("search") else None
-        d["preview_url"] = _safe_reverse(actions.get("preview")) if actions.get("preview") else None
-        d["diff_url"] = _safe_reverse(actions.get("diff")) if actions.get("diff") else None
-        d["audit_url"] = _safe_reverse(actions.get("audit")) if actions.get("audit") else None
-        d["rollback_url"] = _safe_reverse(actions.get("rollback")) if actions.get("rollback") else None
-    return render(
-        request,
-        "siteconfig/console_domains_hub.html",
-        {"domains": CONSOLE_DOMAINS},
+        domains.append({
+            "code": d["code"],
+            "name": d["name"],
+            "outcome": d["outcome"],
+            "resolved_links": resolved_links,
+            "search_url": _safe_reverse(actions.get("search")) if actions.get("search") else None,
+            "preview_url": _safe_reverse(actions.get("preview")) if actions.get("preview") else None,
+            "diff_url": _safe_reverse(actions.get("diff")) if actions.get("diff") else None,
+            "audit_url": _safe_reverse(actions.get("audit")) if actions.get("audit") else None,
+            "rollback_url": _safe_reverse(actions.get("rollback")) if actions.get("rollback") else None,
+        })
+    return domains
+
+
+@staff_member_required
+def console_domains_hub(request: HttpRequest) -> HttpResponse:
+    """Single bounded console entry: seven domains with outcome-first links (search, preview, diff, rollback). Phase B."""
+    domains = _build_console_domains_context(request)
+    template = (
+        "siteconfig/console_domains_hub_control_plane.html"
+        if getattr(request, "public_host_kind", None) == "manager"
+        else "siteconfig/console_domains_hub.html"
     )
+    context = {"domains": domains}
+    if template == "siteconfig/console_domains_hub_control_plane.html":
+        try:
+            context["super_dashboard_url"] = reverse("super:dashboard")
+        except NoReverseMatch:
+            context["super_dashboard_url"] = None
+    return render(request, template, context)

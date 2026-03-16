@@ -1,6 +1,8 @@
 # Three Plans — Merged Implementation Checklist
 
-Single tracker for: **RunMyCampus Standards Audit**, **Powerhouse Deep Analysis v2**, **Branded Login & Deployment**.  
+**Superseded.** For execution and next steps use [REDUNDANCY_AND_PLAN_INDEX.md](REDUNDANCY_AND_PLAN_INDEX.md) and the four canonical docs (RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH, BACKLOG §2e, docs_truth_ledger, NEXT_50). This file is **reference only**.
+
+Single tracker for (historical): **RunMyCampus Standards Audit**, **Powerhouse Deep Analysis v2**, **Branded Login & Deployment**.  
 Use this to run Branded Login first, then v2 Wave 0, then the rest without missing items.
 
 **Detailed execution (no shortcuts):** See **[THREE_PLANS_EXECUTION_GUIDE.md](THREE_PLANS_EXECUTION_GUIDE.md)** for per-item steps, acceptance criteria, verification, and dependencies. **Part F (Waves 7–17):** Status and code refs are in **[PART_F_WAVES_7_TO_17.md](PART_F_WAVES_7_TO_17.md)**; existing features documented, remainder roadmap.

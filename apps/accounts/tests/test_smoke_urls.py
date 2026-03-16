@@ -129,3 +129,21 @@ class SmokeUrlResolutionTests(SimpleTestCase):
 
     def test_communication_groups(self):
         self.assertEqual(reverse("communication:group_list"), "/communication/groups/")
+
+    # Phase H: control plane and Studio OS URL names must resolve (no 404 from misconfiguration)
+    def test_super_dashboard_resolves(self):
+        self.assertEqual(reverse("super:dashboard"), "/super/")
+
+    def test_studio_os_all_modes_resolve(self):
+        """Studio OS shell and all five mode URLs must reverse correctly."""
+        modes = [
+            ("studio_os:shell", "/studio/"),
+            ("studio_os:experience", "/studio/experience/"),
+            ("studio_os:automation", "/studio/automation/"),
+            ("studio_os:output", "/studio/output/"),
+            ("studio_os:launch", "/studio/launch/"),
+            ("studio_os:control", "/studio/control/"),
+        ]
+        for name, expected in modes:
+            with self.subTest(url_name=name):
+                self.assertEqual(reverse(name), expected)

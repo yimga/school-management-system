@@ -1,15 +1,31 @@
 """
 Image processing utilities for the School Management System.
 Provides image compression, resizing, and optimization for better performance.
+§2.4: Typed exception tuples and structured logging (no broad except).
 """
 
 import os
 import logging
 from io import BytesIO
+
 from PIL import Image
+from PIL.Image import UnidentifiedImageError
 from django.core.files.base import ContentFile
 
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
 logger = logging.getLogger(__name__)
+
+# §2.4: Typed tuple for image open/save/convert failures (allowlist 0).
+_IMAGE_PROCESSOR_ERRORS = (
+    OSError,
+    IOError,
+    ValueError,
+    TypeError,
+    KeyError,
+    AttributeError,
+    UnidentifiedImageError,
+)
 
 
 class ImageProcessor:
@@ -43,16 +59,15 @@ class ImageProcessor:
         Returns:
             ContentFile: Optimized image as Django ContentFile
         """
+        original_name = getattr(image_file, "name", None) or (os.path.basename(image_file) if isinstance(image_file, (str, os.PathLike)) else "image.jpg")
         try:
             # Open image
             if hasattr(image_file, 'read'):
                 # Django file object
                 image = Image.open(image_file)
-                original_name = getattr(image_file, 'name', 'image.jpg')
             else:
                 # File path
                 image = Image.open(image_file)
-                original_name = os.path.basename(image_file)
 
             # Convert to RGB if necessary (for JPEG compatibility)
             if image.mode in ('RGBA', 'LA', 'P'):
@@ -114,8 +129,12 @@ class ImageProcessor:
             output_buffer.seek(0)
             return ContentFile(output_buffer.getvalue(), name=new_filename)
 
-        except Exception as e:
-            logger.error(f"Error compressing image {original_name}: {str(e)}")
+        except _IMAGE_PROCESSOR_ERRORS:
+            log_exception_with_context(
+                "image_processor.compress_image failed",
+                school_id=None,
+                extra={"original_name": original_name, "image_type": image_type, "operation": "compress_image"},
+            )
             # Return original file if compression fails
             if hasattr(image_file, 'read'):
                 image_file.seek(0)
@@ -163,8 +182,12 @@ class ImageProcessor:
             thumb_buffer.seek(0)
             return ContentFile(thumb_buffer.getvalue(), name=thumb_filename)
 
-        except Exception as e:
-            logger.error(f"Error creating thumbnail for {original_name}: {str(e)}")
+        except _IMAGE_PROCESSOR_ERRORS:
+            log_exception_with_context(
+                "image_processor.create_thumbnail failed",
+                school_id=None,
+                extra={"original_name": original_name, "operation": "create_thumbnail"},
+            )
             return None
 
     @staticmethod
@@ -191,8 +214,11 @@ class ImageProcessor:
                 'mode': image.mode,
                 'size_bytes': image_file.size if hasattr(image_file, 'size') else 0,
             }
-        except Exception as e:
-            logger.error(f"Error getting image info: {str(e)}")
+        except _IMAGE_PROCESSOR_ERRORS:
+            log_exception_with_context(
+                "ImageProcessor.get_image_info failed",
+                extra={"original_name": getattr(image_file, "name", None) or (os.path.basename(image_file) if isinstance(image_file, (str, os.PathLike)) else "image")},
+            )
             return {}
 
 

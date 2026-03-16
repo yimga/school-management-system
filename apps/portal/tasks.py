@@ -1,11 +1,14 @@
 """
 Portal Celery tasks: heavy AI (async) for bulk or long-running inference.
 Single-turn copilot uses sync generate_ai_response; bulk support suggestion, syllabus sync, report-card remarks use async.
+§2.4 Structured logging: async AI failures logged with school_id/task_id for audit.
 """
 from typing import Any
 
 from celery import shared_task
 from django.core.cache import cache
+
+from apps.platform_runtime.structured_logging import log_exception_with_context
 
 # TTL for async AI result in cache (seconds)
 AI_ASYNC_RESULT_TTL = 600
@@ -55,6 +58,12 @@ def generate_ai_response_async(
             return {"status": "done", "task_id": task_id, "text": text, "meta": meta}
         store_result("error", meta=meta, error=meta.get("error", "unavailable"))
         return {"status": "error", "task_id": task_id, "meta": meta}
-    except Exception as e:
+    except (OSError, ConnectionError, TimeoutError, ValueError, TypeError, ImportError, AttributeError, KeyError, RuntimeError) as e:
+        log_exception_with_context(
+            "portal.generate_ai_response_async failed",
+            school_id=school_id,
+            exc_info=True,
+            extra={"task_id": task_id, "prompt_key": prompt_key, "error": str(e)},
+        )
         store_result("error", error=str(e))
         return {"status": "error", "task_id": task_id, "error": str(e)}

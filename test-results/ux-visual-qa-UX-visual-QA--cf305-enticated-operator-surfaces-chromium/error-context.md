@@ -1,0 +1,379 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - navigation "Main navigation" [ref=e3]:
+    - generic [ref=e4]:
+      - text: 
+      - link "Logo RunMyCampus School Management Platform" [ref=e6] [cursor=pointer]:
+        - /url: /super/
+        - img "Logo" [ref=e7]
+        - generic [ref=e8]: RunMyCampus School Management Platform
+      - link " Home" [ref=e9] [cursor=pointer]:
+        - /url: /super/
+        - generic [ref=e10]: 
+        - generic [ref=e11]: Home
+      - generic [ref=e12]:
+        - generic [ref=e13]:
+          - status [ref=e14]:
+            - generic [ref=e16]: Connected
+            - button "Sync queued data now" [ref=e17] [cursor=pointer]: Sync now
+          - generic [ref=e19]:
+            - generic [ref=e20]:
+              - generic [ref=e21]: 
+              - generic [ref=e22]: Mon, Mar 16 | 03:27 PM
+            - generic [ref=e23]:
+              - generic [ref=e24]: 
+              - generic [ref=e25]: "--"
+              - generic [ref=e26]: No location selected
+            - generic [ref=e27]:
+              - generic [ref=e28]: 
+              - generic [ref=e29]: Discipline protects your momentum.
+        - generic [ref=e30]:
+          - textbox "Global search" [ref=e31]:
+            - /placeholder: Search students, teachers, invoices...
+          - generic: Ctrl+K
+        - generic [ref=e32]:
+          - button [ref=e35] [cursor=pointer]
+          - link "Open Messages" [ref=e36] [cursor=pointer]:
+            - /url: /authentication/messages/
+            - generic [ref=e37]: 
+          - link "View notifications" [ref=e38] [cursor=pointer]:
+            - /url: /authentication/notifications/
+            - generic [ref=e39]: 
+          - link "Help" [ref=e40] [cursor=pointer]:
+            - /url: /help/
+            - generic [ref=e41]: 
+          - button "Toggle Dark/Light Theme" [ref=e42] [cursor=pointer]:
+            - generic [ref=e43]: 
+          - generic [ref=e44]:
+            - button "Admin menu" [ref=e45] [cursor=pointer]:
+              - generic [ref=e46]: 
+            - text:   
+          - link "" [ref=e47] [cursor=pointer]:
+            - /url: /authentication/logout/
+            - generic [ref=e48]: 
+  - generic [ref=e50]:
+    - generic [ref=e52]:
+      - button "Collapse sidebar" [expanded] [ref=e54] [cursor=pointer]:
+        - generic [ref=e55]: 
+        - text: 
+      - generic [ref=e57]:
+        - generic [ref=e58]: v
+        - generic [ref=e59]:
+          - heading "visualqa_admin" [level=6] [ref=e60]
+          - paragraph [ref=e61]: ADMIN
+      - navigation "Portal navigation" [ref=e62]:
+        - generic [ref=e63]: Home
+        - generic [ref=e64]:
+          - link " Dashboard" [ref=e65] [cursor=pointer]:
+            - /url: /authentication/redirect/
+            - generic [ref=e66]:
+              - generic [ref=e67]: 
+              - text: Dashboard
+          - button "Add to Quick access" [ref=e68] [cursor=pointer]:
+            - generic [ref=e69]: 
+        - generic [ref=e70]: Account
+        - generic [ref=e71]:
+          - link " My Profile" [ref=e72] [cursor=pointer]:
+            - /url: /authentication/profile/
+            - generic [ref=e73]:
+              - generic [ref=e74]: 
+              - text: My Profile
+          - button "Add to Quick access" [ref=e75] [cursor=pointer]:
+            - generic [ref=e76]: 
+        - generic [ref=e77]:
+          - link " Preferences" [ref=e78] [cursor=pointer]:
+            - /url: /siteconfig/preferences/
+            - generic [ref=e79]:
+              - generic [ref=e80]: 
+              - text: Preferences
+          - button "Add to Quick access" [ref=e81] [cursor=pointer]:
+            - generic [ref=e82]: 
+        - generic [ref=e83]:
+          - link " Notifications" [ref=e84] [cursor=pointer]:
+            - /url: /authentication/notifications/
+            - generic [ref=e85]:
+              - generic [ref=e86]: 
+              - text: Notifications
+          - button "Add to Quick access" [ref=e87] [cursor=pointer]:
+            - generic [ref=e88]: 
+        - generic [ref=e89]: Communication
+        - generic [ref=e90]:
+          - link " Messages" [ref=e91] [cursor=pointer]:
+            - /url: /authentication/messages/
+            - generic [ref=e92]:
+              - generic [ref=e93]: 
+              - text: Messages
+          - button "Add to Quick access" [ref=e94] [cursor=pointer]:
+            - generic [ref=e95]: 
+        - generic [ref=e96]: Academic Management
+        - generic [ref=e97]:
+          - link " Certification & Exams" [ref=e98] [cursor=pointer]:
+            - /url: /authentication/certification/
+            - generic [ref=e99]:
+              - generic [ref=e100]: 
+              - text: Certification & Exams
+          - button "Add to Quick access" [ref=e101] [cursor=pointer]:
+            - generic [ref=e102]: 
+        - generic [ref=e103]: People & Access
+        - generic [ref=e104]:
+          - link " Student Profiles" [ref=e105] [cursor=pointer]:
+            - /url: /authentication/backend/students/
+            - generic [ref=e106]:
+              - generic [ref=e107]: 
+              - text: Student Profiles
+          - button "Add to Quick access" [ref=e108] [cursor=pointer]:
+            - generic [ref=e109]: 
+        - generic [ref=e110]:
+          - link " Guardians" [ref=e111] [cursor=pointer]:
+            - /url: /authentication/backend/guardians/
+            - generic [ref=e112]:
+              - generic [ref=e113]: 
+              - text: Guardians
+          - button "Add to Quick access" [ref=e114] [cursor=pointer]:
+            - generic [ref=e115]: 
+        - generic [ref=e116]:
+          - link " RBAC & Access Control" [ref=e117] [cursor=pointer]:
+            - /url: /authentication/rbac/
+            - generic [ref=e118]:
+              - generic [ref=e119]: 
+              - text: RBAC & Access Control
+          - button "Add to Quick access" [ref=e120] [cursor=pointer]:
+            - generic [ref=e121]: 
+        - generic [ref=e122]: Analytics & Reports
+        - generic [ref=e123]:
+          - link " Report Library" [ref=e124] [cursor=pointer]:
+            - /url: /siteconfig/reports/
+            - generic [ref=e125]:
+              - generic [ref=e126]: 
+              - text: Report Library
+          - button "Add to Quick access" [ref=e127] [cursor=pointer]:
+            - generic [ref=e128]: 
+        - generic [ref=e129]:
+          - link " Bulk Letters" [ref=e130] [cursor=pointer]:
+            - /url: /siteconfig/reports/bulk-letters/
+            - generic [ref=e131]:
+              - generic [ref=e132]: 
+              - text: Bulk Letters
+          - button "Add to Quick access" [ref=e133] [cursor=pointer]:
+            - generic [ref=e134]: 
+        - generic [ref=e135]:
+          - link " Report Card Builder" [ref=e136] [cursor=pointer]:
+            - /url: /siteconfig/reports/builder/
+            - generic [ref=e137]:
+              - generic [ref=e138]: 
+              - text: Report Card Builder
+          - button "Add to Quick access" [ref=e139] [cursor=pointer]:
+            - generic [ref=e140]: 
+        - generic [ref=e141]: Admin Panel
+        - generic [ref=e142]:
+          - link " Dashboard Layout" [ref=e143] [cursor=pointer]:
+            - /url: /authentication/backend/?customize=1
+            - generic [ref=e144]:
+              - generic [ref=e145]: 
+              - text: Dashboard Layout
+          - button "Add to Quick access" [ref=e146] [cursor=pointer]:
+            - generic [ref=e147]: 
+        - generic [ref=e148]:
+          - link " Feature Control" [ref=e149] [cursor=pointer]:
+            - /url: /siteconfig/feature-control/
+            - generic [ref=e150]:
+              - generic [ref=e151]: 
+              - text: Feature Control
+          - button "Add to Quick access" [ref=e152] [cursor=pointer]:
+            - generic [ref=e153]: 
+        - generic [ref=e154]:
+          - link " Feature Control Audit" [ref=e155] [cursor=pointer]:
+            - /url: /siteconfig/feature-control/audit/
+            - generic [ref=e156]:
+              - generic [ref=e157]: 
+              - text: Feature Control Audit
+          - button "Add to Quick access" [ref=e158] [cursor=pointer]:
+            - generic [ref=e159]: 
+        - generic [ref=e160]:
+          - link " Backend Console" [ref=e161] [cursor=pointer]:
+            - /url: /authentication/backend/
+            - generic [ref=e162]:
+              - generic [ref=e163]: 
+              - text: Backend Console
+          - button "Add to Quick access" [ref=e164] [cursor=pointer]:
+            - generic [ref=e165]: 
+        - generic [ref=e166]:
+          - link " Workflow Center" [ref=e167] [cursor=pointer]:
+            - /url: /authentication/workflow/
+            - generic [ref=e168]:
+              - generic [ref=e169]: 
+              - text: Workflow Center
+          - button "Add to Quick access" [ref=e170] [cursor=pointer]:
+            - generic [ref=e171]: 
+        - generic [ref=e172]:
+          - link " Approval Hub" [ref=e173] [cursor=pointer]:
+            - /url: /authentication/workflow/approvals/
+            - generic [ref=e174]:
+              - generic [ref=e175]: 
+              - text: Approval Hub
+          - button "Add to Quick access" [ref=e176] [cursor=pointer]:
+            - generic [ref=e177]: 
+        - generic [ref=e178]:
+          - link " Import & bulk" [ref=e179] [cursor=pointer]:
+            - /url: /authentication/backend/import-hub/
+            - generic [ref=e180]:
+              - generic [ref=e181]: 
+              - text: Import & bulk
+          - button "Add to Quick access" [ref=e182] [cursor=pointer]:
+            - generic [ref=e183]: 
+        - generic [ref=e184]:
+          - link " Theme & Experience" [ref=e185] [cursor=pointer]:
+            - /url: /studio/experience/
+            - generic [ref=e186]:
+              - generic [ref=e187]: 
+              - text: Theme & Experience
+          - button "Add to Quick access" [ref=e188] [cursor=pointer]:
+            - generic [ref=e189]: 
+        - generic [ref=e190]:
+          - link " Studio" [ref=e191] [cursor=pointer]:
+            - /url: /studio/
+            - generic [ref=e192]:
+              - generic [ref=e193]: 
+              - text: Studio
+          - button "Add to Quick access" [ref=e194] [cursor=pointer]:
+            - generic [ref=e195]: 
+        - generic [ref=e196]:
+          - link " Site Settings" [ref=e197] [cursor=pointer]:
+            - /url: /admin/siteconfig/sitesettings/1/change/
+            - generic [ref=e198]:
+              - generic [ref=e199]: 
+              - text: Site Settings
+          - button "Add to Quick access" [ref=e200] [cursor=pointer]:
+            - generic [ref=e201]: 
+        - generic [ref=e202]:
+          - link " Region Configuration" [ref=e203] [cursor=pointer]:
+            - /url: /admin/global_registries/regionconfig/
+            - generic [ref=e204]:
+              - generic [ref=e205]: 
+              - text: Region Configuration
+          - button "Add to Quick access" [ref=e206] [cursor=pointer]:
+            - generic [ref=e207]: 
+        - generic [ref=e208]:
+          - link " Configuration Engine" [ref=e209] [cursor=pointer]:
+            - /url: /admin/
+            - generic [ref=e210]:
+              - generic [ref=e211]: 
+              - text: Configuration Engine
+          - button "Add to Quick access" [ref=e212] [cursor=pointer]:
+            - generic [ref=e213]: 
+        - generic [ref=e214]:
+          - button "Recent Activity" [expanded] [ref=e215] [cursor=pointer]:
+            - generic [ref=e216]: Recent Activity
+            - generic [ref=e217]: 
+          - list [ref=e219]:
+            - listitem [ref=e220]: Loading activity...
+      - link " Help" [ref=e222] [cursor=pointer]:
+        - /url: /help/
+        - generic [ref=e223]: 
+        - text: Help
+    - separator "Resize sidebar"
+    - main [ref=e224]:
+      - generic [ref=e225]:
+        - navigation "breadcrumb" [ref=e228]:
+          - list [ref=e229]:
+            - listitem [ref=e230]:
+              - link "Home" [ref=e231] [cursor=pointer]:
+                - /url: /
+            - listitem [ref=e232]:
+              - text: /
+              - link "Studio" [ref=e233] [cursor=pointer]:
+                - /url: /studio
+            - listitem [ref=e234]: / Launch
+        - generic [ref=e235]:
+          - generic [ref=e236]:
+            - generic [ref=e237]: 
+            - text: Dashboard Stats
+          - generic [ref=e238]:
+            - generic [ref=e241]:
+              - generic [ref=e242]: Students
+              - generic [ref=e243]: "5"
+            - generic [ref=e246]:
+              - generic [ref=e247]: Teachers
+              - generic [ref=e248]: "1"
+            - generic [ref=e251]:
+              - generic [ref=e252]: Pending
+              - generic [ref=e253]: "0"
+            - generic [ref=e256]:
+              - generic [ref=e257]: Notifications
+              - generic [ref=e258]: "0"
+        - generic [ref=e259]:
+          - link "Skip to Studio content" [ref=e260] [cursor=pointer]:
+            - /url: "#studio-canvas"
+          - toolbar "Studio toolbar" [ref=e261]:
+            - link "Control plane" [ref=e262] [cursor=pointer]:
+              - /url: /super/
+              - generic [ref=e263]: 
+              - text: Manager
+            - link "Studio home" [ref=e264] [cursor=pointer]:
+              - /url: /studio/
+              - generic [ref=e265]: 
+            - searchbox "Search" [ref=e266]
+            - button "Commands" [ref=e267] [cursor=pointer]
+            - heading "Launch – Studio" [level=1] [ref=e268]
+          - generic [ref=e269]:
+            - navigation "Studio modes" [ref=e270]:
+              - generic [ref=e271]: Work modes
+              - link "Overview" [ref=e272] [cursor=pointer]:
+                - /url: /studio/
+              - link "Experience" [ref=e273] [cursor=pointer]:
+                - /url: /studio/experience/
+              - link "Automation" [ref=e274] [cursor=pointer]:
+                - /url: /studio/automation/
+              - link "Outputs" [ref=e275] [cursor=pointer]:
+                - /url: /studio/output/
+              - link "Launch" [ref=e276] [cursor=pointer]:
+                - /url: /studio/launch/
+              - link "Control" [ref=e277] [cursor=pointer]:
+                - /url: /studio/control/
+            - main [ref=e278]:
+              - generic [ref=e279]:
+                - navigation "Launch" [ref=e280]:
+                  - generic [ref=e281]:
+                    - generic [ref=e282]: Launch
+                    - list [ref=e283]:
+                      - listitem [ref=e284]:
+                        - link "Guided onboarding" [ref=e285] [cursor=pointer]:
+                          - /url: /siteconfig/guided-onboarding/?embed=1
+                      - listitem [ref=e286]:
+                        - link "Create school" [ref=e287] [cursor=pointer]:
+                          - /url: /super/create/
+                      - listitem [ref=e288]:
+                        - link "Blueprint gallery" [ref=e289] [cursor=pointer]:
+                          - /url: /siteconfig/get-blueprints/?embed=1
+                      - listitem [ref=e290]:
+                        - link "Import branding" [ref=e291] [cursor=pointer]:
+                          - /url: /studio/experience/?embed=1
+                      - listitem [ref=e292]:
+                        - link "Launch checklist" [ref=e293] [cursor=pointer]:
+                          - /url: /siteconfig/guided-onboarding/?embed=1
+                - iframe [ref=e295]:
+                  - generic [ref=f1e3]:
+                    - strong [ref=f1e4]: manager.runmycampus.com
+                    - text: refused to connect.
+            - complementary "Impact and actions" [ref=e296]:
+              - generic [ref=e297]:
+                - heading "Impact & publish" [level=2] [ref=e298]
+                - paragraph [ref=e299]: Complete setup steps to improve launch confidence.
+  - link "Open Messages" [ref=e300] [cursor=pointer]:
+    - /url: /authentication/messages/
+    - generic [ref=e301]: 
+  - generic [ref=e302]:
+    - button "Open AI Copilot Assistant (Ctrl/Cmd+Shift+?)" [ref=e303] [cursor=pointer]:
+      - generic [ref=e304]: 
+    - text:          
+  - contentinfo [ref=e306]:
+    - generic [ref=e308]:
+      - generic [ref=e309]: © 2026 RunMyCampus. All rights reserved.
+      - generic [ref=e310]:
+        - text: Powered by
+        - strong [ref=e311]: RunMyCampus
+```

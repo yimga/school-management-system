@@ -18,7 +18,7 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" data-page-archetype="role-home">
   <section class="cp-hero mb-4">
     <div class="cp-hero-grid">
       <div>
@@ -143,7 +143,7 @@
                 </div>
               </div>
               {% empty %}
-              <div class="cp-empty-state">No schools waiting for operator approval.</div>
+              {% include "studio_os/components/loading_empty_states.html" with state="empty" message=_("No schools waiting for operator approval.") empty_icon="bi-check2-circle" only %}
               {% endfor %}
             </div>
           </article>
@@ -170,7 +170,7 @@
                 <span class="cp-status-badge cp-status-badge-{{ incident.status }}">{{ incident.status|title }}</span>
               </div>
               {% empty %}
-              <div class="cp-empty-state">No unresolved platform incidents.</div>
+              {% include "studio_os/components/loading_empty_states.html" with state="empty" message=_("No unresolved platform incidents.") empty_icon="bi-exclamation-triangle" only %}
               {% endfor %}
             </div>
             {% if platform_incidents_url %}

@@ -4,9 +4,13 @@ from typing import Any, Dict, Iterable, Optional
 
 from django.conf import settings
 from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
+from django.db import DatabaseError
 from django.urls import reverse
+from django.core.exceptions import ObjectDoesNotExist
+
 from apps.global_registries.models import EducationSystemProfile, RegionConfig
 from apps.platform_runtime.helpers import get_effective_site_settings, get_platform_defaults
+from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.policies.policy_registry import get_effective_policy
 
 from apps.academics.models import Term
@@ -356,9 +360,15 @@ def notify_parent_report_blocked_by_debt(student: StudentProfile, academic_year,
         if sent:
             cache.set(cache_key, "1", timeout=dedupe_hours * 3600)
         return sent
-    except Exception:
-        import logging
-        logging.getLogger(__name__).exception("Failed to send report-blocked SMS to parent.")
+    except (OSError, ConnectionError, AttributeError, TypeError, ValueError, KeyError):
+        log_exception_with_context(
+            "reports.services: notify_parent_report_blocked_by_debt failed to send report-blocked SMS to parent",
+            school_id=school_id,
+            extra={
+                "student_id": getattr(student, "id", None),
+                "academic_year_id": getattr(academic_year, "id", None),
+            },
+        )
         return False
 
 
@@ -573,7 +583,12 @@ def _region_display_context(
     try:
         region_code = getattr(settings, "REGION_CODE", "") or get_platform_defaults(use_db=False)["region_code"]
         region = RegionConfig.objects.get(code=region_code)
-    except Exception:
+    except (ObjectDoesNotExist, DatabaseError, KeyError, TypeError, AttributeError, ValueError):
+        log_exception_with_context(
+            "reports.services: _region_display_context region lookup failed, using default",
+            school_id=getattr(school, "id", None) if school else None,
+            extra={"context": "_region_display_context_region"},
+        )
         region = RegionConfig.get_default()
     _pd = get_platform_defaults(use_db=False)
     cur_code = getattr(region, "default_currency", None) or _pd["currency"]
@@ -593,8 +608,12 @@ def _region_display_context(
             if locale.get("grading_scale"):
                 grading_scale = locale["grading_scale"]
             report_template_family = get_report_template_family_for_school(school)
-        except Exception:
-            pass
+        except (ImportError, AttributeError, TypeError, ValueError, KeyError, DatabaseError):
+            log_exception_with_context(
+                "reports.services: _region_display_context tenant locale/template_family failed",
+                school_id=getattr(school, "id", None),
+                extra={"context": "_region_display_context_tenant_locale"},
+            )
     return {
         "region": region,
         "date_format": date_fmt,

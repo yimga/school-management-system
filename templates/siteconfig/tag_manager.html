@@ -2,14 +2,12 @@
 {% load i18n %}
 {% block title %}{% trans "Tag Manager" %}{% endblock %}
 {% block content %}
-<div class="card shadow-sm mb-4">
-  <div class="card-body">
-    <h1 class="h4 mb-2">{% trans "Information tags" %}</h1>
-    <p class="text-muted small mb-4">
-      {% trans "Create school-defined tags (e.g. Scholarship Student, Allergy: Nut, Early Bird) and assign them to students. Tags are used by the AI Nuance Engine for discounts and workflows. No hardcoded columns — all nuance is data-driven." %}
-    </p>
-
-    <form method="post" class="card card-body bg-light mb-4">
+<div class="container-fluid py-4" data-page-archetype="operational-workbench">
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
+  <p class="text-muted small mb-4">
+    {% trans "No hardcoded columns — all nuance is data-driven." %}
+  </p>
+  <form method="post" class="card card-body bg-light mb-4">
       {% csrf_token %}
       <h5 class="mb-3">{% trans "Create new tag" %}</h5>
       <div class="row g-3">
@@ -80,11 +78,10 @@
           <tr><td colspan="7" class="text-muted">{% trans "No tags yet. Create one above." %}</td></tr>
           {% endfor %}
         </tbody>
-      </table>
-    </div>
-    <p class="small text-muted mt-2">
-      <a href="{% url 'siteconfig:customizer' %}">{% trans "Back to Customizer" %}</a>
-    </p>
+    </table>
   </div>
+  <p class="small text-muted mt-2">
+    <a href="{% url 'siteconfig:customizer' %}">{% trans "Back to Customizer" %}</a>
+  </p>
 </div>
 {% endblock %}

@@ -1,12 +1,24 @@
-"""Offline sync conflict resolution service."""
+"""Offline sync conflict resolution service. §2.4: Typed exception tuple for manual resolve (no broad except)."""
 
-from django.db import transaction
-from django.utils import timezone
-from apps.evals.models import Evaluation, OfflineMarkEntry
-from apps.platform_runtime.helpers import get_effective_site_settings
 import logging
 
+from django.db import IntegrityError, transaction
+from django.utils import timezone
+
+from apps.evals.models import Evaluation, OfflineMarkEntry
+from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
 logger = logging.getLogger(__name__)
+
+# §2.4: Typed tuple for resolve_conflict_manually save/merge path.
+_OFFLINE_SYNC_RESOLVE_ERRORS = (
+    ValueError,
+    TypeError,
+    AttributeError,
+    KeyError,
+    IntegrityError,
+)
 
 
 class OfflineSyncService:
@@ -135,9 +147,17 @@ class OfflineSyncService:
             offline_entry.conflict_resolution_note = f"Manually resolved by teacher"
             offline_entry.save()
             
-            logger.info(f"Conflict resolved for {offline_entry.id}")
+            logger.info("Conflict resolved for %s", offline_entry.id)
             return True
-        
-        except Exception as e:
-            logger.error(f"Failed to resolve conflict: {e}")
+
+        except _OFFLINE_SYNC_RESOLVE_ERRORS as e:
+            school_id = None
+            if getattr(offline_entry, "student", None) and hasattr(offline_entry.student, "school_id"):
+                school_id = offline_entry.student.school_id
+            log_exception_with_context(
+                "resolve_conflict_manually failed",
+                school_id=school_id,
+                extra={"offline_entry_id": getattr(offline_entry, "id", None)},
+            )
+            logger.error("Failed to resolve conflict: %s", e, exc_info=True)
             return False

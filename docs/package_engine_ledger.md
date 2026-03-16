@@ -44,7 +44,7 @@
 | Policy bundles | 15+ | **15** | seed_blueprint_policy_packs |
 | Theme/experience, setup, migration, report, role-home packs | (included) | — | As needed |
 
-*Current counts from `python manage.py platform_inventory` (or `--format json`). See [MARKETPLACE_SEED_TARGETS.md](MARKETPLACE_SEED_TARGETS.md).*
+*Current counts from `python manage.py platform_inventory` (or `--format json`). Minimums are enforced in code via `apps.platform_runtime.catalog_counts.MARKETPLACE_MINIMUMS` and `satisfies_marketplace_minimums()`; test_marketplace_catalog_minimums and scripts/refresh_marketplace_seed_targets.py use them. See [MARKETPLACE_SEED_TARGETS.md](MARKETPLACE_SEED_TARGETS.md).*
 
 ---
 

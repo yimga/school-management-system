@@ -323,6 +323,15 @@ if PREVIEW_DATABASE_URL:
 else:
     DATABASES["preview"] = DATABASES["default"].copy()
 
+# When running tests with SQLite and preview is a copy of default, use only default
+# to avoid Django cloning the test DB and re-running migrations (duplicate column errors).
+if (
+    not PREVIEW_DATABASE_URL
+    and "test" in sys.argv
+    and DATABASES.get("default", {}).get("ENGINE") == "django.db.backends.sqlite3"
+):
+    DATABASES = {"default": DATABASES["default"]}
+
 # Django defaults sqlite test databases to in-memory databases when no explicit
 # TEST NAME is provided. That makes `--keepdb` ineffective across separate
 # manage.py invocations, because each process rebuilds the full test schema.
@@ -481,7 +490,8 @@ if _demo_what:
     try:
         import json
         MARKETING_DEMO_WHAT_YOU_SEE = json.loads(_demo_what) if _demo_what.startswith("[") else [s.strip() for s in _demo_what.split(",") if s.strip()]
-    except Exception:
+    except (ValueError, TypeError):
+        # JSONDecodeError is a subclass of ValueError; fallback to comma-separated parse
         MARKETING_DEMO_WHAT_YOU_SEE = [s.strip() for s in _demo_what.split(",") if s.strip()]
 else:
     MARKETING_DEMO_WHAT_YOU_SEE = [

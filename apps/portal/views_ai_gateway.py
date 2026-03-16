@@ -16,6 +16,7 @@ from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_http_methods
 
 from apps.compliance.models import AuditLog
+from apps.platform_runtime.structured_logging import log_view_exception
 from apps.portal.views_ai_copilot import _check_rate_limit
 from apps.siteconfig.prompt_registry import get_prompt_template
 from services.ai_gateway import TaskType, invoke, record_feedback
@@ -202,7 +203,7 @@ def api_setup_assistant(request):
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
     except GATEWAY_VIEW_ERRORS as e:
-        logger.exception("Setup assistant failed")
+        log_view_exception(request, "portal.views_ai_gateway: Setup assistant failed", extra={"error": str(e)})
         _log_gateway_audit(request, "setup_assistant", "setup_recommend", "error", {"error": str(e)[:200]})
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
 
@@ -238,7 +239,7 @@ def api_workflow_draft(request):
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
     except GATEWAY_VIEW_ERRORS as e:
-        logger.exception("Workflow draft failed")
+        log_view_exception(request, "portal.views_ai_gateway: Workflow draft failed", extra={"error": str(e)})
         _log_gateway_audit(request, "workflow_draft", "workflow_draft", "error", {"error": str(e)[:200]})
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
 
@@ -297,7 +298,7 @@ def api_policy_explain(request):
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
     except GATEWAY_VIEW_ERRORS as e:
-        logger.exception("Policy explain failed")
+        log_view_exception(request, "portal.views_ai_gateway: Policy explain failed", extra={"error": str(e)})
         _log_gateway_audit(request, "policy_explain", "policy_explain", "error", {"error": str(e)[:200]})
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
 
@@ -332,7 +333,7 @@ def api_document_classify(request):
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
     except GATEWAY_VIEW_ERRORS as e:
-        logger.exception("Document classify failed")
+        log_view_exception(request, "portal.views_ai_gateway: Document classify failed", extra={"error": str(e)})
         _log_gateway_audit(request, "document_classify", "doc_classify", "error", {"error": str(e)[:200]})
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
 
@@ -388,7 +389,7 @@ def api_semantic_search(request):
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
     except GATEWAY_VIEW_ERRORS as e:
-        logger.exception("Semantic search failed")
+        log_view_exception(request, "portal.views_ai_gateway: Semantic search failed", extra={"error": str(e)})
         _log_gateway_audit(request, "semantic_search", "semantic_search", "error", {"error": str(e)[:200]})
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
 
@@ -435,7 +436,7 @@ def api_admin_copilot(request):
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
     except GATEWAY_VIEW_ERRORS as e:
-        logger.exception("Admin copilot failed")
+        log_view_exception(request, "portal.views_ai_gateway: Admin copilot failed", extra={"error": str(e)})
         _log_gateway_audit(request, "admin_copilot", "admin_copilot", "error", {"error": str(e)[:200]})
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
 
@@ -472,8 +473,8 @@ def api_theme_recommend(request):
         _log_gateway_audit(request, "theme_recommend", "config_explain", "success", meta)
         out = result if isinstance(result, dict) else {"suggestions": [], "rationale": str(result)}
         return JsonResponse({"success": True, "suggestions": out.get("suggestions", []), "rationale": out.get("rationale", ""), "meta": meta})
-    except GATEWAY_VIEW_ERRORS:
-        logger.exception("Theme recommend failed")
+    except GATEWAY_VIEW_ERRORS as e:
+        log_view_exception(request, "portal.views_ai_gateway: Theme recommend failed", extra={"error": str(e)})
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
 
 
@@ -502,8 +503,8 @@ def api_feature_control_explain(request):
             return JsonResponse({"success": False, "error": "AI request budget exceeded.", "meta": meta}, status=429)
         _log_gateway_audit(request, "feature_control_explain", "config_explain", "success", meta)
         return JsonResponse({"success": True, "explanation": result if isinstance(result, str) else str(result), "meta": meta})
-    except GATEWAY_VIEW_ERRORS:
-        logger.exception("Feature control explain failed")
+    except GATEWAY_VIEW_ERRORS as e:
+        log_view_exception(request, "portal.views_ai_gateway: Feature control explain failed", extra={"error": str(e)})
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
 
 
@@ -539,8 +540,8 @@ def api_report_recommend(request):
         _log_gateway_audit(request, "report_recommend", "setup_recommend", "success", meta)
         recs = result.get("recommendations", []) if isinstance(result, dict) else []
         return JsonResponse({"success": True, "recommendations": recs, "meta": meta})
-    except GATEWAY_VIEW_ERRORS:
-        logger.exception("Report recommend failed")
+    except GATEWAY_VIEW_ERRORS as e:
+        log_view_exception(request, "portal.views_ai_gateway: Report recommend failed", extra={"error": str(e)})
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
 
 
@@ -576,8 +577,8 @@ def api_design_studio_draft(request):
         _log_gateway_audit(request, "design_studio_draft", "config_explain", "success", meta)
         out = result if isinstance(result, dict) else {"suggestions": [], "components": []}
         return JsonResponse({"success": True, "suggestions": out.get("suggestions", []), "components": out.get("components", []), "meta": meta})
-    except GATEWAY_VIEW_ERRORS:
-        logger.exception("Design studio draft failed")
+    except GATEWAY_VIEW_ERRORS as e:
+        log_view_exception(request, "portal.views_ai_gateway: Design studio draft failed", extra={"error": str(e)})
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
 
 
@@ -605,8 +606,8 @@ def api_live_preview_explain(request):
             return JsonResponse({"success": False, "error": "AI request budget exceeded.", "meta": meta}, status=429)
         _log_gateway_audit(request, "live_preview_explain", "config_explain", "success", meta)
         return JsonResponse({"success": True, "explanation": result if isinstance(result, str) else str(result), "meta": meta})
-    except GATEWAY_VIEW_ERRORS:
-        logger.exception("Live preview explain failed")
+    except GATEWAY_VIEW_ERRORS as e:
+        log_view_exception(request, "portal.views_ai_gateway: Live preview explain failed", extra={"error": str(e)})
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
 
 
@@ -635,8 +636,8 @@ def api_system_config_explain(request):
             return JsonResponse({"success": False, "error": "AI request budget exceeded.", "meta": meta}, status=429)
         _log_gateway_audit(request, "system_config_explain", "config_explain", "success", meta)
         return JsonResponse({"success": True, "explanation": result if isinstance(result, str) else str(result), "meta": meta})
-    except GATEWAY_VIEW_ERRORS:
-        logger.exception("System config explain failed")
+    except GATEWAY_VIEW_ERRORS as e:
+        log_view_exception(request, "portal.views_ai_gateway: System config explain failed", extra={"error": str(e)})
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
 
 
@@ -672,8 +673,8 @@ def api_dashboard_pack_recommend(request):
         _log_gateway_audit(request, "dashboard_pack_recommend", "setup_recommend", "success", meta)
         out = result if isinstance(result, dict) else {"dashboards": [], "packs": [], "rationale": str(result)}
         return JsonResponse({"success": True, "dashboards": out.get("dashboards", []), "packs": out.get("packs", []), "rationale": out.get("rationale", ""), "meta": meta})
-    except GATEWAY_VIEW_ERRORS:
-        logger.exception("Dashboard pack recommend failed")
+    except GATEWAY_VIEW_ERRORS as e:
+        log_view_exception(request, "portal.views_ai_gateway: Dashboard pack recommend failed", extra={"error": str(e)})
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
 
 
@@ -708,8 +709,8 @@ def api_support_assistant(request):
             return JsonResponse({"success": False, "error": "AI request budget exceeded.", "meta": meta}, status=429)
         _log_gateway_audit(request, "support_assistant", "support_suggest", "success", meta)
         return JsonResponse({"success": True, "response": result if isinstance(result, str) else str(result), "meta": meta})
-    except GATEWAY_VIEW_ERRORS:
-        logger.exception("Support assistant failed")
+    except GATEWAY_VIEW_ERRORS as e:
+        log_view_exception(request, "portal.views_ai_gateway: Support assistant failed", extra={"error": str(e)})
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
 
 
@@ -744,8 +745,8 @@ def api_tenant_maturity(request):
             "recommendations": recommendations,
             "meta": {},
         })
-    except GATEWAY_VIEW_ERRORS:
-        logger.exception("Tenant maturity failed")
+    except GATEWAY_VIEW_ERRORS as e:
+        log_view_exception(request, "portal.views_ai_gateway: Tenant maturity failed", extra={"error": str(e)})
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
 
 
@@ -783,8 +784,8 @@ def api_data_quality_assistant(request):
             return JsonResponse({"success": False, "error": "AI request budget exceeded.", "meta": meta}, status=429)
         _log_gateway_audit(request, "data_quality_assistant", "config_explain", "success", meta)
         return JsonResponse({"success": True, "response": result if isinstance(result, str) else str(result), "meta": meta})
-    except GATEWAY_VIEW_ERRORS:
-        logger.exception("Data quality assistant failed")
+    except GATEWAY_VIEW_ERRORS as e:
+        log_view_exception(request, "portal.views_ai_gateway: Data quality assistant failed", extra={"error": str(e)})
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
 
 
@@ -820,8 +821,8 @@ def api_marketplace_recommend(request):
         _log_gateway_audit(request, "marketplace_recommend", "setup_recommend", "success", meta)
         out = result if isinstance(result, dict) else {"recommendations": [], "rationale": str(result)}
         return JsonResponse({"success": True, "recommendations": out.get("recommendations", []), "rationale": out.get("rationale", ""), "meta": meta})
-    except GATEWAY_VIEW_ERRORS:
-        logger.exception("Marketplace recommend failed")
+    except GATEWAY_VIEW_ERRORS as e:
+        log_view_exception(request, "portal.views_ai_gateway: Marketplace recommend failed", extra={"error": str(e)})
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
 
 
@@ -859,8 +860,8 @@ def api_control_plane_intelligence(request):
             return JsonResponse({"success": False, "error": "AI request budget exceeded.", "meta": meta}, status=429)
         _log_gateway_audit(request, "control_plane_intelligence", "admin_copilot", "success", meta)
         return JsonResponse({"success": True, "response": result if isinstance(result, str) else str(result), "meta": meta})
-    except GATEWAY_VIEW_ERRORS:
-        logger.exception("Control plane intelligence failed")
+    except GATEWAY_VIEW_ERRORS as e:
+        log_view_exception(request, "portal.views_ai_gateway: Control plane intelligence failed", extra={"error": str(e)})
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
 
 
@@ -920,7 +921,7 @@ def api_ai_feedback(request):
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
     except GATEWAY_VIEW_ERRORS as e:
-        logger.exception("AI feedback failed")
+        log_view_exception(request, "portal.views_ai_gateway: AI feedback failed", extra={"error": str(e)})
         _log_gateway_audit(request, "ai_feedback", "feedback", "error", {"error": str(e)[:200]})
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
 
@@ -967,6 +968,6 @@ def api_migration_suggest(request):
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
     except GATEWAY_VIEW_ERRORS as e:
-        logger.exception("Migration suggest failed")
+        log_view_exception(request, "portal.views_ai_gateway: Migration suggest failed", extra={"error": str(e)})
         _log_gateway_audit(request, "migration_suggest", "migration_mapping", "error", {"error": str(e)[:200]})
         return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)

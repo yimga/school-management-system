@@ -8,14 +8,28 @@ import logging
 
 from apps.dashboard.admin_context import build_admin_dashboard_context
 
+from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
+from django.template import TemplateDoesNotExist, TemplateSyntaxError
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
 from django.urls import NoReverseMatch, path, reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.safestring import mark_safe
 from unfold.sites import UnfoldAdminSite
+
+# §2.4: Typed tuple for admin context best-effort fallbacks (allowlist 0).
+_ADMIN_CONTEXT_FALLBACK_ERRORS = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    OSError,
+    NoReverseMatch,
+    ImproperlyConfigured,
+    TemplateDoesNotExist,
+    TemplateSyntaxError,
+)
 
 
 class BaseRunMyCampusAdminSite(UnfoldAdminSite):
@@ -45,7 +59,7 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
                 from apps.schools.tenant_url import build_public_absolute_url
 
                 context["public_site_url"] = build_public_absolute_url(request, "/")
-            except Exception:
+            except _ADMIN_CONTEXT_FALLBACK_ERRORS:
                 context["public_site_url"] = "https://runmycampus.com"
         else:
             context["public_site_url"] = None
@@ -53,7 +67,7 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
             context["extra_userlinks"] = mark_safe(
                 render_to_string("admin/extra_user_links.html", context)
             )
-        except Exception:
+        except _ADMIN_CONTEXT_FALLBACK_ERRORS:
             context["extra_userlinks"] = ""
         try:
             from django_otp import user_has_device
@@ -66,7 +80,7 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
             )
             context["show_mfa_banner"] = show
             context["mfa_setup_url"] = reverse("accounts:mfa_setup") if show else ""
-        except Exception:
+        except _ADMIN_CONTEXT_FALLBACK_ERRORS:
             context["show_mfa_banner"] = False
             context["mfa_setup_url"] = ""
         try:
@@ -88,7 +102,7 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
             from apps.schools.tenant_url import build_public_absolute_url
 
             extra_context["public_site_url"] = build_public_absolute_url(request, "/")
-        except Exception:
+        except _ADMIN_CONTEXT_FALLBACK_ERRORS:
             extra_context["public_site_url"] = "https://runmycampus.com"
         return super().login(request, extra_context=extra_context)
 

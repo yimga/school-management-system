@@ -1,0 +1,10 @@
+{% comment %}
+§8.0.12 Shared component: Studio OS card. Uses design tokens (--studio-radius, --studio-shadow, --color-base-*).
+Usage: {% include "studio_os/components/card.html" with title="Card title" content="..." %}
+  With rail styling: extra_class="py-2 mb-2"
+For custom body, pass content with HTML or wrap your markup in a div.studio-os__card and use this include with title only.
+{% endcomment %}
+<div class="studio-os__card{% if extra_class %} {{ extra_class }}{% endif %}">
+  {% if title %}<h2 class="h6 mb-2" style="color: var(--color-base-800, #1e293b);">{{ title }}</h2>{% endif %}
+  {% if content %}{{ content|safe }}{% endif %}
+</div>

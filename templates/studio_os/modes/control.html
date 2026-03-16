@@ -14,7 +14,7 @@
 {% block studio_canvas %}
   <div class="d-flex gap-3 flex-wrap flex-lg-nowrap studio-os__control-wrap">
     {% if control_left_rail %}
-    <nav class="studio-os__control-rail flex-shrink-0 mb-2 mb-lg-0" aria-label="{% trans 'Control' %}" style="width: 200px;">
+    <nav class="studio-os__control-rail flex-shrink-0 mb-2 mb-lg-0" aria-label="{% trans 'Control' %}" style="width: min(12.5rem, 100%); min-width: 0;">
       <div class="studio-os__card py-2">
         <div class="h6 mb-2">{% trans "Governance" %}</div>
         <ul class="list-unstyled small mb-0" id="control-rail-list">

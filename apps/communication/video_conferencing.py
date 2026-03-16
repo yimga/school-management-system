@@ -1,21 +1,45 @@
 """
 Phase 9 Task 5: Video Conferencing Integration
 Extended video conferencing with Zoom, Google Meet, Jitsi
+§2.4: broad except for Zoom create_meeting replaced with typed tuple.
 
 INTEGRATES WITH:
 - apps.communication.integrations (existing ZoomIntegration)
 - apps.academics.models (Classroom, Subject)
 - apps.portal for student/teacher access
 """
+from __future__ import annotations
 
-from django.db import models
-from django.contrib.auth import get_user_model
-from django.utils import timezone
-from django.core.exceptions import ValidationError
+import logging
 from datetime import timedelta
 from typing import Dict, List
 
+from django.core.exceptions import ValidationError
+from django.db import models
+from django.utils import timezone
+
+from django.contrib.auth import get_user_model
+
 User = get_user_model()
+logger = logging.getLogger(__name__)
+
+# §2.4: typed exceptions for Zoom API/create_meeting (HTTP, connection, serialization)
+_VIDEO_ZOOM_CREATE_ERRORS: tuple[type[BaseException], ...] = (
+    OSError,
+    ConnectionError,
+    TimeoutError,
+    ValueError,
+    TypeError,
+    KeyError,
+    AttributeError,
+    ImportError,
+)
+try:
+    from json import JSONDecodeError
+    import requests
+    _VIDEO_ZOOM_CREATE_ERRORS = (*_VIDEO_ZOOM_CREATE_ERRORS, JSONDecodeError, requests.RequestException)
+except ImportError:
+    pass
 
 
 class VideoConferenceProvider(models.TextChoices):
@@ -292,9 +316,10 @@ class VideoConferenceService:
             )
             if not isinstance(response, dict):
                 response = {}
-        except Exception:
+        except _VIDEO_ZOOM_CREATE_ERRORS:
             # If Zoom credentials/integration are unavailable, keep platform flows working
             # with a deterministic fallback payload.
+            logger.debug("Zoom create_meeting failed; using fallback payload", exc_info=True)
             response = {}
 
         # Support both legacy return shape ({id,start_url}) and newer

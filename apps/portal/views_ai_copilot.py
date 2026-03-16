@@ -23,6 +23,7 @@ from apps.portal.ai_provider import (
 )
 from apps.platform_runtime.structured_logging import (
     log_exception_with_context,
+    log_view_exception,
     request_context_for_log,
 )
 from apps.siteconfig.cache_utils import tenant_cache_key
@@ -339,7 +340,7 @@ def ai_copilot_query(request):
             'error': 'Invalid JSON in request body.'
         }, status=400)
     except (DatabaseError, OSError, RuntimeError, TypeError, ValueError) as e:
-        logger.error(f'AI Copilot error: {str(e)}', exc_info=True)
+        log_view_exception(request, "portal.views_ai_copilot: AI Copilot error", extra={"error": str(e)})
         _cache_incr_or_set(tenant_cache_key('ai_copilot_usage_errors_total', request))
         _cache_set(tenant_cache_key('ai_copilot_last_error_ts', request), time.time(), None)
         return JsonResponse({

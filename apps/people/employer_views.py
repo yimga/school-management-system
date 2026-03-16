@@ -1,14 +1,28 @@
 """
 Employer portal: limited login for employers to view apprentice progress and confirm on-site hours.
 """
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import DatabaseError
 from django.http import HttpRequest, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
 
 from apps.people.models import ApprenticePlacement
+from apps.platform_runtime.structured_logging import log_exception_with_context, log_view_exception
+
+# Typed exceptions for §2.4 broad-except replacement (allowlist 0).
+_EMPLOYER_HOURS_PARSE_ERRORS = (InvalidOperation, ValueError, TypeError)
+_EMPLOYER_TRANSCRIPT_CONTEXT_ERRORS = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    ObjectDoesNotExist,
+    DatabaseError,
+)
 
 
 def _is_employer(request) -> bool:
@@ -51,7 +65,12 @@ def employer_confirm_hours(request: HttpRequest, placement_id: int):
     if request.method == "POST":
         try:
             hours = Decimal(request.POST.get("hours", "0").strip() or "0")
-        except Exception:
+        except _EMPLOYER_HOURS_PARSE_ERRORS:
+            log_exception_with_context(
+                "employer_confirm_hours: failed to parse hours",
+                school_id=placement.school_id,
+                extra={"placement_id": placement_id},
+            )
             hours = Decimal("0")
         if hours > 0:
             placement.confirmed_hours += hours
@@ -80,7 +99,12 @@ def employer_student_transcript(request: HttpRequest, placement_id: int):
         return JsonResponse({"error": "No academic year for transcript."}, status=400)
     try:
         context = annual_report_context(student, year)
-    except Exception as e:
+    except _EMPLOYER_TRANSCRIPT_CONTEXT_ERRORS:
+        log_view_exception(
+            request,
+            "employer_student_transcript: annual_report_context failed",
+            extra={"placement_id": placement_id, "student_id": getattr(student, "id", None)},
+        )
         return JsonResponse({"error": str(e)}, status=500)
     if request.headers.get("Accept", "").find("application/json") >= 0:
         return JsonResponse({

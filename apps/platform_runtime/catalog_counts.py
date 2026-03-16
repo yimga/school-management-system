@@ -4,10 +4,16 @@
 Used by:
 - management command platform_inventory (--format json / text)
 - marketplace views (governance_console, app_catalog, tenant_app_catalog, blueprint_marketplace)
+- apps.platform_runtime.tests.test_marketplace_catalog_minimums (§12 gate)
+- scripts/refresh_marketplace_seed_targets.py
 
 Single source of truth for first_party_apps, blueprint_packs, workflow_packs, dashboard_packs,
 policy_bundles, and installed_* counts so UI and CLI stay in sync.
+
+Minimums must match docs/MARKETPLACE_SEED_TARGETS.md §1.
 """
+from __future__ import annotations
+
 import logging
 from typing import Any
 
@@ -19,6 +25,30 @@ except ImportError:
     DatabaseError = OperationalError = ProgrammingError = Exception  # type: ignore[misc, assignment]
 
 _EXC = (ImportError, AttributeError, TypeError, DatabaseError, OperationalError, ProgrammingError)
+
+# §7 MARKETPLACE_SEED_TARGETS minimums (single source; must match MARKETPLACE_SEED_TARGETS.md §1)
+MARKETPLACE_MINIMUMS: dict[str, int] = {
+    "first_party_apps": 25,
+    "blueprint_packs": 25,
+    "workflow_packs": 30,
+    "dashboard_packs": 20,
+    "policy_bundles": 15,
+}
+
+
+def satisfies_marketplace_minimums(counts: dict[str, Any]) -> tuple[bool, list[str]]:
+    """
+    Return (True, []) if counts meet MARKETPLACE_MINIMUMS; else (False, list of error messages).
+    Used by tests and scripts to validate §7 ecosystem seeding.
+    """
+    errors: list[str] = []
+    for key, minimum in MARKETPLACE_MINIMUMS.items():
+        value = counts.get(key, 0)
+        if not isinstance(value, (int, float)) or value < minimum:
+            errors.append(
+                f"{key}: got {counts.get(key, 'missing')}, need >= {minimum} (MARKETPLACE_SEED_TARGETS)"
+            )
+    return (len(errors) == 0, errors)
 
 
 def get_platform_catalog_counts() -> dict[str, Any]:

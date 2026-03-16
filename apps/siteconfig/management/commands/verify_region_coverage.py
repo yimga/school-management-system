@@ -5,8 +5,21 @@ Part 1 / Part 4 item 4: Run seed_global_regions at deploy; add verify_region_cov
 Reports missing regions and optional Province coverage. See docs/RUNMYCAMPUS_DEPLOYMENT.md.
 """
 from django.core.management.base import BaseCommand
+from django.db import DatabaseError, OperationalError, ProgrammingError
 
+from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.siteconfig.models import RegionConfig
+
+# §2.4 Typed exceptions for optional Province coverage (broad_exception_audit)
+_VERIFY_REGION_COVERAGE_PROVINCE_ERRORS = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    DatabaseError,
+    OperationalError,
+    ProgrammingError,
+)
 
 
 class Command(BaseCommand):
@@ -55,7 +68,11 @@ class Command(BaseCommand):
             from apps.siteconfig.models import Province
             provinces = Province.objects.count()
             self.stdout.write("Provinces/States in catalog: %s (optional; seed per deployment)." % provinces)
-        except Exception:
-            pass
+        except _VERIFY_REGION_COVERAGE_PROVINCE_ERRORS as e:
+            log_exception_with_context(
+                "verify_region_coverage: optional Province count failed",
+                school_id=None,
+                extra={"command": "verify_region_coverage", "error": str(e)},
+            )
 
         return 1 if (missing and options.get("strict")) else 0

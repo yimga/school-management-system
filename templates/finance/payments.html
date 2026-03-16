@@ -1,11 +1,13 @@
 {% extends "portal_base.html" %}
+{% load i18n %}
 {% load region_format %}
 
-{% block title %}Payments{% endblock %}
+{% block title %}{% trans "Payments" %}{% endblock %}
 
 {% block content %}
-{% url 'finance:dashboard' as finance_dashboard_url %}
-{% include "components/page_header.html" with title="Payments" subtitle="Incoming and outgoing payments." action_url=finance_dashboard_url action_text="Back to Finance" %}
+<div class="container-fluid py-2" data-page-archetype="operational-workbench">
+{% trans "Back to Finance" as back_action %}
+{% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=back_action %}
 <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
   <a class="btn btn-sm btn-outline-primary" href="{% url 'finance:cash_office_closure' %}">Cash closure</a>
   <a class="btn btn-sm btn-primary" href="{% url 'finance:split_allocation' %}">Split payment</a>
@@ -89,4 +91,5 @@
   </div>
 </div>
 {% include "components/was_this_helpful.html" with feedback_id="finance-payments" %}
+</div>
 {% endblock %}

@@ -5,7 +5,8 @@ Converts grades between scales (e.g. Francophone 16/20 -> US GPA 3.2 / B+)
 using a normalized 0.0-1.0 anchor. Used for frictionless global student mobility.
 """
 
-from decimal import Decimal
+import logging
+from decimal import Decimal, InvalidOperation
 from typing import Optional
 
 from apps.evals.grading import (
@@ -16,6 +17,16 @@ from apps.evals.grading import (
     score_to_normalized,
 )
 
+
+logger = logging.getLogger(__name__)
+
+# Typed exceptions for get_grade_letter (scale lookup / conversion).
+_EVALS_ROSETTA_LETTER_GRADE_ERRORS: tuple[type[BaseException], ...] = (
+    ValueError,
+    TypeError,
+    KeyError,
+    InvalidOperation,
+)
 
 # Scale identifiers used by grading.py
 SCALE_IDS = list(GRADING_SCALES.keys())  # e.g. '0-20', '0-100', '0-10', 'a-f', 'gpa'
@@ -67,7 +78,8 @@ def convert_grade(
     }
     try:
         result["letter_grade"] = get_grade_letter(float(converted), to_scale)
-    except Exception:
+    except _EVALS_ROSETTA_LETTER_GRADE_ERRORS as e:
+        logger.debug("evals.rosetta_stone: get_grade_letter failed for to_scale=%s: %s", to_scale, e)
         result["letter_grade"] = None
     return result
 

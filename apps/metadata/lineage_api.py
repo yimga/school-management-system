@@ -6,17 +6,35 @@ Used by governance UI and operator tooling. Staff-only.
 """
 from __future__ import annotations
 
+import logging
 from typing import Any
 
-# Soft-fail set for optional imports and DB (same as usage_registry)
-from django.db import DatabaseError
+from django.core.exceptions import ValidationError
+from django.db import DatabaseError, IntegrityError
 
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
+logger = logging.getLogger(__name__)
+
+# Soft-fail set for optional imports and DB (same as usage_registry)
 _LINEAGE_SOFT_FAILURES = (
     AttributeError,
     DatabaseError,
     ImportError,
     LookupError,
     TypeError,
+    ValueError,
+)
+
+# Field lookup: DoesNotExist is expected; DB/validation errors are soft-fail and logged
+_FIELD_LOOKUP_ERRORS = (
+    AttributeError,
+    DatabaseError,
+    IntegrityError,
+    ImportError,
+    LookupError,
+    TypeError,
+    ValidationError,
     ValueError,
 )
 
@@ -110,7 +128,12 @@ def get_unified_lineage(
                 entity__code=entity_code,
                 field_name=field_name,
             )
-        except (FieldCatalogEntry.DoesNotExist, Exception):
+        except (FieldCatalogEntry.DoesNotExist, *_FIELD_LOOKUP_ERRORS) as e:
+            if not isinstance(e, FieldCatalogEntry.DoesNotExist):
+                log_exception_with_context(
+                    "lineage_api field lookup failed",
+                    extra={"entity_code": entity_code, "field_name": field_name},
+                )
             result["object"] = {"type": "field", "entity_code": entity_code, "field_name": field_name}
             return result
         result["object"] = {
@@ -168,3 +191,13 @@ def get_unified_lineage(
         return result
 
     return result
+
+    return result
+
+
+
+
+
+
+
+

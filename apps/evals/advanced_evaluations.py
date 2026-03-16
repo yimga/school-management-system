@@ -1,11 +1,30 @@
 """
 Phase 8 Task 4: Advanced Evaluations - Ranking and Mock Exams
-Implements class ranking engine, mock exam management, and performance analysis
+Implements class ranking engine, mock exam management, and performance analysis.
+§2.4: Typed exception tuple for import_grades_with_conflict_resolution (no broad except).
 """
 
 from django.utils import timezone
 from django.db.models import Avg
+from django.db.utils import IntegrityError, DatabaseError, OperationalError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
+
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
 import statistics
+
+# §2.4: Typed tuple for grade import row (get_or_create/save).
+_EVALS_ADVANCED_IMPORT_ROW_ERRORS = (
+    ObjectDoesNotExist,
+    ValidationError,
+    IntegrityError,
+    DatabaseError,
+    OperationalError,
+    ValueError,
+    TypeError,
+    AttributeError,
+    KeyError,
+)
 
 
 class RankingEngine:
@@ -302,7 +321,12 @@ class ImportEnhancedService:
                         eval.score = row['score']
                         eval.save()
                         results['updated'] += 1
-            except Exception:
+            except _EVALS_ADVANCED_IMPORT_ROW_ERRORS:
+                log_exception_with_context(
+                    "evals.advanced_evaluations: import_grades_with_conflict_resolution row skipped",
+                    school_id=getattr(eval, "school_id", None) if "eval" in dir() else None,
+                    extra={"student_id": row.get("student_id"), "subject_id": row.get("subject_id")},
+                )
                 results['skipped'] += 1
         
         return results

@@ -17,6 +17,7 @@ from apps.accounts.decorators import permission_required
 from apps.accounts.models import RolloverProposal, RolloverProposalItem, User
 from apps.people.models import StudentProfile, StudentResourceReturn
 from apps.platform_runtime.helpers import get_effective_flags, get_effective_site_settings
+from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.reports.services import get_promotion_status, _annual_average_for_student
 
 
@@ -57,6 +58,12 @@ def clone_year_setup(request):
             )
             return redirect("accounts:workflow_center")
         except (DatabaseError, RuntimeError, TypeError, ValueError) as e:
+            school_id = str(getattr(getattr(request, "school", None), "pk", None) or "")
+            log_exception_with_context(
+                "accounts clone_year_setup: clone_academic_year failed",
+                school_id=school_id,
+                extra={"view": "clone_year_setup", "source_year_id": source_year.id, "target_year_id": target_year.id, "error": str(e)},
+            )
             messages.error(request, f"Clone failed: {e}")
             return render(request, "accounts/clone_year_setup.html", {"years": years})
 
@@ -174,6 +181,12 @@ def rollover_year(request):
                         f"Created {arrears_created} opening balance (arrears) invoice(s) in {target_year.name}.",
                     )
             except (DatabaseError, ImportError, RuntimeError, TypeError, ValueError) as e:
+                school_id = str(getattr(getattr(request, "school", None), "pk", None) or "")
+                log_exception_with_context(
+                    "accounts rollover_year: carry_forward_arrears failed",
+                    school_id=school_id,
+                    extra={"view": "rollover_year", "source_year_id": source_year.id, "target_year_id": target_year.id, "error": str(e)},
+                )
                 messages.error(
                     request,
                     f"Arrears carry-forward failed: {e}. Please check Finance configuration.",
@@ -221,8 +234,13 @@ def rollover_year(request):
                 ).select_related("source_classroom", "target_classroom"):
                     if m.source_classroom_id:
                         promotion_map[m.source_classroom_id] = m.target_classroom
-            except (DatabaseError, ImportError, RuntimeError, TypeError, ValueError):
-                pass
+            except (DatabaseError, ImportError, RuntimeError, TypeError, ValueError) as e:
+                school_id = str(getattr(getattr(request, "school", None), "pk", None) or "")
+                log_exception_with_context(
+                    "accounts rollover_year: ClassroomPromotionMapping query failed",
+                    school_id=school_id,
+                    extra={"view": "rollover_year", "source_year_id": source_year.id, "target_year_id": target_year.id, "error": str(e)},
+                )
             terms = list(Term.objects.filter(academic_year=source_year).order_by("position", "start_date"))
             students = StudentProfile.objects.filter(
                 academic_year=source_year, is_active=True

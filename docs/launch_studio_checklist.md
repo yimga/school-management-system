@@ -17,9 +17,9 @@
 | choose starter stack | Blueprint/starter pack selection | PARTIAL — Setup Studio |
 | choose migration path | Migration cloud; migration path selection | PARTIAL |
 | preview by role | 6-role preview (Setup Studio) | PARTIAL — present |
-| launch checklist | execute_launch, checklist UI | PARTIAL — execute_launch + checklist in setup_studio |
+| launch checklist | execute_launch, checklist UI; Launch Studio rail "Launch checklist" → guided_onboarding | PARTIAL — execute_launch + checklist in setup_studio; rail entry in studio_os/views.py |
 | setup health score | Health score in Setup Studio | DONE — present |
-| launch confidence summary | Summary before go-live | NOT DONE — add or document |
+| launch confidence summary | Summary before go-live | DONE — Launch Studio sidebar shows launch_ready / launch_blockers + health_summary (templates/studio_os/modes/launch.html) |
 
 ---
 

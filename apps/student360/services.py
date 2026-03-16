@@ -6,6 +6,23 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import DatabaseError, IntegrityError
+
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
+# Typed exception set for optional 360 data (queries, imports, serialization).
+_STUDENT360_SERVICE_ERRORS = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    LookupError,
+    ObjectDoesNotExist,
+    KeyError,
+    DatabaseError,
+)
+
 
 def get_student_360_summary(
     school_id,
@@ -59,12 +76,16 @@ def get_student_360_summary(
                 ).filter(
                     Q(payload__student_id=student_id) | Q(payload__student_id=str(student_id))
                 ).count()
-            except Exception:
+            except _STUDENT360_SERVICE_ERRORS:
                 out["timeline_events_count"] = 0
         if include_export_available:
             out["export_pack_available"] = True
-    except Exception:
-        pass
+    except _STUDENT360_SERVICE_ERRORS:
+        log_exception_with_context(
+            "get_student_360_summary failed",
+            school_id=school_id,
+            extra={"student_id": student_id},
+        )
     return out
 
 
@@ -100,7 +121,12 @@ def get_student_timeline_feed(
             }
             for e in qs
         ]
-    except Exception:
+    except _STUDENT360_SERVICE_ERRORS:
+        log_exception_with_context(
+            "get_student_timeline_feed failed",
+            school_id=school_id,
+            extra={"student_id": student_id},
+        )
         return []
 
 
@@ -118,7 +144,12 @@ def export_student_pack(
     try:
         from apps.compliance.gdpr_services import export_student_data_portability
         return export_student_data_portability(school_id, student_id, format=format)
-    except Exception:
+    except _STUDENT360_SERVICE_ERRORS:
+        log_exception_with_context(
+            "export_student_pack failed",
+            school_id=school_id,
+            extra={"student_id": student_id, "format": format},
+        )
         return None
 
 
@@ -171,11 +202,16 @@ def build_transcript_snapshot(student, academic_year) -> Optional[Dict[str, Any]
             loc = get_transcript_localizer(region_code=region_code)
             snapshot["region"] = loc.region.name if loc.region else "Default"
             snapshot["language"] = loc.language
-        except Exception:
+        except _STUDENT360_SERVICE_ERRORS:
             snapshot["region"] = None
             snapshot["language"] = "en"
         return snapshot
-    except Exception:
+    except _STUDENT360_SERVICE_ERRORS:
+        log_exception_with_context(
+            "build_transcript_snapshot failed",
+            school_id=getattr(getattr(student, "school", None), "id", None),
+            extra={"student_id": getattr(student, "id", None), "academic_year_id": getattr(academic_year, "id", None)},
+        )
         return None
 
 
@@ -196,7 +232,15 @@ def create_immutable_transcript(student, academic_year, created_by=None):
             defaults={"snapshot": snapshot, "created_by": created_by},
         )
         return obj
-    except Exception:
+    except _STUDENT360_SERVICE_ERRORS:
+        log_exception_with_context(
+            "create_immutable_transcript failed",
+            school_id=getattr(getattr(student, "school", None), "id", None),
+            extra={
+                "student_id": getattr(student, "id", None),
+                "academic_year_id": getattr(academic_year, "id", None),
+            },
+        )
         return None
 
 
@@ -209,5 +253,10 @@ def get_immutable_transcripts_for_student(student):
             .select_related("academic_year", "created_by")
             .order_by("-academic_year__start_date", "-created_at")
         )
-    except Exception:
+    except _STUDENT360_SERVICE_ERRORS:
+        log_exception_with_context(
+            "get_immutable_transcripts_for_student failed",
+            school_id=getattr(getattr(student, "school", None), "id", None),
+            extra={"student_id": getattr(student, "id", None)},
+        )
         return []

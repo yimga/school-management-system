@@ -11,9 +11,26 @@ import time
 from datetime import datetime
 from typing import Optional
 
+from django.db import DatabaseError, IntegrityError
 from django.utils import timezone
+from django.core.exceptions import ValidationError
+
+from apps.platform_runtime.structured_logging import log_exception_with_context
 
 from .bi_models import AdHocReportDefinition, AdHocReportExecution
+
+# Expected failures during ad-hoc report run (queryset build, serialize, save, encode).
+_REPORT_RUN_ERRORS = (
+    DatabaseError,
+    IntegrityError,
+    ValidationError,
+    TypeError,
+    ValueError,
+    KeyError,
+    AttributeError,
+    OSError,
+    ImportError,
+)
 
 
 def run_adhoc_report(
@@ -76,7 +93,17 @@ def run_adhoc_report(
             writer.writerows(row_dicts)
             return (buf.getvalue().encode('utf-8'), None, row_count, None)
         return (None, row_dicts, row_count, None)
-    except Exception as e:
+    except _REPORT_RUN_ERRORS as e:
+        log_exception_with_context(
+            "adhoc_report run failed",
+            school_id=getattr(definition, "school_id", None),
+            extra={
+                "definition_id": getattr(definition, "id", None),
+                "execution_id": execution.id,
+                "entity_type": getattr(definition, "entity_type", None),
+            },
+            exc_info=True,
+        )
         execution.status = 'FAILED'
         execution.error_message = str(e)
         execution.completed_at = timezone.now()

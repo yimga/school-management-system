@@ -13,9 +13,11 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-2">
-  <h5 class="mb-3">{% trans "Compliance & Audit" %}</h5>
-  <p class="text-secondary small">{% trans "Policy pack, country compliance, audit review, export risk. Enforcement via runtime.compliance." %}</p>
+<div class="container-fluid py-2" data-page-archetype="operational-workbench">
+  {% trans "Compliance & Audit" as page_title %}
+  {% trans "Policy pack, country compliance, audit review, export risk. Enforcement via runtime.compliance." as page_subtitle %}
+  {% trans "Back to Trust center" as page_action %}
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=trust_center_url action_text=page_action %}
   <div class="card shadow-sm border-secondary">
     <div class="card-body">
       <p class="mb-0">{% trans "Placeholder: link to audit search, export jobs, retention, consent, and compliance policy from control plane." %}</p>

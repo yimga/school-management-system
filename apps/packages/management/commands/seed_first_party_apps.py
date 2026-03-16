@@ -1,11 +1,19 @@
 """
 §7 MARKETPLACE_SEED_TARGETS: seed PackageVersion so first-party apps (distinct package_id) reach 25+.
-Idempotent: update_or_create by (package_id, version).
+
+Idempotent: update_or_create by (package_id, version). Minimum 25 distinct package_id per
+docs/MARKETPLACE_SEED_TARGETS.md §1; this command seeds 27 for headroom.
+
 Run: python manage.py seed_first_party_apps
+      python manage.py seed_first_party_apps --dry-run  # show what would be ensured
 """
+import logging
+
 from django.core.management.base import BaseCommand
 
 from apps.packages.models import PackageVersion
+
+logger = logging.getLogger(__name__)
 
 
 # Minimum 25 distinct package_id for platform_inventory first_party_apps count.
@@ -43,9 +51,25 @@ FIRST_PARTY_APPS = [
 class Command(BaseCommand):
     help = "Seed PackageVersion so first-party apps (distinct package_id) reach 25+ for MARKETPLACE_SEED_TARGETS §7."
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--dry-run",
+            action="store_true",
+            help="Log what would be created/updated without writing to the database.",
+        )
+
     def handle(self, *args, **options):
+        dry_run = options.get("dry_run", False)
         ensured = 0
         for item in FIRST_PARTY_APPS:
+            if dry_run:
+                logger.debug(
+                    "Would ensure package_id=%s version=%s",
+                    item["package_id"],
+                    item["version"],
+                )
+                ensured += 1
+                continue
             PackageVersion.objects.update_or_create(
                 package_id=item["package_id"],
                 version=item["version"],
@@ -54,5 +78,19 @@ class Command(BaseCommand):
                 },
             )
             ensured += 1
-        self.stdout.write(self.style.SUCCESS(f"First-party app versions: {ensured} ensured (distinct package_id: {len(FIRST_PARTY_APPS)})."))
-        self.stdout.write("Run: python manage.py platform_inventory --format json to verify first_party_apps count.")
+        if dry_run:
+            self.stdout.write(
+                self.style.WARNING(
+                    f"[DRY-RUN] Would ensure {ensured} first-party app versions "
+                    f"(distinct package_id: {len(FIRST_PARTY_APPS)})."
+                )
+            )
+        else:
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"First-party app versions: {ensured} ensured (distinct package_id: {len(FIRST_PARTY_APPS)})."
+                )
+            )
+        self.stdout.write(
+            "Run: python manage.py platform_inventory --format json to verify first_party_apps count."
+        )

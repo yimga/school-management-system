@@ -16,7 +16,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sessions.models import Session
 from django.core.cache import cache
-from django.db import connection
+from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
+from django.db import DatabaseError, OperationalError, connection
 from django.db.models import Count, Q, Value
 from django.db.models.functions import Coalesce
 from django.urls import NoReverseMatch, reverse
@@ -25,18 +26,32 @@ from django.utils import timezone
 from apps.dashboard.action_registry import get_admin_header_actions
 from apps.finance.models import Notification
 from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.structured_logging import log_view_exception
 from apps.siteconfig.models import SiteSettings
 from apps.siteconfig.models_support import default_header_weather_config
 
 logger = logging.getLogger(__name__)
 
+# Typed exceptions for admin dashboard context (§2.4 broad-except policy)
+_ADMIN_REVERSE_ERRORS = (NoReverseMatch, ImproperlyConfigured, ValueError, TypeError)
+_ADMIN_WIDGET_QUERY_ERRORS = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    KeyError,
+    DatabaseError,
+    OperationalError,
+    ObjectDoesNotExist,
+    NoReverseMatch,
+    ImproperlyConfigured,
+)
+
 
 def _safe_reverse(name: str, fallback: str = "#") -> str:
     try:
         return reverse(name)
-    except NoReverseMatch:
-        return fallback
-    except Exception:
+    except _ADMIN_REVERSE_ERRORS:
         return fallback
 
 
@@ -345,7 +360,7 @@ def _query_kpi_cards(query_context: dict[str, Any]) -> dict[str, Any]:
                         "percent": round(100 * enabled / total) if total else 0,
                     }
                 )
-    except Exception:
+    except _ADMIN_WIDGET_QUERY_ERRORS:
         logger.debug("Failed to compute MFA KPI widget payload.", exc_info=True)
 
     return {
@@ -430,7 +445,7 @@ def _query_security_compliance(query_context: dict[str, Any]) -> dict[str, Any]:
                 "access_denials_24h": access_denials_24h,
             }
         )
-    except Exception:
+    except _ADMIN_WIDGET_QUERY_ERRORS:
         logger.debug("Failed to compute security/compliance widget payload.", exc_info=True)
     return data
 
@@ -456,7 +471,7 @@ def _query_action_queue(query_context: dict[str, Any]) -> dict[str, Any]:
                 }
                 for request_row in pending_qs[:5]
             ]
-    except Exception:
+    except _ADMIN_WIDGET_QUERY_ERRORS:
         logger.debug("Failed to compute action queue widget payload.", exc_info=True)
     return {
         "pending_approvals_count": pending_approvals_count,
@@ -488,7 +503,7 @@ def _query_finance_inbox(query_context: dict[str, Any]) -> dict[str, Any]:
             }
             for note in finance_requests_qs[:3]
         ]
-    except Exception:
+    except _ADMIN_WIDGET_QUERY_ERRORS:
         logger.debug("Failed to compute finance inbox widget payload.", exc_info=True)
     return {
         "finance_inbox_preview": finance_inbox_preview,
@@ -510,7 +525,7 @@ def _query_settings_audit(_query_context: dict[str, Any]) -> dict[str, Any]:
             }
             for entry in entries
         ]
-    except Exception:
+    except _ADMIN_WIDGET_QUERY_ERRORS:
         logger.debug("Failed to compute site settings audit widget payload.", exc_info=True)
     return {"settings_change_log": settings_change_log}
 
@@ -650,8 +665,13 @@ def _resolve_widget_payload(
         payload = spec.query_fn(query_context)
         if not isinstance(payload, dict):
             payload = {}
-    except Exception:
-        logger.exception("Admin dashboard widget '%s' query failed.", spec.widget_id)
+    except _ADMIN_WIDGET_QUERY_ERRORS:
+        request = query_context.get("request")
+        msg = "Admin dashboard widget '%s' query failed." % spec.widget_id
+        if request:
+            log_view_exception(request, msg, extra={"widget_id": spec.widget_id})
+        else:
+            logger.exception(msg)
         payload = {}
     elapsed_ms = (time.perf_counter() - start) * 1000
     logger.debug(

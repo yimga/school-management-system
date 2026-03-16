@@ -1,14 +1,26 @@
 """
 Attach request.tenant_ctx (TenantContext) after tenant/school is resolved.
 Must run after TenantMiddleware (RLS) or TenantSchemaSchoolBridgeMiddleware (schema).
+§2.4: Typed exception tuples and log_exception_with_context for get_tenant_locale paths.
 """
 import logging
 
 from django.utils.deprecation import MiddlewareMixin
 
+from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.tenancy.context import TenantContext
 
 logger = logging.getLogger(__name__)
+
+# §2.4: Typed tuple for optional locale/timezone resolution (no broad except).
+_TENANT_CONTEXT_LOCALE_ERRORS = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    KeyError,
+    LookupError,
+)
 
 
 def _request_host(request) -> str:
@@ -50,8 +62,13 @@ def build_tenant_context_from_request(request) -> TenantContext:
             if school:
                 locale = get_tenant_locale(school=school)
                 timezone = (locale.get("timezone") or locale.get("default_timezone") or "").strip() or None
-        except Exception:
-            pass
+        except _TENANT_CONTEXT_LOCALE_ERRORS as e:
+            log_exception_with_context(
+                "get_tenant_locale failed (schema tenant context)",
+                school_id=school.id if school else None,
+                extra={"host": host},
+            )
+            logger.warning("get_tenant_locale failed (schema tenant context): %s", e)
         feature_flags = _school_json_payload(school, "features", "features_json")
         policy_overrides = _school_json_payload(school, "settings", "settings_json")
         return TenantContext(
@@ -72,7 +89,12 @@ def build_tenant_context_from_request(request) -> TenantContext:
             from apps.siteconfig.tenant_config import get_tenant_locale
             locale = get_tenant_locale(school=school)
             timezone = (locale.get("timezone") or locale.get("default_timezone") or "").strip() or None
-        except Exception as e:
+        except _TENANT_CONTEXT_LOCALE_ERRORS as e:
+            log_exception_with_context(
+                "get_tenant_locale failed (school context)",
+                school_id=getattr(school, "id", None),
+                extra={"host": host},
+            )
             logger.warning("get_tenant_locale failed (school context): %s", e)
         feature_flags = _school_json_payload(school, "features", "features_json")
         policy_overrides = _school_json_payload(school, "settings", "settings_json")

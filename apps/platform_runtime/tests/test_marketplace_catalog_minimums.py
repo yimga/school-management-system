@@ -8,14 +8,11 @@ Run in pre_deploy_gate so the gate is mechanically enforced.
 from django.core.management import call_command
 from django.test import TestCase
 
-from apps.platform_runtime.catalog_counts import get_platform_catalog_counts
-
-# MARKETPLACE_SEED_TARGETS.md §1 minimums (must match doc)
-MIN_FIRST_PARTY_APPS = 25
-MIN_BLUEPRINT_PACKS = 25
-MIN_WORKFLOW_PACKS = 30
-MIN_DASHBOARD_PACKS = 20
-MIN_POLICY_BUNDLES = 15
+from apps.platform_runtime.catalog_counts import (
+    MARKETPLACE_MINIMUMS,
+    get_platform_catalog_counts,
+    satisfies_marketplace_minimums,
+)
 
 
 def setUpModule():
@@ -34,28 +31,27 @@ class MarketplaceCatalogMinimumsTests(TestCase):
         Required for §12 gate 'marketplace/packs deeply productized' (not optional).
         """
         counts = get_platform_catalog_counts()
-        self.assertGreaterEqual(
-            counts.get("first_party_apps", 0),
-            MIN_FIRST_PARTY_APPS,
-            f"first_party_apps must be >= {MIN_FIRST_PARTY_APPS} (MARKETPLACE_SEED_TARGETS)",
-        )
-        self.assertGreaterEqual(
-            counts.get("blueprint_packs", 0),
-            MIN_BLUEPRINT_PACKS,
-            f"blueprint_packs must be >= {MIN_BLUEPRINT_PACKS} (MARKETPLACE_SEED_TARGETS)",
-        )
-        self.assertGreaterEqual(
-            counts.get("workflow_packs", 0),
-            MIN_WORKFLOW_PACKS,
-            f"workflow_packs must be >= {MIN_WORKFLOW_PACKS} (MARKETPLACE_SEED_TARGETS)",
-        )
-        self.assertGreaterEqual(
-            counts.get("dashboard_packs", 0),
-            MIN_DASHBOARD_PACKS,
-            f"dashboard_packs must be >= {MIN_DASHBOARD_PACKS} (MARKETPLACE_SEED_TARGETS)",
-        )
-        self.assertGreaterEqual(
-            counts.get("policy_bundles", 0),
-            MIN_POLICY_BUNDLES,
-            f"policy_bundles must be >= {MIN_POLICY_BUNDLES} (MARKETPLACE_SEED_TARGETS)",
-        )
+        ok, errors = satisfies_marketplace_minimums(counts)
+        self.assertTrue(ok, "Catalog must meet minimums: " + "; ".join(errors))
+        for key, minimum in MARKETPLACE_MINIMUMS.items():
+            self.assertGreaterEqual(
+                counts.get(key, 0),
+                minimum,
+                f"{key} must be >= {minimum} (MARKETPLACE_SEED_TARGETS §1)",
+            )
+
+    def test_satisfies_marketplace_minimums_helper(self):
+        """satisfies_marketplace_minimums() returns True when counts meet minimums."""
+        counts = get_platform_catalog_counts()
+        ok, errors = satisfies_marketplace_minimums(counts)
+        self.assertTrue(ok, errors)
+        self.assertEqual(errors, [])
+
+    def test_seed_commands_are_idempotent(self):
+        """Running seed commands a second time must not drop counts below minimums (§7)."""
+        call_command("seed_first_party_apps", verbosity=0)
+        call_command("seed_blueprint_policy_packs", verbosity=0)
+        call_command("seed_workflow_dashboard_packs", verbosity=0)
+        counts = get_platform_catalog_counts()
+        ok, errors = satisfies_marketplace_minimums(counts)
+        self.assertTrue(ok, "Idempotent seed run must still meet minimums: " + "; ".join(errors))

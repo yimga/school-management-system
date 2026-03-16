@@ -1,7 +1,7 @@
 {% extends "backend_base.html" %}
 {% load i18n %}
 {% block content %}
-<div class="container py-4">
+<div class="container py-4" data-page-archetype="operational-workbench">
   <p class="text-muted">{% trans "This workflow has no steps configured." %}</p>
   <p><small>{% trans "Workflow key" %}: <code>{{ workflow_key }}</code></small></p>
 </div>
