@@ -130,6 +130,10 @@ def import_hub(request):
             {"label": "Backend", "url": reverse("accounts:backend_dashboard")},
             {"label": "Import & bulk", "url": "", "active": True},
         ],
+        "page_title": "Import Hub",
+        "page_subtitle": "Bulk import students, grades, and data. Use the Migration Wizard for upload → mapping → preview → run.",
+        "action_url": reverse("accounts:workflow_center"),
+        "action_text": "Workflow Center",
     })
 
 
@@ -315,7 +319,17 @@ def workflow_center(request):
     return render(
         request,
         "accounts/workflow_center.html",
-        {"site": site, "active_year": year, "active_term": term, "steps": steps, "workflow_progress": progress},
+        {
+            "site": site,
+            "active_year": year,
+            "active_term": term,
+            "steps": steps,
+            "workflow_progress": progress,
+            "page_title": "Workflow Center",
+            "page_subtitle": "Follow the year lifecycle: setup → onboarding → marks → reports → documents. Designed for non-technical school operators.",
+            "action_url": reverse("accounts:backend_dashboard"),
+            "action_text": "Back to Backend",
+        },
     )
 
 

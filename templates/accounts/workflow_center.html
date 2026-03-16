@@ -74,33 +74,19 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid" data-page-archetype="operational-workbench" id="workflow-main">
-  <nav aria-label="Breadcrumb" class="mb-3">
-    <ol class="breadcrumb mb-0">
-      <li class="breadcrumb-item"><a href="{% url 'accounts:backend_dashboard' %}">Backend</a></li>
-      <li class="breadcrumb-item active" aria-current="page">Workflow Center</li>
-    </ol>
-  </nav>
+<div class="container-fluid py-4" data-page-archetype="operational-workbench" id="workflow-main">
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
 
-  <section class="workflow-hero" aria-labelledby="workflow-hero-title" aria-describedby="workflow-hero-desc">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-2">
-      <div>
-        <h2 id="workflow-hero-title">Workflow Center</h2>
-        <p id="workflow-hero-desc">Follow the year lifecycle: setup → onboarding → marks → reports → documents. Designed for non-technical school operators. Built for global reach—schools in any country or region.</p>
-        <p class="small text-muted mb-0 mt-1">Fits general and technical education worldwide (GCE, BAC, BEPC, CAP, GCSE, A-Level, K–12, etc.); use the steps that match your subsystem—no rigid sequence.</p>
-      </div>
-      <div class="d-flex flex-wrap gap-2 align-items-center">
-        <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:backend_dashboard' %}">
-          <i class="bi bi-speedometer2 me-1"></i>Backend dashboard
-        </a>
-        <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:set_default_dashboard_view' %}?view=OVERVIEW&amp;next={% url 'accounts:backend_dashboard' %}">
-          <i class="bi bi-pin-angle me-1"></i>Use Dashboard as default view
-        </a>
-        <a class="btn btn-sm btn-primary" href="{% url 'kb:kb_home' %}">
-          <i class="bi bi-journal-text me-1"></i>Help / KB
-        </a>
-      </div>
+  <section class="workflow-hero mt-3" aria-labelledby="workflow-hero-desc">
+    <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:set_default_dashboard_view' %}?view=OVERVIEW&amp;next={% url 'accounts:backend_dashboard' %}">
+        <i class="bi bi-pin-angle me-1"></i>Use Dashboard as default view
+      </a>
+      <a class="btn btn-sm btn-primary" href="{% url 'kb:kb_home' %}">
+        <i class="bi bi-journal-text me-1"></i>Help / KB
+      </a>
     </div>
+    <p id="workflow-hero-desc" class="small text-muted mb-0">Fits general and technical education worldwide (GCE, BAC, BEPC, CAP, GCSE, A-Level, K–12, etc.); use the steps that match your subsystem—no rigid sequence.</p>
     <div class="mt-2 small text-muted">
       Active year: <strong>{{ active_year.name|default:"—" }}</strong> · Active term: <strong>{{ active_term.name|default:active_term|default:"—" }}</strong>
     </div>
