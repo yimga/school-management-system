@@ -4,15 +4,9 @@
 {% block title %}Cash Office Closure{% endblock %}
 
 {% block content %}
-<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
-  <div>
-    <h2 class="mb-0">Cash Office Closure</h2>
-    <div class="text-muted">Daily reconciliation between cash desk receipts and bank deposit.</div>
-  </div>
-  <div class="d-flex gap-2">
-    <a class="btn btn-sm btn-outline-secondary" href="{% url 'finance:payments' %}">Back to payments</a>
-  </div>
-</div>
+<div class="container-fluid py-2" data-page-archetype="operational-workbench">
+{% url 'finance:payments' as cash_closure_back_url %}
+{% include "studio_os/components/page_header.html" with title="Cash Office Closure" subtitle="Daily reconciliation between cash desk receipts and bank deposit." action_url=cash_closure_back_url action_text="Back to Payments" %}
 
 <div class="row g-3 mb-3">
   <div class="col-md-4">
@@ -117,5 +111,6 @@
       </div>
     </div>
   </div>
+</div>
 </div>
 {% endblock %}
