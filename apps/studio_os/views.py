@@ -137,6 +137,31 @@ def studio_experience_compare(request):
 @never_cache
 @require_http_methods(["GET"])
 @login_required
+def studio_experience_theme_tokens(request):
+    """§4.2 Experience Studio optional: Theme tokens. Explains design tokens (CSS variables) used by in-shell theme form and outputs."""
+    if not getattr(request.user, "is_staff", False):
+        return redirect(reverse("accounts:backend_dashboard"))
+    theme_url = ""
+    try:
+        theme_url = reverse("siteconfig:theme_colors") + "?embed=1"
+    except NoReverseMatch:
+        pass
+    return render(
+        request,
+        "studio_os/experience_theme_tokens.html",
+        {
+            "theme_colors_url": theme_url,
+            "page_title": _("Theme tokens"),
+            "page_subtitle": _("Design tokens (CSS variables) drive theme and in-shell form; configure in Theme & colors."),
+            "action_url": reverse("studio_os:experience"),
+            "action_text": _("Back to Experience"),
+        },
+    )
+
+
+@never_cache
+@require_http_methods(["GET"])
+@login_required
 def studio_output_dependency_graph(request):
     """§4.4 Output Studio optional: Dependency graph. Shows report pack dependencies for embedding in Output rail."""
     if not getattr(request.user, "is_staff", False):
@@ -387,6 +412,14 @@ def studio_shell(request, mode=None):
             experience_rail.append({
                 "label": "AI recommendations",
                 "url": reverse("studio_os:experience_recommendations") + "?embed=1",
+                "embed": True,
+            })
+        except NoReverseMatch:
+            pass
+        try:
+            experience_rail.append({
+                "label": "Theme tokens",
+                "url": reverse("studio_os:experience_theme_tokens") + "?embed=1",
                 "embed": True,
             })
         except NoReverseMatch:

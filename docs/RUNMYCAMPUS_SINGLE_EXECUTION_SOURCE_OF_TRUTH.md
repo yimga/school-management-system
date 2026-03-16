@@ -350,7 +350,7 @@ Status: PARTIAL (hub with rail + iframe switcher when in-shell form unavailable;
 - [x] customizer (rail entry + embed)
 - [x] school theme (rail entry + embed)
 - [ ] `ExperiencePack` (optional)
-- [ ] theme tokens (optional; in-shell form uses tokens)
+- [x] theme tokens (optional; in-shell form uses tokens) — Experience Studio rail "Theme tokens" → studio_os:experience_theme_tokens (embed); view + experience_theme_tokens.html explains design tokens (CSS variables) and links to Theme & colors.
 - [ ] portal shell layouts (optional)
 - [ ] dashboard visual packs (optional)
 - [ ] school website blocks (optional)
