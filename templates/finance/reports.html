@@ -1,14 +1,14 @@
 {% extends "portal_base.html" %}
+{% load i18n %}
 {% load region_format %}
 
 {% block title %}Finance Reports{% endblock %}
 
 {% block content %}
-<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
-  <div>
-    <h2 class="mb-0">Finance Intelligence</h2>
-    <div class="text-muted">Reports, overdue insights, payroll liabilities, and OHADA/DSF summary.</div>
-  </div>
+<div class="container-fluid py-2" data-page-archetype="operational-workbench">
+{% trans "Back to Finance" as back_action %}
+{% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=back_action %}
+<div class="d-flex flex-wrap align-items-center justify-content-end mb-3">
   <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:notifications' %}">Notifications</a>
 </div>
 
@@ -203,5 +203,6 @@
       </div>
     </div>
   </div>
+</div>
 </div>
 {% endblock %}

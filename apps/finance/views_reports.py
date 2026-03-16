@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpRequest, HttpResponseForbidden
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.db.models import Sum
@@ -80,6 +81,9 @@ def finance_reports(request: HttpRequest):
         "dsf_report": dsf_report,
         "report_start": start,
         "report_end": end,
+        "page_title": "Finance Intelligence",
+        "page_subtitle": "Reports, overdue insights, payroll liabilities, and OHADA/DSF summary.",
+        "action_url": reverse("finance:dashboard"),
     })
 
 
@@ -108,10 +112,17 @@ def submit_report_request(request: HttpRequest):
         return redirect("finance:reports")
 
     messages.error(request, "Please fix the errors below.")
+    dsf_report = build_dsf_report(profile=profile, start_date=None, end_date=None)
     return render(request, "finance/reports.html", {
         "profile": profile,
         "overdue": [],
         "collection_rate": Decimal("0.00"),
         "liabilities": {},
         "report_form": form,
+        "report_start": None,
+        "report_end": None,
+        "dsf_report": dsf_report,
+        "page_title": "Finance Intelligence",
+        "page_subtitle": "Reports, overdue insights, payroll liabilities, and OHADA/DSF summary.",
+        "action_url": reverse("finance:dashboard"),
     })
