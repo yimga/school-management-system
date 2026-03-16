@@ -27,6 +27,7 @@ from .document_lifecycle import DOCUMENT_LIFECYCLE_CHOICES
 from .models import PortalFeatureItem, FormSignature
 from .forms_documents import DocumentUploadForm, SignatureRequestForm
 from .document_conversion import convert_to_pdf
+from apps.platform_runtime.structured_logging import log_exception_with_context, request_context_for_log
 
 
 @permission_required("settings.manage")
@@ -35,6 +36,8 @@ def document_library_manage(request):
     """
     Backend UI for managing documents in the Document Library.
     When not embedded in Studio, redirect to Studio Output (pane=documents).
+    End-user role-aware visibility is enforced by PortalFeatureItem.can_view() when
+    serving documents to portal users; this manage view shows all school docs for admins.
     """
     if request.GET.get("embed") != "1":
         return redirect(reverse("studio_os:output") + "?pane=documents")
@@ -108,6 +111,9 @@ def document_library_manage(request):
         if count > 0:
             by_type[doc_type] = {"label": label, "count": count}
     
+    embed = request.GET.get("embed") == "1"
+    document_upload_url = reverse("portal:document_upload") + ("?embed=1" if embed else "")
+
     context = {
         "documents": documents,
         "stats": stats,
@@ -119,8 +125,10 @@ def document_library_manage(request):
         "current_lifecycle": lifecycle_state,
         "current_pack": pack_code,
         "search_query": search_query,
+        "embed": embed,
+        "document_upload_url": document_upload_url,
     }
-    
+
     return render(request, "portal/document_library_manage.html", context)
 
 
@@ -160,7 +168,11 @@ def document_upload(request, document_id=None):
             request,
             f"Document '{doc.title}' {'updated' if document else 'uploaded'} successfully."
         )
-        return redirect("portal:document_library_manage")
+        # Preserve embed=1 so Studio users stay in Output Studio after save (§5.4)
+        base_url = reverse("portal:document_library_manage")
+        if request.GET.get("embed") == "1" or request.POST.get("embed") == "1":
+            base_url = f"{base_url}?embed=1"
+        return redirect(base_url)
     
     context = {
         "form": form,
@@ -272,6 +284,15 @@ def document_download_pdf(request, document_id):
         messages.error(request, "PDF conversion is not available (LibreOffice may not be installed).")
         return redirect("portal:document_download", document_id=document_id)
     except (OSError, ValueError, TypeError) as e:
+        ctx = request_context_for_log(request) if request else {}
+        log_exception_with_context(
+            "portal.views_documents: PDF conversion failed",
+            school_id=ctx.get("school_id"),
+            tenant_id=ctx.get("tenant_id"),
+            actor_id=ctx.get("actor_id"),
+            route=ctx.get("route"),
+            extra={"document_id": document_id, "error": str(e)},
+        )
         logger.warning("PDF conversion failed for document %s: %s", document_id, e)
         messages.error(request, "PDF conversion failed.")
         return redirect("portal:document_download", document_id=document_id)

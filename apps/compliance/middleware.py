@@ -4,21 +4,74 @@ Phase 4: Access Control & Audit Logging Middleware
 Tracks all HTTP requests, logs failed access attempts, and enriches
 audit context with request metadata (IP address, user agent, etc.).
 Phase 6: IP/Country-based access control enforcement.
+§2.4: Typed exception tuples and structured logging (no broad except).
 """
 
 import logging
 from time import time
-from django.utils.deprecation import MiddlewareMixin
-from django.utils import timezone
-from django.http import HttpResponseForbidden, JsonResponse
+
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import DatabaseError, connection, transaction
 from django.db.transaction import TransactionManagementError
-from django.db.utils import OperationalError
-from apps.compliance.models_audit import AccessLog, AuditLog
+from django.db.utils import IntegrityError, OperationalError
+from django.http import HttpResponseForbidden, JsonResponse
+from django.utils import timezone
+from django.utils.deprecation import MiddlewareMixin
+
 from apps.compliance.access_control import check_request_access
+from apps.compliance.models_audit import AccessLog, AuditLog
+from apps.platform_runtime.structured_logging import log_exception_with_context, log_view_exception
 
 logger = logging.getLogger(__name__)
+
+# §2.4: Typed tuples for compliance middleware (allowlist 0).
+_RESET_DB_STATE_ERRORS = (
+    TransactionManagementError,
+    OperationalError,
+    DatabaseError,
+    AttributeError,
+    TypeError,
+)
+_AUDIT_EXTRACT_ERROR_RESPONSE_ERRORS = (
+    UnicodeDecodeError,
+    AttributeError,
+    TypeError,
+    ValueError,
+)
+_AUDIT_MIDDLEWARE_LOG_ACCESS_ERRORS = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    KeyError,
+    DatabaseError,
+    IntegrityError,
+)
+_ACCESS_CHECK_RUNTIME_ERRORS = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    ObjectDoesNotExist,
+    DatabaseError,
+    OperationalError,
+)
+_LOG_ACCESS_DENIAL_ERRORS = (
+    DatabaseError,
+    TransactionManagementError,
+    ObjectDoesNotExist,
+    AttributeError,
+    TypeError,
+    ValueError,
+)
+_COMPLIANCE_GUARD_CHECK_ERRORS = (
+    ObjectDoesNotExist,
+    DatabaseError,
+    OperationalError,
+    AttributeError,
+    TypeError,
+    ImportError,
+)
 
 
 def _reset_db_state() -> None:
@@ -28,7 +81,7 @@ def _reset_db_state() -> None:
             transaction.set_rollback(False)
         elif connection.needs_rollback:
             connection.rollback()
-    except Exception:
+    except _RESET_DB_STATE_ERRORS:
         pass
 
 
@@ -87,7 +140,7 @@ class AuditLoggingMiddleware(MiddlewareMixin):
             if response.status_code >= 400:
                 try:
                     error_message = self._extract_error(response) or ""
-                except Exception:
+                except _AUDIT_EXTRACT_ERROR_RESPONSE_ERRORS:
                     error_message = ""
 
             # Get user
@@ -114,13 +167,14 @@ class AuditLoggingMiddleware(MiddlewareMixin):
             logger.debug("AccessLog skipped (router/relation): %s", e)
         except (DatabaseError, TransactionManagementError) as e:
             _reset_db_state()
+            log_view_exception(request, "Failed to log access", extra={"error": str(e)})
             # Avoid traceback spam when table is missing (e.g. migrations not run yet)
             if isinstance(e, OperationalError) and ("no such table" in str(e).lower() or "does not exist" in str(e).lower()):
                 logger.warning("Failed to log access (table missing? run migrate): %s", e)
             else:
                 logger.warning("Failed to log access: %s", e, exc_info=True)
-        except Exception as e:
-            logger.warning("Failed to log access: %s", e, exc_info=True)
+        except _AUDIT_MIDDLEWARE_LOG_ACCESS_ERRORS as e:
+            log_view_exception(request, "Failed to log access", extra={"error": str(e)})
 
         return response
 
@@ -154,12 +208,13 @@ class AuditLoggingMiddleware(MiddlewareMixin):
             logger.debug("AccessLog exception skipped (router/relation): %s", e)
         except (DatabaseError, TransactionManagementError) as e:
             _reset_db_state()
+            log_view_exception(request, "Failed to log exception", extra={"error": str(e)})
             if isinstance(e, OperationalError) and ("no such table" in str(e).lower() or "does not exist" in str(e).lower()):
                 logger.warning("Failed to log exception (table missing? run migrate): %s", e)
             else:
                 logger.warning("Failed to log exception: %s", e, exc_info=True)
-        except Exception as e:
-            logger.warning("Failed to log exception: %s", e, exc_info=True)
+        except _AUDIT_MIDDLEWARE_LOG_ACCESS_ERRORS as e:
+            log_view_exception(request, "Failed to log exception", extra={"error": str(e)})
 
         return None  # Re-raise the exception
 
@@ -198,7 +253,7 @@ class AuditLoggingMiddleware(MiddlewareMixin):
                 if 'error' in content.lower():
                     # Very basic extraction - just take first 500 chars
                     return content[:500]
-        except Exception:
+        except _AUDIT_EXTRACT_ERROR_RESPONSE_ERRORS:
             pass
         return None
 
@@ -294,9 +349,13 @@ class IPCountryAccessMiddleware(MiddlewareMixin):
         # Check access
         try:
             is_allowed, reason = check_request_access(request)
-        except Exception as exc:
+        except _ACCESS_CHECK_RUNTIME_ERRORS as exc:
             # Never block requests due to access-control runtime errors.
-            logger.warning("IP/country access check failed; allowing request. error=%s", exc, exc_info=True)
+            log_exception_with_context(
+                "IP/country access check failed; allowing request",
+                school_id=getattr(getattr(request, "school", None), "id", None),
+                extra={"path": request.path, "error": str(exc)},
+            )
             return None
         
         if not is_allowed:
@@ -324,8 +383,12 @@ class IPCountryAccessMiddleware(MiddlewareMixin):
             except (DatabaseError, OperationalError, TransactionManagementError):
                 _reset_db_state()
                 logger.debug("Access log skipped (table missing or DB error)")
-            except Exception as e:
-                logger.warning("Failed to log access denial: %s", e)
+            except _LOG_ACCESS_DENIAL_ERRORS as e:
+                log_exception_with_context(
+                    "Failed to log access denial (IP/country block)",
+                    school_id=getattr(getattr(request, "school", None), "id", None),
+                    extra={"path": request.path, "error": str(e)},
+                )
 
             # Return 403 Forbidden
             return HttpResponseForbidden(
@@ -363,8 +426,12 @@ def log_access_denial(user, action, resource, reason, ip_address='', severity='H
             sensitivity=severity,
             ip_address=ip_address,
         )
-    except Exception as e:
-        logger.warning(f"Failed to log access denial: {e}")
+    except _LOG_ACCESS_DENIAL_ERRORS as e:
+        log_exception_with_context(
+            "log_access_denial: failed to create AuditLog",
+            school_id=None,
+            extra={"action": action, "resource": resource[:200], "error": str(e)},
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -424,7 +491,7 @@ class ComplianceGuardMiddleware(MiddlewareMixin):
                 RegionFeatureCompliance.Status.DISABLED,
                 RegionFeatureCompliance.Status.RESTRICTED,
             )
-        except Exception as e:
+        except _COMPLIANCE_GUARD_CHECK_ERRORS as e:
             logger.debug("ComplianceGuard check failed: %s", e)
             return False
 

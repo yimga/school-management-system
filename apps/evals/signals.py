@@ -12,6 +12,7 @@ from decimal import Decimal
 from apps.evals.models import Evaluation, GradeAudit, OfflineMarkEntry
 from apps.evals.ranking import RankingCache
 from apps.evals.validators import GradeConverter, GradeValidator
+from apps.platform_runtime.structured_logging import log_exception_with_context
 
 logger = logging.getLogger(__name__)
 
@@ -115,6 +116,14 @@ def create_audit_trail_and_convert_grades(sender, instance, created, **kwargs):
         logger.info(f"Audit trail created for evaluation {instance.id}")
 
     except _EVALS_AUDIT_FAILURES as e:
+        school_id = None
+        if getattr(instance, "subject_assignment", None) and getattr(instance.subject_assignment, "classroom", None):
+            school_id = str(getattr(instance.subject_assignment.classroom, "school_id", None))
+        log_exception_with_context(
+            "evals.signals: create_audit_trail failed",
+            school_id=school_id,
+            extra={"evaluation_id": getattr(instance, "pk", None), "error": str(e)},
+        )
         logger.error("Failed to create audit trail: %s", e, exc_info=True)
 
 

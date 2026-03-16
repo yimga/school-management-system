@@ -10,9 +10,22 @@ import logging
 from django.core.management.base import BaseCommand
 from django.db import DatabaseError, OperationalError
 
+from apps.platform_runtime.structured_logging import log_exception_with_context
 from services.ai_memory import AIMemoryService
 
 logger = logging.getLogger(__name__)
+
+# §2.4 Typed exceptions for allowlist shrink (broad_exception_audit)
+_INDEX_AI_KNOWLEDGE_ERRORS = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    KeyError,
+    DatabaseError,
+    OperationalError,
+    OSError,
+)
 
 
 class Command(BaseCommand):
@@ -88,6 +101,11 @@ class Command(BaseCommand):
                     count += 1
             return count
         except (ImportError, AttributeError, TypeError, ValueError, KeyError, DatabaseError, OperationalError, OSError) as e:
+            log_exception_with_context(
+                "index_ai_knowledge: index policy_bundles failed",
+                school_id=str(school_id) if school_id else None,
+                extra={"scope": "policy_bundles", "error": str(e)},
+            )
             logger.warning("index policy_bundles: %s", e)
             return 0
 
@@ -115,7 +133,12 @@ class Command(BaseCommand):
                 else:
                     count += 1
             return count
-        except Exception as e:
+        except _INDEX_AI_KNOWLEDGE_ERRORS as e:
+            log_exception_with_context(
+                "index_ai_knowledge: index blueprint_packs failed",
+                school_id=school_id,
+                extra={"scope": "blueprint", "error": str(e)},
+            )
             logger.warning("index blueprint_packs: %s", e)
             return 0
 
@@ -144,6 +167,11 @@ class Command(BaseCommand):
                     count += 1
             return count
         except (ImportError, AttributeError, TypeError, ValueError, KeyError, DatabaseError, OperationalError, OSError) as e:
+            log_exception_with_context(
+                "index_ai_knowledge: index workflow_packs failed",
+                school_id=str(school_id) if school_id else None,
+                extra={"scope": "workflow_packs", "error": str(e)},
+            )
             logger.warning("index workflow_packs: %s", e)
             return 0
 
@@ -175,6 +203,11 @@ class Command(BaseCommand):
                     count += 1
             return count
         except (ImportError, AttributeError, TypeError, ValueError, KeyError, DatabaseError, OperationalError, OSError) as e:
+            log_exception_with_context(
+                "index_ai_knowledge: index report_templates failed",
+                school_id=str(school_id) if school_id else None,
+                extra={"scope": "report_templates", "error": str(e)},
+            )
             logger.warning("index report_templates: %s", e)
             return 0
 

@@ -10,6 +10,8 @@ from typing import Any, Optional
 
 from django.conf import settings
 
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
 logger = logging.getLogger(__name__)
 
 OPENSEARCH_DSN = getattr(settings, "OPENSEARCH_DSN", None) or None
@@ -39,6 +41,11 @@ def search(
     try:
         return _search_opensearch(q, search_type=search_type, school_id=school_id, limit=limit)
     except OPENSEARCH_SEARCH_FAILURES as e:
+        log_exception_with_context(
+            "api.search_read_layer: OpenSearch search failed",
+            school_id=str(school_id) if school_id is not None else None,
+            extra={"query": q[:200], "error": str(e)},
+        )
         logger.warning("OpenSearch search failed: %s", e)
         return None
 

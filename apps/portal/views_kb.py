@@ -11,6 +11,11 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.views.decorators.http import require_POST
 
+from apps.platform_runtime.structured_logging import (
+    log_exception_with_context,
+    request_context_for_log,
+)
+
 logger = logging.getLogger(__name__)
 
 from .models_kb import (
@@ -38,18 +43,30 @@ def _get_kb_region(request):
                 if hasattr(region, "country_code"):
                     country_code = (region.country_code or "")[:2].upper()
             plan_tier = (policy.get("plan_slug") or "").strip().lower()
-        except (ImportError, AttributeError, TypeError, KeyError) as e:
+        except (ImportError, AttributeError, TypeError, KeyError):
             ctx = request_context_for_log(request) if request else {}
-            log_exception_with_context(e, logger, "portal.views_kb._get_kb_region(tenant)", **ctx)
+            log_exception_with_context(
+                "portal.views_kb._get_kb_region(tenant): policy/region resolution failed",
+                school_id=ctx.get("school_id"),
+                tenant_id=ctx.get("tenant_id"),
+                actor_id=ctx.get("actor_id"),
+                route=ctx.get("route"),
+            )
     else:
         try:
             from apps.compliance.access_control import get_country_from_ip
             ip = request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip() or request.META.get("REMOTE_ADDR", "")
             if ip:
                 country_code = (get_country_from_ip(ip) or "")[:2].upper()
-        except (ImportError, OSError, ConnectionError, AttributeError, TypeError) as e:
+        except (ImportError, OSError, ConnectionError, AttributeError, TypeError):
             ctx = request_context_for_log(request) if request else {}
-            log_exception_with_context(e, logger, "portal.views_kb._get_kb_region(public)", **ctx)
+            log_exception_with_context(
+                "portal.views_kb._get_kb_region(public): GeoIP/country resolution failed",
+                school_id=ctx.get("school_id"),
+                tenant_id=ctx.get("tenant_id"),
+                actor_id=ctx.get("actor_id"),
+                route=ctx.get("route"),
+            )
     return (country_code or "", plan_tier or "")
 
 
@@ -278,6 +295,15 @@ def kb_article_download_odt(request, article_slug):
         response['Content-Type'] = 'application/vnd.oasis.opendocument.text'
         return response
     except (OSError, ValueError, TypeError) as e:
+        ctx = request_context_for_log(request) if request else {}
+        log_exception_with_context(
+            "portal.views_kb.kb_article_download_odt: file open/stream failed",
+            school_id=ctx.get("school_id"),
+            tenant_id=ctx.get("tenant_id"),
+            actor_id=ctx.get("actor_id"),
+            route=ctx.get("route"),
+            extra={"article_slug": article_slug, "error": str(e)},
+        )
         logger.warning("kb_article_download_odt failed for %s: %s", article_slug, e)
         return redirect('kb:kb_article', article_slug=article_slug)
 
@@ -307,9 +333,16 @@ def kb_article_download_docx(request, article_slug):
         return response
     except RuntimeError:
         return redirect('kb:kb_article', article_slug=article_slug)
-    except (OSError, IOError, ValueError, TypeError) as e:
+    except (OSError, IOError, ValueError, TypeError):
         ctx = request_context_for_log(request) if request else {}
-        log_exception_with_context(e, logger, "portal.views_kb.kb_article_download_docx", **ctx)
+        log_exception_with_context(
+            "portal.views_kb.kb_article_download_docx: document conversion or stream failed",
+            school_id=ctx.get("school_id"),
+            tenant_id=ctx.get("tenant_id"),
+            actor_id=ctx.get("actor_id"),
+            route=ctx.get("route"),
+            extra={"article_slug": article_slug},
+        )
         return redirect('kb:kb_article', article_slug=article_slug)
     finally:
         if path and path != getattr(article.odt_file, 'path', None):
@@ -342,6 +375,15 @@ def kb_article_download_pdf(request, article_slug):
     except RuntimeError:
         return redirect('kb:kb_article', article_slug=article_slug)
     except (OSError, ValueError, TypeError) as e:
+        ctx = request_context_for_log(request) if request else {}
+        log_exception_with_context(
+            "portal.views_kb.kb_article_download_pdf: document conversion or stream failed",
+            school_id=ctx.get("school_id"),
+            tenant_id=ctx.get("tenant_id"),
+            actor_id=ctx.get("actor_id"),
+            route=ctx.get("route"),
+            extra={"article_slug": article_slug, "error": str(e)},
+        )
         logger.warning("kb_article_download_pdf failed for %s: %s", article_slug, e)
         return redirect('kb:kb_article', article_slug=article_slug)
     finally:

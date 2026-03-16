@@ -6,10 +6,27 @@ Optional per-tenant policy caching when POLICY_CACHE_TTL (seconds) is set in set
 import logging
 from typing import Any, Dict, Optional
 
-from apps.siteconfig.identifier_policy_service import default_school_code_for
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import DatabaseError
+
 from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.structured_logging import log_exception_with_context
+from apps.siteconfig.identifier_policy_service import default_school_code_for
 
 logger = logging.getLogger(__name__)
+
+# Typed exceptions for §2.4 broad-except replacement (allowlist 0).
+_POLICY_CACHE_ERRORS = (AttributeError, TypeError, ValueError, ConnectionError, OSError)
+_POLICY_MERGE_ERRORS = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    LookupError,
+    ObjectDoesNotExist,
+    DatabaseError,
+)
+_POLICY_REGISTER_USAGE_ERRORS = (ImportError, AttributeError, TypeError, ValueError, KeyError)
 
 
 def _policy_cache_key(school) -> str:
@@ -93,7 +110,7 @@ def get_effective_policy(
                     cached = cache.get(key)
                     if isinstance(cached, dict) and cached:
                         return cached
-        except Exception as e:
+        except _POLICY_CACHE_ERRORS as e:
             logger.debug("Policy cache read failed: %s", e)
 
     # Optional v2: merge from TenantBlueprint.active_bundle when POLICY_USE_BUNDLES is set
@@ -132,10 +149,15 @@ def get_effective_policy(
                             key = _policy_cache_key(school)
                             if key:
                                 cache.set(key, out, timeout=int(ttl))
-                    except Exception as e:
+                    except _POLICY_CACHE_ERRORS as e:
                         logger.debug("Policy cache set failed: %s", e)
                     return out
-    except Exception as e:
+    except _POLICY_MERGE_ERRORS as e:
+        log_exception_with_context(
+            "policies.resolver: Policy merge from TenantBlueprint failed",
+            school_id=str(getattr(school, "id", None)) if school else None,
+            extra={"error": str(e)},
+        )
         logger.warning("Policy merge from TenantBlueprint failed: %s", e)
 
     # Region/school defaults from School.default_region if present
@@ -221,8 +243,12 @@ def get_effective_policy(
         register_usage("policy", "policy:effective", "grade", "grade_value")
         register_usage("policy", "policy:effective", "application", "admission_number")
         register_usage("policy", "policy:effective", "invoice", "amount")
-    except Exception:
-        pass
+    except _POLICY_REGISTER_USAGE_ERRORS:
+        log_exception_with_context(
+            "get_effective_policy: register_usage failed (optional metadata catalog)",
+            school_id=getattr(school, "id", None),
+            extra={"section": "policy:effective"},
+        )
 
     # Admissions: if not set from school.settings, backfill from SiteSettings (single-tenant / backward compat)
     if not out.get("admissions") or not isinstance(out.get("admissions"), dict):
@@ -260,7 +286,7 @@ def get_effective_policy(
                     "seq_width": getattr(policy_model, "seq_width", 4),
                     "reset_frequency": getattr(policy_model, "reset_frequency", "YEARLY"),
                 }
-        except Exception as e:
+        except _POLICY_MERGE_ERRORS as e:
             logger.debug("TenantAdmissionNumberPolicy merge failed: %s", e)
 
     # Grade approval (evals): backfill from SiteSettings when not in school.settings (Phase 1)
@@ -305,7 +331,7 @@ def get_effective_policy(
                 key = _policy_cache_key(school)
                 if key:
                     cache.set(key, out, timeout=int(ttl))
-        except Exception as e:
+        except _POLICY_CACHE_ERRORS as e:
             logger.debug("Policy cache set (final) failed: %s", e)
     return out
 

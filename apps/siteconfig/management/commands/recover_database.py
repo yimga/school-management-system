@@ -1,6 +1,7 @@
 """
 Management command to recover or recreate corrupted SQLite database.
 §2.4 Raw SQL wrap: delegates to siteconfig.repositories.database_recovery_repository.
+§2.4: Typed exception tuple and log_exception_with_context for backup (shutil.copy2) failures.
 """
 import logging
 import shutil
@@ -11,9 +12,13 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import DatabaseError
 
+from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.siteconfig.repositories.database_recovery_repository import run_sqlite_integrity_check
 
 logger = logging.getLogger(__name__)
+
+# §2.4 broad-except shrink: shutil.copy2 can raise these.
+_RECOVER_DATABASE_BACKUP_ERRORS = (OSError, PermissionError, shutil.Error)
 
 
 class Command(BaseCommand):
@@ -83,7 +88,12 @@ class Command(BaseCommand):
             try:
                 shutil.copy2(db_path, backup_path)
                 self.stdout.write(self.style.SUCCESS(f'[OK] Backup created: {backup_path}'))
-            except Exception as e:
+            except _RECOVER_DATABASE_BACKUP_ERRORS as e:
+                log_exception_with_context(
+                    "recover_database: backup failed",
+                    school_id=None,
+                    extra={"backup_path": str(backup_path), "error": str(e)},
+                )
                 self.stdout.write(
                     self.style.ERROR(f'[ERROR] Failed to create backup: {e}')
                 )
@@ -99,6 +109,11 @@ class Command(BaseCommand):
                 db_path.unlink()
                 self.stdout.write(self.style.SUCCESS('[OK] Corrupted database deleted'))
             except (OSError, PermissionError) as e:
+                log_exception_with_context(
+                    "recover_database: unlink failed",
+                    school_id=None,
+                    extra={"command": "recover_database", "db_path": str(db_path), "error": str(e)},
+                )
                 logger.warning("recover_database unlink failed: %s", e, extra={"command": "recover_database"})
                 self.stdout.write(
                     self.style.ERROR(f'[ERROR] Failed to delete database: {e}')
@@ -113,6 +128,11 @@ class Command(BaseCommand):
                 self.stdout.write('  1. Create superuser: python manage.py createsuperuser')
                 self.stdout.write('  2. Load fixtures (if any): python manage.py loaddata <fixture>')
             except (DatabaseError, OSError, PermissionError, SystemError) as e:
+                log_exception_with_context(
+                    "recover_database: migrate failed",
+                    school_id=None,
+                    extra={"command": "recover_database", "error": str(e)},
+                )
                 logger.warning("recover_database migrate failed: %s", e, extra={"command": "recover_database"})
                 self.stdout.write(
                     self.style.ERROR(f'[ERROR] Failed to create database: {e}')

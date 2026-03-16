@@ -6,6 +6,8 @@ from smtplib import SMTPException
 
 from django.utils import timezone
 
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
 logger = logging.getLogger(__name__)
 WORKFLOW_SOFT_FAILURES = (
     AttributeError,
@@ -78,6 +80,12 @@ def _run_action_notify(params: dict, context: dict, school=None) -> None:
                 fail_silently=True,
             )
         except (*WORKFLOW_SOFT_FAILURES, SMTPException) as e:
+            school_id = str(getattr(school, "pk", None) or getattr(school, "id", None)) if school else None
+            log_exception_with_context(
+                "workflow_engine: notify email failed",
+                school_id=school_id,
+                extra={"error": str(e)},
+            )
             logger.warning("Workflow notify email failed: %s", e)
             raise WorkflowActionExecutionError(str(e)) from e
     # In-app / push can be wired here via notification backend
@@ -102,6 +110,12 @@ def _run_action_emit_event(params: dict, context: dict, school=None) -> None:
             schema_name=schema_name,
         )
     except WORKFLOW_SOFT_FAILURES as e:
+        school_id = str(getattr(school, "pk", None) or getattr(school, "id", None)) if school else None
+        log_exception_with_context(
+            "workflow_engine: emit_event failed",
+            school_id=school_id,
+            extra={"error": str(e)},
+        )
         logger.warning("Workflow emit_event failed: %s", e)
         raise WorkflowActionExecutionError(str(e)) from e
 
@@ -141,6 +155,12 @@ def run_actions(actions: list, context: dict, school=None) -> list:
                 "run_at": timezone.now().isoformat(),
             })
         except WorkflowActionExecutionError as e:
+            school_id = str(getattr(school, "pk", None) or getattr(school, "id", None)) if school else None
+            log_exception_with_context(
+                "workflow_engine: action failed",
+                school_id=school_id,
+                extra={"action_type": action_type, "error": str(e)},
+            )
             logger.warning("Workflow action failed: type=%s error=%s", action_type, e)
             results.append({
                 "type": action_type,
@@ -217,6 +237,12 @@ def run_workflow(tenant_workflow, context: dict) -> dict:
             )
             audit_ref = str(log.id)
         except WORKFLOW_SOFT_FAILURES as e:
+            school_id = str(getattr(getattr(tenant_workflow, "school", None), "id", None)) if getattr(tenant_workflow, "school", None) else None
+            log_exception_with_context(
+                "workflow_engine: WorkflowRunLog create failed (conditions_passed=False)",
+                school_id=school_id,
+                extra={"error": str(e)},
+            )
             logger.warning("WorkflowRunLog create failed: %s", e)
         return {"ok": True, "conditions_passed": False, "actions_run": [], "audit_ref": audit_ref}
 
@@ -239,6 +265,12 @@ def run_workflow(tenant_workflow, context: dict) -> dict:
         )
         audit_ref = str(log.id)
     except WORKFLOW_SOFT_FAILURES as e:
+        school_id = str(getattr(school, "id", None)) if school else None
+        log_exception_with_context(
+            "workflow_engine: WorkflowRunLog create failed",
+            school_id=school_id,
+            extra={"error": str(e)},
+        )
         logger.warning("WorkflowRunLog create failed: %s", e)
     try:
         from apps.schools.models import SchoolProvisioningEvent
@@ -251,6 +283,12 @@ def run_workflow(tenant_workflow, context: dict) -> dict:
                 payload={"template": template.code, "actions_run": actions_run, "context_keys": context_keys},
             )
     except WORKFLOW_SOFT_FAILURES as e:
+        school_id = str(getattr(school, "id", None)) if school else None
+        log_exception_with_context(
+            "workflow_engine: Workflow audit log failed",
+            school_id=school_id,
+            extra={"error": str(e)},
+        )
         logger.warning("Workflow audit log failed: %s", e)
 
     # Section 11.4: Record workflow failure for customer success (health, auto-ticket)
@@ -267,6 +305,12 @@ def run_workflow(tenant_workflow, context: dict) -> dict:
                 payload={"actions_run": actions_run},
             )
         except WORKFLOW_SOFT_FAILURES as e:
+            school_id = str(getattr(school, "id", None)) if school else None
+            log_exception_with_context(
+                "workflow_engine: Workflow failure event record failed",
+                school_id=school_id,
+                extra={"error": str(e)},
+            )
             logger.warning("Workflow failure event record failed: %s", e)
 
     return {
@@ -297,6 +341,12 @@ def run_workflows_for_trigger(school, trigger_type: str, context: dict) -> list:
             r = run_workflow(tw, context)
             results.append({"tenant_workflow_id": tw.pk, "template_code": tw.template.code, **r})
         except WORKFLOW_SOFT_FAILURES as e:
+            school_id = str(getattr(school, "id", None)) if school else None
+            log_exception_with_context(
+                "workflow_engine: run_workflow failed",
+                school_id=school_id,
+                extra={"tenant_workflow_id": tw.pk, "error": str(e)},
+            )
             logger.warning("run_workflow failed: tw=%s error=%s", tw.pk, e)
             results.append({
                 "tenant_workflow_id": tw.pk,

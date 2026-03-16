@@ -7,6 +7,7 @@ import logging
 from django.db.utils import DatabaseError
 from django.utils import timezone
 
+from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.schools.domain_sync import sync_verified_schooldomain
 
 logger = logging.getLogger(__name__)
@@ -37,6 +38,11 @@ def verify_domain_txt(domain: str, expected_token: str) -> bool:
                             return True
         return False
     except (ImportError, OSError, ConnectionError, TimeoutError, UnicodeDecodeError, AttributeError, TypeError, ValueError) as e:
+        log_exception_with_context(
+            "dns_verification: TXT verification failed",
+            school_id=None,
+            extra={"domain": domain, "error": str(e)},
+        )
         logger.warning("DNS TXT verification failed for %s: %s", domain, e)
         return False
 
@@ -65,6 +71,12 @@ def verify_and_activate_schooldomain(school_domain) -> bool:
     try:
         sync_verified_schooldomain(school_domain)
     except (OSError, ConnectionError, DatabaseError, AttributeError, TypeError, ValueError) as exc:
+        school_id = str(school_domain.school_id) if getattr(school_domain, "school_id", None) else None
+        log_exception_with_context(
+            "dns_verification: sync_verified_schooldomain failed",
+            school_id=school_id,
+            extra={"domain": domain, "school_domain_id": getattr(school_domain, "pk", None), "error": str(exc)},
+        )
         logger.warning("Domain verified but runtime sync failed for %s: %s", domain, exc)
     SchoolProvisioningEvent.log_event(
         school=school_domain.school,

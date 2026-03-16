@@ -8,6 +8,8 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import DatabaseError, OperationalError
 
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
 logger = logging.getLogger(__name__)
 
 
@@ -17,6 +19,11 @@ def get_active_school_ids():
         from apps.schools.models import School
         return list(School.objects.filter(is_active=True).values_list("id", flat=True))
     except (ImportError, DatabaseError, OperationalError, AttributeError, TypeError) as e:
+        log_exception_with_context(
+            "celery_tasks: get_active_school_ids failed",
+            school_id=None,
+            extra={"error": str(e)},
+        )
         logger.warning("get_active_school_ids: %s", e)
         return []
 
@@ -40,6 +47,11 @@ def _resolve_client(schema_name=None, client_id=None, school_id=None):
             if school:
                 return ensure_tenant_client_for_school(school)
     except (ImportError, ObjectDoesNotExist, DatabaseError, OperationalError, AttributeError, TypeError) as e:
+        log_exception_with_context(
+            "celery_tasks: _resolve_client failed",
+            school_id=str(school_id) if school_id is not None else None,
+            extra={"schema_name": schema_name, "client_id": client_id, "error": str(e)},
+        )
         logger.warning("Could not resolve tenant client: %s", e)
     return None
 

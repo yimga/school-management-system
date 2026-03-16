@@ -11,6 +11,8 @@ from typing import Any
 from django.db import connection
 from django.db.utils import DatabaseError, InterfaceError, OperationalError, ProgrammingError
 
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
 logger = logging.getLogger(__name__)
 
 _DB_LIVENESS_ERRORS = (DatabaseError, OperationalError, ProgrammingError, InterfaceError)
@@ -31,6 +33,11 @@ def check_db_liveness() -> dict[str, Any]:
             "connections": len(connection.queries) if hasattr(connection, "queries") else 0,
         }
     except _DB_LIVENESS_ERRORS as e:
+        log_exception_with_context(
+            "observability.db_liveness: check failed",
+            school_id=None,
+            extra={"error": str(e)},
+        )
         logger.warning("db_liveness check failed: %s", e, exc_info=True)
         return {
             "status": "unhealthy",

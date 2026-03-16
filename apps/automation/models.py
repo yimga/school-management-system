@@ -7,6 +7,8 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
 User = get_user_model()
 logger = logging.getLogger(__name__)
 
@@ -263,6 +265,12 @@ class MigrationRun(models.Model):
         try:
             result = run_rollback(self, rollback_run)
         except (DatabaseError, IntegrityError, ValidationError, ValueError, TypeError) as e:
+            school_id = str(self.school_id) if getattr(self, "school_id", None) else None
+            log_exception_with_context(
+                "automation.models: rollback run failed",
+                school_id=school_id,
+                extra={"migration_run_id": self.pk, "error": str(e)},
+            )
             logger.exception("Rollback run failed for MigrationRun pk=%s", self.pk)
             result = {"success": False, "message": str(e), "reverted_count": 0}
             rollback_run.mark_completed(
