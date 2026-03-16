@@ -137,6 +137,7 @@ Adopt shared `studio_os/components/page_header.html` incrementally so every cont
 | **people/backend_teacher_list.html** (tenant backend) | **studio_os page_header** (Teachers, subtitle, Add Teacher) | **DONE** — §2e row 8 tenant backend page maturity. |
 | **people/backend_classroom_list.html** (tenant backend) | **studio_os page_header** (Classrooms, subtitle, Add classroom) + Back to students link; data-page-archetype=operational-workbench | **DONE** — §2e row 8 tenant backend page maturity. |
 | **people/backend_applicant_list.html** (tenant backend) | **studio_os page_header** (Applicants, subtitle, Add applicant) + Back to students link; data-page-archetype=operational-workbench | **DONE** — §2e row 8 tenant backend page maturity. |
+| **metadata/governance** (Control Studio rail) | **studio_os page_header** (Metadata governance, subtitle, Back to Control) + data-page-archetype=catalog | **DONE** — §2e row 8 page maturity. |
 | Other control_plane_base pages | — | Add page_header or title_block when adding new pages |
 
 **Rule:** New control-plane content pages must include either `studio_os/components/page_header.html` or a cp-hero with clear title and primary action. Migrate title_block pages to page_header when touching them. Tenant backend pages: same UX bar per §8.0.11; adopt page_header when touching (e.g. people/backend_student_list [x]).

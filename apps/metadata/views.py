@@ -5,6 +5,8 @@ Staff-only; returns entity catalog entries matching query.
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.urls import reverse
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods
 
 
@@ -56,6 +58,10 @@ def metadata_governance_ui(request):
         "query": q,
         "results": results,
         "search_api_path": "/api/internal/metadata/search/",
+        "page_title": _("Metadata governance"),
+        "page_subtitle": _("Search entity catalog by code or name. Use the API for programmatic access and lineage."),
+        "action_url": reverse("studio_os:control"),
+        "action_text": _("Back to Control"),
     })
 
 
