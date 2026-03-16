@@ -22,7 +22,7 @@
 | Path | Type | Status | Replacement | Notes |
 |------|------|--------|-------------|--------|
 | `ensure_gilead_admin` (management command) | Command | **REMOVED** | `ensure_default_tenant_admin` | Same args. Documented in SUBTRACTIVE_CLEANUP_RELEASE_NOTES. |
-| `ensure_superadmin` (management command) | Command | **CANDIDATE** | `ensure_superuser` | Deprecation warning in command; use ensure_superuser (ADMIN_PASSWORD, --username, --password). Removal after deprecation period per management_commands_inventory.md §5a. |
+| `ensure_superadmin` (management command) | Command | **REMOVED** | `ensure_superuser` | Removed 2026-03-12. Use: `python manage.py ensure_superuser` (ADMIN_PASSWORD, --username, --password). SUBTRACTIVE_CLEANUP_RELEASE_NOTES. |
 | `/admin/siteconfig/customizer/` | URL | **REDIRECT** | `studio_os:experience` (`/studio/experience/`) | config/urls.py `admin_siteconfig_customizer_redirect`. Optional: remove URL when product confirms bookmarks migrated. |
 | `/siteconfig/customizer/` | URL | **REDIRECT** | `studio_os:experience` (`/studio/experience/`) | Phase B: redirect added in config/urls.py, config/tenant_urls.py, config/manager_urls.py. |
 | `siteconfig.webhook_delivery` (code) | Module ref | **REMOVED** | `apps.events.webhooks` | Callers use events.webhooks. |

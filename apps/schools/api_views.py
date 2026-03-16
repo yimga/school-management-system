@@ -1,10 +1,14 @@
 """API views for schools: /api/config for dynamic branding (Phase 2)."""
+import logging
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework import status
 
 from apps.platform_runtime.helpers import get_effective_offline_runtime_settings
+
+logger = logging.getLogger(__name__)
 
 
 def _offline_enabled_for_request(request):
@@ -48,6 +52,14 @@ class SchoolConfigAPI(APIView):
                 headers={"Retry-After": str(retry_after)},
             )
         school = getattr(request, "school", None)
+        # Audit log for abuse monitoring (no PII): host, school_id if resolved
+        logger.info(
+            "school_config_api_request",
+            extra={
+                "host": request.get_host(),
+                "school_id": school.pk if school else None,
+            },
+        )
         if not school:
             offline_settings = get_effective_offline_runtime_settings(request=request)
             return Response({

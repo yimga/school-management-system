@@ -66,7 +66,7 @@ This keeps "any new command gets ledger entry + tests" as a repeatable process.
 
 | Command | App | Replacement | Notes |
 |---------|-----|-------------|--------|
-| ensure_superadmin | accounts | ensure_superuser | ensure_superuser supports ADMIN_PASSWORD, --username, --password, and promotes existing users. ensure_superadmin still creates admin/admin if no admin exists (deprecation period). |
+| ensure_superadmin | accounts | ensure_superuser | **REMOVED** 2026-03-12. Use ensure_superuser (ADMIN_PASSWORD, --username, --password). SUBTRACTIVE_CLEANUP_RELEASE_NOTES; LEGACY_PATH_INVENTORY. |
 
 ---
 

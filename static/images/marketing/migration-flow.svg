@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 200" width="640" height="200" aria-labelledby="migration-title">
+  <title id="migration-title">Migration Cloud: Assess ’ Blueprint ’ Import ’ Verify</title>
+  <defs>
+    <style>.box{fill:#f1f5f9;stroke:#64748b;stroke-width:1.5;rx:8}.box-dark{fill:#0f172a;stroke:#334155}.text-box{fill:#334155;font:600 13px system-ui,sans-serif;text-anchor:middle}.text-small{fill:#64748b;font:10px system-ui,sans-serif;text-anchor:middle}.text-light{fill:#f8fafc;font:600 12px system-ui,sans-serif;text-anchor:middle}.line{stroke:#94a3b8;stroke-width:2;fill:none}.arrow{marker-end:url(#arrow)}</style>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><polygon points="0 0,8 4,0 8" fill="#94a3b8"/></marker>
+  </defs>
+  <rect class="box box-dark" x="8" y="70" width="140" height="60" rx="8"/>
+  <text class="text-light" x="78" y="98">Assess</text>
+  <text class="text-light" x="78" y="114" font-size="10" opacity="0.9">Source data</text>
+  <line class="line arrow" x1="148" y1="100" x2="172" y2="100"/>
+  <rect class="box" x="180" y="70" width="140" height="60" rx="8"/>
+  <text class="text-box" x="250" y="98">Blueprint</text>
+  <text class="text-small" x="250" y="114">Map &amp; config</text>
+  <line class="line arrow" x1="320" y1="100" x2="344" y2="100"/>
+  <rect class="box" x="352" y="70" width="140" height="60" rx="8"/>
+  <text class="text-box" x="422" y="98">Import</text>
+  <text class="text-small" x="422" y="114">Staged load</text>
+  <line class="line arrow" x1="492" y1="100" x2="516" y2="100"/>
+  <rect class="box" x="524" y="70" width="108" height="60" rx="8"/>
+  <text class="text-box" x="578" y="98">Verify</text>
+  <text class="text-small" x="578" y="114">Go live</text>
+</svg>

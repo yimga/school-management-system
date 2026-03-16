@@ -53,7 +53,7 @@ Legacy paths (deprecated accessors, re-exports) are **deleted per-migration** af
 ## 5. Next incremental (Step 4 — move ownership)
 
 - **Done (this run):** `cache_rankings_interval_minutes` moved to `RuntimeDefaults` as first-class column (migration 0004). Resolver `_build_platform_site_settings_base` uses it when set; `sync_from_site_settings` / `backfill_runtime_defaults` backfill from SiteSettings. evals/caching continues to read via `get_effective_site_settings` (unchanged).
-- **Next concrete move:** Add more SiteSettings fields to `RuntimeDefaults` as first-class columns (same pattern: migration, backfill in sync_from_site_settings, apply in _build_platform_site_settings_base). Order by dependency (see `RESOLVER_MIGRATE_DELETE_ORDERING.md`).
+- **Next concrete move:** Add more SiteSettings fields to `RuntimeDefaults` as first-class columns (same pattern: migration, backfill in sync_from_site_settings, apply in _build_platform_site_settings_base). Order by dependency (see `RESOLVER_MIGRATE_DELETE_ORDERING.md`). Next batch: theme/experience-related fields (e.g. `theme_pack`, `primary_color`) per domain_ownership brand_experience; implement when product unblocks.
 - **Inventory:** Keep `site_settings_usage_inventory.md` and `apps/siteconfig/domain_ownership.py` in sync when adding or reclassifying fields.
 - **Rule:** No new `get_solo()`/`load()` in tenant code (CI); ownership move is additive (new column + resolver) then subtractive (stop reading old) per field.
 

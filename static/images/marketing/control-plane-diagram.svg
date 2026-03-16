@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 260" width="520" height="260" aria-labelledby="cp-title">
+  <title id="cp-title">Control Plane: Manager, Schools, Governance</title>
+  <defs>
+    <style>.box{fill:#f1f5f9;stroke:#64748b;stroke-width:1.5;rx:8}.box-top{fill:#0f172a;stroke:#334155}.text-box{fill:#334155;font:600 12px system-ui,sans-serif;text-anchor:middle}.text-small{fill:#64748b;font:10px system-ui,sans-serif;text-anchor:middle}.text-light{fill:#f8fafc;font:600 12px system-ui,sans-serif;text-anchor:middle}</style>
+  </defs>
+  <rect class="box box-top" x="100" y="8" width="320" height="44" rx="8"/>
+  <text class="text-light" x="260" y="32" text-anchor="middle">RunMyCampus Manager</text>
+  <text class="text-light" x="260" y="46" text-anchor="middle" font-size="10" opacity="0.9">Control Plane</text>
+  <rect class="box" x="24" y="72" width="140" height="68" rx="8"/>
+  <text class="text-box" x="94" y="96">Schools &amp; Tenants</text>
+  <text class="text-small" x="94" y="112">Multi-campus</text>
+  <text class="text-small" x="94" y="126">Health · Usage</text>
+  <rect class="box" x="190" y="72" width="140" height="68" rx="8"/>
+  <text class="text-box" x="260" y="96">Governance</text>
+  <text class="text-small" x="260" y="112">Policies · RBAC</text>
+  <text class="text-small" x="260" y="126">Audit · Rollback</text>
+  <rect class="box" x="356" y="72" width="140" height="68" rx="8"/>
+  <text class="text-box" x="426" y="96">Studio OS</text>
+  <text class="text-small" x="426" y="112">Experience · Output</text>
+  <text class="text-small" x="426" y="126">Launch · Control</text>
+  <rect class="box" x="120" y="160" width="280" height="72" rx="8"/>
+  <text class="text-box" x="260" y="188">One command center for all schools</text>
+  <text class="text-small" x="260" y="206">Billing · Marketplace · Registries</text>
+</svg>

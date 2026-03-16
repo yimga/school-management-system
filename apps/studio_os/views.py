@@ -51,6 +51,59 @@ def studio_recommendations_api(request):
 @never_cache
 @require_http_methods(["GET"])
 @login_required
+def studio_system_config_console(request):
+    """§6.1 Bounded console: System config hub. Single entry point for config surfaces (Capabilities, Blueprints, Runtime inspector, etc.)."""
+    if not getattr(request.user, "is_staff", False):
+        return redirect(reverse("accounts:backend_dashboard"))
+    links = []
+    try:
+        links.append({"label": _("Capabilities"), "url": reverse("siteconfig:feature_control_panel") + "?embed=1"})
+    except NoReverseMatch:
+        pass
+    try:
+        links.append({"label": _("Blueprints & policy packs"), "url": reverse("siteconfig:get_blueprints") + "?embed=1"})
+    except NoReverseMatch:
+        pass
+    try:
+        links.append({"label": _("Runtime inspector"), "url": reverse("super:runtime_inspector")})
+    except NoReverseMatch:
+        pass
+    try:
+        links.append({"label": _("Metadata governance"), "url": reverse("metadata:metadata_governance")})
+    except NoReverseMatch:
+        pass
+    try:
+        links.append({"label": _("Lineage & registry"), "url": reverse("metadata:metadata_lineage_graph") + "?embed=1"})
+    except NoReverseMatch:
+        pass
+    try:
+        links.append({"label": _("Integrations"), "url": reverse("apicenter:dashboard")})
+    except NoReverseMatch:
+        pass
+    try:
+        links.append({"label": _("Plans & entitlements"), "url": reverse("super:billing_dashboard") + "?embed=1"})
+    except NoReverseMatch:
+        pass
+    try:
+        links.append({"label": _("Diff / impact summary"), "url": reverse("studio_os:control_impact") + "?embed=1"})
+    except NoReverseMatch:
+        pass
+    return render(
+        request,
+        "studio_os/system_config_console.html",
+        {
+            "page_title": _("System config"),
+            "page_subtitle": _("Bounded console for configuration surfaces. Use the links below or the Control Studio rail."),
+            "config_links": links,
+            "action_url": reverse("studio_os:control"),
+            "action_text": _("Back to Control"),
+        },
+    )
+
+
+@never_cache
+@require_http_methods(["GET"])
+@login_required
 def studio_control_impact(request):
     """§4.6 Control Studio optional: Diff / impact summary. Renders control mode impact_summary for embedding in rail."""
     if not getattr(request.user, "is_staff", False):
@@ -986,6 +1039,14 @@ def studio_shell(request, mode=None):
         control_rail = []
         try:
             control_rail.append({
+                "label": "System config",
+                "url": reverse("studio_os:system_config_console") + "?embed=1",
+                "embed": True,
+            })
+        except NoReverseMatch:
+            pass
+        try:
+            control_rail.append({
                 "label": "Capabilities",
                 "url": reverse("siteconfig:feature_control_panel") + "?embed=1",
                 "embed": True,
@@ -1033,6 +1094,14 @@ def studio_shell(request, mode=None):
             control_rail.append({
                 "label": "Blueprints & policy packs",
                 "url": reverse("siteconfig:get_blueprints") + "?embed=1",
+                "embed": True,
+            })
+        except NoReverseMatch:
+            pass
+        try:
+            control_rail.append({
+                "label": "Policy diff",
+                "url": reverse("super:policy_diff") + "?embed=1",
                 "embed": True,
             })
         except NoReverseMatch:

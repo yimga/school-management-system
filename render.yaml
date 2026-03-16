@@ -46,6 +46,9 @@ services:
         value: "1"
       - key: RUN_INTEGRATION_PREFLIGHT
         value: "1"
+      # Seed marketplace/catalog/Studio on every deploy so changes appear after deploy (see docs/CHANGES_NOT_VISIBLE_AFTER_DEPLOY.md)
+      - key: RUN_BOOTSTRAP_PLATFORM_CATALOG
+        value: "1"
       - key: REDIS_URL
         fromService:
           type: redis

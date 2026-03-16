@@ -2,6 +2,7 @@ from django.urls import path
 from .views import (
     studio_ai_cleanup,
     studio_audit_api,
+    studio_system_config_console,
     studio_automation_conflict_detection,
     studio_automation_dependency_graph,
     studio_automation_natural_language_workflow,
@@ -60,6 +61,7 @@ urlpatterns = [
     path("output/policy-registry/", studio_output_policy_registry, name="output_policy_registry"),
     path("launch/", studio_shell, {"mode": "launch"}, name="launch"),
     path("control/", studio_shell, {"mode": "control"}, name="control"),
+    path("control/system-config/", studio_system_config_console, name="system_config_console"),
     path("preview/", studio_preview, name="preview"),
     path("publish/", studio_publish_api, name="publish"),
     path("save-draft/", studio_save_draft_api, name="save_draft"),

@@ -1,19 +1,19 @@
 {
   "baseline_counts": {
-    "allow_any": 53,
-    "csrf_exempt": 98,
+    "allow_any": 61,
+    "csrf_exempt": 106,
     "cursor_execute": 351,
-    "except_exception": 153,
-    "get_solo": 180,
-    "gilead": 666,
-    "gilead_files": 130,
-    "html_files": 490,
-    "management_commands": 139,
-    "markdown_files": 862,
-    "migration_files": 598,
-    "print_calls": 472,
-    "python_files": 1845,
-    "site_settings": 1096
+    "except_exception": 156,
+    "get_solo": 181,
+    "gilead": 683,
+    "gilead_files": 135,
+    "html_files": 492,
+    "management_commands": 138,
+    "markdown_files": 897,
+    "migration_files": 600,
+    "print_calls": 483,
+    "python_files": 1848,
+    "site_settings": 1104
   },
   "doc_drift": {
     "actual_installed_app_count": 41,
@@ -23,8 +23,8 @@
   },
   "largest_python_files": [
     {
-      "bytes": 213014,
-      "lines": 3664,
+      "bytes": 213462,
+      "lines": 3667,
       "path": "apps/schools/marketing_views.py"
     },
     {
@@ -38,7 +38,7 @@
       "path": "apps/evals/views.py"
     },
     {
-      "bytes": 106877,
+      "bytes": 106915,
       "lines": 2542,
       "path": "apps/siteconfig/admin.py"
     },
@@ -138,11 +138,6 @@
       "app": "accounts",
       "command": "ensure_default_tenant_admin",
       "path": "apps/accounts/management/commands/ensure_default_tenant_admin.py"
-    },
-    {
-      "app": "accounts",
-      "command": "ensure_superadmin",
-      "path": "apps/accounts/management/commands/ensure_superadmin.py"
     },
     {
       "app": "accounts",

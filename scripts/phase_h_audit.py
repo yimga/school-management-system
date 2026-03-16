@@ -96,6 +96,7 @@ def check_responsive_css(
 ) -> None:
     """Ensure key responsive/fluid assets exist; report missing as warnings (Phase H responsive)."""
     candidates = [
+        "css/platform-fluid-everywhere.css",
         "css/platform-responsive-touch.css",
         "css/dashboard-responsive.css",
         "css/accessibility.css",

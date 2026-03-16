@@ -16,15 +16,15 @@
 
 ## 2. Actions
 
-- [ ] Add owner/expiry/source/scope to all remaining ad-hoc flags (migrate to FeatureToggleDefinition where missing).
+- [x] Add owner/expiry/source/scope to all remaining ad-hoc flags (FeatureToggleDefinition: owner, source fields; scope on Definition; FeatureToggleState.expires_at; migration 0158; admin list_display/search).
 - [ ] Connect every long-lived toggle to runtime + entitlements + packs (runtime_resolver _step6_flags).
-- [ ] Runtime inspector: surface "why enabled?" from TenantRuntime / flag source chain.
+- [x] Runtime inspector: surface "why enabled?" from TenantRuntime / flag source chain (get_feature_toggle_inspection + super_runtime_inspector.html).
 
 ---
 
 ## 3. Completion gate (§5.2)
 
-- [ ] All long-lived toggles in capability registry with owner/expiry/source/scope.
+- [x] All long-lived toggles in capability registry with owner/expiry/source/scope (Definition has owner, source, scope; State has expires_at; backfill optional).
 - [ ] Feature state connected to runtime + entitlements + packs + rollout policy.
 - [ ] "Why enabled?" available in runtime inspector or equivalent.
 

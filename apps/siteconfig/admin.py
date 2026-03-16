@@ -1923,9 +1923,9 @@ class EducationSystemProfileAdmin(ModelAdmin):
 
 
 class FeatureToggleDefinitionAdmin(ModelAdmin):
-    list_display = ("key", "label", "category", "scope", "default_enabled", "is_active", "updated_at")
+    list_display = ("key", "label", "category", "scope", "owner", "source", "default_enabled", "is_active", "updated_at")
     list_filter = ("category", "scope", "default_enabled", "is_active")
-    search_fields = ("key", "label", "description")
+    search_fields = ("key", "label", "description", "owner", "source")
     readonly_fields = ("created_at", "updated_at")
 
 

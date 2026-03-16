@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 280" width="520" height="280" aria-labelledby="ecosystem-title">
+  <title id="ecosystem-title">Ecosystem: Marketplace, Apps, Integrations</title>
+  <defs>
+    <style>.box{fill:#f1f5f9;stroke:#64748b;stroke-width:1.5;rx:8}.box-top{fill:#0f172a;stroke:#334155}.text-box{fill:#334155;font:600 12px system-ui,sans-serif;text-anchor:middle}.text-small{fill:#64748b;font:10px system-ui,sans-serif;text-anchor:middle}.text-light{fill:#f8fafc;font:600 12px system-ui,sans-serif;text-anchor:middle}</style>
+  </defs>
+  <rect class="box box-top" x="120" y="12" width="280" height="40" rx="8"/>
+  <text class="text-light" x="260" y="36" text-anchor="middle">RunMyCampus Ecosystem</text>
+  <rect class="box" x="24" y="72" width="150" height="72" rx="8"/>
+  <text class="text-box" x="99" y="96">Apps &amp; Packs</text>
+  <text class="text-small" x="99" y="112">Blueprint · Workflow</text>
+  <text class="text-small" x="99" y="126">Dashboard · Theme</text>
+  <rect class="box" x="185" y="72" width="150" height="72" rx="8"/>
+  <text class="text-box" x="260" y="96">Integrations</text>
+  <text class="text-small" x="260" y="112">LMS · Payments</text>
+  <text class="text-small" x="260" y="126">SSO · Messaging</text>
+  <rect class="box" x="346" y="72" width="150" height="72" rx="8"/>
+  <text class="text-box" x="421" y="96">API &amp; Webhooks</text>
+  <text class="text-small" x="421" y="112">REST · Events</text>
+  <text class="text-small" x="421" y="126">Docs · Sandbox</text>
+  <rect class="box" x="80" y="168" width="360" height="88" rx="8"/>
+  <text class="text-box" x="260" y="198">Tenant runtime  one platform, extended</text>
+  <text class="text-small" x="260" y="218">Install from marketplace · Govern from Control Plane</text>
+</svg>

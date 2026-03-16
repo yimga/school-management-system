@@ -2256,11 +2256,11 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         "Scales globally: " + scales_globally_line,
         "Go live with phased rollout and dedicated support during migration.",
     ]
-    # Migration visual: required; never leave section empty (per Visual Asset plan).
+    # Migration visual: required; never leave section empty (per Visual Asset plan). Ultra high-end: dedicated migration-flow.svg.
     migration_studio_image_url = (
         getattr(settings, "MARKETING_MIGRATION_STUDIO_IMAGE_URL", None)
         or getattr(settings, "MARKETING_MIGRATION_CLOUD_DIAGRAM_URL", None)
-        or static("images/marketing/platform-diagram-marketing.svg")
+        or static("images/marketing/migration-flow.svg")
     )
     # 7.1: Prefer AI-generated / governed assets from marketing_ai when set
     from apps.schools.marketing_ai import get_marketing_ai_asset_url
@@ -2496,20 +2496,20 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
     illustration_workflow_url = getattr(settings, "MARKETING_ILLUSTRATION_WORKFLOW_URL", None) or static("images/marketing/illustration-workflow.svg")
     illustration_globe_url = getattr(settings, "MARKETING_ILLUSTRATION_GLOBE_URL", None) or static("images/marketing/illustration-globe.svg")
     illustration_students_url = getattr(settings, "MARKETING_ILLUSTRATION_STUDENTS_URL", None) or static("images/marketing/illustration-students.svg")
-    # Strategic diagram URLs (Batch 1/2; required — fallback to platform diagram until specific assets exist).
+    # Strategic diagram URLs (Batch 1/2; ultra high-end: dedicated SVGs per MARKETING_FRONT_PLACEHOLDER).
     _diagram_fallback = static("images/marketing/platform-diagram-marketing.svg")
     platform_architecture_diagram_url = getattr(settings, "MARKETING_PLATFORM_ARCHITECTURE_DIAGRAM_URL", None) or _diagram_fallback
-    migration_cloud_diagram_url = getattr(settings, "MARKETING_MIGRATION_CLOUD_DIAGRAM_URL", None) or _diagram_fallback
-    school_in_a_box_flow_image_url = getattr(settings, "MARKETING_SCHOOL_IN_A_BOX_FLOW_IMAGE_URL", None) or _diagram_fallback
+    migration_cloud_diagram_url = getattr(settings, "MARKETING_MIGRATION_CLOUD_DIAGRAM_URL", None) or static("images/marketing/migration-flow.svg")
+    school_in_a_box_flow_image_url = getattr(settings, "MARKETING_SCHOOL_IN_A_BOX_FLOW_IMAGE_URL", None) or static("images/marketing/setup-studio-flow.svg")
     data_intelligence_loop_image_url = getattr(settings, "MARKETING_DATA_INTELLIGENCE_LOOP_IMAGE_URL", None) or _diagram_fallback
-    ecosystem_map_image_url = getattr(settings, "MARKETING_ECOSYSTEM_MAP_IMAGE_URL", None) or _diagram_fallback
+    ecosystem_map_image_url = getattr(settings, "MARKETING_ECOSYSTEM_MAP_IMAGE_URL", None) or static("images/marketing/ecosystem-diagram.svg")
     # §12 MARKETING_FRONT_PLACEHOLDER: wire all asset keys (templates use these).
     migration_diagram_url = getattr(settings, "MARKETING_MIGRATION_DIAGRAM_URL", None) or migration_cloud_diagram_url
     ecosystem_diagram_url = getattr(settings, "MARKETING_ECOSYSTEM_DIAGRAM_URL", None) or ecosystem_map_image_url
-    control_plane_diagram_url = getattr(settings, "MARKETING_CONTROL_PLANE_DIAGRAM_URL", None) or _diagram_fallback
-    setup_studio_flow_image_url = getattr(settings, "MARKETING_SETUP_STUDIO_FLOW_IMAGE_URL", None) or _diagram_fallback
+    control_plane_diagram_url = getattr(settings, "MARKETING_CONTROL_PLANE_DIAGRAM_URL", None) or static("images/marketing/control-plane-diagram.svg")
+    setup_studio_flow_image_url = getattr(settings, "MARKETING_SETUP_STUDIO_FLOW_IMAGE_URL", None) or static("images/marketing/setup-studio-flow.svg")
     # §12 platform-grade: every asset slot has a non-empty fallback so marketing front never shows broken/empty sections.
-    health_score_visual_url = getattr(settings, "MARKETING_HEALTH_SCORE_VISUAL_URL", None) or _diagram_fallback
+    health_score_visual_url = getattr(settings, "MARKETING_HEALTH_SCORE_VISUAL_URL", None) or static("images/marketing/health-score-visual.svg")
     role_preview_images = getattr(settings, "MARKETING_ROLE_PREVIEW_IMAGES", None) or [
         {"role": "principal", "label": "Principal", "image_url": "", "image_static": "images/marketing/viz-admin.svg"},
         {"role": "teacher", "label": "Teacher", "image_url": "", "image_static": "images/marketing/viz-teacher.svg"},
@@ -2853,6 +2853,9 @@ def marketing_page(request, page_slug: str):
             "Super-admin mission control for approvals, billing, and support.",
         ],
     }
+    # Product page: product-led storytelling (micro-demos, scroll-driven dark-mode, outcome-focused, developer-centric)
+    if normalized_slug == "product":
+        return render(request, "schools/marketing_product_page.html", ctx)
     return render(request, "schools/marketing_page.html", ctx)
 
 

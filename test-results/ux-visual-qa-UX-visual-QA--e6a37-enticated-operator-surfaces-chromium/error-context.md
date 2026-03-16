@@ -546,16 +546,16 @@
                     - text: threshold 80.0%
                   - article [ref=e457]:
                     - text: Memory
-                    - strong [ref=e458]: 77.2%
-                    - text: 24977 MB used
+                    - strong [ref=e458]: 75.7%
+                    - text: 24488 MB used
                   - article [ref=e459]:
                     - text: Disk
                     - strong [ref=e460]: 17.4%
-                    - text: 1573.9 GB free
+                    - text: 1573.7 GB free
                   - article [ref=e461]:
                     - text: Database
                     - strong [ref=e462]: HEALTHY
-                    - text: 0.2 ms health check
+                    - text: 0.1 ms health check
                 - generic [ref=e463]:
                   - generic [ref=e465]:
                     - generic: Webhook migration posture

@@ -21,7 +21,7 @@ After you run **`python manage.py migrate`** and (on Render or for full setup) *
 
 To use **username "admin"** on the Gilead tenant with password **Sch00l_1234**, run:
 `python manage.py ensure_default_tenant_admin --use-admin-user`
-(Then the same "admin" account uses that password on both manager and tenant; run `ensure_superadmin` to reset manager to admin/admin.)
+(Then the same "admin" account uses that password on both manager and tenant. To reset manager superuser password, use `python manage.py changepassword admin` or `ensure_superuser --password <new>`.)
 
 **Where to log in:**
 - **Manager (Django Admin, Super Admin):** manager host → `/admin/`, `/super/`, `/authentication/login/` → **admin** / **admin**

@@ -425,48 +425,84 @@ def apply_package(
 
     rollback_token = uuid.uuid4().hex[:32]
     reconciliation_status = "reconciled" if mode == "production" else "applied"
-    with transaction.atomic():
-        _register_metadata_usages(preview["metadata_usage_preview"])
-        applied_impact_summary = dict(preview["impacted_artifacts"])
-        applied_impact_summary["rollback_blast_radius"] = build_metadata_blast_radius(
-            entity_codes=applied_impact_summary.get("entity_codes") or []
-        )
-        PackageVersion.objects.update_or_create(
-            package_id=package_id,
-            version=version,
-            defaults={
-                "dependencies": preview["dependencies"],
-                "compatibility": preview["compatibility"]["compatibility"],
-                "payload_sections": payload_sections,
-                "impact_summary": applied_impact_summary,
-                "changelog_summary": ", ".join(preview["proposed"]["sections"]),
-            },
-        )
-        inst = InstalledPackage.objects.create(
-            package_id=package_id,
-            package_type=preview["package_type"],
-            version=version,
+    try:
+        with transaction.atomic():
+            _register_metadata_usages(preview["metadata_usage_preview"])
+            applied_impact_summary = dict(preview["impacted_artifacts"])
+            applied_impact_summary["rollback_blast_radius"] = build_metadata_blast_radius(
+                entity_codes=applied_impact_summary.get("entity_codes") or []
+            )
+            PackageVersion.objects.update_or_create(
+                package_id=package_id,
+                version=version,
+                defaults={
+                    "dependencies": preview["dependencies"],
+                    "compatibility": preview["compatibility"]["compatibility"],
+                    "payload_sections": payload_sections,
+                    "impact_summary": applied_impact_summary,
+                    "changelog_summary": ", ".join(preview["proposed"]["sections"]),
+                },
+            )
+            inst = InstalledPackage.objects.create(
+                package_id=package_id,
+                package_type=preview["package_type"],
+                version=version,
+                school_id=tenant_id,
+                scope=("sandbox" if mode == "sandbox" else scope) if tenant_id else "platform",
+                applied_by_id=actor_id,
+                rollback_token=rollback_token,
+                dependency_snapshot=preview["dependencies"],
+                impact_summary=applied_impact_summary,
+                apply_stage=mode,
+                reconciliation_status=reconciliation_status,
+            )
+            log = PackageChangeLog.objects.create(
+                package_id=package_id,
+                version=version,
+                school_id=tenant_id,
+                mode=mode,
+                action="apply",
+                rollback_token=rollback_token,
+                actor_id=actor_id,
+                dependency_snapshot=preview["dependencies"],
+                impact_summary=applied_impact_summary,
+                reconciliation_status=reconciliation_status,
+            )
+    except Exception as e:
+        # §6.4 Mid-apply failure: record failed apply in changelog (separate transaction) for audit
+        try:
+            with transaction.atomic():
+                PackageChangeLog.objects.create(
+                    package_id=package_id,
+                    version=version,
+                    school_id=tenant_id,
+                    mode=mode,
+                    action="apply",
+                    rollback_token=rollback_token,
+                    actor_id=actor_id,
+                    dependency_snapshot=preview["dependencies"],
+                    impact_summary={
+                        "mid_apply_error": str(e),
+                        "entity_codes": list(preview["impacted_artifacts"].get("entity_codes") or []),
+                    },
+                    reconciliation_status="failed",
+                )
+        except Exception as log_err:
+            logger.warning("Failed to log apply_failed changelog: %s", log_err)
+        log_exception_with_context(
+            "package_apply_mid_failure",
+            tenant_id=str(tenant_id) if tenant_id else None,
             school_id=tenant_id,
-            scope=("sandbox" if mode == "sandbox" else scope) if tenant_id else "platform",
-            applied_by_id=actor_id,
-            rollback_token=rollback_token,
-            dependency_snapshot=preview["dependencies"],
-            impact_summary=applied_impact_summary,
-            apply_stage=mode,
-            reconciliation_status=reconciliation_status,
+            extra={"package_id": package_id, "version": version},
         )
-        log = PackageChangeLog.objects.create(
-            package_id=package_id,
-            version=version,
-            school_id=tenant_id,
-            mode=mode,
-            action="apply",
-            rollback_token=rollback_token,
-            actor_id=actor_id,
-            dependency_snapshot=preview["dependencies"],
-            impact_summary=applied_impact_summary,
-            reconciliation_status=reconciliation_status,
-        )
+        return {
+            "ok": False,
+            "errors": [str(e)],
+            "warnings": preview.get("warnings", []),
+            "package_id": package_id,
+            "version": version,
+            "reconciliation_status": "failed",
+        }
     try:
         from apps.platform_runtime.events import emit_platform_event
         emit_platform_event(

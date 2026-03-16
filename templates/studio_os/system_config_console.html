@@ -1,0 +1,20 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "System config" %} · {% trans "Control" %}{% endblock %}
+
+{% block content %}
+<div class="container py-3" data-page-archetype="operational-workbench">
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
+  <div class="studio-os__card py-3 px-3">
+    <p class="mb-3 text-muted">{{ page_subtitle }}</p>
+    <ul class="list-unstyled mb-0">
+      {% for item in config_links %}
+      <li class="mb-2"><a href="{{ item.url }}">{{ item.label }}</a></li>
+      {% empty %}
+      <li class="text-muted">{% trans "No config surfaces available." %}</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %}

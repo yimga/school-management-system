@@ -21,6 +21,16 @@ class FeatureToggleDefinition(models.Model):
     description = models.TextField(blank=True)
     category = models.CharField(max_length=80, blank=True)
     scope = models.CharField(max_length=20, choices=Scope.choices, default=Scope.SCHOOL)
+    owner = models.CharField(
+        max_length=120,
+        blank=True,
+        help_text="Team or person responsible for this toggle (e.g. platform, product).",
+    )
+    source = models.CharField(
+        max_length=80,
+        blank=True,
+        help_text="Origin of the flag (e.g. capability_registry, legacy_backend_flags).",
+    )
     default_enabled = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     metadata = models.JSONField(default=dict, blank=True)

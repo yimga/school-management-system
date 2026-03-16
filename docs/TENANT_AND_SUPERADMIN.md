@@ -26,18 +26,13 @@ Super-admin is the dashboard at **/super/** (tenant list, provisioning, health).
 
 On Render, **seed_render_users** (run on every predeploy) ensures the platform super-admin **admin** / **admin**. It does not use `ADMIN_PASSWORD` for the admin account; that env var is used only for tenant demo users (teacher1, Parent1, principal1).
 
-To create the super-admin **only if** no user with username **admin** exists (no overwrite):
+To create or ensure the super-admin user:
 
 ```bash
-python manage.py ensure_superadmin
+python manage.py ensure_superuser
 ```
 
-This creates a user **only if** no user with username **admin** exists:
-
-- **Username:** `admin`
-- **Password:** `admin`
-
-If a user **admin** already exists, the command does nothing (no password or data change).
+Optional: `--username admin`, `--password <pwd>`, or set `ADMIN_PASSWORD` env. Creates a superuser if none exists, or promotes an existing user. Default username: `admin`.
 
 ### Logging in as Super-admin
 
@@ -62,5 +57,5 @@ python manage.py changepassword admin
 | Goal | What to do |
 |------|------------|
 | Reach Gilead tenant | Use subdomain: `https://gilead-school.runmycampus.com` (and `/authentication/login/` there). Ensure wildcard DNS and Domain/SchoolDomain for the subdomain. |
-| Create Super-admin user (no overwrite) | Run `python manage.py ensure_superadmin` once. Log in with `admin` / `admin`, then change password. |
+| Create Super-admin user | Run `python manage.py ensure_superuser` (optional: `ADMIN_PASSWORD` or `--password`). Log in with `admin` / your password, then change password. |
 | Existing tenants/users | No code or DB changes are made to existing tenant data or credentials. |

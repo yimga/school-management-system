@@ -16,8 +16,8 @@
 | Sandbox apply | Partial | Staged/sandbox concepts; ensure sandbox apply path |
 | Staged rollout | Present | Package rollout UI (super:package_rollout); promote to production |
 | Environment promotion | Present | Promote to production flow |
-| Rollback reconciliation | Partial | Rollback exists; reconciliation and partial failure handling to deepen |
-| Partial failure handling | Partial | Per-pack failure handling; improve recovery and reporting |
+| Rollback reconciliation | Present | Rollback exists; reconciliation_status=rolled_back; blast radius in result |
+| Partial failure handling | Present | Mid-apply: transaction.atomic() rolls back on error; PackageChangeLog(reconciliation_status=failed) recorded in separate transaction for audit; return ok=False + errors |
 
 ---
 
@@ -29,7 +29,7 @@
 - [ ] Compatibility matrix (plan, region, platform version) for every pack — optional deepening.
 - [x] Sandbox apply: apply with mode=sandbox; promote_package to production (engine + UI).
 - [x] Rollback reconciliation: rollback() deactivates InstalledPackage, sets reconciliation_status=rolled_back, logs PackageChangeLog; blast radius in result.
-- [ ] Partial failure handling: if one pack in a bundle fails, defined behavior — optional deepening.
+- [x] Partial failure handling: mid-apply exception triggers rollback (transaction.atomic); PackageChangeLog with reconciliation_status=failed written in separate transaction; return ok=False, errors; log_exception_with_context. Verify: apply_package with failing step leaves no InstalledPackage row; changelog has failed entry. Allowlist: apps/packages/engine.py 2 broad except (mid-apply catch + changelog-write catch); see broad_except_allowlist.json.
 
 ---
 

@@ -191,6 +191,17 @@ class EntityCatalogEntry(models.Model):
         db_index=True,
         help_text="Catalog lifecycle: draft, active, or deprecated.",
     )
+    source_pack_id = models.CharField(
+        max_length=120,
+        blank=True,
+        db_index=True,
+        help_text="Optional pack identifier (e.g. package slug) if this entry comes from a pack.",
+    )
+    source_pack_version = models.CharField(
+        max_length=40,
+        blank=True,
+        help_text="Optional pack version when source_pack_id is set.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

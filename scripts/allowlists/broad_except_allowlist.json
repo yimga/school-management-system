@@ -89,7 +89,7 @@
     "apps/evals/signals.py": 0,
     "apps/platform_runtime/governor_limits.py": 0,
     "apps/siteconfig/student_id_service.py": 0,
-    "apps/packages/engine.py": 0,
+    "apps/packages/engine.py": 2,
     "apps/evals/import_services.py": 0,
     "apps/evals/management/commands/import_grades.py": 0,
     "apps/portal/forms.py": 0,

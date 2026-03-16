@@ -23,14 +23,14 @@
           - generic [ref=e19]:
             - generic [ref=e20]:
               - generic [ref=e21]: 
-              - generic [ref=e22]: Mon, Mar 16 | 03:28 PM
+              - generic [ref=e22]: Mon, Mar 16 | 05:47 PM
             - generic [ref=e23]:
               - generic [ref=e24]: 
               - generic [ref=e25]: "--"
               - generic [ref=e26]: No location selected
             - generic [ref=e27]:
               - generic [ref=e28]: 
-              - generic [ref=e29]: Discipline protects your momentum.
+              - generic [ref=e29]: Systems beat last-minute effort.
         - generic [ref=e30]:
           - textbox "Global search" [ref=e31]:
             - /placeholder: Search students, teachers, invoices...

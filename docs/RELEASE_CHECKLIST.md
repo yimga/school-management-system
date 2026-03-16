@@ -23,7 +23,7 @@ Use this for each release (tag or deploy to production). Expand steps as needed 
 - [ ] Env: confirm DATABASE_URL, SECRET_KEY, REDIS_URL, CELERY_BROKER_URL and optional EMAIL_* in target env.
 - [ ] Predeploy: `./scripts/release/render_predeploy.sh` (or platform equivalent) runs and succeeds.
 - [ ] Health: after deploy, GET `/health/` returns 200.
-- [ ] **If changes don’t appear after deploy (marketplace/catalog/Studio empty):** Run the commands in [RENDER_SHELL_AFTER_DEPLOY.md](RENDER_SHELL_AFTER_DEPLOY.md) **§0** (bootstrap_platform_catalog --all, cache clear). Optional: set **RUN_BOOTSTRAP_PLATFORM_CATALOG=1** in Render env so future deploys seed automatically.
+- [ ] **If changes don’t appear after deploy (marketplace/catalog/Studio empty):** See [CHANGES_NOT_VISIBLE_AFTER_DEPLOY.md](CHANGES_NOT_VISIBLE_AFTER_DEPLOY.md) (use manager URL; run bootstrap_platform_catalog --all + cache clear in Shell). **RUN_BOOTSTRAP_PLATFORM_CATALOG=1** is in render.yaml so future deploys seed automatically.
 
 ## Security review (Step 49 / RUNMYCAMPUS §12.2)
 

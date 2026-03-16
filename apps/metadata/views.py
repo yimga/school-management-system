@@ -36,6 +36,8 @@ def _catalog_search(q: str, limit: int = 20, active_only: bool = True):
             "owning_app": getattr(e, "owning_app", "") or "",
             "lifecycle_state": getattr(e, "lifecycle_state", "active") or "active",
             "model_label": getattr(e, "model_label", "") or "",
+            "source_pack_id": getattr(e, "source_pack_id", "") or "",
+            "source_pack_version": getattr(e, "source_pack_version", "") or "",
         }
         for e in qs
     ]

@@ -2,7 +2,7 @@
 {% load static i18n %}
 {% block title %}{% trans "Upload photo" %}{% endblock %}
 {% block content %}
-<div class="container py-4" style="max-width: 480px;">
+<div class="container py-4" style="max-width: min(480px, 100%);">
   <h3 class="mb-3">{% trans "Upload photo for ID" %}</h3>
   <p class="text-muted small">{% trans "Take a photo or choose from gallery. It will be cropped to ID size." %}</p>
 

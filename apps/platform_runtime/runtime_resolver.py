@@ -682,6 +682,16 @@ def build_tenant_runtime(
 
     if request is not None:
         set_cached_runtime_for_request(request, tenant_ctx, school, runtime)
+
+    # §6.2 Runtime tracing: observable in logs after deployment (DEBUG or structured logging)
+    elapsed_ms = (time.time() - t0) * 1000
+    logger.debug(
+        "runtime_resolution_complete school_id=%s surface=%s steps=%s elapsed_ms=%.2f",
+        getattr(school, "id", None) if school else None,
+        getattr(route, "surface", None) if route else None,
+        len(trace),
+        elapsed_ms,
+    )
     return runtime
 
 

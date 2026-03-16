@@ -1,8 +1,8 @@
 # Public / Exempt Endpoint Audit Ledger
 
-**Purpose:** Single ledger of every `csrf_exempt` and `AllowAny` usage for §2.4 of the [embedded remediation plan](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md). Each endpoint must be justified, with auth model, replay/signature protection, rate limiting, and audit logging.
+**Purpose:** Single ledger of every `csrf_exempt` and `AllowAny` usage for §2.4 of the [embedded remediation plan](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md). Each endpoint must be justified, with auth model, replay/signature protection, rate limiting, and audit logging. **Classification:** public (unauthenticated/incoming), tenant (school-scoped), admin (platform-only).
 
-**Status:** PARTIAL — ledger populated; every endpoint recorded with verdict; CI gate in pre_deploy_gate (lint_csrf_exempt_usage, lint_allow_any_usage). Hardening (signature/replay/rate/audit) per row remains.
+**Status:** PARTIAL — ledger populated; every endpoint recorded with verdict and classification; CI gate in pre_deploy_gate (lint_csrf_exempt_usage, lint_allow_any_usage). Hardening (signature/replay/rate/audit) per row remains.
 
 ---
 
@@ -10,15 +10,15 @@
 
 Source: `scripts/allowlists/csrf_exempt_allowlist.json`. Lint: `scripts/lint_csrf_exempt_usage.py`.
 
-| File | Count | Owner | Verdict | Auth model | Replay / signature | Rate limiting | Audit logging |
-|------|-------|--------|---------|------------|--------------------|---------------|---------------|
-| apps/accounts/views_saml.py | 1 | identity_access | keep | signed_saml_assertion | idp_assertion_validity_window | not_applicable | manual_review_required |
-| apps/api/lead_capture_api.py | 1 | marketing_leads | keep | public_form_post | not_applicable | implemented | implemented |
-| apps/api/scim_views.py | 3 | identity_provisioning | keep | bearer_token_scim | token_auth_only_manual_review_required | implemented (throttle_ip_request) | implemented (_log_scim_request: path, method, resource, authenticated; no PII) |
-| apps/billing/api_views.py | 1 | billing | keep | provider_webhook_signature | provider_signature_timestamp_manual_review_required | not_applicable | manual_review_required |
-| apps/finance/views.py | 1 | finance_payments | keep | payment_webhook_signature | provider_signature_timestamp_manual_review_required | not_applicable | manual_review_required |
-| apps/schools/section8_views.py | 5 | interop_lti | keep_with_hardening | external_tool_callback | tool_signature_manual_review_required | implemented (_lti_rate_limited) | implemented (_log_lti_request: path, method, operation, tool_id; no PII) |
-| config/graphql_view.py | 1 | api_platform | keep_with_hardening | mixed_client_access | not_applicable | implemented (throttle_ip_request) | implemented (logger.info op + authenticated; no PII) |
+| File | Count | Owner | Classification | Verdict | Auth model | Replay / signature | Rate limiting | Audit logging |
+|------|-------|--------|----------------|---------|------------|--------------------|---------------|---------------|
+| apps/accounts/views_saml.py | 1 | identity_access | tenant | keep | signed_saml_assertion | idp_assertion_validity_window | not_applicable | manual_review_required |
+| apps/api/lead_capture_api.py | 1 | marketing_leads | public | keep | public_form_post | not_applicable | implemented | implemented |
+| apps/api/scim_views.py | 3 | identity_provisioning | admin | keep | bearer_token_scim | token_auth_only_manual_review_required | implemented (throttle_ip_request) | implemented (_log_scim_request: path, method, resource, authenticated; no PII) |
+| apps/billing/api_views.py | 1 | billing | public | keep | provider_webhook_signature | provider_signature_timestamp_manual_review_required | not_applicable | manual_review_required |
+| apps/finance/views.py | 1 | finance_payments | public | keep | payment_webhook_signature | provider_signature_timestamp_manual_review_required | not_applicable | manual_review_required |
+| apps/schools/section8_views.py | 5 | interop_lti | tenant | keep_with_hardening | external_tool_callback | tool_signature_manual_review_required | implemented (_lti_rate_limited) | implemented (_log_lti_request: path, method, operation, tool_id; no PII) |
+| config/graphql_view.py | 1 | api_platform | tenant | keep_with_hardening | mixed_client_access | not_applicable | implemented (throttle_ip_request) | implemented (logger.info op + authenticated; no PII) |
 
 ### Notes
 
@@ -77,8 +77,8 @@ Per-endpoint specification so every row that had Replay/signature or Audit marke
 | **Finance webhook** (apps/finance/views.py) | HMAC on body with integration secret; configurable header (default X-Signature). Reject invalid with 403. | **DONE** | `validator.validate_signature(request_body, signature)`; WebhookLog + _create_webhook_log for audit. |
 | **SCIM** (apps/api/scim_views.py) | Bearer token only. Optional hardening: HMAC-SHA256 on request body + timestamp + nonce in header for webhook-style SCIM push; replay window e.g. 5 min. | **SPECIFIED / DEFERRED** | Rate limit + _log_scim_request implemented. Stronger signature/replay deferred to manual security review; implement per SCIM spec if push endpoints added. |
 | **Section8 LTI** (apps/schools/section8_views.py) | LTI OAuth 1.0a or JWT (platform-specific). Verify signature with tool’s secret/key; optional timestamp/nonce for replay. | **SPECIFIED / DEFERRED** | _lti_rate_limited + _log_lti_request implemented. Signature verification deferred to manual security review; implement per LTI spec (OAuth 1.0a or LTI 1.3 JWT). |
-| **SAML ACS** (apps/accounts/views_saml.py) | Replay: IdP assertion validity window (NotBefore/NotOnOrAfter). No additional HMAC; IdP signs assertion. | **DONE** (replay) | Replay protection via assertion validity. Audit: manual_review_required — add optional logger.info(acs_request_id, idp_entity_id, authenticated) if desired (no PII). |
-| **SchoolConfigAPI** (apps/schools/api_views.py, AllowAny) | N/A (read-only; host-resolved). | **N/A** | Audit: optional logger for config requests (host, school_id if resolved) for abuse monitoring; marked manual_review_required — add if product requires. |
+| **SAML ACS** (apps/accounts/views_saml.py) | Replay: IdP assertion validity window (NotBefore/NotOnOrAfter). No additional HMAC; IdP signs assertion. | **DONE** (replay + audit) | Replay via assertion validity. Audit: logger.info("saml_acs_success", extra=acs_request_id=relay_state, integration_id, authenticated=True) after successful login (no PII). |
+| **SchoolConfigAPI** (apps/schools/api_views.py, AllowAny) | N/A (read-only; host-resolved). | **DONE** (audit) | Audit: logger.info("school_config_api_request", extra=host, school_id if resolved) for abuse monitoring (no PII). |
 | **GraphQL** (config/graphql_view.py) | N/A (mixed client; session/cookie or token). | **N/A** | Rate limit + audit (operation_name, authenticated) implemented. |
 
 **Summary:** Billing and Finance webhooks: signature + audit **DONE**. SCIM and LTI: scheme **SPECIFIED**, implementation **DEFERRED** to manual security review. SAML: replay **DONE**; audit optional. SchoolConfigAPI: audit optional. GraphQL: **N/A**. No endpoint is left without a defined scheme or status.

@@ -1,0 +1,175 @@
+{% extends "schools/marketing_base.html" %}
+{% load static i18n %}
+{% block body_class %}marketing-surface mkt-product-page{% endblock %}
+{% block title %}{{ seo_title|default:"Product — RunMyCampus" }}{% endblock %}
+{% block extrahead %}
+  <meta name="description" content="{{ seo_description|default:'See the product: high-fidelity demos, outcome-focused workflows, developer-centric platform for education operations.' }}">
+  {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
+  <script type="application/ld+json">{{ structured_data_json|safe }}</script>
+  {% if organization_schema_json %}<script type="application/ld+json">{{ organization_schema_json|safe }}</script>{% endif %}
+  {% if faq_schema_json %}<script type="application/ld+json">{{ faq_schema_json|safe }}</script>{% endif %}
+  {% if breadcrumb_schema_json %}<script type="application/ld+json">{{ breadcrumb_schema_json|safe }}</script>{% endif %}
+{% endblock %}
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/marketing-home.css' %}">
+  <link rel="stylesheet" href="{% static 'css/marketing-home-scroll.css' %}">
+  <link rel="stylesheet" href="{% static 'css/marketing-product-page.css' %}">
+{% endblock %}
+{% block content %}
+<div class="mkt-product-story" data-scroll-story="true" data-dark-mode="true">
+  <a href="#mkt-product-hero" class="mkt-skip-link">{% trans "Skip to main content" %}</a>
+  <div id="mkt-product-scroll-progress" class="mkt-scroll-progress" role="presentation" aria-hidden="true">
+    <div id="mkt-product-scroll-fill" class="mkt-scroll-progress-fill"></div>
+  </div>
+
+  {# 1. Hero — outcome-focused, developer-centric claim #}
+  <section id="mkt-product-hero" class="mkt-product-hero" tabindex="-1" data-chapter="1">
+    <div class="mkt-product-hero-inner">
+      <div class="mkt-product-hero-copy">
+        <p class="mkt-product-eyebrow">{% trans "Product" %}</p>
+        <h1 class="mkt-product-headline">{{ page.headline|default:"One platform. Every outcome." }}</h1>
+        <p class="mkt-product-subheadline">{{ page.subheadline|default:"High-fidelity workflows for admissions, academics, finance, and compliance—showcased, not described." }}</p>
+        <div class="mkt-product-hero-ctas">
+          <a href="{% url 'signup_school' %}" class="btn btn-primary" data-cta="primary">{% trans "Start Free Trial" %}</a>
+          <a href="{% url 'marketing_book_demo' %}" class="btn btn-outline-light" data-cta="demo">{% trans "Book a demo" %}</a>
+          {% if demo_tenant_url %}
+          <a href="{{ demo_tenant_url }}" class="btn btn-outline-light" target="_blank" rel="noopener noreferrer">{% trans "Try demo" %}</a>
+          {% endif %}
+          {% if marketing_product_tour_url %}
+          <a href="{{ marketing_product_tour_url }}" class="btn btn-outline-light" target="_blank" rel="noopener noreferrer">{% trans "Product tour" %}</a>
+          {% else %}
+          <a href="{% url 'marketing_interactive_preview' %}" class="btn btn-outline-light">{% trans "Product tour" %}</a>
+          {% endif %}
+        </div>
+      </div>
+      <div class="mkt-product-hero-visual mkt-reveal">
+        {% if hero_dashboard_image_url %}
+        <img src="{{ hero_dashboard_image_url }}" alt="{% trans 'RunMyCampus dashboard' %}" width="800" height="450" decoding="async" fetchpriority="high" loading="eager" class="mkt-product-hero-img">
+        {% else %}
+        <img src="{% static 'images/marketing/hero-placeholder.svg' %}" alt="{% trans 'Platform overview' %}" width="800" height="450" decoding="async" fetchpriority="high" loading="eager" class="mkt-product-hero-img">
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  {# 2. Micro-demos — scroll-driven, one outcome per frame #}
+  {% if product_visualization_slides %}
+  <section id="mkt-product-demos" class="mkt-product-section mkt-product-demos mkt-reveal" aria-label="{% trans 'Product in action' %}" data-chapter="2">
+    <div class="mkt-product-section-inner">
+      <h2 class="mkt-product-section-heading">{% trans "See it work — not just read about it" %}</h2>
+      <p class="mkt-product-section-lead">{% trans "Outcome-focused micro-demos: each frame shows a real capability, not a generic screenshot." %}</p>
+      <div class="mkt-product-demos-grid mkt-reveal-stagger" role="list">
+        {% for slide in product_visualization_slides %}
+        <article class="mkt-product-demo-card" role="listitem" data-demo-index="{{ forloop.counter }}">
+          <div class="mkt-product-demo-frame">
+            {% if slide.image_url %}
+            <img src="{{ slide.image_url }}" alt="{{ slide.title }}" width="600" height="360" loading="lazy" decoding="async">
+            {% elif slide.image_static %}
+            <img src="{% static slide.image_static %}" alt="{{ slide.title }}" width="600" height="360" loading="lazy" decoding="async">
+            {% endif %}
+          </div>
+          <h3 class="mkt-product-demo-title">{{ slide.title }}</h3>
+          <p class="mkt-product-demo-caption">{{ slide.caption }}</p>
+        </article>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {# 3. Pinned chapter — Studio OS / Control Plane (narrative + sticky visual) #}
+  <section id="mkt-product-studio" class="mkt-product-section mkt-chapter-pinned mkt-reveal" aria-label="{% trans 'Studio OS' %}" data-chapter="3">
+    <div class="mkt-product-section-inner">
+      <div class="mkt-chapter-copy">
+        <h2 class="mkt-product-section-heading">{% trans "Studio OS: one workspace for every operator" %}</h2>
+        <p class="mkt-product-section-lead">{% trans "Experience, Automation, Output, Launch, and Control—configure and govern without leaving the product." %}</p>
+        <ul class="mkt-product-outcome-list">
+          <li>{% trans "Theme and branding in one place, with compare and rollback." %}</li>
+          <li>{% trans "Workflows and approvals with visual builder and simulation." %}</li>
+          <li>{% trans "Reports and documents with pack versioning and branding inheritance." %}</li>
+          <li>{% trans "Launch checklist and health score before go-live." %}</li>
+        </ul>
+      </div>
+      <div class="mkt-chapter-visual">
+        {% if setup_studio_flow_image_url %}
+        <img src="{{ setup_studio_flow_image_url }}" alt="{% trans 'Studio OS flow' %}" width="600" height="360" loading="lazy" decoding="async">
+        {% else %}
+        <img src="{% static 'images/marketing/platform-diagram-marketing.svg' %}" alt="{% trans 'Platform layers' %}" width="600" height="360" loading="lazy" decoding="async">
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  {# 4. Migration / developer — outcome-focused copy #}
+  <section id="mkt-product-migration" class="mkt-product-section mkt-reveal" aria-label="{% trans 'Migration and APIs' %}" data-chapter="4">
+    <div class="mkt-product-section-inner">
+      <h2 class="mkt-product-section-heading">{% trans "Built for operators who ship" %}</h2>
+      <p class="mkt-product-section-lead">{% trans "Migration Cloud for data; API Center for integrations. No black boxes—governed, auditable, and documented." %}</p>
+      <div class="mkt-product-two-col">
+        <div class="mkt-product-outcome-block">
+          <h3 class="h6">{% trans "Migration" %}</h3>
+          <p class="mb-0">{% trans "Assess → blueprint → import → verify. Staged rollout and health checks so go-live is predictable." %}</p>
+        </div>
+        <div class="mkt-product-outcome-block">
+          <h3 class="h6">{% trans "APIs & integrations" %}</h3>
+          <p class="mb-0">{% trans "REST, webhooks, and scoped keys. Docs and sandbox so developers can integrate without guesswork." %}</p>
+        </div>
+      </div>
+      {% if migration_studio_image_url %}
+      <div class="mkt-product-migration-visual mt-4">
+        <img src="{{ migration_studio_image_url }}" alt="{% trans 'Migration flow' %}" width="800" height="400" loading="lazy" decoding="async" class="img-fluid rounded">
+      </div>
+      {% endif %}
+    </div>
+  </section>
+
+  {# 5. Outcomes strip — numbers and trust #}
+  {% if page_extras.metrics %}
+  <section id="mkt-product-outcomes" class="mkt-product-section mkt-product-outcomes-strip mkt-reveal" aria-label="{% trans 'Outcomes' %}" data-chapter="5">
+    <div class="mkt-product-section-inner">
+      <h2 class="mkt-product-section-heading">{% trans "Outcomes, not feature lists" %}</h2>
+      <div class="mkt-product-metrics mkt-reveal-stagger">
+        {% for metric in page_extras.metrics %}
+        <article class="mkt-product-metric">
+          <span class="mkt-product-metric-value">{{ metric.value }}</span>
+          <span class="mkt-product-metric-label">{{ metric.label }}</span>
+          {% if metric.detail %}<span class="mkt-product-metric-detail">{{ metric.detail }}</span>{% endif %}
+        </article>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {# 6. Core capabilities — segments from page #}
+  {% if page.segments %}
+  <section id="mkt-product-capabilities" class="mkt-product-section mkt-reveal" aria-label="{% trans 'Core capabilities' %}" data-chapter="6">
+    <div class="mkt-product-section-inner">
+      <h2 class="mkt-product-section-heading">{% trans "Core capabilities" %}</h2>
+      <div class="mkt-product-segments mkt-reveal-stagger">
+        {% for segment in page.segments %}
+        <article class="mkt-product-segment">
+          <h3 class="h6">{{ segment.title }}</h3>
+          <p class="mb-0 text-muted">{{ segment.body }}</p>
+        </article>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {# 7. Final CTA #}
+  <section id="mkt-product-final-cta" class="mkt-product-final-cta mkt-reveal" aria-label="{% trans 'Get started' %}">
+    <h2 class="mkt-product-section-heading">{% trans "Run your campus on one platform" %}</h2>
+    <p class="mkt-product-section-lead">{% trans "Start free, add your school, and see outcomes in days—not quarters." %}</p>
+    <div class="mkt-product-hero-ctas">
+      <a href="{% url 'signup_school' %}" class="btn btn-primary mkt-cta-focus" data-cta="primary">{% trans "Start Free Trial" %}</a>
+      <a href="{% url 'marketing_book_demo' %}" class="btn btn-outline-light mkt-cta-focus" data-cta="demo">{% trans "Book a Demo" %}</a>
+      <a href="{% url 'global_login_discovery' %}" class="btn btn-outline-light mkt-cta-focus">{% trans "Login" %}</a>
+    </div>
+  </section>
+</div>
+<script src="{% static 'marketing/js/marketing-landing-scroll.js' %}" defer></script>
+<script src="{% static 'marketing/js/marketing-product-scroll.js' %}" defer></script>
+{% endblock %}

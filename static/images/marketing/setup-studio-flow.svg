@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 180" width="560" height="180" aria-labelledby="setup-title">
+  <title id="setup-title">Setup flow: Create school ’ Brand ’ Blueprint ’ Launch</title>
+  <defs>
+    <style>.box{fill:#f1f5f9;stroke:#64748b;stroke-width:1.5;rx:8}.text-box{fill:#334155;font:600 12px system-ui,sans-serif;text-anchor:middle}.text-small{fill:#64748b;font:10px system-ui,sans-serif;text-anchor:middle}.line{stroke:#94a3b8;stroke-width:2;fill:none}.arrow{marker-end:url(#arr)}</style>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><polygon points="0 0,8 4,0 8" fill="#94a3b8"/></marker>
+  </defs>
+  <rect class="box" x="16" y="50" width="120" height="80" rx="8"/>
+  <text class="text-box" x="76" y="82">Create school</text>
+  <text class="text-small" x="76" y="98">Tenant</text>
+  <line class="line arrow" x1="136" y1="90" x2="164" y2="90"/>
+  <rect class="box" x="172" y="50" width="120" height="80" rx="8"/>
+  <text class="text-box" x="232" y="82">Brand &amp; theme</text>
+  <text class="text-small" x="232" y="98">Experience</text>
+  <line class="line arrow" x1="292" y1="90" x2="320" y2="90"/>
+  <rect class="box" x="328" y="50" width="120" height="80" rx="8"/>
+  <text class="text-box" x="388" y="82">Blueprint</text>
+  <text class="text-small" x="388" y="98">Packs</text>
+  <line class="line arrow" x1="448" y1="90" x2="476" y2="90"/>
+  <rect class="box" x="484" y="50" width="60" height="80" rx="8"/>
+  <text class="text-box" x="514" y="90" text-anchor="middle">Launch</text>
+</svg>

@@ -1,24 +1,24 @@
 # Platform Inventory
 
 - Installed app modules: `41`
-- Python files: `1845`
-- HTML templates: `490`
-- Markdown files: `862`
-- Migration files: `598`
-- Management commands: `139` (full list in JSON key `management_commands_list`)
-- `SiteSettings` refs: `1096`
-- `get_solo()` refs: `180`
-- `except Exception`: `153`
+- Python files: `1848`
+- HTML templates: `492`
+- Markdown files: `897`
+- Migration files: `600`
+- Management commands: `138` (full list in JSON key `management_commands_list`)
+- `SiteSettings` refs: `1104`
+- `get_solo()` refs: `181`
+- `except Exception`: `156`
 - `cursor.execute()`: `351`
-- `csrf_exempt`: `98`
-- `AllowAny`: `53`
-- `print()`: `472`
-- `gilead` matches: `666` across `130` files
+- `csrf_exempt`: `106`
+- `AllowAny`: `61`
+- `print()`: `483`
+- `gilead` matches: `683` across `135` files
 
 
 ## Management Commands (full list)
 
-Total: `139` commands. First 25 by app/command:
+Total: `138` commands. First 25 by app/command:
 
 - `academics` / `export_certification_pack` — `apps/academics/management/commands/export_certification_pack.py`
 - `academics` / `fix_term_positions` — `apps/academics/management/commands/fix_term_positions.py`
@@ -31,7 +31,6 @@ Total: `139` commands. First 25 by app/command:
 - `accounts` / `check_roles` — `apps/accounts/management/commands/check_roles.py`
 - `accounts` / `create_teacher_parent_accounts` — `apps/accounts/management/commands/create_teacher_parent_accounts.py`
 - `accounts` / `ensure_default_tenant_admin` — `apps/accounts/management/commands/ensure_default_tenant_admin.py`
-- `accounts` / `ensure_superadmin` — `apps/accounts/management/commands/ensure_superadmin.py`
 - `accounts` / `ensure_superuser` — `apps/accounts/management/commands/ensure_superuser.py`
 - `accounts` / `list_expired_temporary_grants` — `apps/accounts/management/commands/list_expired_temporary_grants.py`
 - `accounts` / `security_log_retention` — `apps/accounts/management/commands/security_log_retention.py`
@@ -45,7 +44,8 @@ Total: `139` commands. First 25 by app/command:
 - `billing` / `run_revenue_share_payouts` — `apps/billing/management/commands/run_revenue_share_payouts.py`
 - `communication` / `sync_department_threads` — `apps/communication/management/commands/sync_department_threads.py`
 - `compliance` / `archive_old_audits` — `apps/compliance/management/commands/archive_old_audits.py`
-- … and 114 more (see `platform_inventory.json` key `management_commands_list`).
+- `compliance` / `check_compliance` — `apps/compliance/management/commands/check_compliance.py`
+- … and 113 more (see `platform_inventory.json` key `management_commands_list`).
 
 ## Public Endpoint Review
 
@@ -78,10 +78,10 @@ Total: `139` commands. First 25 by app/command:
 
 ## Largest Python Files
 
-- `apps/schools/marketing_views.py`: `3664` lines / `213014` bytes
+- `apps/schools/marketing_views.py`: `3667` lines / `213462` bytes
 - `apps/schools/super_views.py`: `2905` lines / `125258` bytes
 - `apps/evals/views.py`: `2564` lines / `107567` bytes
-- `apps/siteconfig/admin.py`: `2542` lines / `106877` bytes
+- `apps/siteconfig/admin.py`: `2542` lines / `106915` bytes
 - `apps/accounts/views.py`: `2331` lines / `103900` bytes
 - `apps/finance/models.py`: `2556` lines / `95914` bytes
 - `apps/siteconfig/models.py`: `2360` lines / `95144` bytes

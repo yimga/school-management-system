@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import base64
+import logging
 from binascii import Error as BinasciiError
 import secrets
 import xml.etree.ElementTree as ET
 from urllib.parse import urlencode
 
 from django.contrib.auth import login
+
+logger = logging.getLogger(__name__)
 from django.http import HttpResponseForbidden, JsonResponse, HttpResponse
 from django.shortcuts import redirect
 from django.urls import reverse
@@ -255,6 +258,15 @@ def saml_acs(request, integration_id: int):
         request.session.modified = True
 
     login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+    # Audit log (no PII): acs_request_id, integration_id (idp proxy), authenticated
+    logger.info(
+        "saml_acs_success",
+        extra={
+            "acs_request_id": relay_state,
+            "integration_id": integration_id,
+            "authenticated": True,
+        },
+    )
     next_url = str(pending.get("next") or "").strip() or str((integration.config or {}).get("post_login_redirect") or "").strip()
     return redirect(next_url or reverse("accounts:redirect"))
 

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 160" width="320" height="160" aria-labelledby="health-title">
+  <title id="health-title">Launch health score</title>
+  <defs>
+    <style>.bg{fill:#f1f5f9;stroke:#e2e8f0;stroke-width:1;rx:12}.bar{fill:#22c55e;rx:4}.bar-mid{fill:#eab308}.bar-low{fill:#ef4444}.text-box{fill:#334155;font:600 12px system-ui,sans-serif;text-anchor:middle}.text-small{fill:#64748b;font:10px system-ui,sans-serif;text-anchor:middle}</style>
+  </defs>
+  <rect class="bg" x="16" y="16" width="288" height="128"/>
+  <text class="text-box" x="160" y="42" text-anchor="middle">Launch readiness</text>
+  <rect class="bar" x="40" y="58" width="72" height="24" rx="4"/>
+  <text class="text-small" x="76" y="74" text-anchor="middle" fill="#fff">Config</text>
+  <rect class="bar" x="128" y="58" width="72" height="24" rx="4"/>
+  <text class="text-small" x="164" y="74" text-anchor="middle" fill="#fff">Data</text>
+  <rect class="bar-mid" x="216" y="58" width="72" height="24" rx="4"/>
+  <text class="text-small" x="252" y="74" text-anchor="middle" fill="#fff">Review</text>
+  <rect class="bar" x="40" y="96" width="248" height="12" rx="4"/>
+  <text class="text-small" x="160" y="124" text-anchor="middle">Health score: ready for launch</text>
+</svg>
