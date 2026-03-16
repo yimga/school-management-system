@@ -1,15 +1,12 @@
 {% extends "portal_base.html" %}
+{% load i18n %}
 
 {% block title %}Trial Balance{% endblock %}
 
 {% block content %}
-<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
-  <div>
-    <h2 class="mb-0">Trial Balance</h2>
-    <div class="text-muted">Compliance: {{ profile.name }} ({{ profile.country_code }})</div>
-  </div>
-  <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:dashboard' %}">Back</a>
-</div>
+<div class="container-fluid py-2" data-page-archetype="operational-workbench">
+{% trans "Back to Finance" as back_action %}
+{% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=back_action %}
 
 <form method="get" class="card mb-3">
   <div class="card-body">
@@ -61,5 +58,6 @@
       </table>
     </div>
   </div>
+</div>
 </div>
 {% endblock %}

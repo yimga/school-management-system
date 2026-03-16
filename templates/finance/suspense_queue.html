@@ -1,18 +1,13 @@
 {% extends "portal_base.html" %}
+{% load i18n %}
 {% load region_format %}
 
 {% block title %}Suspense Queue{% endblock %}
 
 {% block content %}
-<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
-  <div>
-    <h2 class="mb-0">Suspense Queue</h2>
-    <div class="text-muted">Unmatched bank/MoMo deposits that require manual claim and split allocation.</div>
-  </div>
-  <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{% url 'finance:payments' %}">
-    <i class="bi bi-arrow-left me-1"></i>Back to Payments
-  </a>
-</div>
+<div class="container-fluid py-2" data-page-archetype="operational-workbench">
+{% trans "Back to Payments" as back_action %}
+{% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=back_action %}
 
 {% if queue %}
   {% for item in queue %}
@@ -78,4 +73,5 @@
     </div>
   </div>
 {% endif %}
+</div>
 {% endblock %}
