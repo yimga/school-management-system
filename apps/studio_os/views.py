@@ -162,6 +162,31 @@ def studio_experience_theme_tokens(request):
 @never_cache
 @require_http_methods(["GET"])
 @login_required
+def studio_experience_portal_shell_layouts(request):
+    """§4.2 Experience Studio optional: Portal shell layouts. Explains portal shell structure (sidebar, header, content) and where to configure."""
+    if not getattr(request.user, "is_staff", False):
+        return redirect(reverse("accounts:backend_dashboard"))
+    customizer_url = ""
+    try:
+        customizer_url = reverse("siteconfig:customizer") + "?embed=1"
+    except NoReverseMatch:
+        pass
+    return render(
+        request,
+        "studio_os/experience_portal_shell_layouts.html",
+        {
+            "customizer_url": customizer_url,
+            "page_title": _("Portal shell layouts"),
+            "page_subtitle": _("Portal shell structure (sidebar, header, content areas); configure in Customizer and School theme."),
+            "action_url": reverse("studio_os:experience"),
+            "action_text": _("Back to Experience"),
+        },
+    )
+
+
+@never_cache
+@require_http_methods(["GET"])
+@login_required
 def studio_output_dependency_graph(request):
     """§4.4 Output Studio optional: Dependency graph. Shows report pack dependencies for embedding in Output rail."""
     if not getattr(request.user, "is_staff", False):
@@ -420,6 +445,14 @@ def studio_shell(request, mode=None):
             experience_rail.append({
                 "label": "Theme tokens",
                 "url": reverse("studio_os:experience_theme_tokens") + "?embed=1",
+                "embed": True,
+            })
+        except NoReverseMatch:
+            pass
+        try:
+            experience_rail.append({
+                "label": "Portal shell layouts",
+                "url": reverse("studio_os:experience_portal_shell_layouts") + "?embed=1",
                 "embed": True,
             })
         except NoReverseMatch:
