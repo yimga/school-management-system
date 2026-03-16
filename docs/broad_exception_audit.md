@@ -282,7 +282,7 @@
 ### apps/analytics (§2.4 — incremental)
 | File | Status | Notes |
 |------|--------|------|
-| **management/commands/compute_nightly_risk.py** | **DONE** | _process_school: except Exception → _COMPUTE_NIGHTLY_RISK_ERRORS (ImportError, AttributeError, TypeError, ValueError, DatabaseError, OperationalError) + log_exception_with_context(school_id, extra: command). Allowlist 0. |
+| **management/commands/compute_nightly_risk.py** | **DONE** | _process_school: _COMPUTE_NIGHTLY_RISK_ERRORS (ImportError, AttributeError, TypeError, ValueError, DatabaseError, OperationalError) + log_exception_with_context(school_id=str(school.id), extra: command, error). Allowlist 0. §2e row 7. |
 | **research_export.py** | **DONE** | get_deidentified_aggregates: _RESEARCH_AGGREGATE_ERRORS (ImportError, AttributeError, LookupError, TypeError, ValueError, DatabaseError, ObjectDoesNotExist) + log_exception_with_context(school_id, extra step). Allowlist 0. |
 | **services.py** | **DONE** | get_import_job_status: _IMPORT_JOB_STATUS_ERRORS (ObjectDoesNotExist, AttributeError, TypeError, ValueError); returns None on expected failures. Allowlist 0. |
 | **views.py** | **DONE** | analytics_dashboard_view usage_logger.info: _ANALYTICS_USAGE_LOG_ERRORS (AttributeError, TypeError, KeyError, ValueError); never block request on logging failure. Allowlist 0. |

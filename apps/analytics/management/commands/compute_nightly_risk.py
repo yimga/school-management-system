@@ -6,10 +6,22 @@ and optional ML predictors for score + reason_summary.
 """
 
 from django.core.management.base import BaseCommand
+from django.db import DatabaseError, OperationalError
 from django.utils import timezone
 
-from apps.schools.models import School
 from apps.analytics.models import RiskFactor
+from apps.platform_runtime.structured_logging import log_exception_with_context
+from apps.schools.models import School
+
+# Typed exceptions for nightly risk inference (import, DB, service); §2.4 broad-except policy.
+_COMPUTE_NIGHTLY_RISK_ERRORS = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    DatabaseError,
+    OperationalError,
+)
 
 
 class Command(BaseCommand):
@@ -46,7 +58,12 @@ class Command(BaseCommand):
         try:
             from apps.analytics.ml_inference import run_risk_inference_batch
             results = run_risk_inference_batch(school_id=str(school.id), threshold=50)
-        except Exception as e:
+        except _COMPUTE_NIGHTLY_RISK_ERRORS as e:
+            log_exception_with_context(
+                "compute_nightly_risk: school batch failed",
+                school_id=str(school.id),
+                extra={"command": "compute_nightly_risk", "error": str(e)},
+            )
             self.stderr.write(self.style.ERROR(f"School {school.id}: {e}"))
             return 0
         count = 0
