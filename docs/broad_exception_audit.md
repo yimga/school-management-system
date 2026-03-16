@@ -8,6 +8,13 @@
 
 ## 1. Sensitive apps inventory
 
+### config (§2.4 — §2e row 6)
+| File | Status | Notes |
+|------|--------|--------|
+| admin.py | DONE | each_context + login: build_public_absolute_url, render_to_string extra_user_links, django_otp + reverse mfa_setup → _ADMIN_CONTEXT_FALLBACK_ERRORS (ImportError, AttributeError, TypeError, OSError, NoReverseMatch, ImproperlyConfigured, TemplateDoesNotExist, TemplateSyntaxError); fallbacks preserved. Allowlist 0. |
+| schema.py | DONE | resolve_school_count, resolve_schools → _GRAPHQL_SCHOOL_RESOLVE_ERRORS (ImportError, AttributeError, TypeError, ValueError, DatabaseError, OperationalError, ProgrammingError); return None/[] on error. Allowlist 0. |
+| settings.py | DONE | MARKETING_DEMO_WHAT_YOU_SEE parse → except (ValueError, TypeError); fallback to comma-separated split. Allowlist 0. |
+
 ### apps/api (§2.4 — Step 9, full app pass)
 | File | Status | Notes |
 |------|--------|--------|
@@ -89,30 +96,74 @@
 | File | Line(s) | Purpose | Verdict | Action |
 |------|---------|---------|---------|--------|
 | context_processors.py | — | OPTIONAL_CONTEXT_ERRORS / OPTIONAL_STORAGE_ERRORS (typed tuples); no broad except | DONE | allowlist 0. |
+| **tasks.py** | **DONE** | send_welcome_email: _SITECONFIG_TASK_EMAIL_ERRORS (OSError, ConnectionError, TimeoutError, SMTPException, UnicodeError, AttributeError, TypeError) + log_exception_with_context; check_regional_ollama_health: _SITECONFIG_TASK_OLLAMA_ERRORS (OSError, ConnectionError, TimeoutError, URLError, ValueError, AttributeError, TypeError) + log_exception_with_context. Allowlist 0. |
 | **templatetags/feature_control.py** | — | **DONE** | **DONE** | feature_enabled: (ImportError, AttributeError, TypeError, ValueError, KeyError); allowlist 0. |
 | **report_template_engine.py** | — | **DONE** | **DONE** | render_official_template_html: (TemplateSyntaxError, KeyError, ValueError, TypeError, AttributeError); allowlist 0. |
 | **templatetags/region_format.py** | — | **DONE** | **DONE** | format_date: (TypeError, ValueError, AttributeError); format_date_tenant: (ImportError, AttributeError, TypeError, ValueError, KeyError); format_currency_tenant: (ImportError, AttributeError, TypeError, ValueError); allowlist 0. |
+| **templatetags/tenant_hook.py** | — | **DONE** | **DONE** | tenant_hook tag: _TENANT_HOOK_QUERY_ERRORS (ImportError, AttributeError, TypeError, ValueError, ObjectDoesNotExist, DatabaseError) + log_exception_with_context; fail-soft return "". Allowlist 0. |
 | workflow_engine.py | — | **DONE** | **DONE** | record_workflow_run: WORKFLOW_SOFT_FAILURES + logger.debug; allowlist 0. |
 | **management/commands/check_branding_law.py** | — | **DONE** | **DONE** | read_text: (OSError, UnicodeDecodeError); allowlist 0. |
 | **management/commands/compile_translations.py** | — | **DONE** | **DONE** | import: (OSError, ValueError, KeyError, TypeError); allowlist 0. |
+| **management/commands/import_config.py** | — | **DONE** | **DONE** | handle(): _IMPORT_CONFIG_HANDLE_ERRORS (KeyError, ValueError, TypeError, AttributeError, DatabaseError, IntegrityError, ValidationError, InvalidOperation, OSError, UnicodeDecodeError, csv.Error) + log_exception_with_context then CommandError. Allowlist 0. §2e row 6. |
+| **management/commands/aggregate_ai_metrics.py** | — | **DONE** | **DONE** | handle(): cache key iteration → _AGGREGATE_AI_METRICS_CACHE_ITER_ERRORS (ConnectionError, OSError, TypeError, ValueError, AttributeError, RuntimeError) + log_exception_with_context; per-key loop already _AGGREGATE_AI_METRICS_KEY_ERRORS. Allowlist 0. §2e row 6. |
+| **management/commands/check_accessibility.py** | — | **DONE** | **DONE** | User create/get fallback: _ACCESSIBILITY_USER_CREATE_ERRORS (IntegrityError, ValidationError, ValueError, TypeError, AttributeError); _check_page: _ACCESSIBILITY_CHECK_PAGE_ERRORS + log_exception_with_context. Allowlist 0. §2e row 6. |
+| **management/commands/clone_region.py** | — | **DONE** | **DONE** | handle() transaction.atomic clone: _CLONE_REGION_ERRORS (IntegrityError, DatabaseError, ValueError, TypeError, AttributeError) + log_exception_with_context then CommandError. Allowlist 0. §2e row 6. |
+| **management/commands/sync_regional_models.py** | — | **DONE** | **DONE** | _pull_model: _SYNC_REGIONAL_MODELS_PULL_ERRORS (OSError, ValueError, TypeError, subprocess.SubprocessError, subprocess.CalledProcessError) + log_exception_with_context; TimeoutExpired and FileNotFoundError kept as separate handlers. Allowlist 0. §2e row 6. |
 | **management/commands/index_ai_knowledge.py** | — | **DONE** | **DONE** | _index_policy_bundles, _index_blueprint_packs, _index_workflow_packs, _index_report_templates: (ImportError, AttributeError, TypeError, ValueError, KeyError, DatabaseError, OperationalError, OSError) + logger.warning; AIMemoryService import added. Linter skips apps/siteconfig/management/. |
 | **management/commands/recover_database.py** | — | **DONE** | **DONE** | backup: (OSError, PermissionError, shutil.Error); unlink: (OSError, PermissionError); migrate: (DatabaseError, OSError, PermissionError, SystemError) + logger.warning. Linter skips apps/siteconfig/management/. |
+| **management/commands/verify_region_coverage.py** | — | **DONE** | **DONE** | Optional Province coverage: _VERIFY_REGION_COVERAGE_PROVINCE_ERRORS (ImportError, AttributeError, TypeError, ValueError, DatabaseError, OperationalError, ProgrammingError) + log_exception_with_context(school_id=None, extra: command, error). Allowlist 0. §2e row 6. |
+| **management/commands/sync_regional_models.py** | — | **DONE** | **DONE** | _pull_model: _SYNC_REGIONAL_MODELS_ERRORS (OSError, ValueError, TypeError, RuntimeError, subprocess.SubprocessError) + log_exception_with_context(school_id=None, extra: model_id, cluster, error). Allowlist 0. §2e row 6. |
 | **dashboard_views.py** | — | **DONE** | **DONE** | update_theme / update_accessibility_preferences: _DASHBOARD_PREF_ERRORS (ValueError, TypeError, KeyError, DatabaseError, IntegrityError, json.JSONDecodeError) + logger.exception/logger.warning; allowlist 0. |
 | **views_dashboard_config.py** | — | **DONE** | **DONE** | workflow_hub: NoReverseMatch for automation_hub_url; get_blueprints: _OPTIONAL_HUB_ERRORS (ImportError, AttributeError, TypeError, ValueError, DatabaseError) + logger.debug for optional packs/manager_blueprints_url; allowlist 0. |
 | **views.py** | — | **DONE** | **DONE** | theme/experience save redirect: NoReverseMatch for studio_os:experience → fallback to siteconfig:theme_colors + log_view_exception. Allowlist 0. |
+| **views_tag_manager.py** | — | **DONE** | **DONE** | tag_manager_edit tag save: _TAG_SAVE_ERRORS (ValidationError, IntegrityError, DatabaseError, TypeError, ValueError) + log_view_exception. Allowlist 0. |
+| **system_morph.py** | — | **DONE** | **DONE** | hydrate_school_from_profile: invalidate_policy_cache → _SYSTEM_MORPH_POLICY_CACHE_ERRORS (ImportError, AttributeError, TypeError, ValueError, KeyError) + log_exception_with_context + logger.debug. Allowlist 0. |
+| **forms.py** | — | **DONE** | **DONE** | ThemeColorsForm __init__ and save: get_effective_site_settings resolution → _SITECONFIG_FORMS_RESOLVE_ERRORS (ImportError, AttributeError, TypeError, ValueError, LookupError, KeyError, DatabaseError) + log_exception_with_context(school_id/extra). Allowlist 0. |
+| **nuance_engine.py** | — | **DONE** | **DONE** | _run_with_timeout (non-SIGALRM path) and verify_nuance_safety test loop → _NUANCE_EVAL_ERRORS (TypeError, ValueError, KeyError, AttributeError, ZeroDivisionError, RecursionError, OverflowError) + log_exception_with_context. Allowlist 0. |
+| **utils/image_processor.py** | — | **DONE** | **DONE** | compress_image, create_thumbnail, get_image_info: _IMAGE_PROCESSOR_ERRORS (OSError, IOError, ValueError, TypeError, KeyError, AttributeError, UnidentifiedImageError) + log_exception_with_context(school_id=None, extra: original_name/operation). Allowlist 0. |
+| **translations.py** | — | **DONE** | **DONE** | LocalizationService.format_date: except Exception → except _SITECONFIG_TRANSLATIONS_DATE_ERRORS (TypeError, ValueError, AttributeError) + log_exception_with_context(school_id=None, extra: dt_repr, error). MultiLanguageContent.create_multilingual_report already uses _SITECONFIG_TRANSLATIONS_FORMAT_ERRORS + log_exception_with_context. Allowlist 0. |
 | views / other commands | various | Optional features / reverse / format | keep (allowlist) | In allowlist |
 
-### apps/people (§2.4 — management commands)
+### apps/people (§2.4 — Step 9, §2e row 6)
 | File | Status | Notes |
 |------|--------|------|
+| **signals.py** | **DONE** | emit_attendance_recorded_teacher, emit_student_created_event (emit_event + emit_platform_event): _SIGNAL_EMIT_ERRORS (ImportError, AttributeError, TypeError, ValueError, ObjectDoesNotExist, KeyError, DatabaseError) + log_exception_with_context; _get_school_leadership_for_assignment: _LEADERSHIP_QUERY_ERRORS; on_student_critical_tag_added AccessRequest create: _ACCESS_REQUEST_CREATE_ERRORS + log_exception_with_context. Allowlist 0. |
 | **management/commands/attach_audit_triggers.py** | **DONE** | Single-schema and per-tenant attach: _AUDIT_TRIGGER_ERRORS (DatabaseError, OperationalError, ProgrammingError) + logger.warning; allowlist 0. |
+| **management/commands/revoke_audit_log_permissions.py** | **DONE** | handle() per-schema loop: _REVOKE_AUDIT_LOG_PERMISSIONS_ERRORS (DatabaseError, OperationalError, ProgrammingError) + log_exception_with_context(school_id=None, extra: schema_name, label, error); allowlist 0. |
+| **views_backend.py** | **DONE** | backend_student_create (send_mail): _PEOPLE_BACKEND_EMAIL_ERRORS; student/teacher/classroom/applicant create: _PEOPLE_BACKEND_SAVE_ERRORS (IntegrityError, DatabaseError, ValidationError, ValueError, TypeError, AttributeError) + log_view_exception. Allowlist 0. |
+| **employer_views.py** | **DONE** | employer_student_transcript: annual_report_context → except _EMPLOYER_TRANSCRIPT_CONTEXT_ERRORS (ImportError, AttributeError, TypeError, ValueError, ObjectDoesNotExist, DatabaseError) + log_exception_with_context(school_id, extra: placement_id, student_id); return generic error. Allowlist 0. |
+| **employer_views.py** | **DONE** | employer_confirm_hours: hours parse _EMPLOYER_HOURS_PARSE_ERRORS (InvalidOperation, ValueError, TypeError) + log_exception_with_context(school_id, extra placement_id); employer_student_transcript: annual_report_context _EMPLOYER_TRANSCRIPT_CONTEXT_ERRORS (ImportError, AttributeError, TypeError, ValueError, ObjectDoesNotExist, DatabaseError) + log_view_exception. Allowlist 0. |
+| **people_management.py** | **DONE** | import_students_csv / import_teachers_csv: row loop → _PEOPLE_IMPORT_ROW_ERRORS (IntegrityError, ValidationError, ValueError, TypeError, AttributeError, KeyError, UnicodeDecodeError); file-level → _PEOPLE_IMPORT_FILE_ERRORS (UnicodeDecodeError, OSError, TypeError, csv.Error); bulk_send_email → _PEOPLE_BULK_EMAIL_ERRORS (SMTPException, OSError, ValueError, TypeError); all + log_exception_with_context. Allowlist 0. |
 
-### apps/compliance (§2.4 — Step 9)
+### apps/policies (§2.4 — Step 9, §2e row 6)
+| File | Status | Notes |
+|------|--------|------|
+| resolvers.py | DONE | TerminologyResolver, ComplianceResolver, BrandingResolver: resolve_global_brand_context try/except → (ImportError, AttributeError, TypeError, ValueError, KeyError); allowlist 0. |
+| blueprint_services.py | DONE | apply_blueprint_pack PackageEngine audit: _BLUEPRINT_PACKAGE_ENGINE_ERRORS (ImportError, AttributeError, TypeError, ValueError, DatabaseError, IntegrityError, ObjectDoesNotExist) + log_exception_with_context; update_bundle_for_schools loop same tuple + log_exception_with_context. Allowlist 0. |
+| form_policy.py | DONE | _resolve_choices_for_key: all 5 choice branches → except _FORM_POLICY_CHOICES_RESOLVE_ERRORS (ImportError, AttributeError, TypeError, ValueError, KeyError, DatabaseError, ObjectDoesNotExist) + logger.debug(choices_key). Allowlist 0. |
+| resolver.py | DONE | Policy cache read: except Exception → except _POLICY_CACHE_ERRORS (AttributeError, TypeError, ValueError, ConnectionError, OSError) + logger.debug; cache set and other paths already use _POLICY_CACHE_ERRORS / _POLICY_MERGE_ERRORS / _POLICY_REGISTER_USAGE_ERRORS. Allowlist 0. |
+| signals.py | DONE | log_policy_bundle_save + log_blueprint_pack_save: _POLICY_SIGNAL_CHANGELOG_ERRORS (ImportError, AttributeError, TypeError, ValueError, KeyError, DatabaseError, IntegrityError, ValidationError) + log_exception_with_context(school_id, extra: object_type, object_id). Allowlist 0. |
+
+### apps/tenancy (§2.4 — Step 9, §2e row 6)
+| File | Status | Notes |
+|------|--------|------|
+| middleware.py | DONE | build_tenant_context_from_request: get_tenant_locale (schema + school paths) → _TENANT_CONTEXT_LOCALE_ERRORS (ImportError, AttributeError, TypeError, ValueError, KeyError, LookupError) + log_exception_with_context. Allowlist 0. |
+
+### apps/compliance (§2.4 — Step 9, §2e row 7)
 | File | Status | Notes |
 |------|--------|--------|
 | signals.py | DONE | post_save notify_audit_event: (ImportError, AttributeError, TypeError, ValueError); _bump_rules_version cache: (ValueError, TypeError, AttributeError, ConnectionError, OSError). Allowlist 0. |
 | access_control.py | DONE | _access_control_prefix: (ImportError, AttributeError, TypeError, ValueError); check_ip_access table/query: (DatabaseError, OperationalError, ProgrammingError) + logger.debug; get_country_from_ip: (ImportError, AttributeError, TypeError, ValueError, OSError). Allowlist 0. |
 | threat_detection.py | DONE | detect_threats config fallback: _THREAT_CONFIG_FALLBACK_ERRORS (DatabaseError, OperationalError, IntegrityError, AttributeError, TypeError, ValueError) + logger.debug; allowlist 0. |
+| views_dashboard.py | DONE | _get_threat_metrics: (AttributeError, TypeError, ValueError, DatabaseError, OperationalError, IntegrityError) + log_exception_with_context(school_id, extra: section). Allowlist 0. |
+| views_api.py | DONE | mute_threats: (AttributeError, TypeError, ValueError, DatabaseError, OperationalError, IntegrityError) + log_view_exception(request, extra: section, duration). Allowlist 0. |
+| views_gdpr.py | DONE | _mfa_verified: _GDPR_MFA_VERIFY_PARSE_ERRORS (ValueError, TypeError, AttributeError) + logger.debug on invalid session; data_portability_export and erasure_request_view: _GDPR_VIEW_AUDIT_LOG_ERRORS + log_view_exception for ComplianceAuditLog create. Allowlist 0. |
+| **alerts.py** | **DONE** | notify_audit_event: cache.set dedupe → except _COMPLIANCE_ALERTS_CACHE_BACKEND_ERRORS (was bare Exception). All other paths already use _COMPLIANCE_ALERTS_EMAIL_ERRORS / _COMPLIANCE_ALERTS_WEBHOOK_ERRORS / _COMPLIANCE_ALERTS_CACHE_PREFIX_ERRORS. Allowlist 0. |
+| **management/commands/send_digest_alerts.py** | **DONE** | _send_digest: except _SEND_DIGEST_ALERTS_EMAIL_ERRORS (OSError, ConnectionError, TimeoutError, smtplib.SMTPException, UnicodeError, AttributeError, TypeError, ValueError) + log_exception_with_context. §2e row 6+7. |
+| **management/commands/generate_compliance_reports.py** | **DONE** | All 4 except blocks use _GENERATE_COMPLIANCE_REPORTS_ERRORS (DatabaseError, IntegrityError, OperationalError, ValidationError, ValueError, TypeError, AttributeError) + log_exception_with_context(school_id, extra: command, report_type/section, error). Orphaned-sessions delete same tuple. Allowlist 0. §2e row 6+7. |
+| **management_commands.py** | **DONE** | VerifyDataIntegrityCommand integrity-check loop → _VERIFY_DATA_INTEGRITY_ERRORS (DatabaseError, OperationalError, ProgrammingError) + log_exception_with_context. Allowlist 0. §2e row 6+7. |
+| **management/commands/compliance_auditor.py** | **DONE** | _resolve_guard_feature_codes → except _COMPLIANCE_AUDITOR_RESOLVE_GUARD_ERRORS (ImportError, AttributeError, TypeError, ValueError, KeyError) + log_exception_with_context; fallback list. §2e row 6+7. |
+| **management/commands/seed_compliance_baseline.py** | **DONE** | invalidate_policy_cache → except _SEED_COMPLIANCE_BASELINE_POLICY_CACHE_ERRORS (ImportError, AttributeError, TypeError, ValueError, RuntimeError, ConnectionError) + log_exception_with_context(school_id, extra: command, error). §2e row 6+7. |
 
 ### apps/evals (§2.4 — Step 9)
 | File | Status | Notes |
@@ -123,6 +174,14 @@
 | **notifications.py** | **DONE** | All 5 send paths: _EVALS_NOTIFICATION_SEND_ERRORS (OSError, ConnectionError, TimeoutError, SMTPException, ValueError, TypeError, AttributeError, KeyError) + log_exception_with_context. Allowlist 0. |
 | notifications.py | DONE | All 5 send paths (grade_publication_email/sms, deadline_reminder, grade_approval_request_email, grade_approval_decision_email): broad except retained with log_exception_with_context(school_id/actor_id, extra=recipient/flow). Missing django.core.mail.send_mail import added. Allowlist 0. |
 | validators.py | DONE | GradeValidator.validate_evaluation: outlier/jump/duplicate_remark use _EVAL_VALIDATION_DETECTION_ERRORS (TypeError, ValueError, ZeroDivisionError, AttributeError, KeyError, DatabaseError) + log_exception_with_context(school_id, extra: evaluation_id, section). Allowlist 0. |
+| **approval.py** | **DONE** | get_grade_approval_policy: _EVALS_APPROVAL_POLICY_ERRORS (ImportError, AttributeError, TypeError, ValueError, KeyError, LookupError) for get_effective_policy and get_effective_site_settings fallbacks; logger.debug on fallback. Allowlist 0. |
+| **offline_sync.py** | **DONE** | resolve_conflict_manually: _OFFLINE_SYNC_RESOLVE_ERRORS (ValueError, TypeError, AttributeError, KeyError, IntegrityError) + log_exception_with_context(school_id, extra: offline_entry_id). Allowlist 0. |
+| **runtime_gradebook.py** | **DONE** | get_pass_mark: Decimal(str(val)) → except _EVALS_GRADEBOOK_PASS_MARK_PARSE_ERRORS (ValueError, TypeError, InvalidOperation) + logger.debug; fallback to default. Allowlist 0. |
+| **tasks.py** | **DONE** | process_bulk_grades: _run_with_tenant_context → except _EVALS_BULK_GRADES_TENANT_ERRORS (ImportError, AttributeError, TypeError, ValueError, ConnectionError, OSError, RuntimeError, DatabaseError, OperationalError) + log_exception_with_context(school_id, extra: task, schema_name, error); then self.retry. Allowlist 0. |
+| **views_import_enhanced.py** | **DONE** | grade_import_upload_with_tracking + grade_import_retry_job: _EVALS_IMPORT_VIEW_ERRORS (ImportError, AttributeError, TypeError, ValueError, KeyError, ObjectDoesNotExist, DatabaseError, IntegrityError, ValidationError) + log_view_exception(request, message, extra: academic_year/term or job_id, error). Allowlist 0. |
+| **importers.py** | **DONE** | preview_import_with_validation, apply_import (csv_rows loop), dry_run_grade_import: _EVALS_IMPORTERS_ROW_ERRORS (ObjectDoesNotExist, ValidationError, ValueError, TypeError, KeyError, DatabaseError, IntegrityError) + log_exception_with_context(school_id/extra: row_index, student_code, row, academic_year_id). Allowlist 0. |
+| **import_services.py** | **DONE** | validate_row: _EVALS_IMPORT_SERVICES_VALIDATE_ROW_ERRORS (KeyError, TypeError, AttributeError, ValueError, InvalidOperation, LookupError) + log_exception_with_context(school_id=None, extra: row_num, error). _process_single_row: _EVALS_IMPORT_SERVICES_PROCESS_ROW_ERRORS (ObjectDoesNotExist, ValidationError, IntegrityError, DatabaseError, OperationalError, ValueError, TypeError, KeyError, AttributeError) + log_exception_with_context(school_id, extra: row_number, student_code, error). import_grades: _EVALS_IMPORT_SERVICES_IMPORT_JOB_ERRORS (+ OSError, IOError) + log_exception_with_context(school_id, extra: job_id, academic_year_id, error). Allowlist 0. §2e row 6+7. |
+| **ocr.py** | **DONE** | is_tesseract_available: _EVALS_OCR_TESSERACT_ERRORS; process_marksheet_upload: _EVALS_OCR_IMAGE_OPEN_ERRORS (image open/preprocess), _EVALS_OCR_TESSERACT_ERRORS (extract_text); _parse_text: _EVALS_OCR_DECIMAL_PARSE_ERRORS; _parse_text_with_confidence: _EVALS_OCR_TESSERACT_ERRORS (image_to_data), _EVALS_OCR_DECIMAL_PARSE_ERRORS (Decimal+conf); _estimate_confidence: _EVALS_OCR_TESSERACT_ERRORS. log_exception_with_context for decode/engine paths. Allowlist 0. |
 
 ### apps/studio_os (§2.4 — Step 9)
 | File | Status | Notes |
@@ -139,6 +198,7 @@
 | File | Status | Notes |
 |------|--------|--------|
 | degree_audit.py | DONE | Eval credits loop: (ImportError, AttributeError, TypeError, ValueError, ObjectDoesNotExist, DatabaseError) + logger.debug; degree audit resilient if eval subsystem unavailable. Allowlist 0. |
+| views_syllabus.py | DONE | syllabus_approve: badge creation _SYLLABUS_BADGE_ERRORS (ImportError, AttributeError, TypeError, ValueError, ObjectDoesNotExist, DatabaseError, IntegrityError) + log_view_exception; portal syllabus sync (ImportError, AttributeError, TypeError, ValueError, ObjectDoesNotExist, DatabaseError, IntegrityError) + log_view_exception. Allowlist 0. |
 
 ### apps/automation (§2.4 sprint — Step 9)
 | File | Status | Notes |
@@ -210,11 +270,17 @@
 | services.py | DONE | notify_parent_report_blocked_by_debt: (OSError, ConnectionError, AttributeError, TypeError, ValueError, KeyError) + log_exception_with_context. _region_display_context: region lookup (ObjectDoesNotExist, DatabaseError, KeyError, TypeError, AttributeError); tenant locale/template_family (ImportError, AttributeError, TypeError, ValueError, KeyError, DatabaseError). All + log_exception_with_context. Allowlist 0. |
 | views.py | DONE | Publish flow: AuditLog create + honor roll badge create — typed (DatabaseError, IntegrityError, ValidationError, TypeError, ValueError) and (DatabaseError, IntegrityError, ValidationError, TypeError, ValueError, KeyError, ObjectDoesNotExist) + log_view_exception. Allowlist 0. |
 | **weasy.py** | **DONE** | _load_weasyprint_html: _WEASYPRINT_LOAD_ERRORS (ImportError, ModuleNotFoundError, AttributeError, OSError) + re-raise RuntimeError. Allowlist 0. |
+| **management/commands/send_scheduled_reports.py** | **DONE** | handle + _run_one: _SCHEDULED_REPORT_RUN_ONE_ERRORS (DatabaseError, IntegrityError, OSError, ConnectionError, TimeoutError, SMTPException, TypeError, ValueError) + log_exception_with_context. Allowlist 0. |
+| **management/commands/generate_regional_reports.py** | **DONE** | Per-student loop: _REGIONAL_REPORT_BUILD_ERRORS; _send_report_email: _REGIONAL_REPORT_EMAIL_ERRORS (OSError, ConnectionError, TimeoutError, smtplib.SMTPException, TypeError, ValueError, AttributeError, KeyError); both + log_exception_with_context. Allowlist 0. §2e row 6+7. |
 
 ### apps/analytics (§2.4 — incremental)
 | File | Status | Notes |
 |------|--------|------|
+| **management/commands/compute_nightly_risk.py** | **DONE** | _process_school: except Exception → _COMPUTE_NIGHTLY_RISK_ERRORS (ImportError, AttributeError, TypeError, ValueError, DatabaseError, OperationalError) + log_exception_with_context(school_id, extra: command). Allowlist 0. |
+| **research_export.py** | **DONE** | get_deidentified_aggregates: _RESEARCH_AGGREGATE_ERRORS (ImportError, AttributeError, LookupError, TypeError, ValueError, DatabaseError, ObjectDoesNotExist) + log_exception_with_context(school_id, extra step). Allowlist 0. |
 | **services.py** | **DONE** | get_import_job_status: _IMPORT_JOB_STATUS_ERRORS (ObjectDoesNotExist, AttributeError, TypeError, ValueError); returns None on expected failures. Allowlist 0. |
+| **views.py** | **DONE** | analytics_dashboard_view usage_logger.info: _ANALYTICS_USAGE_LOG_ERRORS (AttributeError, TypeError, KeyError, ValueError); never block request on logging failure. Allowlist 0. |
+| **tasks.py** | **DONE** | Deadline reminders: _ANALYTICS_DEADLINE_EMAIL_ERRORS (OSError, ConnectionError, TimeoutError, SMTPException, UnicodeError, AttributeError, TypeError); _ANALYTICS_DEADLINE_SMS_ERRORS (OSError, ConnectionError, TimeoutError, ValueError, TypeError, AttributeError, KeyError); _ANALYTICS_DEADLINE_RUN_ERRORS (DatabaseError, IntegrityError, ValidationError, ValueError, TypeError, AttributeError, ObjectDoesNotExist, KeyError). All + log_exception_with_context. Allowlist 0. |
 
 ### apps/policies (§2.4 — Step 9)
 | File | Status | Notes |
@@ -236,9 +302,8 @@
 | **tasks.py** | **DONE** | generate_ai_response_async: (OSError, ConnectionError, TimeoutError, ValueError, TypeError, ImportError, AttributeError, KeyError, RuntimeError) + log_exception_with_context. Allowlist 0. |
 | **forms.py** | **DONE** | LinkChildForm/StudentOnboardingForm: _FORM_POLICY_ERRORS (ImportError, AttributeError, TypeError, ValueError, KeyError) + logger.debug for apply_form_policy; payment_method choices: (DatabaseError, ObjectDoesNotExist, AttributeError, TypeError). Allowlist 0. |
 | **ai_provider.py** | **DONE** | general_chat + get_workflow_clues + suggest_support_ticket_response: _AI_GATEWAY_INVOKE_ERRORS (OSError, ConnectionError, TimeoutError, ValueError, TypeError, KeyError, AttributeError, ImportError) + logger.warning. Allowlist 0. |
-| **management/commands/import_docs_to_kb.py** | PARTIAL (logging) | Broad except retained in file-processing loop and markdown-conversion fallback; log_exception_with_context added in both blocks (extra: command, file). Rollout per BACKLOG §2e row 7. |
-| **management/commands/generate_kb_odt.py** | PARTIAL (logging) | Broad except retained in article-conversion loop and odt_file.delete; log_exception_with_context added (extra: command, article_slug). Rollout per BACKLOG §2e row 7. |
-| **management/commands/generate_regional_reports.py** | PARTIAL (logging) | Two broad excepts retained: per-student report loop and _send_report_email; log_exception_with_context added (school_id, extra: command, student_id, language). Allowlist 2. |
+| **management/commands/import_docs_to_kb.py** | **DONE** | Admin resolve: _KB_IMPORT_ADMIN_RESOLVE_ERRORS; file loop: _KB_IMPORT_FILE_PROCESSING_ERRORS; markdown convert: _KB_IMPORT_MARKDOWN_CONVERT_ERRORS; all + log_exception_with_context. Allowlist 0. §2.4 typed exceptions. |
+| **management/commands/generate_kb_odt.py** | **DONE** | Article loop: _KB_ODT_ARTICLE_ERRORS (OSError, ValueError, TypeError, DatabaseError, IntegrityError, ValidationError, KeyError, AttributeError); odt_file.delete: _KB_ODT_DELETE_ERRORS (OSError, PermissionError); both + log_exception_with_context. Allowlist 0. |
 | **document_generation.py** | **DONE** | markdown_to_html: _MARKDOWN_CONVERT_ERRORS (TypeError, ValueError, KeyError, AttributeError, LookupError) + log_exception_with_context; fallback to _simple_markdown_to_html. Allowlist 0 (no entry needed; 0 broad except). |
 
 ### apps/marketplace (§2.4 — Step 9)
@@ -246,6 +311,8 @@
 |------|--------|------|
 | **views.py** | **DONE** | Blueprint pack preview: _MARKETPLACE_PREVIEW_FAILURES; app sandbox embed: _embed_parse_errors (ValueError, TypeError, AttributeError, KeyError) for urlparse/origin. Allowlist 0. |
 | **services.py** | **DONE** | run_schema_patches_for_installation: _SCHEMA_PATCH_ERRORS (DatabaseError, IntegrityError, OperationalError, OSError, ImportError, AttributeError, TypeError, ValueError, RuntimeError) + log_exception_with_context(school_id, extra: installation_id, app_label). check_app_compatibility: _MARKETPLACE_COMPAT_ERRORS + log_exception_with_context. install_app billing record: _MARKETPLACE_SCHEMA_BILLING_ERRORS + log_exception_with_context. Allowlist 0. |
+| **tasks.py** | **DONE** | marketplace_health_check loop: _MARKETPLACE_HEALTH_CHECK_ERRORS (ImportError, AttributeError, TypeError, ValueError, ObjectDoesNotExist, DatabaseError, IntegrityError) + log_exception_with_context(school_id, extra: installation_id, status, error) + logger.warning. Allowlist 0. |
+| **management/commands/marketplace_health_check.py** | **DONE** | handle() loop over AppInstallation: record_installation_health → except _MARKETPLACE_HEALTH_CHECK_ERRORS + log_exception_with_context("marketplace_health_check command: record_installation_health failed", school_id=getattr(inst, "school_id", None), extra: installation_id, error). §2.4 typed exceptions; allowlist 0. |
 
 ### apps/setup_studio (§2.4 — incremental)
 | File | Status | Notes |
@@ -255,7 +322,23 @@
 ### apps/communication (§2.4 — incremental)
 | File | Status | Notes |
 |------|--------|------|
+| **api_views.py** | **DONE** | Bulk message create loop: _COMMUNICATION_MESSAGE_CREATE_ERRORS (IntegrityError, DatabaseError, ValidationError, ValueError, TypeError) + log_exception_with_context(school_id, extra: recipient_id, error). Allowlist 0. |
 | **channels.py** | **DONE** | send_whatsapp: (requests.RequestException, OSError, ValueError, TypeError) + logger.exception; send_push: (OSError, ConnectionError, TimeoutError, ValueError, TypeError) + logger.exception. Allowlist 0. |
+| **integrations.py** | **DONE** | WhatsApp/Zoom send_message, check_health; CommunicationService.check_all_health: _COMMUNICATION_INTEGRATION_ERRORS (OSError, ConnectionError, TimeoutError, ValueError, TypeError, KeyError, AttributeError, ImportError, JSONDecodeError, requests.RequestException) + logger.exception/logger.debug with extra (recipient, integration, provider). Allowlist 0. |
+| **tasks.py** | **DONE** | kudos_perfect_attendance_3d_task: create_achievement_and_narrative loop → except _COMMUNICATION_TASK_NARRATIVE_ERRORS + log_exception_with_context(school_id, extra: student_id, event_type, error). process_outbound_message_queue already uses _COMMUNICATION_TASK_OUTBOUND_SEND_ERRORS. Allowlist 0. |
+| **providers/sms_africastalking.py** | **DONE** | send: except _SMS_AFRICASTALKING_SEND_ERRORS (ImportError, AttributeError, TypeError, ValueError, KeyError, OSError, ConnectionError, TimeoutError, RuntimeError) + logger.exception. Allowlist 0. |
+| **providers/sms_twilio.py** | **DONE** | send: except _SMS_TWILIO_SEND_ERRORS (ImportError, AttributeError, TypeError, ValueError, OSError, ConnectionError, TimeoutError, RuntimeError) + logger.exception. Allowlist 0. |
+
+### apps/tenancy (§2.4 — incremental)
+| File | Status | Notes |
+|------|--------|------|
+| **middleware.py** | **DONE** | build_tenant_context_from_request: both schema-tenant and school branches use _TENANT_CONTEXT_LOCALE_ERRORS (ImportError, AttributeError, TypeError, ValueError, KeyError, LookupError) for get_tenant_locale; log_exception_with_context + logger.debug/logger.warning. Allowlist 0. |
+
+### apps/student360 (§2.4 — incremental)
+| File | Status | Notes |
+|------|--------|------|
+| **views.py** | **DONE** | _student_360_academic and _student_360_finance: (ImportError, LookupError, AttributeError, TypeError, ValueError, DatabaseError) for optional apps.get_model / queryset; graceful fallback to empty lists. Allowlist 0. |
+| **services.py** | **DONE** | get_student_360_summary, get_student_timeline_feed, export_student_pack, build_transcript_snapshot, create_immutable_transcript, get_immutable_transcripts_for_student: _STUDENT360_SERVICE_ERRORS (ImportError, AttributeError, TypeError, ValueError, LookupError, ObjectDoesNotExist, KeyError, DatabaseError, IntegrityError) + log_exception_with_context(school_id, extra) where applicable; timeline count and region/language fallbacks silent. Allowlist 0. |
 
 ---
 

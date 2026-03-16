@@ -9,6 +9,27 @@ from datetime import date, timedelta
 
 from django.core.management.base import BaseCommand
 from django.core.cache import cache
+from django.db import DatabaseError, IntegrityError
+
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
+# §2.4 Typed exceptions for allowlist shrink (broad_exception_audit)
+_AGGREGATE_AI_METRICS_CACHE_ITER_ERRORS = (
+    ConnectionError,
+    OSError,
+    TypeError,
+    ValueError,
+    AttributeError,
+    RuntimeError,
+)
+_AGGREGATE_AI_METRICS_KEY_ERRORS = (
+    DatabaseError,
+    IntegrityError,
+    ValueError,
+    TypeError,
+    AttributeError,
+    KeyError,
+)
 
 
 class Command(BaseCommand):
@@ -48,7 +69,12 @@ class Command(BaseCommand):
                 keys = list(cache.iter_keys(prefix))
             elif hasattr(cache, "keys"):
                 keys = cache.keys(prefix) or []
-        except Exception as e:
+        except _AGGREGATE_AI_METRICS_CACHE_ITER_ERRORS as e:
+            log_exception_with_context(
+                "aggregate_ai_metrics: cache key iteration failed",
+                school_id=None,
+                extra={"command": "aggregate_ai_metrics", "prefix": prefix, "error": str(e)},
+            )
             self.stdout.write(self.style.WARNING(f"Cache key iteration: {e}"))
 
         if not keys:
@@ -106,7 +132,12 @@ class Command(BaseCommand):
                     updated += 1
                 if not options.get("no_delete"):
                     cache.delete(key)
-            except Exception as e:
+            except _AGGREGATE_AI_METRICS_KEY_ERRORS as e:
+                log_exception_with_context(
+                    "aggregate_ai_metrics: skip key",
+                    school_id=None,
+                    extra={"command": "aggregate_ai_metrics", "key": key, "error": str(e)},
+                )
                 self.stdout.write(self.style.WARNING(f"Skip key {key}: {e}"))
 
         self.stdout.write(self.style.SUCCESS(f"Aggregated {agg_date}: created={created}, updated={updated}"))

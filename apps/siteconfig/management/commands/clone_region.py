@@ -5,8 +5,22 @@ Usage: python manage.py clone_region CMR NEW_REGION --name "My New Region"
 
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
+from django.db import DatabaseError, IntegrityError, OperationalError, ProgrammingError
 
+from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.siteconfig.models import RegionConfig, GradingScaleConfig
+
+# §2.4 Typed exceptions for allowlist shrink (broad_exception_audit)
+_CLONE_REGION_ERRORS = (
+    IntegrityError,
+    DatabaseError,
+    ValueError,
+    TypeError,
+    AttributeError,
+    ImportError,
+    OperationalError,
+    ProgrammingError,
+)
 
 
 class Command(BaseCommand):
@@ -91,5 +105,10 @@ class Command(BaseCommand):
                 self.stdout.write('-' * 60)
                 self.stdout.write(self.style.SUCCESS(f'✓ Region "{new_name}" ({new_code}) cloned successfully!\n'))
                 
-        except Exception as e:
+        except _CLONE_REGION_ERRORS as e:
+            log_exception_with_context(
+                "clone_region: transaction failed",
+                school_id=None,
+                extra={"command": "clone_region", "source_code": source_code, "new_code": new_code, "error": str(e)},
+            )
             raise CommandError(f"Error cloning region: {str(e)}")
