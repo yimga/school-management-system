@@ -6,6 +6,8 @@
 
 **§2e row 6 scope:** Application code under `apps/` and `config/` is in scope; `lint_broad_except.py` skips `migrations/` and `tests/`. Remaining `except Exception` in migration files (e.g. siteconfig/migrations, finance/migrations, portal/migrations) are **out of scope** for this remediation; migrations are one-off data/schema scripts.
 
+**Completion audit:** §2e row 6 (broad except) and §2e row 7 (structured logging) are **complete** for application code; migrations out of scope. Verification: `manage.py check`, `lint_broad_except --strict`, `verify_operating_discipline_docs`, Phase H audit, smoke + targeted tests passed.
+
 **§2e row 7 structured logging (incremental):** The following paths now call `log_exception_with_context` (or `log_view_exception` where request is available) before `logger.warning`/`logger.error`/`logger.exception`: siteconfig/management/commands/recover_database (unlink, migrate); portal/views_kb (kb_article_download_odt, kb_article_download_pdf); portal/views_documents (PDF conversion); compliance/middleware (DatabaseError/TransactionManagementError in process_response and process_exception); siteconfig/management/commands/index_ai_knowledge (policy_bundles, workflow_packs, report_templates); evals/signals (create_audit_trail); schools/dns_verification (verify_domain_txt, sync_verified_schooldomain); schools/celery_tasks (get_active_school_ids, _resolve_client); siteconfig/workflow_engine (notify email, emit_event, action failed, WorkflowRunLog create, audit log, failure event record, run_workflow); observability/db_liveness; api/search_read_layer; metadata/changelog; policies/resolver (_POLICY_MERGE_ERRORS); automation/models (rollback run).
 
 ---

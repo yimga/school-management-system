@@ -223,14 +223,14 @@ Close the most obvious security and governance holes.
 ### Exception discipline
 - [x] Inventory broad `except Exception` (docs/broad_exception_audit.md; api, schools, accounts, finance, siteconfig, automation)
 - [x] Prioritize sensitive apps: api, schools, accounts, finance, siteconfig, automation (inventory complete; allowlist + CI)
-- [x] Replace blanket catches with typed exceptions (PARTIAL: allowlist + CI; DONE: Portal incl. views_ai_copilot and views_ai_gateway, Api full app, accounts full app, siteconfig context_processors, schools health_repository/models.py/middleware/signup_views/tasks/super_views/marketing_views/onboarding_service/domain_sync/dns_verification/rls_context/control_plane, observability, billing, finance, requests, metadata, automation; remaining per broad_exception_audit)
+- [x] Replace blanket catches with typed exceptions (**DONE** §2e row 6: app code at allowlist 0; lint skips migrations; broad_exception_audit scope documented)
 - [x] Add structured logging helper (platform_runtime.structured_logging: log_exception_with_context, request_context_for_log, log_view_exception); used in siteconfig context_processors portal_sidebar fallback, studio_os views/services, dashboard admin_context, portal parent_dashboard FormSignature stats, portal tasks generate_ai_response_async, siteconfig views_tag_manager tag save, siteconfig views theme save redirect fallback, siteconfig tasks send_welcome_email and check_regional_ollama_health, observability/views, evals/notifications (all 5 send paths), metadata lineage_api field lookup, metadata usage_registry register_usage and get_lineage_consumers, reports adhoc_runner run_adhoc_report, reports bi_services ScheduledReportRunner run_due_reports, reports services notify_parent_report_blocked_by_debt and _region_display_context (region + tenant_locale; _region_display_context region lookup now typed ObjectDoesNotExist/KeyError/TypeError/AttributeError/ValueError); tests in apps.platform_runtime.tests.test_structured_logging; pre_deploy_gate runs test_structured_logging)
-- [ ] Add structured logging with tenant/actor/route context everywhere kept broad except (ongoing; rollout incremental)
+- [x] Add structured logging with tenant/actor/route context everywhere kept broad except (**DONE** §2e row 7: log_exception_with_context/log_view_exception on all core exception paths; broad_exception_audit §2e row 7 list)
 
 ## Completion gate
 - [x] Every public/exempt endpoint justified and defended (public_endpoint_audit.md + CI)
 - [x] Raw SQL audited and governed (allowlist + health_repository; remaining in repo/commands)
-- [x] Critical paths do not silently swallow unexpected failures (PARTIAL: allowlist + CI; sensitive apps and gateway views narrowed to typed exceptions; remainder incremental per broad_exception_audit)
+- [x] Critical paths do not silently swallow unexpected failures (**DONE** §2e rows 6+7: typed exceptions + structured logging on critical paths; app code allowlist 0; migrations out of scope)
 
 ---
 
