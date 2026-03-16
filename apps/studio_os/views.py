@@ -101,7 +101,13 @@ def studio_experience_recommendations(request):
     return render(
         request,
         "studio_os/experience_recommendations.html",
-        {"recommendations": recs},
+        {
+            "recommendations": recs,
+            "page_title": _("AI recommendations"),
+            "page_subtitle": _("Experience-mode suggestions for theme and branding."),
+            "action_url": reverse("studio_os:experience"),
+            "action_text": _("Back to Experience"),
+        },
     )
 
 
@@ -162,7 +168,13 @@ def studio_output_branding_inheritance(request):
     return render(
         request,
         "studio_os/output_branding_inheritance.html",
-        {"theme_colors_url": theme_url},
+        {
+            "theme_colors_url": theme_url,
+            "page_title": _("Branding inheritance"),
+            "page_subtitle": _("Reports and documents inherit school and theme branding. Configure theme and colors to control outputs."),
+            "action_url": reverse("studio_os:output"),
+            "action_text": _("Back to Outputs"),
+        },
     )
 
 

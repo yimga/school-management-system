@@ -121,6 +121,7 @@ Adopt shared `studio_os/components/page_header.html` incrementally so every cont
 | **observability/slo_dashboard** | **studio_os page_header** (Operational SLO dashboard, subtitle, Back to Dashboard) + data-page-archetype=operational-workbench | **DONE** |
 | **marketplace/sandbox_inspector** | cp-hero (Sandbox inspector); data-page-archetype=catalog; Back to Dashboard + Governance + Health | **DONE** |
 | **marketplace/installation_health** | cp-hero (Installation health); data-page-archetype=operational-workbench; Back to Dashboard + Sandbox + Incidents | **DONE** |
+| **marketplace/compatibility_matrix** | cp-hero (Compatibility matrix); data-page-archetype=catalog; Governance + App catalog + Control plane | **DONE** — §2e row 8 page maturity. |
 | **super_global_ai_version** | **studio_os page_header** (Global AI Version, subtitle, Back to dashboard) + data-page-archetype=operational-workbench; link to AI Model Hub | **DONE** |
 | **super_ai_model_hub** | **studio_os page_header** (AI Model Hub, Per-region Ollama config and health, Back to dashboard) + data-page-archetype=operational-workbench | **DONE** |
 | **super_global_ai_version_progress** | **studio_os page_header** (Global AI upgrade progress, subtitle, Back to dashboard) + data-page-archetype=operational-workbench | **DONE** |
@@ -129,6 +130,8 @@ Adopt shared `studio_os/components/page_header.html` incrementally so every cont
 | **studio_os/automation_dependency_graph** (Automation Studio) | **studio_os page_header** (Dependency graph, subtitle, Back to Automation) + data-page-archetype=operational-workbench | **DONE** |
 | **studio_os/control_impact** (Control Studio) | **studio_os page_header** (Diff / impact summary, subtitle, Back to Control) + data-page-archetype=operational-workbench | **DONE** |
 | **studio_os/ai_cleanup** (Control Studio) | **studio_os page_header** (AI cleanup suggestions, subtitle, Back to Control) + data-page-archetype=operational-workbench | **DONE** |
+| **studio_os/experience_recommendations** (Experience Studio) | **studio_os page_header** (AI recommendations, subtitle, Back to Experience) + data-page-archetype=operational-workbench | **DONE** |
+| **studio_os/output_branding_inheritance** (Output Studio) | **studio_os page_header** (Branding inheritance, subtitle, Back to Outputs) + data-page-archetype=operational-workbench | **DONE** |
 | people/backend_student_list.html (tenant backend) | **studio_os page_header** (title, subtitle, Add Student) | **DONE** — migrated from title_block; §8.0.11 platform-wide bar. |
 | **people/backend_guardian_list.html** (tenant backend) | **studio_os page_header** (Guardians, subtitle, Back to students) | **DONE** — §2e row 8 tenant backend page maturity. |
 | **people/backend_teacher_list.html** (tenant backend) | **studio_os page_header** (Teachers, subtitle, Add Teacher) | **DONE** — §2e row 8 tenant backend page maturity. |
