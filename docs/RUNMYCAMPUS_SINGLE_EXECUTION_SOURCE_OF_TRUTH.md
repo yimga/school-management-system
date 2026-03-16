@@ -349,7 +349,7 @@ Status: PARTIAL (hub with rail + iframe switcher when in-shell form unavailable;
 - [x] theme & colors (rail entry + embed; in-shell form when user has permission)
 - [x] customizer (rail entry + embed)
 - [x] school theme (rail entry + embed)
-- [ ] `ExperiencePack` (optional)
+- [x] `ExperiencePack` (optional) — Experience Studio rail "Experience packs" → studio_os:experience_packs (embed); view + experience_experience_packs.html; shows effective pack, pack_count, links to Theme & colors and admin; ExperiencePack model in packages; get_effective_experience_pack in brand_experience.
 - [x] theme tokens (optional; in-shell form uses tokens) — Experience Studio rail "Theme tokens" → studio_os:experience_theme_tokens (embed); view + experience_theme_tokens.html explains design tokens (CSS variables) and links to Theme & colors.
 - [x] portal shell layouts (optional) — Experience Studio rail "Portal shell layouts" → studio_os:experience_portal_shell_layouts (embed); view + experience_portal_shell_layouts.html explains shell structure (sidebar, header, content); links to Customizer.
 - [x] dashboard visual packs (optional) — Experience Studio rail "Dashboard visual packs" → studio_os:experience_dashboard_visual_packs (embed); view + experience_dashboard_visual_packs.html explains widgets, charts, layout presets; links to Backend dashboard and Customizer.
