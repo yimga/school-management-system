@@ -62,6 +62,7 @@
 | views_security.py | DONE | _user_has_mfa: (ImportError, AttributeError, TypeError). Allowlist 0. |
 | views_onboarding.py | DONE | (AttributeError, TypeError, ValueError, DatabaseError). Allowlist 0. |
 | views_delegation.py | DONE | Badge/send_mail: (ImportError, OSError, ConnectionError, AttributeError, TypeError); revoke: (ImportError, AttributeError, TypeError, ValueError). Allowlist 0. |
+| views_rollover.py | DONE | clone_year_setup, rollover_year (carry_forward_arrears, promotion_map, notify_parents send_sms): typed excepts + log_exception_with_context(school_id, extra: view, source_year_id/target_year_id/student_id, error). §2e row 7. |
 | middleware.py | DONE | resolve: Resolver404; MFA block: (ImportError, AttributeError, TypeError, ValueError); _is_mfa_verified: (ValueError, TypeError, AttributeError); ImpossibleTravel: (ValueError, TypeError, ImportError, AttributeError, OSError). Allowlist 0. |
 | tasks.py | DONE | Email/revoke: (OSError, ConnectionError, AttributeError, TypeError), (ImportError, AttributeError, TypeError, ValueError); promotion_map: (ImportError, AttributeError, TypeError); carry_forward_arrears: (ValueError, TypeError, ImportError, AttributeError). Allowlist 0. |
 | security_health.py | DONE | All checkers + get_weights + cache prefix + grace_period: (ImportError, AttributeError, TypeError, KeyError, ValueError). Allowlist 0. |
@@ -257,7 +258,7 @@
 ### apps/requests (§2.4 sprint — Step 9)
 | File | Status | Notes |
 |------|--------|--------|
-| tasks.py | DONE | Notification create → (IntegrityError, ValidationError, DatabaseError) + logger.warning; task body → (DatabaseError, IntegrityError, ValidationError, ValueError, TypeError) + log_exception_with_context(extra: task, execution_log_id, error) + re-raise. §2e row 7. |
+| tasks.py | DONE | Notification create → (IntegrityError, ValidationError, DatabaseError) + log_exception_with_context(school_id, extra: command, assignee_id, error) + logger.warning; task body → (DatabaseError, IntegrityError, ValidationError, ValueError, TypeError) + log_exception_with_context(extra: task, execution_log_id, error) + re-raise. §2e row 7. |
 | services.py | DONE | GradeApprovalRequest filter → (DatabaseError, IntegrityError); target = None on failure. |
 
 ### apps/metadata (§2.4 sprint — Step 9)

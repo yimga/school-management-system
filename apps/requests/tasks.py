@@ -72,6 +72,12 @@ def _remind_pending_assignees_body() -> dict:
                 )
                 notified += 1
             except (IntegrityError, ValidationError, DatabaseError) as e:
+                school_id = str(reqs[0].school_id) if reqs and getattr(reqs[0], "school_id", None) else None
+                log_exception_with_context(
+                    "remind_pending_assignees: notify assignee failed",
+                    school_id=school_id,
+                    extra={"command": "remind_pending_assignees", "assignee_id": assignee_id, "error": str(e)},
+                )
                 logger.warning("Failed to notify assignee %s: %s", assignee_id, e)
 
         result = {"notified": notified, "assignees": len(by_assignee), "pending_total": len(pending_enabled)}
