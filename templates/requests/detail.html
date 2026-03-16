@@ -4,15 +4,9 @@
 
 {% block content %}
 <div class="container-fluid py-4" data-page-archetype="record-detail">
-<div class="d-flex flex-wrap align-items-start justify-content-between mb-3">
-  <div>
-    <h2 class="mb-1">Request {{ req.reference }}</h2>
-    <div class="text-muted small">{{ req.get_request_type_display }}</div>
-  </div>
-  <span class="badge {% if req.status == 'APPROVED' %}bg-success{% elif req.status == 'DENIED' %}bg-danger{% elif req.status == 'CLARIFICATION_REQUESTED' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
-    {{ req.get_status_display }}
-  </span>
-</div>
+  {% url 'requests:dashboard' as back_url %}
+  {% include "studio_os/components/page_header.html" with title=req.reference subtitle=req.get_request_type_display action_url=back_url action_text="Back to list" %}
+  <p class="mb-3"><span class="badge {% if req.status == 'APPROVED' %}bg-success{% elif req.status == 'DENIED' %}bg-danger{% elif req.status == 'CLARIFICATION_REQUESTED' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">{{ req.get_status_display }}</span></p>
 
 <div class="card shadow-sm mb-4">
   <div class="card-body">
