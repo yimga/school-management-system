@@ -192,6 +192,9 @@
     "apps/siteconfig/management/commands/index_ai_knowledge.py": 0,
     "apps/siteconfig/management/commands/recover_database.py": 0,
     "apps/siteconfig/management/commands/import_config.py": 0,
-    "apps/siteconfig/management/commands/verify_region_coverage.py": 0
+    "apps/siteconfig/management/commands/verify_region_coverage.py": 0,
+    "apps/schools/tests/test_tenant_isolation_and_provisioning.py": 0,
+    "apps/schools/tests/test_tenant_isolation_schema_mode.py": 0,
+    "apps/api/tests/test_offline_sync.py": 0
   }
 }
