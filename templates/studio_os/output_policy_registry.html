@@ -1,0 +1,22 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Policy & registry" %} · {% trans "Outputs" %}{% endblock %}
+
+{% block content %}
+<div class="container py-3" data-page-archetype="operational-workbench">
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
+  <div class="studio-os__card py-3 px-3">
+    <p class="mb-2">{% trans "Report packs and outputs align with the policy registry (blueprints, grading, terms) and metadata registry (lineage, fields). Build reports in Report library; govern policy and lineage from Control Studio." %}</p>
+    {% if report_library_url %}
+    <p class="mb-1"><a href="{{ report_library_url }}">{% trans "Report library" %}</a> — {% trans "Create and manage report packs; sample data and dependencies." %}</p>
+    {% endif %}
+    {% if blueprints_url %}
+    <p class="mb-1"><a href="{{ blueprints_url }}">{% trans "Blueprints & policy packs" %}</a> — {% trans "Policy and blueprint governance; link from Control Studio." %}</p>
+    {% endif %}
+    {% if lineage_url %}
+    <p class="mb-0"><a href="{{ lineage_url }}">{% trans "Lineage & registry" %}</a> — {% trans "Metadata lineage and field registry; trace report dependencies." %}</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

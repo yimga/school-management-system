@@ -13,6 +13,8 @@ from django.core.signing import BadSignature
 from django.db import DatabaseError
 from django.utils import timezone
 
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
 logger = logging.getLogger(__name__)
 
 # Dedupe window: same user+ip+device within 1h → update last_seen
@@ -258,6 +260,11 @@ def check_impossible_travel(request, user):
             )
             lockdown_user_account(user, request=request, initiator="self", school=getattr(request, "school", None))
     except (AttributeError, DatabaseError, TypeError, ValueError) as e:
+        log_exception_with_context(
+            "security_audit: check_impossible_travel failed",
+            school_id=getattr(getattr(request, "school", None), "id", None),
+            extra={"section": "check_impossible_travel", "user_id": getattr(user, "pk", None), "error": str(e)},
+        )
         logger.exception("check_impossible_travel: %s", e)
 
 

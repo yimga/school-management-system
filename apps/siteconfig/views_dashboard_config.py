@@ -13,6 +13,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.cache import never_cache
 from django.db import DatabaseError
+from django.utils.translation import gettext as _
 
 from apps.siteconfig.models_dashboard import DashboardTemplate, TenantLayoutAssignment
 from apps.siteconfig.models_workflow import WorkflowTemplate, TenantWorkflow
@@ -41,6 +42,7 @@ def dashboard_hub(request):
     config_url = reverse("siteconfig:dashboard_configuration_hub")
     backend_url = reverse("accounts:backend_dashboard")
     assignment_count = TenantLayoutAssignment.objects.filter(school=school).count()
+    # §2e row 8 page maturity: studio_os page_header + data-page-archetype (CONTROL_PLANE §5.1)
     return render(
         request,
         "siteconfig/dashboard_hub.html",
@@ -49,6 +51,10 @@ def dashboard_hub(request):
             "config_url": config_url,
             "backend_url": backend_url,
             "assignment_count": assignment_count,
+            "page_title": _("Dashboard Hub"),
+            "page_subtitle": _("Dashboards are composed by role via the platform resolver. Assign a template per role to control default layout and widgets for %(school_name)s.") % {"school_name": school.name},
+            "action_url": backend_url,
+            "action_text": _("Back to backend"),
         },
     )
 
@@ -126,6 +132,17 @@ def get_blueprints(request):
     except _OPTIONAL_HUB_ERRORS as e:
         logger.debug("get_blueprints optional manager_blueprints_url: %s", e)
         manager_blueprints_url = None
+    # §2e row 8 page maturity: page_header + data-page-archetype (CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL §5.1)
+    if request.GET.get("embed"):
+        try:
+            action_url = reverse("studio_os:control")
+            action_text = _("Back to Control")
+        except NoReverseMatch:
+            action_url = reverse("siteconfig:dashboard_hub")
+            action_text = _("Back to dashboard")
+    else:
+        action_url = reverse("siteconfig:dashboard_hub")
+        action_text = _("Back to dashboard")
     return render(
         request,
         "siteconfig/get_blueprints.html",
@@ -135,6 +152,10 @@ def get_blueprints(request):
             "applied_pack": applied_pack,
             "pack_update_available": pack_update_available,
             "manager_blueprints_url": manager_blueprints_url,
+            "page_title": _("Blueprints"),
+            "page_subtitle": _("Policy blueprint packs for %(school)s. Packs are applied by your platform administrator.") % {"school": school.name},
+            "action_url": action_url,
+            "action_text": action_text,
         },
     )
 
@@ -185,6 +206,8 @@ def dashboard_configuration_hub(request):
         (role_val, role_label, assignments.get(role_val))
         for role_val, role_label in role_choices
     ]
+    dashboard_hub_url = reverse("siteconfig:dashboard_hub")
+    # §2e row 8 page maturity: studio_os page_header + data-page-archetype (CONTROL_PLANE §5.1)
     return render(
         request,
         "siteconfig/dashboard_configuration_hub.html",
@@ -194,6 +217,10 @@ def dashboard_configuration_hub(request):
             "assignment_rows": assignment_rows,
             "role_choices": role_choices,
             "school": school,
+            "page_title": _("Dashboard Configuration Hub"),
+            "page_subtitle": _("Assign a dashboard template per role for %(school_name)s. Runtime resolves layout and theme from the assigned template.") % {"school_name": school.name},
+            "action_url": dashboard_hub_url,
+            "action_text": _("Back to Dashboard hub"),
         },
     )
 
@@ -251,6 +278,18 @@ def workflow_flow_gallery(request):
     }
     template_rows = [(t, assignments_by_tpl.get(t.id)) for t in templates]
 
+    # §2e row 8 page maturity: page_header + data-page-archetype (CONTROL_PLANE §5.1)
+    if request.GET.get("embed"):
+        try:
+            action_url = reverse("studio_os:automation")
+            action_text = _("Back to Automation")
+        except NoReverseMatch:
+            action_url = reverse("siteconfig:workflow_hub")
+            action_text = _("Back to Workflow hub")
+    else:
+        action_url = reverse("siteconfig:workflow_hub")
+        action_text = _("Back to Workflow hub")
+
     return render(
         request,
         "siteconfig/workflow_flow_gallery.html",
@@ -258,5 +297,9 @@ def workflow_flow_gallery(request):
             "templates": templates,
             "template_rows": template_rows,
             "school": school,
+            "page_title": _("Workflow Flow Gallery"),
+            "page_subtitle": _("Pre-built workflows and assignments for %(school)s. Activate, deactivate, or rollback within guardrails.") % {"school": school.name},
+            "action_url": action_url,
+            "action_text": action_text,
         },
     )

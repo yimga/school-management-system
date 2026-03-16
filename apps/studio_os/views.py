@@ -362,6 +362,43 @@ def studio_output_branding_inheritance(request):
 @never_cache
 @require_http_methods(["GET"])
 @login_required
+def studio_output_policy_registry(request):
+    """§5.3 Report Library: Policy & registry compatibility. Explains how report packs align with policy registry and metadata lineage; links to Blueprints & policy and Lineage & registry."""
+    if not getattr(request.user, "is_staff", False):
+        return redirect(reverse("accounts:backend_dashboard"))
+    blueprints_url = ""
+    lineage_url = ""
+    report_library_url = ""
+    try:
+        blueprints_url = reverse("siteconfig:get_blueprints") + "?embed=1"
+    except NoReverseMatch:
+        pass
+    try:
+        lineage_url = reverse("metadata:metadata_lineage_graph") + "?embed=1"
+    except NoReverseMatch:
+        pass
+    try:
+        report_library_url = reverse("siteconfig:report_library") + "?embed=1"
+    except NoReverseMatch:
+        pass
+    return render(
+        request,
+        "studio_os/output_policy_registry.html",
+        {
+            "page_title": _("Policy & registry"),
+            "page_subtitle": _("Reports and report packs align with policy (blueprints, grading, terms) and metadata registry (lineage, fields). Use Report library to build; Control for policy and lineage."),
+            "action_url": reverse("studio_os:output"),
+            "action_text": _("Back to Outputs"),
+            "blueprints_url": blueprints_url,
+            "lineage_url": lineage_url,
+            "report_library_url": report_library_url,
+        },
+    )
+
+
+@never_cache
+@require_http_methods(["GET"])
+@login_required
 def studio_automation_conflict_detection(request):
     """§4.3 Automation Studio optional: Conflict detection. Explains workflow conflict detection and links to Workflow hub."""
     if not getattr(request.user, "is_staff", False):
@@ -920,6 +957,14 @@ def studio_shell(request, mode=None):
             output_rail.append({
                 "label": "Branding inheritance",
                 "url": reverse("studio_os:output_branding_inheritance") + "?embed=1",
+                "embed": True,
+            })
+        except NoReverseMatch:
+            pass
+        try:
+            output_rail.append({
+                "label": "Policy & registry",
+                "url": reverse("studio_os:output_policy_registry") + "?embed=1",
                 "embed": True,
             })
         except NoReverseMatch:

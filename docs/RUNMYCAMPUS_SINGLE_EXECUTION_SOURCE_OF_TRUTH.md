@@ -506,7 +506,7 @@ Target: **11/10**
 - [x] Add `ReportPack` (apps.reports.report_packs; ReportPack model; list_active_report_packs; build_report_pack_preview)
 - [x] Add sample-data preview — report_library view passes report_pack_preview from build_report_pack_preview (rows, summary); report_library.html shows sample rows table + summary cards; report_packs.py sample_data_config + defaults. siteconfig/views.report_library, report_library.html, reports/report_packs.py.
 - [x] Add dependency mapping (normalize_report_pack_dependencies; report_pack_dependencies in report_library view; TOOLSET_REMEDIATION_STATUS)
-- [ ] Add policy/registry compatibility
+- [x] Add policy/registry compatibility — Output Studio rail "Policy & registry" → studio_os:output_policy_registry (embed); view + output_policy_registry.html; explains report packs vs policy (blueprints) and metadata lineage; links to Report library, get_blueprints, metadata_lineage_graph.
 - [ ] Add style inheritance/versioning
 
 ---

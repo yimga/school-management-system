@@ -1,15 +1,12 @@
 {% extends "portal_base.html" %}
-{% load static %}
+{% load static i18n %}
 
 {% block title %}Workflow Flow Gallery{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4 professional-page">
+<div class="container-fluid py-4 professional-page" data-page-archetype="operational-workbench">
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
   <div class="card shadow-sm border-0">
-    <div class="card-header bg-light border-bottom py-3 px-4">
-      <h1 class="h5 mb-1 fw-semibold">Workflow Flow Gallery</h1>
-      <p class="text-muted small mb-0">Pre-built workflows and assignments for <strong>{{ school.name }}</strong>. Activate, deactivate, or rollback within guardrails. <a href="{% url 'siteconfig:workflow_hub' %}">Back to Workflow hub</a>.</p>
-    </div>
     <div class="card-body p-4">
       <h2 class="h6">Available templates</h2>
       <p class="small text-muted">Activate a template to enable it for this school; deactivate to disable. Rollback clears custom overrides and restores template default.</p>
