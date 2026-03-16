@@ -136,6 +136,8 @@ Adopt shared `studio_os/components/page_header.html` incrementally so every cont
 | **studio_os/control_impact** (Control Studio) | **studio_os page_header** (Diff / impact summary, subtitle, Back to Control) + data-page-archetype=operational-workbench | **DONE** |
 | **studio_os/ai_cleanup** (Control Studio) | **studio_os page_header** (AI cleanup suggestions, subtitle, Back to Control) + data-page-archetype=operational-workbench | **DONE** |
 | **studio_os/experience_recommendations** (Experience Studio) | **studio_os page_header** (AI recommendations, subtitle, Back to Experience) + data-page-archetype=operational-workbench | **DONE** |
+| **studio_os/experience_school_website_blocks** (Experience Studio) | **studio_os page_header** (School website blocks, subtitle, Back to Experience) + data-page-archetype=operational-workbench | **DONE** — §4.2 optional. |
+| **studio_os/experience_communication_style_packs** (Experience Studio) | **studio_os page_header** (Communication style packs, subtitle, Back to Experience) + data-page-archetype=operational-workbench | **DONE** — §4.2 optional. |
 | **studio_os/output_branding_inheritance** (Output Studio) | **studio_os page_header** (Branding inheritance, subtitle, Back to Outputs) + data-page-archetype=operational-workbench | **DONE** |
 | people/backend_student_list.html (tenant backend) | **studio_os page_header** (title, subtitle, Add Student) | **DONE** — migrated from title_block; §8.0.11 platform-wide bar. |
 | **people/backend_guardian_list.html** (tenant backend) | **studio_os page_header** (Guardians, subtitle, Back to students) | **DONE** — §2e row 8 tenant backend page maturity. |
@@ -156,6 +158,10 @@ Adopt shared `studio_os/components/page_header.html` incrementally so every cont
 | **marketplace/tenant_installed_apps** (tenant backend) | **studio_os page_header** (Installed apps, subtitle, Back to app catalog) + data-page-archetype=operational-workbench | **DONE** — §2e row 8 tenant backend page maturity. |
 | **marketplace/tenant_app_catalog** (tenant backend) | proof-hero (App catalog); data-page-archetype=catalog; Installed apps + Scope consent; catalog_stats/catalog_counts in context | **DONE** — §2e row 8 tenant backend; already compliant. |
 | **siteconfig/sync_center** (tenant backend) | **studio_os page_header** (Sync Center, subtitle, Back to dashboard) + data-page-archetype=operational-workbench | **DONE** — §2e row 8 tenant backend page maturity. |
+| **portal/signature_requests_manage.html** (portal) | **studio_os page_header** (Signature Requests, subtitle, Create Request) + data-page-archetype=operational-workbench; secondary Output Studio + Document Library | **DONE** — §2e row 8 page maturity. |
+| **portal/document_library_manage.html** (portal) | **studio_os page_header** (Document Library, subtitle, Upload Document) + data-page-archetype=operational-workbench; document_upload_url from view when embed | **DONE** — §2e row 8 page maturity. |
+| **portal/signature_request_create.html** (portal) | **studio_os page_header** (Create Signature Request, subtitle, Back to list) + data-page-archetype=record-detail | **DONE** — §2e row 8 page maturity. |
+| **siteconfig/grading_settings** (tenant backend) | **studio_os page_header** (Grading & language, subtitle, Back to preferences) + data-page-archetype=operational-workbench | **DONE** — §2e row 8 tenant backend page maturity. |
 | Other control_plane_base pages | — | Add page_header or title_block when adding new pages |
 
 **Rule:** New control-plane content pages must include either `studio_os/components/page_header.html` or a cp-hero with clear title and primary action. Migrate title_block pages to page_header when touching them. Tenant backend pages: same UX bar per §8.0.11; adopt page_header when touching (e.g. people/backend_student_list [x]).

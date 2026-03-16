@@ -5,10 +5,11 @@
 {% block backend_title %}{% trans "Grading & language" %}{% endblock %}
 
 {% block content %}
-  <div class="container-fluid py-4">
+  <div class="container-fluid py-4" data-page-archetype="operational-workbench">
+    {% include "studio_os/components/page_header.html" with title=_("Grading & language") subtitle=_("School grading and default language. These apply to report cards and evaluations.") action_url=action_url action_text=action_text %}
     <div class="card shadow-sm">
       <div class="card-body">
-        <h1 class="h4 mb-3">{% trans "School grading and default language" %}</h1>
+        <h2 class="h5 mb-3">{% trans "School grading and default language" %}</h2>
         <p class="text-muted">{% trans "These apply to report cards and evaluations. Region" %}: {% if region %}{{ region.name }} ({{ region.code }}){% else %}—{% endif %}</p>
         <form method="post" action="">
           {% csrf_token %}

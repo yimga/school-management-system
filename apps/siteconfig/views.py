@@ -25,6 +25,7 @@ from apps.academics.services import get_active_year_and_term
 from apps.brand_experience.models import ThemePack
 from apps.people.models import StudentProfile
 from apps.platform_runtime.helpers import get_effective_site_settings, get_platform_defaults
+from apps.platform_runtime.structured_logging import log_view_exception
 from apps.policies.policy_registry import get_effective_policy
 from apps.reports.models import ReportCard
 from apps.reports.services import (
@@ -400,6 +401,7 @@ def grading_settings(request):
             return redirect("siteconfig:grading_settings")
     region = getattr(school, "default_region", None)
     grading_choices = get_grading_scale_choices_for_school(school)
+    action_url = reverse("siteconfig:user_preferences")
     return render(request, "siteconfig/grading_settings.html", {
         "school": school,
         "region": region,
@@ -407,6 +409,8 @@ def grading_settings(request):
         "current_language": current_language,
         "grading_choices": grading_choices,
         "language_choices": _language_choices_for_school(school),
+        "action_url": action_url,
+        "action_text": "Back to preferences",
     })
 
 
@@ -1092,7 +1096,10 @@ def theme_colors_page(request):
             )
             logger.info("Theme catalog auto-seeded from Theme & Experience page.")
         except (CommandError, OSError, RuntimeError, TypeError, ValueError):
-            logger.exception("Unable to auto-seed admin dashboard palettes.")
+            log_view_exception(
+                request,
+                "siteconfig.views.theme_colors_page: unable to auto-seed admin dashboard palettes",
+            )
 
     # Show all active packs (admin and portal) so the catalog does not collapse to a single card.
     admin_theme_packs = all_packs
@@ -1310,7 +1317,12 @@ def perform_theme_experience_publish(request):
     request.session.modified = True
     try:
         redirect_url = reverse("studio_os:experience")
-    except Exception:
+    except NoReverseMatch:
+        log_view_exception(
+            request,
+            "theme/experience save: studio_os:experience reverse failed, falling back to theme_colors",
+            extra={"fallback": "siteconfig:theme_colors"},
+        )
         redirect_url = reverse("siteconfig:theme_colors")
     return {"ok": True, "redirect_url": redirect_url}
 
