@@ -1,0 +1,20 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Workflow health metrics" %} · {% trans "Automation" %}{% endblock %}
+
+{% block content %}
+<div class="container py-3" data-page-archetype="operational-workbench">
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
+  <div class="studio-os__card py-3 px-3">
+    <p class="mb-3">{% trans "Summary of active workflow packs and templates. Run simulations from Workflow hub to verify flows before activating." %}</p>
+    <ul class="list-unstyled mb-3">
+      <li><strong>{% trans "Active workflow packs" %}:</strong> {{ pack_count }}</li>
+      <li><strong>{% trans "Templates (this tenant)" %}:</strong> {{ template_count }}</li>
+    </ul>
+    {% if workflow_hub_url %}
+    <p class="mb-0"><a href="{{ workflow_hub_url }}">{% trans "Workflow hub" %}</a> — {% trans "Manage flows, run simulations, and activate workflows." %}</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

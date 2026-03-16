@@ -386,7 +386,7 @@ Status: PARTIAL (hub with rail + iframe switcher; optional items below)
 - [ ] conflict detection (optional)
 - [ ] staged activation (optional)
 - [ ] replay / rollback (optional)
-- [ ] workflow health metrics (optional)
+- [x] workflow health metrics (optional) — Automation Studio rail "Workflow health metrics" → studio_os:automation_workflow_health (embed); get_automation_workflow_health_summary; automation_workflow_health.html shows pack/template counts + link to Workflow hub.
 
 ## Completion gate
 - [ ] Workflow creation and operation are low-click, safe, and intelligible (hub done; full tooling optional)

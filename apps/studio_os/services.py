@@ -12,6 +12,11 @@ from django.db import DatabaseError
 from django.db.models import ObjectDoesNotExist
 from django.urls import NoReverseMatch
 
+from apps.platform_runtime.structured_logging import (
+    log_exception_with_context,
+    request_context_for_log,
+)
+
 logger = logging.getLogger(__name__)
 
 # §2.4 Typed exceptions for optional/audit paths (no broad except).
@@ -64,6 +69,63 @@ def get_studio_preview_url(mode: str, request: Any = None) -> str:
         return f"{base}?{qs}" if qs else base
     except NoReverseMatch:
         return ""
+
+
+def get_studio_preview_context(mode: str, request: Any = None) -> dict[str, Any]:
+    """
+    §5.6 Live Previews: optional impact summary and dependency warnings for preview API.
+    §4.6 Control Studio: diff/impact summary so client can show governance impact without a second request.
+    For mode=launch, returns health_summary, recommended_next, impact_summary, dependency_warnings.
+    For mode=control, returns impact_summary (governance/runtime impact).
+    Other modes may be extended later.
+    """
+    out: dict[str, Any] = {}
+    mode_key = (mode or "").strip().lower()
+
+    if mode_key == "control":
+        # §4.6 Control Studio optional: diff/impact summary for governance preview
+        out["impact_summary"] = (
+            "Review feature toggles and runtime state before publishing. "
+            "Use Runtime inspector for impact and source tracing."
+        )
+        out["dependency_warnings"] = []
+        return out
+
+    if mode_key != "launch":
+        return out
+    school = getattr(request, "school", None) if request else None
+    if not school:
+        return out
+    try:
+        from apps.setup_studio.services import get_setup_studio_payload
+        payload = get_setup_studio_payload(school)
+        out["health_summary"] = payload.get("health_summary")
+        out["recommended_next"] = payload.get("recommended_next")
+        # §5.6: impact summary (launch readiness and blockers)
+        launch_blockers = payload.get("launch_blockers") or []
+        launch_ready = payload.get("launch_ready", False)
+        impact_parts = []
+        if launch_ready:
+            impact_parts.append("Launch ready; run final previews before go-live.")
+        elif launch_blockers:
+            impact_parts.append(f"{len(launch_blockers)} blocker(s) must be cleared before launch.")
+        if impact_parts:
+            out["impact_summary"] = " ".join(impact_parts)
+        else:
+            out["impact_summary"] = payload.get("health_summary", {}).get("detail") or "Review setup steps."
+        # §5.6: dependency warnings (blockers as dependency-style warnings)
+        out["dependency_warnings"] = [
+            {"key": b.get("key"), "label": b.get("label"), "detail": b.get("detail") or b.get("label")}
+            for b in launch_blockers if isinstance(b, dict)
+        ][:10]
+    except _STUDIO_SOFT_FAILURES as e:
+        ctx = request_context_for_log(request) if request else {}
+        log_exception_with_context(
+            "Studio preview context (launch) failed",
+            exc_info=False,
+            extra={"studio_mode": "launch", "error": str(e), **ctx},
+        )
+    return out
 
 
 def get_studio_activity_feed(request, limit: int = 15) -> list[dict[str, Any]]:
@@ -276,12 +338,16 @@ def get_studio_command_palette_entries(request) -> list[dict[str, Any]]:
         })
 
     _add("Change school branding", "studio_os:experience", keywords="brand theme colors experience")
-    _add("Set up grade reports", "studio_os:output", keywords="reports output")
     _add("Preview parent portal", "portal:parent_dashboard", keywords="preview parent portal")
+    _add("Install attendance workflow", "studio_os:automation", keywords="install attendance workflow automation")
+    _add("Open fee reminder automation", "studio_os:automation", keywords="fee reminder automation workflow")
+    _add("Configure grade reports", "studio_os:output", keywords="grade reports configure output reports")
+    _add("Set up grade reports", "studio_os:output", keywords="reports output")
     _add("Workflows & approvals", "studio_os:automation", keywords="workflow automation approval")
     _add("Launch & setup", "studio_os:launch", keywords="launch setup onboarding")
     _add("Feature control & capabilities", "studio_os:control", keywords="feature control capabilities")
     _add("Studio overview", "studio_os:shell", keywords="studio home")
+    _add("Go to district analytics", "super:analytics_overview", keywords="district analytics overview")
     return entries
 
 
@@ -386,3 +452,132 @@ def get_studio_version_history(request, mode: str, limit: int = 10) -> list[dict
             "label": "Last published",
         })
     return history[:limit]
+
+
+# §4.2 compare (optional) / §5.6 before/after: theme compare context for Experience Studio.
+_EXPERIENCE_COMPARE_THEME_KEYS = [
+    ("primary_color", "Primary"),
+    ("accent_color", "Accent"),
+    ("header_bg_color", "Header background"),
+    ("footer_bg_color", "Footer background"),
+    ("success_color", "Success"),
+    ("warning_color", "Warning"),
+    ("danger_color", "Danger"),
+]
+
+
+def _theme_snapshot_to_entries(snapshot: dict[str, Any] | None) -> list[dict[str, Any]]:
+    """Convert theme dict to list of {name, label, value} for compare view."""
+    if not snapshot:
+        return []
+    return [
+        {"name": name, "label": label, "value": (snapshot.get(name) or "")[:64]}
+        for name, label in _EXPERIENCE_COMPARE_THEME_KEYS
+    ]
+
+
+def get_studio_compare_context(request: Any, mode: str) -> dict[str, Any]:
+    """
+    Before/after context for Studio compare view. Experience: before = session theme_previous_state,
+    after = current effective theme (or session preview). Other modes: empty has_before, stubs.
+    Returns: before_entries, after_entries, has_before.
+    """
+    result: dict[str, Any] = {
+        "before_entries": [],
+        "after_entries": [],
+        "has_before": False,
+    }
+    if mode != "experience":
+        return result
+    try:
+        from apps.platform_runtime.helpers import get_effective_site_settings
+        # After: current saved theme, or session preview if set
+        preview = request.session.get("site_preview_settings") or {}
+        site = get_effective_site_settings(request=request)
+        after_snapshot: dict[str, Any] = {}
+        for name, _ in _EXPERIENCE_COMPARE_THEME_KEYS:
+            after_snapshot[name] = preview.get(name) if preview else getattr(site, name, None)
+            if after_snapshot[name] is None:
+                after_snapshot[name] = getattr(site, name, None)
+        result["after_entries"] = _theme_snapshot_to_entries(after_snapshot)
+        # Before: session theme_previous_state (set on theme save before overwrite)
+        before_snapshot = request.session.get("theme_previous_state") or {}
+        result["before_entries"] = _theme_snapshot_to_entries(before_snapshot)
+        result["has_before"] = bool(before_snapshot)
+    except _STUDIO_SOFT_FAILURES as e:
+        logger.warning("get_studio_compare_context: %s", e)
+    return result
+
+
+# §4.4 Output Studio dependency graph (optional): report pack dependencies for Output hub.
+def get_output_dependency_graph() -> list[dict[str, Any]]:
+    """
+    Build dependency graph for Output Studio: each active ReportPack with its
+    normalized dependencies (from dependency_schema). Used by output_dependency_graph view.
+    """
+    try:
+        from apps.reports.report_packs import list_active_report_packs, normalize_report_pack_dependencies
+        packs = list_active_report_packs()
+        return [
+            {
+                "pack_code": getattr(p, "code", "") or "",
+                "pack_name": getattr(p, "name", "") or getattr(p, "code", "") or "—",
+                "dependencies": normalize_report_pack_dependencies(p),
+            }
+            for p in packs
+        ]
+    except _STUDIO_SOFT_FAILURES as e:
+        logger.warning("get_output_dependency_graph: %s", e)
+        return []
+
+
+# §4.3 Automation Studio dependency graph (optional): workflow packs and their templates.
+def get_automation_dependency_graph() -> list[dict[str, Any]]:
+    """
+    Build dependency graph for Automation Studio: each active WorkflowPack with its
+    WorkflowTemplates (pack → templates). Used by automation_dependency_graph view.
+    """
+    try:
+        from apps.runtime_blueprints.models import WorkflowPack
+        packs = WorkflowPack.objects.filter(is_active=True).prefetch_related("templates").order_by("family", "name")
+        out: list[dict[str, Any]] = []
+        for p in packs:
+            rel = getattr(p, "templates", None)
+            templates = list(rel.all()[:50]) if rel is not None else []
+            out.append({
+                "pack_code": getattr(p, "code", "") or "",
+                "pack_name": getattr(p, "name", "") or getattr(p, "code", "") or "—",
+                "templates": [
+                    {"code": getattr(t, "code", "") or "", "name": getattr(t, "name", "") or getattr(t, "code", "") or "—"}
+                    for t in templates
+                ],
+            })
+        return out
+    except _STUDIO_SOFT_FAILURES as e:
+        logger.warning("get_automation_dependency_graph: %s", e)
+        return []
+
+
+def get_automation_workflow_health_summary() -> dict[str, int]:
+    """
+    §4.3 Automation Studio optional: high-level workflow health metrics.
+
+    Returns a lightweight summary for the Automation rail card:
+    - pack_count: number of WorkflowPack records
+    - template_count: number of WorkflowTemplate records
+    """
+    try:
+        from apps.runtime_blueprints.models import WorkflowPack, WorkflowTemplate
+
+        pack_count = int(WorkflowPack.objects.all().count())
+        template_count = int(WorkflowTemplate.objects.all().count())
+        return {
+            "pack_count": pack_count,
+            "template_count": template_count,
+        }
+    except _STUDIO_SOFT_FAILURES as e:
+        logger.warning("get_automation_workflow_health_summary: %s", e)
+        return {
+            "pack_count": 0,
+            "template_count": 0,
+        }

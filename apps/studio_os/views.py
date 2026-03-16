@@ -20,6 +20,7 @@ from .services import (
     get_studio_activity_feed,
     get_studio_compare_context,
     get_automation_dependency_graph,
+    get_automation_workflow_health_summary,
     get_studio_global_search,
     get_studio_preview_context,
     get_studio_preview_url,
@@ -194,6 +195,35 @@ def studio_automation_dependency_graph(request):
             "page_title": "Dependency graph",
             "page_subtitle": "Workflow packs and their templates (pack → templates).",
             "action_url": reverse("studio_os:automation"),
+        },
+    )
+
+
+@never_cache
+@require_http_methods(["GET"])
+@login_required
+def studio_automation_workflow_health(request):
+    """§4.3 Automation Studio optional: Workflow health metrics. Summary of active packs and templates."""
+    if not getattr(request.user, "is_staff", False):
+        return redirect(reverse("accounts:backend_dashboard"))
+    from apps.studio_os.services import get_automation_workflow_health_summary
+    summary = get_automation_workflow_health_summary()
+    workflow_hub_url = ""
+    try:
+        workflow_hub_url = reverse("siteconfig:workflow_hub") + "?embed=1"
+    except NoReverseMatch:
+        pass
+    return render(
+        request,
+        "studio_os/automation_workflow_health.html",
+        {
+            "pack_count": summary.get("pack_count", 0),
+            "template_count": summary.get("template_count", 0),
+            "workflow_hub_url": workflow_hub_url,
+            "page_title": _("Workflow health metrics"),
+            "page_subtitle": _("Active workflow packs and templates; run simulations from Workflow hub."),
+            "action_url": reverse("studio_os:automation"),
+            "action_text": _("Back to Automation"),
         },
     )
 
@@ -443,6 +473,10 @@ def studio_shell(request, mode=None):
             workflow_entries.append({
                 "label": "Dependency graph",
                 "url": reverse("studio_os:automation_dependency_graph") + "?embed=1",
+            })
+            workflow_entries.append({
+                "label": "Workflow health metrics",
+                "url": reverse("studio_os:automation_workflow_health") + "?embed=1",
             })
             for entry in workflow_entries:
                 automation_rail.append({"label": entry["label"], "url": entry["url"], "embed": True})
