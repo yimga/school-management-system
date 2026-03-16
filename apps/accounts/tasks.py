@@ -8,6 +8,7 @@ import logging
 from django.utils import timezone
 from celery import shared_task
 from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.schools.celery_tasks import _run_with_tenant_context, get_active_school_ids
 
 logger = logging.getLogger(__name__)
@@ -63,8 +64,20 @@ def _expire_past_delegations_body() -> dict:
                                 fail_silently=True,
                             )
                     except (OSError, ConnectionError, AttributeError, TypeError) as e:
+                        _school = _school_for_user(d.delegator)
+                        log_exception_with_context(
+                            "expire_past_delegations: summary email failed",
+                            school_id=str(_school.id) if _school else None,
+                            extra={"task": "expire_past_delegations", "delegation_id": pk, "error": str(e)},
+                        )
                         logger.warning("expire_past_delegations: summary email for %s: %s", pk, e)
             except (ImportError, AttributeError, TypeError, ValueError) as e:
+                _school = _school_for_user(d.delegator)
+                log_exception_with_context(
+                    "expire_past_delegations: revoke badge failed",
+                    school_id=str(_school.id) if _school else None,
+                    extra={"task": "expire_past_delegations", "delegation_id": pk, "error": str(e)},
+                )
                 logger.warning("expire_past_delegations: revoke badge for delegation %s: %s", pk, e)
         Delegation.objects.filter(pk__in=[pk for pk, _site in to_expire]).update(is_active=False)
         logger.info("expire_past_delegations: deactivated %d delegation(s)", len(to_expire))
@@ -235,6 +248,12 @@ def _apply_rollover_proposal_impl(proposal_id, lock_source=False, notify_parents
             from apps.finance.services import carry_forward_arrears
             carry_forward_arrears(source_year, target_year)
         except (ValueError, TypeError, ImportError, AttributeError) as e:
+            _school_id = str(proposal.school_id) if getattr(proposal, "school_id", None) else None
+            log_exception_with_context(
+                "apply_rollover_proposal: carry_forward_arrears failed",
+                school_id=_school_id,
+                extra={"task": "apply_rollover_proposal", "proposal_id": proposal_id, "error": str(e)},
+            )
             logger.warning("apply_rollover_proposal: carry_forward_arrears: %s", e)
 
     logger.info("apply_rollover_proposal: proposal %s applied; updated=%d graduated=%d skipped=%d", proposal_id, updated, graduated, skipped)

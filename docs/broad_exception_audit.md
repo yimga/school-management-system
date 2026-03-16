@@ -64,7 +64,7 @@
 | views_delegation.py | DONE | Badge/send_mail: (ImportError, OSError, ConnectionError, AttributeError, TypeError); revoke: (ImportError, AttributeError, TypeError, ValueError). Allowlist 0. |
 | views_rollover.py | DONE | clone_year_setup, rollover_year (carry_forward_arrears, promotion_map, notify_parents send_sms): typed excepts + log_exception_with_context(school_id, extra: view, source_year_id/target_year_id/student_id, error). §2e row 7. |
 | middleware.py | DONE | resolve: Resolver404; MFA block: (ImportError, AttributeError, TypeError, ValueError); _is_mfa_verified: (ValueError, TypeError, AttributeError); ImpossibleTravel: (ValueError, TypeError, ImportError, AttributeError, OSError). Allowlist 0. |
-| tasks.py | DONE | Email/revoke: (OSError, ConnectionError, AttributeError, TypeError), (ImportError, AttributeError, TypeError, ValueError); promotion_map: (ImportError, AttributeError, TypeError); carry_forward_arrears: (ValueError, TypeError, ImportError, AttributeError). Allowlist 0. |
+| tasks.py | DONE | expire_past_delegations: summary email + revoke badge → log_exception_with_context(school_id, extra: task, delegation_id, error); apply_rollover_proposal carry_forward_arrears → log_exception_with_context(school_id, extra: task, proposal_id, error). Email/revoke + promotion_map + carry_forward_arrears typed. Allowlist 0. §2e row 7. |
 | security_health.py | DONE | All checkers + get_weights + cache prefix + grace_period: (ImportError, AttributeError, TypeError, KeyError, ValueError). Allowlist 0. |
 | templatetags/accounts_extras.py | DONE | _reset_db_state: (DatabaseError, TransactionManagementError); has_role/has_any_role: (DatabaseError, TransactionManagementError, AttributeError, TypeError). Allowlist 0. |
 | pii_masking.py | DONE | mask_date: (TypeError, AttributeError, ValueError); can_show_pii: (ValueError, TypeError, AttributeError). Allowlist 0. |
@@ -72,6 +72,7 @@
 | permissions.py | DONE | DatabaseError + (AttributeError, TypeError, ValueError, ImportError). Allowlist 0. |
 | models.py | DONE | has_feature_permission rollback: (DatabaseError, TransactionManagementError). Allowlist 0. |
 | management/commands/ensure_superuser.py | DONE | (DatabaseError, OSError) for table check; re-raise on other. Allowlist 0. |
+| security_audit.py | DONE | lockdown_user_account session purge + check_impossible_travel: typed excepts + log_exception_with_context(school_id, extra: section, user_id, error). §2e row 7. Allowlist 0. |
 
 ### apps/finance (§2.4 — Step 9, full app pass)
 | File | Status | Notes |
