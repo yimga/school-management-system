@@ -181,6 +181,17 @@
     "apps/compliance/alerts.py": 0,
     "apps/compliance/management/commands/generate_compliance_reports.py": 0,
     "apps/compliance/management/commands/send_digest_alerts.py": 0,
-    "apps/siteconfig/test_i18n.py": 0
+    "apps/siteconfig/test_i18n.py": 0,
+    "apps/siteconfig/management/commands/check_accessibility.py": 0,
+    "apps/siteconfig/management/commands/clone_region.py": 0,
+    "apps/siteconfig/management/commands/sync_regional_models.py": 0,
+    "apps/siteconfig/management/commands/aggregate_ai_metrics.py": 0,
+    "apps/siteconfig/management/commands/generate_models_diagram.py": 0,
+    "apps/siteconfig/management/commands/i18n_commands.py": 0,
+    "apps/siteconfig/management/commands/bootstrap_platform_catalog.py": 0,
+    "apps/siteconfig/management/commands/index_ai_knowledge.py": 0,
+    "apps/siteconfig/management/commands/recover_database.py": 0,
+    "apps/siteconfig/management/commands/import_config.py": 0,
+    "apps/siteconfig/management/commands/verify_region_coverage.py": 0
   }
 }

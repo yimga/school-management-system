@@ -166,6 +166,9 @@ Adopt shared `studio_os/components/page_header.html` incrementally so every cont
 | **portal/signature_pending_list.html** (portal) | **studio_os page_header** (Forms Requiring Signature, subtitle, Back to Dashboard) + data-page-archetype=operational-workbench | **DONE** — §2e row 8 page maturity. |
 | **siteconfig/grading_settings** (tenant backend) | **studio_os page_header** (Grading & language, subtitle, Back to preferences) + data-page-archetype=operational-workbench | **DONE** — §2e row 8 tenant backend page maturity. |
 | **siteconfig/user_preferences** (portal) | **studio_os page_header** (Portal preferences, subtitle, Back to dashboard) + data-page-archetype=operational-workbench | **DONE** — §2e row 8 portal page maturity. |
+| **siteconfig/theme_colors** (tenant backend) | **studio_os page_header** (Theme & Experience, subtitle, Back to Site Settings) + data-page-archetype=operational-workbench | **DONE** — §2e row 8 tenant backend page maturity. |
+| **accounts/automation_hub** (tenant backend) | **studio_os page_header** (Automation Hub, subtitle, Workflow Center) + data-page-archetype=operational-workbench | **DONE** — §2e row 8 tenant backend page maturity. |
+| **accounts/approval_workflow_hub** (tenant backend) | **studio_os page_header** (Approval Workflow Hub, subtitle, Workflow Center) + data-page-archetype=operational-workbench | **DONE** — §2e row 8 tenant backend page maturity. |
 | Other control_plane_base pages | — | Add page_header or title_block when adding new pages |
 
 **Rule:** New control-plane content pages must include either `studio_os/components/page_header.html` or a cp-hero with clear title and primary action. Migrate title_block pages to page_header when touching them. Tenant backend pages: same UX bar per §8.0.11; adopt page_header when touching (e.g. people/backend_student_list [x]).

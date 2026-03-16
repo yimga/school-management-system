@@ -8,19 +8,8 @@
 
 {% block content %}
 {% include "admin/components/theme_preview_assets.html" %}
-<div class="theme-experience-page container-fluid py-2">
-  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-    <div>
-      <h1 class="h4 mb-0">{% trans "Theme & Experience" %}</h1>
-      <p class="small text-muted mb-0 mt-1">{% trans "These settings apply to Site Settings (Theme pack & Admin theme pack)." %}</p>
-    </div>
-    {% if back_url %}
-    <a href="{{ back_url }}" class="btn btn-outline-secondary btn-sm">
-      <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1rem;">arrow_back</span>
-      {% trans "Back to Site Settings" %}
-    </a>
-    {% endif %}
-  </div>
+<div class="theme-experience-page container-fluid py-2" data-page-archetype="operational-workbench">
+  {% include "studio_os/components/page_header.html" with title=_("Theme & Experience") subtitle=_("These settings apply to Site Settings (Theme pack & Admin theme pack).") action_url=back_url action_text=_("Back to Site Settings") %}
 
   {% if preview_mode_active %}
   <div class="alert alert-info py-2 mb-2" role="status">
