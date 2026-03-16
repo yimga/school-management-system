@@ -7,6 +7,7 @@ from django.db import DatabaseError, IntegrityError
 from django.db.models import Count, Q, Sum
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from apps.billing.models import RevenueSharePayout
@@ -113,11 +114,13 @@ def governance_console(request):
             or 0
         ),
     }
+    dashboard_url = reverse("super:dashboard") if hasattr(request, "resolver_match") else "/super/"
     context = {
         "metrics": metrics,
         "listings": list(listings[:60]),
         "pending_reviews": pending_reviews,
         "scheduled_payouts": scheduled_payouts,
+        "dashboard_url": dashboard_url,
     }
     return render(request, "marketplace/governance_console.html", context)
 
@@ -417,6 +420,8 @@ def compatibility_matrix(request):
 @require_GET
 def sandbox_inspector(request):
     """Control plane: list installations with install_phase=sandbox."""
+    from django.urls import reverse
+    dashboard_url = reverse("super:dashboard") if hasattr(request, "resolver_match") else "/super/"
     installations = (
         AppInstallation.objects.filter(
             status=AppInstallation.Status.ACTIVE,
@@ -425,7 +430,10 @@ def sandbox_inspector(request):
         .select_related("app", "school", "installed_by")
         .order_by("-installed_at")
     )
-    return render(request, "marketplace/sandbox_inspector.html", {"installations": installations})
+    return render(request, "marketplace/sandbox_inspector.html", {
+        "installations": installations,
+        "dashboard_url": dashboard_url,
+    })
 
 
 @login_required
@@ -433,12 +441,17 @@ def sandbox_inspector(request):
 @require_GET
 def installation_health(request):
     """Control plane: list installations with last_health_at / health_status."""
+    from django.urls import reverse
+    dashboard_url = reverse("super:dashboard") if hasattr(request, "resolver_match") else "/super/"
     installations = (
         AppInstallation.objects.filter(status=AppInstallation.Status.ACTIVE)
         .select_related("app", "school")
         .order_by("-last_health_at")
     )
-    return render(request, "marketplace/installation_health.html", {"installations": installations})
+    return render(request, "marketplace/installation_health.html", {
+        "installations": installations,
+        "dashboard_url": dashboard_url,
+    })
 
 
 @login_required
@@ -450,6 +463,7 @@ def marketplace_incident_dashboard(request):
     from apps.marketplace.models import AppAuditLog
 
     support_url = reverse("super:support_dashboard") if hasattr(request, "resolver_match") else "/super/support/"
+    dashboard_url = reverse("super:dashboard") if hasattr(request, "resolver_match") else "/super/"
     recent_events = list(
         AppAuditLog.objects.filter(
             action__in=("install", "uninstall", "activate_sandbox", "schema_patch", "suspend", "unsuspend"),
@@ -459,6 +473,7 @@ def marketplace_incident_dashboard(request):
     )
     return render(request, "marketplace/incident_dashboard.html", {
         "support_url": support_url,
+        "dashboard_url": dashboard_url,
         "recent_events": recent_events,
     })
 
