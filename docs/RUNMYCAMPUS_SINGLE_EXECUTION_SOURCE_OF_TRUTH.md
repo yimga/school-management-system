@@ -352,9 +352,9 @@ Status: PARTIAL (hub with rail + iframe switcher when in-shell form unavailable;
 - [ ] `ExperiencePack` (optional)
 - [x] theme tokens (optional; in-shell form uses tokens) — Experience Studio rail "Theme tokens" → studio_os:experience_theme_tokens (embed); view + experience_theme_tokens.html explains design tokens (CSS variables) and links to Theme & colors.
 - [x] portal shell layouts (optional) — Experience Studio rail "Portal shell layouts" → studio_os:experience_portal_shell_layouts (embed); view + experience_portal_shell_layouts.html explains shell structure (sidebar, header, content); links to Customizer.
-- [ ] dashboard visual packs (optional)
-- [ ] school website blocks (optional)
-- [ ] communication style packs (optional)
+- [x] dashboard visual packs (optional) — Experience Studio rail "Dashboard visual packs" → studio_os:experience_dashboard_visual_packs (embed); view + experience_dashboard_visual_packs.html explains widgets, charts, layout presets; links to Backend dashboard and Customizer.
+- [x] school website blocks (optional) — Experience Studio rail "School website blocks" → studio_os:experience_school_website_blocks (embed); view + experience_school_website_blocks.html explains hero, footer, content blocks; links to Customizer and Marketing landing.
+- [x] communication style packs (optional) — Experience Studio rail "Communication style packs" → studio_os:experience_communication_style_packs (embed); view + experience_communication_style_packs.html explains tone, templates, notification styles; links to Customizer.
 - [x] role/device preview (shell context)
 - [x] compare (optional) — Experience Studio rail "Compare" → studio_os:experience_compare (embed); get_studio_compare_context; experience_compare.html before/after theme swatches. §5.6 before/after.
 - [x] publish / rollback (shell + experience rollback)
@@ -383,7 +383,7 @@ Status: PARTIAL (hub with rail + iframe switcher; optional items below)
 - [ ] natural-language workflow generation (optional)
 - [ ] simulation engine (optional)
 - [x] dependency graph (optional) — Automation Studio rail "Dependency graph" → studio_os:automation_dependency_graph (embed); get_automation_dependency_graph (WorkflowPack → WorkflowTemplates); automation_dependency_graph.html.
-- [ ] conflict detection (optional)
+- [x] conflict detection (optional) — Automation Studio rail "Conflict detection" → studio_os:automation_conflict_detection (embed); view + automation_conflict_detection.html explains workflow conflict detection, links to Workflow hub.
 - [ ] staged activation (optional)
 - [ ] replay / rollback (optional)
 - [x] workflow health metrics (optional) — Automation Studio rail "Workflow health metrics" → studio_os:automation_workflow_health (embed); get_automation_workflow_health_summary; automation_workflow_health.html shows pack/template counts + link to Workflow hub.

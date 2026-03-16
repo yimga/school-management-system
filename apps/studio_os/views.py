@@ -187,6 +187,136 @@ def studio_experience_portal_shell_layouts(request):
 @never_cache
 @require_http_methods(["GET"])
 @login_required
+def studio_experience_dashboard_visual_packs(request):
+    """§4.2 Experience Studio optional: Dashboard visual packs. Explains dashboard widgets, charts, layout presets; links to dashboard/customizer."""
+    if not getattr(request.user, "is_staff", False):
+        return redirect(reverse("accounts:backend_dashboard"))
+    dashboard_url = ""
+    try:
+        dashboard_url = reverse("accounts:backend_dashboard") + "?embed=1"
+    except NoReverseMatch:
+        pass
+    customizer_url = ""
+    try:
+        customizer_url = reverse("siteconfig:customizer") + "?embed=1"
+    except NoReverseMatch:
+        pass
+    return render(
+        request,
+        "studio_os/experience_dashboard_visual_packs.html",
+        {
+            "dashboard_url": dashboard_url,
+            "customizer_url": customizer_url,
+            "page_title": _("Dashboard visual packs"),
+            "page_subtitle": _("Widgets, charts, and layout presets for role-based dashboards; configure in Backend dashboard and Customizer."),
+            "action_url": reverse("studio_os:experience"),
+            "action_text": _("Back to Experience"),
+        },
+    )
+
+
+@never_cache
+@require_http_methods(["GET"])
+@login_required
+def studio_experience_school_website_blocks(request):
+    """§4.2 Experience Studio optional: School website blocks. Explains landing page sections and school website content; links to marketing and Customizer."""
+    if not getattr(request.user, "is_staff", False):
+        return redirect(reverse("accounts:backend_dashboard"))
+    marketing_url = ""
+    try:
+        marketing_url = reverse("marketing_landing") + "?embed=1"
+    except NoReverseMatch:
+        pass
+    customizer_url = ""
+    try:
+        customizer_url = reverse("siteconfig:customizer") + "?embed=1"
+    except NoReverseMatch:
+        pass
+    return render(
+        request,
+        "studio_os/experience_school_website_blocks.html",
+        {
+            "marketing_url": marketing_url,
+            "customizer_url": customizer_url,
+            "page_title": _("School website blocks"),
+            "page_subtitle": _("Landing page sections, hero, and content blocks for your school website; configure in Customizer and marketing pages."),
+            "action_url": reverse("studio_os:experience"),
+            "action_text": _("Back to Experience"),
+        },
+    )
+
+
+@never_cache
+@require_http_methods(["GET"])
+@login_required
+def studio_experience_communication_style_packs(request):
+    """§4.2 Experience Studio optional: Communication style packs. Explains tone, templates, and notification styles; links to Customizer and communication settings."""
+    if not getattr(request.user, "is_staff", False):
+        return redirect(reverse("accounts:backend_dashboard"))
+    customizer_url = ""
+    try:
+        customizer_url = reverse("siteconfig:customizer") + "?embed=1"
+    except NoReverseMatch:
+        pass
+    return render(
+        request,
+        "studio_os/experience_communication_style_packs.html",
+        {
+            "customizer_url": customizer_url,
+            "page_title": _("Communication style packs"),
+            "page_subtitle": _("Tone, templates, and notification styles for parent and staff communications; configure in Customizer and communication settings."),
+            "action_url": reverse("studio_os:experience"),
+            "action_text": _("Back to Experience"),
+        },
+    )
+
+
+@never_cache
+@require_http_methods(["GET"])
+@login_required
+def studio_experience_packs(request):
+    """§4.2 Experience Studio optional: ExperiencePack. Explains packageable theme + layout + dashboard + communication; shows current pack and links to admin and Theme & colors."""
+    if not getattr(request.user, "is_staff", False):
+        return redirect(reverse("accounts:backend_dashboard"))
+    school = getattr(request, "school", None)
+    effective_pack = None
+    pack_count = 0
+    try:
+        from apps.brand_experience.experience_packs import get_effective_experience_pack
+        from apps.packages.models import ExperiencePack
+        effective_pack = get_effective_experience_pack(school) if school else None
+        pack_count = ExperiencePack.objects.filter(is_active=True).count()
+    except (ImportError, AttributeError):
+        pass
+    theme_colors_url = ""
+    admin_packs_url = ""
+    try:
+        theme_colors_url = reverse("siteconfig:theme_colors") + "?embed=1"
+    except NoReverseMatch:
+        pass
+    try:
+        admin_packs_url = reverse("admin:packages_experiencepack_changelist")
+    except NoReverseMatch:
+        pass
+    return render(
+        request,
+        "studio_os/experience_experience_packs.html",
+        {
+            "effective_pack": effective_pack,
+            "pack_count": pack_count,
+            "theme_colors_url": theme_colors_url,
+            "admin_packs_url": admin_packs_url,
+            "page_title": _("Experience packs"),
+            "page_subtitle": _("Packageable theme, layout, dashboard visual, and communication style. Assign per school; compare and rollback from Experience Studio."),
+            "action_url": reverse("studio_os:experience"),
+            "action_text": _("Back to Experience"),
+        },
+    )
+
+
+@never_cache
+@require_http_methods(["GET"])
+@login_required
 def studio_output_dependency_graph(request):
     """§4.4 Output Studio optional: Dependency graph. Shows report pack dependencies for embedding in Output rail."""
     if not getattr(request.user, "is_staff", False):
@@ -225,6 +355,31 @@ def studio_output_branding_inheritance(request):
             "page_subtitle": _("Reports and documents inherit school and theme branding. Configure theme and colors to control outputs."),
             "action_url": reverse("studio_os:output"),
             "action_text": _("Back to Outputs"),
+        },
+    )
+
+
+@never_cache
+@require_http_methods(["GET"])
+@login_required
+def studio_automation_conflict_detection(request):
+    """§4.3 Automation Studio optional: Conflict detection. Explains workflow conflict detection and links to Workflow hub."""
+    if not getattr(request.user, "is_staff", False):
+        return redirect(reverse("accounts:backend_dashboard"))
+    workflow_hub_url = ""
+    try:
+        workflow_hub_url = reverse("siteconfig:workflow_hub") + "?embed=1"
+    except NoReverseMatch:
+        pass
+    return render(
+        request,
+        "studio_os/automation_conflict_detection.html",
+        {
+            "workflow_hub_url": workflow_hub_url,
+            "page_title": _("Conflict detection"),
+            "page_subtitle": _("Detect and resolve conflicts before activating workflows."),
+            "action_url": reverse("studio_os:automation"),
+            "action_text": _("Back to Automation"),
         },
     )
 
@@ -419,6 +574,14 @@ def studio_shell(request, mode=None):
             pass
         try:
             experience_rail.append({
+                "label": "Experience packs",
+                "url": reverse("studio_os:experience_packs") + "?embed=1",
+                "embed": True,
+            })
+        except NoReverseMatch:
+            pass
+        try:
+            experience_rail.append({
                 "label": "Import from website",
                 "url": reverse("siteconfig:brand_import_from_url") + "?embed=1",
                 "embed": True,
@@ -453,6 +616,30 @@ def studio_shell(request, mode=None):
             experience_rail.append({
                 "label": "Portal shell layouts",
                 "url": reverse("studio_os:experience_portal_shell_layouts") + "?embed=1",
+                "embed": True,
+            })
+        except NoReverseMatch:
+            pass
+        try:
+            experience_rail.append({
+                "label": "Dashboard visual packs",
+                "url": reverse("studio_os:experience_dashboard_visual_packs") + "?embed=1",
+                "embed": True,
+            })
+        except NoReverseMatch:
+            pass
+        try:
+            experience_rail.append({
+                "label": "School website blocks",
+                "url": reverse("studio_os:experience_school_website_blocks") + "?embed=1",
+                "embed": True,
+            })
+        except NoReverseMatch:
+            pass
+        try:
+            experience_rail.append({
+                "label": "Communication style packs",
+                "url": reverse("studio_os:experience_communication_style_packs") + "?embed=1",
                 "embed": True,
             })
         except NoReverseMatch:
@@ -543,6 +730,10 @@ def studio_shell(request, mode=None):
             workflow_entries.append({
                 "label": "Workflow health metrics",
                 "url": reverse("studio_os:automation_workflow_health") + "?embed=1",
+            })
+            workflow_entries.append({
+                "label": "Conflict detection",
+                "url": reverse("studio_os:automation_conflict_detection") + "?embed=1",
             })
             for entry in workflow_entries:
                 automation_rail.append({"label": entry["label"], "url": entry["url"], "embed": True})
