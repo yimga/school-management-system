@@ -4,12 +4,14 @@ API Center: one page for all Integrations (config + governance). Toggle enabled 
 from django.db.models import Q
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import NoReverseMatch, reverse
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_protect
 
 from django.contrib import messages
-from django.utils import timezone
 
 from apps.integrations_marketplace.models import Integration
 from apps.platform_runtime.helpers import get_effective_flags
@@ -54,6 +56,17 @@ def api_center_dashboard(request):
     for q in quotas:
         key = q.school_id or "platform"
         quotas_by_school.setdefault(key, []).append(q)
+    # §2e row 8 page maturity: page_header + data-page-archetype (CONTROL_PLANE §5.1)
+    if request.GET.get("embed"):
+        try:
+            action_url = reverse("studio_os:control")
+            action_text = _("Back to Control")
+        except NoReverseMatch:
+            action_url = reverse("accounts:backend_dashboard")
+            action_text = _("Back to dashboard")
+    else:
+        action_url = reverse("accounts:backend_dashboard")
+        action_text = _("Back to dashboard")
     return render(
         request,
         "apicenter/dashboard.html",
@@ -62,6 +75,10 @@ def api_center_dashboard(request):
             "audit_logs": audit_logs,
             "api_quotas": quotas,
             "quotas_by_school": quotas_by_school,
+            "page_title": _("Integrations & API Center"),
+            "page_subtitle": _("One place for all external integrations. Toggle on or off (kill switch); a reason is required and recorded in the audit log."),
+            "action_url": action_url,
+            "action_text": action_text,
         },
     )
 
