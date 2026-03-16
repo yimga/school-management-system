@@ -4,8 +4,9 @@
 {% block title %}{% trans "Installed apps" %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-3">
-  <h4 class="mb-3">{% trans "Installed apps" %}</h4>
+<div class="container-fluid py-3" data-page-archetype="operational-workbench">
+  {% trans "Back to app catalog" as back_action %}
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=back_action %}
   {% if not school %}
   <p class="text-muted">{% trans "No school context." %}</p>
   {% else %}

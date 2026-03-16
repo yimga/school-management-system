@@ -115,12 +115,14 @@ def governance_console(request):
         ),
     }
     dashboard_url = reverse("super:dashboard") if hasattr(request, "resolver_match") else "/super/"
+    catalog_counts = get_platform_catalog_counts()
     context = {
         "metrics": metrics,
         "listings": list(listings[:60]),
         "pending_reviews": pending_reviews,
         "scheduled_payouts": scheduled_payouts,
         "dashboard_url": dashboard_url,
+        "catalog_counts": catalog_counts,
     }
     return render(request, "marketplace/governance_console.html", context)
 
@@ -579,7 +581,12 @@ def tenant_installed_apps(request):
     school = getattr(request, "school", None)
     if not school:
         return render(request, "marketplace/tenant_installed_apps.html", {
-            "installations": [], "school": None, "pending_scope_grants_count": 0,
+            "installations": [],
+            "school": None,
+            "pending_scope_grants_count": 0,
+            "page_title": "Installed apps",
+            "page_subtitle": "No school context.",
+            "action_url": reverse("tenant_app_catalog"),
         })
     installations = list(
         AppInstallation.objects.filter(
@@ -601,6 +608,9 @@ def tenant_installed_apps(request):
             "installations": installations,
             "school": school,
             "pending_scope_grants_count": pending_scope_grants_count,
+            "page_title": "Installed apps",
+            "page_subtitle": "Apps installed for this school. New installs land in sandbox first.",
+            "action_url": reverse("tenant_app_catalog"),
         },
     )
 
