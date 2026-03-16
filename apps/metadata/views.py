@@ -190,5 +190,9 @@ def metadata_lineage_graph_ui(request):
             "has_query": has_query,
             "graph_consumers": graph_consumers,
             "center_label": center_label,
+            "page_title": _("Lineage graph"),
+            "page_subtitle": _("What uses this? Query by entity, field, package, or consumer. Downstream consumers and blast radius."),
+            "action_url": reverse("studio_os:control"),
+            "action_text": _("Back to Control"),
         },
     )
