@@ -89,21 +89,11 @@
     "apps/evals/signals.py": 0,
     "apps/platform_runtime/governor_limits.py": 0,
     "apps/siteconfig/student_id_service.py": 0,
-    "apps/siteconfig/management/commands/export_config.py": 0,
-    "apps/siteconfig/management/commands/import_config.py": 0,
-    "apps/siteconfig/management/commands/run_workflows.py": 0,
     "apps/packages/engine.py": 0,
     "apps/evals/import_services.py": 0,
     "apps/evals/management/commands/import_grades.py": 0,
     "apps/portal/forms.py": 0,
     "apps/portal/views_kb.py": 0,
-    "apps/siteconfig/management/commands/aggregate_ai_metrics.py": 0,
-    "apps/siteconfig/management/commands/check_accessibility.py": 0,
-    "apps/siteconfig/management/commands/check_branding_law.py": 0,
-    "apps/siteconfig/management/commands/clone_region.py": 0,
-    "apps/siteconfig/management/commands/sync_regional_models.py": 0,
-    "apps/siteconfig/management/commands/check_accessibility.py": 0,
-    "apps/siteconfig/management/commands/compile_translations.py": 0,
     "apps/compliance/management/commands/send_digest_alerts.py": 0,
     "apps/compliance/signals.py": 0,
     "apps/events/tasks.py": 0,
@@ -128,6 +118,7 @@
     "apps/siteconfig/templatetags/tenant_hook.py": 0,
     "apps/evals/grading.py": 0,
     "apps/people/management/commands/attach_audit_triggers.py": 0,
+    "apps/people/management/commands/check_badge_expiry_alerts.py": 0,
     "apps/people/management/commands/revoke_audit_log_permissions.py": 0,
     "apps/policies/resolvers.py": 0,
     "apps/policies/resolver.py": 0,
@@ -190,6 +181,6 @@
     "apps/compliance/alerts.py": 0,
     "apps/compliance/management/commands/generate_compliance_reports.py": 0,
     "apps/compliance/management/commands/send_digest_alerts.py": 0,
-    "apps/siteconfig/management/commands/verify_region_coverage.py": 0
+    "apps/siteconfig/test_i18n.py": 0
   }
 }
