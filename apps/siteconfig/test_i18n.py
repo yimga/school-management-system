@@ -6,8 +6,22 @@ Test localization, translations, regional reports
 from django.test import TestCase, TransactionTestCase
 from django.utils import timezone
 from django.core.management import call_command
+from django.core.management.base import CommandError
+from django.core.exceptions import ImproperlyConfigured
 from datetime import datetime, timedelta
 from io import StringIO
+
+# Command may not be registered or may raise during test; catch expected command/runtime errors only.
+_TEST_I18N_COMMAND_ERRORS = (
+    CommandError,
+    ImproperlyConfigured,
+    ImportError,
+    AttributeError,
+    OSError,
+    ValueError,
+    TypeError,
+    KeyError,
+)
 
 
 class TranslationManagerTestCase(TestCase):
@@ -188,11 +202,11 @@ class TranslationCommandsTestCase(TestCase):
         try:
             call_command('compile_translations', stdout=out)
             output = out.getvalue()
-            
+
             # Should complete successfully
             self.assertIn('Translations compiled successfully', output)
-        except Exception:
-            # Command might not be registered, which is OK for test
+        except _TEST_I18N_COMMAND_ERRORS:
+            # Command might not be registered or may fail in test env; skip assertion.
             pass
     
     def test_validate_translations_command(self):
@@ -202,11 +216,11 @@ class TranslationCommandsTestCase(TestCase):
         try:
             call_command('validate_translations', stdout=out)
             output = out.getvalue()
-            
+
             # Should complete without error
             self.assertIsNotNone(output)
-        except Exception:
-            # Command might not be registered, which is OK for test
+        except _TEST_I18N_COMMAND_ERRORS:
+            # Command might not be registered or may fail in test env; skip assertion.
             pass
 
 
