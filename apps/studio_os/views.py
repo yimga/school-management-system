@@ -440,6 +440,67 @@ def studio_automation_replay_rollback(request):
     )
 
 
+def _automation_explainer_view(request, template_name: str, page_title: str, page_subtitle: str):
+    """Shared helper for Automation Studio explainer pages (staff-only, workflow_hub_url, action back to automation)."""
+    if not getattr(request.user, "is_staff", False):
+        return redirect(reverse("accounts:backend_dashboard"))
+    workflow_hub_url = ""
+    try:
+        workflow_hub_url = reverse("siteconfig:workflow_hub") + "?embed=1"
+    except NoReverseMatch:
+        pass
+    return render(
+        request,
+        template_name,
+        {
+            "workflow_hub_url": workflow_hub_url,
+            "page_title": page_title,
+            "page_subtitle": page_subtitle,
+            "action_url": reverse("studio_os:automation"),
+            "action_text": _("Back to Automation"),
+        },
+    )
+
+
+@never_cache
+@require_http_methods(["GET"])
+@login_required
+def studio_automation_visual_builder(request):
+    """§4.3 Automation Studio optional: Visual builder. Explains drag-and-drop workflow building; links to Workflow hub."""
+    return _automation_explainer_view(
+        request,
+        "studio_os/automation_visual_builder.html",
+        _("Visual builder"),
+        _("Build workflows visually with drag-and-drop; connect steps and conditions. Manage flows from the Workflow hub."),
+    )
+
+
+@never_cache
+@require_http_methods(["GET"])
+@login_required
+def studio_automation_natural_language_workflow(request):
+    """§4.3 Automation Studio optional: Natural-language workflow generation. Explains NL-to-workflow; links to Workflow hub."""
+    return _automation_explainer_view(
+        request,
+        "studio_os/automation_natural_language_workflow.html",
+        _("Natural-language workflow"),
+        _("Describe workflows in plain language; the system suggests or generates flow steps. Refine and activate from the Workflow hub."),
+    )
+
+
+@never_cache
+@require_http_methods(["GET"])
+@login_required
+def studio_automation_simulation_engine(request):
+    """§4.3 Automation Studio optional: Simulation engine. Explains run-before-activate; links to Workflow hub."""
+    return _automation_explainer_view(
+        request,
+        "studio_os/automation_simulation_engine.html",
+        _("Simulation engine"),
+        _("Run workflow simulations before going live. Verify behavior and impact from the Workflow hub, then activate when ready."),
+    )
+
+
 @never_cache
 @require_http_methods(["GET"])
 @login_required
@@ -798,6 +859,18 @@ def studio_shell(request, mode=None):
             workflow_entries.append({
                 "label": "Replay / rollback",
                 "url": reverse("studio_os:automation_replay_rollback") + "?embed=1",
+            })
+            workflow_entries.append({
+                "label": "Visual builder",
+                "url": reverse("studio_os:automation_visual_builder") + "?embed=1",
+            })
+            workflow_entries.append({
+                "label": "Natural-language workflow",
+                "url": reverse("studio_os:automation_natural_language_workflow") + "?embed=1",
+            })
+            workflow_entries.append({
+                "label": "Simulation engine",
+                "url": reverse("studio_os:automation_simulation_engine") + "?embed=1",
             })
             for entry in workflow_entries:
                 automation_rail.append({"label": entry["label"], "url": entry["url"], "embed": True})

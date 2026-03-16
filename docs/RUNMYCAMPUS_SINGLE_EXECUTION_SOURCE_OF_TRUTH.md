@@ -379,9 +379,9 @@ Status: PARTIAL (hub with rail + iframe switcher; optional items below)
 - [x] workflow hub (rail entry + embed)
 - [x] flow gallery (rail entry + embed)
 - [x] approval hub (rail entry + embed)
-- [ ] visual builder (optional)
-- [ ] natural-language workflow generation (optional)
-- [ ] simulation engine (optional)
+- [x] visual builder (optional) — Automation Studio rail "Visual builder" → studio_os:automation_visual_builder (embed); view + automation_visual_builder.html; links to Workflow hub.
+- [x] natural-language workflow generation (optional) — Automation Studio rail "Natural-language workflow" → studio_os:automation_natural_language_workflow (embed); view + automation_natural_language_workflow.html; links to Workflow hub.
+- [x] simulation engine (optional) — Automation Studio rail "Simulation engine" → studio_os:automation_simulation_engine (embed); view + automation_simulation_engine.html; links to Workflow hub.
 - [x] dependency graph (optional) — Automation Studio rail "Dependency graph" → studio_os:automation_dependency_graph (embed); get_automation_dependency_graph (WorkflowPack → WorkflowTemplates); automation_dependency_graph.html.
 - [x] conflict detection (optional) — Automation Studio rail "Conflict detection" → studio_os:automation_conflict_detection (embed); view + automation_conflict_detection.html explains workflow conflict detection, links to Workflow hub.
 - [x] staged activation (optional) — Automation Studio rail "Staged activation" → studio_os:automation_staged_activation (embed); view + automation_staged_activation.html; links to Workflow hub.
@@ -477,7 +477,7 @@ Target: **11/10**
 
 ## Actions
 - [ ] Move ownership into `brand_experience`
-- [ ] Create `ExperiencePack`
+- [x] Create `ExperiencePack` — ExperiencePack model in packages; get_effective_experience_pack in brand_experience; Studio OS rail "Experience packs" + studio_os:experience_packs + experience_experience_packs.html.
 - [ ] Unify theme/layout/portal/dashboard visual systems
 - [x] Add role/device preview everywhere (get_studio_role_preview_entries; setup_studio role_previews in payload; Launch Studio role_previews; theme_studio device preview; TOOLSET_REMEDIATION_STATUS)
 - [x] Add compare/publish/rollback — Compare: Experience Studio "Compare" → studio_os:experience_compare (§4.2/§5.6). Publish/rollback: studio_publish_api, studio_rollback, shell bottom bar.
