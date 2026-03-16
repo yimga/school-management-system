@@ -2,6 +2,7 @@
 Generate docs/architecture/models.png (Section 13.2). Required platform deliverable.
 Uses django-extensions graph_models when available; otherwise runs scripts/gen_models_png.py.
 Usage: python manage.py generate_models_diagram
+§2.4: Typed exception tuple and log_exception_with_context for subprocess/run failures.
 """
 
 import subprocess
@@ -9,6 +10,18 @@ import sys
 from pathlib import Path
 
 from django.core.management.base import BaseCommand
+
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
+# §2.4 Typed exceptions for allowlist shrink (broad_exception_audit)
+_GENERATE_MODELS_DIAGRAM_ERRORS = (
+    OSError,
+    ValueError,
+    TypeError,
+    subprocess.CalledProcessError,
+    subprocess.SubprocessError,
+    RuntimeError,
+)
 
 
 class Command(BaseCommand):
@@ -49,5 +62,10 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING("manage.py not found; run from repo root"))
         except subprocess.TimeoutExpired:
             self.stderr.write(self.style.ERROR("graph_models timed out"))
-        except Exception as e:
+        except _GENERATE_MODELS_DIAGRAM_ERRORS as e:
+            log_exception_with_context(
+                "generate_models_diagram: graph_models subprocess failed",
+                school_id=None,
+                extra={"command": "generate_models_diagram", "output": str(out), "error": str(e)},
+            )
             self.stderr.write(self.style.ERROR(f"Failed: {e}"))
