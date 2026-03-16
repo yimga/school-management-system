@@ -154,6 +154,8 @@ Adopt shared `studio_os/components/page_header.html` incrementally so every cont
 | **marketplace/package_rollout** | cp-hero (Package rollout); data-page-archetype=operational-workbench; Back to Dashboard + App sandbox + App catalog | **DONE** — §2e row 8 page maturity. |
 | **marketplace/app_catalog** | proof-hero (App catalog); data-page-archetype=catalog; Back to Dashboard + Governance + Blueprint marketplace + Sandbox inspector | **DONE** — §2e row 8 page maturity. |
 | **marketplace/tenant_installed_apps** (tenant backend) | **studio_os page_header** (Installed apps, subtitle, Back to app catalog) + data-page-archetype=operational-workbench | **DONE** — §2e row 8 tenant backend page maturity. |
+| **marketplace/tenant_app_catalog** (tenant backend) | proof-hero (App catalog); data-page-archetype=catalog; Installed apps + Scope consent; catalog_stats/catalog_counts in context | **DONE** — §2e row 8 tenant backend; already compliant. |
+| **siteconfig/sync_center** (tenant backend) | **studio_os page_header** (Sync Center, subtitle, Back to dashboard) + data-page-archetype=operational-workbench | **DONE** — §2e row 8 tenant backend page maturity. |
 | Other control_plane_base pages | — | Add page_header or title_block when adding new pages |
 
 **Rule:** New control-plane content pages must include either `studio_os/components/page_header.html` or a cp-hero with clear title and primary action. Migrate title_block pages to page_header when touching them. Tenant backend pages: same UX bar per §8.0.11; adopt page_header when touching (e.g. people/backend_student_list [x]).

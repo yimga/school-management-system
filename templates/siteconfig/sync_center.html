@@ -6,11 +6,12 @@
 {% block backend_title %}Sync Center{% endblock %}
 
 {% block content %}
-  <div class="container-fluid py-4">
+  <div class="container-fluid py-4" data-page-archetype="operational-workbench">
+    {% include "studio_os/components/page_header.html" with title=_("Sync Center") subtitle=_("Conflicts from offline sync. Resolve by keeping server version, client version, or discarding.") action_url=action_url action_text=action_text %}
     <div class="card shadow-sm">
       <div class="card-body">
-        <h1 class="h4 mb-3">Sync conflicts</h1>
-        <p class="text-muted">Conflicts from offline sync. Resolve by keeping server version, client version, or discarding.</p>
+        <h2 class="h5 mb-3">{% trans "Sync conflicts" %}</h2>
+        <p class="text-muted">{% trans "Conflicts from offline sync. Resolve by keeping server version, client version, or discarding." %}</p>
         {% if not sync_available %}
           <p class="text-warning">Sync conflict model not available.</p>
         {% elif not conflicts %}

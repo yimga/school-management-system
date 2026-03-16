@@ -1,6 +1,7 @@
 # Phase G optional: Sync Center UI – list SyncConflict for school, resolve server/client/discard
 from django.contrib import messages
 from django.shortcuts import redirect, render, get_object_or_404
+from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
 
@@ -42,7 +43,14 @@ def sync_center(request):
     try:
         from .models import SyncConflict
     except ImportError:
-        return render(request, "siteconfig/sync_center.html", {"school": school, "conflicts": [], "sync_available": False})
+        action_url = reverse("accounts:backend_dashboard")
+        return render(request, "siteconfig/sync_center.html", {
+            "school": school,
+            "conflicts": [],
+            "sync_available": False,
+            "action_url": action_url,
+            "action_text": "Back to dashboard",
+        })
     conflicts = SyncConflict.objects.filter(school=school).order_by("-created_at")[:50]
     return render(request, "siteconfig/sync_center.html", {
         "school": school,
