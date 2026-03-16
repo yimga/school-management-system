@@ -84,7 +84,7 @@
 - **CONTROL_PLANE_NAV** — Single source: `apps/schools/control_plane_nav.build_control_plane_nav(request)`; injected by `apps/siteconfig/context_processors` (manager request only). One partial: `partials/control_plane_sidebar.html`.
 
 **Templates extending control_plane_base (already one shell):**  
-super_workflow_packs, super_workflow_simulator, super_runtime_inspector, super_control_health, super_registries, super_command_center, super_tenant_360, super_policy_diff, billing_dashboard, governance_console, app_catalog, sandbox_inspector, incident_dashboard, observability/slo_dashboard, observability/platform_incidents, siteconfig/console_domains_hub_control_plane.
+super_workflow_packs, super_workflow_simulator, super_runtime_inspector, super_control_health, super_registries, super_command_center, super_tenant_360, super_policy_diff, billing_dashboard, governance_console, app_catalog, blueprint_marketplace, sandbox_inspector, incident_dashboard, observability/slo_dashboard, observability/platform_incidents, siteconfig/console_domains_hub_control_plane.
 
 **Templates extending control_plane_skeleton only (no sidebar, by design):** auth/admin_login, errors/404_control_plane, errors/403_control_plane, errors/500_control_plane.
 
@@ -122,6 +122,7 @@ Adopt shared `studio_os/components/page_header.html` incrementally so every cont
 | **marketplace/sandbox_inspector** | cp-hero (Sandbox inspector); data-page-archetype=catalog; Back to Dashboard + Governance + Health | **DONE** |
 | **marketplace/installation_health** | cp-hero (Installation health); data-page-archetype=operational-workbench; Back to Dashboard + Sandbox + Incidents | **DONE** |
 | **marketplace/compatibility_matrix** | cp-hero (Compatibility matrix); data-page-archetype=catalog; Governance + App catalog + Control plane | **DONE** — §2e row 8 page maturity. |
+| **marketplace/blueprint_marketplace** | cp-hero (Blueprint marketplace); data-page-archetype=catalog; Governance + App catalog + Control plane | **DONE** — §2e row 8 page maturity. |
 | **super_global_ai_version** | **studio_os page_header** (Global AI Version, subtitle, Back to dashboard) + data-page-archetype=operational-workbench; link to AI Model Hub | **DONE** |
 | **super_ai_model_hub** | **studio_os page_header** (AI Model Hub, Per-region Ollama config and health, Back to dashboard) + data-page-archetype=operational-workbench | **DONE** |
 | **super_global_ai_version_progress** | **studio_os page_header** (Global AI upgrade progress, subtitle, Back to dashboard) + data-page-archetype=operational-workbench | **DONE** |
