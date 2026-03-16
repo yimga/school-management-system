@@ -1,7 +1,14 @@
 from django.urls import path
 from .views import (
+    studio_ai_cleanup,
     studio_audit_api,
+    studio_automation_dependency_graph,
+    studio_control_impact,
+    studio_experience_compare,
+    studio_experience_recommendations,
     studio_global_search,
+    studio_output_branding_inheritance,
+    studio_output_dependency_graph,
     studio_preview,
     studio_publish_api,
     studio_recommendations_api,
@@ -16,8 +23,13 @@ app_name = "studio_os"
 urlpatterns = [
     path("", studio_shell, name="shell"),
     path("experience/", studio_shell, {"mode": "experience"}, name="experience"),
+    path("experience/recommendations/", studio_experience_recommendations, name="experience_recommendations"),
+    path("experience/compare/", studio_experience_compare, name="experience_compare"),
     path("automation/", studio_shell, {"mode": "automation"}, name="automation"),
+    path("automation/dependency-graph/", studio_automation_dependency_graph, name="automation_dependency_graph"),
     path("output/", studio_shell, {"mode": "output"}, name="output"),
+    path("output/dependency-graph/", studio_output_dependency_graph, name="output_dependency_graph"),
+    path("output/branding-inheritance/", studio_output_branding_inheritance, name="output_branding_inheritance"),
     path("launch/", studio_shell, {"mode": "launch"}, name="launch"),
     path("control/", studio_shell, {"mode": "control"}, name="control"),
     path("preview/", studio_preview, name="preview"),
@@ -26,6 +38,8 @@ urlpatterns = [
     path("version-history/", studio_version_history_api, name="version_history"),
     path("search/", studio_global_search, name="global_search"),
     path("recommendations/", studio_recommendations_api, name="recommendations"),
+    path("control/impact/", studio_control_impact, name="control_impact"),
+    path("control/ai-cleanup/", studio_ai_cleanup, name="ai_cleanup"),
     path("audit/", studio_audit_api, name="audit"),
     path("rollback/", studio_rollback, name="rollback"),
 ]

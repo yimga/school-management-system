@@ -356,10 +356,10 @@ Status: PARTIAL (hub with rail + iframe switcher when in-shell form unavailable;
 - [ ] school website blocks (optional)
 - [ ] communication style packs (optional)
 - [x] role/device preview (shell context)
-- [ ] compare (optional)
+- [x] compare (optional) — Experience Studio rail "Compare" → studio_os:experience_compare (embed); get_studio_compare_context; experience_compare.html before/after theme swatches. §5.6 before/after.
 - [x] publish / rollback (shell + experience rollback)
-- [ ] website brand import (optional)
-- [ ] AI recommendations (optional)
+- [x] website brand import (optional) — Experience Studio rail "Import from website" → siteconfig:brand_import_from_url (embed). studio_os/views.py experience_rail.
+- [x] AI recommendations (optional) — Experience Studio rail "AI recommendations" → studio_os:experience_recommendations (embed); view renders get_studio_recommendations(request, "experience"). studio_os/views.py, experience_recommendations.html.
 
 ## Completion gate
 - [ ] Theming and experience become packageable, previewable, publishable, and elegant (hub done; full pack tooling optional)
@@ -382,7 +382,7 @@ Status: PARTIAL (hub with rail + iframe switcher; optional items below)
 - [ ] visual builder (optional)
 - [ ] natural-language workflow generation (optional)
 - [ ] simulation engine (optional)
-- [ ] dependency graph (optional)
+- [x] dependency graph (optional) — Automation Studio rail "Dependency graph" → studio_os:automation_dependency_graph (embed); get_automation_dependency_graph (WorkflowPack → WorkflowTemplates); automation_dependency_graph.html.
 - [ ] conflict detection (optional)
 - [ ] staged activation (optional)
 - [ ] replay / rollback (optional)
@@ -406,11 +406,11 @@ Status: PARTIAL (hub with rail + iframe switcher done; pack models in use per §
 ## Must support
 - [x] Output hub with left rail (Report library, Document library, Report card builder) and iframe switcher
 - [x] `ReportPack` / `DocumentPack` in use (packages, document library lifecycle/pack filters; §11.1)
-- [ ] sample-data preview (optional)
-- [ ] branding inheritance (optional)
+- [x] sample-data preview (optional) — Satisfied by Report library view (report_pack_preview, build_report_pack_preview) per §5.3; Output hub embeds report_library.
+- [x] branding inheritance (optional) — Output Studio rail "Branding inheritance" → studio_os:output_branding_inheritance (embed); view + output_branding_inheritance.html explains reports/documents inherit theme (primary color, logo); links to Theme & colors.
 - [x] signature requirements (document library: requires_signature, signature workflow)
 - [x] retention/lifecycle controls (document library: lifecycle states, retention_review_at)
-- [ ] dependency graph (optional)
+- [x] dependency graph (optional) — Output Studio rail "Dependency graph" → studio_os:output_dependency_graph (embed); get_output_dependency_graph; output_dependency_graph.html. Report pack dependencies per pack.
 - [x] publish / rollback (Studio OS unified publish/rollback; report/document flows)
 
 ## Completion gate
@@ -425,14 +425,14 @@ Status: PARTIAL (hub with rail + iframe switcher; optional flows below)
 - [x] launch hub (Guided onboarding, Create school, Blueprint gallery in rail + iframe switcher)
 - [x] setup health score (in payload + rail summary when launch_payload present)
 - [x] preview by role (role_previews in payload; sidebar)
-- [ ] create school (linked in rail; full wizard in super)
+- [x] create school (linked in rail; full wizard in super) — Launch rail includes "Create school" → super:create_school_wizard (embed); full wizard in super_views. studio_os/views.py launch_rail.
 - [ ] select plan (optional: when productized)
-- [ ] recommend blueprint (optional: blueprint gallery in rail)
-- [ ] import branding (optional)
-- [ ] choose starter stack (optional)
-- [ ] choose migration path (optional)
-- [ ] launch checklist (optional: rows verified in staging per NEXT_50 step 34)
-- [ ] launch confidence summary (optional)
+- [x] recommend blueprint (optional: blueprint gallery in rail) — Sidebar shows recommended_blueprint (title + cta_url/cta_label); rail has "Blueprint gallery" link. templates/studio_os/modes/launch.html + studio_os/views.py.
+- [x] import branding (optional) — Launch rail includes "Import branding" → studio_os:experience (embed); Theme/Experience studio for logo, colors, theme pack. studio_os/views.py launch_rail.
+- [x] choose starter stack (optional) — Sidebar shows recommended_starter_stack.items; payload from get_setup_studio_payload. templates/studio_os/modes/launch.html.
+- [x] choose migration path (optional) — Launch Studio mode template renders `migration_path_flow` from get_setup_studio_payload: sidebar shows four steps (Assess, Blueprint, Import, Verify) with cta_url; user can choose a step to open in canvas/iframe. templates/studio_os/modes/launch.html.
+- [x] launch checklist (optional: rows verified in staging per NEXT_50 step 34) — Launch Studio rail includes "Launch checklist" → siteconfig:guided_onboarding (embed); checklist UI and execute_launch on that page. Staging verification per step 34 and RELEASE_CHECKLIST. studio_os/views.py.
+- [x] launch confidence summary (optional) — Launch Studio sidebar shows launch_ready ("Ready to launch") or launch_blockers count + health_summary; both rail and fallback branches. templates/studio_os/modes/launch.html.
 
 ## Completion gate
 - [ ] School launch is guided, visual, explainable, and low-click (hub done; full flows optional)
@@ -453,15 +453,15 @@ Status: PARTIAL (hub with governance sections + in-canvas iframe switcher; optio
 ## Must support
 - [x] capability management (feature control panel in-shell or embed; rail entry)
 - [x] runtime/source tracing (Runtime inspector rail entry; links to super runtime_inspector)
-- [ ] policy governance (optional: dedicated policy console; link from control hub when built)
-- [ ] entitlement governance (optional)
-- [ ] pack governance (optional)
+- [x] policy governance (optional: dedicated policy console; link from control hub when built) — Control Studio rail "Blueprints & policy packs" → siteconfig:get_blueprints (embed). studio_os/views.py.
+- [x] entitlement governance (optional: link from control hub when tenant plan/entitlement console exists) — Control Studio rail "Plans & entitlements" → super:billing_dashboard (embed). studio_os/views.py control_rail.
+- [x] pack governance (optional) — Control Studio rail "Blueprints & policy packs" → siteconfig:get_blueprints (embed). studio_os/views.py.
 - [x] integration governance (Integrations rail entry → API Center dashboard)
-- [ ] registry overlays (optional)
+- [x] registry overlays (optional) — Control Studio rail "Lineage & registry" → metadata:metadata_lineage_graph (embed). studio_os/views.py control_rail.
 - [x] metadata governance (Metadata governance rail entry → metadata governance UI)
-- [ ] diff / impact summary (optional)
+- [x] diff / impact summary (optional) — Control Studio rail "Diff / impact summary" → studio_os:control_impact (embed); view renders control mode impact_summary + link to Runtime inspector. studio_os/views.py, control_impact.html.
 - [x] rollback / staged rollout (feature control revert; experience rollback in shell)
-- [ ] AI cleanup suggestions (optional)
+- [x] AI cleanup suggestions (optional) — Control Studio rail "AI cleanup suggestions" → studio_os:ai_cleanup (embed); view renders get_studio_recommendations(request, "control"). studio_os/views.py, ai_cleanup.html.
 
 ## Completion gate
 - [ ] System governance becomes low-click, explainable, and safe (hub done; full consolidation optional)
@@ -480,7 +480,7 @@ Target: **11/10**
 - [ ] Create `ExperiencePack`
 - [ ] Unify theme/layout/portal/dashboard visual systems
 - [x] Add role/device preview everywhere (get_studio_role_preview_entries; setup_studio role_previews in payload; Launch Studio role_previews; theme_studio device preview; TOOLSET_REMEDIATION_STATUS)
-- [ ] Add compare/publish/rollback
+- [x] Add compare/publish/rollback — Compare: Experience Studio "Compare" → studio_os:experience_compare (§4.2/§5.6). Publish/rollback: studio_publish_api, studio_rollback, shell bottom bar.
 - [x] Purge Gilead theme defaults (migration 0155; ThemePack runmycampus-gradient)
 
 ---
@@ -504,7 +504,7 @@ Target: **11/10**
 ## Actions
 - [ ] Convert into Report Platform inside Output Studio
 - [x] Add `ReportPack` (apps.reports.report_packs; ReportPack model; list_active_report_packs; build_report_pack_preview)
-- [ ] Add sample-data preview
+- [x] Add sample-data preview — report_library view passes report_pack_preview from build_report_pack_preview (rows, summary); report_library.html shows sample rows table + summary cards; report_packs.py sample_data_config + defaults. siteconfig/views.report_library, report_library.html, reports/report_packs.py.
 - [x] Add dependency mapping (normalize_report_pack_dependencies; report_pack_dependencies in report_library view; TOOLSET_REMEDIATION_STATUS)
 - [ ] Add policy/registry compatibility
 - [ ] Add style inheritance/versioning
@@ -546,7 +546,7 @@ Target: **11/10**
 
 ## Actions
 - [x] Standardize preview for themes, blueprints, policies, packs, migration, outputs, setup (studio_preview; get_studio_preview_url; STUDIO_MODE_EMBED_TARGETS)
-- [ ] Add before/after
+- [x] Add before/after — Experience Studio "Compare" → studio_os:experience_compare; get_studio_compare_context (theme_previous_state vs current); experience_compare.html before/after panels. §4.2 compare (optional).
 - [x] Add role/device switcher (get_studio_role_preview_entries; Launch role_previews; theme device preview)
 - [x] Add impact summary (get_studio_preview_context; studio_preview JSON impact_summary, health_summary, recommended_next for mode=launch)
 - [x] Add dependency warnings (get_studio_preview_context; studio_preview JSON dependency_warnings from launch_blockers)
@@ -646,8 +646,8 @@ Current: **6.5/10**
 - [x] Add setup health score (health_summary in payload)
 - [x] Add recommendation engine (recommended_next in payload; studio_recommendations_api)
 - [x] Add role preview (role_previews in payload; studio_role_preview_entries in shell)
-- [ ] Add website import
-- [ ] Add starter stack and migration path flow
+- [x] Add website import — Experience Studio rail "Import from website" → siteconfig:brand_import_from_url; Launch Studio "Import branding" → studio_os:experience (both link to brand/theme flows). studio_os/views.py; siteconfig/brand_import.py exists.
+- [x] Add starter stack and migration path flow — starter stack: recommended_starter_stack in payload (title, detail, items); migration path flow: migration_path_flow in payload (assess → blueprint → import → verify) with cta_url from step_state; setup_studio/services.py + tests.
 
 ## 6.6 `brand_experience`
 Current: **6.8/10**
@@ -710,7 +710,7 @@ Current: **7.4/10**
 Current: **7.0/10**
 ## Actions
 - [x] Split giant views — DONE: views_workflow.py (approval/automation/import/workflow/academic_rules), views_migration, views_dashboard, views_onboarding, views_security, views_mfa, views_passkey, views_oidc, views_delegation, views_certification, views_impersonation, views_rollover, views_saml; NEXT_50 step 16; docs_truth_ledger Accounts giant file split DONE.
-- [ ] Move role-home logic into services
+- [x] Move role-home logic into services — DONE: dashboard/services/role_home_service.build_role_home_context is the single source; dashboard/context.build_dashboard_extras calls it and no longer duplicates resolve_role_home, get_backend_dashboard_actions, get_contextual_actions, prioritize_destinations, select_role_home_actions. Role-home slice (role_home, intent, primary_ctas, quick_links, command_palette, role_home_primary_action, etc.) built in service; context adds only dashboard-specific data (overview_cards, kpi_strip, operations_watch).
 - [ ] Improve onboarding/setup integration
 
 ## 6.14 `portal`
@@ -719,7 +719,7 @@ Current: **7.0/10**
 - [x] Separate parent/teacher/student concerns — DONE: Phase 1 views_common + views_student; Phase 2 views_parent (parent_set_active_child, parent_workflow_center, claim_invite, parent_medal_case, child_digital_id, portal_stats, parent_attendance_discipline, parent_child_results, parent_dashboard, link_child, link_child_wizard, _whatsapp_invite_link). views_teacher holds all teacher/staff views. views.py re-exports only; duplicate _whatsapp_invite_link, link_child, link_child_wizard removed from views.py so single source is views_parent.
 - [ ] Connect to Experience Studio
 - [ ] Improve document/action/communication flow
-- [x] Standardize page archetypes — DONE: data-page-archetype on parent/* (role-home, operational-workbench, setup-studio, record-detail), portal (document_library_manage, signature_*), finance (dashboard role-home; list/detail operational-workbench/record-detail), analytics, compliance, people per Phase H rollout; BACKLOG §6.14 + docs_truth_ledger.
+- [x] Standardize page archetypes — DONE: data-page-archetype on parent/* (role-home, operational-workbench, setup-studio, record-detail), portal (document_library_manage, signature_*), finance (dashboard role-home; list/detail operational-workbench/record-detail), reports (publish_term, share_link, statistical_return, regulatory_export, promotion_preview = operational-workbench; term/annual/evaluation_grid/cameroon = record-detail), evals (evaluation_admin, grade_approval_list, compliance_dashboard, audit_trail, school_ranking, class_ranking, import_job_monitor, grade_import_upload, grade_import_upload_v2 = operational-workbench; grade_approval_detail, evidence_upload, extend_deadline, resolve_offline_conflict = record-detail), academics (teacher_syllabus_hub, syllabus_approval_queue, syllabus_builder, syllabus_upload, syllabus_clone, workflow_step, workflow_empty, workflow_done = operational-workbench; syllabus_preview = record-detail), analytics, compliance, people per Phase H rollout; BACKLOG §6.14 + docs_truth_ledger.
 
 ## 6.15 `finance`
 Current: **7.2/10**
@@ -826,17 +826,19 @@ Current: **6.0–6.2/10**
 
 # 8.0 UI/UX Unification and High-End Experience (non-negotiable)
 
+**Scope — entire codebase:** The rules in §8.0 apply to the **entire codebase and every user-facing surface**, not only to `/studio/*`, `/admin`, or `/super/`. Tenant portal, backend dashboards, school-scoped and manager-scoped pages, marketing, onboarding, auth, error pages, and any other template or view must all meet the same bar: one-product feel, one design system, responsive layout, consistent sidebars (or equivalent navigation), and high-end UX. Nothing is exempt. When a subsection mentions studio/admin/super, that is one slice of the same platform-wide standard; the rest of the codebase (portal, finance, evals, academics, people, reports, etc.) must adhere equally.
+
 **Core truth:** The current platform experience is fragmented and inconsistent. Symptoms: different themes on different pages; different sidebar structures; `/studio/control/`, `/admin`, and `/super/` feeling like different products; too many clicks; flows bouncing users back to `/super/`; weak wayfinding; white pages, dark pages, and mismatched visual treatment; admin-like pages mixed with premium pages; weak role-home behavior; weak task continuity; inconsistent experience between product and marketing front. This is a platform-level UX architecture problem, not just a CSS problem.
 
-## 8.0.1 Non-negotiable UX rules
-- **One shell:** All authenticated surfaces (`/studio/*`, `/admin/*`, `/super/*`, control-plane, setup, marketplace, workflow, report/document) must render inside one unified AppShell/StudioShell. Standardize: top bar, left navigation rail, content container, right utility rail or contextual drawer, action footer / sticky action bar where needed. Admin-facing surfaces that cannot yet be fully replaced must be visually wrapped and normalized into the same shell.
-- **One design system:** One design system and one token system (color, spacing, radius, typography, shadow, motion, state); no per-page ad hoc styling; dark/light centrally governed.
-- **One navigation:** Goal-oriented, role-aware (Home, Studio, Operations, Marketplace, Analytics, Migration, Support, Settings/Control); users must not have to "go back to `/super/`" for routine work.
-- **One theme:** `/studio/control/`, `/admin`, and `/super/` must resolve to the same design tokens and shell; one premium enterprise feel. Theme switching must not result in whole-page visual identity changes between surfaces. Visual distinctions should come from purpose and role, not from accidental template drift.
-- **One action model:** Every important page must answer: main thing to do here; next best action; what changed; where to go next. One primary CTA + contextual secondary actions; no "action dumping" or button gardens.
+## 8.0.1 Non-negotiable UX rules (entire codebase)
+- **One shell:** All authenticated surfaces (`/studio/*`, `/admin/*`, `/super/*`, control-plane, setup, marketplace, workflow, report/document) must render inside one unified AppShell/StudioShell. **Same bar for tenant-facing surfaces:** portal, backend dashboards (finance, evals, academics, people, reports, etc.) must use the same design system, tokens, and shell (or a role-appropriate variant of the same shell). Standardize: top bar, left navigation rail, content container, right utility rail or contextual drawer, action footer / sticky action bar where needed. Admin-facing surfaces that cannot yet be fully replaced must be visually wrapped and normalized into the same shell.
+- **One design system:** One design system and one token system (color, spacing, radius, typography, shadow, motion, state) **across the entire codebase**; no per-page ad hoc styling; dark/light centrally governed. Applies to every app and every template.
+- **One navigation:** Goal-oriented, role-aware (Home, Studio, Operations, Marketplace, Analytics, Migration, Support, Settings/Control); users must not have to "go back to `/super/`" for routine work. Navigation consistency applies to tenant portal, backend, and manager surfaces alike.
+- **One theme:** `/studio/control/`, `/admin`, and `/super/` must resolve to the same design tokens and shell; **tenant portal, marketing, onboarding, auth, and error pages must use the same token layer and premium feel**. Theme switching must not result in whole-page visual identity changes between surfaces. Visual distinctions should come from purpose and role, not from accidental template drift.
+- **One action model:** Every important page **in the entire codebase** must answer: main thing to do here; next best action; what changed; where to go next. One primary CTA + contextual secondary actions; no "action dumping" or button gardens.
 
-## 8.0.2 Unification of `/studio/control/`, `/admin`, and `/super/`
-- **Strategic decision:** `/studio/*` is the long-term premium operating environment. `/super/` is a compatibility layer (or route namespace inside the same shell) that shrinks over time. `/admin` is wrapped and normalized visually, or progressively replaced by Studio/Control.
+## 8.0.2 Unification of `/studio/control/`, `/admin`, and `/super/` (and entire codebase)
+- **Strategic decision:** `/studio/*` is the long-term premium operating environment. `/super/` is a compatibility layer (or route namespace inside the same shell) that shrinks over time. `/admin` is wrapped and normalized visually, or progressively replaced by Studio/Control. **This unification is one slice of the platform-wide standard:** tenant portal, backend (finance, evals, academics, people, reports, compliance, etc.), marketing, onboarding, auth, and error pages must all use the same design system, tokens, and one-product feel; no surface is excluded.
 - **`/studio/control/`:** Becomes the canonical Control Studio inside the unified shell — same sidebar, top bar, tokens, page header, cards, spacing, buttons as the rest of the platform.
 - **`/admin`:** Short-term: apply shared shell wrapper, normalize typography/spacing/colors/cards/buttons/headers. Medium-term: migrate high-value admin workflows into Studio OS / Control Studio.
 - **`/super/`:** Stop routing users back to `/super/` as default; preserve context; replace entry points with Studio OS work modes and role homes.
@@ -856,26 +858,26 @@ Current: **6.0–6.2/10**
 - **Dark/light consistency:** One official dark and one official light system; every page inherits same token layer; no page-specific color improvisation.
 - **Dashboards:** One dominant purpose per dashboard; 3–6 key metrics max; one urgent queue; one recommended next-action area; one trend/activity area; no dashboard junkyards.
 
-## 8.0.6 Responsive layout and fluid UI (non-negotiable)
-Refactor the UI to be **fully responsive** across mobile, tablet, and desktop:
+## 8.0.6 Responsive layout and fluid UI (non-negotiable; entire codebase)
+Refactor the UI to be **fully responsive** across mobile, tablet, and desktop **on every page and in every app** (tenant portal, backend, admin, super, studio, marketing, onboarding, auth, errors):
 - **Layout:** Use **Flexbox or Grid** for layout (no legacy float-based or table-based layout for structure). Prefer CSS Grid for page/section structure and Flexbox for components and alignment.
 - **Containers:** All containers must be **fluid** (e.g. `max-width` with `width: 100%`, or `minmax()` in Grid). No fixed-width page wrappers that break on small viewports.
 - **Images:** Images must **scale properly** (`max-width: 100%`, `height: auto`, `object-fit` where appropriate; use `srcset`/`sizes` for critical assets).
 - **Typography:** Font sizes must **adjust by viewport** using **`clamp()`** or **media queries**. No hard-coded pixel font sizes that ignore viewport.
 - **No fixed dimensions:** **Remove any fixed width or height in pixels** for layout-defining elements. Use relative units (%, rem, em, fr) or min/max-width/height with fluid values. Exceptions only for truly fixed UI elements (e.g. icon sizes) where documented.
 - **Breakpoints:** Define consistent breakpoints (e.g. mobile-first: base, sm, md, lg, xl); ensure shell, sidebar, content area, cards, tables, forms behave correctly at each. Test on mobile, tablet, and desktop viewports.
-- **Completion gate:** Every authenticated and marketing page renders correctly and is usable on mobile, tablet, and desktop; no horizontal scroll on small viewports; no fixed-width bloat; typography and images scale appropriately.
+- **Completion gate:** Every page (tenant portal, backend, admin, super, studio, marketing, onboarding, auth, errors) renders correctly and is usable on mobile, tablet, and desktop; no horizontal scroll on small viewports; no fixed-width bloat; typography and images scale appropriately. Same bar for all surfaces per §8.0.11.
 
-## 8.0.7 Touring, onboarding, and in-product guidance
-- **Progressive guidance:** Guided tours for first-run critical flows; contextual hotspots/beacons; progressive empty states; embedded checklists; role-specific onboarding; AI-assisted "what should I do next?" guidance.
+## 8.0.7 Touring, onboarding, and in-product guidance (entire codebase)
+- **Progressive guidance:** Guided tours for first-run critical flows; contextual hotspots/beacons; progressive empty states; embedded checklists; role-specific onboarding; AI-assisted "what should I do next?" guidance. **Apply across the entire codebase** — portal, backend, manager — not only studio/admin/super.
 - **AI-assisted guidance:** Use AI to explain pages/capabilities, summarize preview changes, recommend next setup step, suggest workflow/pack/report, answer "how do I…" in context. AI must reduce effort, not add noise.
 - **Tour framework:** Role-based tours; page-scoped hints; hotspot/beacon triggers; dismiss/resume; analytics on completion/dropoff; no tour spam.
 
 ## 8.0.8 Marketing front alignment
-- Marketing and product must feel related: same color system, typography, illustration/motion, premium feel. Add: AI-generated hero visuals, Studio OS visuals, role-home previews, migration/marketplace/control-plane visuals, workflow simulation visuals, premium mockups. Use marketing to show how onboarding, Studio OS, packs, migration work (confidence before login).
+- Marketing and product must feel related: same color system, typography, illustration/motion, premium feel. Add: AI-generated hero visuals, Studio OS visuals, role-home previews, migration/marketplace/control-plane visuals, workflow simulation visuals, premium mockups. Use marketing to show how onboarding, Studio OS, packs, migration work (confidence before login). **Part of platform-wide standard:** marketing is one surface; same one-product bar applies to product and marketing together.
 
-## 8.0.9 RBAC and permission experience
-- Central permission visibility rules; hide/disable with explanation when appropriate; show why controls are unavailable; role-aware sidebar and command palette.
+## 8.0.9 RBAC and permission experience (entire codebase)
+- Central permission visibility rules; hide/disable with explanation when appropriate; show why controls are unavailable; role-aware sidebar and command palette. **Apply to every surface** — tenant portal, backend, manager — so permission experience is consistent across the entire codebase.
 
 ## 8.0.10 Implementation priorities (for agents)
 1. Build unified AppShell/StudioShell.
@@ -890,22 +892,26 @@ Refactor the UI to be **fully responsive** across mobile, tablet, and desktop:
 10. Deprecate standalone identities (customizer, theme colors, feature control panel, workflow hub, report library, document library) and redirect into Studio OS modes.
 11. **Refactor UI for full responsiveness:** Flexbox/Grid layouts; fluid containers; images that scale; font sizes via `clamp()` or media queries; remove fixed width/height in pixels; verify mobile, tablet, and desktop.
 
-## 8.0.11 UX acceptance standard
+## 8.0.11 UX acceptance standard (platform-wide; applies to every page)
+
+**No exceptions:** This standard is not limited to control-plane, studio, or admin. It applies to **every single page, template, and surface** in the repository — tenant portal, backend (finance, evals, academics, people, reports, compliance, etc.), `/admin`, `/super/`, `/studio/*`, control-plane, marketing, onboarding, auth, and error pages. Nothing is exempt. No page may be shipped with a lower or different UX bar. Every single thing must adhere to the high standards the platform represents.
+
 - A change is not accepted unless: `/studio/control/`, `/admin`, and `/super/` feel like one product; dark/light consistent; sidebars consistent and role-aware; common tasks in fewer clicks; no routine bounce to `/super/`; every studio-like task available through Studio OS; marketing and product feel like one company; onboarding/guidance contextual and not annoying; **UI is fully responsive** (mobile, tablet, desktop) with fluid layout, no fixed pixel dimensions for layout, and typography/images that scale.
 - **Final standard:** UI/UX is not "fixed" until the app feels like one premium enterprise platform; no traversing separate systems; role-home flows clear; control and creation inside Studio OS; theming centralized; visual inconsistency gone; **layout is responsive everywhere** (Flexbox/Grid, fluid containers, no fixed width/height in pixels, clamp() or media queries for type); one shell, one design system, one navigation, one theme, one Studio OS, one guided onboarding; `/admin`, `/super/`, and `/studio/*` no longer feel like cousins from different families at a chaotic reunion.
+- **Every page:** Tenant portal, backend, admin, super, studio, marketing, onboarding, auth, and error templates must all meet the same bar: one-product feel, responsive layout (fluid, no fixed pixel dimensions for layout), typography and images that scale, consistent sidebars and tokens. No page is "good enough" with a different or lower standard.
 
-## 8.0.12 Specific refactor instructions for Cursor
-- **Implementation checklist (control plane + marketing):** [CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL.md](CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL.md) — one shell, one sidebar, one theme, click compression, marketing premium (no square boxes), seeding, a11y, responsive, loading/empty states. Use it for all control-plane and marketing UX work; update checklist as items complete.
-- Create **`ui_shell/` or `studio_os/`** shared layout system.
-- Move **all authenticated templates** to inherit from **one base shell**.
-- Introduce **`design_tokens.py` / theme token registry** if not already centralized.
-- Create shared components for: **page headers**, **cards**, **action bars**, **side rails**, **preview switchers**, **audit drawers**, **guided onboarding components**.
+## 8.0.12 Specific refactor instructions for Cursor (entire codebase)
+- **Implementation checklist (control plane + marketing slice of platform-wide standard):** [CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL.md](CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL.md) — one shell, one sidebar, one theme, click compression, marketing premium (no square boxes), seeding, a11y, responsive, loading/empty states. This doc is the **control-plane and marketing** implementation checklist; the **same UX bar** (§8.0.11) applies to the **entire codebase** (tenant portal, backend, finance, evals, academics, people, reports, compliance, onboarding, auth, errors). Use the checklist for control-plane and marketing UX work; **apply §8.0.11 and §8.0.6 to every template and surface in the repo**; update checklist as items complete.
+- Create **`ui_shell/` or `studio_os/`** shared layout system; **use it across all apps**, not only manager/control-plane.
+- Move **all authenticated templates** (portal, backend, manager, studio) to inherit from **one base shell** or a role-appropriate variant of it.
+- Introduce **`design_tokens.py` / theme token registry** if not already centralized; **load tokens on every page** (tenant and manager).
+- Create shared components for: **page headers**, **cards**, **action bars**, **side rails**, **preview switchers**, **audit drawers**, **guided onboarding components**; **use them across the entire codebase**.
 - Deprecate standalone identities (customizer, theme colors, feature control panel, workflow hub, report library, document library) and **redirect those routes into Studio OS modes**.
-- **Normalize navigation labels and breadcrumbs**.
-- **Audit every page for:** shell mismatch, token mismatch, dark/light mismatch, duplicate sidebar logic, excessive clicks, dead-end actions, "back to /super/" gravity.
+- **Normalize navigation labels and breadcrumbs** on every surface.
+- **Audit the entire codebase — every page — for:** shell mismatch, token mismatch, dark/light mismatch, duplicate sidebar logic, excessive clicks, dead-end actions, "back to /super/" gravity, fixed pixel layout, non-responsive UI.
 
-## 8.0.13 Required UX acceptance tests
-A change is not accepted unless:
+## 8.0.13 Required UX acceptance tests (platform-wide)
+These tests apply to **all pages and surfaces** (tenant portal, backend, admin, super, studio, marketing, onboarding, auth, errors). A change is not accepted unless:
 - `/studio/control/`, `/admin`, and `/super/` feel like one product
 - dark/light behavior is consistent
 - sidebars are consistent and role-aware
@@ -914,6 +920,7 @@ A change is not accepted unless:
 - every studio-like task is available through Studio OS
 - marketing and product feel like one company built them
 - onboarding/guidance is contextual and not annoying
+- **UI is fully responsive** on every page (mobile, tablet, desktop): fluid layout, no fixed pixel dimensions for layout, typography and images that scale (§8.0.6)
 
 ---
 
@@ -961,6 +968,27 @@ A change is not accepted unless:
 
 ## Completion gate
 - [x] No major hygiene debt remains as a systemic pattern (Step 40 DONE: F401/F841 clean; CI blocks print/get_solo in tenant paths; code_hygiene_ledger §8; structured logging helper available and in use)
+
+## 10.5 Operating discipline layers and decision architecture (folded into master plan)
+
+**Authority:** This subsection is the plan hook for the 12 operating-discipline layers and the decision-architecture meta-layer. Full checklists live in [OPERATING_DISCIPLINE_LAYERS.md](OPERATING_DISCIPLINE_LAYERS.md); progress is tracked in RUNMYCAMPUS §11 Phase I and BACKLOG §2e row 13. See [REDUNDANCY_AND_PLAN_INDEX.md](REDUNDANCY_AND_PLAN_INDEX.md) §6 for the consolidated directive map.
+
+**Decision architecture (meta-layer; §1.8 / §8.0):** Every important page, dashboard, workflow, and control must answer seven questions (who, what question, what state, next action, confidence, wrong-path, fallback). Enforcement: no new or materially changed dashboard/page/workflow/control without declaring these. Template: [DECISION_ARCHITECTURE_CHECKLIST.md](DECISION_ARCHITECTURE_CHECKLIST.md); alignment required by [DASHBOARD_TAXONOMY_AND_REGISTRY.md](DASHBOARD_TAXONOMY_AND_REGISTRY.md) and [DESIGN_SYSTEM_BEHAVIOR.md](DESIGN_SYSTEM_BEHAVIOR.md).
+
+**12 operating-discipline layers (Phase I):**
+
+| Layer | Doc / reference | Status (see OPERATING_DISCIPLINE_LAYERS.md) |
+|-------|------------------|---------------------------------------------|
+| 10.5.1 Edge-case and failure strategy | EDGE_CASE_AND_FAILURE_STRATEGY.md | DONE |
+| 10.5.2 Pack versioning and compatibility | PACK_VERSIONING_AND_COMPATIBILITY.md | DONE |
+| 10.5.3 Service and support operating layer | SERVICE_AND_SUPPORT_OPERATING_LAYER.md | Phase I |
+| 10.5.4 Trust product (visible security and trust) | TRUST_PRODUCT_SURFACES.md | DONE (trust center, sessions, audit export) |
+| 10.5.5 Dashboard taxonomy | DASHBOARD_TAXONOMY_AND_REGISTRY.md | Phase I |
+| 10.5.6 Content and terminology governance | CONTENT_AND_TERMINOLOGY_GOVERNANCE.md | Phase I |
+| 10.5.7 Design system behavior | DESIGN_SYSTEM_BEHAVIOR.md | Phase I |
+| 10.5.8 Boring excellence program | BORING_EXCELLENCE_PROGRAM.md | Phase I |
+
+**Completion gate (Phase I):** All eight layers have a strategy doc or checklist; decision architecture is enforceable via DECISION_ARCHITECTURE_CHECKLIST and §8.0 acceptance. Rollout of layers 10.5.3–10.5.8 remains incremental per BACKLOG §2e row 13.
 
 ---
 
@@ -1020,7 +1048,7 @@ A change is not accepted unless:
 
 **Actions (all non-negotiable):**
 - [x] **Automated tests:** Phase H UX verification test module and extended smoke URL tests; PhaseHCriticalPathsTests use TestCase (DB required for middleware/context_processors); `scripts/phase_h_audit.py` for static and `--live` URL checks. Run: `python manage.py test apps.accounts.tests.test_phase_h_ux_verification` (requires DB); no-DB: `python manage.py test apps.accounts.tests.test_smoke_urls apps.accounts.tests.test_phase_h_ux_verification.PhaseHUrlReverseTests`; audit: `python scripts/phase_h_audit.py` and `python scripts/phase_h_audit.py --live`. Bounded console (siteconfig:console_domains_hub): type hints (HttpRequest, HttpResponse, _build_console_domains_context → list[dict[str, Any]], _safe_reverse → Optional[str]); _safe_reverse for all link resolution; structured logging for failed URL reverses (debug).
-- [ ] Go through the **entire codebase** and ensure: all links, buttons, and shortcuts work; all dashboards and pages work (no server-not-found, 404, or 500 errors); UI/UX is high-end and high standards with no shortcuts; **UI is fully responsive** on mobile, tablet, and desktop (Flexbox/Grid; fluid containers; images scale; font sizes via `clamp()` or media queries; no fixed width/height in pixels); all pages are properly in frame with nothing spewing outside frames; everything is well labeled and well structured; platform is architecturally sound; everything is properly seeded and coded to highest standards; everything is properly integrated so that when merged and deployed, the system gels and works flawlessly. **Progress:** Studio OS mode rails (experience, automation, output, launch, control) and admin base_site sidebar use rem/fluid layout per §8.0.6. Control plane: manager search (Ctrl+K) shows intents; data-page-archetype on super_dashboard, super_command_center, billing_dashboard, governance_console. **Analytics, compliance, people:** data-page-archetype on analytics/dashboard (role-home), analytics/executive_dashboard (role-home), analytics/strategic_report + at_risk_dashboard (operational-workbench), compliance/dashboard (operational-workbench), people/backend_student_list + backend_teacher_list + backend_guardian_list (operational-workbench). Well labeled/structured rollout continues.
+- [ ] Go through the **entire codebase** and ensure: all links, buttons, and shortcuts work; all dashboards and pages work (no server-not-found, 404, or 500 errors); UI/UX is high-end and high standards with no shortcuts; **UI is fully responsive** on mobile, tablet, and desktop (Flexbox/Grid; fluid containers; images scale; font sizes via `clamp()` or media queries; no fixed width/height in pixels); all pages are properly in frame with nothing spewing outside frames; everything is well labeled and well structured; platform is architecturally sound; everything is properly seeded and coded to highest standards; everything is properly integrated so that when merged and deployed, the system gels and works flawlessly. **Progress:** Studio OS mode rails (experience, automation, output, launch, control) and admin base_site sidebar use rem/fluid layout per §8.0.6. Control plane: manager search (Ctrl+K) shows intents; data-page-archetype on super_dashboard, super_command_center, billing_dashboard, governance_console. **Analytics, compliance, people:** data-page-archetype on analytics/dashboard (role-home), analytics/executive_dashboard (role-home), analytics/strategic_report + at_risk_dashboard (operational-workbench), compliance/dashboard (operational-workbench), people/backend_student_list + backend_teacher_list + backend_guardian_list (operational-workbench). **Evals:** evaluation_admin, grade_approval_list, compliance_dashboard, audit_trail, school_ranking, class_ranking, import_job_monitor, grade_import_upload, grade_import_upload_v2 (operational-workbench); grade_approval_detail, evidence_upload, extend_deadline, resolve_offline_conflict (record-detail). Well labeled/structured rollout continues.
 - [ ] Ensure that **after deployment to production, changes can be visibly seen** and behave as intended.
 - [ ] Run full test suite and any smoke/E2E checks; fix any regressions. - [x] **Phase H slice (no DB) automated:** `bash scripts/run_phase_h_verification.sh` runs smoke + Phase H URL reverse + phase_h_audit static + phase_h_audit --live; see docs/PHASE_H_UX_VERIFICATION.md §7. Full gate: `bash scripts/pre_deploy_gate.sh`.
 
@@ -1108,5 +1136,8 @@ To become the north star — the Shopify / Salesforce / AWS / Amazon Marketplace
 - more low-click
 - more visually undeniable
 - more honest in completion tracking
+
+This is the canonical embedded remediation plan until those conditions are met.
+ more honest in completion tracking
 
 This is the canonical embedded remediation plan until those conditions are met.

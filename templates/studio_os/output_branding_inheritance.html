@@ -1,0 +1,16 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Branding inheritance" %} · {% trans "Outputs" %}{% endblock %}
+
+{% block content %}
+<div class="container py-3">
+  <div class="studio-os__card py-3 px-3">
+    <h1 class="h5 mb-3">{% trans "Branding inheritance" %}</h1>
+    <p class="mb-2">{% trans "Reports and documents inherit school and theme branding (primary color, logo, accent) from the current theme. Configure theme and colors to control how outputs and document exports appear." %}</p>
+    {% if theme_colors_url %}
+    <p class="mb-0"><a href="{{ theme_colors_url }}">{% trans "Theme & colors" %}</a> — {% trans "Set primary color, accent, and logo used in reports and document outputs." %}</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

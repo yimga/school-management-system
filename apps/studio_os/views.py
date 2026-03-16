@@ -11,15 +11,23 @@ from django.urls import NoReverseMatch, reverse
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
 
+from apps.platform_runtime.structured_logging import (
+    log_exception_with_context,
+    request_context_for_log,
+)
 from .services import (
     get_studio_activity_feed,
+    get_studio_compare_context,
+    get_automation_dependency_graph,
     get_studio_global_search,
+    get_studio_preview_context,
     get_studio_preview_url,
     get_studio_publish_audit,
     get_studio_recommendations,
     get_studio_role_preview_entries,
     get_studio_command_palette_entries,
     get_studio_version_history,
+    get_output_dependency_graph,
     studio_rollback_available,
     studio_publish,
     studio_save_draft,
@@ -36,6 +44,135 @@ def studio_recommendations_api(request):
     mode = (request.GET.get("mode") or "").strip().lower() or None
     recs = get_studio_recommendations(request, mode)
     return JsonResponse({"recommendations": recs})
+
+
+@never_cache
+@require_http_methods(["GET"])
+@login_required
+def studio_control_impact(request):
+    """§4.6 Control Studio optional: Diff / impact summary. Renders control mode impact_summary for embedding in rail."""
+    if not getattr(request.user, "is_staff", False):
+        return redirect(reverse("accounts:backend_dashboard"))
+    preview_ctx = get_studio_preview_context("control", request)
+    return render(
+        request,
+        "studio_os/control_impact.html",
+        {
+            "impact_summary": preview_ctx.get("impact_summary") or "",
+            "dependency_warnings": preview_ctx.get("dependency_warnings") or [],
+        },
+    )
+
+
+@never_cache
+@require_http_methods(["GET"])
+@login_required
+def studio_ai_cleanup(request):
+    """§4.6 Control Studio optional: AI cleanup suggestions. Renders control-mode recommendations for embedding in rail."""
+    if not getattr(request.user, "is_staff", False):
+        return redirect(reverse("accounts:backend_dashboard"))
+    recs = get_studio_recommendations(request, "control")
+    return render(
+        request,
+        "studio_os/ai_cleanup.html",
+        {"recommendations": recs},
+    )
+
+
+@never_cache
+@require_http_methods(["GET"])
+@login_required
+def studio_experience_recommendations(request):
+    """§4.2 Experience Studio optional: AI recommendations. Renders experience-mode recommendations for embedding in rail."""
+    if not getattr(request.user, "is_staff", False):
+        return redirect(reverse("accounts:backend_dashboard"))
+    recs = get_studio_recommendations(request, "experience")
+    return render(
+        request,
+        "studio_os/experience_recommendations.html",
+        {"recommendations": recs},
+    )
+
+
+@never_cache
+@require_http_methods(["GET"])
+@login_required
+def studio_experience_compare(request):
+    """§4.2 Experience Studio optional: Compare (before/after). §5.6 Live Previews: Add before/after."""
+    if not getattr(request.user, "is_staff", False):
+        return redirect(reverse("accounts:backend_dashboard"))
+    compare_ctx = get_studio_compare_context(request, "experience")
+    return render(
+        request,
+        "studio_os/experience_compare.html",
+        {
+            "before_entries": compare_ctx.get("before_entries") or [],
+            "after_entries": compare_ctx.get("after_entries") or [],
+            "has_before": compare_ctx.get("has_before", False),
+            "page_title": "Compare (before / after)",
+            "page_subtitle": "Publish a theme change to see before/after comparison.",
+            "action_url": reverse("studio_os:experience"),
+        },
+    )
+
+
+@never_cache
+@require_http_methods(["GET"])
+@login_required
+def studio_output_dependency_graph(request):
+    """§4.4 Output Studio optional: Dependency graph. Shows report pack dependencies for embedding in Output rail."""
+    if not getattr(request.user, "is_staff", False):
+        return redirect(reverse("accounts:backend_dashboard"))
+    graph = get_output_dependency_graph()
+    return render(
+        request,
+        "studio_os/output_dependency_graph.html",
+        {
+            "graph": graph,
+            "page_title": "Dependency graph",
+            "page_subtitle": "Report packs and their dependencies (fields, policies, templates).",
+            "action_url": reverse("studio_os:output"),
+        },
+    )
+
+
+@never_cache
+@require_http_methods(["GET"])
+@login_required
+def studio_output_branding_inheritance(request):
+    """§4.4 Output Studio optional: Branding inheritance. Explains that reports/documents inherit school theme (primary color, logo)."""
+    if not getattr(request.user, "is_staff", False):
+        return redirect(reverse("accounts:backend_dashboard"))
+    theme_url = ""
+    try:
+        theme_url = reverse("siteconfig:theme_colors") + "?embed=1"
+    except NoReverseMatch:
+        pass
+    return render(
+        request,
+        "studio_os/output_branding_inheritance.html",
+        {"theme_colors_url": theme_url},
+    )
+
+
+@never_cache
+@require_http_methods(["GET"])
+@login_required
+def studio_automation_dependency_graph(request):
+    """§4.3 Automation Studio optional: Dependency graph. Shows workflow packs and their templates for embedding in Automation rail."""
+    if not getattr(request.user, "is_staff", False):
+        return redirect(reverse("accounts:backend_dashboard"))
+    graph = get_automation_dependency_graph()
+    return render(
+        request,
+        "studio_os/automation_dependency_graph.html",
+        {
+            "graph": graph,
+            "page_title": "Dependency graph",
+            "page_subtitle": "Workflow packs and their templates (pack → templates).",
+            "action_url": reverse("studio_os:automation"),
+        },
+    )
 
 
 STUDIO_MODES = [
@@ -142,7 +279,13 @@ def studio_shell(request, mode=None):
             context["back_url"] = reverse("studio_os:experience")
             context["studio_version_history"] = get_studio_version_history(request, "experience", limit=5)
             context["studio_audit"] = get_studio_publish_audit(request, "experience", limit=8)
-        except (NoReverseMatch, ImportError, AttributeError, TypeError, ValueError):
+        except (NoReverseMatch, ImportError, AttributeError, TypeError, ValueError) as e:
+            if not isinstance(e, NoReverseMatch):
+                log_exception_with_context(
+                    "studio_shell experience mode: get_theme_colors_context or version/audit failed",
+                    **request_context_for_log(request),
+                    extra={"mode": "experience"},
+                )
             context["use_experience_in_page"] = False
             context["studio_version_history"] = []
             context["studio_audit"] = []
@@ -171,6 +314,30 @@ def studio_shell(request, mode=None):
             })
         except NoReverseMatch:
             pass
+        try:
+            experience_rail.append({
+                "label": "Import from website",
+                "url": reverse("siteconfig:brand_import_from_url") + "?embed=1",
+                "embed": True,
+            })
+        except NoReverseMatch:
+            pass
+        try:
+            experience_rail.append({
+                "label": "Compare",
+                "url": reverse("studio_os:experience_compare") + "?embed=1",
+                "embed": True,
+            })
+        except NoReverseMatch:
+            pass
+        try:
+            experience_rail.append({
+                "label": "AI recommendations",
+                "url": reverse("studio_os:experience_recommendations") + "?embed=1",
+                "embed": True,
+            })
+        except NoReverseMatch:
+            pass
         context["experience_left_rail"] = experience_rail
 
     if mode == "launch" and school:
@@ -181,7 +348,13 @@ def studio_shell(request, mode=None):
             context["launch_role_previews"] = payload.get("role_previews") or []
             context["launch_health_summary"] = payload.get("health_summary") or ""
             context["launch_ready"] = payload.get("launch_ready", False)
-        except (NoReverseMatch, ImportError, AttributeError, TypeError, ValueError):
+        except (NoReverseMatch, ImportError, AttributeError, TypeError, ValueError) as e:
+            if not isinstance(e, NoReverseMatch):
+                log_exception_with_context(
+                    "studio_shell launch mode: get_setup_studio_payload failed",
+                    **request_context_for_log(request),
+                    extra={"mode": "launch"},
+                )
             context["launch_payload"] = None
             context["launch_role_previews"] = []
             context["launch_health_summary"] = ""
@@ -218,6 +391,22 @@ def studio_shell(request, mode=None):
             })
         except NoReverseMatch:
             pass
+        try:
+            launch_rail.append({
+                "label": "Import branding",
+                "url": reverse("studio_os:experience") + "?embed=1",
+                "embed": True,
+            })
+        except NoReverseMatch:
+            pass
+        try:
+            launch_rail.append({
+                "label": "Launch checklist",
+                "url": reverse("siteconfig:guided_onboarding") + "?embed=1",
+                "embed": True,
+            })
+        except NoReverseMatch:
+            pass
         context["launch_left_rail"] = launch_rail
 
     if mode == "automation":
@@ -228,6 +417,10 @@ def studio_shell(request, mode=None):
             workflow_entries.append({"label": "Workflow hub", "url": reverse("siteconfig:workflow_hub") + "?embed=1"})
             workflow_entries.append({"label": "Flow gallery", "url": reverse("siteconfig:workflow_flow_gallery")})
             workflow_entries.append({"label": "Approval hub", "url": reverse("accounts:approval_workflow_hub")})
+            workflow_entries.append({
+                "label": "Dependency graph",
+                "url": reverse("studio_os:automation_dependency_graph") + "?embed=1",
+            })
             for entry in workflow_entries:
                 automation_rail.append({"label": entry["label"], "url": entry["url"], "embed": True})
         except NoReverseMatch:
@@ -264,13 +457,35 @@ def studio_shell(request, mode=None):
             })
         except NoReverseMatch:
             pass
+        try:
+            output_rail.append({
+                "label": "Dependency graph",
+                "url": reverse("studio_os:output_dependency_graph") + "?embed=1",
+                "embed": True,
+            })
+        except NoReverseMatch:
+            pass
+        try:
+            output_rail.append({
+                "label": "Branding inheritance",
+                "url": reverse("studio_os:output_branding_inheritance") + "?embed=1",
+                "embed": True,
+            })
+        except NoReverseMatch:
+            pass
         context["output_left_rail"] = output_rail
 
     if mode == "control":
         try:
             from apps.siteconfig.views_feature_control import get_feature_control_audit_entries
             context["control_audit_entries"] = get_feature_control_audit_entries(request, limit=15)
-        except (NoReverseMatch, ImportError, AttributeError, TypeError, ValueError):
+        except (NoReverseMatch, ImportError, AttributeError, TypeError, ValueError) as e:
+            if not isinstance(e, NoReverseMatch):
+                log_exception_with_context(
+                    "studio_shell control mode: get_feature_control_audit_entries failed",
+                    **request_context_for_log(request),
+                    extra={"mode": "control"},
+                )
             context["control_audit_entries"] = []
         control_rail = []
         try:
@@ -304,8 +519,48 @@ def studio_shell(request, mode=None):
             pass
         try:
             control_rail.append({
+                "label": "Lineage & registry",
+                "url": reverse("metadata:metadata_lineage_graph") + "?embed=1",
+                "embed": True,
+            })
+        except NoReverseMatch:
+            pass
+        try:
+            control_rail.append({
                 "label": "Integrations",
                 "url": reverse("apicenter:dashboard"),
+                "embed": True,
+            })
+        except NoReverseMatch:
+            pass
+        try:
+            control_rail.append({
+                "label": "Blueprints & policy packs",
+                "url": reverse("siteconfig:get_blueprints") + "?embed=1",
+                "embed": True,
+            })
+        except NoReverseMatch:
+            pass
+        try:
+            control_rail.append({
+                "label": "Plans & entitlements",
+                "url": reverse("super:billing_dashboard") + "?embed=1",
+                "embed": True,
+            })
+        except NoReverseMatch:
+            pass
+        try:
+            control_rail.append({
+                "label": "Diff / impact summary",
+                "url": reverse("studio_os:control_impact") + "?embed=1",
+                "embed": True,
+            })
+        except NoReverseMatch:
+            pass
+        try:
+            control_rail.append({
+                "label": "AI cleanup suggestions",
+                "url": reverse("studio_os:ai_cleanup") + "?embed=1",
                 "embed": True,
             })
         except NoReverseMatch:
@@ -324,7 +579,13 @@ def studio_shell(request, mode=None):
                     request=request,
                 )
                 context["embed_url"] = None  # prefer in-page over iframe
-            except (NoReverseMatch, ImportError, AttributeError, TypeError, ValueError):
+            except (NoReverseMatch, ImportError, AttributeError, TypeError, ValueError) as e:
+                if not isinstance(e, NoReverseMatch):
+                    log_exception_with_context(
+                        "studio_shell control mode: feature_control_panel render failed",
+                        **request_context_for_log(request),
+                        extra={"mode": "control"},
+                    )
                 context["control_panel_html"] = None
         else:
             context["control_panel_html"] = None
@@ -458,7 +719,17 @@ def studio_preview(request):
     if mode in ("automation", "output", "launch", "control"):
         redirect_url = get_studio_preview_url(mode, request)
         if redirect_url:
-            return JsonResponse({"redirect_url": redirect_url})
+            payload = {"redirect_url": redirect_url}
+            # §5.6 Live Previews: include impact summary and dependency warnings when available
+            preview_ctx = get_studio_preview_context(mode, request)
+            if preview_ctx:
+                payload["impact_summary"] = preview_ctx.get("impact_summary")
+                payload["dependency_warnings"] = preview_ctx.get("dependency_warnings", [])
+                if preview_ctx.get("health_summary"):
+                    payload["health_summary"] = preview_ctx["health_summary"]
+                if preview_ctx.get("recommended_next"):
+                    payload["recommended_next"] = preview_ctx["recommended_next"]
+            return JsonResponse(payload)
         return JsonResponse({"errors": ["Preview URL not available for this mode."]}, status=400)
     return JsonResponse({"errors": ["Missing or invalid mode."]}, status=400)
 
