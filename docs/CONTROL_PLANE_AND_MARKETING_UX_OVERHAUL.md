@@ -133,6 +133,7 @@ Adopt shared `studio_os/components/page_header.html` incrementally so every cont
 | **studio_os/experience_compare** (Experience Studio) | **studio_os page_header** (Compare before/after, subtitle, Back to Experience) + data-page-archetype=operational-workbench | **DONE** |
 | **studio_os/automation_dependency_graph** (Automation Studio) | **studio_os page_header** (Dependency graph, subtitle, Back to Automation) + data-page-archetype=operational-workbench | **DONE** |
 | **studio_os/automation_workflow_health** (Automation Studio) | **studio_os page_header** (Workflow health metrics, subtitle, Back to Automation) + data-page-archetype=operational-workbench | **DONE** — §4.3 optional. |
+| **automation/outcomes_console** (Automation rail) | **studio_os page_header** (Automation outcomes, subtitle, Back to Automation) + data-page-archetype=operational-workbench | **DONE** — §2e row 8 page maturity. |
 | **studio_os/control_impact** (Control Studio) | **studio_os page_header** (Diff / impact summary, subtitle, Back to Control) + data-page-archetype=operational-workbench | **DONE** |
 | **studio_os/ai_cleanup** (Control Studio) | **studio_os page_header** (AI cleanup suggestions, subtitle, Back to Control) + data-page-archetype=operational-workbench | **DONE** |
 | **studio_os/experience_recommendations** (Experience Studio) | **studio_os page_header** (AI recommendations, subtitle, Back to Experience) + data-page-archetype=operational-workbench | **DONE** |
@@ -161,7 +162,10 @@ Adopt shared `studio_os/components/page_header.html` incrementally so every cont
 | **portal/signature_requests_manage.html** (portal) | **studio_os page_header** (Signature Requests, subtitle, Create Request) + data-page-archetype=operational-workbench; secondary Output Studio + Document Library | **DONE** — §2e row 8 page maturity. |
 | **portal/document_library_manage.html** (portal) | **studio_os page_header** (Document Library, subtitle, Upload Document) + data-page-archetype=operational-workbench; document_upload_url from view when embed | **DONE** — §2e row 8 page maturity. |
 | **portal/signature_request_create.html** (portal) | **studio_os page_header** (Create Signature Request, subtitle, Back to list) + data-page-archetype=record-detail | **DONE** — §2e row 8 page maturity. |
+| **portal/signature_sign.html** (portal) | **studio_os page_header** (Sign Form, subtitle=form_document.title, Back to list) + data-page-archetype=record-detail | **DONE** — §2e row 8 page maturity. |
+| **portal/signature_pending_list.html** (portal) | **studio_os page_header** (Forms Requiring Signature, subtitle, Back to Dashboard) + data-page-archetype=operational-workbench | **DONE** — §2e row 8 page maturity. |
 | **siteconfig/grading_settings** (tenant backend) | **studio_os page_header** (Grading & language, subtitle, Back to preferences) + data-page-archetype=operational-workbench | **DONE** — §2e row 8 tenant backend page maturity. |
+| **siteconfig/user_preferences** (portal) | **studio_os page_header** (Portal preferences, subtitle, Back to dashboard) + data-page-archetype=operational-workbench | **DONE** — §2e row 8 portal page maturity. |
 | Other control_plane_base pages | — | Add page_header or title_block when adding new pages |
 
 **Rule:** New control-plane content pages must include either `studio_os/components/page_header.html` or a cp-hero with clear title and primary action. Migrate title_block pages to page_header when touching them. Tenant backend pages: same UX bar per §8.0.11; adopt page_header when touching (e.g. people/backend_student_list [x]).

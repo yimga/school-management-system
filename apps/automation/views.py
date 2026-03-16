@@ -5,6 +5,8 @@ Surfaces MigrationRun and AutomationExecutionLog results for operators; no profi
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Q
 from django.shortcuts import render
+from django.urls import reverse
+from django.utils.translation import gettext_lazy as _
 
 from .models import AutomationExecutionLog, MigrationRun
 
@@ -34,5 +36,9 @@ def outcomes_console(request):
         {
             "recent_runs": recent_runs,
             "recent_logs": recent_logs,
+            "page_title": _("Automation outcomes"),
+            "page_subtitle": _("Recent migration runs and execution logs. Outcomes only; manage profiles and playbooks in Configuration Engine."),
+            "action_url": reverse("studio_os:automation"),
+            "action_text": _("Back to Automation"),
         },
     )

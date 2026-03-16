@@ -5,10 +5,8 @@
 {% block backend_title %}{% trans "Automation outcomes" %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-  <h1 class="h4 mb-3">{% trans "Automation outcomes" %}</h1>
-  <p class="text-muted">{% trans "Recent migration runs and execution logs. Outcomes only; manage profiles and playbooks in Configuration Engine." %}</p>
-
+<div class="container-fluid py-4" data-page-archetype="operational-workbench">
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
   <div class="card shadow-sm mb-4">
     <div class="card-header">
       <h5 class="mb-0">{% trans "Recent migration runs" %}</h5>
