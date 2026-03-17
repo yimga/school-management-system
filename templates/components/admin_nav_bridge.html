@@ -22,17 +22,13 @@
           <div id="cpSearchResultsAdmin" class="dropdown-menu position-absolute start-0 mt-1 shadow" style="min-width: 280px; max-height: 70vh; overflow-y: auto;" aria-label="Search results"></div>
         </div>
         {% if request.user.is_authenticated %}
-          <a href="{% url 'super:config_hub' %}" class="btn btn-sm btn-outline-light d-flex align-items-center gap-1" title="{% trans 'Configuration Engine – system and data' %}">
+          <a href="{% url 'siteconfig:console_domains_hub' %}" class="btn btn-sm btn-outline-light d-flex align-items-center gap-1" title="{% trans 'System config – platform settings and domains' %}">
             <i class="bi bi-gear-wide-connected"></i>
-            <span class="d-none d-lg-inline">{% trans "Configuration Engine" %}</span>
+            <span class="d-none d-lg-inline">{% trans "System config" %}</span>
           </a>
           <a href="{% url 'super:dashboard' %}" class="btn btn-sm btn-outline-light d-flex align-items-center gap-1" title="{% trans 'Control plane' %}">
             <i class="bi bi-speedometer2"></i>
             <span class="d-none d-lg-inline">{% trans "Control plane" %}</span>
-          </a>
-          <a href="{% url 'admin:index' %}" class="btn btn-sm btn-outline-light d-flex align-items-center gap-1 {% if request.resolver_match.url_name == 'admin:index' or '/admin/' in request.path %}active{% endif %}" title="{% trans 'Advanced backoffice (Django admin)' %}">
-            <i class="bi bi-gear"></i>
-            <span class="d-none d-lg-inline">{% trans "Backoffice" %}</span>
           </a>
           <a href="{{ public_site_url|default:'https://runmycampus.com' }}" class="btn btn-sm btn-outline-light d-flex align-items-center gap-1" target="_blank" rel="noopener noreferrer" title="{% trans 'Public site' %}">
             <i class="bi bi-box-arrow-up-right"></i>
@@ -47,8 +43,7 @@
               <li><a class="dropdown-item" href="{% url 'accounts:user_profile' %}"><i class="bi bi-person me-2"></i>{% trans "My Profile" %}</a></li>
               <li><a class="dropdown-item" href="{% url 'siteconfig:user_preferences' %}"><i class="bi bi-sliders me-2"></i>{% trans "Preferences" %}</a></li>
               <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item" href="{% url 'super:config_hub' %}"><i class="bi bi-gear-wide-connected me-2"></i>{% trans "Configuration Engine" %}</a></li>
-              <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-gear me-2"></i>{% trans "Backoffice (admin)" %}</a></li>
+              <li><a class="dropdown-item" href="{% url 'siteconfig:console_domains_hub' %}"><i class="bi bi-gear-wide-connected me-2"></i>{% trans "System config" %}</a></li>
               <li><hr class="dropdown-divider"></li>
               <li><a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}"><i class="bi bi-box-arrow-right me-2"></i>{% trans "Logout" %}</a></li>
             </ul>
@@ -279,12 +274,12 @@
                 {% endif %}
             </div>
             <div>
-                <div class="admin-nav-bridge__title">{% if is_manager_host %}{% trans "Configuration Engine" %}{% else %}Admin Portal{% endif %}</div>
+                <div class="admin-nav-bridge__title">{% if is_manager_host %}{% trans "RunMyCampus Manager" %}{% else %}Admin Portal{% endif %}</div>
                 <div class="admin-nav-bridge__location">
                     {% if is_manager_host %}
                         RunMyCampus Manager — {% trans "System &amp; data" %}
                     {% elif request.resolver_match.url_name == 'admin:index' or '/admin/' in request.path %}
-                        Configuration Engine - System &amp; Data
+                        {% trans "Platform Backoffice" %}
                     {% else %}
                         Backend - Operations &amp; Workflows
                     {% endif %}

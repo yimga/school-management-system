@@ -5,7 +5,7 @@
 
 {% block content %}
 <div class="container-fluid py-4" data-page-archetype="operational-workbench">
-  {% url 'accounts:workflow_center' as workflow_center_url %}
+  {% url 'studio_os:workflow_center' as workflow_center_url %}
   {% include "studio_os/components/page_header.html" with title=_("Automation Hub") subtitle=_("Execution logs, approval queue, and schedule configuration.") action_url=workflow_center_url action_text=_("Workflow Center") %}
 
   <div class="row g-4">

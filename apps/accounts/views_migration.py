@@ -293,7 +293,7 @@ def migration_wizard(request):
         "schema_hints_json": schema_hints_json,
         "page_title": _("Data migration wizard"),
         "page_subtitle": _("Choose your current system, upload a CSV, map columns to target fields, preview, then run."),
-        "action_url": reverse("accounts:import_hub"),
+        "action_url": reverse("studio_os:import_hub"),
         "action_text": _("Back to Import Hub"),
     })
 
@@ -314,7 +314,7 @@ def migration_run_list(request):
         "school": school,
         "page_title": _("Migration runs"),
         "page_subtitle": _("Audit of migration runs. Open a run to view read-only legacy data."),
-        "action_url": reverse("accounts:workflow_center"),
+        "action_url": reverse("studio_os:workflow_center"),
         "action_text": _("Back to Workflow Center"),
     })
 
@@ -388,7 +388,7 @@ def legacy_data_cleaner_view(request):
             "clean_result": result,
             "page_title": _("Legacy data cleaner"),
             "page_subtitle": _("Detect duplicate admission numbers, missing required fields, and optionally run safe cleanups."),
-            "action_url": reverse("accounts:workflow_center"),
+            "action_url": reverse("studio_os:workflow_center"),
             "action_text": _("Back to Workflow Center"),
         })
     issues = detect_legacy_issues(school)
@@ -398,6 +398,6 @@ def legacy_data_cleaner_view(request):
         "clean_result": None,
         "page_title": _("Legacy data cleaner"),
         "page_subtitle": _("Detect duplicate admission numbers, missing required fields, and optionally run safe cleanups."),
-        "action_url": reverse("accounts:workflow_center"),
+        "action_url": reverse("studio_os:workflow_center"),
         "action_text": _("Back to Workflow Center"),
     })

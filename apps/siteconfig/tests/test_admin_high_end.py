@@ -34,7 +34,7 @@ class AdminLoginTemplateTests(TestCase):
         self.assertNotIn("POWERHOUSE", content)
         self.assertNotIn("staff account", content)
         self.assertIn("superuser", content)
-        self.assertIn("Configuration Engine", content)
+        self.assertIn("RunMyCampus Manager", content)
 
 
 class UnfoldDashboardCallbackAdminTests(TestCase):

@@ -104,9 +104,9 @@ Rendered by `templates/partials/portal_sidebar.html`. Items come from **PORTAL_S
 | Report Library / Report Card Builder | `siteconfig:report_library`, `siteconfig:reportcard_builder` |
 | Portal Stats | `portal:portal_stats` |
 | Backend Console | `accounts:backend_dashboard` |
-| Workflow Center | `accounts:workflow_center` |
-| Approval Hub | `accounts:approval_workflow_hub` |
-| Import Hub | `accounts:import_hub` |
+| Workflow Center | `studio_os:workflow_center` |
+| Approval Hub | `studio_os:approval_hub` |
+| Import Hub | `studio_os:import_hub` |
 | Feature Control / Audit | `siteconfig:feature_control_panel`, `siteconfig:feature_control_audit` |
 | Customizer | `siteconfig:customizer` |
 | Site Settings (admin) | `admin:siteconfig_sitesettings_change` with `SITE_SETTINGS.pk\|default_if_none:1` |
@@ -119,7 +119,7 @@ Dashboard Layout link uses `dashboard_layout_link` from context (backend only).
 
 ## 4. Backend dashboard (`/authentication/` → accounts:backend_dashboard)
 
-Uses **portal_base** and **portal_sidebar**; quick actions and cards use the same URL names as above (e.g. `siteconfig:customizer`, `siteconfig:reportcard_builder`, `siteconfig:set_default_dashboard_view`, `accounts:workflow_center`).
+Uses **portal_base** and **portal_sidebar**; quick actions and cards use the same URL names as above (e.g. `siteconfig:customizer`, `siteconfig:reportcard_builder`, `siteconfig:set_default_dashboard_view`, `studio_os:workflow_center`).
 
 ---
 

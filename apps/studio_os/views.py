@@ -685,6 +685,20 @@ def _resolve_legacy_urls(request):
         legacy["backend_dashboard"] = reverse("accounts:backend_dashboard")
     except NoReverseMatch:
         pass
+    # Operational hubs: canonical URLs under Studio OS.
+    for name, url_name in [
+        ("approval_hub", "studio_os:approval_hub"),
+        ("workflow_center", "studio_os:workflow_center"),
+        ("import_hub", "studio_os:import_hub"),
+        ("rbac", "accounts:rbac"),
+        ("communication_groups", "communication:group_list"),
+        ("announcement_create", "communication:announcement_create"),
+    ]:
+        if name not in legacy:
+            try:
+                legacy[name] = reverse(url_name)
+            except NoReverseMatch:
+                pass
     return legacy
 
 
@@ -717,6 +731,10 @@ def studio_shell(request, mode=None):
     legacy_urls = _resolve_legacy_urls(request)
     embed_urls = _resolve_embed_urls(request)
     embed_url = embed_urls.get(mode) if mode else None
+    # On manager host without a tenant/school, embedded views (theme_colors, guided_onboarding, etc.)
+    # often redirect or fail; avoid iframe so we show the fallback with direct links instead of "connection refused".
+    if use_control_plane_shell(request) and not getattr(request, "school", None) and embed_url:
+        embed_url = None
 
     activity_feed = get_studio_activity_feed(request)
     recommendations = get_studio_recommendations(request, mode)
@@ -957,7 +975,7 @@ def studio_shell(request, mode=None):
             workflow_entries.append({"label": "Outcomes", "url": reverse("automation:outcomes_console") + "?embed=1"})
             workflow_entries.append({"label": "Workflow hub", "url": reverse("studio_os:automation") + "?embed=1"})
             workflow_entries.append({"label": "Flow gallery", "url": reverse("siteconfig:workflow_flow_gallery")})
-            workflow_entries.append({"label": "Approval hub", "url": reverse("accounts:approval_workflow_hub")})
+            workflow_entries.append({"label": "Approval hub", "url": reverse("studio_os:approval_hub")})
             workflow_entries.append({
                 "label": "Dependency graph",
                 "url": reverse("studio_os:automation_dependency_graph") + "?embed=1",

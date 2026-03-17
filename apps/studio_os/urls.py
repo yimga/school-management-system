@@ -1,4 +1,9 @@
 from django.urls import path
+from apps.accounts.views_workflow import (
+    approval_workflow_hub,
+    import_hub,
+    workflow_center,
+)
 from .views import (
     studio_ai_cleanup,
     studio_audit_api,
@@ -38,6 +43,9 @@ app_name = "studio_os"
 
 urlpatterns = [
     path("", studio_shell, name="shell"),
+    path("hubs/approvals/", approval_workflow_hub, name="approval_hub"),
+    path("hubs/workflow/", workflow_center, name="workflow_center"),
+    path("hubs/import/", import_hub, name="import_hub"),
     path("experience/", studio_shell, {"mode": "experience"}, name="experience"),
     path("experience/recommendations/", studio_experience_recommendations, name="experience_recommendations"),
     path("experience/compare/", studio_experience_compare, name="experience_compare"),

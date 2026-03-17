@@ -82,7 +82,7 @@
             </div>
           </div>
         {% empty %}
-          <div class="text-muted">No classrooms found for this academic year. {% if is_backend_context %}<a href="{% url 'accounts:workflow_center' %}">Set up year and classrooms</a> in Workflow Center, then return here to publish.{% else %}<a href="{% url 'admin:academics_classroom_changelist' %}">Add classrooms</a> in Academics, then return here to publish.{% endif %}</div>
+          <div class="text-muted">No classrooms found for this academic year. {% if is_backend_context %}<a href="{% url 'studio_os:workflow_center' %}">Set up year and classrooms</a> in Workflow Center, then return here to publish.{% else %}<a href="{% url 'admin:academics_classroom_changelist' %}">Add classrooms</a> in Academics, then return here to publish.{% endif %}</div>
         {% endfor %}
       </div>
 

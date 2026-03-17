@@ -7,7 +7,7 @@
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb mb-0">
     <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Control Plane" %}</a></li>
-    <li class="breadcrumb-item"><a href="{{ config_hub_url }}">{% trans "Configuration" %}</a></li>
+    <li class="breadcrumb-item"><a href="{{ system_config_url }}">{% trans "System config" %}</a></li>
     <li class="breadcrumb-item active" aria-current="page">{% trans "Migration runs" %}</li>
   </ol>
 </nav>
@@ -55,6 +55,6 @@
   {% else %}
   <p class="text-muted">{% trans "No migration runs." %}</p>
   {% endif %}
-  <p class="mt-3"><a href="{{ config_hub_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Back to Configuration" %}</a></p>
+  <p class="mt-3"><a href="{{ system_config_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Back to System config" %}</a></p>
 </div>
 {% endblock %}

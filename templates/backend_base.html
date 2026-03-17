@@ -15,9 +15,9 @@
 
 {% block breadcrumb_actions %}
 {% if request.user.is_superuser %}
-<a href="{% if request.public_host_kind == 'manager' %}{% url 'super:config_hub' %}{% else %}{% url 'admin:index' %}{% endif %}" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1" title="{% trans 'Configuration Engine – system and data' %}">
+<a href="{% if request.public_host_kind == 'manager' %}{% url 'siteconfig:console_domains_hub' %}{% else %}{% url 'admin:index' %}{% endif %}" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1" title="{% trans 'System config – platform settings and domains' %}">
   <i class="bi bi-gear-wide-connected"></i>
-  <span>{% trans "Configuration Engine" %}</span>
+  <span>{% trans "System config" %}</span>
 </a>
 {% endif %}
 {% endblock %}

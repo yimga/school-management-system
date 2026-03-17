@@ -86,7 +86,7 @@ else:
 print("\n5) URL reverse smoke")
 url_names = [
     "accounts:backend_dashboard",
-    "accounts:workflow_center",
+    "studio_os:workflow_center",
     "siteconfig:user_preferences",
     "studio_os:experience",
     "accounts:backend_ops_watch_data",

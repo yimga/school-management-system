@@ -2596,95 +2596,10 @@ def super_trust_center(request):
     )
 
 
-def super_config_hub(request):
-    """Configuration hub: single entry for platform config; links to Site settings, Regions, Plans, Feature toggles, AI models, System config, Advanced backoffice. RUNBOOK_ADMIN_TO_SUPER_MIGRATION Phase 1."""
-    dashboard_url = reverse("super:dashboard")
-    try:
-        site_settings_url = reverse("super:site_settings_list")
-    except NoReverseMatch:
-        site_settings_url = None
-    try:
-        regions_url = reverse("super:regions_list")
-    except NoReverseMatch:
-        regions_url = None
-    try:
-        grading_url = reverse("super:grading_list")
-    except NoReverseMatch:
-        grading_url = None
-    try:
-        plans_url = reverse("super:plans_list")
-    except NoReverseMatch:
-        plans_url = None
-    try:
-        feature_toggles_url = reverse("super:feature_toggles_list")
-    except NoReverseMatch:
-        feature_toggles_url = None
-    try:
-        ai_models_url = reverse("super:ai_models_list")
-    except NoReverseMatch:
-        try:
-            ai_models_url = reverse("super:ai_model_hub")
-        except NoReverseMatch:
-            ai_models_url = None
-    try:
-        system_config_url = reverse("siteconfig:console_domains_hub")
-    except NoReverseMatch:
-        system_config_url = None
-    try:
-        admin_index_url = reverse("admin:index")
-    except NoReverseMatch:
-        admin_index_url = None
-    # Phase 8: Observability / Billing / Automation (hub links)
-    try:
-        pulse_url = reverse("super:pulse")
-    except NoReverseMatch:
-        pulse_url = None
-    try:
-        billing_url = reverse("super:billing_dashboard")
-    except NoReverseMatch:
-        billing_url = None
-    try:
-        migration_url = reverse("super:migration_cloud")
-    except NoReverseMatch:
-        migration_url = None
-    try:
-        schools_list_url = reverse("super:schools_list")
-    except NoReverseMatch:
-        schools_list_url = None
-    try:
-        incidents_list_url = reverse("super:incidents_list")
-    except NoReverseMatch:
-        incidents_list_url = None
-    try:
-        billing_accounts_list_url = reverse("super:billing_accounts_list")
-    except NoReverseMatch:
-        billing_accounts_list_url = None
-    try:
-        migration_runs_list_url = reverse("super:migration_runs_list")
-    except NoReverseMatch:
-        migration_runs_list_url = None
-    return render(
-        request,
-        "schools/super_config_hub.html",
-        {
-            "dashboard_url": dashboard_url,
-            "site_settings_url": site_settings_url,
-            "regions_url": regions_url,
-            "grading_url": grading_url,
-            "plans_url": plans_url,
-            "feature_toggles_url": feature_toggles_url,
-            "ai_models_url": ai_models_url,
-            "system_config_url": system_config_url,
-            "admin_index_url": admin_index_url,
-            "pulse_url": pulse_url,
-            "billing_url": billing_url,
-            "migration_url": migration_url,
-            "schools_list_url": schools_list_url,
-            "incidents_list_url": incidents_list_url,
-            "billing_accounts_list_url": billing_accounts_list_url,
-            "migration_runs_list_url": migration_runs_list_url,
-        },
-    )
+def super_config_hub_redirect(request):
+    """Legacy URL only. The single config surface is System config (siteconfig:console_domains_hub). No hub page; redirect."""
+    from django.shortcuts import redirect as django_redirect
+    return django_redirect("siteconfig:console_domains_hub", permanent=False)
 
 
 @require_http_methods(["GET"])

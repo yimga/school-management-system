@@ -8,7 +8,7 @@
   <nav aria-label="breadcrumb" class="mb-3">
     <ol class="breadcrumb mb-0">
       <li class="breadcrumb-item"><a href="{% url 'accounts:backend_dashboard' %}">Backend</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'accounts:workflow_center' %}">Workflow Center</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'studio_os:workflow_center' %}">Workflow Center</a></li>
       <li class="breadcrumb-item active" aria-current="page">Academic rules</li>
     </ol>
   </nav>
@@ -75,7 +75,7 @@
   </div>
 
   <div class="mt-3">
-    <a href="{% url 'accounts:workflow_center' %}" class="btn btn-outline-secondary btn-back-secondary"><i class="bi bi-arrow-left me-1"></i>Back to Workflow Center</a>
+    <a href="{% url 'studio_os:workflow_center' %}" class="btn btn-outline-secondary btn-back-secondary"><i class="bi bi-arrow-left me-1"></i>Back to Workflow Center</a>
     {% if is_backend_context %}
     <a href="{% url 'admin:index' %}" class="btn btn-outline-primary" title="{% trans 'Promotion rules in Configuration Engine' %}">Promotion rules (Configuration Engine)</a>
     {% else %}

@@ -88,7 +88,7 @@ def _can_access_approval_hub(user):
 @login_required
 @user_passes_test(_can_access_approval_hub)
 def approval_workflow_hub(request):
-    """Hub linking to Grade Approvals, Access Requests, Contact Requests."""
+    """Hub linking to Grade Approvals, Access Requests, Contact Requests. Served under Studio OS (/studio/hubs/approvals/)."""
     return render(request, "accounts/approval_workflow_hub.html", {
         "BREADCRUMBS": [
             {"label": "Backend", "url": reverse("accounts:backend_dashboard")},
@@ -122,7 +122,7 @@ def automation_hub(request):
     return render(request, "accounts/automation_hub.html", {
         "BREADCRUMBS": [
             {"label": "Backend", "url": reverse("accounts:backend_dashboard")},
-            {"label": "Workflow Center", "url": reverse("accounts:workflow_center")},
+            {"label": "Workflow Center", "url": reverse("studio_os:workflow_center")},
             {"label": "Automation", "url": "", "active": True},
         ],
         "execution_log_url": execution_log_url,
@@ -134,7 +134,7 @@ def automation_hub(request):
 @login_required
 @user_passes_test(_is_admin_user)
 def import_hub(request):
-    """Hub linking to Entity Import, Grade Import, Migration Wizard, templates."""
+    """Hub linking to Entity Import, Grade Import, Migration Wizard, templates. Served under Studio OS (/studio/hubs/import/)."""
     return render(request, "accounts/import_hub.html", {
         "BREADCRUMBS": [
             {"label": "Backend", "url": reverse("accounts:backend_dashboard")},
@@ -142,7 +142,7 @@ def import_hub(request):
         ],
         "page_title": "Import Hub",
         "page_subtitle": "Bulk import students, grades, and data. Use the Migration Wizard for upload → mapping → preview → run.",
-        "action_url": reverse("accounts:workflow_center"),
+        "action_url": reverse("studio_os:workflow_center"),
         "action_text": "Workflow Center",
     })
 
@@ -152,7 +152,7 @@ def import_hub(request):
 def workflow_center(request):
     """
     Operator-friendly entry point to the end-to-end school workflow.
-    Keeps admins out of scattered menus and makes the Cameroon-first lifecycle discoverable.
+    Served under Studio OS (/studio/hubs/workflow/).
     """
     site = get_effective_site_settings(request=request)
     year, term = get_active_year_and_term()

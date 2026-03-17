@@ -494,7 +494,7 @@ backend-shell dashboard-page-backend
                   {% empty %}
                   <div>
                     <strong>No pending workflow steps</strong>
-                    <a class="backend-role-home-empty-link text-decoration-none" href="{% url 'accounts:workflow_center' %}">
+                    <a class="backend-role-home-empty-link text-decoration-none" href="{% url 'studio_os:workflow_center' %}">
                       <i class="bi bi-arrow-right"></i> Open workflow center
                     </a>
                   </div>
@@ -515,7 +515,7 @@ backend-shell dashboard-page-backend
                   {% empty %}
                   <div>
                     <strong>No recent activity yet</strong>
-                    <a class="backend-role-home-empty-link text-decoration-none" href="{% url 'accounts:workflow_center' %}">
+                    <a class="backend-role-home-empty-link text-decoration-none" href="{% url 'studio_os:workflow_center' %}">
                       <i class="bi bi-arrow-right"></i> Start with workflow center
                     </a>
                   </div>
@@ -551,7 +551,7 @@ backend-shell dashboard-page-backend
         <div class="backend-v2-side-card" data-widget-id="backend-v2-admin-portal">
           <div class="backend-v2-side-head">
             <h3 class="backend-v2-side-title">Admin Portal</h3>
-            <a class="backend-v2-chip" href="{% url 'accounts:workflow_center' %}">
+            <a class="backend-v2-chip" href="{% url 'studio_os:workflow_center' %}">
               <i class="bi bi-diagram-3"></i>
               <span>Workflow</span>
             </a>
@@ -658,7 +658,7 @@ backend-shell dashboard-page-backend
                 {% empty %}
                 <div>
                   <p class="small text-muted mb-0">No at-risk learners detected.</p>
-                  <a class="backend-empty-quick-action mt-2 d-inline-block" href="{% url 'accounts:workflow_center' %}">Review intervention workflow</a>
+                  <a class="backend-empty-quick-action mt-2 d-inline-block" href="{% url 'studio_os:workflow_center' %}">Review intervention workflow</a>
                 </div>
                 {% endfor %}
               </div>
@@ -735,7 +735,7 @@ backend-shell dashboard-page-backend
                 {% empty %}
                 <div>
                   <div class="small text-muted">No recent activity available.</div>
-                  <a class="backend-empty-quick-action mt-2 d-inline-block" href="{% url 'accounts:workflow_center' %}">Open workflow center</a>
+                  <a class="backend-empty-quick-action mt-2 d-inline-block" href="{% url 'studio_os:workflow_center' %}">Open workflow center</a>
                 </div>
                 {% endfor %}
               </div>
@@ -911,7 +911,7 @@ backend-shell dashboard-page-backend
                 {% endfor %}
               </div>
             </section>
-            <a href="{% url 'accounts:workflow_center' %}" class="backend-quick-link d-flex align-items-center gap-2 text-decoration-none small text-muted">
+            <a href="{% url 'studio_os:workflow_center' %}" class="backend-quick-link d-flex align-items-center gap-2 text-decoration-none small text-muted">
               <span>View all workflow steps</span>
               <i class="bi bi-arrow-right ms-auto"></i>
             </a>

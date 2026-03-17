@@ -13,35 +13,83 @@
 {% endblock %}
 
 {% block cp_content %}
-<section class="py-2" data-page-archetype="decision-console" aria-labelledby="system-config-heading" aria-describedby="system-config-desc">
-  {% include "studio_os/components/page_header.html" with title="System config" subtitle="Seven domains — guided, search, preview, diff, rollback. Outcomes not jargon." action_url=super_dashboard_url action_text="Back to dashboard" %}
-  <h2 id="system-config-heading" class="visually-hidden">{% trans "System config" %}</h2>
-  <p id="system-config-desc" class="visually-hidden">{% trans "Seven domains — guided, search, preview, diff, rollback. Outcomes not jargon." %}</p>
-  <div class="row g-3" role="list">
-    {% for domain in domains %}
-    <div class="col-12 col-md-6 col-lg-4" style="min-width: 0;" role="listitem">
-      <article class="card h-100" aria-labelledby="domain-{{ domain.code }}-title">
-        <div class="card-body d-flex flex-column">
-          <h2 id="domain-{{ domain.code }}-title" class="h6 card-title">{{ domain.name }}</h2>
-          <p class="card-text small text-muted flex-grow-0">{{ domain.outcome }}</p>
+<div class="container-fluid py-2" data-page-archetype="decision-console" aria-labelledby="system-config-heading" aria-describedby="system-config-desc">
+  <h1 id="system-config-heading" class="visually-hidden">{% trans "System config" %}</h1>
+  <p id="system-config-desc" class="visually-hidden">{% trans "Platform settings, configuration domains, and operational links in one place." %}</p>
+
+  <section class="cp-hero mb-4" aria-labelledby="system-config-hero-title">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <div>
+        <div class="cp-eyebrow">{% trans "Platform Settings" %}</div>
+        <h2 id="system-config-hero-title" class="cp-hero-title mb-1">{% trans "System config" %}</h2>
+        <p class="cp-hero-copy mb-0">{% trans "One place for platform configuration: site settings, regions, plans, feature toggles, AI models, and configuration domains. Outcomes, not jargon." %}</p>
+      </div>
+      {% if super_dashboard_url %}
+      <a href="{{ super_dashboard_url }}" class="btn btn-outline-light btn-sm">{% trans "Back to dashboard" %}</a>
+      {% endif %}
+    </div>
+  </section>
+
+  {% if platform_config %}
+  <section class="mb-4" aria-labelledby="platform-config-heading">
+    <h2 id="platform-config-heading" class="h6 text-uppercase mb-3 cp-eyebrow">{% trans "Platform configuration" %}</h2>
+    <div class="row g-3" role="list">
+      {% for card in platform_config %}
+      <div class="col-12 col-sm-6 col-lg-4" style="min-width: 0;" role="listitem">
+        <article class="cp-overview-card h-100 d-flex flex-column" aria-labelledby="platform-{{ card.code }}-title">
+          <span id="platform-{{ card.code }}-title" class="cp-overview-label"><span class="bi {{ card.icon }} me-1" aria-hidden="true"></span>{{ card.name }}</span>
+          <p class="cp-overview-meta small mb-2 flex-grow-1">{{ card.outcome }}</p>
+          <nav class="mt-auto" aria-label="{% trans 'Actions' %}">
+            {% for link in card.links %}
+            <a href="{{ link.url }}" class="btn btn-sm btn-outline-light me-1 mb-1">{{ link.label }}</a>
+            {% endfor %}
+          </nav>
+        </article>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <section class="mb-4" aria-labelledby="domains-heading">
+    <h2 id="domains-heading" class="h6 text-uppercase mb-3 cp-eyebrow">{% trans "Configuration domains" %}</h2>
+    <p class="small text-muted mb-3">{% trans "Guided links: search, preview, compare, audit, rollback where available." %}</p>
+    <div class="row g-3" role="list">
+      {% for domain in domains %}
+      <div class="col-12 col-md-6 col-lg-4" style="min-width: 0;" role="listitem">
+        <article class="cp-overview-card h-100 d-flex flex-column" aria-labelledby="domain-{{ domain.code }}-title">
+          <span id="domain-{{ domain.code }}-title" class="cp-overview-label">{{ domain.name }}</span>
+          <p class="cp-overview-meta small mb-2 flex-grow-1">{{ domain.outcome }}</p>
           <nav class="mb-2" aria-label="{% trans 'Domain links' %}">
-            <ul class="list-unstyled mb-0">
+            <ul class="list-unstyled mb-0 small">
               {% for link in domain.resolved_links %}
-              <li><a href="{{ link.url }}"{% if link.url == '#' %} aria-disabled="true"{% endif %}>{{ link.label }}</a></li>
+              <li><a href="{{ link.url }}" class="text-white-50 text-decoration-none"{% if link.url == '#' %} aria-disabled="true"{% endif %}>{{ link.label }}</a></li>
               {% endfor %}
             </ul>
           </nav>
-          <div class="mt-auto pt-2 border-top small text-muted" role="group" aria-label="{% trans 'Actions' %}">
-            {% if domain.search_url %}<a href="{{ domain.search_url }}" class="me-2">{% trans "Search" %}</a>{% endif %}
-            {% if domain.preview_url %}<a href="{{ domain.preview_url }}" class="me-2">{% trans "Preview" %}</a>{% endif %}
-            {% if domain.diff_url %}<a href="{{ domain.diff_url }}" class="me-2">{% trans "Compare" %}</a>{% endif %}
-            {% if domain.audit_url %}<a href="{{ domain.audit_url }}" class="me-2">{% trans "Audit" %}</a>{% endif %}
-            {% if domain.rollback_url %}<a href="{{ domain.rollback_url }}">{% trans "Rollback" %}</a>{% endif %}
+          <div class="mt-auto pt-2 border-top border-secondary small d-flex flex-wrap gap-2" role="group" aria-label="{% trans 'Actions' %}">
+            {% if domain.search_url %}<a href="{{ domain.search_url }}" class="cp-chip">{% trans "Search" %}</a>{% endif %}
+            {% if domain.preview_url %}<a href="{{ domain.preview_url }}" class="cp-chip">{% trans "Preview" %}</a>{% endif %}
+            {% if domain.diff_url %}<a href="{{ domain.diff_url }}" class="cp-chip">{% trans "Compare" %}</a>{% endif %}
+            {% if domain.audit_url %}<a href="{{ domain.audit_url }}" class="cp-chip">{% trans "Audit" %}</a>{% endif %}
+            {% if domain.rollback_url %}<a href="{{ domain.rollback_url }}" class="cp-chip">{% trans "Rollback" %}</a>{% endif %}
           </div>
-        </div>
-      </article>
+        </article>
+      </div>
+      {% endfor %}
     </div>
-    {% endfor %}
-  </div>
-</section>
+  </section>
+
+  {% if operational_links %}
+  <section class="cp-panel py-3" aria-labelledby="operational-heading">
+    <h2 id="operational-heading" class="h6 text-uppercase mb-2 cp-eyebrow">{% trans "Operational links" %}</h2>
+    <p class="small text-muted mb-2">{% trans "Quick access to schools, incidents, billing, and migration." %}</p>
+    <div class="cp-chip-row d-flex flex-wrap gap-2">
+      {% for op in operational_links %}
+      <a href="{{ op.url }}" class="cp-chip text-decoration-none">{{ op.label }}</a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+</div>
 {% endblock %}

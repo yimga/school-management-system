@@ -790,12 +790,17 @@ LOGGING_HANDLERS = {
     },
 }
 
+# Optional per-file size cap (MB). Default 10; set LOG_FILE_MAX_MB=5 to reduce.
+LOG_FILE_MAX_MB = int(os.getenv("LOG_FILE_MAX_MB", "10"))
+if LOG_FILE_MAX_MB < 1:
+    LOG_FILE_MAX_MB = 10
+
 # Add file handler only if file logging is enabled and directory exists
 if USE_FILE_LOGGING:
     LOGGING_HANDLERS["file"] = {
         "class": "logging.handlers.RotatingFileHandler",
         "filename": LOG_DIR / "django.log",
-        "maxBytes": 1024 * 1024 * 10,  # 10MB
+        "maxBytes": 1024 * 1024 * LOG_FILE_MAX_MB,
         "backupCount": 10,
         "formatter": "json" if os.getenv("LOG_JSON", "0") == "1" else "verbose_request",
         "level": LOG_LEVEL,

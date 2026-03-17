@@ -194,10 +194,10 @@
         </a>
         {% endif %}
         <a class="nav-link nav-pill" href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-gear-fill me-2"></i>Backend Console</a>
-        <a class="nav-link nav-pill" href="{% url 'accounts:workflow_center' %}"><i class="bi bi-diagram-3 me-2"></i>Workflow Center</a>
-        <a class="nav-link nav-pill" href="{% url 'accounts:approval_workflow_hub' %}"><i class="bi bi-clipboard-check me-2"></i>Approval Hub</a>
+        <a class="nav-link nav-pill" href="{% url 'studio_os:workflow_center' %}"><i class="bi bi-diagram-3 me-2"></i>Workflow Center</a>
+        <a class="nav-link nav-pill" href="{% url 'studio_os:approval_hub' %}"><i class="bi bi-clipboard-check me-2"></i>Approval Hub</a>
         <a class="nav-link nav-pill" href="{% url 'academics:syllabus_approval_queue' %}"><i class="bi bi-journal-check me-2"></i>Syllabus Approvals</a>
-        <a class="nav-link nav-pill" href="{% url 'accounts:import_hub' %}"><i class="bi bi-upload me-2"></i>Import Hub</a>
+        <a class="nav-link nav-pill" href="{% url 'studio_os:import_hub' %}"><i class="bi bi-upload me-2"></i>Import Hub</a>
         {% if request.user.is_superuser or request.user|has_feature_permission:"settings.feature_control" %}
         <a class="nav-link nav-pill" href="{% url 'siteconfig:feature_control_panel' %}"><i class="bi bi-toggle-on me-2"></i>Feature Control</a>
         <a class="nav-link nav-pill" href="{% url 'siteconfig:feature_control_audit' %}"><i class="bi bi-clock-history me-2"></i>Feature Control Audit</a>

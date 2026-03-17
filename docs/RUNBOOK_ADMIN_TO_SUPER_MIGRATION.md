@@ -111,8 +111,8 @@
 - **View name:** `super_site_settings_list`.
 - **URL name:** `super:site_settings_list`; path `config/site-settings/`.
 - **Logic:** Query `SiteSettings.objects.all().order_by("id")` (or filter by platform site if applicable). Paginate if count > 20 (e.g. Page 20 per page). Build list of dicts: `id`, `__str__` or `name`/`domain`, link to edit view.
-- **Template:** `schools/super_site_settings_list.html`. Extend control_plane_base; breadcrumbs Dashboard → Configuration (link to config_hub) → Site settings; table or card list with "Edit" link per row to `super:site_settings_edit` with pk.
-- **Context:** `site_settings_list`, `dashboard_url`, `config_hub_url`, `admin_changelist_url` (for "Open in backoffice").
+- **Template:** `schools/super_site_settings_list.html`. Extend control_plane_base; breadcrumbs Dashboard → System config (link to siteconfig:console_domains_hub) → Site settings; table or card list with "Edit" link per row to `super:site_settings_edit` with pk.
+- **Context:** `site_settings_list`, `dashboard_url`, `system_config_url`, `admin_changelist_url` (for "Open in backoffice").
 
 ### Step 2.3 — Edit view
 
@@ -157,14 +157,14 @@
 - **View:** `super_regions_list`; URL `config/regions/`, name `super:regions_list`.
 - **Query:** `RegionConfig.objects.all().order_by("code")` or equivalent; paginate if needed.
 - **Template:** `schools/super_regions_list.html`; table columns: code, name, term_count_per_year, etc.; optional "Open in backoffice" link to admin changelist.
-- **Context:** `regions`, `dashboard_url`, `config_hub_url`, `admin_regions_url`.
+- **Context:** `regions`, `dashboard_url`, `system_config_url`, `admin_regions_url`.
 
 ### Step 3.3 — Grading list view
 
 - **View:** `super_grading_list`; URL `config/grading/`, name `super:grading_list`.
 - **Query:** `GradingScaleConfig.objects.all().order_by("code")` or equivalent.
 - **Template:** `schools/super_grading_list.html`; table with code, name, scale summary; optional backoffice link.
-- **Context:** `grading_scales`, `dashboard_url`, `config_hub_url`, `admin_grading_url`.
+- **Context:** `grading_scales`, `dashboard_url`, `system_config_url`, `admin_grading_url`.
 
 ### Step 3.4 — URLs
 
@@ -196,7 +196,7 @@
 - **View:** `super_plans_list`; URL `config/plans/`, name `super:plans_list`.
 - **Query:** `Plan.objects.all().order_by("slug")` (or name); include related addons count if desired.
 - **Template:** `schools/super_plans_list.html`; table: slug/name, description snippet, addons count; optional "Open in backoffice".
-- **Context:** `plans`, `dashboard_url`, `config_hub_url`, `admin_plans_url`, `admin_addons_url`.
+- **Context:** `plans`, `dashboard_url`, `system_config_url`, `admin_plans_url`, `admin_addons_url`.
 
 ### Step 4.3 — URL and hub
 
@@ -224,7 +224,7 @@
 - **View:** `super_feature_toggles_list`; URL `config/feature-toggles/`, name `super:feature_toggles_list`.
 - **Query:** `FeatureToggleDefinition.objects.all().order_by("name")`.
 - **Template:** `schools/super_feature_toggles_list.html`; table: name, key, description, default; optional backoffice link.
-- **Context:** `definitions`, `dashboard_url`, `config_hub_url`, `admin_url`.
+- **Context:** `definitions`, `dashboard_url`, `system_config_url`, `admin_url`.
 
 ### Step 5.3 — URL and hub
 

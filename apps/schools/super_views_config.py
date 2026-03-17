@@ -9,10 +9,10 @@ from django.urls import NoReverseMatch, reverse
 from django.views.decorators.http import require_http_methods, require_GET, require_POST
 
 def _config_context(request):
-    """Common context for config views."""
+    """Common context for config list/edit views. Back link is System config (single config surface)."""
     return {
         "dashboard_url": reverse("super:dashboard"),
-        "config_hub_url": reverse("super:config_hub"),
+        "system_config_url": reverse("siteconfig:console_domains_hub"),
     }
 
 

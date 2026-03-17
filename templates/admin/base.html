@@ -29,7 +29,7 @@
             <nav aria-label="{% trans 'Breadcrumb' %}" class="px-4 pt-1 pb-2">
                 <div class="{% if not cl.model_admin.list_fullwidth %}container{% endif %} mx-auto">
                     <ol class="breadcrumb mb-0 flex flex-wrap items-center gap-1 text-sm text-base-600 dark:text-base-400">
-                        <li class="breadcrumb-item"><a href="{% url 'admin:index' %}" class="hover:text-primary dark:hover:text-primary">{% trans 'Configuration Engine' %}</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'admin:index' %}" class="hover:text-primary dark:hover:text-primary">{% if is_manager_host %}{% trans 'Platform Backoffice' %}{% else %}{% trans 'Admin' %}{% endif %}</a></li>
                         {% if opts %}
                             <li class="breadcrumb-item"><span class="mx-1">/</span></li>
                             <li class="breadcrumb-item"><a href="{% url 'admin:app_list' opts.app_label %}" class="hover:text-primary dark:hover:text-primary">{{ opts.app_label|title }}</a></li>

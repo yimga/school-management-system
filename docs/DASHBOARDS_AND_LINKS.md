@@ -10,7 +10,7 @@ Entry points, post-login redirects, and key URL names so dashboards and links st
 
 ## Post-Login Redirect
 
-- Staff with settings.manage: `accounts:workflow_center` or `accounts:backend_dashboard`.
+- Staff with settings.manage: `studio_os:workflow_center` or `accounts:backend_dashboard`.
 - TEACHER: `portal:teacher_workflow` or `evals:teacher_dashboard`.
 - PARENT: workflow/finance/performance or `portal:parent_dashboard`.
 - Other: `admin:index` (`/admin/`).
@@ -25,7 +25,7 @@ Entry points, post-login redirects, and key URL names so dashboards and links st
 
 ## Key URL Names
 
-accounts:login, accounts:redirect, accounts:backend_dashboard, accounts:workflow_center, accounts:user_profile, accounts:rbac. portal:parent_dashboard, portal:parent_finance, portal:link_child, portal:claim_invite. portal:teacher_workflow, portal:teacher_attendance, portal:teacher_pay_history, portal:teacher_leave. evals:teacher_dashboard, evals:teacher_marks_entry, evals:teacher_marks_list. admin:index. siteconfig:user_preferences, siteconfig:customizer, siteconfig:feature_control_audit. finance:dashboard, payroll:dashboard, payroll:employee_payslips, payroll:employee_leave.
+accounts:login, accounts:redirect, accounts:backend_dashboard, studio_os:workflow_center, accounts:user_profile, accounts:rbac. portal:parent_dashboard, portal:parent_finance, portal:link_child, portal:claim_invite. portal:teacher_workflow, portal:teacher_attendance, portal:teacher_pay_history, portal:teacher_leave. evals:teacher_dashboard, evals:teacher_marks_entry, evals:teacher_marks_list. admin:index. siteconfig:user_preferences, siteconfig:customizer, siteconfig:feature_control_audit. finance:dashboard, payroll:dashboard, payroll:employee_payslips, payroll:employee_leave.
 
 ## Login Form
 

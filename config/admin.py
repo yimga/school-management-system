@@ -354,9 +354,9 @@ class TenantAdminSite(BaseRunMyCampusAdminSite):
 
 
 class PlatformAdminSite(BaseRunMyCampusAdminSite):
-    """AdminOpsShell: Platform Backoffice / Configuration Engine. Raw CRUD for platform-only and both models."""
+    """Platform Backoffice: raw CRUD only. Single config surface is System config (siteconfig:console_domains_hub)."""
     site_header = "Platform Backoffice"
-    site_title = "Configuration Engine"
+    site_title = "Platform Backoffice"
     index_title = "Platform Backoffice"
     index_template_name = "admin/index_superadmin.html"
 

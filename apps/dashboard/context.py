@@ -211,7 +211,7 @@ def _build_priority_queue(items: list[Dict[str, Any]], *, max_items: int = 4) ->
         "label": "No urgent blockers",
         "value": 0,
         "status": "ok",
-        "url": __safe_reverse("accounts:workflow_center"),
+        "url": __safe_reverse("studio_os:workflow_center"),
         "icon": "bi-check2-circle",
         "meta": "The main queues are clear right now.",
     }]
@@ -477,7 +477,7 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
             "label": "Pending Approvals",
             "value": pending_approvals,
             "status": _status_from_value(pending_approvals, warn_at=1, danger_at=4),
-            "url": _safe_reverse("accounts:workflow_center"),
+            "url": _safe_reverse("studio_os:workflow_center"),
             "icon": "bi-hourglass-split",
         },
         {

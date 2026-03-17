@@ -33,31 +33,54 @@
     <main class="studio-os__canvas" id="studio-canvas" role="main" tabindex="-1">
         {% if not current_mode %}
           <p class="text-muted mb-3">{% trans "One workspace for experience, automation, outputs, launch, and control. Choose a mode to start." %}</p>
+          {% if request.public_host_kind == 'manager' %}
+          <p class="small text-muted mb-3">{% trans "On the manager host, open a mode below to use Theme & colors, Workflow hub, Report library, Launch checklist, or Feature control. Select a school from the dashboard for embedded preview in the canvas." %}</p>
+          {% endif %}
           <div class="row g-3">
             {% for m in studio_modes %}
               <div class="col-md-6 col-lg-4">
                 <div class="studio-os__card h-100">
-                  <h2>{{ m.label }}</h2>
-                  <p>{{ m.description }}</p>
-                  {% if m.id == 'experience' %}<a href="{% url 'studio_os:experience' %}" class="btn btn-primary btn-sm">{% trans "Open" %}</a>{% endif %}
-                  {% if m.id == 'automation' %}<a href="{% url 'studio_os:automation' %}" class="btn btn-primary btn-sm">{% trans "Open" %}</a>{% endif %}
-                  {% if m.id == 'output' %}<a href="{% url 'studio_os:output' %}" class="btn btn-primary btn-sm">{% trans "Open" %}</a>{% endif %}
-                  {% if m.id == 'launch' %}<a href="{% url 'studio_os:launch' %}" class="btn btn-primary btn-sm">{% trans "Open" %}</a>{% endif %}
-                  {% if m.id == 'control' %}<a href="{% url 'studio_os:control' %}" class="btn btn-primary btn-sm">{% trans "Open" %}</a>{% endif %}
+                  <h2 class="h6">{{ m.label }}</h2>
+                  <p class="small text-muted mb-2">{{ m.description }}</p>
+                  {% if m.id == 'experience' %}<a href="{% url 'studio_os:experience' %}" class="btn btn-primary btn-sm">{% trans "Open Experience" %}</a>{% endif %}
+                  {% if m.id == 'automation' %}<a href="{% url 'studio_os:automation' %}" class="btn btn-primary btn-sm">{% trans "Open Automation" %}</a>{% endif %}
+                  {% if m.id == 'output' %}<a href="{% url 'studio_os:output' %}" class="btn btn-primary btn-sm">{% trans "Open Outputs" %}</a>{% endif %}
+                  {% if m.id == 'launch' %}<a href="{% url 'studio_os:launch' %}" class="btn btn-primary btn-sm">{% trans "Open Launch" %}</a>{% endif %}
+                  {% if m.id == 'control' %}<a href="{% url 'studio_os:control' %}" class="btn btn-primary btn-sm">{% trans "Open Control" %}</a>{% endif %}
                 </div>
               </div>
             {% endfor %}
+          </div>
+          <h3 class="h6 mt-4 mb-2">{% trans "Operational hubs" %}</h3>
+          <p class="small text-muted mb-3">{% trans "Approvals, workflow, import/export, document and report library, RBAC, feature control, and communications — all from one place." %}</p>
+          <div class="row g-2">
+            {% if legacy_urls.approval_hub %}<div class="col-auto"><a href="{{ legacy_urls.approval_hub }}" class="btn btn-outline-primary btn-sm">{% trans "Approval hub" %}</a></div>{% endif %}
+            {% if legacy_urls.workflow_center %}<div class="col-auto"><a href="{{ legacy_urls.workflow_center }}" class="btn btn-outline-primary btn-sm">{% trans "Workflow center" %}</a></div>{% endif %}
+            {% if legacy_urls.import_hub %}<div class="col-auto"><a href="{{ legacy_urls.import_hub }}" class="btn btn-outline-primary btn-sm">{% trans "Import hub" %}</a></div>{% endif %}
+            {% if legacy_urls.document_library %}<div class="col-auto"><a href="{{ legacy_urls.document_library }}" class="btn btn-outline-primary btn-sm">{% trans "Document library" %}</a></div>{% endif %}
+            {% if legacy_urls.report_library %}<div class="col-auto"><a href="{{ legacy_urls.report_library }}" class="btn btn-outline-primary btn-sm">{% trans "Report library" %}</a></div>{% endif %}
+            {% if legacy_urls.rbac %}<div class="col-auto"><a href="{{ legacy_urls.rbac }}" class="btn btn-outline-primary btn-sm">{% trans "RBAC & permissions" %}</a></div>{% endif %}
+            {% if legacy_urls.feature_control %}<div class="col-auto"><a href="{{ legacy_urls.feature_control }}" class="btn btn-outline-primary btn-sm">{% trans "Feature control" %}</a></div>{% endif %}
+            {% if legacy_urls.communication_groups %}<div class="col-auto"><a href="{{ legacy_urls.communication_groups }}" class="btn btn-outline-primary btn-sm">{% trans "Message groups" %}</a></div>{% endif %}
+            {% if legacy_urls.announcement_create %}<div class="col-auto"><a href="{{ legacy_urls.announcement_create }}" class="btn btn-outline-primary btn-sm">{% trans "Announcements" %}</a></div>{% endif %}
           </div>
         {% elif embed_url %}
           <iframe src="{{ embed_url }}" class="studio-os-iframe" title="{% trans 'Studio mode content' %}"></iframe>
         {% else %}
           <div class="studio-os__card">
-            <p class="text-muted mb-0">{% trans "This mode is loading. If nothing appears, use the links in the right rail." %}</p>
-            {% if legacy_urls.theme_colors and current_mode == 'experience' %}<a href="{{ legacy_urls.theme_colors }}" class="btn btn-primary btn-sm mt-2">{% trans "Theme & colors" %}</a>{% endif %}
-            {% if legacy_urls.workflow_hub and current_mode == 'automation' %}<a href="{{ legacy_urls.workflow_hub }}" class="btn btn-primary btn-sm mt-2">{% trans "Workflow hub" %}</a>{% endif %}
-            {% if legacy_urls.report_library and current_mode == 'output' %}<a href="{{ legacy_urls.report_library }}" class="btn btn-primary btn-sm mt-2">{% trans "Report library" %}</a>{% endif %}
-            {% if legacy_urls.guided_onboarding and current_mode == 'launch' %}<a href="{{ legacy_urls.guided_onboarding }}" class="btn btn-primary btn-sm mt-2">{% trans "Guided onboarding" %}</a>{% endif %}
-            {% if legacy_urls.feature_control and current_mode == 'control' %}<a href="{{ legacy_urls.feature_control }}" class="btn btn-primary btn-sm mt-2">{% trans "Feature control" %}</a>{% endif %}
+            {% if request.public_host_kind == 'manager' %}
+            <p class="text-muted mb-2">{% trans "On the manager host, open a mode in this tab for the full experience. Embedded preview is available when a school is selected." %}</p>
+            {% else %}
+            <p class="text-muted mb-2">{% trans "This mode is loading. If nothing appears, use the links below or in the right rail." %}</p>
+            {% endif %}
+            <div class="d-flex flex-wrap gap-2">
+              {% if legacy_urls.theme_colors and current_mode == 'experience' %}<a href="{{ legacy_urls.theme_colors }}" class="btn btn-primary btn-sm">{% trans "Theme & colors" %}</a>{% endif %}
+              {% if legacy_urls.customizer and current_mode == 'experience' %}<a href="{{ legacy_urls.customizer }}" class="btn btn-outline-primary btn-sm">{% trans "Customizer" %}</a>{% endif %}
+              {% if legacy_urls.workflow_hub and current_mode == 'automation' %}<a href="{{ legacy_urls.workflow_hub }}" class="btn btn-primary btn-sm">{% trans "Workflow hub" %}</a>{% endif %}
+              {% if legacy_urls.report_library and current_mode == 'output' %}<a href="{{ legacy_urls.report_library }}" class="btn btn-primary btn-sm">{% trans "Report library" %}</a>{% endif %}
+              {% if legacy_urls.guided_onboarding and current_mode == 'launch' %}<a href="{{ legacy_urls.guided_onboarding }}" class="btn btn-primary btn-sm">{% trans "Guided onboarding" %}</a>{% endif %}
+              {% if legacy_urls.feature_control and current_mode == 'control' %}<a href="{{ legacy_urls.feature_control }}" class="btn btn-primary btn-sm">{% trans "Feature control" %}</a>{% endif %}
+            </div>
           </div>
         {% endif %}
     </main>

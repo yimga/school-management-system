@@ -682,7 +682,7 @@ def backend_entity_import(request):
     return render(request, "accounts/entity_import.html", {
         "BREADCRUMBS": [
             {"label": "Backend", "url": reverse("accounts:backend_dashboard")},
-            {"label": "Import & bulk", "url": reverse("accounts:import_hub")},
+            {"label": "Import & bulk", "url": reverse("studio_os:import_hub")},
             {"label": "Entity import", "url": "", "active": True},
         ],
     })
@@ -791,7 +791,7 @@ def redirect_view(request):
     # Staff/backend: Dashboard or Workflow Center as default view
     if user.has_feature_permission("settings.manage"):
         if dash_view == "WORKFLOW":
-            return _redirect_with_params("accounts:workflow_center")
+            return _redirect_with_params("studio_os:workflow_center")
         return _redirect_with_params("accounts:backend_dashboard")
 
     if role == "TEACHER":
@@ -1337,7 +1337,7 @@ def backend_dashboard(request):
 
     available_sidebar_items = [
         _item("backend", "Backend Console", "accounts:backend_dashboard", icon="bi-speedometer2"),
-        _item("workflow", "Workflow Center", "accounts:workflow_center", icon="bi-diagram-3", allow=bool(action_perms.get("site_settings"))),
+        _item("workflow", "Workflow Center", "studio_os:workflow_center", icon="bi-diagram-3", allow=bool(action_perms.get("site_settings"))),
         _item("messages", "Messages", "accounts:user_messages", icon="bi-chat-dots"),
         _item(
             "notifications",
@@ -1372,7 +1372,13 @@ def backend_dashboard(request):
         _item("portal", "Parent Portal", "portal:parent_dashboard", icon="bi-people"),
         _item("preferences", "Preferences", "siteconfig:user_preferences", icon="bi-sliders"),
         _item("kb", "Help Center", "kb:kb_home", icon="bi-life-preserver"),
-        _item("admin", "Admin Panel", "admin:index", icon="bi-grid", allow=bool(action_perms.get("admin_panel"))),
+        _item(
+            "admin",
+            "System config" if getattr(request, "public_host_kind", None) == "manager" else "Admin Panel",
+            "siteconfig:console_domains_hub" if getattr(request, "public_host_kind", None) == "manager" else "admin:index",
+            icon="bi-grid",
+            allow=bool(action_perms.get("admin_panel")),
+        ),
     ]
     available_sidebar_items = [item for item in available_sidebar_items if item]
     from .sidebar_organizer import organize_sidebar_items, get_sidebar_category_labels

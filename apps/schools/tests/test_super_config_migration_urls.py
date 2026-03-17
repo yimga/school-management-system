@@ -32,9 +32,15 @@ class SuperConfigMigrationUrlTests(TestCase):
             url = f"{url}?{query}"
         return self.client.get(url, HTTP_HOST=self.host)
 
-    def test_config_hub_200(self):
+    def test_config_hub_redirects_to_system_config(self):
         response = self._get("super:config_hub")
-        self.assertEqual(response.status_code, 200, "Config hub must return 200")
+        self.assertIn(response.status_code, (200, 302), "Config hub must redirect or render")
+        if response.status_code == 302:
+            self.assertIn("console/", response.get("Location", ""), "Config hub must redirect to System config")
+            follow = self.client.get(response["Location"], HTTP_HOST=self.host)
+            self.assertEqual(follow.status_code, 200, "System config must return 200")
+        else:
+            self.assertEqual(response.status_code, 200)
 
     def test_site_settings_list_200(self):
         response = self._get("super:site_settings_list")

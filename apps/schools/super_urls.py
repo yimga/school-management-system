@@ -100,7 +100,8 @@ urlpatterns = [
     path("workflow-simulator/", require_super_access_with_host(super_views.super_workflow_simulator), name="workflow_simulator"),
     path("orchestration/", require_super_access_with_host(orchestration_views.operator_workbench), name="orchestration_workbench"),
     path("orchestration/runs/<int:run_id>/retry/", require_super_access_with_host(orchestration_views.retry_run), name="orchestration_retry_run"),
-    path("config/", require_super_access_with_host(super_views.super_config_hub), name="config_hub"),
+    # Legacy path: /super/config/ redirects to System config (siteconfig:console_domains_hub). Single config surface.
+    path("config/", require_super_access_with_host(super_views.super_config_hub_redirect), name="config_hub"),
     path("config/site-settings/", require_super_access_with_host(super_views_config.super_site_settings_list), name="site_settings_list"),
     path("config/site-settings/<int:pk>/", require_super_access_with_host(super_views_config.super_site_settings_edit), name="site_settings_edit"),
     path("config/regions/", require_super_access_with_host(super_views_config.super_regions_list), name="regions_list"),

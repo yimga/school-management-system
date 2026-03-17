@@ -179,9 +179,59 @@ def _build_console_domains_context(request: HttpRequest) -> list[dict[str, Any]]
     return domains
 
 
+def _build_platform_config_context(request: HttpRequest) -> list[dict[str, Any]]:
+    """Platform config cards for manager: site settings, regions, plans, feature toggles, AI. Only used on manager."""
+    cards = []
+    entries = [
+        ("site_settings", "Site settings", "Platform-level site name, theme, and defaults.", "super:site_settings_list", "bi-gear", None),
+        ("regions", "Regions & grading", "Region config and grading scale catalog.", None, "bi-globe", [
+            ("Regions", "super:regions_list"),
+            ("Grading", "super:grading_list"),
+        ]),
+        ("plans", "Plans & add-ons", "Billing plans and add-on catalog.", "super:plans_list", "bi-currency-dollar", None),
+        ("feature_toggles", "Feature toggles", "Platform feature flag definitions and state.", "super:feature_toggles_list", "bi-toggle-on", None),
+        ("ai_models", "AI / model registry", "AI model registry and regional config.", "super:ai_model_hub", "bi-cpu", None),
+    ]
+    for code, name, outcome, single_url, icon, links in entries:
+        resolved = []
+        if single_url:
+            try:
+                resolved.append({"label": "Open", "url": reverse(single_url)})
+            except NoReverseMatch:
+                pass
+        elif links:
+            for label, url_name in links:
+                try:
+                    resolved.append({"label": label, "url": reverse(url_name)})
+                except NoReverseMatch:
+                    pass
+        if resolved:
+            cards.append({"code": code, "name": name, "outcome": outcome, "icon": icon, "links": resolved})
+    return cards
+
+
+def _build_operational_links_context(request: HttpRequest) -> list[dict[str, str]]:
+    """Operational quick links for manager: schools, incidents, billing, migration."""
+    out = []
+    for label, url_name in [
+        ("Schools list", "super:schools_list"),
+        ("Incidents", "super:incidents_list"),
+        ("Billing", "super:billing_dashboard"),
+        ("Billing accounts", "super:billing_accounts_list"),
+        ("Migration", "super:migration_cloud"),
+        ("Migration runs", "super:migration_runs_list"),
+        ("Pulse", "super:pulse"),
+    ]:
+        try:
+            out.append({"label": label, "url": reverse(url_name)})
+        except NoReverseMatch:
+            pass
+    return out
+
+
 @staff_member_required
 def console_domains_hub(request: HttpRequest) -> HttpResponse:
-    """Single bounded console entry: seven domains with outcome-first links (search, preview, diff, rollback). Phase B."""
+    """Single bounded console entry: platform config + seven domains + operational links. One place for all config."""
     domains = _build_console_domains_context(request)
     template = (
         "siteconfig/console_domains_hub_control_plane.html"
@@ -194,4 +244,6 @@ def console_domains_hub(request: HttpRequest) -> HttpResponse:
             context["super_dashboard_url"] = reverse("super:dashboard")
         except NoReverseMatch:
             context["super_dashboard_url"] = None
+        context["platform_config"] = _build_platform_config_context(request)
+        context["operational_links"] = _build_operational_links_context(request)
     return render(request, template, context)

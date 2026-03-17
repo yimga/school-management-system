@@ -104,8 +104,7 @@ def build_control_plane_nav(request):
         {"id": "super_billing", "label": "Billing", "url_name": "super:billing_dashboard", "icon": "bi-credit-card"},
     ])
     add_group("Platform Settings", [
-        {"id": "config_console", "label": "System config", "url_name": "siteconfig:console_domains_hub", "icon": "bi-sliders"},
-        {"id": "admin_index", "label": "Configuration Engine", "url_name": "super:config_hub", "icon": "bi-gear-wide-connected"},
+        {"id": "config_console", "label": "System config", "url_name": "siteconfig:console_domains_hub", "icon": "bi-gear-wide-connected"},
     ])
 
     return groups

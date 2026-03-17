@@ -81,7 +81,7 @@ def get_recommended_next_steps(
         _append_step(
             steps,
             label="Open Setup Studio",
-            url=_safe_reverse("siteconfig:guided_onboarding", _safe_reverse("accounts:workflow_center")),
+            url=_safe_reverse("siteconfig:guided_onboarding", _safe_reverse("studio_os:workflow_center")),
             icon="bi-magic",
             reason="Academic year, blueprint, and launch readiness still need one guided setup surface.",
             category="Setup",
@@ -117,7 +117,7 @@ def get_recommended_next_steps(
         _append_step(
             steps,
             label="Open workflow center",
-            url=_safe_reverse("accounts:workflow_center"),
+            url=_safe_reverse("studio_os:workflow_center"),
             icon="bi-diagram-3",
             reason="Classrooms, approvals, and launch tasks converge fastest in the workflow queue.",
             category="Setup",
@@ -141,7 +141,7 @@ def get_recommended_next_steps(
         _append_step(
             steps,
             label="Resolve active queues",
-            url=_safe_reverse("accounts:workflow_center"),
+            url=_safe_reverse("studio_os:workflow_center"),
             icon="bi-diagram-3",
             reason="Approvals, invites, and operational blockers should be cleared from one queue-first surface.",
             category="Operations",
@@ -153,7 +153,7 @@ def get_recommended_next_steps(
         _append_step(
             steps,
             label="Review grading and interventions",
-            url=_safe_reverse("reports:publish_term_results", _safe_reverse("accounts:workflow_center")),
+            url=_safe_reverse("reports:publish_term_results", _safe_reverse("studio_os:workflow_center")),
             icon="bi-journal-check",
             reason="Academic risk, report readiness, and intervention timing should stay in one academic workbench.",
             category="Academic",
@@ -176,7 +176,7 @@ def get_recommended_next_steps(
         _append_step(
             steps,
             label="Review school pulse",
-            url=_safe_reverse("accounts:workflow_center"),
+            url=_safe_reverse("studio_os:workflow_center"),
             icon="bi-speedometer2",
             reason="Executive mode should start from decisions, blockers, and the operating pulse.",
             category="Executive",

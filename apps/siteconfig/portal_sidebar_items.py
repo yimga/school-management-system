@@ -220,6 +220,8 @@ def build_portal_sidebar_items(request, site):
     workflow_badge, finance_badge, signatures_badge = _cached_sidebar_badge_counts(
         user, role, staff_like, request=request
     )
+    # Single entry via Studio OS for operational hubs; resolve once for staff.
+    studio_shell_url = _safe_reverse("studio_os:shell") if staff_like else None
 
     items = []
 
@@ -241,13 +243,19 @@ def build_portal_sidebar_items(request, site):
         items.append({"id": "messages", "label": "Messages", "url": _safe_reverse("accounts:user_messages"), "icon": "bi-chat-dots", "section": "Communication", "badge": messages_unread_count})
     elif is_staff or is_superuser or role in ("ADMIN", "LEADERSHIP", "IT_ADMIN", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "PROPRIETOR", "SECRETARY"):
         items.append({"id": "messages", "label": "Messages", "url": _safe_reverse("accounts:user_messages"), "icon": "bi-chat-dots", "section": "Communication", "badge": messages_unread_count})
-        items.append({"id": "message_groups", "label": "Message Groups", "url": _safe_reverse("communication:group_list"), "icon": "bi-people", "section": "Communication", "badge": None})
+        _msg_url = studio_shell_url or _safe_reverse("communication:group_list")
+        if _msg_url:
+            items.append({"id": "message_groups", "label": "Message Groups", "url": _msg_url, "icon": "bi-people", "section": "Communication", "badge": None})
         try:
             from apps.communication.views_announcements import _can_create_school_wide_announcement, _can_access_school_wide_announcement_create
             if _can_access_school_wide_announcement_create(user):
-                items.append({"id": "announcements", "label": "School-wide Announcements", "url": _safe_reverse("communication:announcement_create"), "icon": "bi-megaphone", "section": "Communication", "badge": None})
+                _ann_url = studio_shell_url or _safe_reverse("communication:announcement_create")
+                if _ann_url:
+                    items.append({"id": "announcements", "label": "School-wide Announcements", "url": _ann_url, "icon": "bi-megaphone", "section": "Communication", "badge": None})
             if _can_create_school_wide_announcement(user):
-                items.append({"id": "announcements_pending", "label": "Pending approval", "url": _safe_reverse("communication:announcement_list_pending"), "icon": "bi-hourglass-split", "section": "Communication", "badge": None})
+                _pend_url = studio_shell_url or _safe_reverse("communication:announcement_list_pending")
+                if _pend_url:
+                    items.append({"id": "announcements_pending", "label": "Pending approval", "url": _pend_url, "icon": "bi-hourglass-split", "section": "Communication", "badge": None})
         except OPTIONAL_SIDEBAR_ERRORS:
             pass
 
@@ -334,7 +342,9 @@ def build_portal_sidebar_items(request, site):
         if is_superuser and not in_backend:
             items.append({"id": "guardians", "label": "Student Guardians", "url": _safe_reverse("admin:people_studentguardian_changelist"), "icon": "bi-people-fill", "section": "People & Access", "badge": None})
             items.append({"id": "groups", "label": "Authentication Groups", "url": _safe_reverse("admin:auth_group_changelist"), "icon": "bi-unlock", "section": "People & Access", "badge": None})
-        items.append({"id": "rbac", "label": "RBAC & Access Control", "url": _safe_reverse("accounts:rbac"), "icon": "bi-diagram-3", "section": "People & Access", "badge": None})
+        _rbac_url = studio_shell_url or _safe_reverse("accounts:rbac")
+        if _rbac_url:
+            items.append({"id": "rbac", "label": "RBAC & Access Control", "url": _rbac_url, "icon": "bi-diagram-3", "section": "People & Access", "badge": None})
         items.append({"id": "eval_admin", "label": "Evaluation Admin", "url": _safe_reverse("evals:evaluation_admin"), "icon": "bi-clipboard-data", "section": "Academic Management", "badge": None})
         items.append({"id": "class_ranking", "label": "Class Ranking", "url": _safe_reverse("evals:class_ranking"), "icon": "bi-trophy", "section": "Academic Management", "badge": None})
         items.append({"id": "school_ranking", "label": "School Ranking", "url": _safe_reverse("evals:school_ranking"), "icon": "bi-bar-chart-line", "section": "Academic Management", "badge": None})
@@ -349,7 +359,9 @@ def build_portal_sidebar_items(request, site):
         items.append({"id": "analytics", "label": "Analytics", "url": _safe_reverse("analytics:dashboard"), "icon": "bi-graph-up-arrow", "section": "Analytics & Reports", "badge": None})
         if role in ("PROPRIETOR", "LEADERSHIP", "ADMIN"):
             items.append({"id": "strategic_report", "label": "Strategic Report", "url": _safe_reverse("analytics:strategic_report"), "icon": "bi-flag", "section": "Analytics & Reports", "badge": None})
-        items.append({"id": "report_library", "label": "Report Library", "url": _safe_reverse("studio_os:output"), "icon": "bi-journal-text", "section": "Analytics & Reports", "badge": None})
+        _report_url = studio_shell_url or _safe_reverse("studio_os:output")
+        if _report_url:
+            items.append({"id": "report_library", "label": "Report Library", "url": _report_url, "icon": "bi-journal-text", "section": "Analytics & Reports", "badge": None})
         items.append({"id": "bulk_letters", "label": "Bulk Letters", "url": _safe_reverse("siteconfig:bulk_letters"), "icon": "bi-envelope-paper", "section": "Analytics & Reports", "badge": None})
         items.append({"id": "reportcard_builder", "label": "Report Card Builder", "url": _safe_reverse("siteconfig:reportcard_builder"), "icon": "bi-file-earmark-richtext", "section": "Analytics & Reports", "badge": None})
         items.append({"id": "portal_stats", "label": "Portal Stats", "url": _safe_reverse("portal:portal_stats"), "icon": "bi-graph-up", "section": "Analytics & Reports", "badge": None})
@@ -358,13 +370,20 @@ def build_portal_sidebar_items(request, site):
         if dashboard_layout_url:
             items.append({"id": "dashboard_layout", "label": "Dashboard Layout", "url": dashboard_layout_url, "icon": "bi-grid-3x3-gap", "section": "Admin Panel", "badge": None})
         if is_superuser or getattr(user, "has_feature_permission", lambda _: False)("settings.feature_control"):
-            items.append({"id": "feature_control", "label": "Feature Control", "url": _safe_reverse("siteconfig:feature_control_panel"), "icon": "bi-toggle-on", "section": "Admin Panel", "badge": None})
-            items.append({"id": "feature_control_audit", "label": "Feature Control Audit", "url": _safe_reverse("siteconfig:feature_control_audit"), "icon": "bi-clock-history", "section": "Admin Panel", "badge": None})
+            _fc_url = studio_shell_url or _safe_reverse("siteconfig:feature_control_panel")
+            if _fc_url:
+                items.append({"id": "feature_control", "label": "Feature Control", "url": _fc_url, "icon": "bi-toggle-on", "section": "Admin Panel", "badge": None})
+            _fca_url = studio_shell_url or _safe_reverse("siteconfig:feature_control_audit")
+            if _fca_url:
+                items.append({"id": "feature_control_audit", "label": "Feature Control Audit", "url": _fca_url, "icon": "bi-clock-history", "section": "Admin Panel", "badge": None})
         if backend_flags.get("enable_api_center") and (getattr(user, "has_feature_permission", lambda _: False)("api_center.manage") or role in ("ADMIN", "IT_ADMIN")):
             items.append({"id": "api_center", "label": "Integrations & API Center", "url": _safe_reverse("apicenter:dashboard"), "icon": "bi-plug", "section": "Admin Panel", "badge": None})
         items.append({"id": "backend", "label": "Backend Console", "url": _safe_reverse("accounts:backend_dashboard"), "icon": "bi-gear-fill", "section": "Admin Panel", "badge": None})
-        items.append({"id": "workflow_center", "label": "Workflow Center", "url": _safe_reverse("accounts:workflow_center"), "icon": "bi-diagram-3", "section": "Admin Panel", "badge": workflow_badge})
-        approval_hub_url = _safe_reverse("accounts:approval_workflow_hub")
+        # Studio OS as single entry: Workflow Center and Approval Hub open from Studio (legacy URLs redirect when not from_studio=1).
+        workflow_center_url = _safe_reverse("studio_os:automation") or _safe_reverse("studio_os:workflow_center")
+        if workflow_center_url:
+            items.append({"id": "workflow_center", "label": "Workflow Center", "url": workflow_center_url, "icon": "bi-diagram-3", "section": "Admin Panel", "badge": workflow_badge})
+        approval_hub_url = studio_shell_url or _safe_reverse("studio_os:approval_hub")
         if approval_hub_url:
             items.append({"id": "approval_hub", "label": "Approval Hub", "url": approval_hub_url, "icon": "bi-clipboard-check", "section": "Admin Panel", "badge": None})
         _school = getattr(request, "school", None)
@@ -378,7 +397,8 @@ def build_portal_sidebar_items(request, site):
             get_blueprints_url = _safe_reverse("siteconfig:get_blueprints")
             if get_blueprints_url:
                 items.append({"id": "get_blueprints", "label": "Blueprints", "url": get_blueprints_url, "icon": "bi-journal-richtext", "section": "Admin Panel", "badge": None})
-        import_hub_url = _safe_reverse("accounts:import_hub")
+        # Import & bulk: entry via Studio OS Overview when available; else legacy import hub.
+        import_hub_url = studio_shell_url or _safe_reverse("studio_os:import_hub")
         if import_hub_url:
             items.append({"id": "import_hub", "label": "Import & bulk", "url": import_hub_url, "icon": "bi-upload", "section": "Admin Panel", "badge": None})
         if can_manage_site:
@@ -401,7 +421,7 @@ def build_portal_sidebar_items(request, site):
             items.append({"id": "site_settings", "label": "Site Settings", "url": _safe_reverse("admin:siteconfig_sitesettings_change", args=[site_pk]), "icon": "bi-gear-wide", "section": "Admin Panel", "badge": None})
             items.append({"id": "region_config", "label": "Region Configuration", "url": _safe_reverse("admin:global_registries_regionconfig_changelist"), "icon": "bi-geo-alt", "section": "Admin Panel", "badge": None})
         if is_superuser:
-            items.append({"id": "admin_panel", "label": "Configuration Engine", "url": _safe_reverse("admin:index"), "icon": "bi-gear-wide-connected", "section": "Admin Panel", "badge": None})
+            items.append({"id": "admin_panel", "label": "System config", "url": _safe_reverse("siteconfig:console_domains_hub"), "icon": "bi-gear-wide-connected", "section": "Admin Panel", "badge": None})
 
     # Drop items with no URL
     items = [x for x in items if x.get("url")]

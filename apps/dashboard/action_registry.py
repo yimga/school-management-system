@@ -21,14 +21,14 @@ BACKEND_INTENT_PRIMARY_SPECS = {
     "executive": {
         "label": "Review school pulse",
         "icon": "bi-speedometer2",
-        "url_name": "accounts:workflow_center",
+        "url_name": "studio_os:workflow_center",
         "fallback_url_name": "accounts:backend_dashboard",
         "hint": "See the decision queue, blockers, and operating health in one place.",
     },
     "operational": {
         "label": "Resolve active queues",
         "icon": "bi-diagram-3",
-        "url_name": "accounts:workflow_center",
+        "url_name": "studio_os:workflow_center",
         "fallback_url_name": "accounts:backend_dashboard",
         "hint": "Work through admissions, finance, and staffing actions from one queue.",
     },
@@ -56,17 +56,17 @@ BACKEND_INTENT_PRIMARY_SPECS = {
 }
 
 BACKEND_ACTION_CHIPS = [
-    {"label": "Workflow Center", "icon": "bi-diagram-3", "url_name": "accounts:workflow_center", "allow_key": "always"},
+    {"label": "Workflow Center", "icon": "bi-diagram-3", "url_name": "studio_os:workflow_center", "allow_key": "always"},
     {"label": "Messages", "icon": "bi-chat-dots", "url_name": "accounts:user_messages", "allow_key": "can_use_messages"},
     {"label": "Report Card Builder", "icon": "bi-file-earmark-richtext", "url_name": "siteconfig:reportcard_builder", "allow_key": "can_manage_reports"},
     {"label": "My Preferences", "icon": "bi-sliders", "url_name": "siteconfig:user_preferences", "allow_key": "always"},
-    {"label": "Configuration Engine", "icon": "bi-gear-wide-connected", "url_name": "admin:index", "allow_key": "can_manage_settings"},
+    {"label": "System config", "icon": "bi-gear-wide-connected", "url_name": "siteconfig:console_domains_hub", "allow_key": "can_manage_settings"},
 ]
 
 BACKEND_WELCOME_ACTION_GRID = [
     {"label": "Studio", "icon": "bi-grid-3x3-gap", "url_name": "studio_os:shell", "item_id": "studio_os", "allow_key": "can_manage_settings"},
     {"label": "Setup Studio", "icon": "bi-magic", "url_name": "siteconfig:guided_onboarding", "item_id": "setup_studio", "allow_key": "can_manage_settings"},
-    {"label": "Workflow Center", "icon": "bi-diagram-3", "url_name": "accounts:workflow_center", "item_id": "workflow_center", "allow_key": "always"},
+    {"label": "Workflow Center", "icon": "bi-diagram-3", "url_name": "studio_os:workflow_center", "item_id": "workflow_center", "allow_key": "always"},
     {"label": "Finance Console", "icon": "bi-cash-stack", "url_name": "finance:dashboard", "item_id": "finance_console", "allow_key": "can_manage_finance"},
     {"label": "Add Student", "icon": "bi-person-plus", "url_name": "accounts:backend_student_create", "fallback_url_name": "admin:index", "item_id": "add_student", "allow_key": "can_manage_people"},
     {"label": "Add Teacher", "icon": "bi-person-badge", "url_name": "accounts:backend_teacher_create", "fallback_url_name": "admin:index", "item_id": "add_teacher", "allow_key": "can_manage_people"},
@@ -83,7 +83,7 @@ BACKEND_QUICK_LINKS = [
     {"label": "Exams", "icon": "bi-journal-check", "url_name": "reports:publish_term_results", "item_id": "exams", "allow_key": "can_manage_reports"},
     {"label": "Certification", "icon": "bi-award", "url_name": "accounts:certification_home", "item_id": "certification", "allow_key": "can_manage_reports"},
     {"label": "Documents", "icon": "bi-folder2", "url_name": "portal:document_library_manage", "item_id": "documents", "allow_key": "can_manage_settings"},
-    {"label": "Workflow Center", "icon": "bi-diagram-3", "url_name": "accounts:workflow_center", "item_id": "workflow_center", "allow_key": "always"},
+    {"label": "Workflow Center", "icon": "bi-diagram-3", "url_name": "studio_os:workflow_center", "item_id": "workflow_center", "allow_key": "always"},
     {"label": "Preferences", "icon": "bi-sliders", "url_name": "siteconfig:user_preferences", "item_id": "preferences", "allow_key": "always"},
 ]
 
@@ -95,9 +95,9 @@ BACKEND_COMMAND_PALETTE = [
     {"label": "Import Grades", "icon": "bi-upload", "url_name": "evals:grade_import_upload", "allow_key": "can_manage_reports"},
     {"label": "Finance Dashboard", "icon": "bi-cash-stack", "url_name": "finance:dashboard", "allow_key": "can_manage_finance"},
     {"label": "Experience", "icon": "bi-palette", "url_name": "studio_os:experience", "fallback_url_name": "studio_os:shell", "allow_key": "can_manage_settings"},
-    {"label": "Workflow Center", "icon": "bi-diagram-3", "url_name": "accounts:workflow_center", "allow_key": "always"},
+    {"label": "Workflow Center", "icon": "bi-diagram-3", "url_name": "studio_os:workflow_center", "allow_key": "always"},
     # §8.0.4 Command palette example intents (UI/UX doc)
-    {"label": "Open fee reminder automation", "icon": "bi-clock-history", "url_name": "studio_os:automation", "fallback_url_name": "accounts:workflow_center", "allow_key": "can_manage_settings"},
+    {"label": "Open fee reminder automation", "icon": "bi-clock-history", "url_name": "studio_os:automation", "fallback_url_name": "studio_os:workflow_center", "allow_key": "can_manage_settings"},
     {"label": "Configure grade reports", "icon": "bi-file-earmark-bar-graph", "url_name": "studio_os:output", "fallback_url_name": "reports:publish_term_results", "allow_key": "can_manage_reports"},
     {"label": "Go to district analytics", "icon": "bi-graph-up", "url_name": "super:analytics_overview", "fallback_url_name": "accounts:backend_dashboard", "allow_key": "can_manage_settings"},
 ]

@@ -56,7 +56,7 @@ def clone_year_setup(request):
                 f"{stats['terms_created']} terms, {stats['classrooms_created']} classrooms, "
                 f"{stats['subject_assignments_created']} subject assignments, {stats['promotion_rules_created']} promotion rules.",
             )
-            return redirect("accounts:workflow_center")
+            return redirect("studio_os:workflow_center")
         except (DatabaseError, RuntimeError, TypeError, ValueError) as e:
             school_id = str(getattr(getattr(request, "school", None), "pk", None) or "")
             log_exception_with_context(

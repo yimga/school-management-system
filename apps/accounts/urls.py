@@ -1,4 +1,5 @@
-from django.urls import path, reverse_lazy
+from django.shortcuts import redirect
+from django.urls import path, reverse, reverse_lazy
 from django.contrib.auth.views import PasswordChangeDoneView
 
 from .views import (
@@ -39,10 +40,7 @@ from .views_rollover import (
 )
 from .views_workflow import (
     academic_rules,
-    approval_workflow_hub,
     automation_hub,
-    import_hub,
-    workflow_center,
 )
 from .views_dashboard import backend_dashboard, backend_dashboard_status_fragment
 from .views_onboarding import dismiss_first_login_checklist, mark_tour_complete
@@ -137,15 +135,15 @@ urlpatterns = [
     path("backend/ops-watch/", backend_ops_watch_data, name="backend_ops_watch_data"),
     path("backend-dashboard/", backend_dashboard, name="backend_dashboard_alt"),
     path("backend/import/", backend_entity_import, name="backend_entity_import"),
-    path("backend/import-hub/", import_hub, name="import_hub"),
+    path("backend/import-hub/", lambda r: redirect(reverse("studio_os:import_hub"), permanent=False), name="import_hub"),
     path("backend/migration-wizard/", migration_wizard, name="migration_wizard"),
     path("backend/migration-runs/", migration_run_list, name="migration_run_list"),
     path("backend/migration-runs/<int:run_id>/rollback/", migration_rollback, name="migration_rollback"),
     path("backend/migration-runs/<int:run_id>/legacy/", migration_legacy_view, name="migration_legacy_view"),
     path("backend/legacy-data-cleaner/", legacy_data_cleaner_view, name="legacy_data_cleaner"),
     path("backend/entities/", backend_entity_console, name="backend_entity_console"),
-    path("workflow/", workflow_center, name="workflow_center"),
-    path("workflow/approvals/", approval_workflow_hub, name="approval_workflow_hub"),
+    path("workflow/", lambda r: redirect(reverse("studio_os:workflow_center"), permanent=False), name="workflow_center"),
+    path("workflow/approvals/", lambda r: redirect(reverse("studio_os:approval_hub"), permanent=False), name="approval_workflow_hub"),
     path("workflow/automation/", automation_hub, name="automation_hub"),
     path("workflow/clone-year/", clone_year_setup, name="clone_year_setup"),
     path("workflow/rollover/", rollover_year, name="rollover_year"),
