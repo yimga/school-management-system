@@ -8,9 +8,7 @@
 .statement-header,
 .base-topbar.statement-header,
 #portalHeader.statement-header,
-.cp-navbar.statement-header,
-.dashboard-header-wrapper.statement-header,
-.mkt-navbar.statement-header {
+.dashboard-header-wrapper.statement-header {
   position: sticky;
   top: 0;
   z-index: 1030;
@@ -22,6 +20,40 @@
   gap: 1.5rem;
   background: var(--statement-header-bg, #FDFDFD);
   color: var(--statement-header-fg, #0A0A0A);
+  transition: background-color var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out),
+              color var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out),
+              box-shadow var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out);
+}
+
+/* Control plane and marketing: dark navbar; do not use light default */
+.cp-navbar.statement-header {
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  min-height: var(--statement-header-height, 72px);
+  padding: var(--statement-header-padding-y, 1.25rem) var(--statement-header-padding-x, 2rem);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  background: var(--cp-bg, #0B0E14);
+  color: var(--statement-header-fg, #fff);
+  transition: background-color var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out),
+              color var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out),
+              box-shadow var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out);
+}
+.mkt-navbar.statement-header {
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  min-height: var(--statement-header-height, 72px);
+  padding: var(--statement-header-padding-y, 1.25rem) var(--statement-header-padding-x, 2rem);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  background: var(--mkt-primary, var(--statement-header-bg, #0f172a));
+  color: var(--mkt-text-inverse, #fff);
   transition: background-color var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out),
               color var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out),
               box-shadow var(--luxury-motion-duration, 600ms) var(--luxury-motion-ease, ease-out);
@@ -90,6 +122,37 @@
 .dashboard-header-wrapper .header-logo {
   margin-right: 1rem;
   padding-right: 1rem;
+}
+
+/* Every page: single brand line only — no tagline or second wordmark line */
+.statement-header .brand-sub,
+#portalHeader .brand-sub,
+.cp-navbar .brand-sub,
+.dashboard-header-wrapper .brand-sub,
+.mkt-navbar .brand-sub,
+.admin-login-brand .brand-sub,
+.statement-header .navbar-brand .brand-sub,
+.statement-header .statement-logo .brand-sub,
+.cp-navbar .navbar-brand .brand-sub,
+#portalHeader .navbar-brand .brand-sub {
+  display: none !important;
+}
+.statement-header .navbar-brand,
+.statement-header .statement-logo,
+.cp-navbar .navbar-brand,
+.cp-navbar .statement-logo,
+#portalHeader .navbar-brand {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+.statement-header .navbar-brand span,
+.statement-header .statement-logo span,
+.cp-navbar .navbar-brand span,
+.cp-navbar .statement-logo span {
+  white-space: nowrap;
+  font-size: 1.1rem;
+  font-weight: 600;
 }
 
 /* ========== Mobile: center logo, hamburger focal ========== */

@@ -18,12 +18,8 @@
 {% endif %}
 
 <div class="flex flex-col gap-1.5 grow justify-center min-w-0">
-    <div class="text-important leading-none tracking-tight *:truncate {% if site_subheader %}xl:text-sm{% else %}xl:text-base{% endif %}">
+    <div class="text-important leading-none tracking-tight *:truncate xl:text-base">
         {{ branding }}
     </div>
-    {% if site_subheader %}
-        <div class="font-normal leading-none text-subtle text-xs">
-            {{ site_subheader }}
-        </div>
-    {% endif %}
+    {% comment %}Single-line brand only: tagline hidden for opinionated minimalism. {% endcomment %}
 </div>

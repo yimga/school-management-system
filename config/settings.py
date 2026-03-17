@@ -561,7 +561,7 @@ from django.utils.translation import gettext_lazy as _
 UNFOLD = {
     "SITE_TITLE": "RunMyCampus Admin",
     "SITE_HEADER": "RunMyCampus",
-    "SITE_SUBHEADER": "THE POWERHOUSE OF SCHOOL MANAGEMENT",
+    "SITE_SUBHEADER": "",  # Single-line brand only; no tagline in admin/sidebar
     "SITE_URL": "/",
 
     # Icon/branding (32px height works best); platform uses RunMyCampus icon

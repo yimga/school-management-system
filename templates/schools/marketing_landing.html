@@ -62,10 +62,10 @@
         {% if hero_video_url %}
         <video class="mkt-hero-video" width="800" height="450" poster="{% if hero_video_poster_url %}{{ hero_video_poster_url }}{% endif %}" preload="metadata" playsinline muted loop aria-label="RunMyCampus platform overview">
           <source src="{{ hero_video_url }}" type="video/mp4">
-          <img src="{% if hero_dashboard_image_url %}{{ hero_dashboard_image_url }}{% else %}{% static 'images/runmycampus-logo.png' %}{% endif %}"{% if hero_dashboard_image_srcset %} srcset="{{ hero_dashboard_image_srcset }}" sizes="{{ hero_dashboard_image_sizes }}"{% endif %} alt="RunMyCampus dashboard overview" width="800" height="450" decoding="async" loading="eager">
+          <img src="{% if hero_dashboard_image_url %}{{ hero_dashboard_image_url }}{% else %}{% static 'images/runmycampus-icon.png' %}{% endif %}"{% if hero_dashboard_image_srcset %} srcset="{{ hero_dashboard_image_srcset }}" sizes="{{ hero_dashboard_image_sizes }}"{% endif %} alt="RunMyCampus dashboard overview" width="800" height="450" decoding="async" loading="eager" style="object-fit: contain; background: var(--mkt-hero-bg, #0f172a);">
         </video>
         {% else %}
-        <img src="{% if hero_dashboard_image_url %}{{ hero_dashboard_image_url }}{% else %}{% static 'images/runmycampus-logo.png' %}{% endif %}"{% if hero_dashboard_image_srcset %} srcset="{{ hero_dashboard_image_srcset }}" sizes="{{ hero_dashboard_image_sizes }}"{% endif %} alt="RunMyCampus dashboard overview" width="800" height="450" decoding="async" fetchpriority="high" loading="eager">
+        <img src="{% if hero_dashboard_image_url %}{{ hero_dashboard_image_url }}{% else %}{% static 'images/runmycampus-icon.png' %}{% endif %}"{% if hero_dashboard_image_srcset %} srcset="{{ hero_dashboard_image_srcset }}" sizes="{{ hero_dashboard_image_sizes }}"{% endif %} alt="RunMyCampus dashboard overview" width="800" height="450" decoding="async" fetchpriority="high" loading="eager" style="object-fit: contain; background: var(--mkt-hero-bg, #0f172a);">
         {% endif %}
       </div>
     </div>

@@ -557,15 +557,15 @@ def site_settings(request):
         ctx["PINNED_CONTROL_PLANE_IDS"] = set()
     ctx["PUBLIC_BRAND_NAME"] = "RunMyCampus"
     ctx["PUBLIC_BRAND_DOMAIN"] = "runmycampus.com"
-    ctx["PUBLIC_BRAND_TAGLINE"] = "THE POWERHOUSE OF SCHOOL MANAGEMENT"
+    ctx["PUBLIC_BRAND_TAGLINE"] = ""  # Single-line brand only; no platform tagline anywhere
     if public_brand_mode:
         ctx["SITE_LOGO_URL"] = ""
         ctx["SITE_BRANDED_DOMAIN"] = "runmycampus.com"
         ctx["TENANT_WALLPAPER_URL"] = ""
         ctx["SITE_PRIMARY_COLOR"] = None
         ctx["SITE_ACCENT_COLOR"] = None
-        ctx["PUBLIC_BRAND_LOGO_URL"] = static("images/runmycampus-logo.png")
-        ctx["PUBLIC_BRAND_LOGO_DARK_URL"] = static("images/runmycampus-logo-dark.png")
+        ctx["PUBLIC_BRAND_LOGO_URL"] = static("images/runmycampus-icon.png")  # Use icon; full logo only where explicitly needed
+        ctx["PUBLIC_BRAND_LOGO_DARK_URL"] = static("images/runmycampus-icon.png")
         ctx["PUBLIC_BRAND_FAVICON_URL"] = static("images/runmycampus-icon.png")
         ctx["SITE_FAVICON_URL"] = static("images/runmycampus-icon.png")
     else:

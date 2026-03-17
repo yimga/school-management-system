@@ -212,10 +212,10 @@
       <div class="auth-hero" id="preview-login-hero" data-preview-label="{% trans 'Login hero (colors & branding)' %}" data-preview-changes="{% trans 'Primary/accent colors, logo, heading' %}">
         <div class="hero-brand" id="preview-login-brand" data-preview-label="{% trans 'Logo & site name' %}" data-preview-changes="{% trans 'Site name, tagline, hero heading' %}">
           <div class="hero-logo">
-            {% if is_manager_host and not SITE_LOGO_URL and not PUBLIC_BRAND_LOGO_URL %}
+            {% if is_manager_host and not SITE_LOGO_URL and not PUBLIC_BRAND_FAVICON_URL %}
               <span>R</span>
-            {% elif PUBLIC_BRAND_MODE and PUBLIC_BRAND_LOGO_URL %}
-              <img src="{{ PUBLIC_BRAND_LOGO_URL }}" alt="" width="80" height="80" decoding="async" loading="eager" style="width:100%;height:100%;object-fit:contain;">
+            {% elif PUBLIC_BRAND_MODE and PUBLIC_BRAND_FAVICON_URL %}
+              <img src="{{ PUBLIC_BRAND_FAVICON_URL }}" alt="" width="80" height="80" decoding="async" loading="eager" style="width:100%;height:100%;object-fit:contain;">
             {% elif SITE_LOGO_URL %}
               <img src="{{ SITE_LOGO_URL }}" alt="" width="80" height="80" decoding="async" loading="eager" style="width:100%;height:100%;object-fit:contain;">
             {% else %}
@@ -229,7 +229,7 @@
               <small class="d-block mt-1 opacity-75">{% trans "You're signing in to manage schools and tenants" %}</small>
             {% else %}
               <strong>{% if PUBLIC_BRAND_MODE %}{{ PUBLIC_BRAND_NAME }}{% elif SITE.login_hero_heading %}{{ SITE.login_hero_heading }}{% else %}{{ SITE.site_name|default:"School Management System" }}{% endif %}</strong>
-              <small>{% if PUBLIC_BRAND_MODE %}{{ PUBLIC_BRAND_TAGLINE }}{% elif SITE.login_hero_subtext %}{{ SITE.login_hero_subtext }}{% else %}{{ SITE.tagline|default:"Sign in for staff, families, and admins" }}{% endif %}</small>
+              <small>{% if PUBLIC_BRAND_MODE %}{% trans "Platform & school management" %}{% elif SITE.login_hero_subtext %}{{ SITE.login_hero_subtext }}{% else %}{{ SITE.tagline|default:"Sign in for staff, families, and admins" }}{% endif %}</small>
               {% if SITE_BRANDED_DOMAIN %}
                 <small class="d-block mt-1 opacity-75">{% trans "You're logging in to" %} {{ SITE_BRANDED_DOMAIN }}</small>
               {% endif %}
