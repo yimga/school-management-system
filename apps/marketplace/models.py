@@ -156,6 +156,13 @@ class MarketplaceListing(models.Model):
         blank=True,
         help_text="Optional: countries (list), blueprint_families (list), plan_tiers (list), workflow_families (list).",
     )
+    # GAP.11 / III.23: preview and screenshots for catalog UI
+    preview_image_url = models.URLField(max_length=500, blank=True, help_text="Main preview/hero image URL for catalog.")
+    screenshot_urls = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Optional list of screenshot image URLs for app listing.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -114,7 +114,7 @@ def _build_admin_control_links() -> list[dict[str, Any]]:
         {
             "label": "Report Library",
             "icon": "library_books",
-            "url": _safe_reverse("siteconfig:report_library"),
+            "url": _safe_reverse("studio_os:output"),
         },
         {
             "label": "Knowledge Base",

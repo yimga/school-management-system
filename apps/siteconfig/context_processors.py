@@ -20,6 +20,7 @@ OPTIONAL_CONTEXT_ERRORS = (
     AttributeError,
     DatabaseError,
     ImportError,
+    NoReverseMatch,
     RuntimeError,
     TypeError,
     ValueError,
@@ -448,6 +449,10 @@ def site_settings(request):
         "CAN_MANAGE_SETTINGS": can_manage_settings,
         "PORTAL_SIDEBAR_ITEMS": _get_portal_sidebar_items(request, site),
     }
+    try:
+        ctx["PORTAL_DOCUMENT_LIBRARY_MANAGE_URL"] = reverse("portal:document_library_manage")
+    except NoReverseMatch:
+        ctx["PORTAL_DOCUMENT_LIBRARY_MANAGE_URL"] = None
     # Dual-role (Teacher + Parent): show role switcher when user has both hats (cache already set above)
     if user and getattr(user, "is_authenticated", False):
         try:

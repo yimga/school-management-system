@@ -17,7 +17,10 @@
   <link rel="stylesheet" href="{% static 'css/marketing-product-page.css' %}">
 {% endblock %}
 {% block content %}
+<noscript><style>.mkt-product-story .mkt-reveal,.mkt-product-story .mkt-reveal-stagger>*{opacity:1;transform:none;}</style></noscript>
 <div class="mkt-product-story" data-scroll-story="true" data-dark-mode="true">
+  <div class="mkt-product-story-inner">
+    <div class="mkt-product-story-content">
   <a href="#mkt-product-hero" class="mkt-skip-link">{% trans "Skip to main content" %}</a>
   <div id="mkt-product-scroll-progress" class="mkt-scroll-progress" role="presentation" aria-hidden="true">
     <div id="mkt-product-scroll-fill" class="mkt-scroll-progress-fill"></div>
@@ -169,7 +172,49 @@
       <a href="{% url 'global_login_discovery' %}" class="btn btn-outline-light mkt-cta-focus">{% trans "Login" %}</a>
     </div>
   </section>
+    </div>{# /.mkt-product-story-content #}
+
+  {# Pinned product frame: one sticky visual that updates per chapter (GAP.1) #}
+  <aside id="mkt-product-pinned-frame" class="mkt-product-pinned-frame" aria-label="{% trans 'Product visual by section' %}" data-active-chapter="1">
+    <div class="mkt-product-pinned-panel active" data-chapter="1">
+      {% if hero_dashboard_image_url %}
+      <img src="{{ hero_dashboard_image_url }}" alt="{% trans 'Platform overview' %}" width="600" height="338" loading="lazy" decoding="async">
+      {% else %}
+      <img src="{% static 'images/marketing/hero-placeholder.svg' %}" alt="{% trans 'Platform overview' %}" width="600" height="338" loading="lazy" decoding="async">
+      {% endif %}
+    </div>
+    <div class="mkt-product-pinned-panel" data-chapter="2">
+      {% if product_visualization_slides and product_visualization_slides.0.image_url %}
+      <img src="{{ product_visualization_slides.0.image_url }}" alt="{{ product_visualization_slides.0.title }}" width="600" height="338" loading="lazy" decoding="async">
+      {% elif product_visualization_slides and product_visualization_slides.0.image_static %}
+      <img src="{% static product_visualization_slides.0.image_static %}" alt="{{ product_visualization_slides.0.title }}" width="600" height="338" loading="lazy" decoding="async">
+      {% else %}
+      <img src="{% static 'images/marketing/platform-diagram-marketing.svg' %}" alt="{% trans 'Product in action' %}" width="600" height="338" loading="lazy" decoding="async">
+      {% endif %}
+    </div>
+    <div class="mkt-product-pinned-panel" data-chapter="3">
+      {% if setup_studio_flow_image_url %}
+      <img src="{{ setup_studio_flow_image_url }}" alt="{% trans 'Studio OS flow' %}" width="600" height="338" loading="lazy" decoding="async">
+      {% else %}
+      <img src="{% static 'images/marketing/platform-diagram-marketing.svg' %}" alt="{% trans 'Platform layers' %}" width="600" height="338" loading="lazy" decoding="async">
+      {% endif %}
+    </div>
+    <div class="mkt-product-pinned-panel" data-chapter="4">
+      {% if migration_studio_image_url %}
+      <img src="{{ migration_studio_image_url }}" alt="{% trans 'Migration flow' %}" width="600" height="338" loading="lazy" decoding="async">
+      {% else %}
+      <img src="{% static 'images/marketing/platform-diagram-marketing.svg' %}" alt="{% trans 'Migration and APIs' %}" width="600" height="338" loading="lazy" decoding="async">
+      {% endif %}
+    </div>
+    <div class="mkt-product-pinned-panel" data-chapter="5">
+      <img src="{% static 'images/marketing/platform-diagram-marketing.svg' %}" alt="{% trans 'Outcomes' %}" width="600" height="338" loading="lazy" decoding="async">
+    </div>
+    <div class="mkt-product-pinned-panel" data-chapter="6">
+      <img src="{% static 'images/marketing/platform-diagram-marketing.svg' %}" alt="{% trans 'Core capabilities' %}" width="600" height="338" loading="lazy" decoding="async">
+    </div>
+  </aside>
+  </div>{# /.mkt-product-story-inner #}
 </div>
-<script src="{% static 'marketing/js/marketing-landing-scroll.js' %}" defer></script>
+<script src="{% static 'marketing/js/marketing-scroll-core.js' %}" defer></script>
 <script src="{% static 'marketing/js/marketing-product-scroll.js' %}" defer></script>
 {% endblock %}

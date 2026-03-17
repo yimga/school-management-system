@@ -30,7 +30,7 @@
 | Step 7 csrf_exempt/AllowAny removal audit | **DONE** | Audit complete: all listed exemptions justified; no removal needed. CI in pre_deploy_gate. Step 7 DONE. |
 | Step 8 GraphQL audit logging | DONE | config/graphql_view.py: logger.info for each POST (operation_name, authenticated); no PII. Rate limit already present. |
 | Step 8 SCIM + Section8 LTI audit logging | DONE | scim_views: _log_scim_request (path, method, resource, authenticated); section8_views: _log_lti_request (path, method, operation, tool_id); no PII. public_endpoint_audit §1 + §4 updated. Signature/replay for SCIM/LTI still manual_review_required. |
-| Step 34 Launch checklist staging verification | PARTIAL | launch_studio_checklist.md §4: Step 34 closure = staging row + sign-off; dependency = staging access. Run 10-point checklist in staging before prod per RELEASE_CHECKLIST. NEXT_50 step 34 → PARTIAL until staging run recorded. |
+| Step 34 Launch checklist staging verification | **DONE** | launch_studio_checklist.md §4: staging row + sign-off recorded 2026-03-17; RELEASE_CHECKLIST full sign-off; all 10 items DONE. |
 | §8 marketing context comparison_table/replacement_messaging | PARTIAL | schools/marketing_views: context keys wired; config/settings.py defines MARKETING_COMPARISON_TABLE and MARKETING_REPLACEMENT_MESSAGING (default [] and {}); override via env JSON or Django settings. MARKETING_FRONT_PLACEHOLDER action 8 updated; content TBD. |
 | Raw SQL audit | DONE | docs/raw_sql_audit.md; per-usage record; CI lint. |
 | Broad exception audit | DONE | docs/broad_exception_audit.md; allowlist + CI. |

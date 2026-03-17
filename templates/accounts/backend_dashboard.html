@@ -328,11 +328,11 @@ backend-shell dashboard-page-backend
   {% include "accounts/first_login_checklist_card.html" %}
   {% endif %}
 
-  <div class="backend-v2-shell" data-dashboard-intent="{{ dashboard_intent|default:'operational' }}">
+  <div class="backend-v2-shell" data-dashboard-intent="{{ dashboard_intent|default:'operational' }}" data-tour="dashboard-main">
     {% if backend_intent_emphasize_setup %}
     <div class="alert alert-info py-2 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2" role="region" aria-label="{% trans 'Setup focus' %}">
       <span>{% trans "Focus: Setup — Complete your school setup for the best experience." %}</span>
-      <a href="{% url 'siteconfig:guided_onboarding' %}" class="btn btn-sm btn-primary">{% trans "Open Setup Studio" %}</a>
+      <a href="{% url 'siteconfig:guided_onboarding' %}" class="btn btn-sm btn-primary" data-tour="setup-studio-link">{% trans "Open Setup Studio" %}</a>
     </div>
     {% endif %}
     <div class="backend-v2-grid {% if not backend_module_visibility.admin_portal %}backend-v2-grid--single{% endif %}">
@@ -431,7 +431,7 @@ backend-shell dashboard-page-backend
                 </div>
                 {% endif %}
               </div>
-              <div class="backend-role-home-actions">
+              <div class="backend-role-home-actions" data-tour="quick-actions">
                 <button type="button" class="backend-role-home-command js-open-backend-command" aria-label="{% trans 'Open command palette (primary navigation)' %}">
                   <span class="backend-role-home-command-copy">
                     <strong>{% trans "Command center" %}</strong>
@@ -449,6 +449,10 @@ backend-shell dashboard-page-backend
                 </a>
                 {% endif %}
                 <div class="backend-role-home-secondary">
+                  <a class="backend-v2-cta" href="{% url 'siteconfig:guided_onboarding' %}" data-tour="setup-studio-link">
+                    <i class="bi bi-rocket-takeoff"></i>
+                    <span>{% trans "Setup Studio" %}</span>
+                  </a>
                   {% for cta in role_home_supporting_actions %}
                   <a class="backend-v2-cta" href="{{ cta.url }}">
                     <i class="bi {{ cta.icon|default:'bi-arrow-right' }}"></i>
@@ -937,4 +941,84 @@ backend-shell dashboard-page-backend
   <script src="{% static 'js/dashboard-charts-shared.js' %}"></script>
   <script src="{% static 'js/dashboard-layout.js' %}"></script>
   <script src="{% static 'js/backend-dashboard-v2-page.js' %}"></script>
+  {% if first_login_tour_show and tour_steps_api_url and tour_complete_url %}
+  <script>
+  (function() {
+    var tourStepsUrl = "{{ tour_steps_api_url|escapejs }}";
+    var tourCompleteUrl = "{{ tour_complete_url|escapejs }}";
+    var csrfToken = (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || "";
+    function getCookie(n) { var m = document.cookie.match(new RegExp("(^| )" + n + "=([^;]+)")); return m ? m[2] : ""; }
+    if (!csrfToken) csrfToken = getCookie("csrftoken");
+    function runTour() {
+      fetch(tourStepsUrl, { credentials: "same-origin" }).then(function(r) { return r.json(); }).then(function(data) {
+        var steps = (data && data.steps) ? data.steps : [];
+        if (steps.length === 0) return;
+        var idx = 0;
+        var overlay = document.createElement("div");
+        overlay.id = "backend-tour-overlay";
+        overlay.setAttribute("role", "dialog");
+        overlay.setAttribute("aria-modal", "true");
+        overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9998;display:none;";
+        var tooltip = document.createElement("div");
+        tooltip.id = "backend-tour-tooltip";
+        tooltip.style.cssText = "position:fixed;z-index:9999;max-width:320px;padding:1rem;background:#fff;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.2);display:none;";
+        var titleEl = document.createElement("div");
+        titleEl.className = "fw-bold mb-1";
+        var btnWrap = document.createElement("div");
+        btnWrap.className = "mt-2 d-flex justify-content-between gap-2";
+        var skipBtn = document.createElement("button");
+        skipBtn.type = "button";
+        skipBtn.className = "btn btn-sm btn-outline-secondary";
+        skipBtn.textContent = "{% trans 'Skip' %}";
+        var nextBtn = document.createElement("button");
+        nextBtn.type = "button";
+        nextBtn.className = "btn btn-sm btn-primary";
+        nextBtn.textContent = "{% trans 'Next' %}";
+        tooltip.appendChild(titleEl);
+        tooltip.appendChild(btnWrap);
+        btnWrap.appendChild(skipBtn);
+        btnWrap.appendChild(nextBtn);
+        document.body.appendChild(overlay);
+        document.body.appendChild(tooltip);
+        function highlight(el) {
+          if (!el) return;
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          var r = el.getBoundingClientRect();
+          tooltip.style.left = (r.left + window.scrollX) + "px";
+          tooltip.style.top = (r.bottom + window.scrollY + 8) + "px";
+          tooltip.style.display = "block";
+        }
+        function showStep() {
+          if (idx >= steps.length) {
+            overlay.style.display = "none";
+            tooltip.style.display = "none";
+            fetch(tourCompleteUrl, { method: "POST", headers: { "X-CSRFToken": csrfToken, "Content-Type": "application/x-www-form-urlencoded" }, body: "csrfmiddlewaretoken=" + encodeURIComponent(csrfToken), credentials: "same-origin" }).catch(function(){});
+            return;
+          }
+          var step = steps[idx];
+          var sel = step.selector || ("[data-tour='" + step.code + "']");
+          var el = document.querySelector(sel);
+          overlay.style.display = "block";
+          titleEl.textContent = step.title || step.code;
+          nextBtn.textContent = idx === steps.length - 1 ? "{% trans 'Done' %}" : "{% trans 'Next' %}";
+          highlight(el);
+        }
+        skipBtn.addEventListener("click", function() {
+          overlay.style.display = "none";
+          tooltip.style.display = "none";
+          fetch(tourCompleteUrl, { method: "POST", headers: { "X-CSRFToken": csrfToken, "Content-Type": "application/x-www-form-urlencoded" }, body: "csrfmiddlewaretoken=" + encodeURIComponent(csrfToken), credentials: "same-origin" }).catch(function(){});
+        });
+        nextBtn.addEventListener("click", function() {
+          idx++;
+          showStep();
+        });
+        overlay.addEventListener("click", function() { skipBtn.click(); });
+        showStep();
+      }).catch(function() {});
+    }
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function() { setTimeout(runTour, 600); });
+    else setTimeout(runTour, 600);
+  })();
+  </script>
+  {% endif %}
 {% endblock %}

@@ -275,7 +275,7 @@ def get_guided_onboarding_steps(school):
             "key": "branding",
             "label": "Set school branding",
             "done": has_branding,
-            "link": "/siteconfig/customizer/" if not has_branding else "",
+            "link": "/studio/experience/" if not has_branding else "",
         })
     except OPTIONAL_ONBOARDING_STEP_FAILURES:
         pass

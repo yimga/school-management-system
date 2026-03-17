@@ -1,0 +1,142 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Configuration" %}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Control Plane" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Configuration" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-2" data-page-archetype="decision-console">
+  {% trans "Configuration" as page_title %}
+  {% trans "Platform settings, regions, plans, feature toggles, AI models, and system config. One place for configuration; advanced backoffice for raw admin." as page_subtitle %}
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle %}
+  <div class="row g-3">
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-secondary">
+        <div class="card-body">
+          <h6 class="card-title"><span class="bi bi-gear me-2" aria-hidden="true"></span>{% trans "Site settings (platform)" %}</h6>
+          <p class="card-text small text-secondary">{% trans "Platform-level site name, tagline, theme, and defaults." %}</p>
+          {% if site_settings_url %}
+          <a href="{{ site_settings_url }}" class="btn btn-outline-primary btn-sm">{% trans "Open" %}</a>
+          {% else %}
+          <span class="text-muted small">{% trans "Coming soon" %}</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-secondary">
+        <div class="card-body">
+          <h6 class="card-title"><span class="bi bi-globe me-2" aria-hidden="true"></span>{% trans "Regions & grading" %}</h6>
+          <p class="card-text small text-secondary">{% trans "Region config and grading scale catalog." %}</p>
+          {% if regions_url %}
+          <a href="{{ regions_url }}" class="btn btn-outline-primary btn-sm me-1">{% trans "Regions" %}</a>
+          {% endif %}
+          {% if grading_url %}
+          <a href="{{ grading_url }}" class="btn btn-outline-primary btn-sm">{% trans "Grading" %}</a>
+          {% endif %}
+          {% if not regions_url and not grading_url %}
+          <span class="text-muted small">{% trans "Coming soon" %}</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-secondary">
+        <div class="card-body">
+          <h6 class="card-title"><span class="bi bi-currency-dollar me-2" aria-hidden="true"></span>{% trans "Plans & addons" %}</h6>
+          <p class="card-text small text-secondary">{% trans "Billing plans and add-on catalog." %}</p>
+          {% if plans_url %}
+          <a href="{{ plans_url }}" class="btn btn-outline-primary btn-sm">{% trans "Open" %}</a>
+          {% else %}
+          <span class="text-muted small">{% trans "Coming soon" %}</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-secondary">
+        <div class="card-body">
+          <h6 class="card-title"><span class="bi bi-toggle-on me-2" aria-hidden="true"></span>{% trans "Feature toggles" %}</h6>
+          <p class="card-text small text-secondary">{% trans "Platform feature flag definitions and state." %}</p>
+          {% if feature_toggles_url %}
+          <a href="{{ feature_toggles_url }}" class="btn btn-outline-primary btn-sm">{% trans "Open" %}</a>
+          {% else %}
+          <span class="text-muted small">{% trans "Coming soon" %}</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-secondary">
+        <div class="card-body">
+          <h6 class="card-title"><span class="bi bi-cpu me-2" aria-hidden="true"></span>{% trans "AI / model registry" %}</h6>
+          <p class="card-text small text-secondary">{% trans "AI model registry and regional config." %}</p>
+          {% if ai_models_url %}
+          <a href="{{ ai_models_url }}" class="btn btn-outline-primary btn-sm">{% trans "Open" %}</a>
+          {% else %}
+          <span class="text-muted small">{% trans "Coming soon" %}</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-secondary">
+        <div class="card-body">
+          <h6 class="card-title"><span class="bi bi-sliders me-2" aria-hidden="true"></span>{% trans "System config (bounded)" %}</h6>
+          <p class="card-text small text-secondary">{% trans "Bounded console: domains, search, preview, diff, rollback." %}</p>
+          {% if system_config_url %}
+          <a href="{{ system_config_url }}" class="btn btn-outline-primary btn-sm">{% trans "Open" %}</a>
+          {% else %}
+          <span class="text-muted small">—</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-secondary">
+        <div class="card-body">
+          <h6 class="card-title"><span class="bi bi-gear-wide-connected me-2" aria-hidden="true"></span>{% trans "Advanced backoffice" %}</h6>
+          <p class="card-text small text-secondary">{% trans "Full Django admin for raw model CRUD." %}</p>
+          {% if admin_index_url %}
+          <a href="{{ admin_index_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Open admin" %}</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  <hr class="my-4" />
+  <h6 class="text-secondary mb-2">{% trans "Operational links" %}</h6>
+  <p class="small text-muted">{% trans "Observability, billing, migration, and schools list are also in the sidebar; quick links here for convenience." %}</p>
+  <div class="d-flex flex-wrap gap-2">
+    {% if schools_list_url %}
+    <a href="{{ schools_list_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Schools list" %}</a>
+    {% endif %}
+    {% if incidents_list_url %}
+    <a href="{{ incidents_list_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Incidents list" %}</a>
+    {% endif %}
+    {% if pulse_url %}
+    <a href="{{ pulse_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Pulse" %}</a>
+    {% endif %}
+    {% if billing_accounts_list_url %}
+    <a href="{{ billing_accounts_list_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Billing accounts" %}</a>
+    {% endif %}
+    {% if billing_url %}
+    <a href="{{ billing_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Billing" %}</a>
+    {% endif %}
+    {% if migration_runs_list_url %}
+    <a href="{{ migration_runs_list_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Migration runs" %}</a>
+    {% endif %}
+    {% if migration_url %}
+    <a href="{{ migration_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Migration" %}</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

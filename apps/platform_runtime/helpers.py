@@ -20,6 +20,7 @@ from apps.platform_runtime.structured_logging import (
     log_exception_with_context,
     request_context_for_log,
 )
+from apps.platform_runtime.tracing import set_runtime_trace_context
 
 logger = logging.getLogger(__name__)
 
@@ -267,6 +268,7 @@ def get_effective_site_settings(request: Any = None, school: Any = None) -> Any:
     # Request-scope cache: same request gets the same result without another singleton lookup.
     cache_attr = "_effective_site_settings_cached"
     if request is not None:
+        set_runtime_trace_context(request)  # GAP.5: trace id for resolver path
         cached = getattr(request, cache_attr, None)
         if cached is not None:
             return cached

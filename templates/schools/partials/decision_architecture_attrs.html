@@ -1,0 +1,12 @@
+{% comment %}
+GAP.15: Seven answers in-code. Include in key pages; outputs data-decision-* attributes when decision_architecture is in context.
+{% endcomment %}
+{% if decision_architecture %}
+ data-who-is-this-for="{{ decision_architecture.who_is_this_for|default:'' }}"
+ data-what-question="{{ decision_architecture.what_question_are_they_asking|default:'' }}"
+ data-what-state="{{ decision_architecture.what_state_are_they_in|default:'' }}"
+ data-next-action="{{ decision_architecture.what_action_should_they_take_next|default:'' }}"
+ data-confidence-signal="{{ decision_architecture.what_confidence_signal_do_we_show|default:'' }}"
+ data-wrong-path="{{ decision_architecture.what_happens_if_they_are_wrong|default:'' }}"
+ data-fallback-path="{{ decision_architecture.what_is_the_fallback_path|default:'' }}"
+{% endif %}

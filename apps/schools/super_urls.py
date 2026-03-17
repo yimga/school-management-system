@@ -4,6 +4,7 @@ from apps.customersuccess import views_super as cs_views
 from apps.orchestration import views as orchestration_views
 from . import super_views
 from .control_plane import require_super_access_with_host
+from . import super_views_config
 from .super_views_catalog import (
     super_blueprints_catalog,
     super_dashboard_packs_catalog,
@@ -24,6 +25,7 @@ app_name = "super"
 
 urlpatterns = [
     path("", require_super_access_with_host(super_views.super_dashboard_v2), name="dashboard"),
+    path("schools/", require_super_access_with_host(super_views.super_schools_list), name="schools_list"),
     path("export/schools.csv", require_super_access_with_host(super_views.export_schools_csv), name="export_schools_csv"),
     path("export/revenue.csv", require_super_access_with_host(super_views.export_revenue_csv), name="export_revenue_csv"),
     path("export/summary.pdf", require_super_access_with_host(super_views.export_super_dashboard_pdf), name="export_super_dashboard_pdf"),
@@ -81,6 +83,7 @@ urlpatterns = [
     path("marketplace/package-rollout/", require_super_access_with_host(marketplace_views.package_rollout), name="package_rollout"),
     path("marketplace/package-promote/", require_super_access_with_host(marketplace_views.package_promote), name="package_promote"),
     path("policy-diff/", require_super_access_with_host(super_views.super_policy_diff), name="policy_diff"),
+    path("policy-diff/apply-to-sandbox/", require_super_access_with_host(super_views.super_apply_policy_bundle_to_sandbox), name="policy_apply_to_sandbox"),
     path("trust/", require_super_access_with_host(super_views.super_trust_center), name="trust_center"),
     path("trust/export/", require_super_access_with_host(super_views.super_audit_export), name="audit_export"),
     path("compliance/", require_super_access_with_host(super_views.super_compliance_overview), name="compliance_overview"),
@@ -97,4 +100,14 @@ urlpatterns = [
     path("workflow-simulator/", require_super_access_with_host(super_views.super_workflow_simulator), name="workflow_simulator"),
     path("orchestration/", require_super_access_with_host(orchestration_views.operator_workbench), name="orchestration_workbench"),
     path("orchestration/runs/<int:run_id>/retry/", require_super_access_with_host(orchestration_views.retry_run), name="orchestration_retry_run"),
+    path("config/", require_super_access_with_host(super_views.super_config_hub), name="config_hub"),
+    path("config/site-settings/", require_super_access_with_host(super_views_config.super_site_settings_list), name="site_settings_list"),
+    path("config/site-settings/<int:pk>/", require_super_access_with_host(super_views_config.super_site_settings_edit), name="site_settings_edit"),
+    path("config/regions/", require_super_access_with_host(super_views_config.super_regions_list), name="regions_list"),
+    path("config/grading/", require_super_access_with_host(super_views_config.super_grading_list), name="grading_list"),
+    path("config/plans/", require_super_access_with_host(super_views_config.super_plans_list), name="plans_list"),
+    path("config/feature-toggles/", require_super_access_with_host(super_views_config.super_feature_toggles_list), name="feature_toggles_list"),
+    path("incidents/", require_super_access_with_host(super_views_config.super_incidents_list), name="incidents_list"),
+    path("billing-accounts/", require_super_access_with_host(super_views_config.super_billing_accounts_list), name="billing_accounts_list"),
+    path("migration-runs/", require_super_access_with_host(super_views_config.super_migration_runs_list), name="migration_runs_list"),
 ]

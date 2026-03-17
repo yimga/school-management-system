@@ -4,6 +4,7 @@
 {% block extrastyle %}
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'css/marketing-home.css' %}">
+  <link rel="stylesheet" href="{% static 'css/marketing-home-scroll.css' %}">
 {% endblock %}
 {% block extrahead %}
   <meta name="description" content="{{ seo_description|default:'One platform for admissions, academics, finance, communication, and compliance. Run your campus with clarity and scale.' }}">
@@ -17,11 +18,24 @@
   {% if marketing_analytics_script_url %}<script src="{{ marketing_analytics_script_url }}" async></script>{% endif %}
 {% endblock %}
 {% block content %}
+<noscript><style>.marketing-home .mkt-reveal,.marketing-home .mkt-reveal-stagger>*{opacity:1;transform:none;}</style></noscript>
 <div class="marketing-home" data-scroll-story="true">
   <a href="#hero" class="mkt-skip-link">{% trans "Skip to main content" %}</a>
   <div id="mkt-scroll-progress" class="mkt-scroll-progress" role="presentation" aria-hidden="true">
     <div id="mkt-scroll-progress-fill" class="mkt-scroll-progress-fill"></div>
   </div>
+  <nav id="mkt-chapter-indicator" class="mkt-chapter-indicator" aria-label="{% trans 'Page sections' %}" role="navigation">
+    <a href="#hero" class="mkt-chapter-dot" data-chapter="1" aria-label="{% trans 'Hero' %}"></a>
+    <a href="#platform-pillars" class="mkt-chapter-dot" data-chapter="2" aria-label="{% trans 'Why schools switch' %}"></a>
+    <a href="#one-platform" class="mkt-chapter-dot" data-chapter="3" aria-label="{% trans 'Platform' %}"></a>
+    <a href="#launch-in-minutes" class="mkt-chapter-dot" data-chapter="4" aria-label="{% trans 'Launch' %}"></a>
+    <a href="#product-visualization" class="mkt-chapter-dot" data-chapter="5" aria-label="{% trans 'Studio OS' %}"></a>
+    <a href="#ecosystem" class="mkt-chapter-dot" data-chapter="6" aria-label="{% trans 'Marketplace' %}"></a>
+    <a href="#migration" class="mkt-chapter-dot" data-chapter="7" aria-label="{% trans 'Migration' %}"></a>
+    <a href="#for-your-role" class="mkt-chapter-dot" data-chapter="8" aria-label="{% trans 'Roles' %}"></a>
+    <a href="#security-compliance" class="mkt-chapter-dot" data-chapter="9" aria-label="{% trans 'Security' %}"></a>
+    <a href="#final-cta" class="mkt-chapter-dot" data-chapter="10" aria-label="{% trans 'Get started' %}"></a>
+  </nav>
   <div id="mkt-sticky-cta-bar" class="mkt-sticky-cta-bar" aria-hidden="true">
     <div class="container d-flex align-items-center justify-content-between gap-2 flex-wrap py-2">
       <span class="text-white small fw-medium">{% trans "Ready to run your campus?" %}</span>
@@ -89,19 +103,19 @@
   </section>
   {% endif %}
 
-  {# Chapter 3 — Platform architecture #}
+  {# Chapter 3 — Platform architecture (pinned layout on desktop) #}
   {% if platform_architecture_diagram_url %}
-  <section id="one-platform" class="mkt-section mkt-reveal" aria-label="{% trans 'One platform' %}" data-chapter="3">
-    <h2 class="mkt-section-heading">{% trans "One platform. Every school operation." %}</h2>
-    <p class="mkt-section-lead">{% trans "Education OS, Control Plane, Marketplace, Migration Cloud, and Analytics—one infrastructure." %}</p>
-    <div class="text-center">
+  <section id="one-platform" class="mkt-section mkt-reveal mkt-chapter-pinned" aria-label="{% trans 'One platform' %}" data-chapter="3">
+    <div class="mkt-chapter-copy">
+      <h2 class="mkt-section-heading">{% trans "One platform. Every school operation." %}</h2>
+      <p class="mkt-section-lead">{% trans "Education OS, Control Plane, Marketplace, Migration Cloud, and Analytics—one infrastructure." %}</p>
+    </div>
+    <div class="mkt-chapter-visual">
       <img src="{{ platform_architecture_diagram_url }}" alt="{% trans 'RunMyCampus platform architecture' %}" width="800" height="450" loading="lazy" decoding="async" class="img-fluid rounded">
+      {% if control_plane_diagram_url %}
+      <img src="{{ control_plane_diagram_url }}" alt="{% trans 'Control plane' %}" width="800" height="450" loading="lazy" decoding="async" class="img-fluid rounded mt-3" style="display:block;">
+      {% endif %}
     </div>
-    {% if control_plane_diagram_url %}
-    <div class="text-center mt-3">
-      <img src="{{ control_plane_diagram_url }}" alt="{% trans 'Control plane' %}" width="800" height="450" loading="lazy" decoding="async" class="img-fluid rounded">
-    </div>
-    {% endif %}
   </section>
   {% endif %}
   {% if setup_studio_flow_image_url %}
@@ -409,20 +423,19 @@
     {% endif %}
   </section>
 
-  {# 6. Migration angle #}
-  {# Chapter 7 — Migration Cloud #}
-  <section id="migration" class="mkt-section mkt-reveal" data-chapter="7">
-    <h2 class="mkt-section-heading">{% trans "Migrate with confidence" %}</h2>
-    <p class="mkt-section-lead">{% trans "Move from spreadsheets or legacy systems with guided setup and support. 195+ country-ready profiles, multi-currency, and data residency options." %}</p>
-    <div class="mkt-migration">
+  {# 6. Migration angle — Chapter 7 (pinned layout on desktop) #}
+  <section id="migration" class="mkt-section mkt-reveal mkt-chapter-pinned" data-chapter="7">
+    <div class="mkt-chapter-copy">
+      <h2 class="mkt-section-heading">{% trans "Migrate with confidence" %}</h2>
+      <p class="mkt-section-lead">{% trans "Move from spreadsheets or legacy systems with guided setup and support. 195+ country-ready profiles, multi-currency, and data residency options." %}</p>
       <ul class="mkt-migration-list">
         {% for bullet in migration_bullets %}
           <li>{{ bullet }}</li>
         {% endfor %}
       </ul>
-      <div class="mkt-migration-visual">
-        <img src="{{ migration_studio_image_url }}" alt="{% trans 'Migration Cloud' %}" width="600" height="360" loading="lazy" decoding="async">
-      </div>
+    </div>
+    <div class="mkt-chapter-visual">
+      {% if migration_studio_image_url %}<img src="{{ migration_studio_image_url }}" alt="{% trans 'Migration Cloud' %}" width="600" height="360" loading="lazy" decoding="async">{% endif %}
     </div>
   </section>
 
@@ -684,6 +697,7 @@
     </div>
   </section>
 </div>
+<script src="{% static 'marketing/js/marketing-scroll-core.js' %}" defer></script>
 <script src="{% static 'marketing/js/marketing-landing-scroll.js' %}" defer></script>
 <script>
 (function () {

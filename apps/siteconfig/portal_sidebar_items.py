@@ -349,7 +349,7 @@ def build_portal_sidebar_items(request, site):
         items.append({"id": "analytics", "label": "Analytics", "url": _safe_reverse("analytics:dashboard"), "icon": "bi-graph-up-arrow", "section": "Analytics & Reports", "badge": None})
         if role in ("PROPRIETOR", "LEADERSHIP", "ADMIN"):
             items.append({"id": "strategic_report", "label": "Strategic Report", "url": _safe_reverse("analytics:strategic_report"), "icon": "bi-flag", "section": "Analytics & Reports", "badge": None})
-        items.append({"id": "report_library", "label": "Report Library", "url": _safe_reverse("siteconfig:report_library"), "icon": "bi-journal-text", "section": "Analytics & Reports", "badge": None})
+        items.append({"id": "report_library", "label": "Report Library", "url": _safe_reverse("studio_os:output"), "icon": "bi-journal-text", "section": "Analytics & Reports", "badge": None})
         items.append({"id": "bulk_letters", "label": "Bulk Letters", "url": _safe_reverse("siteconfig:bulk_letters"), "icon": "bi-envelope-paper", "section": "Analytics & Reports", "badge": None})
         items.append({"id": "reportcard_builder", "label": "Report Card Builder", "url": _safe_reverse("siteconfig:reportcard_builder"), "icon": "bi-file-earmark-richtext", "section": "Analytics & Reports", "badge": None})
         items.append({"id": "portal_stats", "label": "Portal Stats", "url": _safe_reverse("portal:portal_stats"), "icon": "bi-graph-up", "section": "Analytics & Reports", "badge": None})
@@ -369,7 +369,7 @@ def build_portal_sidebar_items(request, site):
             items.append({"id": "approval_hub", "label": "Approval Hub", "url": approval_hub_url, "icon": "bi-clipboard-check", "section": "Admin Panel", "badge": None})
         _school = getattr(request, "school", None)
         if _school:
-            workflow_hub_url = _safe_reverse("siteconfig:workflow_hub")
+            workflow_hub_url = _safe_reverse("studio_os:automation")
             if workflow_hub_url:
                 items.append({"id": "workflow_hub", "label": "Workflow Hub", "url": workflow_hub_url, "icon": "bi-diagram-3-fill", "section": "Admin Panel", "badge": None})
             dashboard_hub_url = _safe_reverse("siteconfig:dashboard_hub")

@@ -205,7 +205,7 @@ def workflow_center(request):
         _workflow_link("Promotion preview (borderline)", "reports:promotion_preview"),
         _workflow_link("Resource return checklist", "admin:people_studentresourcereturn_changelist"),
         _workflow_link("Report card builder", "siteconfig:reportcard_builder"),
-        _workflow_link("Report library", "siteconfig:report_library"),
+        _workflow_link("Report library", "studio_os:output"),
     ]
     communication_links = [
         _workflow_link("Message groups", "communication:group_list"),

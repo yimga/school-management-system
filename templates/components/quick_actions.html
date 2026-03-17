@@ -68,7 +68,7 @@
           <div class="quick-action-desc">New billing</div>
         </div>
       </a>
-      <a href="{% if is_backend_context %}{% url 'siteconfig:report_library' %}{% else %}{% url 'admin:reports_reportcard_changelist' %}{% endif %}" class="quick-action-item">
+      <a href="{% if is_backend_context %}{% url 'studio_os:output' %}{% else %}{% url 'admin:reports_reportcard_changelist' %}{% endif %}" class="quick-action-item">
         <div class="quick-action-icon bg-secondary"><i class="fas fa-file-alt"></i></div>
         <div class="quick-action-content">
           <div class="quick-action-title">View Reports</div>
@@ -82,10 +82,10 @@
     {% if is_backend_context %}
     <a href="{% url 'accounts:backend_dashboard' %}" class="btn btn-sm btn-outline-primary"><i class="fas fa-th"></i> Backend Console</a>
     {% if request.user.is_superuser %}
-    <a href="{% url 'admin:index' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-gear"></i> Configuration Engine</a>
+    <a href="{% if request.public_host_kind == 'manager' %}{% url 'super:config_hub' %}{% else %}{% url 'admin:index' %}{% endif %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-gear"></i> Configuration Engine</a>
     {% endif %}
     {% else %}
-    <a href="{% url 'admin:index' %}" class="btn btn-sm btn-outline-primary"><i class="fas fa-th"></i> View All Admin</a>
+    <a href="{% if request.public_host_kind == 'manager' %}{% url 'super:config_hub' %}{% else %}{% url 'admin:index' %}{% endif %}" class="btn btn-sm btn-outline-primary"><i class="fas fa-th"></i> View All Admin</a>
     {% endif %}
     <a href="{% url 'accounts:rbac' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-users-cog"></i> RBAC</a>
   </div>

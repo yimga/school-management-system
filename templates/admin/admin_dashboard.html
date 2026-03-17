@@ -86,7 +86,7 @@
           {% empty %}
           <a href="{% url 'siteconfig:user_preferences' %}?next={{ request.path|urlencode }}" class="admin-dash__header-action">{% trans "My Preferences" %}</a>
           <a href="{% url 'accounts:backend_dashboard' %}" class="admin-dash__header-action">{% trans "Backend Console" %}</a>
-          <a href="{% url 'siteconfig:customizer' %}" class="admin-dash__header-action admin-dash__header-action--primary">{% trans "Customizer" %}</a>
+          <a href="{% url 'studio_os:experience' %}" class="admin-dash__header-action admin-dash__header-action--primary">{% trans "Customizer" %}</a>
           {% endfor %}
         </div>
       </div>

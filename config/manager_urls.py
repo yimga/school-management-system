@@ -26,6 +26,8 @@ from config.urls import (
     permission_denied as handler403_view,
     server_error as handler500_view,
     legacy_siteconfig_customizer_redirect,
+    legacy_workflow_hub_redirect,
+    legacy_report_library_redirect,
 )
 
 handler403 = handler403_view
@@ -259,6 +261,9 @@ urlpatterns = [
     path("authentication/", include(("apps.accounts.urls", "accounts"), namespace="accounts")),
     path("super/", include(("apps.schools.super_urls", "super"), namespace="super")),
     path("siteconfig/customizer/", legacy_siteconfig_customizer_redirect),
+    path("siteconfig/workflow-hub/", legacy_workflow_hub_redirect),
+    path("siteconfig/report-library/", legacy_report_library_redirect),
+    path("siteconfig/reports/", legacy_report_library_redirect),
     path("siteconfig/", include(("apps.siteconfig.urls", "siteconfig"), namespace="siteconfig")),
     path("studio/", include(("apps.studio_os.urls", "studio_os"), namespace="studio_os")),
     path("api-center/", include(("apps.apicenter.urls", "apicenter"), namespace="apicenter")),

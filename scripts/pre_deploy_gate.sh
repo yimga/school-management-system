@@ -51,6 +51,10 @@ python scripts/lint_raw_sql_usage.py
 python scripts/lint_broad_except.py --allowlist scripts/allowlists/broad_except_allowlist.json --strict
 echo "[pre_deploy_gate] §10.5 operating-discipline doc refs (role_home_engine *_DOC → docs/)"
 python scripts/verify_operating_discipline_docs.py
+echo "[pre_deploy_gate] §10.5 operating-discipline layers (doc + code)"
+python scripts/verify_section10_5_layers.py
+echo "[pre_deploy_gate] Marketing nav no overflow"
+python scripts/lint_marketing_nav_no_overflow.py
 
 echo "[pre_deploy_gate] Codex guardrails (mega-files)"
 if [ "${CODEX_STRICT:-0}" = "1" ]; then
@@ -83,6 +87,7 @@ TARGETED_HARDENING_TESTS=(
   apps.siteconfig.tests.test_metadata_catalog
   apps.packages.tests.test_engine
   apps.platform_runtime.tests.test_precedence
+  apps.platform_runtime.tests.test_runtime_contract
   apps.platform_runtime.tests.test_structured_logging
   apps.platform_runtime.tests.test_public_api_lints
   apps.platform_runtime.tests.test_marketplace_catalog_minimums

@@ -134,9 +134,9 @@ class SuperCommandCenterTests(TestCase):
     def test_super_dashboard_contains_control_plane_surface(self):
         response = self.client.get("/super/", HTTP_HOST="manager.runmycampus.com")
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Tenant Mission Control")
+        self.assertContains(response, "Control Plane")
         self.assertContains(response, "Operator queues")
-        self.assertContains(response, "Tenant registry")
+        self.assertContains(response, "School registry")
         self.assertContains(response, "Control modules")
 
     def test_super_command_center_route_renders(self):

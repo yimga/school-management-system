@@ -28,6 +28,8 @@ from apps.siteconfig.global_catalog import GlobalGeoCatalog
 
 # Region/variant reserved for A/B or regional content (file naming: slug.json or slug_region_variant.json).
 MARKETING_CONTENT_DIR = os.path.join(getattr(settings, "BASE_DIR", os.getcwd()), "config", "marketing_content")
+# Single source of truth: how many primary nav items show in the bar before "More" dropdown (IMPROVEMENTS_RUNBOOK 3.1).
+MARKETING_NAVBAR_VISIBLE_COUNT = 7
 
 
 def _load_marketing_page_from_file(
@@ -2566,7 +2568,9 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         "marketing_analytics_preconnect_origin": marketing_analytics_preconnect_origin,
         "SHOW_HEADER_CONTEXT_STRIP": False,
         # Landing revamp: outcome-focused copy and 10-section context
-        "marketing_navbar_primary": _marketing_navbar_primary(),
+        "marketing_navbar_primary": (nav_primary := _marketing_navbar_primary()),
+        "marketing_navbar_visible_count": MARKETING_NAVBAR_VISIBLE_COUNT,
+        "marketing_navbar_has_more": len(nav_primary) > MARKETING_NAVBAR_VISIBLE_COUNT,
         "hero_headline": hero_headline,
         "hero_subheadline": hero_subheadline,
         "hero_ctas": hero_ctas,

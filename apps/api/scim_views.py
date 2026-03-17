@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import secrets
+import time
 from typing import Any
 
 from django.http import HttpRequest, JsonResponse, HttpResponse
@@ -25,6 +26,7 @@ SCIM_PATCH_SCHEMA = "urn:ietf:params:scim:api:messages:2.0:PatchOp"
 SCIM_MUTATION_CONTENT_TYPES = {"application/json", "application/scim+json"}
 SCIM_RATE_LIMIT_WINDOW = 60 * 15
 SCIM_RATE_LIMIT_MAX = 240
+SCIM_REPLAY_WINDOW_SECONDS = 60 * 5  # 5 min (public_endpoint_audit §6 — optional replay hardening)
 logger = logging.getLogger(__name__)
 
 
@@ -91,7 +93,30 @@ def _extract_bearer(request: HttpRequest) -> str:
     return auth[7:].strip()
 
 
+def _scim_replay_check(request: HttpRequest) -> JsonResponse | None:
+    """
+    Optional replay protection (public_endpoint_audit §6 / GAP.4).
+    If X-SCIM-Timestamp (Unix seconds) is present, reject if outside SCIM_REPLAY_WINDOW_SECONDS.
+    If header absent, allow (backward compatible).
+    """
+    raw = (request.headers.get("X-SCIM-Timestamp") or "").strip()
+    if not raw:
+        return None
+    try:
+        ts = int(raw)
+    except ValueError:
+        return _scim_error("Invalid X-SCIM-Timestamp", status=401)
+    now = int(time.time())
+    if abs(now - ts) > SCIM_REPLAY_WINDOW_SECONDS:
+        logger.warning("SCIM request rejected: timestamp outside replay window", extra={"path": request.path})
+        return _scim_error("Request timestamp outside allowed window", status=401)
+    return None
+
+
 def _authorize_scim_request(request: HttpRequest):
+    replay_err = _scim_replay_check(request)
+    if replay_err:
+        return None, None, replay_err
     school = _resolve_school(request)
     if not school:
         return None, None, _scim_error("School context required", status=400)

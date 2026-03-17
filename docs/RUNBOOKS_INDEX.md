@@ -34,6 +34,13 @@
 - **Management commands:** docs/MANAGEMENT_COMMANDS_INDEX.md.
 - **Platform apps single path:** docs/PLATFORM_APPS_PUBLIC_API.md.
 
+## Implementation and improvements
+
+| Topic | Doc | Notes |
+|-------|-----|--------|
+| SOT unchecked items | docs/IMPLEMENT_ALL_UNCHECKED_RUNBOOK.md | Implement every [ ] in SOT; verify then [x]; resumable. |
+| Improvements (gates, scroll, nav, a11y) | docs/IMPROVEMENTS_RUNBOOK.md | Execute steps 1.1–6.1 without interruption; session state in IMPROVEMENTS_RUNBOOK_SESSION_STATE.md. |
+
 ## References
 
 - docs/MIGRATION_CLOUD_RUNBOOK.md

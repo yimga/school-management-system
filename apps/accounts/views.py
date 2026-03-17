@@ -1780,6 +1780,13 @@ def backend_dashboard(request):
         layout = pref.dashboard_layout or {}
         context["first_login_checklist_show"] = not layout.get("first_login_checklist_dismissed")
         context["first_login_checklist_dismiss_url"] = reverse("accounts:dismiss_first_login_checklist")
+        context["first_login_tour_show"] = not layout.get("tour_backend_dashboard_completed")
+        try:
+            context["tour_steps_api_url"] = reverse("siteconfig:tour_steps_api") + "?context=backend_dashboard"
+            context["tour_complete_url"] = reverse("accounts:mark_tour_complete")
+        except NoReverseMatch:
+            context["tour_steps_api_url"] = ""
+            context["tour_complete_url"] = ""
         _safe = _safe_reverse
         school = getattr(request, "school", None)
         if school:
@@ -1811,6 +1818,9 @@ def backend_dashboard(request):
         context["first_login_checklist_dismiss_url"] = ""
         context["first_login_settings_url"] = "#"
         context["first_login_sensible_defaults_copy"] = ""
+        context["first_login_tour_show"] = False
+        context["tour_steps_api_url"] = ""
+        context["tour_complete_url"] = ""
     try:
         context.update(build_dashboard_extras(request, base=context))
     except ACCOUNTS_SOFT_FAILURES as e:

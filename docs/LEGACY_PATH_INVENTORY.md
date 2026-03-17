@@ -28,16 +28,22 @@
 | `siteconfig.webhook_delivery` (code) | Module ref | **REMOVED** | `apps.events.webhooks` | Callers use events.webhooks. |
 | `/siteconfig/workflow-hub/` | URL | **REDIRECT** | `studio_os:automation` | config/urls.py `legacy_workflow_hub_redirect`. Step 6 / Optional 12 done. If product confirms a different legacy path, add that path to same redirect or document in SUBTRACTIVE_CLEANUP_RELEASE_NOTES. |
 | `/siteconfig/report-library/` | URL | **REDIRECT** | `studio_os:output` | config/urls.py `legacy_report_library_redirect`. Step 6 / Optional 12 done. If product confirms a different legacy path, add that path to same redirect or document in SUBTRACTIVE_CLEANUP_RELEASE_NOTES. |
+| `/siteconfig/reports/` | URL | **REDIRECT** | `studio_os:output` | config/urls.py, tenant_urls.py, manager_urls.py `legacy_report_library_redirect`. Further legacy path removals (product sign-off). |
+| `siteconfig.views.customizer` | View | **REMOVED** | — | All callers use `studio_os:experience`; config-level redirect for `/siteconfig/customizer/` only. LEGACY_PATH_INVENTORY §2. |
+| `siteconfig.views.report_library` | View | **REMOVED** | — | All callers use `studio_os:output`; config-level redirect for `/siteconfig/reports/` and `/siteconfig/report-library/`. |
+| `siteconfig.views_dashboard_config.workflow_hub` | View | **REMOVED** | — | All callers use `studio_os:automation`; config-level redirect for `/siteconfig/workflow-hub/`. |
 
 ---
 
-## 3. Product sign-off (Step 6 unblocked) and optional next steps
+## 3. Product sign-off (Step 6 unblocked) and further removals
 
 **Product sign-off (2026-03-12):** Remove old legacy paths; new config / Studio OS is canonical. System and code aligned to current platform direction; keep only current tenant and reconfigure to match current config. Legacy siteconfig views `workflow_hub` and `report_library` are now redirect-only to Studio OS (query string preserved).
 
+**Further legacy path removals (product sign-off):** Siteconfig views `customizer`, `report_library`, and `workflow_hub` have been **removed**. All in-app links and reverse() callers now use `studio_os:experience`, `studio_os:output`, and `studio_os:automation`. Config-level redirects remain for `/siteconfig/customizer/`, `/siteconfig/workflow-hub/`, `/siteconfig/report-library/`, and `/siteconfig/reports/` so bookmarks and external links still work.
+
 1. **admin/siteconfig/customizer/** — Redirect in place; keep redirect for bookmarks.
-2. **siteconfig/customizer/** — View is redirect-only to `studio_os:experience`.
-3. **Workflow hub / report library:** **DONE.** Config redirects + siteconfig views redirect-only to `studio_os:automation` and `studio_os:output`. Legacy render logic removed.
+2. **siteconfig/customizer/** — Config-level redirect only (no siteconfig view).
+3. **Workflow hub / report library / customizer:** **DONE.** Config redirects only; siteconfig views removed. All callers use Studio OS URLs.
 
 ---
 

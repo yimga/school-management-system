@@ -91,7 +91,7 @@
     <h2 class="admin-sidebar-section-title">{% trans "Libraries & help" %}</h2>
     <ul class="admin-sidebar-quick-list" style="list-style: none; margin: 0; padding: 0;">
       <li>
-        <a href="{% url 'siteconfig:report_library' %}" class="admin-sidebar-link {% if '/siteconfig/reports' in request.path %}active{% endif %}">
+        <a href="{% url 'studio_os:output' %}" class="admin-sidebar-link {% if '/studio/output' in request.path %}active{% endif %}">
           <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 3h8l4 4v14H7z"/><path d="M15 3v4h4"/></svg></span>
           <span class="admin-sidebar-link-text">{% trans "Report Library" %}</span>
         </a>
@@ -110,12 +110,14 @@
         </a>
       </li>
       {% else %}
+      {% if PORTAL_DOCUMENT_LIBRARY_MANAGE_URL %}
       <li>
-        <a href="{% url 'portal:document_library_manage' %}" class="admin-sidebar-link {% if '/portal/backend/documents' in request.path %}active{% endif %}">
+        <a href="{{ PORTAL_DOCUMENT_LIBRARY_MANAGE_URL }}" class="admin-sidebar-link {% if '/portal/backend/documents' in request.path %}active{% endif %}">
           <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h6l2 2h8v14H4z"/></svg></span>
           <span class="admin-sidebar-link-text">{% trans "Document Library" %}</span>
         </a>
       </li>
+      {% endif %}
       <li>
         <a href="{% if request.public_host_kind == 'manager' %}{% url 'manager_help' %}{% else %}{% url 'kb:kb_home' %}{% endif %}" class="admin-sidebar-link {% if '/kb/' in request.path %}active{% endif %}">
           <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z"/><path d="M8 4v16"/></svg></span>

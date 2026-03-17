@@ -319,12 +319,6 @@ def maintenance_view(request):
     return render(request, "siteconfig/maintenance.html")
 
 
-@permission_required("settings.manage")
-def customizer(request):
-    """Redirect to Studio Experience (Phase 5: single workspace)."""
-    return redirect("studio_os:experience")
-
-
 # Neutral fallback when no region scales (Phase 2: no country names in tenant-facing form)
 GRADING_SCALE_CHOICES_NEUTRAL = [
     ("0-20", "Numeric 0–20"),
@@ -493,6 +487,7 @@ def reportcard_builder(request):
     if classroom_ids:
         sample_candidates = (
             StudentProfile.objects.filter(classroom_id__in=classroom_ids, is_active=True)
+            .defer("passport")
             .order_by("classroom_id", "last_name", "first_name")
         )
         for student in sample_candidates:
@@ -502,6 +497,7 @@ def reportcard_builder(request):
         assignment.sample_student = sample_students.get(assignment.classroom_id)
     preview_students = list(
         StudentProfile.objects.filter(is_active=True)
+        .defer("passport")
         .select_related("classroom")
         .order_by("last_name", "first_name")[:40]
     )
@@ -895,15 +891,6 @@ def user_preferences(request):
             "action_url": next_page,
         },
     )
-
-
-@permission_required("settings.manage")
-def report_library(request):
-    """Legacy path: always redirect to Studio OS Output (Step 6 product sign-off)."""
-    url = reverse("studio_os:output")
-    if request.GET:
-        url = f"{url}?{request.GET.urlencode()}"
-    return redirect(url)
 
 
 def _get_classrooms_queryset():
@@ -1540,7 +1527,7 @@ def download_report(request, slug):
 
     if not headers:
         messages.warning(request, "No export handler registered for this report.")
-        return redirect("siteconfig:report_library")
+        return redirect("studio_os:output")
 
     fmt = _report_format_from_request(request, template)
     filename = _report_filename(template.slug, fmt)

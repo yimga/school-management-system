@@ -92,21 +92,15 @@ class SuperNamespacePurityTests(TestCase):
     def test_super_urls_no_parent_tenant_path(self):
         """super_urls must not define a parent-tenant or tenant-hierarchy path under /super/."""
         from apps.schools import super_urls
-        from django.urls import get_resolver
-        resolver = get_resolver()
-        # super_urls is included at path("super/", include(super_urls)); list all pattern names.
-        try:
-            super_namespace = resolver.url_patterns
-            for pattern in super_namespace:
-                if hasattr(pattern, "url_patterns"):
-                    for p in pattern.url_patterns:
-                        if hasattr(p, "pattern") and "parent" in str(getattr(p.pattern, "_route", "")):
-                            self.fail("super_urls must not contain a path with 'parent' (tenant hierarchy).")
-        except (AttributeError, TypeError, IndexError, KeyError):
-            pass
-        # Just ensure super_urls exists and has expected structure (dashboard, etc.).
+
+        # Check only super_urls.urlpatterns (not every include in the root urlconf).
         self.assertTrue(hasattr(super_urls, "urlpatterns"))
         self.assertGreater(len(super_urls.urlpatterns), 0)
+        for p in super_urls.urlpatterns:
+            if hasattr(p, "pattern") and p.pattern:
+                route = str(getattr(p.pattern, "_route", ""))
+                if "parent" in route:
+                    self.fail("super_urls must not contain a path with 'parent' (tenant hierarchy).")
 
 
 class ManagerUrlconfOnlyControlPlaneTests(TestCase):

@@ -21,12 +21,12 @@
     <div class="collapse navbar-collapse" id="cpNavbarContent">
       <div class="d-flex align-items-center gap-3 ms-lg-auto">
         <div class="cp-header-search d-none d-md-block position-relative">
-          <input type="search" class="form-control form-control-sm bg-dark border-secondary text-white" placeholder="{% trans 'Search schools, incidents… (Ctrl+K)' %}" aria-label="Search" id="cpSearchInput" style="min-width: 220px;" autocomplete="off">
+          <input type="search" class="form-control form-control-sm bg-dark border-secondary text-white" placeholder="{% trans 'Search schools, incidents…' %} (Ctrl+K)" aria-label="{% trans 'Search' %} (Ctrl+K)" id="cpSearchInput" style="min-width: 220px;" autocomplete="off">
           <div id="cpSearchResults" class="dropdown-menu position-absolute start-0 mt-1 shadow" style="min-width: 280px; max-height: 70vh; overflow-y: auto;" aria-label="Search results"></div>
         </div>
         <button type="button" class="btn btn-sm btn-outline-light d-none d-md-inline-flex align-items-center" onclick="typeof window.cpShowShortcutsHelp === 'function' && window.cpShowShortcutsHelp();" aria-label="{% trans 'Keyboard shortcuts' %}" title="{% trans 'Keyboard shortcuts (?)' %}"><span aria-hidden="true">?</span><span class="ms-1 d-none d-lg-inline">{% trans "Shortcuts" %}</span></button>
         {% if request.user.is_authenticated %}
-          <a href="{% url 'admin:index' %}" class="btn btn-sm btn-outline-light d-flex align-items-center gap-1" title="{% trans 'Configuration Engine – system and data' %}">
+          <a href="{% url 'super:config_hub' %}" class="btn btn-sm btn-outline-light d-flex align-items-center gap-1" title="{% trans 'Configuration Engine – system and data' %}">
             <i class="bi bi-gear-wide-connected"></i>
             <span class="d-none d-lg-inline">{% trans "Configuration Engine" %}</span>
           </a>
@@ -39,7 +39,7 @@
               <li><a class="dropdown-item" href="{% url 'accounts:user_profile' %}"><i class="bi bi-person me-2"></i>{% trans "My Profile" %}</a></li>
               <li><a class="dropdown-item" href="{% url 'siteconfig:user_preferences' %}"><i class="bi bi-sliders me-2"></i>{% trans "Preferences" %}</a></li>
               <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-gear-wide-connected me-2"></i>{% trans "Configuration Engine" %}</a></li>
+              <li><a class="dropdown-item" href="{% url 'super:config_hub' %}"><i class="bi bi-gear-wide-connected me-2"></i>{% trans "Configuration Engine" %}</a></li>
               <li><hr class="dropdown-divider"></li>
               <li><a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}"><i class="bi bi-box-arrow-right me-2"></i>{% trans "Logout" %}</a></li>
             </ul>
@@ -285,7 +285,7 @@
     c: { url: '/super/command-center/', label: 'Command Center' },
     t: { url: '/studio/', label: 'Studio OS' },
     o: { url: '/super/orchestration/', label: 'Orchestration' },
-    a: { url: '/admin/', label: 'Configuration Engine' },
+    a: { url: '{% url "super:config_hub" %}', label: 'Configuration Engine' },
     b: { url: '/super/billing/', label: 'Billing' },
     s: { url: '/super/support/', label: 'Support' },
     m: { url: '/super/migration/', label: 'Migration' },

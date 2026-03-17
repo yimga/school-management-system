@@ -13,7 +13,7 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-4" data-page-archetype="operational-workbench">
+<div class="container-fluid py-4" data-page-archetype="operational-workbench"{% include "schools/partials/decision_architecture_attrs.html" %}>
   {% include "studio_os/components/page_header.html" with title="Runtime inspector" subtitle="Inspect effective blueprint, active packs, policies, overrides, and compilation trace for a school." action_url=dashboard_url action_text="Back to dashboard" %}
   <div class="card shadow-sm border-0 page-family-content-card card-grammar mb-3">
     <div class="card-body">
@@ -156,13 +156,43 @@
     </div>
   </div>
   <div class="card shadow-sm border-0 page-family-content-card card-grammar mb-3">
-    <div class="card-header bg-dark text-light">{% trans "Feature toggles (why on)" %}</div>
+    <div class="card-header bg-dark text-light">{% trans "Entitlements &amp; why enabled (GAP.6)" %}</div>
+    <div class="card-body">
+      {% if inspection.entitlements %}
+      <h6 class="text-secondary">{% trans "Current entitlements" %}</h6>
+      <ul class="list-unstyled small mb-2">
+        {% if inspection.entitlements.modules %}
+        <li><strong>{% trans "Modules" %}:</strong> {{ inspection.entitlements.modules|join:", " }}</li>
+        {% endif %}
+        {% for key, value in inspection.entitlements.items %}
+        {% if key != "modules" and value is not None %}
+        <li><strong>{{ key }}:</strong> {{ value }}</li>
+        {% endif %}
+        {% endfor %}
+      </ul>
+      {% endif %}
+      {% if inspection.entitlements_why %}
+      <h6 class="text-secondary mt-2">{% trans "Why enabled" %}</h6>
+      <p class="small mb-0">{% trans "Source of entitlements: plan, policy bundle, or blueprint." %}</p>
+      <ul class="list-unstyled small mb-0">
+        <li><strong>{% trans "Plan" %}:</strong> {{ inspection.entitlements_why.plan_name|default:inspection.entitlements_why.plan_code|default:"—" }}</li>
+        <li><strong>{% trans "Plan code" %}:</strong> {{ inspection.entitlements_why.plan_code|default:"—" }}</li>
+        <li><strong>{% trans "Policy bundle ID" %}:</strong> {{ inspection.entitlements_why.policy_bundle_id|default:"—" }}</li>
+        <li><strong>{% trans "Blueprint ID" %}:</strong> {{ inspection.entitlements_why.blueprint_id|default:"—" }}</li>
+      </ul>
+      {% else %}
+      <p class="text-secondary mb-0 small">{% trans "No entitlement source info (no school or plan)." %}</p>
+      {% endif %}
+    </div>
+  </div>
+  <div class="card shadow-sm border-0 page-family-content-card card-grammar mb-3">
+    <div class="card-header bg-dark text-light">{% trans "Feature toggles &amp; flag metadata (GAP.13)" %}</div>
     <div class="card-body">
       {% if inspection.feature_toggles %}
-      <p class="small text-secondary mb-2">{% trans "Active overrides (school or global) with expiry. Source: school = tenant override, global = platform override." %}</p>
+      <p class="small text-secondary mb-2">{% trans "Active overrides with owner/expiry/source/scope from capability registry. Source: school = tenant override, global = platform override." %}</p>
       <div class="table-responsive">
         <table class="table table-sm mb-0">
-          <thead><tr><th>{% trans "Key" %}</th><th>{% trans "On" %}</th><th>{% trans "Source" %}</th><th>{% trans "Expires" %}</th></tr></thead>
+          <thead><tr><th>{% trans "Key" %}</th><th>{% trans "On" %}</th><th>{% trans "Source" %}</th><th>{% trans "Expires" %}</th><th>{% trans "Owner" %}</th><th>{% trans "Def. source" %}</th><th>{% trans "Scope" %}</th></tr></thead>
           <tbody>
             {% for t in inspection.feature_toggles %}
             <tr>
@@ -170,6 +200,9 @@
               <td>{{ t.is_enabled|yesno:"Yes,No" }}</td>
               <td>{{ t.source }}</td>
               <td class="text-muted small">{{ t.expires_at|default:"—" }}</td>
+              <td class="small">{{ t.owner|default:"—" }}</td>
+              <td class="small">{{ t.definition_source|default:"—" }}</td>
+              <td class="small">{{ t.scope|default:"—" }}</td>
             </tr>
             {% endfor %}
           </tbody>

@@ -72,8 +72,27 @@
 
 ---
 
+## Seven answers (decision architecture — GAP.15)
+
+Per [DECISION_ARCHITECTURE_CHECKLIST.md](DECISION_ARCHITECTURE_CHECKLIST.md) and §8.0, key pages declare all seven answers. Below: explicit declarations for critical control-plane and tenant pages.
+
+| Page / route | Who | What question | State | Next action | Confidence | Wrong-path | Fallback |
+|--------------|-----|---------------|-------|-------------|------------|------------|----------|
+| Runtime inspector | Operator / super | "What is effective for this school?" | Inspecting a school | Inspect another school or Back to dashboard | School name, blueprint, packs, overrides shown | Error message if no school / resolution failure | Back to dashboard; pick school from sample |
+| `super:dashboard` | Super / platform ops | "How is the platform?" | Operational | Drill into tenant, billing, support | Metrics strip, tenant list | — | Support, incident dashboard |
+| `accounts:backend_dashboard` | Authenticated staff | "Where do I go next?" | Role-resolved home | Role CTA (Studio, Operations, etc.) | Role card, empty states | Validation, login redirect | Back to login, help |
+| `portal:parent_dashboard` | Parent | "How are my children?" | Post-login | View results, fees, attendance | Child cards, empty state | Session expiry, no children | Back to login, contact school |
+| `tenant_app_catalog` | School admin / IT | "What can I install?" | Browsing apps | Install to sandbox, review scopes | Trust badges, required permissions | No school context message | Installed apps, scope consent |
+| App catalog (control plane) | Operator | "What can I roll out?" | Selecting school + app | Install to sandbox for school | Catalog stats, compatibility | No school selected | Governance, sandbox inspector |
+| Policy diff | Operator | "What does this bundle change?" | Comparing bundle | Apply to sandbox, view impact | Impact preview, blueprint compatibility | Bundle not found | Back to policy list |
+
+All other registered dashboards above map to the seven questions via: **User** → who; **Primary question** → what question; **Primary action** → next action; **Drill-down** → fallback; state/confidence/wrong-path as per OPERATING_DISCIPLINE_LAYERS and DECISION_ARCHITECTURE_CHECKLIST.
+
+---
+
 ## Status
 
 - **Taxonomy and registry:** This doc. All critical dashboards listed above are registered.
+- **Seven answers (GAP.15):** Key pages declare seven answers in the table above; DECISION_ARCHITECTURE_CHECKLIST satisfied.
 - **New dashboards:** Must declare before merge (add row here + seven-question alignment).
 - **Existing dashboards not yet listed:** Add as they are touched or during Phase I rollout.

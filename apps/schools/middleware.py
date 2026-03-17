@@ -888,6 +888,10 @@ class ManagerHostControlPlaneRequiredMiddleware(MiddlewareMixin):
             return None
 
         if not getattr(request.user, "is_authenticated", False):
+            # Single entry (Salesforce/Shopify model): unauthenticated /admin/ → /super/ so one sign-in URL.
+            if path.startswith("/admin"):
+                from django.urls import reverse
+                return redirect(reverse("super:dashboard"))
             from django.contrib.auth.views import redirect_to_login
 
             return redirect_to_login(request.get_full_path())

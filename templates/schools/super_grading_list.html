@@ -1,0 +1,58 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Grading scales (platform)" %}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Control Plane" %}</a></li>
+    <li class="breadcrumb-item"><a href="{{ config_hub_url }}">{% trans "Configuration" %}</a></li>
+    <li class="breadcrumb-item"><a href="{{ regions_list_url }}">{% trans "Regions" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Grading scales" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-2">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <h1 class="h5 mb-0">{% trans "Grading scales (platform)" %}</h1>
+    <div class="d-flex gap-2">
+      {% if regions_list_url %}
+      <a href="{{ regions_list_url }}" class="btn btn-outline-primary btn-sm">{% trans "Regions" %}</a>
+      {% endif %}
+      {% if admin_grading_url %}
+      <a href="{{ admin_grading_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Open in backoffice" %}</a>
+      {% endif %}
+    </div>
+  </div>
+  {% if grading_scales %}
+  <div class="table-responsive">
+    <table class="table table-dark table-hover">
+      <thead>
+        <tr>
+          <th>{% trans "Region" %}</th>
+          <th>{% trans "Scale type" %}</th>
+          <th>{% trans "Range" %}</th>
+          <th>{% trans "Display format" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for scale in grading_scales %}
+        <tr>
+          <td>{{ scale.region.name }} <code>{{ scale.region.code }}</code></td>
+          <td><code>{{ scale.scale_type }}</code></td>
+          <td>{{ scale.min_score }} – {{ scale.max_score }}</td>
+          <td><code>{{ scale.display_format|default:"—" }}</code></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="text-muted">{% trans "No grading scales configured." %}</p>
+  {% endif %}
+  <p class="mt-3"><a href="{{ config_hub_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Back to Configuration" %}</a></p>
+</div>
+{% endblock %}

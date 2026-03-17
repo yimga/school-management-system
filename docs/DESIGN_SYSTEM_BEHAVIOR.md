@@ -2,6 +2,8 @@
 
 **Authority:** [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §10.5.7 and §8.0; [OPERATING_DISCIPLINE_LAYERS.md](OPERATING_DISCIPLINE_LAYERS.md) §10.5.7. Studio OS and all new UI must follow these behavior standards.
 
+**Ultra high-end without compromise:** All UI must be ultra high-end — no shortcuts or placeholder quality (SOT §8.0, §8.0.11). Apply this bar to every page, component, and flow.
+
 **Policy:** Standards for behavior as well as components. No new or materially changed page/dashboard/workflow/control is accepted unless it aligns with this doc and declares the seven decision-architecture answers (§1.8 / §8.0). **Optionals in this doc** (e.g. "optional right rail") mean "may include where applicable"; all checklist and decision-architecture requirements are **non-negotiable** per RUNMYCAMPUS §11.1.
 
 ---

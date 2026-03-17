@@ -1,6 +1,6 @@
 # Marketplace Seed Targets (§7)
 
-**Purpose:** §7 of the [embedded remediation plan](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md). Minimum pack/app counts so the marketplace looks alive, trustworthy, and installable.
+**Purpose:** §7 of the [embedded remediation plan](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md). Minimum pack/app counts so the marketplace looks alive, trustworthy, and installable. **Tracking:** All §7 status and verification live in RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md (§7); this doc holds detailed tables, current counts, and §12 gate criteria.
 
 **Status:** §3 completion gate satisfied; §12 gate MET when catalog minimums test + generate_platform_inventory --check in CI (see §5).
 

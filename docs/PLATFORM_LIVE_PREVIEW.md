@@ -12,7 +12,7 @@ Live preview is a **platform-wide capability**, not limited to one section or pa
 | **Report / embed** | `siteconfig:reportcard_style_embed_preview`, `reportcard_style_live_preview` | Report Card Builder: iframe or new-tab preview of report style with sample student. |
 | **Setup Studio** | Guided onboarding "Live preview workspace" + 6-role preview cards | Onboarding: preview by role (website, admin, teacher, parent, etc.) before go-live. |
 
-Same idea everywhere: **preview before save**, with the right context (section highlight, embed, or role).
+Same idea everywhere: **preview before save**, with the right context (section highlight, embed, or role). The Site Settings admin change form uses this same contract via its dynamic Preview button (active section from the sidebar is sent as `preview_section`).
 
 ---
 

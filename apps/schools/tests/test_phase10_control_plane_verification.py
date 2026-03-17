@@ -82,10 +82,10 @@ class Phase10ErrorPagesVerificationTests(TestCase):
         response = permission_denied(request, None)
         self.assertEqual(response.status_code, 403)
         content = response.content.decode("utf-8", errors="replace")
-        # Control-plane 403 shows either "Back to Manager" (generic) or "Tenant Mission Control" (admin-forbidden).
+        # Control-plane 403 shows "Back to Manager" (generic), "Control Plane" (admin-forbidden button), or "Tenant Mission Control".
         self.assertTrue(
-            "Back to Manager" in content or "Tenant Mission Control" in content,
-            msg="Control plane 403 must show manager navigation (Back to Manager or Tenant Mission Control)",
+            "Back to Manager" in content or "Control Plane" in content or "Tenant Mission Control" in content,
+            msg="Control plane 403 must show manager navigation (Back to Manager, Control Plane, or Tenant Mission Control)",
         )
 
     def test_manager_404_uses_control_plane_template(self):

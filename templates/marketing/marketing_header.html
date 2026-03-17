@@ -1,6 +1,7 @@
 {% load static i18n %}
-<nav class="navbar navbar-expand-lg navbar-dark mkt-navbar statement-header" aria-label="{% trans 'Main navigation' %}">
-  <div class="container">
+{# §8.0 + Scroll directive: one premium bar, no horizontal scroll; primary links + More dropdown so nav never overflows #}
+<nav class="navbar navbar-expand-lg navbar-dark mkt-navbar statement-header mkt-navbar-unified" aria-label="{% trans 'Main navigation' %}">
+  <div class="container mkt-navbar-container">
     <a class="navbar-brand fw-bold d-flex align-items-center gap-2 statement-logo" href="{% url 'home' %}">
       {% if PUBLIC_BRAND_MODE and PUBLIC_BRAND_FAVICON_URL %}
         <img src="{{ PUBLIC_BRAND_FAVICON_URL }}" alt="" width="32" height="32" decoding="async" loading="lazy" style="object-fit: contain;">
@@ -13,14 +14,28 @@
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="marketingNav">
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-1">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-1 mkt-nav-primary">
         {% for item in marketing_navbar_primary %}
+          {% if forloop.counter <= marketing_navbar_visible_count|default:7 %}
           <li class="nav-item">
             <a class="nav-link px-2" href="{{ item.path }}">{{ item.label }}</a>
           </li>
+          {% endif %}
         {% endfor %}
+        {% if marketing_navbar_has_more %}
+        <li class="nav-item dropdown">
+          <a class="nav-link px-2 dropdown-toggle" href="#" id="mktNavMore" role="button" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">{% trans "More" %}</a>
+          <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="mktNavMore">
+            {% for item in marketing_navbar_primary %}
+              {% if forloop.counter > marketing_navbar_visible_count|default:7 %}
+              <li><a class="dropdown-item" href="{{ item.path }}">{{ item.label }}</a></li>
+              {% endif %}
+            {% endfor %}
+          </ul>
+        </li>
+        {% endif %}
       </ul>
-      <div class="d-flex align-items-center gap-2">
+      <div class="d-flex align-items-center gap-2 flex-shrink-0">
         <a class="btn btn-outline-light btn-sm" href="{% url 'global_login_discovery' %}">{% trans "Login" %}</a>
         <a class="btn btn-cta-primary btn-sm" href="{% url 'signup_school' %}" data-cta="primary" data-page="header">{% trans "Start Free Trial" %}</a>
       </div>

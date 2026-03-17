@@ -45,7 +45,7 @@ from .views_workflow import (
     workflow_center,
 )
 from .views_dashboard import backend_dashboard, backend_dashboard_status_fragment
-from .views_onboarding import dismiss_first_login_checklist
+from .views_onboarding import dismiss_first_login_checklist, mark_tour_complete
 from .views_delegation import (
     my_delegations,
     delegation_add,
@@ -133,6 +133,7 @@ urlpatterns = [
     path("backend/request-waiver/", request_waiver, name="request_waiver"),
     path("backend/status/fragment/", backend_dashboard_status_fragment, name="backend_dashboard_status_fragment"),
     path("backend/dismiss-first-login-checklist/", dismiss_first_login_checklist, name="dismiss_first_login_checklist"),
+    path("backend/tour-complete/", mark_tour_complete, name="mark_tour_complete"),
     path("backend/ops-watch/", backend_ops_watch_data, name="backend_ops_watch_data"),
     path("backend-dashboard/", backend_dashboard, name="backend_dashboard_alt"),
     path("backend/import/", backend_entity_import, name="backend_entity_import"),

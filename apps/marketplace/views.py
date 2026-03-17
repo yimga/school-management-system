@@ -383,6 +383,7 @@ def app_catalog(request):
         "installed_pairs": len(installed),
     }
     catalog_counts = get_platform_catalog_counts()
+    from apps.schools.decision_architecture import get_decision_architecture_for_page
     return render(request, "marketplace/app_catalog.html", {
         "listings": installable_listings,
         "schools": schools,
@@ -391,6 +392,7 @@ def app_catalog(request):
         "installed": installed,
         "catalog_stats": catalog_stats,
         "catalog_counts": catalog_counts,
+        "decision_architecture": get_decision_architecture_for_page("app_catalog"),
     })
 
 

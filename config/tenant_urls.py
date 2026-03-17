@@ -94,6 +94,24 @@ def legacy_siteconfig_customizer_redirect(request):
     return redirect(reverse("studio_os:experience"))
 
 
+def legacy_workflow_hub_redirect(request):
+    """Legacy /siteconfig/workflow-hub/ → Studio OS Automation (tenant)."""
+    from django.urls import reverse
+    url = reverse("studio_os:automation")
+    if request.GET:
+        url = f"{url}?{request.GET.urlencode()}"
+    return redirect(url)
+
+
+def legacy_report_library_redirect(request):
+    """Legacy /siteconfig/reports/ or report-library → Studio OS Output (tenant)."""
+    from django.urls import reverse
+    url = reverse("studio_os:output")
+    if request.GET:
+        url = f"{url}?{request.GET.urlencode()}"
+    return redirect(url)
+
+
 def permission_denied(request, exception):
     is_admin_forbidden = (
         request.path.startswith("/admin")
@@ -148,6 +166,9 @@ urlpatterns = [
     path("api/ai-copilot/audit/", ai_copilot_audit_feed, name="ai_copilot_audit"),
     path("admin/siteconfig/customizer/", admin_siteconfig_customizer_redirect),
     path("siteconfig/customizer/", legacy_siteconfig_customizer_redirect),
+    path("siteconfig/workflow-hub/", legacy_workflow_hub_redirect),
+    path("siteconfig/report-library/", legacy_report_library_redirect),
+    path("siteconfig/reports/", legacy_report_library_redirect),
     path("studio/", include(("apps.studio_os.urls", "studio_os"), namespace="studio_os")),
     path("verify/<str:token>/", __import__("apps.siteconfig.views_verify", fromlist=["verify_student_id"]).verify_student_id, name="verify_student_id"),
     path("api/", include(("apps.api.urls", "api"), namespace="api")),

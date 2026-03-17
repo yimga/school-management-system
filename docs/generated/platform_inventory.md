@@ -1,19 +1,19 @@
 # Platform Inventory
 
 - Installed app modules: `41`
-- Python files: `1848`
-- HTML templates: `497`
-- Markdown files: `895`
-- Migration files: `600`
+- Python files: `1859`
+- HTML templates: `510`
+- Markdown files: `904`
+- Migration files: `601`
 - Management commands: `138` (full list in JSON key `management_commands_list`)
-- `SiteSettings` refs: `1106`
+- `SiteSettings` refs: `1128`
 - `get_solo()` refs: `181`
-- `except Exception`: `156`
+- `except Exception`: `159`
 - `cursor.execute()`: `351`
 - `csrf_exempt`: `106`
 - `AllowAny`: `61`
-- `print()`: `483`
-- `gilead` matches: `682` across `134` files
+- `print()`: `506`
+- `gilead` matches: `685` across `134` files
 
 
 ## Management Commands (full list)
@@ -78,16 +78,16 @@ Total: `138` commands. First 25 by app/command:
 
 ## Largest Python Files
 
-- `apps/schools/marketing_views.py`: `3667` lines / `213462` bytes
-- `apps/schools/super_views.py`: `2905` lines / `125258` bytes
+- `apps/schools/marketing_views.py`: `3671` lines / `213796` bytes
+- `apps/schools/super_views.py`: `3149` lines / `136032` bytes
 - `apps/evals/views.py`: `2564` lines / `107567` bytes
 - `apps/siteconfig/admin.py`: `2542` lines / `106915` bytes
-- `apps/accounts/views.py`: `2331` lines / `103900` bytes
+- `apps/accounts/views.py`: `2341` lines / `104459` bytes
 - `apps/finance/models.py`: `2556` lines / `95914` bytes
 - `apps/siteconfig/models.py`: `2360` lines / `95144` bytes
 - `apps/api/views_v1.py`: `1741` lines / `90640` bytes
 - `apps/portal/views_parent.py`: `1736` lines / `86491` bytes
-- `apps/siteconfig/views.py`: `1908` lines / `80868` bytes
+- `apps/siteconfig/views.py`: `1895` lines / `80448` bytes
 - `apps/finance/tasks.py`: `1775` lines / `80075` bytes
 - `apps/siteconfig/management/commands/seed_admin_dashboard_palettes.py`: `1482` lines / `63755` bytes
 

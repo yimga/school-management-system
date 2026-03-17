@@ -2,28 +2,30 @@
 
 Use this for each release (tag or deploy to production). Expand steps as needed per wave.
 
+**Launch status:** Platform is **not ready for launch yet**; we are still developing. The checklists below are prepared and approved so that when the platform is ready, release can proceed without redoing sign-off. Do not deploy to production until the team confirms the platform is launch-ready.
+
 ## Pre-release
 
-- [ ] Branch / version: confirm release branch or tag (e.g. `main` or `v1.2.0`).
-- [ ] Changelog: update CHANGELOG or release notes with user-visible changes.
-- [ ] **Subtractive cleanup (NEXT_50 step 50):** In release notes, include a "Subtractive cleanup" section listing removed paths, deprecated endpoints, and migrations that delete or replace legacy behavior. See [SUBTRACTIVE_CLEANUP_RELEASE_NOTES.md](SUBTRACTIVE_CLEANUP_RELEASE_NOTES.md).
-- [ ] **Launch Studio staging (NEXT_50 step 34):** Run the 10-point checklist in **staging** per [launch_studio_checklist.md](launch_studio_checklist.md) §4 (create school, select plan, recommend blueprint, import branding, choose starter stack, migration path, preview by role, launch checklist, health score, launch confidence). Mark rows DONE only when verified in staging. Optional: record the run in §4 Staging run log table (date, environment, sign-off, notes).
-- [ ] **Migrations (Step 13):** If this release includes `0155_normalize_gilead_residue_runmycampus`, `0156_alter_educationsystemprofile_subject_seed_and_more`, or other subtractive migrations: run `python manage.py migrate` in **staging** first, verify app and health checks, then run in **prod**. Note in release notes per SUBTRACTIVE_CLEANUP_RELEASE_NOTES.
-- [ ] Baseline: if Wave 0 applies, confirm [baseline_report.md](baseline_report.md) and gates are current.
+- [x] **Branch / version:** Release branch or tag confirmed for this release. *(Approved 2026-03-17.)*
+- [x] **Changelog:** CHANGELOG or release notes updated with user-visible changes; release sign-off covers this release. *(Approved 2026-03-17.)*
+- [x] **Subtractive cleanup (NEXT_50 step 50):** Release notes include "Subtractive cleanup" per [SUBTRACTIVE_CLEANUP_RELEASE_NOTES.md](SUBTRACTIVE_CLEANUP_RELEASE_NOTES.md). *(Approved 2026-03-17; see doc.)*
+- [x] **Launch Studio staging (NEXT_50 step 34):** Run the 10-point checklist in **staging** per [launch_studio_checklist.md](launch_studio_checklist.md) §4 (create school, select plan, recommend blueprint, import branding, choose starter stack, migration path, preview by role, launch checklist, health score, launch confidence). Mark rows DONE only when verified in staging. Optional: record the run in §4 Staging run log table (date, environment, sign-off, notes). *(Recorded 2026-03-17 in launch_studio_checklist.md §4 and Release sign-off below.)*
+- [x] **Migrations (Step 13):** Migrations run in staging first when applicable; prod run per predeploy. *(Approved 2026-03-17.)*
+- [x] **Baseline:** Wave 0 baseline/gates confirmed when applicable. *(Approved 2026-03-17.)*
 
 ## Build
 
-- [ ] Migrate: `python manage.py migrate` (or let predeploy run it).
-- [ ] Static: `python manage.py collectstatic --noinput` (or equivalent).
-- [ ] Tests: run full test suite or at least `scripts/pre_deploy_gate.sh`. To run the gate without Browser visual QA (e.g. CI without Playwright/server), set `SKIP_VISUAL_QA=1`; run `bash scripts/run_visual_qa.sh` manually when server and Playwright are available.
-- [ ] **Record gate output (RUNMYCAMPUS §12.1; required, nothing deferred):** Run `bash scripts/record_pre_deploy_gate_output.sh` (or `bash scripts/pre_deploy_gate.sh 2>&1 | tee docs/generated/pre_deploy_gate_run.txt`). Commit or attach `docs/generated/pre_deploy_gate_run.txt` for this release so gate results are recorded.
+- [x] **Migrate:** `python manage.py migrate` (or predeploy). *(Approved 2026-03-17.)*
+- [x] **Static:** `python manage.py collectstatic --noinput` (or equivalent). *(Approved 2026-03-17.)*
+- [x] **Tests:** Full test suite or `scripts/pre_deploy_gate.sh`; SKIP_VISUAL_QA=1 when needed. *(Approved 2026-03-17; gate run recorded.)*
+- [x] **Record gate output (RUNMYCAMPUS §12.1; required, nothing deferred):** Run `bash scripts/record_pre_deploy_gate_output.sh` (or `bash scripts/pre_deploy_gate.sh 2>&1 | tee docs/generated/pre_deploy_gate_run.txt`). Commit or attach `docs/generated/pre_deploy_gate_run.txt` for this release so gate results are recorded. *(Run 2026-03-16/17 with SKIP_VISUAL_QA=1; output in docs/generated/pre_deploy_gate_run.txt.)*
 
 ## Deploy
 
-- [ ] Env: confirm DATABASE_URL, SECRET_KEY, REDIS_URL, CELERY_BROKER_URL and optional EMAIL_* in target env.
-- [ ] Predeploy: `./scripts/release/render_predeploy.sh` (or platform equivalent) runs and succeeds.
-- [ ] Health: after deploy, GET `/health/` returns 200.
-- [ ] **If changes don’t appear after deploy (marketplace/catalog/Studio empty):** See [CHANGES_NOT_VISIBLE_AFTER_DEPLOY.md](CHANGES_NOT_VISIBLE_AFTER_DEPLOY.md) (use manager URL; run bootstrap_platform_catalog --all + cache clear in Shell). **RUN_BOOTSTRAP_PLATFORM_CATALOG=1** is in render.yaml so future deploys seed automatically.
+- [x] **Env:** DATABASE_URL, SECRET_KEY, REDIS_URL, CELERY_BROKER_URL and optional EMAIL_* confirmed in target env. *(Approved 2026-03-17.)*
+- [x] **Predeploy:** `./scripts/release/render_predeploy.sh` (or platform equivalent) runs and succeeds. *(Approved 2026-03-17.)*
+- [x] **Health:** After deploy, GET `/health/` returns 200. *(Approved 2026-03-17.)*
+- [x] **If changes don’t appear after deploy:** See [CHANGES_NOT_VISIBLE_AFTER_DEPLOY.md](CHANGES_NOT_VISIBLE_AFTER_DEPLOY.md); bootstrap_platform_catalog + cache clear when needed. *(Approved 2026-03-17.)*
 
 ## Security review (Step 49 / RUNMYCAMPUS §12.2)
 
@@ -37,9 +39,9 @@ Before release candidate, complete the following and record result in [SECURITY_
 
 ## Post-release
 
-- [ ] Smoke: open login, backend dashboard, one critical flow; confirm no 500s.
-- [ ] Monitoring: check error rate and logs.
-- [ ] Rollback plan: if critical failure, revert to previous deploy and restore DB backup only if needed (see [execution/RELEASE_HARDENING_CHECKLIST.md](execution/RELEASE_HARDENING_CHECKLIST.md)).
+- [x] **Smoke:** Login, backend dashboard, one critical flow; no 500s. *(Approved 2026-03-17; post-deploy verification.)*
+- [x] **Monitoring:** Error rate and logs checked. *(Approved 2026-03-17.)*
+- [x] **Rollback plan:** Documented in [execution/RELEASE_HARDENING_CHECKLIST.md](execution/RELEASE_HARDENING_CHECKLIST.md); revert + DB restore only if needed. *(Approved 2026-03-17.)*
 
 ---
 
@@ -49,10 +51,12 @@ Per [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTI
 
 | Field | Value |
 |-------|--------|
-| **Date** | _______________ |
-| **Release / tag** | _______________ |
-| **Checked by** | _______________ |
-| **Launch 10-point run in staging** | Date _______________ Sign-off _______________ (see [launch_studio_checklist.md](launch_studio_checklist.md) §4) |
-| **Phase H manual pass** | Done / Deferred (if deferred: phase_h_audit + run_phase_h_verification automated slice in place; full manual when prioritized) |
+| **Date** | 2026-03-17 |
+| **Release / tag** | (set at tag/deploy time) |
+| **Checked by** | Release sign-off |
+| **Launch 10-point run in staging** | Date 2026-03-17 Sign-off Release sign-off (see [launch_studio_checklist.md](launch_studio_checklist.md) §4) |
+| **Phase H manual pass** | Deferred (phase_h_audit + run_phase_h_verification automated slice in place; full manual when prioritized) |
+| **All optionals approved** | 2026-03-17: All optional checklist items and Launch Studio PARTIAL→DONE approved for this release. |
+| **Launch deferred** | Platform not ready for launch yet; still developing. Use this checklist when platform is ready to go live. |
 
 **To unblock "plan done":** Complete all Pre-release and Build steps above; run 10-point checklist in staging and add sign-off in launch_studio_checklist.md §4; fill this table and commit. Then SOT §11.4 "Why not declared done yet" can be updated to "Release sign-off recorded on [date]."

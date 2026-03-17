@@ -1,7 +1,6 @@
 /**
- * RunMyCampus product page — scroll progress and reveal.
- * Product-led storytelling: progress bar + Intersection Observer for .mkt-reveal / .mkt-reveal-stagger.
- * Respects prefers-reduced-motion. Load after marketing-landing-scroll.js (optional).
+ * RunMyCampus product page — scroll progress + reveal via core; pinned product frame per chapter (GAP.1).
+ * IMPROVEMENTS_RUNBOOK 6.1: uses marketing-scroll-core.js for progress and reveal.
  */
 (function () {
   'use strict';
@@ -9,43 +8,54 @@
   var root = document.querySelector('.mkt-product-story[data-scroll-story="true"]');
   if (!root) return;
 
-  var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  var progressWrap = document.getElementById('mkt-product-scroll-progress');
-  var progressFill = progressWrap && document.getElementById('mkt-product-scroll-fill');
-  function updateProgress() {
-    if (!progressFill) return;
-    var scrollTop = window.scrollY || document.documentElement.scrollTop;
-    var docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    var pct = docHeight <= 0 ? 100 : Math.min(100, (scrollTop / docHeight) * 100);
-    progressFill.style.width = pct + '%';
-  }
-  if (progressWrap && progressFill && !reducedMotion) {
-    window.addEventListener('scroll', function () { requestAnimationFrame(updateProgress); }, { passive: true });
-    window.addEventListener('resize', updateProgress);
-    updateProgress();
+  if (typeof window.RunMyCampusMarketingScrollCore === 'function') {
+    window.RunMyCampusMarketingScrollCore({
+      rootSelector: '.mkt-product-story[data-scroll-story="true"]',
+      progressWrapId: 'mkt-product-scroll-progress',
+      progressFillId: 'mkt-product-scroll-fill',
+      revealSelectors: '.mkt-reveal, .mkt-reveal-stagger'
+    });
   }
 
-  var revealEls = root.querySelectorAll('.mkt-reveal, .mkt-reveal-stagger');
-  if (revealEls.length === 0) return;
+  /* ----- Pinned product frame: update visible panel per chapter (GAP.1) ----- */
+  var pinnedFrame = document.getElementById('mkt-product-pinned-frame');
+  var chapterSections = root.querySelectorAll('section[data-chapter]');
+  if (pinnedFrame && chapterSections.length > 0) {
+    var activeChapter = 1;
+    var chapterObserver = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          var ch = entry.target.getAttribute('data-chapter');
+          if (ch) {
+            var n = parseInt(ch, 10);
+            if (!isNaN(n) && n >= 1 && n <= 6) {
+              activeChapter = n;
+              setPinnedFrameChapter(pinnedFrame, activeChapter);
+            }
+          }
+        });
+      },
+      { root: null, rootMargin: '-15% 0px -60% 0px', threshold: 0 }
+    );
+    chapterSections.forEach(function (section) {
+      chapterObserver.observe(section);
+    });
+    setPinnedFrameChapter(pinnedFrame, 1);
+  }
 
-  var observer = new IntersectionObserver(
-    function (entries) {
-      entries.forEach(function (entry) {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('in-view');
-          observer.unobserve(entry.target);
-        }
-      });
-    },
-    { root: null, rootMargin: '0px 0px -12% 0px', threshold: 0 }
-  );
-
-  revealEls.forEach(function (el) {
-    if (reducedMotion) {
-      el.classList.add('in-view');
-    } else {
-      observer.observe(el);
-    }
-  });
+  function setPinnedFrameChapter(frame, chapter) {
+    var panels = frame.querySelectorAll('.mkt-product-pinned-panel');
+    panels.forEach(function (panel) {
+      var panelChapter = panel.getAttribute('data-chapter');
+      if (panelChapter === String(chapter)) {
+        panel.classList.add('active');
+        panel.setAttribute('aria-hidden', 'false');
+      } else {
+        panel.classList.remove('active');
+        panel.setAttribute('aria-hidden', 'true');
+      }
+    });
+    frame.setAttribute('data-active-chapter', String(chapter));
+  }
 })();

@@ -71,7 +71,7 @@ def log_exception_with_context(
 
 
 def request_context_for_log(request: Any) -> dict[str, Any]:
-    """Extract tenant_id, school_id, actor_id, route from request for structured logging."""
+    """Extract tenant_id, school_id, actor_id, route, runtime_trace_id from request for structured logging."""
     out: dict[str, Any] = {}
     school = getattr(request, "school", None)
     if school and getattr(school, "id", None) is not None:
@@ -82,6 +82,9 @@ def request_context_for_log(request: Any) -> dict[str, Any]:
         out["actor_id"] = str(user.id)
     if getattr(request, "path", None):
         out["route"] = request.path
+    trace_id = getattr(request, "_runtime_trace_id", None)
+    if trace_id:
+        out["runtime_trace_id"] = trace_id  # GAP.5: resolver path tracing
     return out
 
 

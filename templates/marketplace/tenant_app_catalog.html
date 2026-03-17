@@ -69,18 +69,36 @@
     <div class="proof-catalog-grid">
       {% for listing in listings %}
       <article class="proof-app-card">
+        {% if listing.preview_image_url %}
+        <div class="proof-app-preview-img mb-2">
+          <img src="{{ listing.preview_image_url }}" alt="" class="img-fluid rounded" style="max-height: 140px; object-fit: cover; width: 100%;" loading="lazy">
+        </div>
+        {% endif %}
+        {% if listing.screenshot_urls %}
+        <div class="proof-app-screenshots mb-2 d-flex gap-1 flex-wrap">
+          {% for url in listing.screenshot_urls|slice:":5" %}
+          <img src="{{ url }}" alt="" class="rounded" style="height: 56px; width: 80px; object-fit: cover;" loading="lazy">
+          {% endfor %}
+        </div>
+        {% endif %}
         <div class="proof-app-head">
           <div>
             <h3 class="mb-1">{{ listing.app.name }}</h3>
             <div class="text-muted small">{{ listing.app.slug }} • v{{ listing.app.version }}</div>
           </div>
-          <div class="proof-app-meta">
+          <div class="proof-app-meta proof-trust-badges">
             {% if listing.app.kind == 'first_party' %}
             <span class="badge text-bg-primary" title="{% trans 'Built and supported by RunMyCampus' %}"><i class="bi bi-star-fill"></i> {% trans "First-party" %}</span>
             {% endif %}
-            <span class="badge {% if listing.publisher and listing.publisher.verification_status == 'verified' %}text-bg-success{% else %}text-bg-secondary{% endif %}">
-              {% if listing.publisher and listing.publisher.verification_status == 'verified' %}{% trans "Verified" %}{% else %}{% trans "Review required" %}{% endif %}
+            <span class="badge {% if listing.publisher and listing.publisher.verification_status == 'verified' %}text-bg-success{% else %}text-bg-secondary{% endif %}" title="{% trans 'Publisher verification' %}">
+              <i class="bi bi-shield-check"></i> {% if listing.publisher and listing.publisher.verification_status == 'verified' %}{% trans "Verified publisher" %}{% else %}{% trans "Review required" %}{% endif %}
             </span>
+            {% if listing.security_review_status == 'approved' %}
+            <span class="badge text-bg-info" title="{% trans 'Security review passed' %}"><i class="bi bi-shield-lock"></i> {% trans "Security reviewed" %}</span>
+            {% endif %}
+            {% if listing.certification_status == 'approved' %}
+            <span class="badge text-bg-info" title="{% trans 'Certification passed' %}"><i class="bi bi-patch-check"></i> {% trans "Certified" %}</span>
+            {% endif %}
             {% if listing.app.slug in installed_slugs %}
             <span class="badge text-bg-success">{% trans "Installed" %}</span>
             {% endif %}
@@ -98,6 +116,16 @@
             <span class="proof-chip"><i class="bi bi-stack"></i> {{ listing.compatibility.plan_tiers|join:", " }}</span>
             {% endif %}
           </div>
+          {% if listing.app.scopes.all %}
+          <div class="mt-2">
+            <strong class="small">{% trans "Required permissions:" %}</strong>
+            <ul class="list-unstyled small mb-0 mt-1">
+              {% for scope in listing.app.scopes.all %}
+              <li><code>{{ scope.scope_code }}</code>{% if scope.description %} — {{ scope.description }}{% endif %}{% if scope.sensitive %} <span class="badge text-bg-warning">{% trans "Sensitive" %}</span>{% endif %}</li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
         </div>
 
         <div class="text-muted small">

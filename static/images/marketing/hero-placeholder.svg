@@ -3,5 +3,5 @@
   <rect width="1200" height="600" fill="url(#g)" opacity="0.15"/>
   <rect width="1200" height="600" fill="#f8fafc"/>
   <text x="600" y="280" text-anchor="middle" font-family="system-ui,sans-serif" font-size="32" fill="#1e293b">Run your campus with one platform</text>
-  <text x="600" y="320" text-anchor="middle" font-family="system-ui,sans-serif" font-size="16" fill="#64748b">Hero image or video slot</text>
+  <text x="600" y="320" text-anchor="middle" font-family="system-ui,sans-serif" font-size="16" fill="#64748b">Platform overview</text>
 </svg>

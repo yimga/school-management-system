@@ -34,6 +34,18 @@ body.admin-manager-shell {
   }
 }
 
+/* ---- One dark header bar (no white branding block) §8.0 + Scroll directive ---- */
+body.control-plane-shell .cp-navbar.statement-header,
+body.cp-surface .cp-navbar.statement-header {
+  background: var(--cp-bg, #0B0E14) !important;
+  border-bottom: 1px solid rgba(125, 152, 187, 0.18);
+}
+body.control-plane-shell .cp-navbar .navbar-brand,
+body.cp-surface .cp-navbar .navbar-brand {
+  background: transparent !important;
+  color: #fff !important;
+}
+
 /* ---- Login (manager + admin): full-viewport ultra ---- */
 body.control-plane-shell .manager-login-landing.cp-ultra-login,
 body.control-plane-shell .admin-login-landing.cp-ultra-login {

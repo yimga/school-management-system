@@ -279,9 +279,37 @@ def _step6_flags_entitlements(tenant_ctx: TenantContext, policy: Dict[str, Any],
 
 
 def _step7_branding(school: Any) -> BrandingContext:
-    """Step 7: Resolve branding from tenant/school."""
+    """Step 7: Resolve branding from brand_experience (GAP.12). Theme/experience ownership:
+    BrandProfile/BrandSettings/ThemePack via resolve_brand_profile; portal and dashboard
+    consume this same BrandingContext for a single token/layout system."""
     if school is None:
         return BrandingContext()
+    try:
+        from apps.platform_runtime.helpers import get_effective_site_settings
+        from apps.siteconfig.branding import resolve_brand_profile
+
+        site = get_effective_site_settings(school=school)
+        brand = resolve_brand_profile(school=school, site=site)
+    except (AttributeError, DatabaseError, ImportError, TypeError, ValueError) as e:
+        logger.debug("_step7_branding: resolve_brand_profile fallback to school fields: %s", e)
+        brand = {}
+    colors = {}
+    if brand:
+        if brand.get("primary_color"):
+            colors["primary"] = brand["primary_color"]
+        if brand.get("accent_color"):
+            colors["accent"] = brand["accent_color"]
+        return BrandingContext(
+            logo_url=brand.get("logo_url") or "",
+            crest_url=getattr(school, "crest_url", None),
+            favicon_url=brand.get("favicon_url") or "",
+            tagline=brand.get("tagline") or "",
+            colors=colors,
+            portal_theme=getattr(school, "theme_choice", None) or getattr(school, "portal_theme", None) or brand.get("theme_pack_slug"),
+            report_theme=None,
+            email_theme=None,
+            login_theme=None,
+        )
     colors = {}
     if getattr(school, "primary_color", None):
         colors["primary"] = school.primary_color

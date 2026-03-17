@@ -11,9 +11,10 @@ from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import DatabaseError
 from django.db.models import Count, OuterRef, Q, Subquery, Sum
+from django.core.paginator import Paginator
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import NoReverseMatch, reverse
-from django.views.decorators.http import require_http_methods, require_POST
+from django.views.decorators.http import require_GET, require_http_methods, require_POST
 from django.http import JsonResponse, HttpResponse
 from django.utils import timezone
 
@@ -38,6 +39,7 @@ from apps.global_registries.models import EducationSystemProfile
 from apps.platform_runtime.helpers import get_platform_defaults
 from apps.siteconfig.tenant_config import apply_tenant_settings_overrides
 from .control_plane_lifecycle import apply_school_lifecycle_action, get_lifecycle_snapshot
+from .decision_architecture import get_decision_architecture_for_page
 from .models import School, SchoolProvisioningEvent, TenantApiUsage, TenantQuotaLimit
 
 CONTROL_PLANE_METRIC_FAILURES = (
@@ -1234,6 +1236,7 @@ def super_dashboard_v2(request):
             "provisioning_breach_rows": command_center.get("provisioning_breach_rows", [])[:10],
             "super_dashboard_section_order": _get_super_dashboard_section_order(request.user),
             "super_dashboard_layout_url": reverse("super:api_super_dashboard_layout"),
+            "decision_architecture": get_decision_architecture_for_page("super_dashboard"),
         },
     )
 
@@ -1409,6 +1412,44 @@ def super_tenant_360(request, school_id):
             "runtime_trace": trace,
             "runtime_warnings": warnings,
             "dashboard_url": reverse("super:dashboard"),
+        },
+    )
+
+
+@require_GET
+def super_schools_list(request):
+    """Phase 7: Paginated list of all schools; optional filters and link to tenant 360 / backoffice."""
+    qs = School.objects.all().order_by("name")
+    # Optional filters
+    is_active = request.GET.get("is_active")
+    if is_active is not None:
+        if is_active.lower() in ("1", "true", "yes"):
+            qs = qs.filter(is_active=True)
+        elif is_active.lower() in ("0", "false", "no"):
+            qs = qs.filter(is_active=False)
+    country_code = request.GET.get("country_code", "").strip()
+    if country_code:
+        qs = qs.filter(country_code=country_code)
+    search = request.GET.get("q", "").strip()
+    if search:
+        qs = qs.filter(Q(name__icontains=search) | Q(slug__icontains=search) | Q(subdomain__icontains=search))
+    paginator = Paginator(qs, 25)
+    page_number = request.GET.get("page", 1)
+    page = paginator.get_page(page_number)
+    try:
+        admin_schools_url = reverse("admin:schools_school_changelist")
+    except NoReverseMatch:
+        admin_schools_url = None
+    return render(
+        request,
+        "schools/super_schools_list.html",
+        {
+            "page": page,
+            "dashboard_url": reverse("super:dashboard"),
+            "admin_schools_url": admin_schools_url,
+            "is_active_filter": is_active if is_active is not None else "",
+            "country_code_filter": country_code,
+            "search_query": search,
         },
     )
 
@@ -2396,27 +2437,138 @@ def api_create_school(request):
     )
 
 
+def _policy_bundle_impact_preview(bundle_id):
+    """GAP.7: Affected tenants and policy keys for a policy bundle (who uses it)."""
+    from apps.policies.models import TenantBlueprint, PolicyBundle
+    try:
+        bundle = PolicyBundle.objects.filter(pk=bundle_id, is_active=True).first()
+        if not bundle:
+            return {"error": "Bundle not found", "by_bundle": True, "affected_count": 0, "affected_schools": [], "policy_keys": []}
+        qs = TenantBlueprint.objects.filter(active_bundle_id=bundle_id).select_related("school")
+        schools = [
+            {"id": str(tb.school_id), "name": getattr(tb.school, "name", "") or "", "slug": getattr(tb.school, "slug", "") or ""}
+            for tb in qs if getattr(tb, "school", None)
+        ]
+        snapshot = getattr(bundle, "policy_snapshot", None) or {}
+        policy_keys = list(snapshot.keys()) if isinstance(snapshot, dict) else []
+        return {
+            "by_bundle": True,
+            "bundle_id": bundle_id,
+            "bundle_code": getattr(bundle, "code", "") or "",
+            "bundle_name": getattr(bundle, "name", "") or "",
+            "affected_count": len(schools),
+            "affected_schools": schools,
+            "policy_keys": policy_keys[:80],
+        }
+    except (AttributeError, DatabaseError, TypeError, ValueError) as e:
+        return {"error": str(e), "by_bundle": True, "affected_count": 0, "affected_schools": [], "policy_keys": []}
+
+
 def super_policy_diff(request):
-    """Phase 9: Policy diff viewer — compare platform default, country/region, blueprint, tenant override."""
+    """Phase 9: Policy diff viewer — compare platform default, country/region, blueprint, tenant override. GAP.7: impact preview."""
+    from apps.policies.models import PolicyBundle
+
     school_id = request.GET.get("school_id")
+    bundle_id_param = request.GET.get("bundle_id")
     school = None
     layers = []
+    impact_preview = None
+
     if school_id:
         try:
             school = School.objects.get(id=school_id)
             from apps.policies.policy_registry import get_effective_policy
             policy = get_effective_policy(school, user=getattr(request, "user", None))
-            import json
             layers = [
                 {"label": "Effective (tenant)", "data": json.dumps(policy or {}, indent=2), "source": "tenant + blueprint + country"},
             ]
+            # GAP.7: when no bundle_id in GET — impact for this school's bundle (same-bundle tenant count + features)
+            if not bundle_id_param:
+                policy_dict = policy or {}
+                features = policy_dict.get("features") or {}
+                affected_features = list(features.keys())[:50]
+                affected_tenant_count = 0
+                try:
+                    from apps.policies.models import TenantBlueprint
+                    tb = getattr(school, "tenant_blueprint", None)
+                    if tb and getattr(tb, "active_bundle_id", None):
+                        affected_tenant_count = TenantBlueprint.objects.filter(active_bundle_id=tb.active_bundle_id).count()
+                except (AttributeError, DatabaseError, TypeError, ValueError):
+                    pass
+                impact_preview = {
+                    "affected_tenant_count": affected_tenant_count,
+                    "affected_features": affected_features,
+                    "bundle_id": getattr(getattr(school, "tenant_blueprint", None), "active_bundle_id", None),
+                }
+                if impact_preview.get("bundle_id"):
+                    try:
+                        bundle = PolicyBundle.objects.filter(id=impact_preview["bundle_id"]).first()
+                        if bundle:
+                            impact_preview["blueprint_compatibility"] = getattr(bundle, "blueprint_compatibility", []) or []
+                    except (AttributeError, DatabaseError, TypeError, ValueError):
+                        impact_preview["blueprint_compatibility"] = []
+                else:
+                    impact_preview["blueprint_compatibility"] = []
         except School.DoesNotExist:
             pass
+
+    if bundle_id_param:
+        try:
+            impact_preview = _policy_bundle_impact_preview(int(bundle_id_param))
+        except (TypeError, ValueError):
+            impact_preview = {"error": "Invalid bundle_id", "affected_count": 0, "affected_schools": [], "policy_keys": []}
+
+    bundles_sample = list(
+        PolicyBundle.objects.filter(is_active=True).order_by("-created_at").values("id", "code", "name")[:30]
+    )
+
     return render(
         request,
         "schools/super_policy_diff.html",
-        {"school": school, "layers": layers, "dashboard_url": reverse("super:dashboard")},
+        {
+            "school": school,
+            "layers": layers,
+            "impact_preview": impact_preview,
+            "bundles_sample": bundles_sample,
+            "dashboard_url": reverse("super:dashboard"),
+            "policy_diff_url": reverse("super:policy_diff"),
+            "runtime_inspector_url": reverse("super:runtime_inspector"),
+            "decision_architecture": get_decision_architecture_for_page("policy_diff"),
+        },
     )
+
+
+def super_apply_policy_bundle_to_sandbox(request):
+    """GAP.8: Apply a policy bundle to a sandbox school (staged rollout). POST: bundle_id, sandbox_school_id."""
+    if request.method != "POST":
+        return redirect(reverse("super:policy_diff") + "?school_id=" + (request.GET.get("school_id") or ""))
+    bundle_id = request.POST.get("bundle_id")
+    sandbox_school_id = request.POST.get("sandbox_school_id")
+    if not bundle_id or not sandbox_school_id:
+        from django.contrib import messages
+        messages.warning(request, "bundle_id and sandbox_school_id required.")
+        return redirect(reverse("super:policy_diff"))
+    try:
+        from apps.policies.models import PolicyBundle, TenantBlueprint
+        bundle = PolicyBundle.objects.filter(id=bundle_id).first()
+        if not bundle:
+            from django.contrib import messages
+            messages.warning(request, "Policy bundle not found.")
+            return redirect(reverse("super:policy_diff"))
+        sandbox_school = School.objects.get(id=sandbox_school_id)
+        tb, created = TenantBlueprint.objects.get_or_create(
+            school=sandbox_school,
+            defaults={"active_bundle": bundle},
+        )
+        if not created:
+            tb.active_bundle = bundle
+            tb.save(update_fields=["active_bundle"])
+        from django.contrib import messages
+        messages.success(request, f"Bundle applied to sandbox school {getattr(sandbox_school, 'name', sandbox_school_id)}.")
+    except (School.DoesNotExist, ValueError) as e:
+        from django.contrib import messages
+        messages.warning(request, str(e))
+    return redirect(reverse("super:policy_diff") + f"?school_id={request.POST.get('school_id', '')}")
 
 
 def super_compliance_overview(request):
@@ -2440,6 +2592,97 @@ def super_trust_center(request):
             "dashboard_url": reverse("super:dashboard"),
             "compliance_url": reverse("super:compliance_overview"),
             "apicenter_url": reverse("apicenter:dashboard"),
+        },
+    )
+
+
+def super_config_hub(request):
+    """Configuration hub: single entry for platform config; links to Site settings, Regions, Plans, Feature toggles, AI models, System config, Advanced backoffice. RUNBOOK_ADMIN_TO_SUPER_MIGRATION Phase 1."""
+    dashboard_url = reverse("super:dashboard")
+    try:
+        site_settings_url = reverse("super:site_settings_list")
+    except NoReverseMatch:
+        site_settings_url = None
+    try:
+        regions_url = reverse("super:regions_list")
+    except NoReverseMatch:
+        regions_url = None
+    try:
+        grading_url = reverse("super:grading_list")
+    except NoReverseMatch:
+        grading_url = None
+    try:
+        plans_url = reverse("super:plans_list")
+    except NoReverseMatch:
+        plans_url = None
+    try:
+        feature_toggles_url = reverse("super:feature_toggles_list")
+    except NoReverseMatch:
+        feature_toggles_url = None
+    try:
+        ai_models_url = reverse("super:ai_models_list")
+    except NoReverseMatch:
+        try:
+            ai_models_url = reverse("super:ai_model_hub")
+        except NoReverseMatch:
+            ai_models_url = None
+    try:
+        system_config_url = reverse("siteconfig:console_domains_hub")
+    except NoReverseMatch:
+        system_config_url = None
+    try:
+        admin_index_url = reverse("admin:index")
+    except NoReverseMatch:
+        admin_index_url = None
+    # Phase 8: Observability / Billing / Automation (hub links)
+    try:
+        pulse_url = reverse("super:pulse")
+    except NoReverseMatch:
+        pulse_url = None
+    try:
+        billing_url = reverse("super:billing_dashboard")
+    except NoReverseMatch:
+        billing_url = None
+    try:
+        migration_url = reverse("super:migration_cloud")
+    except NoReverseMatch:
+        migration_url = None
+    try:
+        schools_list_url = reverse("super:schools_list")
+    except NoReverseMatch:
+        schools_list_url = None
+    try:
+        incidents_list_url = reverse("super:incidents_list")
+    except NoReverseMatch:
+        incidents_list_url = None
+    try:
+        billing_accounts_list_url = reverse("super:billing_accounts_list")
+    except NoReverseMatch:
+        billing_accounts_list_url = None
+    try:
+        migration_runs_list_url = reverse("super:migration_runs_list")
+    except NoReverseMatch:
+        migration_runs_list_url = None
+    return render(
+        request,
+        "schools/super_config_hub.html",
+        {
+            "dashboard_url": dashboard_url,
+            "site_settings_url": site_settings_url,
+            "regions_url": regions_url,
+            "grading_url": grading_url,
+            "plans_url": plans_url,
+            "feature_toggles_url": feature_toggles_url,
+            "ai_models_url": ai_models_url,
+            "system_config_url": system_config_url,
+            "admin_index_url": admin_index_url,
+            "pulse_url": pulse_url,
+            "billing_url": billing_url,
+            "migration_url": migration_url,
+            "schools_list_url": schools_list_url,
+            "incidents_list_url": incidents_list_url,
+            "billing_accounts_list_url": billing_accounts_list_url,
+            "migration_runs_list_url": migration_runs_list_url,
         },
     )
 
@@ -2866,6 +3109,7 @@ def super_runtime_inspector(request):
             "inspection": inspection,
             "schools_sample": schools_sample,
             "dashboard_url": reverse("super:dashboard"),
+            "decision_architecture": get_decision_architecture_for_page("runtime_inspector"),
         },
     )
 

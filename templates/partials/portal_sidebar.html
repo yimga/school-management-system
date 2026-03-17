@@ -184,7 +184,7 @@
         <a class="nav-link nav-pill" href="{% url 'payroll:dashboard' %}"><i class="bi bi-cash-stack me-2"></i>Payroll</a>
         <div class="sidebar-section-title">Analytics & Reports</div>
         <a class="nav-link nav-pill" href="{% url 'analytics:dashboard' %}"><i class="bi bi-graph-up-arrow me-2"></i>Analytics</a>
-        <a class="nav-link nav-pill" href="{% url 'siteconfig:report_library' %}"><i class="bi bi-journal-text me-2"></i>Report Library</a>
+        <a class="nav-link nav-pill" href="{% url 'studio_os:output' %}"><i class="bi bi-journal-text me-2"></i>Report Library</a>
         <a class="nav-link nav-pill" href="{% url 'siteconfig:reportcard_builder' %}"><i class="bi bi-file-earmark-richtext me-2"></i>Report Card Builder</a>
         <a class="nav-link nav-pill" href="{% url 'portal:portal_stats' %}"><i class="bi bi-graph-up me-2"></i>Portal Stats</a>
         <div class="sidebar-section-title">Admin Panel</div>
@@ -203,7 +203,7 @@
         <a class="nav-link nav-pill" href="{% url 'siteconfig:feature_control_audit' %}"><i class="bi bi-clock-history me-2"></i>Feature Control Audit</a>
         {% endif %}
         {% if request.user|has_feature_permission:"settings.manage" or request.user.is_superuser %}
-        <a class="nav-link nav-pill" href="{% url 'siteconfig:customizer' %}"><i class="bi bi-palette me-2"></i>Customizer</a>
+        <a class="nav-link nav-pill" href="{% url 'studio_os:experience' %}"><i class="bi bi-palette me-2"></i>Customizer</a>
         <a class="nav-link nav-pill" href="{% url 'siteconfig:request_custom_requirement' %}"><i class="bi bi-lightning-charge me-2"></i>Request custom requirement</a>
         {% endif %}
         {% if request.user.is_superuser and not is_backend_context %}

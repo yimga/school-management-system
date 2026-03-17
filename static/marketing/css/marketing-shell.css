@@ -31,7 +31,7 @@ body.marketing-surface,
   outline-offset: 2px;
 }
 
-/* ----- Nav (sticky) ----- */
+/* ----- Nav (sticky): one bar, no horizontal scroll (Scroll directive §8.0) ----- */
 .mkt-navbar {
   position: sticky;
   top: 0;
@@ -40,7 +40,10 @@ body.marketing-surface,
   box-shadow: 0 4px 20px rgba(0,0,0,0.18), 0 0 0 1px rgba(255,255,255,0.04);
   font-weight: 500;
 }
-.mkt-navbar .navbar-brand { color: var(--mkt-text-inverse) !important; font-size: 1.125rem; }
+.mkt-navbar-unified .mkt-navbar-container { min-width: 0; overflow-x: hidden; }
+.mkt-navbar-unified .navbar-collapse { min-width: 0; flex-wrap: wrap; }
+.mkt-navbar-unified .mkt-nav-primary { flex-wrap: wrap; min-width: 0; }
+.mkt-navbar .navbar-brand { color: var(--mkt-text-inverse) !important; font-size: 1.125rem; background: transparent !important; }
 .mkt-navbar .nav-link {
   color: rgba(248, 250, 252, 0.92) !important;
   padding: 0.5rem 0.75rem !important;

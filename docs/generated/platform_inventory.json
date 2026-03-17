@@ -3,17 +3,17 @@
     "allow_any": 61,
     "csrf_exempt": 106,
     "cursor_execute": 351,
-    "except_exception": 156,
+    "except_exception": 159,
     "get_solo": 181,
-    "gilead": 682,
+    "gilead": 685,
     "gilead_files": 134,
-    "html_files": 497,
+    "html_files": 510,
     "management_commands": 138,
-    "markdown_files": 895,
-    "migration_files": 600,
-    "print_calls": 483,
-    "python_files": 1848,
-    "site_settings": 1106
+    "markdown_files": 904,
+    "migration_files": 601,
+    "print_calls": 506,
+    "python_files": 1859,
+    "site_settings": 1128
   },
   "doc_drift": {
     "actual_installed_app_count": 41,
@@ -23,13 +23,13 @@
   },
   "largest_python_files": [
     {
-      "bytes": 213462,
-      "lines": 3667,
+      "bytes": 213796,
+      "lines": 3671,
       "path": "apps/schools/marketing_views.py"
     },
     {
-      "bytes": 125258,
-      "lines": 2905,
+      "bytes": 136032,
+      "lines": 3149,
       "path": "apps/schools/super_views.py"
     },
     {
@@ -43,8 +43,8 @@
       "path": "apps/siteconfig/admin.py"
     },
     {
-      "bytes": 103900,
-      "lines": 2331,
+      "bytes": 104459,
+      "lines": 2341,
       "path": "apps/accounts/views.py"
     },
     {
@@ -68,8 +68,8 @@
       "path": "apps/portal/views_parent.py"
     },
     {
-      "bytes": 80868,
-      "lines": 1908,
+      "bytes": 80448,
+      "lines": 1895,
       "path": "apps/siteconfig/views.py"
     },
     {

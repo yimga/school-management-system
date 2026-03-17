@@ -54,6 +54,7 @@ def build_control_plane_nav(request):
         {"id": "studio_os", "label": "Studio OS", "url_name": "studio_os:experience", "icon": "bi-window-stack"},
     ])
     add_group("Schools", [
+        {"id": "super_schools_list", "label": "Schools list", "url_name": "super:schools_list", "icon": "bi-building"},
         {"id": "super_provision", "label": "Setup Studio", "url_name": "super:create_school_wizard", "icon": "bi-plus-circle"},
         {"id": "super_tenant_health", "label": "School Health", "url_name": "super:tenant_health", "icon": "bi-heart-pulse"},
     ])
@@ -104,7 +105,7 @@ def build_control_plane_nav(request):
     ])
     add_group("Platform Settings", [
         {"id": "config_console", "label": "System config", "url_name": "siteconfig:console_domains_hub", "icon": "bi-sliders"},
-        {"id": "admin_index", "label": "Configuration Engine", "url_name": "admin:index", "icon": "bi-gear-wide-connected"},
+        {"id": "admin_index", "label": "Configuration Engine", "url_name": "super:config_hub", "icon": "bi-gear-wide-connected"},
     ])
 
     return groups

@@ -46,8 +46,8 @@ _STUDIO_SOFT_FAILURES = (
 # Mode -> (reverse_name, query_param). Single source for Studio embed/preview URLs.
 STUDIO_MODE_EMBED_TARGETS = {
     "experience": ("siteconfig:theme_colors", "embed=1"),
-    "automation": ("siteconfig:workflow_hub", "embed=1"),
-    "output": ("siteconfig:report_library", "embed=1"),
+    "automation": ("studio_os:automation", "embed=1"),
+    "output": ("studio_os:output", "embed=1"),
     "launch": ("siteconfig:guided_onboarding", "embed=1"),
     "control": ("siteconfig:feature_control_panel", "embed=1"),
 }

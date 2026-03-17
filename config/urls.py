@@ -205,6 +205,7 @@ urlpatterns = [
     path('siteconfig/customizer/', legacy_siteconfig_customizer_redirect),
     path('siteconfig/workflow-hub/', legacy_workflow_hub_redirect),
     path('siteconfig/report-library/', legacy_report_library_redirect),
+    path('siteconfig/reports/', legacy_report_library_redirect),
 
     # API Routes
     path("verify/<str:token>/", __import__("apps.siteconfig.views_verify", fromlist=["verify_student_id"]).verify_student_id, name="verify_student_id"),

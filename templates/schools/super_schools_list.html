@@ -1,0 +1,87 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Schools" %}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Control Plane" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Schools" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-2">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <h1 class="h5 mb-0">{% trans "Schools" %}</h1>
+    {% if admin_schools_url %}
+    <a href="{{ admin_schools_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Open in backoffice" %}</a>
+    {% endif %}
+  </div>
+  <form method="get" class="row g-2 mb-3">
+    <div class="col-auto">
+      <input type="text" name="q" value="{{ search_query }}" class="form-control form-control-sm" placeholder="{% trans 'Search name, slug, subdomain' %}" />
+    </div>
+    <div class="col-auto">
+      <select name="is_active" class="form-select form-select-sm">
+        <option value="">{% trans "All statuses" %}</option>
+        <option value="1" {% if is_active_filter == "1" %}selected{% endif %}>{% trans "Active" %}</option>
+        <option value="0" {% if is_active_filter == "0" %}selected{% endif %}>{% trans "Inactive" %}</option>
+      </select>
+    </div>
+    <div class="col-auto">
+      <input type="text" name="country_code" value="{{ country_code_filter }}" class="form-control form-control-sm" placeholder="{% trans 'Country code' %}" maxlength="2" />
+    </div>
+    <div class="col-auto">
+      <button type="submit" class="btn btn-primary btn-sm">{% trans "Filter" %}</button>
+    </div>
+  </form>
+  {% if page.object_list %}
+  <div class="table-responsive">
+    <table class="table table-dark table-hover">
+      <thead>
+        <tr>
+          <th>{% trans "Name" %}</th>
+          <th>{% trans "Slug" %}</th>
+          <th>{% trans "Subdomain" %}</th>
+          <th>{% trans "Country" %}</th>
+          <th>{% trans "Active" %}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for school in page.object_list %}
+        <tr>
+          <td>{{ school.name }}</td>
+          <td><code>{{ school.slug }}</code></td>
+          <td>{{ school.subdomain|default:"—" }}</td>
+          <td>{{ school.country_code|default:"—" }}</td>
+          <td>{% if school.is_active %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</td>
+          <td>
+            <a href="{% url 'super:tenant_360' school.id %}" class="btn btn-sm btn-outline-primary">{% trans "360" %}</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if page.has_other_pages %}
+  <nav aria-label="{% trans 'Schools pagination' %}" class="mt-2">
+    <ul class="pagination pagination-sm mb-0">
+      {% if page.has_previous %}
+      <li class="page-item"><a class="page-link" href="?page={{ page.previous_page_number }}{% if search_query %}&amp;q={{ search_query|urlencode }}{% endif %}{% if is_active_filter %}&amp;is_active={{ is_active_filter|urlencode }}{% endif %}{% if country_code_filter %}&amp;country_code={{ country_code_filter|urlencode }}{% endif %}">{% trans "Previous" %}</a></li>
+      {% endif %}
+      <li class="page-item disabled"><span class="page-link">{% blocktrans with num=page.number total=page.paginator.num_pages %}Page {{ num }} of {{ total }}{% endblocktrans %}</span></li>
+      {% if page.has_next %}
+      <li class="page-item"><a class="page-link" href="?page={{ page.next_page_number }}{% if search_query %}&amp;q={{ search_query|urlencode }}{% endif %}{% if is_active_filter %}&amp;is_active={{ is_active_filter|urlencode }}{% endif %}{% if country_code_filter %}&amp;country_code={{ country_code_filter|urlencode }}{% endif %}">{% trans "Next" %}</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+  {% else %}
+  <p class="text-muted">{% trans "No schools match the filters." %}</p>
+  {% endif %}
+</div>
+{% endblock %}

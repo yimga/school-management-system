@@ -44,6 +44,7 @@ class RequestContextForLogTests(SimpleTestCase):
         request.school = None
         request.user = None
         request.path = None
+        request._runtime_trace_id = None  # avoid MagicMock creating a truthy value
         out = request_context_for_log(request)
         self.assertEqual(out, {})
 

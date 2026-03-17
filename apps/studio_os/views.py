@@ -222,7 +222,7 @@ def studio_experience_portal_shell_layouts(request):
         return redirect(reverse("accounts:backend_dashboard"))
     customizer_url = ""
     try:
-        customizer_url = reverse("siteconfig:customizer") + "?embed=1"
+        customizer_url = reverse("studio_os:experience") + "?embed=1"
     except NoReverseMatch:
         pass
     return render(
@@ -252,7 +252,7 @@ def studio_experience_dashboard_visual_packs(request):
         pass
     customizer_url = ""
     try:
-        customizer_url = reverse("siteconfig:customizer") + "?embed=1"
+        customizer_url = reverse("studio_os:experience") + "?embed=1"
     except NoReverseMatch:
         pass
     return render(
@@ -283,7 +283,7 @@ def studio_experience_school_website_blocks(request):
         pass
     customizer_url = ""
     try:
-        customizer_url = reverse("siteconfig:customizer") + "?embed=1"
+        customizer_url = reverse("studio_os:experience") + "?embed=1"
     except NoReverseMatch:
         pass
     return render(
@@ -309,7 +309,7 @@ def studio_experience_communication_style_packs(request):
         return redirect(reverse("accounts:backend_dashboard"))
     customizer_url = ""
     try:
-        customizer_url = reverse("siteconfig:customizer") + "?embed=1"
+        customizer_url = reverse("studio_os:experience") + "?embed=1"
     except NoReverseMatch:
         pass
     return render(
@@ -432,7 +432,7 @@ def studio_output_policy_registry(request):
     except NoReverseMatch:
         pass
     try:
-        report_library_url = reverse("siteconfig:report_library") + "?embed=1"
+        report_library_url = reverse("studio_os:output") + "?embed=1"
     except NoReverseMatch:
         pass
     return render(
@@ -453,13 +453,32 @@ def studio_output_policy_registry(request):
 @never_cache
 @require_http_methods(["GET"])
 @login_required
+def studio_launch_select_plan(request):
+    """§4.5 Launch Studio: Select plan. Placeholder when plans not productized; rail entry and view wired for when plan product ships."""
+    if not getattr(request.user, "is_staff", False):
+        return redirect(reverse("accounts:backend_dashboard"))
+    return render(
+        request,
+        "studio_os/launch_select_plan.html",
+        {
+            "page_title": _("Select plan"),
+            "page_subtitle": _("Choose your school's plan and entitlements. Full plan picker when productized."),
+            "action_url": reverse("studio_os:launch"),
+            "action_text": _("Back to Launch"),
+        },
+    )
+
+
+@never_cache
+@require_http_methods(["GET"])
+@login_required
 def studio_automation_conflict_detection(request):
     """§4.3 Automation Studio optional: Conflict detection. Explains workflow conflict detection and links to Workflow hub."""
     if not getattr(request.user, "is_staff", False):
         return redirect(reverse("accounts:backend_dashboard"))
     workflow_hub_url = ""
     try:
-        workflow_hub_url = reverse("siteconfig:workflow_hub") + "?embed=1"
+        workflow_hub_url = reverse("studio_os:automation") + "?embed=1"
     except NoReverseMatch:
         pass
     return render(
@@ -484,7 +503,7 @@ def studio_automation_staged_activation(request):
         return redirect(reverse("accounts:backend_dashboard"))
     workflow_hub_url = ""
     try:
-        workflow_hub_url = reverse("siteconfig:workflow_hub") + "?embed=1"
+        workflow_hub_url = reverse("studio_os:automation") + "?embed=1"
     except NoReverseMatch:
         pass
     return render(
@@ -510,7 +529,7 @@ def studio_automation_replay_rollback(request):
     workflow_hub_url = ""
     rollback_url = ""
     try:
-        workflow_hub_url = reverse("siteconfig:workflow_hub") + "?embed=1"
+        workflow_hub_url = reverse("studio_os:automation") + "?embed=1"
     except NoReverseMatch:
         pass
     try:
@@ -537,7 +556,7 @@ def _automation_explainer_view(request, template_name: str, page_title: str, pag
         return redirect(reverse("accounts:backend_dashboard"))
     workflow_hub_url = ""
     try:
-        workflow_hub_url = reverse("siteconfig:workflow_hub") + "?embed=1"
+        workflow_hub_url = reverse("studio_os:automation") + "?embed=1"
     except NoReverseMatch:
         pass
     return render(
@@ -623,7 +642,7 @@ def studio_automation_workflow_health(request):
     summary = get_automation_workflow_health_summary()
     workflow_hub_url = ""
     try:
-        workflow_hub_url = reverse("siteconfig:workflow_hub") + "?embed=1"
+        workflow_hub_url = reverse("studio_os:automation") + "?embed=1"
     except NoReverseMatch:
         pass
     return render(
@@ -654,11 +673,11 @@ def _resolve_legacy_urls(request):
     """Links to current tools until each mode is fully in-shell. Reduces clicks by offering one entry."""
     legacy = {}
     try:
-        legacy["customizer"] = reverse("siteconfig:customizer")
+        legacy["customizer"] = reverse("studio_os:experience")
         legacy["theme_colors"] = reverse("siteconfig:theme_colors")
         legacy["feature_control"] = reverse("siteconfig:feature_control_panel")
-        legacy["report_library"] = reverse("siteconfig:report_library")
-        legacy["workflow_hub"] = reverse("siteconfig:workflow_hub")
+        legacy["report_library"] = reverse("studio_os:output")
+        legacy["workflow_hub"] = reverse("studio_os:automation")
         legacy["guided_onboarding"] = reverse("siteconfig:guided_onboarding")
         legacy["document_library"] = reverse("portal:document_library_manage")
         legacy["reportcard_builder"] = reverse("siteconfig:reportcard_builder")
@@ -767,7 +786,7 @@ def studio_shell(request, mode=None):
         try:
             experience_rail.append({
                 "label": "Customizer",
-                "url": reverse("siteconfig:customizer") + "?embed=1",
+                "url": reverse("studio_os:experience") + "?embed=1",
                 "embed": True,
             })
         except NoReverseMatch:
@@ -899,6 +918,14 @@ def studio_shell(request, mode=None):
             pass
         try:
             launch_rail.append({
+                "label": "Select plan",
+                "url": reverse("studio_os:launch_select_plan") + "?embed=1",
+                "embed": True,
+            })
+        except NoReverseMatch:
+            pass
+        try:
+            launch_rail.append({
                 "label": "Blueprint gallery",
                 "url": reverse("siteconfig:get_blueprints") + "?embed=1",
                 "embed": True,
@@ -928,7 +955,7 @@ def studio_shell(request, mode=None):
         automation_rail = []
         try:
             workflow_entries.append({"label": "Outcomes", "url": reverse("automation:outcomes_console") + "?embed=1"})
-            workflow_entries.append({"label": "Workflow hub", "url": reverse("siteconfig:workflow_hub") + "?embed=1"})
+            workflow_entries.append({"label": "Workflow hub", "url": reverse("studio_os:automation") + "?embed=1"})
             workflow_entries.append({"label": "Flow gallery", "url": reverse("siteconfig:workflow_flow_gallery")})
             workflow_entries.append({"label": "Approval hub", "url": reverse("accounts:approval_workflow_hub")})
             workflow_entries.append({
@@ -978,7 +1005,7 @@ def studio_shell(request, mode=None):
         try:
             output_rail.append({
                 "label": "Report library",
-                "url": reverse("siteconfig:report_library") + "?embed=1",
+                "url": reverse("studio_os:output") + "?embed=1",
                 "embed": True,
             })
         except NoReverseMatch:

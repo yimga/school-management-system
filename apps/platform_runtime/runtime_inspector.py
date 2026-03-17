@@ -132,9 +132,9 @@ def get_runtime_inspection(request: Any) -> Dict[str, Any]:
 
 def get_feature_toggle_inspection(school: Any) -> list:
     """
-    Phase 10 — 10.2: Active feature toggle overrides for a school (why this feature is on, expiry).
-    Returns list of dicts: key, is_enabled, expires_at, source (school|global).
-    §2.4 exception discipline: narrow catches + structured log. Fail closed: on error returns [] (no override info).
+    Phase 10 — 10.2 / GAP.13: Active feature toggle overrides with registry metadata.
+    Returns list of dicts: key, is_enabled, expires_at, source (school|global),
+    owner, definition_source, scope (from FeatureToggleDefinition).
     """
     import logging
     from django.db import DatabaseError
@@ -147,26 +147,22 @@ def get_feature_toggle_inspection(school: Any) -> list:
         q = FeatureToggleState.objects.filter(
             Q(expires_at__isnull=True) | Q(expires_at__gt=now)
         ).select_related("definition").order_by("definition__key")
+        def _row(state, override_source: str) -> Dict[str, Any]:
+            defin = getattr(state, "definition", None)
+            key = getattr(defin, "key", None) if defin else (str(state.definition_id) if state.definition_id else "—")
+            return {
+                "key": key,
+                "is_enabled": state.is_enabled,
+                "expires_at": state.expires_at.strftime("%Y-%m-%d %H:%M") if state.expires_at else None,
+                "source": override_source,
+                "owner": getattr(defin, "owner", None) or "",
+                "definition_source": getattr(defin, "source", None) or "",
+                "scope": getattr(defin, "scope", None) or "",
+            }
         for state in q.filter(school=school):
-            key = None
-            if getattr(state, "definition", None):
-                key = getattr(state.definition, "key", None)
-            out.append({
-                "key": key or str(state.definition_id) if state.definition_id else "—",
-                "is_enabled": state.is_enabled,
-                "expires_at": state.expires_at.strftime("%Y-%m-%d %H:%M") if state.expires_at else None,
-                "source": "school",
-            })
+            out.append(_row(state, "school"))
         for state in q.filter(school__isnull=True):
-            key = None
-            if getattr(state, "definition", None):
-                key = getattr(state.definition, "key", None)
-            out.append({
-                "key": key or str(state.definition_id) if state.definition_id else "—",
-                "is_enabled": state.is_enabled,
-                "expires_at": state.expires_at.strftime("%Y-%m-%d %H:%M") if state.expires_at else None,
-                "source": "global",
-            })
+            out.append(_row(state, "global"))
     except (AttributeError, DatabaseError, ImportError, TypeError, ValueError) as e:
         logger.warning(
             "feature_toggle_inspection_skipped school_id=%s error=%s",
@@ -174,8 +170,26 @@ def get_feature_toggle_inspection(school: Any) -> list:
             e,
             exc_info=True,
         )
-        # Fail closed: return empty list so UI does not show incorrect override state
     return out
+
+
+def _get_entitlements_why(school: Any, out: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    GAP.6: Why these entitlements — which plan/rule/policy granted them.
+    Returns dict with policy_bundle_id, blueprint_id, plan_name for UI.
+    """
+    why = {
+        "policy_bundle_id": out.get("source_summary", {}).get("policy_bundle_id"),
+        "blueprint_id": out.get("source_summary", {}).get("blueprint_id"),
+        "plan_name": None,
+        "plan_code": None,
+    }
+    if school:
+        plan = getattr(school, "plan", None)
+        if plan is not None:
+            why["plan_name"] = getattr(plan, "name", None) or getattr(plan, "label", None)
+            why["plan_code"] = getattr(plan, "code", None)
+    return why
 
 
 def get_runtime_inspection_for_school(school: Any) -> Dict[str, Any]:
@@ -204,6 +218,8 @@ def get_runtime_inspection_for_school(school: Any) -> Dict[str, Any]:
         )
         # Phase 10 — 10.2: why this feature is on (toggle state + expiry)
         out["feature_toggles"] = get_feature_toggle_inspection(school)
+        # GAP.6: why these entitlements (which plan/rule/policy enabled them)
+        out["entitlements_why"] = _get_entitlements_why(school, out)
         return out
     except (AttributeError, DatabaseError, RuntimeResolutionError, TypeError, ValueError) as e:
         return {"error": str(e), "effective_blueprint": {}, "override_sources": {}, "governor_limits": None, "feature_toggles": []}

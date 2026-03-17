@@ -14,10 +14,80 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-2" data-page-archetype="operational-workbench">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench"{% include "schools/partials/decision_architecture_attrs.html" %}>
   {% include "studio_os/components/page_header.html" with title=_("Policy diff") subtitle=_("Compare platform default, country/region, blueprint, school override, temporary override.") action_url=dashboard_url action_text=_("Back to dashboard") %}
+
+  {% if bundles_sample %}
+  <div class="card shadow-sm border-secondary mb-2">
+    <div class="card-header">{% trans "Impact preview by bundle (GAP.7)" %}</div>
+    <div class="card-body">
+      <form method="get" action="{{ policy_diff_url }}" class="row g-2 align-items-end mb-0">
+        <div class="col-auto">
+          <label for="bundle_id" class="form-label small mb-0">{% trans "Policy bundle" %}</label>
+          <select name="bundle_id" id="bundle_id" class="form-select form-select-sm" style="min-width: 220px;">
+            <option value="">— {% trans "Select bundle" %} —</option>
+            {% for b in bundles_sample %}
+            <option value="{{ b.id }}" {% if impact_preview.by_bundle and impact_preview.bundle_id == b.id %}selected{% endif %}>#{{ b.id }} {{ b.code|default:"" }} {{ b.name|default:"" }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% if school %}<input type="hidden" name="school_id" value="{{ school.id }}">{% endif %}
+        <div class="col-auto"><button type="submit" class="btn btn-sm btn-outline-primary">{% trans "Preview" %}</button></div>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
   {% if school %}
   <p class="mb-2">{% trans "School" %}: <strong>{{ school.name }}</strong></p>
+  {% endif %}
+  {% if impact_preview %}
+  <div class="card shadow-sm border-secondary mb-2">
+    <div class="card-header">{% trans "Impact preview (GAP.7)" %}</div>
+    <div class="card-body">
+      {% if impact_preview.error %}
+      <p class="small text-danger mb-0">{{ impact_preview.error }}</p>
+      {% elif impact_preview.by_bundle %}
+      <p class="small mb-1">{% trans "If this policy bundle changes, the following are affected:" %}</p>
+      <ul class="small mb-1">
+        <li><strong>{% trans "Affected tenants" %}:</strong> {{ impact_preview.affected_count|default:0 }}</li>
+        {% if impact_preview.bundle_name or impact_preview.bundle_code %}<li><strong>{% trans "Bundle" %}:</strong> {{ impact_preview.bundle_code|default:"" }} {{ impact_preview.bundle_name|default:"" }}</li>{% endif %}
+        {% if impact_preview.policy_keys %}<li><strong>{% trans "Policy keys" %}:</strong> {{ impact_preview.policy_keys|join:", " }}</li>{% endif %}
+      </ul>
+      {% if impact_preview.affected_schools %}
+      <p class="small mb-0"><strong>{% trans "Schools" %}:</strong></p>
+      <ul class="small mb-0 list-unstyled">
+        {% for s in impact_preview.affected_schools %}
+        <li><a href="{{ runtime_inspector_url }}?school_id={{ s.id }}">{{ s.name|default:s.id }}</a></li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      {% else %}
+      <p class="small mb-1">{% trans "If this policy bundle changes, the following are affected:" %}</p>
+      <ul class="small mb-0">
+        <li><strong>{% trans "Tenants using same bundle" %}:</strong> {{ impact_preview.affected_tenant_count|default:0 }}</li>
+        <li><strong>{% trans "Feature keys in policy" %}:</strong> {% if impact_preview.affected_features %}{{ impact_preview.affected_features|join:", " }}{% else %}—{% endif %}</li>
+        {% if impact_preview.blueprint_compatibility %}
+        <li><strong>{% trans "Blueprint compatibility (GAP.9)" %}:</strong> {{ impact_preview.blueprint_compatibility|join:", " }}</li>
+        {% endif %}
+      </ul>
+      {% if impact_preview.bundle_id and school %}
+      <form method="post" action="{% url 'super:policy_apply_to_sandbox' %}" class="mt-2">
+        {% csrf_token %}
+        <input type="hidden" name="school_id" value="{{ school.id }}">
+        <input type="hidden" name="bundle_id" value="{{ impact_preview.bundle_id }}">
+        <label for="sandbox_school_id" class="form-label small">{% trans "Apply to sandbox (GAP.8)" %}:</label>
+        <div class="input-group input-group-sm">
+          <input type="text" id="sandbox_school_id" name="sandbox_school_id" class="form-control" placeholder="{% trans 'Sandbox school UUID' %}" required>
+          <button type="submit" class="btn btn-outline-primary">{% trans "Apply" %}</button>
+        </div>
+      </form>
+      {% endif %}
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+  {% if school %}
   {% for layer in layers %}
   <div class="card shadow-sm border-secondary mb-2">
     <div class="card-header">{{ layer.label }}</div>

@@ -3,6 +3,7 @@
  * §8.0.6 fluid layout; Flexbox/Grid; typography via clamp(); no fixed px for layout.
  * Dark-mode-first; scroll-driven reveal; outcome-focused, developer-centric UX.
  * CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL; RUNMYCAMPUS_SCROLL_STORYTELLING_MARKETING_DIRECTIVE.
+ * GAP.2: Dark-first tokens (--mkt-product-bg, --mkt-product-surface); scroll-driven .mkt-reveal / .mkt-reveal-stagger + .in-view.
  */
 .mkt-product-story {
   --mkt-product-bg: #0B0E14;
@@ -19,6 +20,63 @@
   color: var(--mkt-product-text);
   font-family: var(--portal-font, Inter, system-ui, sans-serif);
   position: relative;
+}
+
+/* Two-column layout on desktop: content + pinned frame (GAP.1) */
+.mkt-product-story-inner {
+  position: relative;
+  max-width: min(1400px, 100%);
+  margin: 0 auto;
+  padding: 0 var(--mkt-product-spacing);
+}
+@media (min-width: 992px) {
+  .mkt-product-story-inner {
+    display: grid;
+    grid-template-columns: 1fr minmax(min(320px, 100%), 360px);
+    gap: var(--mkt-product-spacing-lg);
+    align-items: start;
+  }
+}
+.mkt-product-story-content {
+  min-width: 0;
+}
+
+/* Pinned product frame: one sticky visual that updates per chapter (GAP.1) */
+.mkt-product-pinned-frame {
+  display: none;
+}
+@media (min-width: 992px) {
+  .mkt-product-pinned-frame {
+    display: block;
+    position: sticky;
+    top: clamp(4rem, 10vw, 6rem);
+    border-radius: var(--mkt-product-radius);
+    overflow: hidden;
+    background: var(--mkt-product-surface);
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.3);
+  }
+  .mkt-product-pinned-panel {
+    display: none;
+    opacity: 0;
+  }
+  .mkt-product-pinned-panel.active {
+    display: block;
+    opacity: 1;
+  }
+  .mkt-product-pinned-panel[aria-hidden="false"].active {
+    transition: opacity 0.25s ease-out;
+  }
+  .mkt-product-pinned-frame img {
+    width: 100%;
+    height: auto;
+    display: block;
+    vertical-align: top;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mkt-product-pinned-panel.active {
+    transition: none;
+  }
 }
 
 /* Scroll progress — reuse same class names; scope to product root */

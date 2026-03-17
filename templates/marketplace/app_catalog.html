@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-4 control-plane-shell proof-page" data-page-archetype="catalog" data-ux-qa-marker="app-catalog">
+<div class="container-fluid py-4 control-plane-shell proof-page" data-page-archetype="catalog" data-ux-qa-marker="app-catalog"{% include "schools/partials/decision_architecture_attrs.html" %}>
   <section class="proof-hero">
     <div class="proof-hero-grid">
       <div>
@@ -75,15 +75,33 @@
     <div class="proof-catalog-grid" id="app-catalog-list">
       {% for listing in listings %}
       <article class="proof-app-card" data-app-name="{{ listing.app.name|lower }}" data-app-slug="{{ listing.app.slug|lower }}" data-app-desc="{{ listing.app.description|default:''|lower }} {{ listing.category|default:''|lower }}">
+        {% if listing.preview_image_url %}
+        <div class="proof-app-preview-img mb-2">
+          <img src="{{ listing.preview_image_url }}" alt="" class="img-fluid rounded" style="max-height: 140px; object-fit: cover; width: 100%;" loading="lazy">
+        </div>
+        {% endif %}
+        {% if listing.screenshot_urls %}
+        <div class="proof-app-screenshots mb-2 d-flex gap-1 flex-wrap">
+          {% for url in listing.screenshot_urls|slice:":5" %}
+          <img src="{{ url }}" alt="" class="rounded" style="height: 56px; width: 80px; object-fit: cover;" loading="lazy">
+          {% endfor %}
+        </div>
+        {% endif %}
         <div class="proof-app-head">
           <div>
             <h3 class="mb-1">{{ listing.app.name }}</h3>
             <div class="text-muted small">{{ listing.app.slug }} • v{{ listing.app.version }}</div>
           </div>
-          <div class="proof-app-meta">
-            <span class="badge {% if listing.publisher and listing.publisher.verification_status == 'verified' %}text-bg-success{% else %}text-bg-secondary{% endif %}">
-              {% if listing.publisher and listing.publisher.verification_status == 'verified' %}Verified{% else %}Review required{% endif %}
+          <div class="proof-app-meta proof-trust-badges">
+            <span class="badge {% if listing.publisher and listing.publisher.verification_status == 'verified' %}text-bg-success{% else %}text-bg-secondary{% endif %}" title="Publisher verification">
+              <i class="bi bi-shield-check"></i> {% if listing.publisher and listing.publisher.verification_status == 'verified' %}Verified publisher{% else %}Review required{% endif %}
             </span>
+            {% if listing.security_review_status == 'approved' %}
+            <span class="badge text-bg-info" title="Security review passed"><i class="bi bi-shield-lock"></i> Security reviewed</span>
+            {% endif %}
+            {% if listing.certification_status == 'approved' %}
+            <span class="badge text-bg-info" title="Certification passed"><i class="bi bi-patch-check"></i> Certified</span>
+            {% endif %}
             <span class="badge text-bg-light">{{ listing.app.get_kind_display }}</span>
           </div>
         </div>
@@ -102,6 +120,16 @@
             <span class="proof-chip"><i class="bi bi-stack"></i> {{ listing.compatibility.plan_tiers|join:", " }}</span>
             {% endif %}
           </div>
+          {% if listing.app.scopes.all %}
+          <div class="mt-2">
+            <strong class="small">Required permissions:</strong>
+            <ul class="list-unstyled small mb-0 mt-1">
+              {% for scope in listing.app.scopes.all %}
+              <li><code>{{ scope.scope_code }}</code>{% if scope.description %} — {{ scope.description }}{% endif %}{% if scope.sensitive %} <span class="badge text-bg-warning">Sensitive</span>{% endif %}</li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
         </div>
 
         <div class="text-muted small">

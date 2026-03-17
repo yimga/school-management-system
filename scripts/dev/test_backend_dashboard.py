@@ -88,7 +88,7 @@ url_names = [
     "accounts:backend_dashboard",
     "accounts:workflow_center",
     "siteconfig:user_preferences",
-    "siteconfig:customizer",
+    "studio_os:experience",
     "accounts:backend_ops_watch_data",
 ]
 for name in url_names:

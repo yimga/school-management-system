@@ -62,23 +62,6 @@ def dashboard_hub(request):
 @never_cache
 @require_http_methods(["GET"])
 @login_required
-def workflow_hub(request):
-    """
-    Legacy path: always redirect to Studio OS Automation (Step 6 product sign-off).
-    Preserves query string (e.g. embed=1) for iframe usage.
-    """
-    from django.shortcuts import redirect
-    from django.urls import reverse
-
-    url = reverse("studio_os:automation")
-    if request.GET:
-        url = f"{url}?{request.GET.urlencode()}"
-    return redirect(url)
-
-
-@never_cache
-@require_http_methods(["GET"])
-@login_required
 def get_blueprints(request):
     """
     Tenant-facing "Get blueprints" entry (11.2). Blueprint packs are applied by platform admin;
@@ -261,10 +244,10 @@ def workflow_flow_gallery(request):
             action_url = reverse("studio_os:automation")
             action_text = _("Back to Automation")
         except NoReverseMatch:
-            action_url = reverse("siteconfig:workflow_hub")
+            action_url = reverse("studio_os:automation")
             action_text = _("Back to Workflow hub")
     else:
-        action_url = reverse("siteconfig:workflow_hub")
+        action_url = reverse("studio_os:automation")
         action_text = _("Back to Workflow hub")
 
     return render(

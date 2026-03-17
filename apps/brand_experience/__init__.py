@@ -1,5 +1,6 @@
-# Bounded-context: themes, logos, colors, portal look/feel (metadata-driven plan todo 2).
-#
-# 9.5/10 North-star: Theme & experience resolution must flow through runtime, not direct
-# SiteSettings. Tenant behavior from runtime; theme/ExperiencePack as packageable units with
-# compare/rollback. See docs/PLATFORM_9.5_TOOLSETS_EXECUTION.md and docs/RUNMYCAMPUS_FINAL_UNADDRESSED_GAPS_CHECKLIST.md.
+# Bounded-context: themes, logos, colors, portal look/feel (GAP.12 / IV.2–IV.3).
+# Theme/experience ownership: models (ThemePack, BrandProfile, BrandSettings) live here;
+# resolution flows via siteconfig.branding.resolve_brand_profile (uses these models).
+# Runtime step 7 (branding) consumes that resolution so portal and dashboard share a single
+# token/layout design system (BrandingContext).
+# For unified theme tokens use: from apps.brand_experience.resolvers import get_unified_theme_tokens

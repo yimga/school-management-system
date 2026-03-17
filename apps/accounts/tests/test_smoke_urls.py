@@ -34,8 +34,9 @@ class SmokeUrlResolutionTests(SimpleTestCase):
     def test_accounts_root(self):
         self.assertEqual(reverse("accounts:root"), "/authentication/")
 
-    def test_siteconfig_customizer(self):
-        self.assertEqual(reverse("siteconfig:customizer"), "/siteconfig/customizer/")
+    def test_studio_os_experience(self):
+        """Legacy customizer → Studio OS Experience (legacy path removals)."""
+        self.assertEqual(reverse("studio_os:experience"), "/studio/experience/")
 
     def test_siteconfig_user_preferences(self):
         self.assertEqual(reverse("siteconfig:user_preferences"), "/siteconfig/preferences/")
