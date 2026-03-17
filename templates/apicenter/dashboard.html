@@ -33,13 +33,13 @@
               {% if integration.enabled %}{% trans "Disable" %}{% else %}{% trans "Enable" %}{% endif %}
             </button>
           </form>
-          <a href="{% url 'admin:siteconfig_integration_change' integration.pk %}" class="btn btn-link btn-sm p-0 mt-2">{% trans "Manage config & scopes" %} →</a>
+          <a href="{% url 'siteconfig:console_domains_hub' %}" class="btn btn-link btn-sm p-0 mt-2">{% trans "Manage config & scopes" %} →</a>
         </div>
       </div>
     {% empty %}
     <div class="card shadow-sm" style="grid-column: 1 / -1;">
       <div class="card-body">
-        <div class="alert alert-info mb-0">{% trans "No integrations yet. Add them in Configuration Engine → Integrations." %}</div>
+        <div class="alert alert-info mb-0">{% trans "No integrations yet. Add them in System config." %}</div>
       </div>
     </div>
     {% endfor %}

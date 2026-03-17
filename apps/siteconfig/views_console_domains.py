@@ -229,16 +229,43 @@ def _build_operational_links_context(request: HttpRequest) -> list[dict[str, str
     return out
 
 
+def _build_operational_hubs_context(request: HttpRequest) -> list[dict[str, Any]]:
+    """Operational hubs merged into System config: Studio OS entry plus Workflow, Approvals, Import, Documents, Reports, RBAC, Feature control, Communications. Single integrated list."""
+    hubs = []
+    for label, url_name, icon in [
+        ("Studio OS", "studio_os:shell", "bi-window-stack"),
+        ("Workflow center", "studio_os:workflow_center", "bi-diagram-3"),
+        ("Approval hub", "studio_os:approval_hub", "bi-clipboard-check"),
+        ("Import & bulk", "studio_os:import_hub", "bi-upload"),
+        ("Document library", "portal:document_library_manage", "bi-folder2-open"),
+        ("Report library", "studio_os:output", "bi-journal-text"),
+        ("RBAC & permissions", "accounts:rbac", "bi-shield-lock"),
+        ("Feature control", "siteconfig:feature_control_panel", "bi-toggle-on"),
+        ("Message groups", "communication:group_list", "bi-people"),
+        ("Announcements", "communication:announcement_create", "bi-megaphone"),
+    ]:
+        url = _safe_reverse(url_name)
+        if url:
+            hubs.append({"label": label, "url": url, "icon": icon})
+    return hubs
+
+
 @staff_member_required
 def console_domains_hub(request: HttpRequest) -> HttpResponse:
-    """Single bounded console entry: platform config + seven domains + operational links. One place for all config."""
+    """Single bounded console: operational hubs + configuration domains + (manager) platform config + operational links. Backoffice merged here; one UI."""
     domains = _build_console_domains_context(request)
+    operational_hubs = _build_operational_hubs_context(request)
+    studio_shell_url = _safe_reverse("studio_os:shell")
     template = (
         "siteconfig/console_domains_hub_control_plane.html"
         if getattr(request, "public_host_kind", None) == "manager"
         else "siteconfig/console_domains_hub.html"
     )
-    context = {"domains": domains}
+    context = {
+        "domains": domains,
+        "operational_hubs": operational_hubs,
+        "studio_shell_url": studio_shell_url,
+    }
     if template == "siteconfig/console_domains_hub_control_plane.html":
         try:
             context["super_dashboard_url"] = reverse("super:dashboard")
@@ -246,4 +273,8 @@ def console_domains_hub(request: HttpRequest) -> HttpResponse:
             context["super_dashboard_url"] = None
         context["platform_config"] = _build_platform_config_context(request)
         context["operational_links"] = _build_operational_links_context(request)
+        try:
+            context["admin_index_url"] = reverse("admin:index")
+        except NoReverseMatch:
+            context["admin_index_url"] = None
     return render(request, template, context)

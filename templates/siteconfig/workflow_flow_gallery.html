@@ -51,11 +51,11 @@
               </td>
             </tr>
           {% empty %}
-            <tr><td colspan="3" class="text-muted">No workflow templates defined. Create in <a href="{% url 'admin:siteconfig_workflowtemplate_changelist' %}">Admin → Workflow Templates</a>.</td></tr>
+            <tr><td colspan="3" class="text-muted">No workflow templates defined yet.</td></tr>
           {% endfor %}
         </tbody>
       </table>
-      <p class="text-muted small mb-0">Advanced overrides (trigger_config, conditions, actions) can be edited in <a href="{% url 'admin:siteconfig_tenantworkflow_changelist' %}">Admin → Tenant Workflows</a> within guardrails.</p>
+      <p class="text-muted small mb-0">Advanced overrides are governed by Studio OS and System config guardrails.</p>
     </div>
   </div>
 </div>

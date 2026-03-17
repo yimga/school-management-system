@@ -15,7 +15,7 @@
 
 {% block breadcrumb_actions %}
 {% if request.user.is_superuser %}
-<a href="{% if request.public_host_kind == 'manager' %}{% url 'siteconfig:console_domains_hub' %}{% else %}{% url 'admin:index' %}{% endif %}" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1" title="{% trans 'System config – platform settings and domains' %}">
+<a href="{% url 'siteconfig:console_domains_hub' %}" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1" title="{% trans 'System config – platform settings and domains' %}">
   <i class="bi bi-gear-wide-connected"></i>
   <span>{% trans "System config" %}</span>
 </a>

@@ -541,11 +541,11 @@
                     <form method="post" action="{% url 'super:switch_to_tenant' %}" class="d-inline">
                       {% csrf_token %}
                       <input type="hidden" name="school_id" value="{{ school.id }}">
+                      <input type="hidden" name="next" value="/accounts/backend/">
                       <button type="submit" class="btn btn-sm btn-outline-primary">Open as school</button>
                     </form>
                     {% if school.timeline_url %}<a href="{{ school.timeline_url }}" class="btn btn-sm btn-outline-info">Timeline</a>{% endif %}
                     {% if school.sync_repair_url %}<a href="{{ school.sync_repair_url }}" class="btn btn-sm btn-outline-warning">Sync repair</a>{% endif %}
-                    {% if school.admin_edit_url %}<a href="{{ school.admin_edit_url }}" class="btn btn-sm btn-outline-secondary">Edit</a>{% endif %}
                   </div>
                 </td>
               </tr>

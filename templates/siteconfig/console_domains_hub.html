@@ -1,38 +1,64 @@
 {% extends "portal_base.html" %}
 {% load static i18n %}
 
-{% block title %}{% trans "Config console" %}{% endblock %}
+{% block title %}{% trans "System config" %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4" data-page-archetype="decision-console">
-  <header class="mb-4">
-    <h1 class="h2">{% trans "Config console" %}</h1>
-    <p class="text-muted">{% trans "Seven domains — guided, search, preview, diff, rollback. Outcomes not jargon." %}</p>
+<div class="container-fluid py-4" data-page-archetype="decision-console" style="max-width: 960px;">
+  <header class="mb-4 pb-3 border-bottom">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <div>
+        <h1 class="h4 mb-1 fw-bold">{% trans "System config" %}</h1>
+        <p class="text-muted small mb-0">{% trans "Operational hubs and configuration domains in one place. Workflows, approvals, import, documents, reports, RBAC, feature control, and more." %}</p>
+      </div>
+      {% if studio_shell_url %}
+      <a href="{{ studio_shell_url }}" class="btn btn-primary btn-sm">{% trans "Open Studio OS" %} <i class="bi bi-arrow-right ms-1"></i></a>
+      {% endif %}
+    </div>
   </header>
-  <div class="row g-3">
-    {% for domain in domains %}
-    <div class="col-12 col-md-6 col-lg-4">
-      <div class="card h-100">
-        <div class="card-body">
-          <h2 class="h6 card-title">{{ domain.name }}</h2>
-          <p class="card-text small text-muted">{{ domain.outcome }}</p>
-          <ul class="list-unstyled mb-0">
-            {% for link in domain.resolved_links %}
-            <li><a href="{{ link.url }}">{{ link.label }}</a></li>
-            {% endfor %}
-          </ul>
-          <div class="mt-2 pt-2 border-top small text-muted">
-            {% if domain.search_url %}<a href="{{ domain.search_url }}" class="me-2">{% trans "Search" %}</a>{% endif %}
-            {% if domain.preview_url %}<a href="{{ domain.preview_url }}" class="me-2">{% trans "Preview" %}</a>{% endif %}
-            {% if domain.diff_url %}<a href="{{ domain.diff_url }}" class="me-2">{% trans "Compare" %}</a>{% endif %}
-            {% if domain.audit_url %}<a href="{{ domain.audit_url }}" class="me-2">{% trans "Audit" %}</a>{% endif %}
-            {% if domain.rollback_url %}<a href="{{ domain.rollback_url }}">{% trans "Rollback" %}</a>{% endif %}
+
+  {% if operational_hubs %}
+  <section class="mb-4">
+    <h2 class="h6 text-uppercase text-muted mb-2">{% trans "Operational hubs" %}</h2>
+    <p class="small text-muted mb-3">{% trans "Workflows, approvals, import/export, documents, reports, RBAC, feature control, communications." %}</p>
+    <ul class="list-unstyled mb-0">
+      {% for hub in operational_hubs %}
+      <li class="mb-2">
+        <a href="{{ hub.url }}" class="d-flex align-items-center gap-2 py-2 px-3 rounded border bg-light text-decoration-none text-dark">
+          <span class="bi {{ hub.icon }} text-primary"></span>
+          <span>{{ hub.label }}</span>
+          <span class="bi bi-chevron-right ms-auto text-muted"></span>
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  <section class="mb-4">
+    <h2 class="h6 text-uppercase text-muted mb-2">{% trans "Configuration domains" %}</h2>
+    <p class="small text-muted mb-3">{% trans "Brand, runtime, policies, plans, registries, integrations." %}</p>
+    <div class="row g-2">
+      {% for domain in domains %}
+      <div class="col-12 col-md-6">
+        <div class="card h-100">
+          <div class="card-body py-3">
+            <div class="fw-semibold small mb-1">{{ domain.name }}</div>
+            <p class="small text-muted mb-2">{{ domain.outcome }}</p>
+            <div class="d-flex flex-wrap gap-1">
+              {% for link in domain.resolved_links %}
+              {% if link.url != '#' %}
+              <a href="{{ link.url }}" class="btn btn-sm btn-outline-secondary">{{ link.label }}</a>
+              {% endif %}
+              {% endfor %}
+              {% if domain.search_url %}<a href="{{ domain.search_url }}" class="btn btn-sm btn-outline-secondary">{% trans "Search" %}</a>{% endif %}
+              {% if domain.audit_url %}<a href="{{ domain.audit_url }}" class="btn btn-sm btn-outline-secondary">{% trans "Audit" %}</a>{% endif %}
+            </div>
           </div>
-          <p class="mt-1 mb-0 small text-muted">{% trans "Outcomes not jargon. Compare before apply; view change history; revert if needed." %}</p>
         </div>
       </div>
+      {% endfor %}
     </div>
-    {% endfor %}
-  </div>
+  </section>
 </div>
 {% endblock %}

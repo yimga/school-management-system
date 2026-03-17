@@ -14,11 +14,7 @@
     {% include "components/pin_to_quick_access.html" with sidebar_item_id="eval_admin" %}
   </div>
   <div class="d-flex gap-2">
-    {% if is_backend_context %}
     <a class="btn btn-outline-secondary btn-back-outline" href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-arrow-left me-1"></i>{% trans "Back to Backend" %}</a>
-{% else %}
-    <a class="btn btn-outline-secondary btn-back-outline" href="{% url 'admin:index' %}"><i class="bi bi-arrow-left me-1"></i>Back to Admin</a>
-{% endif %}
     <a class="btn btn-outline-primary" href="{% url 'evals:grade_import_template' %}">Download CSV template</a>
   </div>
 </div>

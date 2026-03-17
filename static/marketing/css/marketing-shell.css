@@ -44,6 +44,40 @@ body.marketing-surface,
 .mkt-navbar-unified .navbar-collapse { min-width: 0; flex-wrap: wrap; }
 .mkt-navbar-unified .mkt-nav-primary { flex-wrap: wrap; min-width: 0; }
 .mkt-navbar .navbar-brand { color: var(--mkt-text-inverse) !important; font-size: 1.125rem; background: transparent !important; }
+.mkt-navbar .navbar-brand { min-width: 0; }
+.mkt-navbar .navbar-brand img { width: 28px; height: 28px; max-width: 28px; }
+.mkt-navbar .navbar-brand span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+/* Desktop: single compact row like /super header */
+@media (min-width: 992px) {
+  .mkt-navbar.mkt-navbar-unified.statement-header {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+  .mkt-navbar-unified .mkt-navbar-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: nowrap;
+  }
+  .mkt-navbar-unified .navbar-brand.statement-logo {
+    flex: 0 0 auto;
+    max-width: 320px;
+    padding-right: 0;
+    margin-right: 0.5rem;
+  }
+  .mkt-navbar-unified .navbar-collapse {
+    flex: 1 1 auto;
+    min-width: 0;
+    flex-wrap: nowrap;
+  }
+  .mkt-navbar-unified .mkt-nav-primary {
+    flex: 1 1 auto;
+    min-width: 0;
+    flex-wrap: nowrap;
+    overflow: hidden;
+  }
+}
 .mkt-navbar .nav-link {
   color: rgba(248, 250, 252, 0.92) !important;
   padding: 0.5rem 0.75rem !important;
@@ -65,6 +99,29 @@ body.marketing-surface,
   color: #fff;
   transform: translateY(-1px);
   box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+}
+
+/* Bootstrap button harmonization (marketing only) */
+body.marketing-surface .btn-primary,
+body.marketing-surface .btn.btn-primary {
+  background: var(--mkt-accent);
+  border-color: var(--mkt-accent);
+}
+body.marketing-surface .btn-primary:hover,
+body.marketing-surface .btn.btn-primary:hover {
+  background: var(--mkt-accent-hover);
+  border-color: var(--mkt-accent-hover);
+}
+body.marketing-surface .btn-outline-primary,
+body.marketing-surface .btn.btn-outline-primary {
+  color: var(--mkt-accent);
+  border-color: color-mix(in srgb, var(--mkt-accent) 55%, transparent);
+}
+body.marketing-surface .btn-outline-primary:hover,
+body.marketing-surface .btn.btn-outline-primary:hover {
+  background: color-mix(in srgb, var(--mkt-accent) 14%, transparent);
+  border-color: var(--mkt-accent);
+  color: var(--mkt-accent);
 }
 
 /* ----- Footer ----- */

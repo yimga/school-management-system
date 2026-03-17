@@ -345,11 +345,7 @@
             <a href="{% url 'compliance:compliance_reporting:permissions' %}" class="link-btn">🔐 Permissions</a>
             <a href="{% url 'compliance:compliance_reporting:integrity_check' %}" class="link-btn">✓ Integrity Check</a>
             <a href="{% url 'compliance:compliance_reporting:anomalies' %}" class="link-btn">⚠️ Anomalies</a>
-            {% if is_backend_context %}
-            <a href="{% url 'admin:index' %}" class="link-btn" title="{% trans 'View reports in Configuration Engine' %}">📑 Reports</a>
-            {% else %}
-            <a href="{% url 'admin:compliance_compliancereport_changelist' %}" class="link-btn">📑 Reports</a>
-            {% endif %}
+            <a href="{% url 'siteconfig:console_domains_hub' %}" class="link-btn">⚙️ System config</a>
         </div>
         <div class="export-links">
             <span class="export-label">Export shortcuts:</span>

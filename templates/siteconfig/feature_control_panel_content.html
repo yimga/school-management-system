@@ -14,7 +14,7 @@
           <a class="btn btn-outline-secondary btn-sm" href="{% url 'siteconfig:feature_control_audit' %}"><i class="bi bi-clock-history me-1"></i>Audit Log</a>
           <a class="btn btn-outline-secondary btn-sm" href="{% url 'siteconfig:feature_control_export' %}"><i class="bi bi-download me-1"></i>Export</a>
           <a class="btn btn-outline-secondary btn-sm" href="{% url 'studio_os:experience' %}">Customizer</a>
-          <a class="btn btn-outline-secondary btn-sm" href="{% url 'admin:siteconfig_sitesettings_change' site_settings_id %}">Site Settings</a>
+          <a class="btn btn-outline-secondary btn-sm" href="{% url 'siteconfig:console_domains_hub' %}">{% trans "System config" %}</a>
           {% if SUPER_ADMIN_UI_ENABLED %}{% if request.user.is_superuser or request.user.role == "SUPERADMIN" %}
           {% if request.public_host_kind == 'manager' %}
           <a class="btn btn-primary btn-sm" href="{% url 'super:dashboard' %}"><i class="bi bi-building me-1"></i>Schools</a>

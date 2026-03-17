@@ -9,11 +9,7 @@
     <h2 class="mb-1">Publish Term Results</h2>
     <div class="text-muted small">Publishing locks teacher entry and enables parent access.</div>
   </div>
-  {% if is_backend_context %}
   <a class="btn btn-sm btn-outline-secondary btn-back-outline" href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-arrow-left me-1"></i>{% trans "Back to Backend" %}</a>
-  {% else %}
-  <a class="btn btn-sm btn-outline-secondary btn-back-outline" href="{% url 'admin:index' %}"><i class="bi bi-arrow-left me-1"></i>Back to Admin</a>
-  {% endif %}
 </div>
 
 <div class="card mb-3">
@@ -82,7 +78,7 @@
             </div>
           </div>
         {% empty %}
-          <div class="text-muted">No classrooms found for this academic year. {% if is_backend_context %}<a href="{% url 'studio_os:workflow_center' %}">Set up year and classrooms</a> in Workflow Center, then return here to publish.{% else %}<a href="{% url 'admin:academics_classroom_changelist' %}">Add classrooms</a> in Academics, then return here to publish.{% endif %}</div>
+          <div class="text-muted">No classrooms found for this academic year. <a href="{% url 'studio_os:workflow_center' %}">Set up year and classrooms</a> in Workflow Center, then return here to publish.</div>
         {% endfor %}
       </div>
 

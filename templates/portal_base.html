@@ -990,8 +990,8 @@
     <div class="alert alert-warning text-center m-0 rounded-0 border-0 d-flex flex-wrap align-items-center justify-content-center gap-2 py-2 px-3" role="status">
       <span class="fw-semibold">{% trans "You're previewing unsaved Site Settings." %}</span>
       {% if request.user.is_staff %}
-      <a class="btn btn-sm btn-primary" href="{% url 'admin:siteconfig_sitesettings_change' SITE.pk|default:1 %}">{% trans "Save in Site Settings" %}</a>
-      <a class="btn btn-sm btn-outline-dark" href="{% url 'admin:siteconfig_sitesettings_change' SITE.pk|default:1 %}">{% trans "Back to Site Settings" %}</a>
+      <a class="btn btn-sm btn-primary" href="{% url 'siteconfig:console_domains_hub' %}">{% trans "Save in Site Settings" %}</a>
+      <a class="btn btn-sm btn-outline-dark" href="{% url 'siteconfig:console_domains_hub' %}">{% trans "Back to Site Settings" %}</a>
       <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:clear_preview' %}?next={{ request.path }}">{% trans "Discard preview" %}</a>
       {% endif %}
     </div>
@@ -1155,13 +1155,7 @@
                   <i class="bi bi-gear" aria-hidden="true"></i>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminMenuDropdown">
-                  {% if is_backend_context and request.user.is_superuser %}
-                  <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-gear-wide-connected"></i> {% trans "Configuration Engine" %}</a></li>
-                  {% elif not is_backend_context %}
-                  <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-speedometer2"></i> Django Admin</a></li>
-                  {% endif %}
-                  <li><a class="dropdown-item" href="{% url 'admin:activity_logs' %}"><i class="bi bi-clock-history"></i> Activity Logs</a></li>
-                  <li><a class="dropdown-item" href="{% url 'admin:system_health' %}"><i class="bi bi-heart-pulse"></i> System Health</a></li>
+                  <li><a class="dropdown-item" href="{% url 'siteconfig:console_domains_hub' %}"><i class="bi bi-gear-wide-connected"></i> {% trans "System config" %}</a></li>
                 </ul>
               </div>
 

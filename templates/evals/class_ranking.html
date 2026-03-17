@@ -10,11 +10,7 @@
     <h2 class="mb-0">Class Ranking</h2>
     <div class="text-muted">Ranks students by average score for the selected term.</div>
   </div>
-  {% if is_backend_context %}
   <a class="btn btn-outline-secondary btn-back-outline" href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-arrow-left me-1"></i>{% trans "Back to Backend" %}</a>
-  {% else %}
-  <a class="btn btn-outline-secondary btn-back-outline" href="{% url 'admin:index' %}"><i class="bi bi-arrow-left me-1"></i>Back to Admin</a>
-  {% endif %}
 </div>
 
 <form method="get" class="card mb-3">

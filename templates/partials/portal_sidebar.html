@@ -168,9 +168,8 @@
         {% endif %}
         <div class="sidebar-section-title">People & Access</div>
         <a class="nav-link nav-pill" href="{% url 'accounts:backend_student_list' %}"><i class="bi bi-person-lines-fill me-2"></i>Student Profiles</a>
-        {% if request.user.is_superuser and not is_backend_context %}
-        <a class="nav-link nav-pill" href="{% url 'admin:people_studentguardian_changelist' %}"><i class="bi bi-people-fill me-2"></i>Student Guardians</a>
-        <a class="nav-link nav-pill" href="{% url 'admin:auth_group_changelist' %}"><i class="bi bi-unlock me-2"></i>Authentication Groups</a>
+        {% if request.user|has_feature_permission:"settings.manage" or request.user.is_superuser %}
+        <a class="nav-link nav-pill" href="{% url 'siteconfig:console_domains_hub' %}"><i class="bi bi-gear-wide me-2"></i>{% trans "System config" %}</a>
         {% endif %}
         <a class="nav-link nav-pill" href="{% url 'accounts:rbac' %}"><i class="bi bi-diagram-3 me-2"></i>RBAC & Access Control</a>
         <div class="sidebar-section-title">Academic Management</div>
@@ -206,16 +205,10 @@
         <a class="nav-link nav-pill" href="{% url 'studio_os:experience' %}"><i class="bi bi-palette me-2"></i>Customizer</a>
         <a class="nav-link nav-pill" href="{% url 'siteconfig:request_custom_requirement' %}"><i class="bi bi-lightning-charge me-2"></i>Request custom requirement</a>
         {% endif %}
-        {% if request.user.is_superuser and not is_backend_context %}
-        <a class="nav-link nav-pill" href="{% url 'admin:siteconfig_sitesettings_change' SITE_SETTINGS.pk|default_if_none:1 %}"><i class="bi bi-gear-wide me-2"></i>Site Settings</a>
-        <a class="nav-link nav-pill" href="{% url 'admin:global_registries_regionconfig_changelist' %}"><i class="bi bi-geo-alt me-2"></i>Region Configuration</a>
-        {% endif %}
         {% if SUPER_ADMIN_UI_ENABLED and request.public_host_kind == 'manager' %}{% if request.user.is_superuser or request.user.role == "SUPERADMIN" %}
         <a class="nav-link nav-pill" href="{% url 'super:dashboard' %}"><i class="bi bi-building me-2"></i>{% trans "Schools" %}</a>
         {% endif %}{% endif %}
-        {% if request.user.is_superuser %}
-        <a class="nav-link nav-pill" href="{% url 'admin:index' %}"><i class="bi bi-gear-wide-connected me-2"></i>{% trans "Configuration Engine" %}</a>
-        {% endif %}
+        
         {% endif %}
       {% endif %}
     {% endif %}

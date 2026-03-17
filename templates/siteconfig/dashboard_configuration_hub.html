@@ -12,7 +12,7 @@
     </div>
     <div class="card-body p-4">
       {% if not templates %}
-        <p class="text-muted">No dashboard templates defined yet. Create templates in <a href="{% url 'admin:siteconfig_dashboardtemplate_changelist' %}">Admin → Dashboard Templates</a>.</p>
+        <p class="text-muted">No dashboard templates defined yet. Create templates from the Dashboard hub.</p>
       {% else %}
         <form method="post" action="{% url 'siteconfig:dashboard_configuration_hub' %}">
           {% csrf_token %}

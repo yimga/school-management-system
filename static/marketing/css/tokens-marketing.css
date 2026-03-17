@@ -5,8 +5,9 @@
 :root {
   --mkt-primary: #0f172a;
   --mkt-primary-light: #1e293b;
-  --mkt-accent: #2563eb;
-  --mkt-accent-hover: #1d4ed8;
+  /* Brand accent: overridden in marketing base when PUBLIC_BRAND_MODE */
+  --mkt-accent: #f59e0b;
+  --mkt-accent-hover: color-mix(in srgb, var(--mkt-accent) 85%, #000);
   --mkt-hero-bg: #0f172a;
   --mkt-hero-bg-mid: #1e293b;
   --mkt-hero-bg-end: #334155;

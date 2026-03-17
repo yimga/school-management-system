@@ -1,12 +1,12 @@
 {% extends "control_plane_base.html" %}
 {% load i18n %}
 
-{% block cp_title %}{% trans "Edit site settings" %}{% endblock %}
+{% block cp_title %}{% trans "Edit site settings" %} — RunMyCampus Manager{% endblock %}
 
 {% block breadcrumbs %}
-<nav aria-label="breadcrumb">
+<nav aria-label="{% trans 'Breadcrumb' %}">
   <ol class="breadcrumb mb-0">
-    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Control Plane" %}</a></li>
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Dashboard" %}</a></li>
     <li class="breadcrumb-item"><a href="{{ system_config_url }}">{% trans "System config" %}</a></li>
     <li class="breadcrumb-item"><a href="{% url 'super:site_settings_list' %}">{% trans "Site settings" %}</a></li>
     <li class="breadcrumb-item active" aria-current="page">{% trans "Edit" %}</li>
@@ -15,27 +15,36 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-2">
-  <h1 class="h5 mb-3">{% trans "Edit site settings" %}</h1>
-  <form method="post" action="" class="card card-body bg-dark border-secondary" style="max-width: 32rem;">
-    {% csrf_token %}
-    {{ form.non_field_errors }}
-    {% for field in form %}
-    <div class="mb-3">
-      <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-      {{ field }}
-      {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors }}</div>{% endif %}
-      {% if field.help_text %}<div class="form-text text-muted">{{ field.help_text }}</div>{% endif %}
+<div class="container-fluid py-3" style="max-width: 640px;">
+  <header class="mb-4 pb-3 border-bottom border-secondary">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <div>
+        <div class="h6 text-uppercase text-white-50 mb-1">{% trans "Platform configuration" %}</div>
+        <h1 class="h4 mb-1 fw-bold text-white">{% trans "Edit site settings" %}</h1>
+        <p class="text-white-50 small mb-0">{% trans "Site name, theme, and defaults." %}</p>
+      </div>
+      <a href="{% url 'super:site_settings_list' %}" class="btn btn-outline-light btn-sm">{% trans "Back to list" %}</a>
     </div>
-    {% endfor %}
-    <div class="d-flex gap-2">
-      <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
-      <a href="{% url 'super:site_settings_list' %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
-      {% if admin_change_url %}
-      <a href="{{ admin_change_url }}" class="btn btn-outline-secondary ms-auto">{% trans "Open in backoffice" %}</a>
-      {% endif %}
-    </div>
-  </form>
-  <p class="mt-2"><a href="{{ system_config_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Back to System config" %}</a></p>
+  </header>
+
+  <div class="cp-overview-card border border-secondary rounded p-4">
+    <form method="post" action="">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+      {% for field in form %}
+      <div class="mb-3">
+        <label for="{{ field.id_for_label }}" class="form-label text-white">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors }}</div>{% endif %}
+        {% if field.help_text %}<div class="form-text text-white-50">{{ field.help_text }}</div>{% endif %}
+      </div>
+      {% endfor %}
+      <div class="d-flex gap-2 pt-2">
+        <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
+        <a href="{% url 'super:site_settings_list' %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
+        <a href="{{ system_config_url }}" class="btn btn-outline-secondary ms-auto">{% trans "System config" %}</a>
+      </div>
+    </form>
+  </div>
 </div>
 {% endblock %}

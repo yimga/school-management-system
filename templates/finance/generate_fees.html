@@ -12,12 +12,7 @@
 </div>
 
 {% if not plans %}
-  {% url 'admin:finance_feeplan_add' as fee_plan_add_url %}
-  {% url 'admin:finance_feeplan_changelist' as fee_plan_changelist_url %}
-  {% include "components/dashboard_empty_state.html" with icon="bi-receipt-cutoff" title="No fee plans yet" message="Create a fee plan to generate invoices for students. Fee plans define amounts per classroom and specialty." action_url=fee_plan_add_url action_text="Create a fee plan" %}
-  <p class="text-muted small mt-2 mb-0">
-    You can also <a href="{{ fee_plan_changelist_url }}">view and manage fee plans</a> in Admin.
-  </p>
+  {% include "components/dashboard_empty_state.html" with icon="bi-receipt-cutoff" title="No fee plans yet" message="Create a fee plan to generate invoices for students. Fee plans define amounts per classroom and specialty." action_url=generate_fees_back_url action_text="Open Finance" %}
 {% else %}
   {% if last_generated_count %}
   <div class="alert alert-success d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3" role="alert">

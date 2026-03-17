@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
+{% load i18n accounts_extras %}
 
 {% block title %}{% trans "Portal preferences" %} - {{ SITE.site_name|default:"Portal" }}{% endblock %}
 
@@ -14,9 +14,9 @@
           <strong>Personalize your portal.</strong>
           These settings only change what <em>you</em> see (theme, widgets, notifications). Full Site Settings stay locked to Admins.
         </div>
-        {% if request.user.is_superuser or request.user.role == "ADMIN" %}
-          <a class="btn btn-sm btn-outline-primary" href="{% url 'admin:siteconfig_sitesettings_change' SITE_SETTINGS.pk|default_if_none:1 %}">
-            Open Site Settings
+        {% if request.user.is_superuser or request.user.role == "ADMIN" or request.user|has_feature_permission:"settings.manage" %}
+          <a class="btn btn-sm btn-outline-primary" href="{% url 'siteconfig:console_domains_hub' %}">
+            {% trans "System config" %}
           </a>
         {% endif %}
       </div>
@@ -90,9 +90,9 @@
             <div class="d-flex flex-wrap gap-2 mt-3">
               <button type="submit" class="btn btn-primary" id="preferences-submit-btn">Save preferences</button>
               <a class="btn btn-outline-secondary btn-back-primary" href="{{ previous_page }}"><i class="bi bi-arrow-left me-1"></i>Back to dashboard</a>
-              {% if request.user.is_superuser or request.user.role == "ADMIN" %}
-                <a class="btn btn-outline-secondary" href="{% url 'admin:siteconfig_sitesettings_change' SITE_SETTINGS.pk|default_if_none:1 %}">
-                  Manage full Site Settings
+              {% if request.user.is_superuser or request.user.role == "ADMIN" or request.user|has_feature_permission:"settings.manage" %}
+                <a class="btn btn-outline-secondary" href="{% url 'siteconfig:console_domains_hub' %}">
+                  {% trans "System config" %}
                 </a>
               {% endif %}
             </div>

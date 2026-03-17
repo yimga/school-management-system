@@ -55,11 +55,7 @@
                   <td>{{ teacher.user.email|default:"-" }}</td>
                   <td>{{ teacher.department.name|default:"-" }}</td>
                   <td>
-                    {% if request.user.is_superuser %}
-                    <a href="{% url 'admin:people_teacherprofile_change' teacher.id %}" class="btn btn-sm btn-outline-warning" title="Edit in Configuration Engine">
-                      <i class="bi bi-gear"></i>
-                    </a>
-                    {% endif %}
+                    <span class="text-muted small">—</span>
                   </td>
                 </tr>
                 {% endfor %}

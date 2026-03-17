@@ -1,4 +1,5 @@
 import json
+import os
 from django.db import DatabaseError, connection, transaction
 from .models_support import build_platform_default_site_settings, default_header_weather_config
 from .translations import TranslationManager, SUPPORTED_LANGUAGES
@@ -563,6 +564,22 @@ def site_settings(request):
     ctx["PUBLIC_BRAND_NAME"] = "RunMyCampus"
     ctx["PUBLIC_BRAND_DOMAIN"] = "runmycampus.com"
     ctx["PUBLIC_BRAND_TAGLINE"] = ""  # Single-line brand only; no platform tagline anywhere
+    # Public brand palette: used by marketing/control-plane shells when PUBLIC_BRAND_MODE is true.
+    # Priority: RuntimeDefaults (admin-configurable) -> env -> stable defaults.
+    _primary = ""
+    _accent = ""
+    try:
+        from apps.platform_runtime.models import RuntimeDefaults
+
+        rd = RuntimeDefaults.get_singleton()
+        payload = (getattr(rd, "payload", None) or {}) if rd else {}
+        if isinstance(payload, dict):
+            _primary = str(payload.get("public_brand_primary_color") or "").strip()
+            _accent = str(payload.get("public_brand_accent_color") or "").strip()
+    except OPTIONAL_CONTEXT_ERRORS:
+        pass
+    ctx["PUBLIC_BRAND_PRIMARY_COLOR"] = _primary or os.getenv("PUBLIC_BRAND_PRIMARY_COLOR", "#0f172a")
+    ctx["PUBLIC_BRAND_ACCENT_COLOR"] = _accent or os.getenv("PUBLIC_BRAND_ACCENT_COLOR", "#f59e0b")
     if public_brand_mode:
         ctx["SITE_LOGO_URL"] = ""
         ctx["SITE_BRANDED_DOMAIN"] = "runmycampus.com"

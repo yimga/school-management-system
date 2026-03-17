@@ -23,6 +23,15 @@
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-shell.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/proof-pages.css' %}">
   <link rel="stylesheet" href="{% static 'css/platform-high-end.css' %}">
+  {% if PUBLIC_BRAND_MODE %}
+  <style>
+    :root{
+      --mkt-primary: {{ PUBLIC_BRAND_PRIMARY_COLOR|default:"#0f172a" }};
+      --mkt-hero-bg: {{ PUBLIC_BRAND_PRIMARY_COLOR|default:"#0f172a" }};
+      --mkt-accent: {{ PUBLIC_BRAND_ACCENT_COLOR|default:"#f59e0b" }};
+    }
+  </style>
+  {% endif %}
   <!-- §8.0.11 platform-wide: responsive and fluid layout on every page -->
   <link rel="stylesheet" href="{% static 'css/platform-responsive-touch.css' %}">
   <link rel="stylesheet" href="{% static 'css/platform-fluid-everywhere.css' %}">

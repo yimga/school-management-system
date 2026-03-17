@@ -5,98 +5,27 @@
 {{ block.super }}
 {% with theme=SITE_ADMIN_THEME|default:SITE_THEME %}
 <style>
-  /* Tenant-only: scoped school theme and different structure (Backend-first, not platform observability) */
-  .tenant-admin-index {
-    --tai-primary: var(--school-primary, {{ theme.primary_color|default:"#0d6efd" }});
-    --tai-accent: var(--school-accent, {{ theme.accent_color|default:"#198754" }});
-    --tai-surface: {{ theme.background_color|default:"#f8fafc" }};
-    --tai-card: #ffffff;
-    --tai-border: #e2e8f0;
-    --tai-text: #1e293b;
-    --tai-muted: #64748b;
-  }
-  body.control-plane-shell .tenant-admin-index {
-    --tai-surface: #0f172a;
-    --tai-card: #1e293b;
-    --tai-border: rgba(148, 163, 184, 0.25);
-    --tai-text: #f1f5f9;
-    --tai-muted: #94a3b8;
-  }
+  .tenant-admin-index { --tai-primary: var(--school-primary, {{ theme.primary_color|default:"#0d6efd" }}); --tai-accent: var(--school-accent, {{ theme.accent_color|default:"#198754" }}); --tai-surface: {{ theme.background_color|default:"#f8fafc" }}; --tai-card: #ffffff; --tai-border: #e2e8f0; --tai-text: #1e293b; --tai-muted: #64748b; }
+  body.control-plane-shell .tenant-admin-index { --tai-surface: #0f172a; --tai-card: #1e293b; --tai-border: rgba(148, 163, 184, 0.25); --tai-text: #f1f5f9; --tai-muted: #94a3b8; }
   .tenant-admin-index { max-width: 100%; padding: 24px; min-height: 100vh; background: var(--tai-surface); }
   #content-main .tenant-admin-index, #content .tenant-admin-index { background: var(--tai-surface); }
-
-  /* Tenant hero: one primary CTA = Backend Dashboard */
-  .tenant-admin-hero {
-    background: var(--tai-card);
-    border: 1px solid var(--tai-border);
-    border-radius: 16px;
-    padding: 28px 32px;
-    margin-bottom: 24px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-  }
+  .tenant-admin-hero { background: var(--tai-card); border: 1px solid var(--tai-border); border-radius: 16px; padding: 28px 32px; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
   body.control-plane-shell .tenant-admin-hero { box-shadow: 0 4px 24px rgba(0,0,0,0.2); }
   .tenant-admin-hero-label { font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--tai-muted); margin-bottom: 6px; }
   .tenant-admin-hero h1 { margin: 0 0 8px; font-size: 26px; font-weight: 800; color: var(--tai-text); }
   .tenant-admin-hero p { margin: 0 0 20px; color: var(--tai-muted); font-size: 15px; line-height: 1.5; }
   .tenant-admin-hero-actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
-  .tenant-admin-cta-primary {
-    display: inline-flex; align-items: center; gap: 8px; padding: 14px 28px; border-radius: 12px;
-    font-size: 16px; font-weight: 700; text-decoration: none; transition: all 0.2s;
-    background: var(--tai-primary); color: #fff; border: none;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.15);
-  }
+  .tenant-admin-cta-primary { display: inline-flex; align-items: center; gap: 8px; padding: 14px 28px; border-radius: 12px; font-size: 16px; font-weight: 700; text-decoration: none; transition: all 0.2s; background: var(--tai-primary); color: #fff; border: none; box-shadow: 0 4px 14px rgba(0,0,0,0.15); }
   .tenant-admin-cta-primary:hover { filter: brightness(1.08); transform: translateY(-2px); color: #fff; box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
-  .tenant-admin-cta-secondary {
-    display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 10px;
-    font-size: 14px; font-weight: 600; text-decoration: none; transition: all 0.2s;
-    background: transparent; color: var(--tai-muted); border: 2px solid var(--tai-border);
-  }
+  .tenant-admin-cta-secondary { display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 10px; font-size: 14px; font-weight: 600; text-decoration: none; transition: all 0.2s; background: transparent; color: var(--tai-muted); border: 2px solid var(--tai-border); }
   .tenant-admin-cta-secondary:hover { border-color: var(--tai-accent); color: var(--tai-accent); }
-
-  /* Configuration strip: different from superadmin — single row of quick links */
   .tenant-admin-section-title { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--tai-muted); margin-bottom: 14px; }
-  .tenant-admin-config-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
-  .tenant-admin-config-card {
-    background: var(--tai-card);
-    border: 1px solid var(--tai-border);
-    border-radius: 12px;
-    padding: 18px 20px;
-    transition: all 0.2s;
-    text-decoration: none;
-    color: inherit;
-    display: block;
-  }
-  .tenant-admin-config-card:hover { border-color: var(--tai-accent); box-shadow: 0 6px 18px rgba(0,0,0,0.08); transform: translateY(-2px); }
-  body.control-plane-shell .tenant-admin-config-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.25); }
-  .tenant-admin-config-card .icon { font-size: 24px; margin-bottom: 10px; display: block; }
-  .tenant-admin-config-card .title { font-size: 14px; font-weight: 700; color: var(--tai-text); margin: 0 0 4px; }
-  .tenant-admin-config-card .meta { font-size: 12px; color: var(--tai-muted); margin: 0; }
-
-  /* Backend tile: single large block (tenant primary action) */
-  .tenant-admin-backend-tile {
-    background: linear-gradient(135deg, var(--tai-primary) 0%, var(--tai-accent) 100%);
-    border: none;
-    border-radius: 16px;
-    padding: 32px;
-    margin-bottom: 28px;
-    color: #fff;
-    text-decoration: none;
-    display: block;
-    transition: all 0.25s;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-  }
-  .tenant-admin-backend-tile:hover { color: #fff; transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.18); }
-  .tenant-admin-backend-tile .eyebrow { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.9; margin-bottom: 6px; }
-  .tenant-admin-backend-tile .title { font-size: 22px; font-weight: 800; margin: 0 0 8px; }
-  .tenant-admin-backend-tile .sub { font-size: 14px; opacity: 0.9; margin: 0; }
-
-  .tenant-admin-tips { font-size: 0.875rem; line-height: 1.5; }
-
-  @media (max-width: 768px) {
-    .tenant-admin-index { padding: 16px; }
-    .tenant-admin-hero { padding: 20px; }
-    .tenant-admin-config-grid { grid-template-columns: 1fr 1fr; }
-  }
+  .tenant-admin-app-list { list-style: none; padding: 0; margin: 0; }
+  .tenant-admin-app-list li { background: var(--tai-card); border: 1px solid var(--tai-border); border-radius: 12px; margin-bottom: 8px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; }
+  .tenant-admin-app-list li:hover { border-color: var(--tai-accent); }
+  .tenant-admin-app-list a { color: var(--tai-text); text-decoration: none; }
+  .tenant-admin-app-list .app-models { font-size: 0.8rem; color: var(--tai-muted); margin-top: 0.35rem; }
+  @media (max-width: 768px) { .tenant-admin-index { padding: 16px; } .tenant-admin-hero { padding: 20px; } }
 </style>
 {% endwith %}
 {% endblock %}
@@ -126,81 +55,34 @@
   </div>
   {% endif %}
 
-  {% comment %} Tenant: Backend Dashboard is the primary action (single large tile) {% endcomment %}
-  <a href="{% url 'accounts:backend_dashboard' %}" class="tenant-admin-backend-tile">
-    <span class="eyebrow">{% trans "Your school" %}</span>
-    <div class="title">{% trans "Backend Dashboard" %}</div>
-    <p class="sub">{% trans "Operations, workflows, overview, and daily tasks. Start here." %}</p>
-  </a>
-
-  <p class="tenant-admin-tips text-muted small mb-3 mb-md-4">
-    <span class="me-2">{% trans "Tip:" %}</span>
-    <span>{% trans "Use the left sidebar to jump to any section, or pin frequently used pages." %}</span>
-    {% if not is_manager_host %}
-    <a href="{% url 'kb:kb_home' %}" class="ms-2 text-decoration-underline">{% trans "Help &amp; Knowledge Base" %}</a>
-    {% endif %}
-  </p>
-
   <header class="tenant-admin-hero">
-    <div class="tenant-admin-hero-label">{% trans "Configuration Engine" %}</div>
-    <h1>{% trans "System &amp; data for your school" %}</h1>
-    <p>{% trans "Manage site settings, users, academics, finance, and reports. For raw model editing and configuration, use the links below or the sidebar." %}</p>
+    <div class="tenant-admin-hero-label">{% trans "School backoffice" %}</div>
+    <h1>{% trans "Raw model CRUD only" %}</h1>
+    <p>{% trans "For configuration, workflows, and daily operations use System config and the Backend Console." %}</p>
     <div class="tenant-admin-hero-actions">
-      <a href="{% url 'accounts:backend_dashboard' %}" class="tenant-admin-cta-primary">
-        <i class="bi bi-speedometer2"></i> {% trans "Backend Dashboard" %}
+      <a href="{% url 'siteconfig:console_domains_hub' %}" class="tenant-admin-cta-primary">
+        <i class="bi bi-gear-wide-connected"></i> {% trans "Open System config" %}
       </a>
-      <a href="{% url 'admin:siteconfig_sitesettings_change' SITE_SETTINGS.pk|default_if_none:1 %}" class="tenant-admin-cta-secondary">{% trans "Site settings" %}</a>
-      <a href="{% url 'siteconfig:feature_control_panel' %}" class="tenant-admin-cta-secondary">{% trans "Feature control" %}</a>
+      <a href="{% url 'accounts:backend_dashboard' %}" class="tenant-admin-cta-secondary">
+        <i class="bi bi-speedometer2"></i> {% trans "Backend Console" %}
+      </a>
     </div>
   </header>
 
-  <div class="tenant-admin-section-title">{% trans "Quick configuration" %}</div>
-  <div class="tenant-admin-config-grid">
-    <a href="{% url 'accounts:backend_dashboard' %}" class="tenant-admin-config-card">
-      <span class="icon">📊</span>
-      <div class="title">{% trans "Backend" %}</div>
-      <p class="meta">{% trans "Overview &amp; workflows" %}</p>
-    </a>
-    <a href="{% url 'admin:siteconfig_sitesettings_change' SITE_SETTINGS.pk|default_if_none:1 %}" class="tenant-admin-config-card">
-      <span class="icon">⚙️</span>
-      <div class="title">{% trans "Site settings" %}</div>
-      <p class="meta">{% trans "Global school config" %}</p>
-    </a>
-    <a href="{% url 'admin:accounts_user_changelist' %}" class="tenant-admin-config-card">
-      <span class="icon">👤</span>
-      <div class="title">{% trans "Users" %}</div>
-      <p class="meta">{% trans "Accounts &amp; roles" %}</p>
-    </a>
-    <a href="{% url 'admin:people_studentprofile_changelist' %}" class="tenant-admin-config-card">
-      <span class="icon">👥</span>
-      <div class="title">{% trans "People" %}</div>
-      <p class="meta">{% trans "Students, teachers" %}</p>
-    </a>
-    <a href="{% url 'admin:app_list' 'academics' %}" class="tenant-admin-config-card">
-      <span class="icon">🎓</span>
-      <div class="title">{% trans "Academics" %}</div>
-      <p class="meta">{% trans "Years, classes" %}</p>
-    </a>
-    <a href="{% url 'admin:app_list' 'finance' %}" class="tenant-admin-config-card">
-      <span class="icon">💰</span>
-      <div class="title">{% trans "Finance" %}</div>
-      <p class="meta">{% trans "Invoices, fees" %}</p>
-    </a>
-    <a href="{% url 'admin:app_list' 'reports' %}" class="tenant-admin-config-card">
-      <span class="icon">📄</span>
-      <div class="title">{% trans "Reports" %}</div>
-      <p class="meta">{% trans "Transcripts" %}</p>
-    </a>
-    <a href="{% url 'analytics:master_sheet' %}" class="tenant-admin-config-card">
-      <span class="icon">📈</span>
-      <div class="title">{% trans "Master Sheet" %}</div>
-      <p class="meta">{% trans "Analytics" %}</p>
-    </a>
-    <a href="{% url 'reports:publish_term_results' %}" class="tenant-admin-config-card">
-      <span class="icon">📋</span>
-      <div class="title">{% trans "Publish results" %}</div>
-      <p class="meta">{% trans "Term reports" %}</p>
-    </a>
-  </div>
+  <div class="tenant-admin-section-title">{% trans "Applications (raw CRUD)" %}</div>
+  <p class="small text-muted mb-3">{% trans "Direct access to model changelists. For guided configuration use System config above." %}</p>
+  <ul class="tenant-admin-app-list">
+    {% for app in app_list %}
+    <li>
+      <div>
+        <a href="{% url 'admin:app_list' app.app_label %}">{{ app.name }}</a>
+        <div class="app-models">{% for model in app.models %}<a href="{{ model.admin_url }}">{{ model.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</div>
+      </div>
+      <a href="{% url 'admin:app_list' app.app_label %}" class="btn btn-sm btn-outline-secondary">{% trans "Open" %}</a>
+    </li>
+    {% empty %}
+    <li class="text-muted">{% trans "No applications available." %}</li>
+    {% endfor %}
+  </ul>
 </div>
 {% endblock %}

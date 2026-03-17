@@ -38,15 +38,9 @@
     {% endif %}
   </div>
   <div class="card-footer bg-light text-center">
-    {% if is_backend_context %}
     <a href="{% url 'accounts:backend_dashboard' %}" class="btn btn-sm btn-outline-secondary">
       <i class="fas fa-list"></i> {% trans "Back to Backend" %}
     </a>
-    {% else %}
-    <a href="{% url 'admin:index' %}" class="btn btn-sm btn-outline-secondary">
-      <i class="fas fa-list"></i> View Full Admin Log
-    </a>
-    {% endif %}
   </div>
 </div>
 

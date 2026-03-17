@@ -50,13 +50,12 @@
           <div class="segment-links">
             <a href="{% if request.public_host_kind == 'manager' %}{% url 'manager_help' %}{% else %}{% url 'kb:kb_home' %}{% endif %}"><i class="bi bi-book"></i> {% if request.public_host_kind == 'manager' %}Operator Help{% else %}Knowledge Base{% endif %}</a>
             {% if request.public_host_kind == 'manager' %}
-            <a href="{% url 'admin:index' %}"><i class="bi bi-shield-lock"></i> Platform Admin</a>
             <a href="{% url 'super:command_center' %}"><i class="bi bi-activity"></i> Command Center</a>
             {% elif request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' %}
               {% if is_backend_context %}
               <a href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-shield-lock"></i> Backend Dashboard</a>
               {% else %}
-              <a href="{% url 'admin:index' %}"><i class="bi bi-shield-lock"></i> Admin Documentation</a>
+              <a href="{% url 'siteconfig:console_domains_hub' %}"><i class="bi bi-shield-lock"></i> System config</a>
               {% endif %}
               <a href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-activity"></i> Activity Logs</a>
             {% endif %}

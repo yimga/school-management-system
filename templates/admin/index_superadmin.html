@@ -3,136 +3,55 @@
 
 {% block extrastyle %}
 {{ block.super }}
-{# Platform admin index: shared cp-hero, cp-panel, cp-overview-card from manager-control-plane.css (already in base_site) #}
 <style>
   body.admin-manager-shell #content { padding: 0 !important; margin: 0 !important; max-width: none !important; }
-  .cp-admin-index { padding: 1.5rem 1.5rem 2.5rem; }
-  .cp-admin-app-card { cursor: pointer; border-radius: 1.25rem; padding: 1.1rem; border: 1px solid var(--cp-panel-border); background: var(--cp-panel-bg); transition: all 0.25s; }
-  .cp-admin-app-card:hover { border-color: rgba(212, 175, 55, 0.5); background: rgba(212, 175, 55, 0.06); transform: translateY(-2px); box-shadow: var(--cp-shadow); }
-  .cp-admin-app-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.25rem; }
-  .cp-admin-app-card .cp-admin-app-icon { font-size: 1.75rem; margin-bottom: 0.5rem; display: block; }
-  .cp-admin-app-card .cp-admin-app-title { margin: 0 0 0.35rem; font-size: 1rem; font-weight: 700; color: var(--cp-text); }
-  .cp-admin-app-card .cp-admin-app-meta { margin: 0 0 0.75rem; font-size: 0.8rem; color: var(--cp-muted); }
-  .cp-admin-app-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-  .cp-admin-app-btn { padding: 0.35rem 0.75rem; font-size: 0.75rem; font-weight: 600; border-radius: 999px; border: 1px solid var(--cp-panel-border); background: rgba(255,255,255,0.05); color: var(--cp-muted); text-decoration: none; transition: 0.2s; }
-  .cp-admin-app-btn:hover { border-color: var(--platform-gold, #d4af37); color: var(--platform-gold); background: rgba(212,175,55,0.08); }
-  .cp-admin-index .cp-admin-tips { font-size: 0.875rem; line-height: 1.5; }
-  @media (max-width: 768px) { .cp-admin-index { padding: 1rem; } .cp-hero-grid { grid-template-columns: 1fr; } }
+  .cp-admin-index { padding: 1.5rem; max-width: 960px; }
+  .cp-admin-index .cp-hero { margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--cp-panel-border, rgba(255,255,255,0.1)); }
+  .cp-admin-index .cp-hero-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.35rem; }
+  .cp-admin-index .cp-hero-copy { font-size: 0.875rem; color: var(--cp-muted, rgba(255,255,255,0.6)); margin-bottom: 1rem; }
+  .cp-admin-app-list { list-style: none; padding: 0; margin: 0; }
+  .cp-admin-app-list li { border: 1px solid var(--cp-panel-border, rgba(255,255,255,0.1)); border-radius: 0.5rem; margin-bottom: 0.5rem; padding: 0.75rem 1rem; display: flex; align-items: center; justify-content: space-between; }
+  .cp-admin-app-list li:hover { background: rgba(255,255,255,0.04); }
+  .cp-admin-app-list a { color: inherit; text-decoration: none; }
+  .cp-admin-app-list .app-models { font-size: 0.8rem; color: var(--cp-muted); margin-top: 0.25rem; }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="cp-admin-index">
   {% if PREVIEW_MODE_ENABLED %}
-  <div class="cp-chip cp-chip-warning d-flex flex-wrap align-items-center justify-content-between mb-3">
-    <span><strong>Preview mode</strong> — {{ PREVIEW_BANNER_TEXT|default:PREVIEW_NOTE|default:"Sandbox data will not persist." }}</span>
-    <div class="d-flex gap-2 mt-2 mt-sm-0">
-      <a class="cp-admin-app-btn" href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">Toggle sandbox</a>
-      <a class="cp-admin-app-btn" href="{% url 'siteconfig:clear_preview' %}">Clear preview</a>
-    </div>
-  </div>
-  {% elif PREVIEW_TOGGLE_ENABLED %}
-  <div class="cp-chip cp-chip-healthy d-flex flex-wrap align-items-center justify-content-between mb-3">
-    <span><strong>Preview ready</strong> — {{ PREVIEW_BANNER_TEXT|default:"Staged changes can be reviewed without publishing." }}</span>
-    <a class="cp-admin-app-btn" href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">{{ PREVIEW_TOGGLE_LABEL }}</a>
-  </div>
-  {% endif %}
-  {% if FINANCE_REQUEST_ALERT_COUNT %}
-  <div class="cp-chip cp-chip-danger d-flex flex-wrap align-items-center justify-content-between mb-3">
-    <span><strong>{{ FINANCE_REQUEST_ALERT_COUNT }} pending finance access request{% if FINANCE_REQUEST_ALERT_COUNT != 1 %}s{% endif %}</strong></span>
-    <a class="cp-admin-app-btn" href="{{ FINANCE_REQUEST_LINK }}">Open finance inbox</a>
+  <div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between mb-3">
+    <span>Preview mode — {{ PREVIEW_BANNER_TEXT|default:"Sandbox data will not persist." }}</span>
+    <a class="btn btn-sm btn-light" href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">Toggle sandbox</a>
   </div>
   {% endif %}
 
-  <section class="cp-hero mb-4">
-    <div class="cp-hero-grid">
-      <div>
-        <div class="cp-eyebrow">{% trans "Platform Backoffice" %}</div>
-        <h1 class="cp-hero-title">{% trans "Platform Backoffice" %}</h1>
-        <p class="cp-hero-copy">
-          {% trans "System configuration and data. For operations, tenant health, and billing use the Control Plane." %}
-        </p>
-        <div class="cp-chip-row">
-          <span class="cp-chip cp-chip-healthy">Configuration &amp; data</span>
-          <span class="cp-chip">{{ app_list|length }} apps</span>
-        </div>
-      </div>
-      <div class="cp-hero-actions">
-        <div class="cp-action-stack">
-          <a href="{% url 'super:dashboard' %}" class="btn btn-primary cp-primary-action">{% trans "Control plane" %}</a>
-          <div class="cp-action-row">
-            <a href="{% url 'super:command_center' %}" class="btn btn-outline-light btn-sm">{% trans "Command center" %}</a>
-            <a href="{% url 'super:billing_dashboard' %}" class="btn btn-outline-light btn-sm">{% trans "Billing" %}</a>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="mt-3 pt-3" style="border-top: 1px solid var(--cp-panel-border);">
-      <span class="cp-panel-eyebrow d-block mb-2">{% trans "Quick config" %}</span>
-      <div class="cp-chip-row">
-        {% if SITE.pk %}
-        <a href="{% url 'admin:siteconfig_sitesettings_change' SITE.pk %}" class="cp-chip">{% trans "Site settings" %}</a>
-        {% else %}
-        <a href="{% url 'admin:siteconfig_sitesettings_changelist' %}" class="cp-chip">{% trans "Site settings" %}</a>
-        {% endif %}
-        <a href="{% url 'siteconfig:feature_control_panel' %}" class="cp-chip">{% trans "Feature Control" %}</a>
-        <a href="{% url 'siteconfig:theme_colors' %}" class="cp-chip">{% trans "Theme & Experience" %}</a>
-        <a href="{% url 'admin:global_registries_regionconfig_changelist' %}" class="cp-chip">{% trans "Region Config" %}</a>
-        {% if integrations_changelist_url %}<a href="{{ integrations_changelist_url }}" class="cp-chip">{% trans "Integrations" %}</a>{% endif %}
-      </div>
+  <section class="cp-hero">
+    <div class="cp-eyebrow">{% trans "Platform Backoffice" %}</div>
+    <h1 class="cp-hero-title">{% trans "Platform Backoffice" %}</h1>
+    <p class="cp-hero-copy">
+      {% trans "Raw model CRUD only. For configuration, workflows, and operations use System config." %}
+    </p>
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{% url 'siteconfig:console_domains_hub' %}" class="btn btn-primary btn-sm">{% trans "Open System config" %}</a>
+      <a href="{% url 'super:dashboard' %}" class="btn btn-outline-light btn-sm">{% trans "Control plane" %}</a>
     </div>
   </section>
 
-  <p class="cp-admin-tips text-muted mb-4">{% trans "Use the sidebar for apps and quick config. Switch to Control plane for tenant operations and dashboards." %}</p>
-
-  <div class="cp-overview-grid mb-4" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
-    <article class="cp-overview-card cp-overview-card-slate">
-      <span class="cp-overview-label">Platform status</span>
-      <strong class="cp-overview-value">Live</strong>
-      <span class="cp-overview-meta">All systems operational</span>
-    </article>
-    <article class="cp-overview-card cp-overview-card-slate">
-      <span class="cp-overview-label">Scope</span>
-      <strong class="cp-overview-value">Configuration &amp; data</strong>
-      <span class="cp-overview-meta">Model CRUD, site settings, feature flags</span>
-    </article>
-    <article class="cp-overview-card cp-overview-card-slate">
-      <span class="cp-overview-label">API health</span>
-      <strong class="cp-overview-value">Monitor</strong>
-      <span class="cp-overview-meta"><a href="{% url 'api_health' %}" target="_blank" rel="noopener noreferrer" class="text-warning">View API health</a></span>
-    </article>
-    <article class="cp-overview-card cp-overview-card-slate">
-      <span class="cp-overview-label">{% trans "Execution status" %}</span>
-      <strong class="cp-overview-value">Phases A–G done</strong>
-      <span class="cp-overview-meta">{% trans "§12 gates MET. Plan drives what we build; this UI is the result." %} <a href="{% url 'super:dashboard' %}" class="text-warning">{% trans "Control plane" %}</a> {% trans "for phase summary." %}</span>
-    </article>
-  </div>
-
-  <section class="cp-panel">
-    <div class="cp-panel-header">
+  <h2 class="h6 text-uppercase text-muted mb-2">{% trans "Applications" %}</h2>
+  <p class="small text-muted mb-3">{% trans "Direct access to model changelists. For guided configuration use System config above." %}</p>
+  <ul class="cp-admin-app-list">
+    {% for app in app_list %}
+    <li>
       <div>
-        <span class="cp-panel-eyebrow">Applications</span>
-        <h2 class="cp-panel-title">{% trans "Applications &amp; sections" %}</h2>
+        <a href="{% url 'admin:app_list' app.app_label %}">{{ app.name }}</a>
+        <div class="app-models">{% for model in app.models %}<a href="{{ model.admin_url }}">{{ model.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</div>
       </div>
-      <span class="cp-panel-stat">{{ app_list|length }} {% trans "Apps" %}</span>
-    </div>
-    <div class="cp-admin-app-grid">
-      {% for app in app_list %}
-      <article class="cp-admin-app-card" onclick="window.location='{% url 'admin:app_list' app.app_label %}'" role="button" tabindex="0" onkeydown="if(event.key==='Enter') window.location='{% url 'admin:app_list' app.app_label %}'">
-        <span class="cp-admin-app-icon">📦</span>
-        <h3 class="cp-admin-app-title">{{ app.name }}</h3>
-        <p class="cp-admin-app-meta">{% for model in app.models %}{{ model.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
-        <div class="cp-admin-app-actions">
-          <a href="{% url 'admin:app_list' app.app_label %}" class="cp-admin-app-btn">Open</a>
-          {% for model in app.models|slice:":3" %}
-          <a href="{{ model.admin_url }}" class="cp-admin-app-btn" onclick="event.stopPropagation()">{{ model.name }}</a>
-          {% endfor %}
-        </div>
-      </article>
-      {% empty %}
-      <p class="cp-overview-meta">{% trans "No applications available." %}</p>
-      {% endfor %}
-    </div>
-  </section>
+      <a href="{% url 'admin:app_list' app.app_label %}" class="btn btn-sm btn-outline-secondary">{% trans "Open" %}</a>
+    </li>
+    {% empty %}
+    <li class="text-muted">{% trans "No applications available." %}</li>
+    {% endfor %}
+  </ul>
 </div>
 {% endblock %}

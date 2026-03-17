@@ -18,21 +18,16 @@ def _config_context(request):
 
 @require_GET
 def super_site_settings_list(request):
-    """List platform SiteSettings; link to edit in super or open in backoffice. Phase 2."""
+    """List platform SiteSettings; edit via super. Config surface is System config (no admin residue)."""
     from apps.siteconfig.models import SiteSettings
 
     sites = list(SiteSettings.objects.all().order_by("id"))
-    try:
-        admin_changelist_url = reverse("admin:siteconfig_sitesettings_changelist")
-    except NoReverseMatch:
-        admin_changelist_url = None
     return render(
         request,
         "schools/super_site_settings_list.html",
         {
             **_config_context(request),
             "site_settings_list": sites,
-            "admin_changelist_url": admin_changelist_url,
         },
     )
 
@@ -71,10 +66,6 @@ def super_site_settings_edit(request, pk):
             return redirect("super:site_settings_list")
     else:
         form = SiteSettingsSuperForm(instance=site)
-    try:
-        admin_change_url = reverse("admin:siteconfig_sitesettings_change", args=[site.pk])
-    except NoReverseMatch:
-        admin_change_url = None
     return render(
         request,
         "schools/super_site_settings_edit.html",
@@ -82,7 +73,6 @@ def super_site_settings_edit(request, pk):
             **_config_context(request),
             "site": site,
             "form": form,
-            "admin_change_url": admin_change_url,
         },
     )
 
@@ -92,24 +82,16 @@ def super_site_settings_edit(request, pk):
 
 @require_GET
 def super_regions_list(request):
-    """List platform RegionConfig; link to backoffice. Phase 3."""
+    """List platform RegionConfig. Config surface is System config (no admin residue)."""
     from apps.global_registries.models import RegionConfig
 
     regions = list(RegionConfig.objects.all().order_by("code"))
-    admin_regions_url = None
-    for name in ("admin:global_registries_regionconfig_changelist", "admin:siteconfig_regionconfig_changelist"):
-        try:
-            admin_regions_url = reverse(name)
-            break
-        except NoReverseMatch:
-            continue
     return render(
         request,
         "schools/super_regions_list.html",
         {
             **_config_context(request),
             "regions": regions,
-            "admin_regions_url": admin_regions_url,
             "grading_list_url": reverse("super:grading_list"),
         },
     )
@@ -117,26 +99,18 @@ def super_regions_list(request):
 
 @require_GET
 def super_grading_list(request):
-    """List platform GradingScaleConfig; link to backoffice. Phase 3."""
+    """List platform GradingScaleConfig. Config surface is System config (no admin residue)."""
     from apps.global_registries.models import GradingScaleConfig
 
     grading_scales = list(
         GradingScaleConfig.objects.select_related("region").all().order_by("region__code", "scale_type")
     )
-    admin_grading_url = None
-    for name in ("admin:global_registries_gradingscaleconfig_changelist", "admin:siteconfig_gradingscaleconfig_changelist"):
-        try:
-            admin_grading_url = reverse(name)
-            break
-        except NoReverseMatch:
-            continue
     return render(
         request,
         "schools/super_grading_list.html",
         {
             **_config_context(request),
             "grading_scales": grading_scales,
-            "admin_grading_url": admin_grading_url,
             "regions_list_url": reverse("super:regions_list"),
         },
     )
@@ -147,19 +121,11 @@ def super_grading_list(request):
 
 @require_GET
 def super_plans_list(request):
-    """List platform Plan; link to backoffice. Phase 4."""
+    """List platform Plan. Config surface is System config (no admin residue)."""
     from apps.plans_entitlements.models import Plan, PlanAddon
 
     plans = list(Plan.objects.all().order_by("slug"))
     addons_count = PlanAddon.objects.count()
-    try:
-        admin_plans_url = reverse("admin:siteconfig_plan_changelist")
-    except NoReverseMatch:
-        admin_plans_url = None
-    try:
-        admin_addons_url = reverse("admin:siteconfig_planaddon_changelist")
-    except NoReverseMatch:
-        admin_addons_url = None
     return render(
         request,
         "schools/super_plans_list.html",
@@ -167,8 +133,6 @@ def super_plans_list(request):
             **_config_context(request),
             "plans": plans,
             "addons_count": addons_count,
-            "admin_plans_url": admin_plans_url,
-            "admin_addons_url": admin_addons_url,
         },
     )
 
@@ -178,21 +142,16 @@ def super_plans_list(request):
 
 @require_GET
 def super_feature_toggles_list(request):
-    """List platform FeatureToggleDefinition; link to backoffice. Phase 5."""
+    """List platform FeatureToggleDefinition. Config surface is System config (no admin residue)."""
     from apps.policies_rules.models import FeatureToggleDefinition
 
     definitions = list(FeatureToggleDefinition.objects.all().order_by("category", "key"))
-    try:
-        admin_url = reverse("admin:siteconfig_featuretoggledefinition_changelist")
-    except NoReverseMatch:
-        admin_url = None
     return render(
         request,
         "schools/super_feature_toggles_list.html",
         {
             **_config_context(request),
             "definitions": definitions,
-            "admin_url": admin_url,
         },
     )
 
@@ -202,16 +161,12 @@ def super_feature_toggles_list(request):
 
 @require_GET
 def super_incidents_list(request):
-    """List platform PlatformIncident; link to backoffice and pulse. Phase 8 optional."""
+    """List platform PlatformIncident; link to pulse. No admin residue."""
     from apps.observability.models import PlatformIncident
 
     incidents = list(
         PlatformIncident.objects.select_related("affected_school").all().order_by("-detected_at")[:200]
     )
-    try:
-        admin_url = reverse("admin:observability_platformincident_changelist")
-    except NoReverseMatch:
-        admin_url = None
     try:
         pulse_url = reverse("super:pulse")
     except NoReverseMatch:
@@ -222,7 +177,6 @@ def super_incidents_list(request):
         {
             **_config_context(request),
             "incidents": incidents,
-            "admin_url": admin_url,
             "pulse_url": pulse_url,
         },
     )
@@ -230,16 +184,12 @@ def super_incidents_list(request):
 
 @require_GET
 def super_billing_accounts_list(request):
-    """List platform BillingAccount; link to backoffice and billing dashboard. Phase 8 optional."""
+    """List platform BillingAccount; link to billing dashboard. No admin residue."""
     from apps.billing.models import BillingAccount
 
     accounts = list(
         BillingAccount.objects.select_related("school").all().order_by("school__name")[:200]
     )
-    try:
-        admin_url = reverse("admin:billing_billingaccount_changelist")
-    except NoReverseMatch:
-        admin_url = None
     try:
         billing_dashboard_url = reverse("super:billing_dashboard")
     except NoReverseMatch:
@@ -250,7 +200,6 @@ def super_billing_accounts_list(request):
         {
             **_config_context(request),
             "accounts": accounts,
-            "admin_url": admin_url,
             "billing_dashboard_url": billing_dashboard_url,
         },
     )
@@ -258,16 +207,12 @@ def super_billing_accounts_list(request):
 
 @require_GET
 def super_migration_runs_list(request):
-    """List platform MigrationRun; link to backoffice and migration cloud. Phase 8 optional."""
+    """List platform MigrationRun; link to migration cloud. No admin residue."""
     from apps.automation.models import MigrationRun
 
     runs = list(
         MigrationRun.objects.select_related("school", "triggered_by").all().order_by("-started_at")[:200]
     )
-    try:
-        admin_url = reverse("admin:automation_migrationrun_changelist")
-    except NoReverseMatch:
-        admin_url = None
     try:
         migration_cloud_url = reverse("super:migration_cloud")
     except NoReverseMatch:
@@ -278,7 +223,6 @@ def super_migration_runs_list(request):
         {
             **_config_context(request),
             "runs": runs,
-            "admin_url": admin_url,
             "migration_cloud_url": migration_cloud_url,
         },
     )

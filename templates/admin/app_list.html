@@ -45,13 +45,9 @@
     <h2 class="admin-sidebar-section-title">{% trans "School setup" %}</h2>
     <ul class="admin-sidebar-quick-list" style="list-style: none; margin: 0; padding: 0;">
       <li>
-        {% if SITE and SITE.pk %}
-        <a href="{% url 'admin:siteconfig_sitesettings_change' SITE.pk %}" class="admin-sidebar-link {% if 'siteconfig/sitesettings' in request.path %}active{% endif %}" aria-current="{% if 'siteconfig/sitesettings' in request.path %}page{% endif %}">
-        {% else %}
-        <a href="{% url 'admin:siteconfig_sitesettings_changelist' %}" class="admin-sidebar-link {% if 'siteconfig/sitesettings' in request.path %}active{% endif %}" aria-current="{% if 'siteconfig/sitesettings' in request.path %}page{% endif %}">
-        {% endif %}
+        <a href="{% url 'siteconfig:console_domains_hub' %}" class="admin-sidebar-link {% if '/siteconfig/console' in request.path or '/config' in request.path %}active{% endif %}">
           <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
-          <span class="admin-sidebar-link-text">{% trans "Site settings" %}</span>
+          <span class="admin-sidebar-link-text">{% trans "System config" %}</span>
         </a>
       </li>
       <li>
@@ -73,12 +69,6 @@
         <span class="admin-sidebar-chevron inline-flex items-center justify-center" :class="{ 'rotate-90': setupAdvancedOpen }" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></span>
       </h3>
       <ul class="admin-sidebar-quick-list" style="list-style: none; margin: 0; padding: 0;" x-show="setupAdvancedOpen" x-transition.50ms>
-        <li>
-          <a href="{% url 'admin:global_registries_regionconfig_changelist' %}" class="admin-sidebar-link {% if 'global_registries/regionconfig' in request.path %}active{% endif %}" aria-current="{% if 'global_registries/regionconfig' in request.path %}page{% endif %}">
-            <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-6-5.33-6-10a6 6 0 1 1 12 0c0 4.67-6 10-6 10Z"/><circle cx="12" cy="11" r="2.5"/></svg></span>
-            <span class="admin-sidebar-link-text">{% trans "Region Config" %}</span>
-          </a>
-        </li>
         <li>
           {% if integrations_changelist_url %}<a href="{{ integrations_changelist_url }}" class="admin-sidebar-link {% if 'integrations_marketplace/integration' in request.path %}active{% endif %}" aria-current="{% if 'integrations_marketplace/integration' in request.path %}page{% endif %}">
             <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M17.5 14.5a2.5 2.5 0 1 0 0 5h3"/><path d="M20.5 17h-3"/></svg></span>

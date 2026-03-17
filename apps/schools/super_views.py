@@ -60,10 +60,8 @@ CONTROL_PLANE_AUDIT_FAILURES = (
     ValueError,
 )
 def _safe_school_admin_change_url(school_id) -> str:
-    try:
-        return reverse("admin:schools_school_change", args=[school_id])
-    except NoReverseMatch:
-        return ""
+    # Admin URLs are not part of the product surface; keep placeholder for legacy call sites.
+    return ""
 
 
 def _safe_school_timeline_url(school_id) -> str:
@@ -144,10 +142,8 @@ def _resolve_registry_codes(model, raw_codes: list[str]) -> list:
 
 def _safe_registry_url():
     """URL to Global Registry (EducationSystemProfile CRUD in admin). Phase H."""
-    try:
-        return reverse("admin:siteconfig_educationsystemprofile_changelist")
-    except NoReverseMatch:
-        return ""
+    # Admin URLs are not part of the product surface.
+    return ""
 
 
 def _selected_system_names(school) -> list[str]:
@@ -444,7 +440,6 @@ def super_dashboard(request):
         .annotate(latest_event_created_at=Subquery(latest_event_query.values("created_at")[:1]))
     )
     for school in schools:
-        school.admin_edit_url = _safe_school_admin_change_url(school.pk)
         school.timeline_url = _safe_school_timeline_url(school.pk)
         school.sync_repair_url = reverse("super:sync_repair", args=[school.pk])
         school.selected_systems = _selected_system_names(school)
@@ -482,7 +477,6 @@ def super_dashboard(request):
         .annotate(student_count=Count("student_profiles", distinct=True))
     )
     for school in pending_schools:
-        school.admin_edit_url = _safe_school_admin_change_url(school.pk)
         school.timeline_url = _safe_school_timeline_url(school.pk)
         school.selected_systems = _selected_system_names(school)
     pending_approval_count = len(pending_schools)
@@ -825,7 +819,6 @@ def super_dashboard_v2(request):
         .annotate(student_count=Count("student_profiles", distinct=True))
     )
     for school in pending_schools:
-        school.admin_edit_url = _safe_school_admin_change_url(school.pk)
         school.timeline_url = _safe_school_timeline_url(school.pk)
         school.selected_systems = _selected_system_names(school)
         school.country_display = country_names.get(school.canonical_country_code, school.canonical_country_code or "Unassigned")
@@ -915,7 +908,6 @@ def super_dashboard_v2(request):
     recent_schools = sorted(schools, key=lambda school: (school.created_at, school.name), reverse=True)[:8]
 
     for school in schools:
-        school.admin_edit_url = _safe_school_admin_change_url(school.pk)
         school.timeline_url = _safe_school_timeline_url(school.pk)
         school.sync_repair_url = reverse("super:sync_repair", args=[school.pk])
         school.selected_systems = _selected_system_names(school)
@@ -1296,7 +1288,6 @@ def super_usage(request):
     for school in schools:
         school.api_usage = {k: v for (sid, k), v in usage_agg.items() if sid == school.pk}
         school.quota_limits_list = quotas.get(school.pk, [])
-        school.admin_edit_url = _safe_school_admin_change_url(school.pk)
     return render(
         request,
         "schools/super_usage.html",
@@ -1349,7 +1340,6 @@ def super_tenant_health(request):
         .order_by("name")
     )
     for school in schools:
-        school.admin_edit_url = _safe_school_admin_change_url(school.id)
         school.lifecycle = get_lifecycle_snapshot(school)
     return render(
         request,
@@ -1436,10 +1426,7 @@ def super_schools_list(request):
     paginator = Paginator(qs, 25)
     page_number = request.GET.get("page", 1)
     page = paginator.get_page(page_number)
-    try:
-        admin_schools_url = reverse("admin:schools_school_changelist")
-    except NoReverseMatch:
-        admin_schools_url = None
+    admin_schools_url = None
     return render(
         request,
         "schools/super_schools_list.html",
@@ -1587,7 +1574,7 @@ def super_command_center_v2(request):
     for row in risk_rows:
         school = row.get("school")
         if school is not None:
-            row["admin_edit_url"] = _safe_school_admin_change_url(school.pk)
+            row["admin_edit_url"] = ""
 
     return render(
         request,
@@ -1646,7 +1633,6 @@ def billing_dashboard(request):
             usage_agg[r["school_id"]] = r["total"]
     for school in trial_schools:
         school.api_requests = usage_agg.get(school.pk, 0)
-        school.admin_edit_url = _safe_school_admin_change_url(school.pk)
         school.trial_expired = school.trial_end_date and school.trial_end_date < timezone.now().date()
     account_summary = BillingAccount.objects.values("status").annotate(total=Count("id")).order_by("status")
     subscription_summary = TenantSubscription.objects.values("status").annotate(total=Count("id")).order_by("status")
@@ -1823,7 +1809,7 @@ def create_school_wizard(request):
             "education_levels": education_levels,
             "education_system_types": education_system_types,
             "education_templates_standard": education_templates_standard,
-            "school_admin_edit_template": _safe_school_admin_change_url("00000000-0000-0000-0000-000000000000"),
+            "school_admin_edit_template": "",
             "geo_city_search_min_chars": 1,
         },
     )

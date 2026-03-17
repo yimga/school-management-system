@@ -13,83 +13,109 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-2" data-page-archetype="decision-console" aria-labelledby="system-config-heading" aria-describedby="system-config-desc">
+<div class="container-fluid py-3" data-page-archetype="decision-console" style="max-width: 960px;" aria-labelledby="system-config-heading" aria-describedby="system-config-desc">
   <h1 id="system-config-heading" class="visually-hidden">{% trans "System config" %}</h1>
-  <p id="system-config-desc" class="visually-hidden">{% trans "Platform settings, configuration domains, and operational links in one place." %}</p>
+  <p id="system-config-desc" class="visually-hidden">{% trans "Operational hubs, configuration domains, and platform settings in one place." %}</p>
 
-  <section class="cp-hero mb-4" aria-labelledby="system-config-hero-title">
+  <header class="mb-4 pb-3 border-bottom border-secondary">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
       <div>
-        <div class="cp-eyebrow">{% trans "Platform Settings" %}</div>
-        <h2 id="system-config-hero-title" class="cp-hero-title mb-1">{% trans "System config" %}</h2>
-        <p class="cp-hero-copy mb-0">{% trans "One place for platform configuration: site settings, regions, plans, feature toggles, AI models, and configuration domains. Outcomes, not jargon." %}</p>
+        <h2 id="system-config-hero-title" class="h4 mb-1 fw-bold text-white">{% trans "System config" %}</h2>
+        <p class="text-white-50 small mb-0">{% trans "One place for workflows, approvals, import, documents, reports, RBAC, feature control, and configuration. No separate backoffice — everything integrated here." %}</p>
       </div>
-      {% if super_dashboard_url %}
-      <a href="{{ super_dashboard_url }}" class="btn btn-outline-light btn-sm">{% trans "Back to dashboard" %}</a>
-      {% endif %}
+      <div class="d-flex flex-wrap gap-2">
+        {% if studio_shell_url %}
+        <a href="{{ studio_shell_url }}" class="btn btn-primary btn-sm">{% trans "Open Studio OS" %} <i class="bi bi-arrow-right ms-1"></i></a>
+        {% endif %}
+        {% if super_dashboard_url %}
+        <a href="{{ super_dashboard_url }}" class="btn btn-outline-light btn-sm">{% trans "Back to dashboard" %}</a>
+        {% endif %}
+      </div>
+    </div>
+  </header>
+
+  {% if operational_hubs %}
+  <section class="mb-4" aria-labelledby="hubs-heading">
+    <h2 id="hubs-heading" class="h6 text-uppercase text-white-50 mb-2">{% trans "Operational hubs" %}</h2>
+    <p class="small text-white-50 mb-3">{% trans "Workflows, approvals, import/export, documents, reports, RBAC, feature control, and communications." %}</p>
+    <ul class="list-unstyled mb-0 sysconfig-hub-list">
+      {% for hub in operational_hubs %}
+      <li class="mb-2">
+        <a href="{{ hub.url }}" class="d-flex align-items-center gap-2 text-white text-decoration-none py-2 px-3 rounded sysconfig-hub-link">
+          <span class="bi {{ hub.icon }} text-primary"></span>
+          <span>{{ hub.label }}</span>
+          <span class="bi bi-chevron-right ms-auto opacity-75"></span>
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  <section class="mb-4" aria-labelledby="domains-heading">
+    <h2 id="domains-heading" class="h6 text-uppercase text-white-50 mb-2">{% trans "Configuration domains" %}</h2>
+    <p class="small text-white-50 mb-3">{% trans "Brand, runtime, policies, plans, registries, integrations. Search, preview, compare, audit where available." %}</p>
+    <div class="row g-2">
+      {% for domain in domains %}
+      <div class="col-12 col-md-6">
+        <div class="border border-secondary rounded p-3 h-100">
+          <div class="fw-semibold text-white small mb-1">{{ domain.name }}</div>
+          <p class="small text-white-50 mb-2">{{ domain.outcome }}</p>
+          <div class="d-flex flex-wrap gap-1">
+            {% for link in domain.resolved_links %}
+            {% if link.url != '#' %}
+            <a href="{{ link.url }}" class="btn btn-sm btn-outline-secondary">{{ link.label }}</a>
+            {% endif %}
+            {% endfor %}
+            {% if domain.search_url %}<a href="{{ domain.search_url }}" class="btn btn-sm btn-outline-secondary">{% trans "Search" %}</a>{% endif %}
+            {% if domain.audit_url %}<a href="{{ domain.audit_url }}" class="btn btn-sm btn-outline-secondary">{% trans "Audit" %}</a>{% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
     </div>
   </section>
 
   {% if platform_config %}
   <section class="mb-4" aria-labelledby="platform-config-heading">
-    <h2 id="platform-config-heading" class="h6 text-uppercase mb-3 cp-eyebrow">{% trans "Platform configuration" %}</h2>
-    <div class="row g-3" role="list">
+    <h2 id="platform-config-heading" class="h6 text-uppercase text-white-50 mb-2">{% trans "Platform configuration" %}</h2>
+    <p class="small text-white-50 mb-3">{% trans "Site settings, regions, plans, feature toggles, AI registry." %}</p>
+    <div class="d-flex flex-wrap gap-2">
       {% for card in platform_config %}
-      <div class="col-12 col-sm-6 col-lg-4" style="min-width: 0;" role="listitem">
-        <article class="cp-overview-card h-100 d-flex flex-column" aria-labelledby="platform-{{ card.code }}-title">
-          <span id="platform-{{ card.code }}-title" class="cp-overview-label"><span class="bi {{ card.icon }} me-1" aria-hidden="true"></span>{{ card.name }}</span>
-          <p class="cp-overview-meta small mb-2 flex-grow-1">{{ card.outcome }}</p>
-          <nav class="mt-auto" aria-label="{% trans 'Actions' %}">
-            {% for link in card.links %}
-            <a href="{{ link.url }}" class="btn btn-sm btn-outline-light me-1 mb-1">{{ link.label }}</a>
-            {% endfor %}
-          </nav>
-        </article>
-      </div>
+        {% for link in card.links %}
+        <a href="{{ link.url }}" class="btn btn-sm btn-outline-light d-inline-flex align-items-center gap-1">
+          <span class="bi {{ card.icon }}"></span>
+          {{ card.name }}{% if card.links|length > 1 %}: {{ link.label }}{% endif %}
+        </a>
+        {% endfor %}
       {% endfor %}
     </div>
   </section>
   {% endif %}
-
-  <section class="mb-4" aria-labelledby="domains-heading">
-    <h2 id="domains-heading" class="h6 text-uppercase mb-3 cp-eyebrow">{% trans "Configuration domains" %}</h2>
-    <p class="small text-muted mb-3">{% trans "Guided links: search, preview, compare, audit, rollback where available." %}</p>
-    <div class="row g-3" role="list">
-      {% for domain in domains %}
-      <div class="col-12 col-md-6 col-lg-4" style="min-width: 0;" role="listitem">
-        <article class="cp-overview-card h-100 d-flex flex-column" aria-labelledby="domain-{{ domain.code }}-title">
-          <span id="domain-{{ domain.code }}-title" class="cp-overview-label">{{ domain.name }}</span>
-          <p class="cp-overview-meta small mb-2 flex-grow-1">{{ domain.outcome }}</p>
-          <nav class="mb-2" aria-label="{% trans 'Domain links' %}">
-            <ul class="list-unstyled mb-0 small">
-              {% for link in domain.resolved_links %}
-              <li><a href="{{ link.url }}" class="text-white-50 text-decoration-none"{% if link.url == '#' %} aria-disabled="true"{% endif %}>{{ link.label }}</a></li>
-              {% endfor %}
-            </ul>
-          </nav>
-          <div class="mt-auto pt-2 border-top border-secondary small d-flex flex-wrap gap-2" role="group" aria-label="{% trans 'Actions' %}">
-            {% if domain.search_url %}<a href="{{ domain.search_url }}" class="cp-chip">{% trans "Search" %}</a>{% endif %}
-            {% if domain.preview_url %}<a href="{{ domain.preview_url }}" class="cp-chip">{% trans "Preview" %}</a>{% endif %}
-            {% if domain.diff_url %}<a href="{{ domain.diff_url }}" class="cp-chip">{% trans "Compare" %}</a>{% endif %}
-            {% if domain.audit_url %}<a href="{{ domain.audit_url }}" class="cp-chip">{% trans "Audit" %}</a>{% endif %}
-            {% if domain.rollback_url %}<a href="{{ domain.rollback_url }}" class="cp-chip">{% trans "Rollback" %}</a>{% endif %}
-          </div>
-        </article>
-      </div>
-      {% endfor %}
-    </div>
-  </section>
 
   {% if operational_links %}
-  <section class="cp-panel py-3" aria-labelledby="operational-heading">
-    <h2 id="operational-heading" class="h6 text-uppercase mb-2 cp-eyebrow">{% trans "Operational links" %}</h2>
-    <p class="small text-muted mb-2">{% trans "Quick access to schools, incidents, billing, and migration." %}</p>
-    <div class="cp-chip-row d-flex flex-wrap gap-2">
+  <section class="mb-4" aria-labelledby="operational-heading">
+    <h2 id="operational-heading" class="h6 text-uppercase text-white-50 mb-2">{% trans "Quick access" %}</h2>
+    <div class="d-flex flex-wrap gap-2">
       {% for op in operational_links %}
-      <a href="{{ op.url }}" class="cp-chip text-decoration-none">{{ op.label }}</a>
+      <a href="{{ op.url }}" class="btn btn-sm btn-outline-secondary">{{ op.label }}</a>
       {% endfor %}
     </div>
   </section>
   {% endif %}
+
+  {% if admin_index_url %}
+  <footer class="pt-3 mt-3 border-top border-secondary">
+    <p class="small text-white-50 mb-0">
+      {% trans "Raw model CRUD (Django admin):" %}
+      <a href="{{ admin_index_url }}" class="text-white-50 text-decoration-underline">{% trans "Open in backoffice" %}</a>
+    </p>
+  </footer>
+  {% endif %}
 </div>
+
+<style>
+.sysconfig-hub-list .sysconfig-hub-link { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); }
+.sysconfig-hub-list .sysconfig-hub-link:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.15); color: #fff; }
+</style>
 {% endblock %}

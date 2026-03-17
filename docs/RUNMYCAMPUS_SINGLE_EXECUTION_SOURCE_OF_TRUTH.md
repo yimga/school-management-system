@@ -96,6 +96,150 @@ Other gaps (raw SQL, broad exceptions, additive growth) remain; these six are th
 
 ---
 
+# 0.1 Vision: one-stop-shop ecosystem
+
+## North star
+
+RunMyCampus is the **one ecosystem for education**: the Shopify, Google, Salesforce, Amazon, and Apple of school management and education systems. We cover **everything at every level**—identity, SIS, teaching & learning (native or integrated), finance, advancement, communication, reporting, and operations—so that once a school or system enters our ecosystem, **they do not need anything else**. Single school, network, district, or ministry: one platform, one experience, one stop shop.
+
+## What each benchmark means for RunMyCampus
+
+| Benchmark | Meaning for RunMyCampus |
+|-----------|-------------------------|
+| **Shopify** | Any school can run a full operation; beautiful, simple, extensible (packs/marketplace); no heavy IT. |
+| **Google** | One identity, one ecosystem: SIS, portal, comms, learning tools, admin—no second login or second vendor for core ops. |
+| **Salesforce** | One system of record + workflows + ecosystem (marketplace); one source of truth for students, staff, families, donors. |
+| **Amazon** | Find any capability (reports, workflows, integrations, add-ons); get it installed and running; trust the platform. |
+| **Apple** | End-to-end experience: admin, teachers, parents, students, finance, advancement—one design language, one support story. |
+
+## "Everything at every level" in practice
+
+- **Identity & access:** One login, one directory (students, staff, guardians, alumni, donors); SSO; roles and permissions everywhere.
+- **School operations (SIS/MIS):** Admissions, enrollment, scheduling, attendance, grading, transcripts, reporting, compliance—school, network, district.
+- **Teaching & learning:** Curriculum, assignments, gradebook, assessments; built-in or deep integration with Google/Microsoft/Canvas so learning stays inside the same ecosystem; we are the spine.
+- **Finance:** Fees, billing, payments, aid, receipts, splits, reporting—school and network (and district/ministry where we play).
+- **Advancement:** Donors, campaigns, funds, gifts, acknowledgments—same identity graph as students and families.
+- **Communication:** Announcements, messaging, parent/student portal, document sharing—one place.
+- **Reporting & analytics:** Dashboards, report packs, exports, government returns—configurable by role, region, pack.
+- **Integrations & marketplace:** Apps, packs, connectors (LMS, payments, SMS, accounting) so anything extra is from the ecosystem.
+- **Support & success:** Help, onboarding, health, trust center, compliance—part of the product.
+
+**Every level:** Same platform scales by configuration—single school, network/trust, district, ministry/global—not a different product per tier.
+
+## Stacking order
+
+We do **not** chase the full vision by building every segment in parallel. We **stack**: (1) solidify the **foundation** (§0.3), then (2) execute the **competitive obliteration roadmap** (§0.2) in sequence, so the platform becomes the one-stop shop step by step.
+
+---
+
+# 0.2 Competitive obliteration roadmap
+
+Execution order so we outcompete without spreading thin. Each phase builds on the previous; foundation (§0.3) is assumed solid before Phase 1.
+
+| Order | Focus | Obliterate / outflank |
+|-------|--------|------------------------|
+| **1** | International K–12 SIS (Gradelink, iSAMS, Veracross, ManageBac as SIS) | Best SIS + billing + reporting + setup speed; IB/UK packs; one "international school" go-to-market. |
+| **2** | LMS integration (Google, Microsoft, Canvas) | Be the SIS of record; SSO + roster + grade passback; "one SIS, any LMS" positioning. |
+| **3** | UK / British-curriculum (Arbor, Bromcom, SIMS) | UK region pack + UK report/workflow packs; British international and new UK trusts. |
+| **4** | District / enterprise (Infinite Campus, PowerSchool, SAP/Oracle) | District control plane, trust center, APIs; "modern district SIS + ecosystem"; integrate with big ERP. |
+| **5** | Advancement (Blackbaud, Salesforce NPSP) | Alumni/donor in identity graph; campaigns, funds, gifts, receipts; one platform for small/mid schools. |
+| **6** | Higher-ed (Ellucian, Oracle, SAP, Unit4) | After K–12 wedge proven; HE packs and positioning; mid-size HE first. |
+
+**Principle:** Obliterate where we have the wedge (SIS, billing, reporting, platform); outflank or integrate where incumbents are entrenched (LMS, big ERP). Own the system of record and the workflow; make RunMyCampus the spine.
+
+---
+
+# 0.3 Foundation prerequisites (stacking order)
+
+Before we stack the competitive roadmap and full one-stop-shop capability, the **foundation** must be solid. The following pillars are prerequisites; work in §2–§12 and the backlog must satisfy or explicitly advance them. Do not claim the platform is ready for the vision until these are met.
+
+## Pillars
+
+### 1. Architecture
+
+- [x] Runtime is the only legal tenant behavior engine (§3.2; get_effective_site_settings runtime-first; lint_tenant_settings; contract tests).
+- [x] Bounded contexts defined and enforced (§3.1; lint_bounded_context_imports; lint_siteconfig_legacy_imports).
+- [x] Metadata first-class: catalog, lineage, governance, lifecycle (§3.3).
+- [ ] No remaining structural tech debt that blocks scale (giant files split; side roads removed; orchestration clear). *Ongoing per §6 and LEGACY_PATH_INVENTORY.*
+- [ ] Multi-tenant isolation and data residency options documented and verifiable. *Per TENANT_ISOLATION_CONTRACT and architecture docs.*
+
+**Gate:** Architecture supports single-school → network → district → ministry without redesign. §3 completion gates MET; incremental cleanup tracked in backlog.
+
+### 2. Ecosystem (marketplace, packs, extensibility)
+
+- [x] Package engine: validate / preview / apply / rollback / promote (§12; apps/packages/engine.py; tests in pre_deploy_gate).
+- [x] Marketplace: app catalog, blueprints, workflows, dashboards, policies; Install to sandbox; Apply/Preview/Rollback (§7 seeding; MARKETPLACE_SEED_TARGETS; test_marketplace_catalog_minimums).
+- [x] Packs as products: ReportPack, DocumentPack, ExperiencePack; versioned, previewable, rollbackable where implemented (§1.3; §4).
+- [ ] Trust model: app scopes, permissions, security review for marketplace listings; dependency graph and impact preview for pack apply. *Per Enterprise Audit §2; incremental.*
+- [ ] Developer-facing API docs, versioning, and sandbox for third-party apps. *Per apicenter_integration_governance; API Center.*
+
+**Gate:** Ecosystem is productized and trustable; new capability can ship via packs or marketplace without core code change for many cases. §12 marketplace/packs gate MET; trust and developer experience incremental.
+
+### 3. Security and compliance
+
+- [x] AI/provider secrets safe; no browser exposure; lint_secret_exposure (§2.3; §12).
+- [x] Public surfaces audited and justified; csrf_exempt/AllowAny/raw SQL linted; billing/finance webhooks signed (§2.4; public_endpoint_audit; §12).
+- [x] Gilead residue removed from live/default-facing surfaces (§2.2; migration 0155; lint_gilead_residue).
+- [ ] Trust-center-grade governance: clear data handling, retention, breach response, compliance (e.g. FERPA, GDPR) documented and auditable. *SECURITY_REVIEW_LOG; Trust center UI; incremental.*
+- [ ] Rate limiting, replay protection, and noisy-neighbor controls where required. *Per public_endpoint_audit manual_review; backlog.*
+
+**Gate:** Security is boringly solid; no known secret leakage or unjustified public endpoints. §12 security gates MET; trust center and compliance docs incremental.
+
+### 4. Integration / trust / API (external)
+
+- [x] API Center direction and integration governance (docs/apicenter_integration_governance.md).
+- [x] Webhook signature verification for billing/finance (§2.4; 401 on invalid signature).
+- [ ] Versioned external API contracts and compatibility guarantees; webhook retry and idempotency. *Incremental.*
+- [ ] SSO and roster export (and LTI where needed) for "one SIS, any LMS" and Clever/ClassLink-style flows. *Roadmap Phase 2.*
+- [ ] Documented integration patterns and trust signals (certification, scopes, audit) for marketplace and partners. *Per §0.3 Ecosystem.*
+
+**Gate:** Critical integrations (payments, webhooks) are secure and versioned; external API and LMS/SSO roadmap clear and tracked.
+
+### 5. Internal API (platform-to-platform, services)
+
+- [x] Internal metadata/lineage APIs; runtime resolver contracts; control-plane APIs.
+- [ ] Consistent internal API style: auth, errors, pagination, versioning for all service-to-service or admin-to-service calls. *Incremental; api/internal/* and super_views.*
+- [ ] Event bus or event-driven patterns for high-impact flows (e.g. pack apply, migration, report generation) where async is required. *Per Enterprise Audit §3; backlog.*
+
+**Gate:** Internal APIs are consistent and documented; no ad-hoc back doors for tenant behavior. Current state: key internal APIs exist; style and event-driven expansion incremental.
+
+### 6. Premium / luxury UI/UX
+
+- [x] Studio OS: shell + five hubs (Experience, Automation, Output, Launch, Control) with rail + iframe (§4; §12).
+- [x] Role-native UX and low-click direction; role_home_engine; command palette; page archetypes (§1.5; §8.0.3).
+- [x] Design tokens and theme/experience system; compare/publish/rollback for experience (§5.1; §4.2).
+- [ ] Premium/luxury bar: every key flow meets "ultra high-end" (§8.0, §8.0.11)—no placeholder quality; responsive, accessible, fast. *Phase H "properly seeded" PARTIAL; full manual pass at release.*
+- [ ] Global sidebar cleanup; consistent low-click flows across portal/backend/evals/academics; touring/onboarding where needed. *§1.8 improvements; §8.0.4–8.0.7.*
+
+**Gate:** UI/UX is role-native, low-click, and visually undeniable; Studio OS is the single operator home. §12 Studio OS gate MET; premium bar and consistency incremental per §1.8.
+
+### 7. Other foundation (localization, control plane, migration, docs)
+
+- [x] RegionConfig and global-first localization; registries; multi-tenant from day one (§0; bounded contexts).
+- [x] Control plane: super admin, tenant 360, migration cloud, customer success, trust center, usage/billing (schools/control_plane_nav; super_views).
+- [x] Migration and onboarding direction (Launch Studio; setup studio; guided onboarding).
+- [x] Docs truth: single source of truth in this file; no contradictory completion claims; §12 authority. *DOCS_TRUTH_AUDIT; BACKLOG §6.3.*
+
+**Gate:** Platform is global-ready, operator-ready, and migration-ready; docs align with reality. Current state: MET for scope above; continuous improvement per §1.8.
+
+---
+
+## Foundation summary
+
+| Pillar | Status | Gate |
+|--------|--------|------|
+| 1. Architecture | Largely MET (§3) | Scale path clear; incremental cleanup |
+| 2. Ecosystem | Largely MET (§7, §12) | Trust model and dev experience incremental |
+| 3. Security & compliance | Largely MET (§2, §12) | Trust center and compliance docs incremental |
+| 4. Integration / trust / API (external) | PARTIAL | Contracts and LMS/SSO roadmap tracked |
+| 5. Internal API | PARTIAL | Style and event-driven expansion incremental |
+| 6. Premium / luxury UI/UX | PARTIAL | §12 MET; premium bar and consistency incremental |
+| 7. Other (localization, control plane, migration, docs) | MET | Continuous improvement |
+
+**Rule:** Before prioritizing net-new "vision" features (e.g. full advancement module, HE packs), ensure the foundation row above is at least **PARTIAL** with a clear path to **MET**. Stacking the competitive roadmap (§0.2) on a weak foundation will not get us to the one-stop shop.
+
+---
+
 # 1. Master operating principles
 
 ## 1.1 Runtime is the law
@@ -1276,7 +1420,9 @@ RunMyCampus is no longer a single-school product.
 
 RunMyCampus is a serious multi-tenant platform in transition.
 
-To become the north star — the Shopify / Salesforce / AWS / Amazon Marketplace of education — the next phase must be:
+**Vision (§0.1):** We are building the one ecosystem for education—the Shopify, Google, Salesforce, Amazon, and Apple of school management—so that once a school or system enters our ecosystem, they need nothing else. **Foundation (§0.3)** must be solid before we stack the full competitive roadmap (§0.2).
+
+To reach that north star, the next phase must be:
 - more subtractive
 - more disciplined
 - more runtime-governed
