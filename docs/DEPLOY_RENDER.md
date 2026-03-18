@@ -61,12 +61,12 @@ That script runs Gunicorn with `config/gunicorn.conf.py`, which sets `bind = "0.
 
 ## Predeploy flow
 
-`scripts/release/render_predeploy.sh` performs:
+`scripts/release/render_predeploy.sh` performs (see script for env toggles):
 
-1. `migrate --noinput`
+1. **Migrations:** `migrate_schemas --shared` + `ensure_tenant_schemas` + `migrate_schemas --tenant` + `migrate_schools_to_tenants`, then **second** `migrate_schemas --tenant` (covers new school schemas). Non-tenant: `migrate --noinput`.
 2. `seed_admin_dashboard_palettes`
-3. Optional UI fixture import (when `APPLY_UI_FIXTURE_ON_DEPLOY=1`)
+3. Optional UI fixture import (`APPLY_UI_FIXTURE_ON_DEPLOY=1`) + tenant migrate before import when tenant mode
 4. `normalize_ui_config`
 5. `integration_preflight` (when `RUN_INTEGRATION_PREFLIGHT=1`)
-6. `seed_render_users` (always; tenant demo users only when `ADMIN_PASSWORD` is set)
-7. `bootstrap_platform_catalog` (when `RUN_BOOTSTRAP_PLATFORM_CATALOG=1`) — runs with `--all` (full bootstrap) by default; set `RUN_MINIMAL_BOOTSTRAP=1` for blueprint + marketplace only. See [BOOTSTRAP_PLATFORM_CATALOG.md](./BOOTSTRAP_PLATFORM_CATALOG.md).
+6. **`seed_render_users`** — when `USE_DJANGO_TENANTS=1`, runs **`migrate_schemas --tenant`** again immediately before seeding so tenant tables (e.g. `people_teacherprofile.updated_at`) match models even if an earlier step was skipped.
+7. `collectstatic`, optional `bootstrap_platform_catalog`, health check.

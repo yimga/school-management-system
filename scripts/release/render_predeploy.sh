@@ -34,6 +34,8 @@ if [[ "${SKIP_DB_MIGRATIONS:-0}" != "1" ]]; then
     run "${PYTHON_BIN}" manage.py migrate_schemas --tenant --noinput
     # Ensure every active school has Client + Domain (canonical base domain); idempotent.
     run "${PYTHON_BIN}" manage.py migrate_schools_to_tenants
+    # New schools may get schemas here; apply tenant migrations again before later steps.
+    run "${PYTHON_BIN}" manage.py migrate_schemas --tenant --noinput
   else
     run "${PYTHON_BIN}" manage.py migrate --noinput
   fi

@@ -22,6 +22,15 @@ class Command(BaseCommand):
     )
 
     def handle(self, *args, **options):
+        # Ensure tenant DB schema matches models (e.g. people.0040 updated_at) before any
+        # TeacherProfile query. Fixes Render predeploy when migrate step was skipped or a
+        # tenant schema was created after the last migrate_schemas --tenant.
+        from django.conf import settings
+
+        if getattr(settings, "USE_DJANGO_TENANTS", False):
+            self.stdout.write("Running migrate_schemas --tenant (before user seed)...")
+            call_command("migrate_schemas", "--tenant", "--noinput", verbosity=1)
+
         tenant_slug = (os.environ.get("DEFAULT_TENANT_SLUG") or "").strip()
         tenant_admin_username = (
             os.environ.get("DEFAULT_TENANT_ADMIN_USERNAME") or "tenant_admin"
